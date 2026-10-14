@@ -1,0 +1,1440 @@
+{
+  "schema": 1,
+  "conclusion": "Same upstream selection, sequential failure handling, session preference/reuse and recovery policy under the tested defaults. IPv4 TCP loss exceeds the short client deadline in both C and Rust; no product change. Measured latency is not identical.",
+  "product_changes": false,
+  "base_main": "7abea9fa",
+  "frozen_product_source": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+  "ELF_sha256": {
+    "reference": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c"
+  },
+  "image_sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+  "C_libraries": {
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+  },
+  "C_source_version": "2.93-r1/nodhcpv6",
+  "C_recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+  "reference_archive_identities": {
+    "exact-c-source.tar.gz": {
+      "sha256": "9945671f9d3e0e5c2a19b480c031908fdd0d349e7d1e9323ba22a88de3fd74f1",
+      "members": [
+        {
+          "path": "forward.c",
+          "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95"
+        },
+        {
+          "path": "dnsmasq.c",
+          "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+        },
+        {
+          "path": "config.h",
+          "sha256": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+        },
+        {
+          "path": "domain-match.c",
+          "sha256": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606"
+        },
+        {
+          "path": "util.c",
+          "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+        },
+        {
+          "path": "cache.c",
+          "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+        }
+      ]
+    },
+    "exact-c-runtime.tar.gz": {
+      "sha256": "fe99339a7bdf09d1a1872dac60385881d00fd5b6e573cbac33a8960031f1a6ba",
+      "members": [
+        {
+          "path": "usr/sbin/dnsmasq",
+          "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+        },
+        {
+          "path": "lib/libc.so",
+          "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+        },
+        {
+          "path": "lib/libgcc_s.so.1",
+          "sha256": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+        },
+        {
+          "path": "lib/libubox.so.20260213",
+          "sha256": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063"
+        },
+        {
+          "path": "lib/libubus.so.20251202",
+          "sha256": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+        },
+        {
+          "path": "lib/ld-musl-aarch64.so.1",
+          "link": "libc.so"
+        }
+      ]
+    }
+  },
+  "router_readonly_config": {
+    "config_flags": {
+      "strict-order": [],
+      "all-servers": [],
+      "no-resolv": [],
+      "resolv-file": [
+        "resolv-file=/tmp/resolv.conf.d/resolv.conf.auto"
+      ],
+      "cache-size": [
+        "cache-size=1000"
+      ],
+      "dns-forward-max": [],
+      "min-cache-ttl": [],
+      "max-cache-ttl": [],
+      "local-service": [
+        "local-service"
+      ],
+      "bind-dynamic": [
+        "bind-dynamic"
+      ],
+      "no-poll": []
+    },
+    "resolv_nameserver_sequence": [
+      {
+        "family": 4,
+        "ordinal": 1
+      },
+      {
+        "family": 4,
+        "ordinal": 2
+      },
+      {
+        "family": 6,
+        "ordinal": 3
+      },
+      {
+        "family": 6,
+        "ordinal": 4
+      }
+    ],
+    "explicit_server_lines": 0,
+    "raw_sha256": "e46dc2c17dd56fb07db9e0ca171df06c9b229fbff768ebe04321ca98df6e8117"
+  },
+  "counts": {
+    "condition_runs_per_ELF": 13,
+    "query_pairs": 50,
+    "TCP_pairs": 37,
+    "UDP_pairs": 13,
+    "TCP_success_per_ELF": 36,
+    "expected_2s_TCP_timeout_per_ELF": 1,
+    "UDP_success_per_ELF": 13
+  },
+  "full_two_v4_blackhole_delays": {
+    "observations": 5,
+    "C_seconds_min": 10.17506703385152,
+    "C_seconds_max": 10.573318521026522,
+    "Rust_seconds_min": 10.00805893400684,
+    "Rust_seconds_max": 10.01150604011491,
+    "maximum_paired_delta_seconds": 0.5619415880646557,
+    "interpretation": "Nominal per-server connect timeout is 5s in both. C uses SO_SNDTIMEO, Rust uses Instant deadlines; observed scheduling/granularity differences are retained. Near-boundary client cutoffs can observe different completion outcomes."
+  },
+  "scenarios": [
+    {
+      "group": "matrix-long-v3",
+      "settings": {
+        "case": null,
+        "client_timeout": 25.0,
+        "udp_timeout": 5,
+        "recover_after": 2.0,
+        "cache_size": 0,
+        "resolver_order": [
+          "v4a",
+          "v4b",
+          "v6a",
+          "v6b"
+        ]
+      },
+      "executed_driver_sha256": "14c37ee2fb7232e18c0ea698cda521a4a45b1ad36e346ff7d9d10ddca801d495",
+      "cases": [
+        {
+          "case": "cold-rst",
+          "plan": {
+            "fault": "rst",
+            "warm": null
+          },
+          "observations": [
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0023735000286251307,
+              "seconds_Rust": 0.0009098080918192863,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0004321641754359007,
+              "seconds_Rust": 0.0003701229579746723,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0013143711257725954,
+              "seconds_Rust": 0.0008897681254893541,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v4-warm-rst",
+          "plan": {
+            "fault": "rst",
+            "warm": "v4a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005522449500858784,
+              "seconds_Rust": 0.0007130058947950602,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.001117890002205968,
+              "seconds_Rust": 0.0009589279070496559,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0002883630804717541,
+              "seconds_Rust": 0.00035436288453638554,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0013503320515155792,
+              "seconds_Rust": 0.000878046965226531,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v6-warm-rst",
+          "plan": {
+            "fault": "rst",
+            "warm": "v6a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005587248597294092,
+              "seconds_Rust": 0.0007329271174967289,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0011238090228289366,
+              "seconds_Rust": 0.0008488069288432598,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.00029320199973881245,
+              "seconds_Rust": 0.00032388302497565746,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0012091300450265408,
+              "seconds_Rust": 0.0008662471082061529,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v4-warm-reselect-rst",
+          "plan": {
+            "fault": "rst",
+            "warm": "v4a",
+            "reselect": "v6a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005492840427905321,
+              "seconds_Rust": 0.0012106508947908878,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0011852099560201168,
+              "seconds_Rust": 0.0008452071342617273,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.00035844300873577595,
+              "seconds_Rust": 0.0003624830860644579,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0013110500294715166,
+              "seconds_Rust": 0.0009094879496842623,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "reselect",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.30096293799579144,
+              "seconds_Rust": 0.3011037791147828,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "after-reselect-same",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.000431442866101861,
+              "seconds_Rust": 0.0003676428459584713,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "after-reselect-fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.001185568980872631,
+              "seconds_Rust": 0.0008607269264757633,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v4-warm-drop",
+          "plan": {
+            "fault": "drop",
+            "warm": "v4a",
+            "single": true
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005530850030481815,
+              "seconds_Rust": 0.000595965189859271,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 10.573318521026522,
+              "seconds_Rust": 10.011376932961866,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v6-warm-drop",
+          "plan": {
+            "fault": "drop",
+            "warm": "v6a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005724849179387093,
+              "seconds_Rust": 0.000674164853990078,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0010877689346671104,
+              "seconds_Rust": 0.0008867669384926558,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0003462829627096653,
+              "seconds_Rust": 0.00045632384717464447,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0012637299951165915,
+              "seconds_Rust": 0.0008908880408853292,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v4-warm-drop-session",
+          "plan": {
+            "fault": "drop",
+            "warm": "v4a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005962050054222345,
+              "seconds_Rust": 0.0006135248113423586,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 10.496092551155016,
+              "seconds_Rust": 10.00805893400684,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.00038264389149844646,
+              "seconds_Rust": 0.00035844300873577595,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 10.188501314958557,
+              "seconds_Rust": 10.01150604011491,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v4-warm-drop-restore",
+          "plan": {
+            "fault": "drop",
+            "warm": "v4a",
+            "restore_after_first": true
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0006486061029136181,
+              "seconds_Rust": 0.0004830441903322935,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 10.17506703385152,
+              "seconds_Rust": 10.009448456112295,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.00044636381790041924,
+              "seconds_Rust": 0.00044780410826206207,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.001250050961971283,
+              "seconds_Rust": 0.0008625269401818514,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a"
+              ],
+              "connect_order_Rust": [
+                "v4a"
+              ],
+              "TCP_query_route_C": [
+                "v4a"
+              ],
+              "TCP_query_route_Rust": [
+                "v4a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v4-warm-drop-recover",
+          "plan": {
+            "fault": "drop",
+            "warm": "v4a",
+            "recover": true
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005596450064331293,
+              "seconds_Rust": 0.0005946850869804621,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 2.070757061941549,
+              "seconds_Rust": 2.08255064021796,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a"
+              ],
+              "connect_order_Rust": [
+                "v4a"
+              ],
+              "TCP_query_route_C": [
+                "v4a"
+              ],
+              "TCP_query_route_Rust": [
+                "v4a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.00034732301719486713,
+              "seconds_Rust": 0.0003395630046725273,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v4a"
+              ],
+              "TCP_query_route_Rust": [
+                "v4a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0011926100123673677,
+              "seconds_Rust": 0.0009558878373354673,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a"
+              ],
+              "connect_order_Rust": [
+                "v4a"
+              ],
+              "TCP_query_route_C": [
+                "v4a"
+              ],
+              "TCP_query_route_Rust": [
+                "v4a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "after-recovery-same",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0004345641937106848,
+              "seconds_Rust": 0.00047476310282945633,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v4a"
+              ],
+              "TCP_query_route_Rust": [
+                "v4a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "after-recovery-fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0012079300358891487,
+              "seconds_Rust": 0.0009594880975782871,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a"
+              ],
+              "connect_order_Rust": [
+                "v4a"
+              ],
+              "TCP_query_route_C": [
+                "v4a"
+              ],
+              "TCP_query_route_Rust": [
+                "v4a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "matrix-short-v3",
+      "settings": {
+        "case": [
+          "v4-warm-drop",
+          "v6-warm-drop"
+        ],
+        "client_timeout": 2.0,
+        "udp_timeout": 5,
+        "recover_after": 10,
+        "cache_size": 0,
+        "resolver_order": [
+          "v4a",
+          "v4b",
+          "v6a",
+          "v6b"
+        ]
+      },
+      "executed_driver_sha256": "14c37ee2fb7232e18c0ea698cda521a4a45b1ad36e346ff7d9d10ddca801d495",
+      "cases": [
+        {
+          "case": "v4-warm-drop",
+          "plan": {
+            "fault": "drop",
+            "warm": "v4a",
+            "single": true
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0006510051898658276,
+              "seconds_Rust": 0.0006104451604187489,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "error",
+              "status_Rust": "error",
+              "seconds_C": 2.003689592005685,
+              "seconds_Rust": 2.0023619008716196,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a"
+              ],
+              "connect_order_Rust": [
+                "v4a"
+              ],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v6-warm-drop",
+          "plan": {
+            "fault": "drop",
+            "warm": "v6a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005876449868083,
+              "seconds_Rust": 0.0006294448394328356,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.001260650809854269,
+              "seconds_Rust": 0.00086556700989604,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0003429229836910963,
+              "seconds_Rust": 0.00040128384716808796,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0011474101338535547,
+              "seconds_Rust": 0.0009016469120979309,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "cache1000-long-v3",
+      "settings": {
+        "case": [
+          "v4-warm-drop",
+          "v6-warm-drop"
+        ],
+        "client_timeout": 25.0,
+        "udp_timeout": 5,
+        "recover_after": 10,
+        "cache_size": 1000,
+        "resolver_order": [
+          "v4a",
+          "v4b",
+          "v6a",
+          "v6b"
+        ]
+      },
+      "executed_driver_sha256": "14c37ee2fb7232e18c0ea698cda521a4a45b1ad36e346ff7d9d10ddca801d495",
+      "cases": [
+        {
+          "case": "v4-warm-drop",
+          "plan": {
+            "fault": "drop",
+            "warm": "v4a",
+            "single": true
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005141240544617176,
+              "seconds_Rust": 0.000666565028950572,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 10.436014992883429,
+              "seconds_Rust": 10.009693932021037,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v4a",
+                "v4b",
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        },
+        {
+          "case": "v6-warm-drop",
+          "plan": {
+            "fault": "drop",
+            "warm": "v6a"
+          },
+          "observations": [
+            {
+              "label": "warm",
+              "transport": "udp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0005872452165931463,
+              "seconds_Rust": 0.0006224049720913172,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [],
+              "TCP_query_route_Rust": [],
+              "reused_C": null,
+              "reused_Rust": null
+            },
+            {
+              "label": "first",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.001168368849903345,
+              "seconds_Rust": 0.0008649269584566355,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            },
+            {
+              "label": "same-session",
+              "transport": "tcp",
+              "type": 28,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0003768838942050934,
+              "seconds_Rust": 0.00037688296288251877,
+              "client_wire_equal": true,
+              "connect_order_C": [],
+              "connect_order_Rust": [],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": true,
+              "reused_Rust": true
+            },
+            {
+              "label": "fresh",
+              "transport": "tcp",
+              "type": 1,
+              "status_C": "reply",
+              "status_Rust": "reply",
+              "seconds_C": 0.0011880488600581884,
+              "seconds_Rust": 0.0009626480750739574,
+              "client_wire_equal": true,
+              "connect_order_C": [
+                "v6a"
+              ],
+              "connect_order_Rust": [
+                "v6a"
+              ],
+              "TCP_query_route_C": [
+                "v6a"
+              ],
+              "TCP_query_route_Rust": [
+                "v6a"
+              ],
+              "reused_C": false,
+              "reused_Rust": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "complete_response_wire_compared": true,
+    "connect_targets_compared": true,
+    "TCP_forwarded_query_route_compared": true,
+    "reuse_compared": true,
+    "latency_tolerance": "max(0.25 seconds, 10 percent of C elapsed); full actual times retained above",
+    "daemon_alive_and_no_cleanup_survivors_required": true,
+    "tool_unit_tests": 7,
+    "actual_C_mutations_rejected": 9,
+    "equality_control_passed": true
+  },
+  "final_tool_sha256": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf",
+  "final_tool_vs_executed": "Only defaults changed to the values explicitly passed during execution (25s client, 2s pending recovery); short client runs explicitly use2s. No checker or fixture logic changed.",
+  "prior_harness_failure": "v2 DROP fixture rejected by nft due missing chain separator; preserved and excluded from product qualification; corrected multiline v3 rules before final run.",
+  "oracle_postcheck": {
+    "task_processes": [],
+    "task_host_mounts": [],
+    "original_host_network_namespace_used_for_fixture": false
+  },
+  "router_final_C_disk_ROM_process_verified": true,
+  "router_final_readonly_sha256": "97045ad11cf9e6c6cbad68adbbe2134c4f2bdaaf907f6e9fe8b254f76115eb19",
+  "independent_review_sha256": "983d65b6d50633765d1ceabd695858a2de244ad1d416dd6e25896680a512f742",
+  "private_directory": "private/tcp-upstream-parity-20261014"
+}

@@ -1,0 +1,1234 @@
+{
+  "schema": 1,
+  "private_directory": "private/tcp-upstream-parity-20261014",
+  "files": [
+    {
+      "file": "actual-c-negative-controls.json",
+      "bytes": 1479,
+      "sha256": "f33264fbf955c0b2eba2ee56706e3f4feded1eeaab0946b5764f6a50c210f4ac"
+    },
+    {
+      "file": "baseline-rst-v1-run.log",
+      "bytes": 1887,
+      "sha256": "031addeb477cd469dcd4c241e06ce790dccd4ed0c0f977bfcc33e055b740e391"
+    },
+    {
+      "file": "c-reference.json",
+      "bytes": 6969,
+      "sha256": "f913505cc8b98680e1398265e60ff8a95590f5c998ff4257d5a37471393e7fc0"
+    },
+    {
+      "file": "cache1000-long-v3-run.log",
+      "bytes": 1043,
+      "sha256": "532c1c5c1b403ba0894dd89f89063c02dfffdde2e17f0b5bbbd15ce86229cf8d"
+    },
+    {
+      "file": "derive-summary.py",
+      "bytes": 6184,
+      "sha256": "aa49bc1fbcddc97ab6060f4059779ec8c449b7e50a9fba814713718cc6b59cf2"
+    },
+    {
+      "file": "driver-final/tcp_upstream_parity.py",
+      "bytes": 34122,
+      "sha256": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf"
+    },
+    {
+      "file": "driver-final/test_tcp_upstream_parity.py",
+      "bytes": 4233,
+      "sha256": "1e19df29e0bd4446d6e68303dd19a5926caf99c548e68d91915d1bb2d0fa707c"
+    },
+    {
+      "file": "driver-v1/tcp_upstream_parity.py",
+      "bytes": 31339,
+      "sha256": "c9d32e7fb75e9fff738d2c9fe8399ccfbdcd029e49735139105f8204cb1347f1"
+    },
+    {
+      "file": "driver-v1/test_tcp_upstream_parity.py",
+      "bytes": 3343,
+      "sha256": "1fd0503dc3e0d3eaedefff2ae939a99ec9cb25273223db1786f4256b41179882"
+    },
+    {
+      "file": "driver-v2/tcp_upstream_parity.py",
+      "bytes": 32232,
+      "sha256": "0b5cb057ae9cef516e2edaeb19af8120fd2d6e074a5a880add5e42541a550113"
+    },
+    {
+      "file": "driver-v2/test_tcp_upstream_parity.py",
+      "bytes": 3343,
+      "sha256": "1fd0503dc3e0d3eaedefff2ae939a99ec9cb25273223db1786f4256b41179882"
+    },
+    {
+      "file": "driver-v3/tcp_upstream_parity.py",
+      "bytes": 34047,
+      "sha256": "14c37ee2fb7232e18c0ea698cda521a4a45b1ad36e346ff7d9d10ddca801d495"
+    },
+    {
+      "file": "driver-v3/test_tcp_upstream_parity.py",
+      "bytes": 4233,
+      "sha256": "1e19df29e0bd4446d6e68303dd19a5926caf99c548e68d91915d1bb2d0fa707c"
+    },
+    {
+      "file": "early-oracle-evidence.tar.gz",
+      "bytes": 1210906,
+      "sha256": "48c20fdeaee7609804a0e4a51448d47de18a540ea9c01075627583ecedcf7882"
+    },
+    {
+      "file": "exact-c-runtime.tar.gz",
+      "bytes": 532010,
+      "sha256": "fe99339a7bdf09d1a1872dac60385881d00fd5b6e573cbac33a8960031f1a6ba"
+    },
+    {
+      "file": "exact-c-source.tar.gz",
+      "bytes": 87371,
+      "sha256": "9945671f9d3e0e5c2a19b480c031908fdd0d349e7d1e9323ba22a88de3fd74f1"
+    },
+    {
+      "file": "final-oracle-evidence.tar.gz",
+      "bytes": 95339,
+      "sha256": "edfb834f466c4dc8f1f9bdba17c6fc48e358b8dfd366718c81ffeb914c2415d1"
+    },
+    {
+      "file": "matrix-long-v2-run.log",
+      "bytes": 4176,
+      "sha256": "7632eeb978aba57588cab1c738e177dedff347615c978ea576db622ea3d14160"
+    },
+    {
+      "file": "matrix-long-v3-run.log",
+      "bytes": 6493,
+      "sha256": "6ab647be1930c06ce740b30752ab90608ed95a32eb0679426e607a95adb68a49"
+    },
+    {
+      "file": "matrix-short-v2-run.log",
+      "bytes": 434,
+      "sha256": "b0de2cad24bb0a63f3e92bd2717fb64232b3bc45803614ef131c4a8e27c2d3e4"
+    },
+    {
+      "file": "matrix-short-v3-run.log",
+      "bytes": 1038,
+      "sha256": "9c1a52dfd12129350343602bc2ed4ef0f65b410bd950cbff17f66ab39910f356"
+    },
+    {
+      "file": "nft-v2-calibration.log",
+      "bytes": 858,
+      "sha256": "241e4cd7cd0b87c815ce5307e03c8d04b6a60320973844e5141b84d2224d79c4"
+    },
+    {
+      "file": "oracle/baseline-dnsmasq-rs",
+      "bytes": 2124571,
+      "sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/reference/daemon.log",
+      "bytes": 1301,
+      "sha256": "6ac0e3e75614f3c229a263257fec7ab084dd4d8e943941eeb0d81674610ca07c"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/reference/dnsmasq.conf",
+      "bytes": 256,
+      "sha256": "c9f1aa28e235283a3871a926fd3abc03d2ff64a241917bac46e283b7c699a740"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/reference/result.json",
+      "bytes": 28437,
+      "sha256": "0b93d6678e5787927f4b08cd11c42fea56fd2c6d7e77e6fc91b76fc9280cfcd9"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/rust/daemon.log",
+      "bytes": 1296,
+      "sha256": "83eba7e3c42e1cf0939706dc1a4d68fa1728d4a911b3aab65786e6963688721d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/rust/dnsmasq.conf",
+      "bytes": 246,
+      "sha256": "e1675577ca43711e75d5c65fedfeea6133142ae6d38f41a1c378185bd7987a06"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/cold-rst/rust/result.json",
+      "bytes": 25384,
+      "sha256": "37d4cf04e4f46bce9b3fd82e77a653d46ccaf69127edff8d5b1df0adb61cec6e"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/image-libraries.json",
+      "bytes": 520,
+      "sha256": "a0f66584cc6e94ddfb456b854d652225cb4529cb164b7ca602f420b69822c552"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/summary.json",
+      "bytes": 4125,
+      "sha256": "abbd56f22cb2773d46d2d1d02651a762fa394341bb48d1c806a545b3bde0a804"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/reference/daemon.log",
+      "bytes": 1729,
+      "sha256": "e68e43c7b2181b1968e67b7ccc1c7123564bb64846c5b1b8873f821e6ccf2fa0"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/reference/dnsmasq.conf",
+      "bytes": 262,
+      "sha256": "7b50d2737ce00796daa3b652eb3c2ce75a4c7aa4012673b1f8c5ff8ff5249119"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/reference/result.json",
+      "bytes": 34269,
+      "sha256": "939b3d6e44049d2831eb1b4584df20018dcf2dbc22ce2d1c3488dab570c49859"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/rust/daemon.log",
+      "bytes": 1724,
+      "sha256": "feb10833e7fc103e6f8ccf93a12371516d27173572becc4016d4663d277a2d4f"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/rust/dnsmasq.conf",
+      "bytes": 252,
+      "sha256": "2c1e78da700bb29c8d8703272258b6181714e2efb0f8c7550338c8083df082d4"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v4-warm-rst/rust/result.json",
+      "bytes": 31194,
+      "sha256": "fcdd5521e459813d37d49d443aa3ed8474bc627fc6780d8ff9ea63564a8d9e98"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/reference/daemon.log",
+      "bytes": 1729,
+      "sha256": "a1b55c90b2280b03e12a2dcd93fd70dd0ab08dc9ef5184ba8580233c1f81f836"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/reference/dnsmasq.conf",
+      "bytes": 262,
+      "sha256": "6c4b16318c90905be9e96c753e6e2bfb97e1e29a5ea5f5b06ff2b946b409f157"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/reference/result.json",
+      "bytes": 30878,
+      "sha256": "3f68941f93e5bc57cb448e519da04a822eadad3a357f5d745f8b0db9f90027d2"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/rust/daemon.log",
+      "bytes": 1724,
+      "sha256": "f301bea92e39e7dae4f92d5298be4ead2d4d7597f145915baa8b91b691adc496"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/rust/dnsmasq.conf",
+      "bytes": 252,
+      "sha256": "b2f067a1f081f67d3e2e54de054549dd923277e139b27854bb5f9d4479515872"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/baseline-rst-v1/v6-warm-rst/rust/result.json",
+      "bytes": 27828,
+      "sha256": "18314e9a01e17b6ead6487c1dc22ff4b7355873ff65b3671cd5d19cd1125e94b"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/image-libraries.json",
+      "bytes": 520,
+      "sha256": "a0f66584cc6e94ddfb456b854d652225cb4529cb164b7ca602f420b69822c552"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/summary.json",
+      "bytes": 2615,
+      "sha256": "38fdd7f3424a41f0380edccaf5e94258f6b590ec25dc6c67faa7a9ba102aa56c"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/reference/daemon.log",
+      "bytes": 1315,
+      "sha256": "b474c715c568091d9df945b1b29aca2dc11dec39b573acbc4c78b8121651cda5"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/reference/dnsmasq.conf",
+      "bytes": 267,
+      "sha256": "b708e213caa90d2bfba8409245023d7e64d5fd5089a4a7d3b3b70bbfcef9a79e"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/reference/result.json",
+      "bytes": 29928,
+      "sha256": "4e04052ff5fc7b58614c62e96e5cc902c4624ab2118cc6a5985fd719f1fb0bc2"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/rust/daemon.log",
+      "bytes": 1310,
+      "sha256": "7e7d44d382593d31744811b2ebdfa8ef91c50646475d0e8ca50e2d726514f187"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/rust/dnsmasq.conf",
+      "bytes": 257,
+      "sha256": "8e07cc7adca8b8ea0e0eda0d32b029ad4bc42e337de8ebeb24fcd331133238f4"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v4-warm-drop/rust/result.json",
+      "bytes": 25115,
+      "sha256": "6560acf3b374e1f01b887cd6cdf632d734328bbc14bdbc5e605af813feead00f"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/reference/daemon.log",
+      "bytes": 1757,
+      "sha256": "5fa827e01ef09690ec977dd41c99697e97d42b9f0cf1d06f2e9bffa580ff47fb"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/reference/dnsmasq.conf",
+      "bytes": 267,
+      "sha256": "bdf3a0a210f00592a66be5697802a00dfe289937b7f9d705bd427eb19334c73a"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/reference/result.json",
+      "bytes": 33887,
+      "sha256": "67be2cdf444bb3b1da4e769eb4aaa9da74ccb7f38b9cba39d6717db87f37d129"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/rust/daemon.log",
+      "bytes": 1752,
+      "sha256": "da101b367bd41722b92fab16d75e653cf04df2aa9e012f2c42fe07114b915a46"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/rust/dnsmasq.conf",
+      "bytes": 257,
+      "sha256": "f0d8720f67f732e5a4c2a9cfb05ca105b145ed10f794ff71ae79180985a4143a"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/cache1000-long-v3/v6-warm-drop/rust/result.json",
+      "bytes": 30795,
+      "sha256": "6256d3f18768bbe65d66ed40ac43f1a65fb315e51b60a3be4e7142a5abb48390"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/reference/daemon.log",
+      "bytes": 1301,
+      "sha256": "c61aaeb70183641816252d208d27e42764c4ed3d60a7da516b3a5e37502dc5ce"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/reference/dnsmasq.conf",
+      "bytes": 256,
+      "sha256": "c9f1aa28e235283a3871a926fd3abc03d2ff64a241917bac46e283b7c699a740"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/reference/result.json",
+      "bytes": 28422,
+      "sha256": "83e789dd0bbaf5eda58b7eddfad69bce5f42073c68b19b8cc6d9b1764eb5ea53"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/rust/daemon.log",
+      "bytes": 1296,
+      "sha256": "a663bf6e18de65ac18a2cd9613a96ab319564f1ad0458167e3528185755c56af"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/rust/dnsmasq.conf",
+      "bytes": 246,
+      "sha256": "e1675577ca43711e75d5c65fedfeea6133142ae6d38f41a1c378185bd7987a06"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/cold-rst/rust/result.json",
+      "bytes": 25375,
+      "sha256": "35e5fa3470d69fdb82977b62c741cf9d727c090b313316b2472c3d0f421abf27"
+    },
+    {
+      "file": "oracle/matrix-long-v2/image-libraries.json",
+      "bytes": 520,
+      "sha256": "a0f66584cc6e94ddfb456b854d652225cb4529cb164b7ca602f420b69822c552"
+    },
+    {
+      "file": "oracle/matrix-long-v2/summary.json",
+      "bytes": 7770,
+      "sha256": "9e1dac9073e6742c6f649c47096509f5d26e513e4b0b82d1d988213e304fa89c"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "1cde7faa41f3ae42a27b599c0235377dc523375679c8662abb4f79b606da4a97"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop/reference/result.json",
+      "bytes": 1135,
+      "sha256": "427d19c9f609e82d1787897326ee13aa8c34166009eec6215b804b0bb34f524a"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "137b24382e31508f45a1a55dcee8b7aaae1b902c8ca663a4a376e774037d4829"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop/rust/result.json",
+      "bytes": 1125,
+      "sha256": "90b59478c02f47223a699dabf037ac7285cdb58c77236ea5dff31c9da7e000f0"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-recover/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "482d14d0a808dc85fde3bf487a5b81ff74f057446ac97f0f387c6327499118c9"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-recover/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-recover/reference/result.json",
+      "bytes": 1151,
+      "sha256": "909c324616cc36783072902493f7120f0505612e8f4341ebf3bcedacba52e34d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-recover/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "e2ea21338fa423076f2fa38d28711f391c9b1b9dc320d4a0d27b83494af76cf5"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-recover/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-recover/rust/result.json",
+      "bytes": 1141,
+      "sha256": "1c883fa871b9faeb423a77ac3c715511e4e400eed03cf576c5bf9ef34d8356b0"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-restore/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "9f71e609a5730926a59f1a0447ddcd022c198235f5e2d8fa2b2ae18c390fef35"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-restore/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-restore/reference/result.json",
+      "bytes": 1164,
+      "sha256": "fb75f61d6d8aedf2b6d882eb0e581f22b979f85a1487979dbf35461d7a396859"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-restore/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "d30a98e8b014c87e5b1efa640ee3def9c9e597e58d56f8baf8683c29ae4a1b92"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-restore/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-restore/rust/result.json",
+      "bytes": 1152,
+      "sha256": "51358fecf7715f57c45c03871f210664dd6f777bcb0ffda95f13fd3209ef03fe"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-session/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "52fc6b81e0bb53503f2c93a934daafdfbeece68f9eb3f0ccd705d13d14975e28"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-session/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-session/reference/result.json",
+      "bytes": 1130,
+      "sha256": "ccfa591baa882d2d40ad2ee3fc85e307ef6a9dfafe908d8abd07b3573eed4274"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-session/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "40c80c7774e10ae890fa8eab15562681dcc672d49bd58c11fbd7a02494a069b4"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-session/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-drop-session/rust/result.json",
+      "bytes": 1121,
+      "sha256": "04c490dd068b6e55c06a4352074532b562382f77452c020891867bf3bc147300"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/reference/daemon.log",
+      "bytes": 2821,
+      "sha256": "b6ed5def472e54fa6092a75483256f12cc8be72dfd2fd204665dda111ce21ea0"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "7dd5de234e428b1758b10461cb9707aedc731a70f0bd4f2c44de329ae738f03f"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/reference/result.json",
+      "bytes": 51688,
+      "sha256": "4cbf16ce07a42fdd617dcda436a168a7c78e5c5e16fb2976962e16db275e9c50"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/rust/daemon.log",
+      "bytes": 2816,
+      "sha256": "c2f1f580e65532edbd4539e125e63ed86e689651d2c167d9ff6a456f99b4964f"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "d6c86ff2735d1fe899f0296e1eb3a80997324a7b131e55b8e40955208c087c3f"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-reselect-rst/rust/result.json",
+      "bytes": 49328,
+      "sha256": "addd897bb5c767409c079580cd61d55c1106f1a3a591c99089034f70c2e23915"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/reference/daemon.log",
+      "bytes": 1729,
+      "sha256": "38e6058a43904995e0eb66a0bf6abbeb9e95d56246fb9f7365f4b8790e1889ae"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/reference/dnsmasq.conf",
+      "bytes": 262,
+      "sha256": "7b50d2737ce00796daa3b652eb3c2ce75a4c7aa4012673b1f8c5ff8ff5249119"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/reference/result.json",
+      "bytes": 34231,
+      "sha256": "d60d108898506957ae5636bea8e164ba2bd9ab8b0a06eab1b06c00faba7a61d9"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/rust/daemon.log",
+      "bytes": 1724,
+      "sha256": "0de12babc50e06115965f364d0a6c3271fabb5b0d6751abaf1a3a9b737190d49"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/rust/dnsmasq.conf",
+      "bytes": 252,
+      "sha256": "2c1e78da700bb29c8d8703272258b6181714e2efb0f8c7550338c8083df082d4"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v4-warm-rst/rust/result.json",
+      "bytes": 31195,
+      "sha256": "8b57c0d9c1caa39e95e15a74dd52a0331a1eda55f0d6a3e88e037f8072a89466"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "cbc83b69f1bd26afd6b138bf3f7f5429217e42735f4676deff19bd785d923e6d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-drop/reference/result.json",
+      "bytes": 1114,
+      "sha256": "bfb5c00914980a942e770fb3cb32bfccbd7320818465c086efe78ae6690be90a"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "1088a9d737420302c6fbf992030b5e00e577194610a4c3395f708d67baf0bff3"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-drop/rust/result.json",
+      "bytes": 1105,
+      "sha256": "8259f6204f992a5ea25544690908857ccd43c381946cfbadae4d1e3e3742748c"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/reference/daemon.log",
+      "bytes": 1729,
+      "sha256": "836fec236d2e33626a5427f264a7133710dadd1b0b62ed8f5398353b808f59ee"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/reference/dnsmasq.conf",
+      "bytes": 262,
+      "sha256": "6c4b16318c90905be9e96c753e6e2bfb97e1e29a5ea5f5b06ff2b946b409f157"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/reference/result.json",
+      "bytes": 30845,
+      "sha256": "7633fb140639bfc0fdce63a3c2998ca3831663831596fc1cc26a2fb016b0fe53"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/rust/daemon.log",
+      "bytes": 1724,
+      "sha256": "55e3a01e5d18c02e0f9e46982115ea118652d9ee61af017d1c16bedaa7192a4a"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/rust/dnsmasq.conf",
+      "bytes": 252,
+      "sha256": "b2f067a1f081f67d3e2e54de054549dd923277e139b27854bb5f9d4479515872"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v2/v6-warm-rst/rust/result.json",
+      "bytes": 27824,
+      "sha256": "9817e89a49d65209245a1750e91978a996897786838417730c054dfc63fa5d22"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/reference/daemon.log",
+      "bytes": 1301,
+      "sha256": "f02bea8eb1fa2171c096184c0ba856d07ca336da65c79c727ed5dbb2e8aa0677"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/reference/dnsmasq.conf",
+      "bytes": 256,
+      "sha256": "c9f1aa28e235283a3871a926fd3abc03d2ff64a241917bac46e283b7c699a740"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/reference/result.json",
+      "bytes": 28500,
+      "sha256": "4dc459e5d2de882fc1dca5acd47e1134e6b024f97247d8867384102e27fe66d1"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/rust/daemon.log",
+      "bytes": 1296,
+      "sha256": "d80565c943e7816893acff46b53fa4546a25058bebd72f530f9e6f393521ce5e"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/rust/dnsmasq.conf",
+      "bytes": 246,
+      "sha256": "e1675577ca43711e75d5c65fedfeea6133142ae6d38f41a1c378185bd7987a06"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/cold-rst/rust/result.json",
+      "bytes": 25444,
+      "sha256": "399a423cc0040c54a5a79fe7a3e78eb9c59b5ee73d0a31c3a7fd75d9839917f7"
+    },
+    {
+      "file": "oracle/matrix-long-v3/image-libraries.json",
+      "bytes": 520,
+      "sha256": "a0f66584cc6e94ddfb456b854d652225cb4529cb164b7ca602f420b69822c552"
+    },
+    {
+      "file": "oracle/matrix-long-v3/summary.json",
+      "bytes": 12240,
+      "sha256": "df94961a33e9684c6d0be71097eaf8892eac562d6019034e08fb8048af06eefd"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/reference/daemon.log",
+      "bytes": 1307,
+      "sha256": "30ff42614b9f11dc7af5f61a3da95fba2ad813b42aba4f50b7c70a08c469c5ed"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "1cde7faa41f3ae42a27b599c0235377dc523375679c8662abb4f79b606da4a97"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/reference/result.json",
+      "bytes": 29711,
+      "sha256": "8adbd352d0c61aae89cccd0cb5140f3886ebe900792846425f485b25862b96b5"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/rust/daemon.log",
+      "bytes": 1302,
+      "sha256": "f2165bf27487ded843c63a7809d41085ea3a359bba062ac99865bf5868d17182"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "137b24382e31508f45a1a55dcee8b7aaae1b902c8ca663a4a376e774037d4829"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop/rust/result.json",
+      "bytes": 25006,
+      "sha256": "b6805ede613a9ad40989c39b9d87e3b73a56596ab29f144c87fd9cd0b3c8cdc0"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/reference/daemon.log",
+      "bytes": 2249,
+      "sha256": "8093c9f64907f22c153df0bba8e65f2b243eeb05920f86500e77258493f57d59"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "482d14d0a808dc85fde3bf487a5b81ff74f057446ac97f0f387c6327499118c9"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/reference/result.json",
+      "bytes": 45205,
+      "sha256": "d6c1d1ea37b1e978f27ccba5d499914e343a232df8589d0993887f5a70d2b012"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/rust/daemon.log",
+      "bytes": 2244,
+      "sha256": "570be67ed5d7043e6059ee29d59f594bd2697a29d80bb1bd7eddd85c64772bf0"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "e2ea21338fa423076f2fa38d28711f391c9b1b9dc320d4a0d27b83494af76cf5"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-recover/rust/result.json",
+      "bytes": 42815,
+      "sha256": "312b887f5dcd5b6c3eaacf77cd0f295b0f66f44a29f40b1d6ec8634835d6b8c3"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/reference/daemon.log",
+      "bytes": 1762,
+      "sha256": "5e477af99e8d721ba06efac4943fd6a77ea29408483eb0d82cb751ca41eacdfb"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "9f71e609a5730926a59f1a0447ddcd022c198235f5e2d8fa2b2ae18c390fef35"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/reference/result.json",
+      "bytes": 39490,
+      "sha256": "e33efa792cd49aebd3bb9eb423f59be8d9fb6af57cc3fb7a994c1d9ee87249d1"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/rust/daemon.log",
+      "bytes": 1757,
+      "sha256": "3a7fd60132a0cfc87fab25498d86595d49658b513247cd9f8004fd563c125873"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "d30a98e8b014c87e5b1efa640ee3def9c9e597e58d56f8baf8683c29ae4a1b92"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-restore/rust/result.json",
+      "bytes": 35926,
+      "sha256": "0c40fbeee32cd71da46dce603136ef954507f67daf84daa9c55163dec1c44969"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/reference/daemon.log",
+      "bytes": 1763,
+      "sha256": "64247ef318fe56ce9e82ae19637ccb729f6e93e875b8e1cdc66ee17881c2e1e8"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "52fc6b81e0bb53503f2c93a934daafdfbeece68f9eb3f0ccd705d13d14975e28"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/reference/result.json",
+      "bytes": 45169,
+      "sha256": "093422f7e8675157916682f197cce014ed35a4e557f71bdc2beebeefe302a8e3"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/rust/daemon.log",
+      "bytes": 1758,
+      "sha256": "461de5b49e523e5e0d5e60174c03454160e29cc222ec202127393568e61df226"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "40c80c7774e10ae890fa8eab15562681dcc672d49bd58c11fbd7a02494a069b4"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-drop-session/rust/result.json",
+      "bytes": 40623,
+      "sha256": "e85d51d9a272dcb8278ad6387fe612b45a815ea9eac23d0e3189f8fdc79e93df"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/reference/daemon.log",
+      "bytes": 2821,
+      "sha256": "1e2b962e2b5e43b23b7e3aa12f300fa2e2904e87842eba6cdd4de1dd093bc5d7"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/reference/dnsmasq.conf",
+      "bytes": 280,
+      "sha256": "7dd5de234e428b1758b10461cb9707aedc731a70f0bd4f2c44de329ae738f03f"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/reference/result.json",
+      "bytes": 51739,
+      "sha256": "dd2cdeb6bfffcda2c2723c9da13e51be24a0ba70637c5e29f141bf56ded8d359"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/rust/daemon.log",
+      "bytes": 2816,
+      "sha256": "8d85baf94061e983b7c2b70bea5a0ae0aac83a21adc9f8bfcf5b78d3ca36bd7f"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/rust/dnsmasq.conf",
+      "bytes": 270,
+      "sha256": "d6c86ff2735d1fe899f0296e1eb3a80997324a7b131e55b8e40955208c087c3f"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-reselect-rst/rust/result.json",
+      "bytes": 49403,
+      "sha256": "a3733549de76fd0e6df6be3b716cd778489ae8a5f69f6b885cfc3e676fad357d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/reference/daemon.log",
+      "bytes": 1729,
+      "sha256": "fee6e6f84bc974e1c3e43e51c495ad1f54242511d532c4feebb93223bb36716d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/reference/dnsmasq.conf",
+      "bytes": 262,
+      "sha256": "7b50d2737ce00796daa3b652eb3c2ce75a4c7aa4012673b1f8c5ff8ff5249119"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/reference/result.json",
+      "bytes": 34294,
+      "sha256": "f6f15a08cd30df7c452d6908b63ea333e31645e00a0b030e4ac5a1c039935933"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/rust/daemon.log",
+      "bytes": 1724,
+      "sha256": "ee5cfc3b39da4f9fc3a535d6be05ec6c9a47761cbe0992ed81b364173a1efb0c"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/rust/dnsmasq.conf",
+      "bytes": 252,
+      "sha256": "2c1e78da700bb29c8d8703272258b6181714e2efb0f8c7550338c8083df082d4"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v4-warm-rst/rust/result.json",
+      "bytes": 31286,
+      "sha256": "492ed0c838a666e38fd5e00e3079acb07bd6e05af31bba1225a03fe8edbdfe4e"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/reference/daemon.log",
+      "bytes": 1755,
+      "sha256": "f7b30afa937b8a23906a30ea55075743616343bdbac7b170fe63c79e194b08d2"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "cbc83b69f1bd26afd6b138bf3f7f5429217e42735f4676deff19bd785d923e6d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/reference/result.json",
+      "bytes": 33691,
+      "sha256": "e341d5b964bc33ea3e31385bdf8b911823a95dde7c66118b0f4111b590489390"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/rust/daemon.log",
+      "bytes": 1750,
+      "sha256": "3c0b0af06cc3c83ec29b531d826f25b2a6f4a3ee458fd5fe383b049cc757ce86"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "1088a9d737420302c6fbf992030b5e00e577194610a4c3395f708d67baf0bff3"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-drop/rust/result.json",
+      "bytes": 30651,
+      "sha256": "dcbac36193fe673e65bf6a43c70cca4c0dc440b2c5694c8a4965e9d7e3ba9e51"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/reference/daemon.log",
+      "bytes": 1729,
+      "sha256": "12c1e0e4c77f5e5388d2dbab1ee06ace285771aaf9db23ae6905aaaf2fdd09f3"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/reference/dnsmasq.conf",
+      "bytes": 262,
+      "sha256": "6c4b16318c90905be9e96c753e6e2bfb97e1e29a5ea5f5b06ff2b946b409f157"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/reference/result.json",
+      "bytes": 30922,
+      "sha256": "df9dfa944c4160e8eca4d786347e89eb5238ab25ddbabbd2d77fa56103aaa6b2"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/rust/daemon.log",
+      "bytes": 1724,
+      "sha256": "51a50db35d9b5aaf4800ca65222c6ce4c024350383f351fb15449707506673ec"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/rust/dnsmasq.conf",
+      "bytes": 252,
+      "sha256": "b2f067a1f081f67d3e2e54de054549dd923277e139b27854bb5f9d4479515872"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-long-v3/v6-warm-rst/rust/result.json",
+      "bytes": 27877,
+      "sha256": "776f307b040850690420427ea147edb6385186f303a75be0845ef22bc6ba6107"
+    },
+    {
+      "file": "oracle/matrix-short-v2/image-libraries.json",
+      "bytes": 520,
+      "sha256": "a0f66584cc6e94ddfb456b854d652225cb4529cb164b7ca602f420b69822c552"
+    },
+    {
+      "file": "oracle/matrix-short-v2/summary.json",
+      "bytes": 1365,
+      "sha256": "06202279fb42c6a8777c482b5da2c436fe69b02be302b19b7b878671d1c66d82"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v4-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "1cde7faa41f3ae42a27b599c0235377dc523375679c8662abb4f79b606da4a97"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v4-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v4-warm-drop/reference/result.json",
+      "bytes": 1134,
+      "sha256": "88076ccd66a826e31d032f0172158665a90ad34912d8b13f3b5b4dff0a1332d1"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v4-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "137b24382e31508f45a1a55dcee8b7aaae1b902c8ca663a4a376e774037d4829"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v4-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v4-warm-drop/rust/result.json",
+      "bytes": 1125,
+      "sha256": "980edce5be94dda2c26034674785c2a10ce2294a7c8da3dbbc616b3354990dd5"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v6-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "cbc83b69f1bd26afd6b138bf3f7f5429217e42735f4676deff19bd785d923e6d"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v6-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v6-warm-drop/reference/result.json",
+      "bytes": 1115,
+      "sha256": "6c4dc049cbc701a51fbc7956e394460aa716b40741ebad8859253316b5d65b5d"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v6-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "1088a9d737420302c6fbf992030b5e00e577194610a4c3395f708d67baf0bff3"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v6-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v2/v6-warm-drop/rust/result.json",
+      "bytes": 1105,
+      "sha256": "69e3a356a367f9174215edd893d0021753fd4d9ec20d5f866058430e65807d05"
+    },
+    {
+      "file": "oracle/matrix-short-v3/image-libraries.json",
+      "bytes": 520,
+      "sha256": "a0f66584cc6e94ddfb456b854d652225cb4529cb164b7ca602f420b69822c552"
+    },
+    {
+      "file": "oracle/matrix-short-v3/summary.json",
+      "bytes": 2606,
+      "sha256": "380aeab929fc979072236719aaa542e6fc07c607180449ef101e214f3275ddde"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/reference/daemon.log",
+      "bytes": 1147,
+      "sha256": "bc09592258d929d9de3cbe9375c13bb9d1bc692a89840ce334ac12e5fe2f3aec"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "1cde7faa41f3ae42a27b599c0235377dc523375679c8662abb4f79b606da4a97"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/reference/result.json",
+      "bytes": 20320,
+      "sha256": "cc3e19e081cb92501e108eaead119a8530f5b5af8f76190b3af584e24de55c7b"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/rust/daemon.log",
+      "bytes": 1142,
+      "sha256": "7be96578b0c27b321dca76819917a25949ee16d0a75e3a0a569b913e52afe097"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "137b24382e31508f45a1a55dcee8b7aaae1b902c8ca663a4a376e774037d4829"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v4-warm-drop/rust/result.json",
+      "bytes": 15887,
+      "sha256": "074697ca2d4b536e427d831b965b1a8cef10e3e7c31c6b62e7e9323a1a4f3cfc"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/reference/daemon.log",
+      "bytes": 1730,
+      "sha256": "6f3f4212465dfddb3b6c5cb2cbf8146b8a2c61aeabbad9d4e2523920002d2c70"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/reference/dnsmasq.conf",
+      "bytes": 264,
+      "sha256": "cbc83b69f1bd26afd6b138bf3f7f5429217e42735f4676deff19bd785d923e6d"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/reference/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/reference/result.json",
+      "bytes": 33716,
+      "sha256": "bf1402f604298fd2002262a35acd9935fcf780f98f6ec0a37a1172ba5fa5cf1f"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/rust/daemon.log",
+      "bytes": 1725,
+      "sha256": "c574b643b77d1c77346bf03697e098b6c0ca52d694a93f16acd4b8e40b3ca25a"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/rust/dnsmasq.conf",
+      "bytes": 254,
+      "sha256": "1088a9d737420302c6fbf992030b5e00e577194610a4c3395f708d67baf0bff3"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/rust/resolv.conf",
+      "bytes": 86,
+      "sha256": "c3c58401225bc823cd671be27cacb659c3cd76dd64c113c594069f240b86c24d"
+    },
+    {
+      "file": "oracle/matrix-short-v3/v6-warm-drop/rust/result.json",
+      "bytes": 30654,
+      "sha256": "dc7ef8d4ff793c71391ba5405fa82386f1f18fe375f9daede8a3221df0224a4d"
+    },
+    {
+      "file": "oracle-environment.txt",
+      "bytes": 258,
+      "sha256": "82b4df0b2d03e9565a0335534c9a802d3b2f702d07d858106e6cac9a4579fcae"
+    },
+    {
+      "file": "oracle-isolation-preflight.txt",
+      "bytes": 70,
+      "sha256": "89a40ce4938e17f74ecf1708f4b753bb3e0d11b30f04f64c5e171b9173709003"
+    },
+    {
+      "file": "oracle-postcheck.json",
+      "bytes": 114,
+      "sha256": "d2949cf3ed518ded3fa01100e83b3a337a46971d847975804965b631fed250f4"
+    },
+    {
+      "file": "router-config-summary.json",
+      "bytes": 784,
+      "sha256": "0f57f042dedfdd1735b77c894d00731a0daae7272b7720c06993c463d433f467"
+    },
+    {
+      "file": "router-readonly-final.txt",
+      "bytes": 281,
+      "sha256": "97045ad11cf9e6c6cbad68adbbe2134c4f2bdaaf907f6e9fe8b254f76115eb19"
+    },
+    {
+      "file": "router-readonly.txt",
+      "bytes": 2330,
+      "sha256": "e46dc2c17dd56fb07db9e0ca171df06c9b229fbff768ebe04321ca98df6e8117"
+    },
+    {
+      "file": "runtime-independent-review.json",
+      "bytes": 63268,
+      "sha256": "983d65b6d50633765d1ceabd695858a2de244ad1d416dd6e25896680a512f742"
+    },
+    {
+      "file": "runtime-independent-review.py",
+      "bytes": 11679,
+      "sha256": "a344db8ab8a59121c0005e2756249321dacc3b31daab0f47617dfd09603200b9"
+    }
+  ],
+  "file_count": 245,
+  "summary_sha256": "8d07ca0b3008da5141386398d4739ae871b4fbe7496516e8ed862b4d40b0fa00",
+  "note": "Raw device configuration and addresses remain private. Initial nft fixture failures are retained; only v3 final runs are qualified."
+}
