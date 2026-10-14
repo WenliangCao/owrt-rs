@@ -38,3 +38,19 @@ slots. A million-slot-scale inference is not claimed. Native clear-1000
 instructions fall 74.01% vs the original and 40.22% vs CLEAR-1; cycles remain
 unqualified until a root-issued quiet slot. The new graph/bucket test and 55
 existing cache-related tests pass; exact-C fixture/full gates are pending.
+
+
+Independent baseline noise audit completed locally: `BASELINE_NOISE_PARTIAL.md`
+and JSON verify37 C/deployed windows and1531 archived files, with every CPU and
+p50/p95 value matching the primary analyzer. This audit does not review this
+agent's candidates. It quantifies planning floors without changing W/4-of-5
+or the CPU gate.
+
+WRITER-1/DNS-4 was independently screened atop CLEAR-2: ordinary hit user
+instructions −1.038%, miss +0.0275%, host −0.598%, CNAME −0.465%, auxiliary
+8-RR −3.374%. The common-path saving is about54 instructions/query; expected
+whole-daemon benefit is below the observed device noise/precision. Rejected
+from B without full timing; exact offsets keep existing validation and24
+wire tests passed. Experimental code is preserved on DNS branch30828e02;
+`writer1-rejected.json` preserves all three counter rounds. The current branch
+product remains only CLEAR-1/CLEAR-2.
