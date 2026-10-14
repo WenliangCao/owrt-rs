@@ -91,7 +91,8 @@ def main():
         args.output.chmod(0o600)
         members = old.getmembers()
         validate_members(members, [base.rstrip("/"), *payload, link,
-                                   "root/owrt-v0.2.0-rollback-receipt"])
+                                   "root/owrt-v0.2.0-rollback-receipt",
+                                   *(c["path"].lstrip("/") for c in files)])
         names = set()
         for member in members:
             name = member.name.lstrip("/")

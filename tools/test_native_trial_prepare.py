@@ -51,6 +51,10 @@ class BackupPaths(unittest.TestCase):
     def test_old_layered_flag_rejected(self):
         self.reject([member("etc/owrt-dnsmasq.boot-enable")])
 
+    def test_backup_cannot_override_candidate_integration(self):
+        with self.assertRaises(AssertionError):
+            validate_members([member("etc/init.d/dnsmasq")], ["etc/init.d/dnsmasq"])
+
 
 if __name__ == "__main__":
     unittest.main()
