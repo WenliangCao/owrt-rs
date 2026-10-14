@@ -1,0 +1,9 @@
+[
+  [
+    "raw-cname-duplicate-pointer",
+    "dns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+    [
+      255
+    ]
+  ]
+]

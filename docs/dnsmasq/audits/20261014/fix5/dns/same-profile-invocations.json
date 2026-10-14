@@ -1,0 +1,28 @@
+[
+  {
+    "name": "cname-same-profile",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/terminal_extended.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/source",
+      "--image",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--main",
+      "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "--before",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release-before/dnsmasq-rs",
+      "--fix",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "--profiles",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/cname-profiles.json",
+      "--upstream-cnames",
+      "--out",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/cname-same-profile"
+    ]
+  }
+]

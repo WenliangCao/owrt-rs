@@ -44,3 +44,20 @@ sudo -n sh "$ROOT/source/tools/dnsmasq/run_isolated.sh" python3 \
 本次 `ROOT=/home/ubuntu/dnsmasq-audit-fix5-20261014`。原始构建日志、单测输出、ELF、参考文件及 rootfs overlay 留在 private，Git 只收录驱动和派生记录。单测与其他隔离功能探针可并行，本轮没有性能计时任务。
 
 未重跑完整 SDK 打包、23 个 ignored 测试、长时 fuzz/soak、allocator/mprotect fault、其他页大小或物理路由器部署。FIX4 既有 ELF/APK 预算问题不因本次 Cargo release 成功而消失；本页也不沿用旧 APK 身份来声称 F1 修复已被打入 APK。
+
+## 补充：修复前的同构建配置对照
+
+后续终点审计发现新的 raw CNAME 组合反例。为排除旧 SDK strip 与当前 Cargo release 的构建差异，将 `d9565f462ebc9e9616b00fe72f7d6ceeb9003beb` 完整 `git archive` 到独立 `source-before`，用其自身 `oracle_build.sh` fresh 构建 `private/release-before`，没有复用旧二进制。
+
+修复前 178 项 Git 输入与 Oracle `source-before`、保留 `source-final`、两份原 SDK manifest 的 `source_files` 逐项相同，摘要仍为 `aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1`；构建后再次验证源码未变。两份 SDK manifest 均为源码构建、`frozen_elf=false`，其实际 ELF 也重新核对 SHA。[完整输入、命令与身份记录](before-identity.json)
+
+修复前 fresh release 为 `/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release-before/dnsmasq-rs`，**2,056,672 B**，SHA-256 **`45375655c62112c6d99fd1f46034352f1b37350fa92c38b0ccd8fcbdff301827`**。它与当前 fresh release 都是 release、opt3、feature-off；将各自源码根路径归一化后，完整 `RUSTFLAGS` 相同；`oracle_build.sh` 和 static PIE linker wrapper 字节相同。因此主审可直接用这两份程序重跑新增反例，避免以 SDK strip 差异解释产品行为。这里确认构建配置和来源，不声称不同源码路径下的产物能够逐字复现。
+
+复现构建命令：
+
+```sh
+sh "$ROOT/source-before/tools/dnsmasq/oracle_build.sh" \
+  "$ROOT/source-before" "$ROOT/private/release-before" release
+```
+
+该补充没有重跑修复前普通单测，也没有执行 SDK 打包。新增反例的实际三方/四方报文结论见同轮终点审计；本页前述构建和普通单测通过不构成对此类语义反例的豁免。

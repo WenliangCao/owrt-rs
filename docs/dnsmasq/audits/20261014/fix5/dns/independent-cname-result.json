@@ -1,0 +1,2563 @@
+{
+  "source_private_path": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/cname-dynamic-01/result.json",
+  "source_sha256": "346f1baf6f8ad8b50b3160e8189c8c2af632c624c2db51a0d2c5be4f58d9d5ec",
+  "checker_sha256": "459ab38e7b01a8b1b02d804c78094a24af5bd11036dd0122eef3a4eb70e7c58e",
+  "binary_identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+    "before": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+    "profiles": "fd11a9e81a5151f376ab95bd9a1b8b8b15e23cadd05b071b8efce37d549b3084",
+    "driver": "7ec3edce5f58b098dcadcd05d099fc6fe2ba2eb81358105e5a75e0d5e4017280",
+    "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+  },
+  "comparison": "Only name compression is normalized; preserve every header, question, section, RR order, label byte/case, class, TTL and decoded RDATA field.",
+  "cases": [
+    {
+      "label": "raw-cname-duplicate-pointer-debug0-udp-255",
+      "protocol": "udp",
+      "debug": false,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+      "query_hex": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+      "sides": {
+        "c": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 98,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 113,
+              "rdata_offset": 125,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 140,
+              "rdata_offset": 152,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [],
+          "length": 154,
+          "sha256": "5e105622f86bdd7a53ad09754844c179610195a59159dfe1e939c68852b94605",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "main": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 85,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 100,
+              "rdata_offset": 126,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 141,
+              "rdata_offset": 167,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 182,
+              "rdata_offset": 208,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 223,
+          "sha256": "ee9073e276b3d5f4fddf1060dff3f5e969fdbb14b35879d52919e53f087cb61a",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 1,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "before": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 209,
+          "sha256": "14532298a90436d8bbd6f98fdb9bac194e243a829bba8edcdec80418010ea54b",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "fix": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "invalid_name": {
+                    "code": "invalid-label-type",
+                    "offset": 98,
+                    "byte": 112,
+                    "byte_hex": "70"
+                  }
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [
+            {
+              "section": "answer",
+              "index": 4,
+              "code": "invalid-label-type",
+              "offset": 98,
+              "byte": 112,
+              "byte_hex": "70"
+            }
+          ],
+          "length": 196,
+          "sha256": "24aa9cc066a806785471cc10328f2c931785b37bc8037f208f6665834185e4d9",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        }
+      },
+      "checks": {
+        "c_main_before_exact_semantics_including_ttl": true,
+        "warm_all_exact_semantics_including_ttl": true,
+        "head_last_cname_invalid_at_offset_98": true,
+        "head_other_fields_match_c": true
+      }
+    },
+    {
+      "label": "raw-cname-duplicate-pointer-debug0-tcp-255",
+      "protocol": "tcp",
+      "debug": false,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+      "query_hex": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+      "sides": {
+        "c": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 98,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 113,
+              "rdata_offset": 125,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 140,
+              "rdata_offset": 152,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [],
+          "length": 154,
+          "sha256": "5e105622f86bdd7a53ad09754844c179610195a59159dfe1e939c68852b94605",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "main": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 85,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 100,
+              "rdata_offset": 126,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 141,
+              "rdata_offset": 167,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 182,
+              "rdata_offset": 208,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 223,
+          "sha256": "ee9073e276b3d5f4fddf1060dff3f5e969fdbb14b35879d52919e53f087cb61a",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 1,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "before": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 209,
+          "sha256": "14532298a90436d8bbd6f98fdb9bac194e243a829bba8edcdec80418010ea54b",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "fix": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "invalid_name": {
+                    "code": "invalid-label-type",
+                    "offset": 98,
+                    "byte": 112,
+                    "byte_hex": "70"
+                  }
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [
+            {
+              "section": "answer",
+              "index": 4,
+              "code": "invalid-label-type",
+              "offset": 98,
+              "byte": 112,
+              "byte_hex": "70"
+            }
+          ],
+          "length": 196,
+          "sha256": "24aa9cc066a806785471cc10328f2c931785b37bc8037f208f6665834185e4d9",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        }
+      },
+      "checks": {
+        "c_main_before_exact_semantics_including_ttl": true,
+        "warm_all_exact_semantics_including_ttl": true,
+        "head_last_cname_invalid_at_offset_98": true,
+        "head_other_fields_match_c": true
+      }
+    },
+    {
+      "label": "raw-cname-duplicate-pointer-debug1-udp-255",
+      "protocol": "udp",
+      "debug": true,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+      "query_hex": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+      "sides": {
+        "c": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 98,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 113,
+              "rdata_offset": 125,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 140,
+              "rdata_offset": 152,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [],
+          "length": 154,
+          "sha256": "5e105622f86bdd7a53ad09754844c179610195a59159dfe1e939c68852b94605",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "main": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 85,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 100,
+              "rdata_offset": 126,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 141,
+              "rdata_offset": 167,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 182,
+              "rdata_offset": 208,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 223,
+          "sha256": "ee9073e276b3d5f4fddf1060dff3f5e969fdbb14b35879d52919e53f087cb61a",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 1,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "before": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 209,
+          "sha256": "14532298a90436d8bbd6f98fdb9bac194e243a829bba8edcdec80418010ea54b",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "fix": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "invalid_name": {
+                    "code": "invalid-label-type",
+                    "offset": 98,
+                    "byte": 112,
+                    "byte_hex": "70"
+                  }
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [
+            {
+              "section": "answer",
+              "index": 4,
+              "code": "invalid-label-type",
+              "offset": 98,
+              "byte": 112,
+              "byte_hex": "70"
+            }
+          ],
+          "length": 196,
+          "sha256": "24aa9cc066a806785471cc10328f2c931785b37bc8037f208f6665834185e4d9",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        }
+      },
+      "checks": {
+        "c_main_before_exact_semantics_including_ttl": true,
+        "warm_all_exact_semantics_including_ttl": true,
+        "head_last_cname_invalid_at_offset_98": true,
+        "head_other_fields_match_c": true
+      }
+    },
+    {
+      "label": "raw-cname-duplicate-pointer-debug1-tcp-255",
+      "protocol": "tcp",
+      "debug": true,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+      "query_hex": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+      "sides": {
+        "c": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 98,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 113,
+              "rdata_offset": 125,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 140,
+              "rdata_offset": 152,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [],
+          "length": 154,
+          "sha256": "5e105622f86bdd7a53ad09754844c179610195a59159dfe1e939c68852b94605",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "main": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 85,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 100,
+              "rdata_offset": 126,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 141,
+              "rdata_offset": 167,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 182,
+              "rdata_offset": 208,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 223,
+          "sha256": "ee9073e276b3d5f4fddf1060dff3f5e969fdbb14b35879d52919e53f087cb61a",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 1,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "before": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            }
+          ],
+          "errors": [],
+          "length": 209,
+          "sha256": "14532298a90436d8bbd6f98fdb9bac194e243a829bba8edcdec80418010ea54b",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        },
+        "fix": {
+          "semantic": {
+            "header": {
+              "id": 4660,
+              "flags": 34176,
+              "qdcount": 1,
+              "ancount": 5,
+              "nscount": 0,
+              "arcount": 0
+            },
+            "questions": [
+              {
+                "labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 255,
+                "class": 1
+              }
+            ],
+            "answer": [
+              {
+                "owner_labels_hex": [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 300,
+                "rdata": {
+                  "name_labels_hex": [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "name_labels_hex": [
+                    "6f74686572",
+                    "6578616d706c65"
+                  ]
+                }
+              },
+              {
+                "owner_labels_hex": [
+                  "746172676574",
+                  "6578616d706c65"
+                ],
+                "type": 5,
+                "class": 1,
+                "ttl": 60,
+                "rdata": {
+                  "invalid_name": {
+                    "code": "invalid-label-type",
+                    "offset": 98,
+                    "byte": 112,
+                    "byte_hex": "70"
+                  }
+                }
+              }
+            ],
+            "authority": [],
+            "additional": []
+          },
+          "layout": [
+            {
+              "section": "answer",
+              "index": 0,
+              "owner_offset": 31,
+              "rdata_offset": 43,
+              "rdata_length": 16,
+              "rdata_hex": "06746172676574076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 1,
+              "owner_offset": 59,
+              "rdata_offset": 71,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 2,
+              "owner_offset": 86,
+              "rdata_offset": 112,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 3,
+              "owner_offset": 127,
+              "rdata_offset": 153,
+              "rdata_length": 15,
+              "rdata_hex": "056f74686572076578616d706c6500"
+            },
+            {
+              "section": "answer",
+              "index": 4,
+              "owner_offset": 168,
+              "rdata_offset": 194,
+              "rdata_length": 2,
+              "rdata_hex": "c062"
+            }
+          ],
+          "errors": [
+            {
+              "section": "answer",
+              "index": 4,
+              "code": "invalid-label-type",
+              "offset": 98,
+              "byte": 112,
+              "byte_hex": "70"
+            }
+          ],
+          "length": 196,
+          "sha256": "24aa9cc066a806785471cc10328f2c931785b37bc8037f208f6665834185e4d9",
+          "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+          "upstream_count": 0,
+          "alive": true,
+          "exit": 0,
+          "health_status": "reply"
+        }
+      },
+      "checks": {
+        "c_main_before_exact_semantics_including_ttl": true,
+        "warm_all_exact_semantics_including_ttl": true,
+        "head_last_cname_invalid_at_offset_98": true,
+        "head_other_fields_match_c": true
+      }
+    }
+  ],
+  "c_source_review": {
+    "reference_path": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93/src/rfc1035.c",
+    "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "cached_cname_lines": [
+      1795,
+      1797
+    ],
+    "cached_cname_updates_nameoffset": true,
+    "raw_loop_lines": [
+      1862,
+      1872
+    ],
+    "raw_loop_updates_nameoffset": false,
+    "raw_loop": "      for (t = daemon->rr; t; t = t->next)\n\tif ((t->class == qtype || qtype == T_ANY) && hostname_isequal(name, t->name))\n\t  {\n\t    ans = 1;\n\t    sec_data = 0;\n\t    log_query(F_CONFIG | F_RRNAME, name, NULL, NULL, t->class);\n\t    if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, \n\t\t\t\t    daemon->local_ttl, NULL,\n\t\t\t\t    t->class, C_IN, \"t\", t->len, t->txt))\n\t      anscount++;\n\t  }",
+    "opaque_copy_lines": [
+      1610,
+      1617
+    ],
+    "conclusion": "Configured raw TYPE5 uses the same opaque 't' path and NULL output offset as every other dns-rr type. It does not advance C's owner cursor."
+  },
+  "summary": {
+    "cases": 4,
+    "c_main_before_match_including_ttl": 4,
+    "head_malformed_last_cname": 4,
+    "all_daemons_alive_and_exit_zero": 16
+  }
+}

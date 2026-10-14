@@ -1,0 +1,5544 @@
+{
+  "checker_sha256": "6dabd2178168c8e667b24ae6fcd06c31b500b061057441afe0112850726cd75d",
+  "groups": {
+    "c00c-dynamic": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/c00c-dynamic/result.json",
+      "sha256": "cb632fd7afd05ea077abb7f0da73add6cde44eaa088ca32117bab33701431f16",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "211208583bc13a980798a4b1ed5e649c4033c501f96f5c418708782bfdd17df9",
+        "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 0,
+          "total": 4
+        },
+        "fix_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "warm_all_strict_equal": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_alive": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_exit_zero": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_health_reply": {
+          "passed": 3,
+          "total": 4
+        }
+      },
+      "cases": [
+        {
+          "label": "raw-ns-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c000f05616c696173076578616d706c6500",
+              "length": 100,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c000f05616c696173076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c000f05616c696173076578616d706c6500",
+              "length": 100,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c000f05616c696173076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "c00c-anchor": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/c00c-anchor/result.json",
+      "sha256": "aed85c05b63112270a0063b8e54bff5a9b03f9aa6d13c7b298b06da0a5420887",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "211208583bc13a980798a4b1ed5e649c4033c501f96f5c418708782bfdd17df9",
+        "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 0,
+          "total": 4
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "warm_all_strict_equal": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_alive": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_exit_zero": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_health_reply": {
+          "passed": 3,
+          "total": 4
+        }
+      },
+      "cases": [
+        {
+          "label": "raw-ns-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c001006746172676574076578616d706c6500",
+              "length": 87,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c001006746172676574076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c001006746172676574076578616d706c6500",
+              "length": 87,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c00c\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c001006746172676574076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "c02b-dynamic": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/c02b-dynamic/result.json",
+      "sha256": "badf6cb53af31938f0f5ef81cf5202510083e64d77d3c2d0646ad86ae3a3d6d7",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "211208583bc13a980798a4b1ed5e649c4033c501f96f5c418708782bfdd17df9",
+        "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 0,
+          "total": 4
+        },
+        "fix_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "warm_all_strict_equal": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_alive": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_exit_zero": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_health_reply": {
+          "passed": 3,
+          "total": 4
+        }
+      },
+      "cases": [
+        {
+          "label": "raw-ns-target-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c001006746172676574076578616d706c6500",
+              "length": 101,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-target-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c001006746172676574076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c001006746172676574076578616d706c6500",
+              "length": 101,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000200010000003c001006746172676574076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "c02b-anchor": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/c02b-anchor/result.json",
+      "sha256": "c7f52ab05e2281ea41276fc20e51de60a00300f9331e08edd7ea2c251d7920e3",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "211208583bc13a980798a4b1ed5e649c4033c501f96f5c418708782bfdd17df9",
+        "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 0,
+          "total": 4
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "warm_all_strict_equal": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_alive": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_exit_zero": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_health_reply": {
+          "passed": 3,
+          "total": 4
+        }
+      },
+      "cases": [
+        {
+          "label": "raw-ns-target-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "timeout",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "timeout"
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-target-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "eof",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "eof"
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "timeout",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "timeout"
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "eof",
+            "fix": "reply"
+          },
+          "parse_errors": {},
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nhost-record=target.example,192.0.2.77\ndns-rr=target.example,2,c02b\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "eof"
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c02b",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "full-terminal": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/full-terminal/result.json",
+      "sha256": "36cc518936d3ccea3089f109d5ebbbf4a4034fbc56d5e2803a9afc57ab33dd27",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "211208583bc13a980798a4b1ed5e649c4033c501f96f5c418708782bfdd17df9",
+        "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 18,
+          "total": 88
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 18,
+          "total": 88
+        },
+        "fix_strict_equals_c": {
+          "passed": 70,
+          "total": 88
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 70,
+          "total": 88
+        },
+        "warm_all_strict_equal": {
+          "passed": 88,
+          "total": 88
+        },
+        "all_alive": {
+          "passed": 88,
+          "total": 88
+        },
+        "all_exit_zero": {
+          "passed": 88,
+          "total": 88
+        },
+        "all_health_reply": {
+          "passed": 66,
+          "total": 88
+        }
+      },
+      "cases": [
+        {
+          "label": "target-local-debug0-udp-6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-12",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-15",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-16",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-28",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-udp-257",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-12",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-15",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-16",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-28",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug0-tcp-257",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-12",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-15",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-16",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-28",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-udp-257",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-12",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-15",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-16",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-28",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-local-debug1-tcp-257",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-literal-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-literal-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-literal-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "target-literal-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-pointer-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-target-pointer-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug0-udp-15",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug0-tcp-15",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug1-udp-15",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug1-tcp-15",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-mx-pointer-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "c": "name bounds/cycle at 255",
+            "fix": "name bounds/cycle at 255"
+          }
+        },
+        {
+          "label": "raw-ns-name-debug0-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug0-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug1-udp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug1-tcp-2",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-ns-name-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-cname-pointer-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-cname-pointer-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-cname-pointer-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-cname-pointer-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug0-udp-65401",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug0-tcp-65401",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug1-udp-65401",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug1-tcp-65401",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "raw-opaque-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": false
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        }
+      ]
+    },
+    "n1": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/n1/result.json",
+      "sha256": "5b9f039fa7f0b23bdc78c104ae42c8f550902758a6bcd96d51f321e2733061e4",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "f6fef44055869433e048b505066614140c15981e51967550c2afbc5fc1e96f2a"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 24,
+          "total": 72
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 48,
+          "total": 72
+        },
+        "fix_strict_equals_c": {
+          "passed": 72,
+          "total": 72
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 72,
+          "total": 72
+        },
+        "all_alive": {
+          "passed": 72,
+          "total": 72
+        },
+        "all_exit_zero": {
+          "passed": 72,
+          "total": 72
+        },
+        "all_health_reply": {
+          "passed": 72,
+          "total": 72
+        },
+        "warm_all_strict_equal": {
+          "passed": 48,
+          "total": 48
+        }
+      },
+      "cases": [
+        {
+          "label": "r1-debug0-filter1-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter1-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter1-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter1-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter1-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter1-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter0-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter0-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter0-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter0-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter0-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug0-filter0-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter1-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter1-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter1-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter1-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter1-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter1-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter0-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter0-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter0-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter0-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter0-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r1-debug1-filter0-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter1-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter1-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter1-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter1-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter1-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter1-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter0-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter0-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter0-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter0-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter0-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug0-filter0-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter1-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter1-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter1-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter1-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter1-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter1-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter0-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter0-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter0-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter0-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter0-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r2-debug1-filter0-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter1-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter1-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter1-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter1-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter1-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter1-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter0-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter0-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter0-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter0-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter0-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug0-filter0-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter1-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter1-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter1-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter1-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter1-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter1-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": false,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 0,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter0-cold-q6",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter0-cold-q33",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter0-udp-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter0-udp-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter0-persistent-q6",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        },
+        {
+          "label": "r3-debug1-filter0-persistent-q33",
+          "checks": {
+            "main_strict_equals_c": false,
+            "main_upstream_count_equals_c": true,
+            "fix_strict_equals_c": true,
+            "fix_upstream_count_equals_c": true,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {}
+        }
+      ]
+    },
+    "cname-dynamic-01": {
+      "origin": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/cname-dynamic-01/result.json",
+      "sha256": "346f1baf6f8ad8b50b3160e8189c8c2af632c624c2db51a0d2c5be4f58d9d5ec",
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "fix": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "before": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+        "profiles": "fd11a9e81a5151f376ab95bd9a1b8b8b15e23cadd05b071b8efce37d549b3084",
+        "driver": "7ec3edce5f58b098dcadcd05d099fc6fe2ba2eb81358105e5a75e0d5e4017280",
+        "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+      },
+      "comparison": "All header/question/ordered section/RDATA/TTL fields; normalize only name compression. Malformed replies require exact raw equality.",
+      "counts": {
+        "main_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "main_upstream_count_equals_c": {
+          "passed": 0,
+          "total": 4
+        },
+        "before_strict_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "before_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "fix_strict_equals_c": {
+          "passed": 0,
+          "total": 4
+        },
+        "fix_upstream_count_equals_c": {
+          "passed": 4,
+          "total": 4
+        },
+        "before_strict_equals_fix": {
+          "passed": 0,
+          "total": 4
+        },
+        "warm_all_strict_equal": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_alive": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_exit_zero": {
+          "passed": 4,
+          "total": 4
+        },
+        "all_health_reply": {
+          "passed": 4,
+          "total": 4
+        }
+      },
+      "cases": [
+        {
+          "label": "raw-cname-duplicate-pointer-debug0-udp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "before_strict_equals_c": true,
+            "before_upstream_count_equals_c": true,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": true,
+            "before_strict_equals_fix": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "before": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "before": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "fix": "invalid label 70 at 98"
+          },
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+              "length": 154,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "length": 223,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "before": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "length": 209,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+              "length": 196,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-cname-duplicate-pointer-debug0-tcp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "before_strict_equals_c": true,
+            "before_upstream_count_equals_c": true,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": true,
+            "before_strict_equals_fix": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "before": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "before": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "fix": "invalid label 70 at 98"
+          },
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "before": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-cname-duplicate-pointer-debug1-udp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "before_strict_equals_c": true,
+            "before_upstream_count_equals_c": true,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": true,
+            "before_strict_equals_fix": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "before": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "before": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "fix": "invalid label 70 at 98"
+          },
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+              "length": 154,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "length": 223,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "before": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "length": 209,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+              "length": 196,
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "label": "raw-cname-duplicate-pointer-debug1-tcp-255",
+          "checks": {
+            "main_strict_equals_c": true,
+            "main_upstream_count_equals_c": false,
+            "before_strict_equals_c": true,
+            "before_upstream_count_equals_c": true,
+            "fix_strict_equals_c": false,
+            "fix_upstream_count_equals_c": true,
+            "before_strict_equals_fix": false,
+            "warm_all_strict_equal": true,
+            "all_alive": true,
+            "all_exit_zero": true,
+            "all_health_reply": true
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "before": 0,
+            "fix": 0
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "before": "reply",
+            "fix": "reply"
+          },
+          "parse_errors": {
+            "fix": "invalid label 70 at 98"
+          },
+          "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c062\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+          "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+          "responses": {
+            "c": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c6500c02b000500010000003c0002c062",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "main": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "before": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c6500",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            },
+            "fix": {
+              "status": "reply",
+              "hex": "12348580000100050000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c000f056f74686572076578616d706c650006746172676574076578616d706c6500000500010000003c0002c062",
+              "header": [
+                4660,
+                34176,
+                1,
+                5,
+                0,
+                0
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

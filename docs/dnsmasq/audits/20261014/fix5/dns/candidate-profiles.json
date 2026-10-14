@@ -1,0 +1,9 @@
+[
+  [
+    "raw-cname-mixed-pointer",
+    "dns-rr=target.example,2,c062\ndns-rr=target.example,2,056e73666f6f076578616d706c6500\ndns-rr=target.example,2,056e73666f6f076578616d706c6500\ndns-rr=target.example,5,056f74686572076578616d706c6500\n",
+    [
+      255
+    ]
+  ]
+]
