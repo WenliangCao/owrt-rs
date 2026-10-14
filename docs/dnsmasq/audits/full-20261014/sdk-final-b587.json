@@ -910,5 +910,83 @@
   "acl": {
     "path": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/sdk-source-build/payload/usr/share/acl.d/dnsmasq_acl.json",
     "sha256": "8bedbcdd3018c17f272f0d3ecf9573aa6f05253806cb8812ebf92e9b87ac6020"
+  },
+  "final_elf_trial": {
+    "scope": "ELF-only final SDK payload trial in exact stock init/procd/ubusd/logd/netifd/ujail; not installed r4 package qualification",
+    "case": "confirmed-rollback-killed",
+    "passed": true,
+    "candidate_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "support_hashes": {
+      "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "/sbin/logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+      "/sbin/procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "/sbin/netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90"
+    },
+    "fault": {
+      "pid": 519,
+      "phase": "unmounted",
+      "mounted": false,
+      "helper_files": [
+        "watch.pid"
+      ],
+      "signal": "SIGKILL"
+    },
+    "rollback_exit": -9,
+    "steps": {
+      "candidate": {
+        "pid": 477,
+        "sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+        "exe": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/trial-final-confirmed-killed/fixture/rootfs/usr/sbin/dnsmasq",
+        "start_ticks": "171595901",
+        "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
+        "root": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/trial-final-confirmed-killed/fixture/rootfs"
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "automatic_recovery": {
+        "pid": 690,
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "exe": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/trial-final-confirmed-killed/fixture/rootfs/usr/sbin/dnsmasq",
+        "start_ticks": "171596615",
+        "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
+        "root": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/trial-final-confirmed-killed/fixture/rootfs"
+      },
+      "automatic_recovery_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "helpers_cleared": true
+    },
+    "raw_result_sha256": "5f8efb334b575cb494d52b19f9ae66e6c76a4067f1f059bc773eb8e6072170fc",
+    "archive": {
+      "path": "private/final-sdk-b5872820-20261014/trial-final-evidence.tar.gz",
+      "sha256": "3aa932738d659b1777b0556a03b2a50e8dbff5de253781712f50ed6eaa6e3a0c",
+      "bytes": 35078
+    },
+    "closeout": {
+      "owned_processes": [],
+      "host_mounts": [],
+      "scope": "ELF-only trial with exact stock init and C support stack; not APK-installed runtime"
+    }
   }
 }

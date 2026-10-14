@@ -86,6 +86,27 @@ stock **修复安装** 恢复数据库/磁盘/运行 ELF 与客户端 C；它不
 实验与[失败恢复边界](F4_PACKAGE_ACTIVATION.md)保持原身份，不冒称在本最终包
 重跑。最终系统恢复门和真实无线客户端资格仍是其它工作。
 
+## 最终包 ELF 的一次真实回退中断
+
+另以最终 strip 后 `50e591a9…` ELF、trial 脚本
+`dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74`
+新执行 `confirmed-rollback-killed`。这次使用精确镜像 stock init、C procd/
+ubusd/logd/netifd/ujail，属于 **ELF-only trial**，没有安装 r4 包，不能称为整包
+trial 或最终 Rust 九组件共存资格。
+
+候选确认后仅剩 watch；ptrace 在真实 bind mount 已卸载、尚未执行恢复 restart
+的系统调用窗口发送一次 SIGKILL。原始见证为 `phase=unmounted`、`mounted=false`、
+`helper_files=[watch.pid]`，被杀 rollback 退出 -9。存活 watch 自动接续，实际运行
+ELF 回到精确 C `097a9e21…`，独立 veth 再取得 DHCP OFFER/ACK 与正确网关/DNS
+选项，UDP/TCP 查询通过；只有恢复后 helper 才清除。候选阶段的同一客户端检查
+也通过，未用进程存在替代协议健康。
+
+该原始资料单独归档为
+`private/final-sdk-b5872820-20261014/trial-final-evidence.tar.gz`，SHA-256
+`3aa932738d659b1777b0556a03b2a50e8dbff5de253781712f50ed6eaa6e3a0c`，35,078 B，
+本机复算一致；见同一 JSON 的 `final_elf_trial`。这只关闭列明的一次中断窗口，
+不声称两个恢复 owner 同时失效、所有信号交错或硬件故障均能恢复。
+
 ## 保全和范围
 
 [完整派生身份与执行收据](sdk-final-b587.json)。原始源码/SDK 输入、命令、日志、
