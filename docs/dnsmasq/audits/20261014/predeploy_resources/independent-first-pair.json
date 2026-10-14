@@ -1,0 +1,143 @@
+{
+  "01-daily-C": {
+    "active": {
+      "ticks": 43,
+      "hz": 100,
+      "elapsed": 120.000928623,
+      "cpu_seconds": 0.43,
+      "one_core_pct": 0.35833056038333355,
+      "end_process_counts": [
+        3,
+        3
+      ],
+      "root_waited_ticks": [
+        0,
+        0
+      ]
+    },
+    "full": {
+      "ticks": 52,
+      "hz": 100,
+      "elapsed": 179.996371911,
+      "cpu_seconds": 0.52,
+      "one_core_pct": 0.2888947118651459,
+      "end_process_counts": [
+        1,
+        1
+      ],
+      "root_waited_ticks": [
+        0,
+        3
+      ]
+    },
+    "latency": {
+      "udp": {
+        "n": 2280,
+        "p50_us": 218.824,
+        "p95_us": 516.205,
+        "p99_us": 900.301,
+        "correct": 2280,
+        "sent": 2280,
+        "skipped": 0
+      },
+      "tcp": {
+        "n": 120,
+        "p50_us": 691.095,
+        "p95_us": 883.527,
+        "p99_us": 2038.121,
+        "correct": 120,
+        "sent": 120,
+        "skipped": 0
+      },
+      "dhcp": {
+        "n": 12,
+        "p50_us": 3246.806,
+        "p95_us": 3334.674,
+        "p99_us": 3334.674,
+        "correct": 12,
+        "sent": 12,
+        "skipped": 0
+      }
+    },
+    "active_root_RSS_median_kib": 1180,
+    "active_tree_RSS_median_kib": 3140,
+    "full_root_RSS_median_kib": 1180,
+    "full_tree_RSS_median_kib": 3140,
+    "all_tree_counts": [
+      1,
+      3
+    ],
+    "min_MemAvailable_kib": 115816,
+    "upstream_steady": 660
+  },
+  "02-daily-R": {
+    "active": {
+      "ticks": 84,
+      "hz": 100,
+      "elapsed": 119.999903225,
+      "cpu_seconds": 0.84,
+      "one_core_pct": 0.7000005645212886,
+      "end_process_counts": [
+        1,
+        1
+      ],
+      "root_waited_ticks": [
+        0,
+        0
+      ]
+    },
+    "full": {
+      "ticks": 101,
+      "hz": 100,
+      "elapsed": 179.996479223,
+      "cpu_seconds": 1.01,
+      "one_core_pct": 0.5611220865874259,
+      "end_process_counts": [
+        1,
+        1
+      ],
+      "root_waited_ticks": [
+        0,
+        0
+      ]
+    },
+    "latency": {
+      "udp": {
+        "n": 2280,
+        "p50_us": 326.389,
+        "p95_us": 783.656,
+        "p99_us": 909.764,
+        "correct": 2280,
+        "sent": 2280,
+        "skipped": 0
+      },
+      "tcp": {
+        "n": 120,
+        "p50_us": 557.293,
+        "p95_us": 755.264,
+        "p99_us": 908.611,
+        "correct": 120,
+        "sent": 120,
+        "skipped": 0
+      },
+      "dhcp": {
+        "n": 12,
+        "p50_us": 2894.718,
+        "p95_us": 3111.772,
+        "p99_us": 3111.772,
+        "correct": 12,
+        "sent": 12,
+        "skipped": 0
+      }
+    },
+    "active_root_RSS_median_kib": 2500.0,
+    "active_tree_RSS_median_kib": 2500.0,
+    "full_root_RSS_median_kib": 2484,
+    "full_tree_RSS_median_kib": 2484,
+    "all_tree_counts": [
+      1
+    ],
+    "min_MemAvailable_kib": 119296,
+    "upstream_steady": 660
+  }
+}
