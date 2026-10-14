@@ -1,0 +1,32 @@
+{
+  "status": "proposed",
+  "no_new_c_run": true,
+  "real_candidate_evaluated": false,
+  "cases": [
+    {
+      "case": "six-hostsdir-initial",
+      "fixture_sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+      "input_sha256": "a1e135eb9b64c8697cbbbb0797981059fe41fd092bc2c6c577a2f867c95af392",
+      "states": 4,
+      "targets": 8,
+      "queries": 28
+    },
+    {
+      "case": "leases-dhcp",
+      "fixture_sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+      "input_sha256": "c55eb61da745777ca44dd24fe1174b3bfbd866ecb08e720cc21c5ef3ddcf47df",
+      "states": 6,
+      "targets": 12,
+      "queries": 46
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "fixture_sha256": "62e03ca98e1421189cc3aea96e60aa52f78aabfdb85dbec1c4c5b1eb65efd164",
+      "input_sha256": "9f61583bf417ed0263ebc23526d112fb37e99d1f4bc13fd8d02d5b97157b1df0",
+      "states": 4,
+      "targets": 8,
+      "queries": 28
+    }
+  ],
+  "negative_controls": 38
+}

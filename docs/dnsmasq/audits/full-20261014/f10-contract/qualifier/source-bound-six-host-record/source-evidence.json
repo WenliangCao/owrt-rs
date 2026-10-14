@@ -1,0 +1,94 @@
+{
+  "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "package": "dnsmasq",
+  "version": "2.93-r1",
+  "openwrt": "25.12.5",
+  "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+  "upstream_archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+  "exact_c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "files": {
+    "cache.c": {
+      "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+    },
+    "dnsmasq.c": {
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1"
+    },
+    "rfc1035.c": {
+      "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222"
+    }
+  },
+  "anchors": [
+    {
+      "file": "cache.c",
+      "lines": [
+        38,
+        43
+      ],
+      "claim": "typestr contains type plus name pointer and is also the hash mixing table."
+    },
+    {
+      "file": "cache.c",
+      "lines": [
+        295,
+        309
+      ],
+      "claim": "hash_bucket reads raw typestr bytes, including relocated pointer bytes."
+    },
+    {
+      "file": "cache.c",
+      "lines": [
+        312,
+        341
+      ],
+      "claim": "Hash-chain placement preserves reverse/immortal flag classes."
+    },
+    {
+      "file": "cache.c",
+      "lines": [
+        1174,
+        1231
+      ],
+      "claim": "Forward lookup rotates only records with matching reverse/immortal flag class."
+    },
+    {
+      "file": "cache.c",
+      "lines": [
+        1262,
+        1317
+      ],
+      "claim": "PTR lookup enumerates reverse records in bucket/chain order without moving the hash links."
+    },
+    {
+      "file": "cache.c",
+      "lines": [
+        1322,
+        1385
+      ],
+      "claim": "Bulk reverse ownership and name-lookup temporary next links define the two-owner fixture."
+    },
+    {
+      "file": "cache.c",
+      "lines": [
+        1640,
+        1666
+      ],
+      "claim": "Configured host-records use the same bulk add_hosts_entry path."
+    },
+    {
+      "file": "rfc1035.c",
+      "lines": [
+        1939,
+        1989
+      ],
+      "claim": "Wire PTR records are emitted in cache_find_by_addr order."
+    },
+    {
+      "file": "dnsmasq.c",
+      "lines": [
+        2104,
+        2197
+      ],
+      "claim": "Non-debug TCP handling forks the current parent address space before tcp_request."
+    }
+  ]
+}

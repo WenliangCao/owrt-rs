@@ -1,0 +1,37 @@
+{
+  "scope": [
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e"
+  ],
+  "files_sha256": {
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm/result.json": "430eca49e06acad30d2177478991e558e8a7081076951d4fa39fc7b040b703a8",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm/driver.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm/rust/result.json": "68eea18608129861f077389ce5518588840610a855b8d3860babe17d59ad410c",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm/c/result.json": "df59c2fa1ac94efecb48a0468e4a5fbe4faae673c3d8dc7e6815223da635462d",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-warm/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original/result.json": "f0cc88da5437460cc76b52db6f9451ef91e2825cd25b03b697f66d9c93dd042d",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original/driver.py": "30f7e009761ac96991269823651b17d05aeadcf8d6a798defb6a9318d00aaa8b",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original/rust/result.json": "acafbee0df6c6570a8eefbf66c77137f10e81299312921aea0ca25720499e5a7",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original/c/result.json": "e208dec760c873fb3316ee04c2f99aac73b19754ffb117e4314b48ea17e4592e",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-repeated-original/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique/result.json": "d73723a09339fd46eef62f7027c4ec96170ea0a4d65f1e892420e91b8bf39814",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique/driver.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique/rust/result.json": "6dff43add631dd5577b2516b6cf84253f8aee683b86c84e57af958e12cd3f022",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique/c/result.json": "65923a5d588a46f25e47a3da0cfadd5df2324ecf20b45d1581a8431b12a888f5",
+    "/dev/shm/full-f10-product-20261014/private/rotation-final238e-unique/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e/result.json": "861973fd0728ff07444f896dff19eec5f976566797bcc2e62c67ab03cb0a9208",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e/driver.py": "6b578569f5485a3d780ab3d7b10a5a99a185d00b6f4f8853c17971697c7d3565",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e/rust/result.json": "7877f7cd7f2e80fe39ece0e5b79786eda81196196c0e811eff1dec170ed84355",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e/c/result.json": "4a3e2bb7754eebf85201faad09d2aaf93aa41dc6e1282057afbe8b8de5cb1e1f",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-final238e/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/release-238e/dnsmasq-rs": "2692c760be3719b15f4bcadb6c5a1445a9f37993a11c1369619550218e4c76eb"
+  },
+  "remaining_processes": [],
+  "remaining_host_mounts": []
+}

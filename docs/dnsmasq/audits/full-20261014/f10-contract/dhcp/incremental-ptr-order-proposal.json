@@ -1,0 +1,144 @@
+{
+  "status": "proposed-needs-root-and-independent-review",
+  "proposal_id": "same-name-incremental-infinite-static-ptr-order",
+  "exact_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source": {
+    "openwrt_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "path": "dnsmasq-2.93/src/cache.c",
+    "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "line_evidence": {
+      "typestr_pointer_mixer": "38-47",
+      "hash_bucket": "295-309",
+      "cache_find_by_addr": "1262-1320"
+    },
+    "inference": "The name hash includes typestr pointer bytes. Live static reverse entries are emitted by increasing bucket then current hash_next order. This query updates the temporary next enumeration links, not hash_next; without a mutation between PTR requests each process must retain one complete order track."
+  },
+  "fixture": {
+    "hosts_bytes": "192.0.2.1 lease.test alias.test\n",
+    "hosts_sha256": "cd599923355380845cddcb31413fed4307458ff17988437fd540df8ceb930f90",
+    "initial_hostsdir": "empty",
+    "lease_short_name": "lease",
+    "domain": "test",
+    "lease_address": "192.0.2.1",
+    "lease_expiry": "zero/infinite",
+    "config_cache_size": 1000,
+    "config_edns_packet_max": 1232,
+    "config_local_ttl": 37,
+    "reload_trigger": "hostsdir-close-write only; no HUP"
+  },
+  "state": "After the whole incremental source and final provider DNS publication are visible; alias.test A is healthy; no later A/ANY query, reload, lease change or expiration between PTR observations.",
+  "query": {
+    "name": "1.2.0.192.in-addr.arpa",
+    "type": 12,
+    "class": 1,
+    "transports": [
+      "udp",
+      "tcp"
+    ],
+    "sequence": [
+      "udp1",
+      "udp2",
+      "udp3",
+      "tcp1",
+      "tcp2",
+      "tcp3"
+    ]
+  },
+  "exact_requirements": {
+    "rcode": 0,
+    "flags": 34176,
+    "answer_count": 2,
+    "record_tuples": [
+      [
+        "1.2.0.192.in-addr.arpa",
+        12,
+        1,
+        37,
+        "alias.test"
+      ],
+      [
+        "1.2.0.192.in-addr.arpa",
+        12,
+        1,
+        37,
+        "lease.test"
+      ]
+    ],
+    "no_duplicate_or_missing_records": true,
+    "same_full_order_across_all_six_observations": true
+  },
+  "proposed_exception": {
+    "only_field": "relative ordered answer position of these two PTR targets",
+    "allowed_full_tracks": [
+      [
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ]
+      ],
+      [
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ]
+      ]
+    ],
+    "per_query_permutation_selection": false
+  },
+  "excluded": [
+    "finite lease: one lease.test PTR, no order exception",
+    "any other query name/type",
+    "any other hosts or lease fixture",
+    "query-dependent order changes within one run",
+    "missing/extra/duplicate records or different TTL/class/flags",
+    "other reload/publication states"
+  ],
+  "evidence_status": "Final 238e infinite and finite controls executed with three consecutive UDP then three consecutive TCP PTR queries. Infinite keeps [lease.test,alias.test] in all six complete wire responses; finite keeps [lease.test]. Exact C original infinite UDP/TCP order remains [alias.test,lease.test]. Proposal remains pending review; no new C seed search.",
+  "final_track_evidence": {
+    "source_commit": "238e7ca4374b1889696f91816c1c239d7fe32baa",
+    "rust_sha256": "2692c760be3719b15f4bcadb6c5a1445a9f37993a11c1369619550218e4c76eb",
+    "derived_path": "candidate-final238e-summary.json",
+    "derived_sha256": "f7425dbbddf003472ef600b5a2c1be74bd300d060283fbf361f5e2c20612ea06",
+    "track_driver_sha256": "59dc1569fa54820d9c7f4eb29290f3e2b3e45370effedb269536b3a3dd3352a4"
+  }
+}

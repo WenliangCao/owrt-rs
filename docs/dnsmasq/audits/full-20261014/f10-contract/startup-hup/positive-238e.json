@@ -1,0 +1,97 @@
+{
+  "status": "pass_with_preserved_parallel_failure",
+  "source_commit": "238e7ca4374b1889696f91816c1c239d7fe32baa",
+  "test_build": {
+    "source": "/dev/shm/full-f10-product-20261014/private/source-238e",
+    "kind": "tests",
+    "cargo_target_dir": "/dev/shm/full-integrated-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-f10-product-20261014/private/source-238e=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 54419064,
+        "sha256": "6c48bb3fc3a305075860ceca93eec0fc59ba3fd802931ca6d9fd37a713a72e27"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 74623080,
+        "sha256": "e3d4c8275c091b2d2262dd0f6a91782f674a93955d0b48877019f99185b3751d"
+      }
+    ]
+  },
+  "serial_full_bin": {
+    "passed": 81,
+    "failed": 0,
+    "ignored": 3,
+    "exit": 0,
+    "runs": 1,
+    "command": {
+      "argv": [
+        "sh",
+        "/dev/shm/full-f10-product-20261014/private/source-238e/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777,size=128m tmpfs /tmp; exec \"$@\"",
+        "private-tmp",
+        "/dev/shm/full-f10-product-20261014/private/tests-238e/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "source_commit": "238e7ca4374b1889696f91816c1c239d7fe32baa",
+      "elf_sha256": "6c48bb3fc3a305075860ceca93eec0fc59ba3fd802931ca6d9fd37a713a72e27",
+      "isolation_sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+    },
+    "oracle_log": "/dev/shm/full-f10-product-20261014/private/unit-bin-238e-serial.log"
+  },
+  "full_lib": {
+    "passed": 808,
+    "failed": 0,
+    "ignored": 20,
+    "oracle_log": "/dev/shm/full-f10-product-20261014/private/unit-lib-238e.log"
+  },
+  "focused_passes": [
+    "hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed",
+    "hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication",
+    "hostsdir_init_tests::hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names",
+    "tests::held_dhcp_bank_fifo_does_not_spin_on_queued_packet_and_dns_still_replies",
+    "dhcp::daemon::startup_tests::failed_forced_dns_publication_gets_an_idle_retry_without_delaying_an_alarm"
+  ],
+  "hostsdir_family": [
+    "test hostsdir_init_tests::failed_bulk_preparation_does_not_consume_an_existing_incremental_event ... ok",
+    "test hostsdir_init_tests::held_hosts_fifo_keeps_init_finish_blocked_without_spinning_or_losing_dns ... ok",
+    "test hostsdir_init_tests::hostsdir_init_finishes_without_another_event_and_releases_queued_dns ... ok",
+    "test hostsdir_init_tests::hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names ... ok",
+    "test hostsdir_init_tests::hup_hosts_fifo_keeps_the_previous_generation_until_complete_publication ... ok",
+    "test hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication ... ok"
+  ],
+  "prior_evidence_preserved": {
+    "pre_fix_startup_exit_101": "negative.json",
+    "4ff6_startup_pass_but_unwired_polling_fixture_failed": "positive-4ff6.json",
+    "238e_parallel_bin": {
+      "passed": 80,
+      "failed": 1,
+      "ignored": 3,
+      "failing_test": "hostsdir_init_tests::hup_hosts_fifo_keeps_the_previous_generation_until_complete_publication",
+      "oracle_log": "/dev/shm/full-f10-product-20261014/private/unit-bin-238e.log"
+    },
+    "238e_exact_failed_test_serial_rerun": {
+      "passed": 1,
+      "failed": 0,
+      "oracle_log": "/dev/shm/full-f10-product-20261014/private/startup-analysis-238e/rerun.log"
+    },
+    "interpretation": "Shared process signal-state interference during parallel tests is suspected, not proven. The original failure remains recorded; the same test ELF passed one exact serial rerun and one complete serial binary suite. No product change or altered assertion was made between these runs."
+  },
+  "scope": "Oracle isolated network/mount/PID namespaces and private tmpfs /tmp. Native Rust test executables from the frozen source, not shipped daemon runtime or physical router acceptance. The three intentionally ignored bin tests and twenty ignored lib tests are not counted as passed.",
+  "raw_files": {
+    "private/f10-startup-238e-20261014/build.json": "66bc799d6962a51e2ac9bd7db26863990b956e34aa79bcb5e7c22ce1e7d334ad",
+    "private/f10-startup-238e-20261014/rerun-command.json": "bfc833314d4644b4339bff102993a2653b6842314c907fe4a657376f8b3be56f",
+    "private/f10-startup-238e-20261014/rerun-exit.json": "5bc232b82de377a5655a39a2af9d7ae0fc868de5b9df957e18905cb914606c88",
+    "private/f10-startup-238e-20261014/rerun.log": "c4cd9b0190c7aaa76b7ca3e263d0a655700663beefba85e44aecce23fdcb6de1",
+    "private/f10-startup-238e-20261014/unit-bin-238e-serial.command.json": "62926381e7e52100aba6caf14fb8856e31e11386097f07ed25908a4da4e83004",
+    "private/f10-startup-238e-20261014/unit-bin-238e-serial.exit.json": "5bc232b82de377a5655a39a2af9d7ae0fc868de5b9df957e18905cb914606c88",
+    "private/f10-startup-238e-20261014/unit-bin-238e-serial.log": "a0565f6063f71dc020b79fbf3e9af0adcc6f71a1981d7a749e00213a7258ea46",
+    "private/f10-startup-238e-20261014/unit-bin-238e.log": "c930fa550bbb4b3e967857c42dd57d8fc6c2dedf32d89fd8517e6b28dd6e465f",
+    "private/f10-startup-238e-20261014/unit-lib-238e.log": "982c557803693f9f35b18221e70139ce7ab67c05e3808532d8c24c038fff8a76"
+  }
+}

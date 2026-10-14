@@ -1,0 +1,51 @@
+{
+  "status": "startup_hup_regression_passed_existing_fixture_failure_recorded",
+  "source_commit": "4ff6a8a27f6a835b5e8cb90a256211fa96383eb5",
+  "test_build": {
+    "source": "/dev/shm/full-f10-product-20261014/private/source-4ff6",
+    "kind": "tests",
+    "cargo_target_dir": "/dev/shm/full-integrated-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-f10-product-20261014/private/source-4ff6=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 54088968,
+        "sha256": "65902b616cce252ba8f14f17e6ddfbe12ced006abb4f1a22fcbf4ea2637ab62d"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 73820744,
+        "sha256": "44634d978f16bc9b87b86e91eb999e84c4dcb0fecbe0a394a3dc70c2cf1fed6d"
+      }
+    ]
+  },
+  "startup_negative_reference": "negative.json",
+  "startup_positive_test": "hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed",
+  "observations": [
+    "test hostsdir_init_tests::failed_bulk_preparation_does_not_consume_an_existing_incremental_event ... ok",
+    "test hostsdir_init_tests::hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names ... ok",
+    "test hostsdir_init_tests::hostsdir_init_finishes_without_another_event_and_releases_queued_dns ... ok",
+    "test hostsdir_init_tests::hup_hosts_fifo_keeps_the_previous_generation_until_complete_publication ... ok",
+    "test hostsdir_init_tests::held_hosts_fifo_keeps_init_finish_blocked_without_spinning_or_losing_dns ... ok",
+    "test hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication ... FAILED",
+    "test hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed ... ok"
+  ],
+  "full_binary_test_result": [
+    "test result: FAILED. 80 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.30s"
+  ],
+  "existing_failure": {
+    "test": "hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication",
+    "line": 199,
+    "diagnosis": "Fixture attaches a provider constructed with DNS port 0 and no DnsPublisher. has_dhcp_dns_publisher sees provider presence, so staged hosts correctly remain pending forever. Production creates a real LeasePublisher for enabled DNS; fix the fixture, not the initial admission gate.",
+    "product_fixed_to_ignore_failure": false
+  },
+  "oracle_log": "/dev/shm/full-f10-product-20261014/private/unit-bin-4ff6.log",
+  "analysis_only_no_duplicate_test_run": true,
+  "raw_files": {
+    "private/f10-startup-4ff6-20261014/build.json": "aeb0357faa7db06b133c89a90ada3e715d81d7f517a154f99ad698d031f268d9",
+    "private/f10-startup-4ff6-20261014/source-4ff6-verified.json": "d7dd29fb01377fcebaf69d18f5e042525e88467970a6972a682ef66f35a09098",
+    "private/f10-startup-4ff6-20261014/unit-bin-4ff6.log": "9f8cdb1a2f18412cb897cb45c549f028f2db879a0c584acea872dfd34d0929b1"
+  }
+}

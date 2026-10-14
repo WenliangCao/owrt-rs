@@ -1,0 +1,388 @@
+{
+  "real_candidate_evaluated": false,
+  "all_proposed_entries_inactive": true,
+  "synthetic_uniform_permutations_qualify": true,
+  "controls": [
+    {
+      "case": "six-hostsdir-initial",
+      "name": "splice-transport",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "splice-phase",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "splice-repeat",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 4,
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "unknown-case-same-input",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unknown-or-duplicate-case": 1,
+        "case-set-mismatch": 1
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-options",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-mutations",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-ttl",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-header",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-tc",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-count",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-rrset",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "six-hostsdir-initial",
+      "name": "changed-forward",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8,
+        "forward-order": 1
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "splice-transport",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "splice-phase",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 6
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "splice-repeat",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 6,
+        "unqualified-ptr-order": 6
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "unknown-case-same-input",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unknown-or-duplicate-case": 1,
+        "case-set-mismatch": 1
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-options",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 12
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-mutations",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 12
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-ttl",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 11
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-header",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 11
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-tc",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 11
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-count",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 11
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-rrset",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 11
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-forward",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 12,
+        "forward-order": 1
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "changed-dhcp-request",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 12
+      }
+    },
+    {
+      "case": "leases-dhcp",
+      "name": "after-dhcp-splice",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "splice-transport",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "splice-phase",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "splice-repeat",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 4,
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "unknown-case-same-input",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unknown-or-duplicate-case": 1,
+        "case-set-mismatch": 1
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-options",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-mutations",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-ttl",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-header",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-tc",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-count",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-rrset",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "case": "ipv6-repeated-ptr",
+      "name": "changed-forward",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8,
+        "forward-order": 1
+      }
+    }
+  ]
+}

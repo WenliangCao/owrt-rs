@@ -1,0 +1,141 @@
+{
+  "source_commit": "ce04a28dcc757544d1c49f8a5ff2d92cb1ad7dfb",
+  "rust_sha256": "2e64dc09e52c50f740c994cbd224953b57f3fbe77970fd8af4b72963f9ab5404",
+  "scope": "Original three retained-DHCP HUP scenarios plus deterministic incremental finite/infinite controls. Complete PTR membership, multiplicity, TTL, flags, transports and process health pass. Cross-alias A phase uses recorded C/C states. The incremental infinite two-owner PTR order differs from the one exact-C control and requires the separately proposed source-bound qualifier; this is not an overall wire-equivalence pass.",
+  "cases": [
+    {
+      "group": "candidate-ce04",
+      "case": "infinite",
+      "raw_result_path": "/dev/shm/full-f10-dhcp-20261014/private/candidate-ce04/result.json",
+      "raw_result_sha256": "8c6cc957006a9d38f98e1ceb12f9e14b944b997192c38316d49c858fb703e5e7",
+      "after_a": [
+        "192.0.3.186",
+        "192.0.3.185"
+      ],
+      "after_ptr": [
+        "y.test",
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "y.test",
+        "x.test"
+      ],
+      "checks": {
+        "process_healthy": true,
+        "a_order_within_demonstrated_contract": true,
+        "after_ptr_complete_owners": true,
+        "after_ptr_rcode_flags_ttl": true,
+        "after_tcp_ptr_complete_owners": true,
+        "after_tcp_ptr_rcode_flags_ttl": true
+      },
+      "passed_non_order_contract": true,
+      "ordered_wire_qualification_pending": false
+    },
+    {
+      "group": "candidate-ce04",
+      "case": "finite",
+      "raw_result_path": "/dev/shm/full-f10-dhcp-20261014/private/candidate-ce04/result.json",
+      "raw_result_sha256": "8c6cc957006a9d38f98e1ceb12f9e14b944b997192c38316d49c858fb703e5e7",
+      "after_a": [
+        "192.0.3.186",
+        "192.0.3.185"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "checks": {
+        "process_healthy": true,
+        "a_order_within_demonstrated_contract": true,
+        "after_ptr_complete_owners": true,
+        "after_ptr_rcode_flags_ttl": true,
+        "after_tcp_ptr_complete_owners": true,
+        "after_tcp_ptr_rcode_flags_ttl": true
+      },
+      "passed_non_order_contract": true,
+      "ordered_wire_qualification_pending": false
+    },
+    {
+      "group": "candidate-ce04",
+      "case": "cross-alias",
+      "raw_result_path": "/dev/shm/full-f10-dhcp-20261014/private/candidate-ce04/result.json",
+      "raw_result_sha256": "8c6cc957006a9d38f98e1ceb12f9e14b944b997192c38316d49c858fb703e5e7",
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "checks": {
+        "process_healthy": true,
+        "a_order_within_demonstrated_contract": true,
+        "after_ptr_complete_owners": true,
+        "after_ptr_rcode_flags_ttl": true,
+        "after_tcp_ptr_complete_owners": true,
+        "after_tcp_ptr_rcode_flags_ttl": true
+      },
+      "passed_non_order_contract": true,
+      "ordered_wire_qualification_pending": false
+    },
+    {
+      "group": "inotify-same-name-rustce04",
+      "case": "infinite",
+      "raw_result_path": "/dev/shm/full-f10-dhcp-20261014/private/inotify-same-name-rustce04/result.json",
+      "raw_result_sha256": "b956f4d937fda1c0954ac26c416ca7453ac5eaf07ccf87a7c01b643bf9e1dc71",
+      "after_a": [
+        "192.0.2.1"
+      ],
+      "after_ptr": [
+        "lease.test",
+        "alias.test"
+      ],
+      "after_tcp_ptr": [
+        "lease.test",
+        "alias.test"
+      ],
+      "checks": {
+        "process_healthy": true,
+        "a_order_within_demonstrated_contract": true,
+        "after_ptr_complete_owners": true,
+        "after_ptr_rcode_flags_ttl": true,
+        "after_tcp_ptr_complete_owners": true,
+        "after_tcp_ptr_rcode_flags_ttl": true
+      },
+      "passed_non_order_contract": true,
+      "ordered_wire_qualification_pending": true
+    },
+    {
+      "group": "inotify-same-name-rustce04",
+      "case": "finite",
+      "raw_result_path": "/dev/shm/full-f10-dhcp-20261014/private/inotify-same-name-rustce04/result.json",
+      "raw_result_sha256": "b956f4d937fda1c0954ac26c416ca7453ac5eaf07ccf87a7c01b643bf9e1dc71",
+      "after_a": [
+        "192.0.2.1"
+      ],
+      "after_ptr": [
+        "lease.test"
+      ],
+      "after_tcp_ptr": [
+        "lease.test"
+      ],
+      "checks": {
+        "process_healthy": true,
+        "a_order_within_demonstrated_contract": true,
+        "after_ptr_complete_owners": true,
+        "after_ptr_rcode_flags_ttl": true,
+        "after_tcp_ptr_complete_owners": true,
+        "after_tcp_ptr_rcode_flags_ttl": true
+      },
+      "passed_non_order_contract": true,
+      "ordered_wire_qualification_pending": false
+    }
+  ],
+  "passed_non_order_contract": true,
+  "ordered_wire_qualification_status": "proposed-needs-root-and-independent-review"
+}
