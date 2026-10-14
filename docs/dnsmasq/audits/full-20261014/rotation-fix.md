@@ -24,6 +24,11 @@ Product fix: `2f658ea4302088a80d6f0241e141fc869e4802c9`, based on integrated
 
 All evidence below is under Oracle
 `/dev/shm/full-rotation-check-20261014/private/`. Old evidence is retained.
+The result JSON, stderr, driver copies, probe source/binaries, fixed ELF and
+build receipts are also backed up under this worktree's ignored
+`private/rotation-finalize/oracle/`; `private/rotation-finalize/backup-manifest.json`
+records every copied file's SHA256. Generated staging rootfs directories are
+excluded; the exact image remains in its original Oracle evidence location.
 
 ## Reproduction and cause
 
@@ -96,8 +101,10 @@ failure is removed. Evidence: `rotation-alloc-v2.json` and its probe sources.
   first warmup answer per name, preserve all raw replies, and also compare the
   subsequent sequence relative to that observed initial order. Both 6,020-row
   comparisons pass, including parent/old/new views, with stable rolling memory
-  and no OOM. These two runs also happen to match all raw replies. The test
-  reports raw and relative results separately; it does not erase a raw mismatch.
+  and no OOM (Rust peaks 36,876,288 and 36,470,784 bytes). These two runs also
+  happen to match all raw replies. The repeat uses the exact committed driver.
+  The test reports raw and relative results separately; it does not erase a
+  raw mismatch.
 - `fixed-snapshots`: the existing IPv4/IPv6, independent family rotation, HUP,
   configured-record and inotify snapshot test matches exact C on all 42 wire
   observations.
