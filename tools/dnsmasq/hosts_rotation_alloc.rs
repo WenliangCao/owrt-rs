@@ -5,12 +5,16 @@
 mod hosts;
 
 use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering::Relaxed};
+use std::sync::atomic::{AtomicBool, AtomicIsize, AtomicUsize, Ordering::Relaxed};
 struct Meter;
 static LIVE: AtomicIsize = AtomicIsize::new(0);
 static ALLOCATED: AtomicUsize = AtomicUsize::new(0);
+static FAIL_LARGE: AtomicBool = AtomicBool::new(false);
 unsafe impl GlobalAlloc for Meter {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        if FAIL_LARGE.load(Relaxed) && layout.size() >= 512 {
+            return std::ptr::null_mut();
+        }
         let result = unsafe { System.alloc(layout) };
         if !result.is_null() {
             LIVE.fetch_add(layout.size() as isize, Relaxed);
@@ -23,6 +27,9 @@ unsafe impl GlobalAlloc for Meter {
         unsafe { System.dealloc(ptr, layout) };
     }
     unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, size: usize) -> *mut u8 {
+        if FAIL_LARGE.load(Relaxed) && size >= 512 {
+            return std::ptr::null_mut();
+        }
         let result = unsafe { System.realloc(ptr, layout, size) };
         if !result.is_null() {
             LIVE.fetch_add(size as isize - layout.size() as isize, Relaxed);
@@ -94,6 +101,31 @@ fn main() {
     assert!(
         retained_after_drop < 256 * 1024,
         "disconnected clients retained pages: {retained_after_drop}"
+    );
+    // Reject the shared page's reservation, while the two-address answer and
+    // temporary index vectors still fit. The old order must remain usable.
+    let mut fault_child = parent.tcp_snapshot();
+    FAIL_LARGE.store(true, Relaxed);
+    let failed: Vec<_> = fault_child
+        .lookup(names[15000].as_bytes(), Some(false), false)
+        .into_iter()
+        .map(|host| host.address)
+        .collect();
+    FAIL_LARGE.store(false, Relaxed);
+    let recovered: Vec<_> = fault_child
+        .lookup(names[15000].as_bytes(), Some(false), false)
+        .into_iter()
+        .map(|host| host.address)
+        .collect();
+    assert_eq!(failed, recovered, "failed page copy changed accepted order");
+    let rotated: Vec<_> = fault_child
+        .lookup(names[15000].as_bytes(), Some(false), false)
+        .into_iter()
+        .map(|host| host.address)
+        .collect();
+    assert_ne!(
+        recovered, rotated,
+        "round robin did not resume after recovery"
     );
     println!(
         "{{\"names\":30000,\"children\":20,\"warm_live\":{warm_live},\"snapshots_allocated\":{snapshots_allocated},\"max_query_allocated\":{max_query_allocated},\"children_live\":{children_live},\"rolling_peak\":{rolling_peak},\"retained_after_drop\":{retained_after_drop}}}"
