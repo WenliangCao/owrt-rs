@@ -1,0 +1,14 @@
+{
+  "firmware_path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/input/openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+  "firmware_sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+  "squashfs_path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/sysupgrade-xiaomi_mi-router-ax3000t/root",
+  "squashfs_sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc",
+  "fresh_root": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/fresh-image-identity/rootfs",
+  "tested_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+  "all_files_and_symlinks_equal": true,
+  "regular_files": 881,
+  "symlinks": 213,
+  "manifest_sha256": "e48ba1363663d280283996b57ec611146f3e5536f26b0ffda5a89f27538cd9bb",
+  "kernel": "6.17.0-1020-oracle",
+  "architecture": "aarch64"
+}
