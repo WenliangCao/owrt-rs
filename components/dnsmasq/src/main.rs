@@ -3733,7 +3733,15 @@ impl SinglePoll {
                 return;
             };
             let loaded = reader.finish();
-            let removed = self.publish_hosts_source(&loaded.source, loaded.records, loaded.ttl);
+            let removed = if loaded.allocation_failed {
+                self.hosts_notice(
+                    Priority::Error,
+                    format!("failed to load names from {}: Cannot allocate memory", loaded.source.path.display()),
+                );
+                0
+            } else {
+                self.publish_hosts_source(&loaded.source, loaded.records, loaded.ttl)
+            };
             if !self.hosts_bulk && removed != 0 {
                 self.hosts_notice(
                     Priority::Info,

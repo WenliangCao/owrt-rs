@@ -20,10 +20,15 @@ pub struct HostsLoad {
     pub stats: ReadStats,
     /// (line number, bad-address count, bad-name count), for exact diagnostics.
     pub bad_lines: Vec<(usize, usize, usize)>,
+    /// An incomplete staged source must not replace its last published view.
+    pub allocation_failed: bool,
 }
 
 impl HostsLoad {
     pub fn apply(self, hosts: &mut Hosts) -> usize {
+        if self.allocation_failed {
+            return 0;
+        }
         let Ok(removed) = hosts.try_remove_uid(self.source.uid) else {
             return 0;
         };
@@ -59,6 +64,7 @@ impl HostsRead {
                 ttl,
                 stats: ReadStats::default(),
                 bad_lines: Vec::new(),
+                allocation_failed: false,
             },
             parser: HostsParser::default(),
         })
@@ -79,6 +85,8 @@ impl HostsRead {
     }
 
     fn consume(&mut self, bytes: &[u8]) {
+        let mut allocation_failed = false;
+        let mut diagnostics_failed = false;
         self.parser.feed(
             bytes,
             self.config.expand_hosts,
@@ -92,6 +100,8 @@ impl HostsRead {
             |name, address| {
                 if self.loaded.records.try_reserve(1).is_ok() {
                     self.loaded.records.push((name, address));
+                } else {
+                    allocation_failed = true;
                 }
             },
             |line, address| {
@@ -102,6 +112,7 @@ impl HostsRead {
                     .is_none_or(|entry| entry.0 != line)
                 {
                     if self.loaded.bad_lines.try_reserve(1).is_err() {
+                        diagnostics_failed = true;
                         return;
                     }
                     self.loaded.bad_lines.push((line, 0, 0));
@@ -115,6 +126,14 @@ impl HostsRead {
             },
         );
         self.loaded.stats = self.parser.stats;
+        self.loaded.allocation_failed |=
+            allocation_failed || diagnostics_failed || self.parser.allocation_failed;
+        if self.loaded.allocation_failed {
+            // The owner polls and serves other work between chunks. Release
+            // incomplete staging now, before that work needs memory too.
+            self.loaded.records = Vec::new();
+            self.loaded.bad_lines = Vec::new();
+        }
     }
 
     /// EOF and read errors complete the received prefix, including a partial
@@ -145,6 +164,9 @@ impl HostsRead {
             Err(_) => 0,
         };
         self.consume(&bytes[..length]);
+        if self.loaded.allocation_failed {
+            return Ok(true);
+        }
         if length == 0 {
             self.consume(b"\n");
             Ok(true)

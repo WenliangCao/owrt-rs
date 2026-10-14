@@ -166,11 +166,26 @@ fn staged_hosts_records_and_diagnostics_tolerate_failed_growth() {
         let mut reader = HostsRead::open(source, &DnsConfig::default(), 20).unwrap();
         let (_, failed) = with_failure(failure, || while !reader.step().unwrap() {});
         let loaded = reader.finish();
+        let incomplete = loaded.allocation_failed;
+        if incomplete {
+            assert!(loaded.records.is_empty());
+            assert!(loaded.bad_lines.is_empty());
+        }
         let mut hosts = Hosts::new();
+        hosts.insert(
+            b"preserved.test".to_vec(),
+            "192.0.2.41".parse().unwrap(),
+            20,
+            2,
+        );
         loaded.apply(&mut hosts);
-        assert!(hosts.len() <= 3);
-        if !failed {
+        if incomplete {
+            assert_eq!(hosts.len(), 1);
+            assert!(hosts.addresses(b"preserved.test").next().is_some());
+        } else {
             assert_eq!(hosts.len(), 3);
+        }
+        if !failed {
             break;
         }
         exercised += 1;

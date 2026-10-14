@@ -439,6 +439,7 @@ pub(crate) struct HostsParser {
     address: Option<IpAddr>,
     suffix: Option<Vec<u8>>,
     pub stats: ReadStats,
+    pub allocation_failed: bool,
 }
 
 impl Default for HostsParser {
@@ -452,6 +453,7 @@ impl Default for HostsParser {
             address: None,
             suffix: None,
             stats: ReadStats::default(),
+            allocation_failed: false,
         }
     }
 }
@@ -500,12 +502,16 @@ impl HostsParser {
                                             expanded.extend_from_slice(suffix);
                                             self.stats.accepted += 1;
                                             emit(expanded, address);
+                                        } else {
+                                            self.allocation_failed = true;
                                         }
                                     }
                                 }
                                 if let Ok(name) = try_copy(name) {
                                     self.stats.accepted += 1;
                                     emit(name, address);
+                                } else {
+                                    self.allocation_failed = true;
                                 }
                             } else {
                                 self.stats.bad_names += 1;
