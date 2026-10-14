@@ -191,6 +191,30 @@ field. A versioned `inotify_same_name_track.py` driver adds three consecutive UD
 and three consecutive TCP PTR observations for the next frozen candidate; this
 section does not claim that future replay has already run.
 
+## Final 238e scoped replay
+
+Source `238e7ca4374b1889696f91816c1c239d7fe32baa`, ELF
+`/dev/shm/full-f10-product-20261014/private/release-238e/dnsmasq-rs`, SHA-256
+`2692c760be3719b15f4bcadb6c5a1445a9f37993a11c1369619550218e4c76eb`,
+2,122,208 bytes. This supersedes ce04 only for these five replayed cases.
+
+The three HUP scenarios retain the expected complete owner sets and observed
+C-compatible A phases. Both incremental controls now also have complete PTR
+sets: infinite has `lease.test` plus `alias.test`, finite only `lease.test`.
+For each incremental case the versioned track driver made three consecutive UDP
+PTR requests, then three consecutive PTR requests on one new TCP connection,
+without an intervening A query or source mutation. All six full DNS response byte
+strings were identical within each case. Infinite remained `lease.test,alias.test`;
+finite remained `lease.test`. Every record's name, type, class, TTL, multiplicity,
+question, flags, process identity and normal exit were checked.
+
+The [final scoped results](candidate-final238e-summary.json) pass all five owner,
+record-field and stable-track checks. The incremental infinite cross-process order
+exception remains the explicit source-bound proposal awaiting root and independent
+review. These results do not authorize a blanket PTR permutation normalization or
+claim unrestricted wire equivalence. No additional C seed search accompanied this
+final replay.
+
 ## Evidence and reproduction
 
 The [derived results](derived.json) bind each result to its SHA-256 and retain the
@@ -223,3 +247,4 @@ daemon logs, process identities and diagnostic drivers, excluding staged rootfs:
 | inotify-lease-control-evidence.tar.gz | a4185edd62acaf5b137b89ac674f5815d36e06131f0822075ba9c1ca395708af |
 | candidate-4ff6-evidence.tar.gz | 41ce0d97a1995a0d13c6e2e4225bce025a9a63d7d447c5ec925ee5f4a38970b6 |
 | candidate-ce04-evidence.tar.gz | b8c9be8bbdbfd4c4859099504ca45eb16c689c83622e50abdbe54cdd1683b02e |
+| candidate-final238e-evidence.tar.gz | 89a7e857147b418a9afe746010a0e5b29766eaf1abb78b835bd58a20bdd1eff0 |
