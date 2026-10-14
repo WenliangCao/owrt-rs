@@ -36,8 +36,8 @@ def dns_name(packet, offset, seen=()):
         offset += size
 
 
-def check(data):
-    assert data['c_sha256'] == C_SHA and data['rust_sha256'] == RUST_SHA
+def check(data, expected_rust_sha=RUST_SHA):
+    assert data['c_sha256'] == C_SHA and data['rust_sha256'] == expected_rust_sha
     assert set(data['profiles']) == set(PROFILES)
     totals = {}
     differences = []
@@ -95,28 +95,36 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input', type=Path)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--rust-sha256', default=RUST_SHA,
+                        help='Expected tested ELF SHA-256; defaults to the original audit baseline')
     args = parser.parse_args()
+    if len(args.rust_sha256) != 64 or any(c not in '0123456789abcdef' for c in args.rust_sha256):
+        parser.error('--rust-sha256 must be a lowercase SHA-256 digest')
     data = json.loads(args.input.read_text())
-    result = check(data)
+    result = check(data, args.rust_sha256)
     controls = []
-    for kind in ('missing-case', 'changed-wire', 'failed-health', 'forged-comparison'):
+    for kind in ('missing-case', 'changed-wire', 'failed-health', 'forged-comparison', 'wrong-rust-identity'):
         wrong = copy.deepcopy(data)
         rows = wrong['profiles']['local']['cases']
         if kind == 'missing-case':
             rows.pop()
         elif kind == 'failed-health':
             wrong['profiles']['local']['processes']['rust']['alive_after_cases'] = False
+        elif kind == 'wrong-rust-identity':
+            digest = wrong['rust_sha256']
+            wrong['rust_sha256'] = ('1' if digest[0] == '0' else '0') + digest[1:]
         else:
             rows[0]['rust']['hex'] = rows[0]['rust']['hex'][:-2] + 'ff'
             if kind == 'forged-comparison':
                 rows[0]['same_client_result'] = True
         try:
-            check(wrong)
+            check(wrong, args.rust_sha256)
         except (AssertionError, ValueError):
             controls.append({'control': kind, 'rejected': True})
         else:
             raise AssertionError('negative control accepted: ' + kind)
     result.update(input_sha256=hashlib.sha256(args.input.read_bytes()).hexdigest(),
+                  expected_rust_sha256=args.rust_sha256,
                   checker_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                   negative_controls=controls)
     args.out.write_text(json.dumps(result, indent=2) + '\n')
