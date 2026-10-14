@@ -8,11 +8,13 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import time
 
 from m2_lifecycle import Scenario
 from m2_rootfs import STOCK_SHA256, sha256
+from m4_package_lifecycle import database
 from test_deploy_oracle import Deployment, wait
 
 
@@ -41,6 +43,9 @@ class PackageActivation(Deployment):
                     'source_commit': args.source_commit, 'tool_sha256': sha256(Path(__file__)),
                     'automatic_activation': True, 'explicit_restarts': []}
         self.ubusd = None
+        metadata = self.run('/usr/bin/apk', 'adbdump', '/m2/candidate.apk').stdout
+        self.candidate_version = re.search(r'^  version: (2\.93-r[234])$', metadata, re.MULTILINE).group(1)
+        self.row['candidate_version'] = self.candidate_version
 
     def daemons(self, digest=None):
         rows = []
@@ -76,7 +81,8 @@ class PackageActivation(Deployment):
                   for line in Path('/proc', str(procd_pid), 'status').read_text().splitlines()
                   if line.startswith(('VmRSS:', 'VmHWM:'))}
         self.row['steps'][label] = {'daemon': daemon, 'client': client,
-                                    'service': service, 'procd_memory': memory}
+                                    'service': service, 'procd_memory': memory,
+                                    'package': database(self.root).get('dnsmasq')}
         self.save()
         return daemon
 
@@ -87,6 +93,8 @@ class PackageActivation(Deployment):
             argv.append('--force-reinstall')
         self.run(*argv, '/m2/' + apk)
         result = self.state(label, expected, previous, identical)
+        version = '2.93-r1' if expected == STOCK_SHA256 else self.candidate_version
+        assert self.row['steps'][label]['package']['version'] == version
         self.row['steps'][label]['transaction_and_health_seconds'] = time.monotonic() - started
         self.save()
         return result
@@ -102,6 +110,8 @@ class PackageActivation(Deployment):
                                    reinstall=True, identical=True)
         self.run('/etc/init.d/dnsmasq', 'reload')
         current = self.state('unchanged-reload', self.rust, current, identical=True)
+        stock = self.transaction('direct-stock-downgrade', 'stock.apk', STOCK_SHA256, current)
+        current = self.transaction('upgrade-before-failed-reinstall', 'candidate.apk', self.rust, stock)
         # Real archive corruption must fail without changing the current service.
         payload = (self.root / 'm2/candidate.apk').read_bytes()
         (self.root / 'm2/broken.apk').write_bytes(payload[:len(payload) // 2])
@@ -110,7 +120,7 @@ class PackageActivation(Deployment):
         assert result.returncode != 0, 'truncated APK was accepted'
         current = self.state('rejected-broken-archive', self.rust, current, identical=True)
         self.row['steps']['rejected-broken-archive']['apk_exit'] = result.returncode
-        self.transaction('direct-stock-downgrade', 'stock.apk', STOCK_SHA256, current)
+        self.transaction('stock-repair-after-failed-reinstall', 'stock.apk', STOCK_SHA256, current)
         self.row['passed'] = True
         self.save()
 
