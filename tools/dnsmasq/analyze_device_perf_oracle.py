@@ -96,7 +96,7 @@ def main():
     summaries={}
     for scenario,sides in sorted(groups.items()):
         assert set(sides)=={'c','rust'} and all(len(rows)==5 for rows in sides.values())
-        selected=(['throughput_qps','cpu_us_per_completion','parent_fd_peak','tree_fd_peak','tree_rss_peak_kib',
+        selected=(['throughput_qps','window_cpu_ticks','cpu_us_per_completion','parent_fd_peak','tree_fd_peak','tree_rss_peak_kib',
                    'tree_pss_peak_kib','tree_private_peak_kib'] if 'throughput_qps' in sides['c'][0]
                   else ['children_whole_run_cpu_us','fd_peak'])
         summary={}
@@ -118,13 +118,19 @@ def main():
             noise=max((c['max']-c['min'])/c['median'],(r['max']-r['min'])/r['median'] if r['median'] else 0)*100
             comparisons[key]={'rust_vs_c_percent':delta,'max_relative_range_percent':noise,
                               'absolute_percent_difference_exceeds_range':abs(delta)>noise}
+        if 'window_cpu_ticks' in summary['c']:
+            tick_gap=abs(summary['rust']['window_cpu_ticks']['median']-summary['c']['window_cpu_ticks']['median'])
+            summary['cpu_ranking_resolution_ok']=(tick_gap>=8 and
+                summary['c']['cpu_all_windows_at_least_10_ticks'] and
+                summary['rust']['cpu_all_windows_at_least_10_ticks'])
+            summary['cpu_median_tick_gap']=tick_gap
         summary['comparisons']=comparisons;summaries[scenario]=summary
     result={'environment':'Oracle supplementary only; not AX3000T performance',
       'identity_sha256':hashlib.sha256((a.raw/'identity.json').read_bytes()).hexdigest(),
       'protocol_sha256':hashlib.sha256((a.raw/'protocol.md').read_bytes()).hexdigest(),
       'complete':complete,'summaries':summaries,'windows':windows,
       'notes':['No p99: each round has fewer than 10000 correct replies.',
-               'CPU rankings require at least 10 service ticks in every window and difference greater than range.',
+               'CPU rankings require at least 10 service ticks in every window, at least 8 median ticks between versions, and difference greater than range.',
                'Helper and full daemon wait4 figures are separate from warmup+measurement service tick CPU.',
                'Tree RSS includes shared mappings and is not private memory.',
                'Lifecycle whole-run children CPU includes shutdown and idle; signal-to-ready tick counters remain in raw.']}
