@@ -3,8 +3,8 @@
 #
 # The candidate is bind-mounted over /usr/sbin/dnsmasq and run by the stock
 # init/procd/ujail. Nothing is written to flash, so a reboot always returns
-# to C. Rollback only unmounts and restarts the stock service; it keeps no
-# state and is safe to run any number of times, from any process.
+# to C. Rollback requests survive the calling process and helpers remain
+# responsible for recovery until the stock executable answers DNS again.
 #
 #   dnsmasq-trial start CANDIDATE SHA256 NAME [DNS] [SECONDS]
 #   dnsmasq-trial confirm      keep the candidate until reboot or rollback
@@ -59,26 +59,58 @@ stop_helpers() {
     done
 }
 
+# Serialize attempts with the image's flock. The request survives SIGKILL;
+# the lock is released by the kernel when the attempt and its children exit.
 rollback() {
-    stop_helpers
-    while mounted; do umount "$BIN" 2> /dev/null || umount -l "$BIN"; done
-    /etc/init.d/dnsmasq restart
+    mkdir -p "$DIR" || fail 'cannot create trial directory'
+    touch "$DIR/rollback" || fail 'cannot request rollback'
+    exec 9> "$DIR/rollback.lock"
+    flock -x 9 || fail 'cannot lock rollback'
+    NAME=OpenWrt.lan DNS=127.0.0.1
+    [ ! -f "$DIR/args" ] || read -r SHA NAME DNS < "$DIR/args"
     c=$(hash "$ROM")
+    if mounted || ! running "$c" || ! answers; then
+        while mounted; do umount "$BIN" 2> /dev/null || umount -l "$BIN"; done
+        /etc/init.d/dnsmasq restart
+    fi
     for _ in 1 2 3 4 5 6 7 8 9 10; do
-        running "$c" && { log "rollback (${1:-manual}): C is running"; return 0; }
+        if ! mounted && running "$c" && answers; then
+            # Cancelling recovery is safe only after C actually answers.
+            stop_helpers
+            rm -f "$DIR/rollback"
+            log "rollback (${1:-manual}): C is running and answering"
+            return 0
+        fi
         sleep 1
     done
-    fail "rollback (${1:-manual}): C not confirmed running; check 'ps' and '/etc/init.d/dnsmasq'"
+    log "rollback (${1:-manual}): C not healthy; helpers will retry"
+    return 1
 }
 
-# Three failed checks in a row (about 15 s) return to C. procd still
-# respawns a crashed candidate; an exhausted respawn shows up here.
+# Helpers wait for attempts in separate process groups. Killing an attempt
+# must not kill its owner, and successful cleanup must not kill the attempt.
+attempt() { setsid "$SELF" rollback "$1"; }
+
+# Three failed checks in a row (about 15 s) request rollback. Keep watching
+# after unmount: an interrupted restart can leave Rust running without it.
 watch() {
     misses=0
-    while mounted; do
+    while :; do
         sleep 5
-        if running "$SHA" && answers; then misses=0; else misses=$((misses + 1)); fi
-        [ "$misses" -lt 3 ] || exec "$SELF" rollback watch
+        if [ -f "$DIR/rollback" ] || ! mounted; then
+            attempt watch
+        else
+            if running "$SHA" && answers; then misses=0; else misses=$((misses + 1)); fi
+            [ "$misses" -lt 3 ] || attempt watch
+        fi
+    done
+}
+
+deadline() {
+    sleep "$1"
+    while :; do
+        attempt deadline
+        sleep 5
     done
 }
 
@@ -96,12 +128,14 @@ start)
     [ "$(hash "$CANDIDATE")" = "$SHA" ] || fail 'candidate hash mismatch'
     [ "$(hash "$BIN")" = "$(hash "$ROM")" ] || fail "$BIN differs from $ROM"
     { running "$(hash "$ROM")" && answers; } || fail 'stock C is not healthy; not starting'
-    mkdir -p "$DIR"
+    mkdir -p "$DIR" || fail 'cannot create trial directory'
+    stop_helpers
+    rm -f "$DIR/rollback"
     cp "$CANDIDATE" "$DIR/dnsmasq" && chmod 755 "$DIR/dnsmasq"
     [ "$(hash "$DIR/dnsmasq")" = "$SHA" ] || fail 'copied candidate hash mismatch'
     printf '%s %s %s\n' "$SHA" "$NAME" "$DNS" > "$DIR/args"
     # The dead-man timer exists before the candidate does.
-    background deadline sh -c "sleep $SECONDS_LEFT; exec '$SELF' rollback deadline"
+    background deadline "$SELF" _deadline "$SECONDS_LEFT"
     mount --bind "$DIR/dnsmasq" "$BIN"
     /etc/init.d/dnsmasq restart
     for _ in 1 2 3 4 5 6 7 8 9 10; do
@@ -119,8 +153,12 @@ _watch)
     read -r SHA NAME DNS < "$DIR/args" || exit 1
     watch
     ;;
+_deadline)
+    deadline "$2"
+    ;;
 confirm)
     mounted || fail 'no active trial'
+    [ ! -f "$DIR/rollback" ] || fail 'rollback already requested'
     pid=$(cat "$DIR/deadline.pid" 2> /dev/null) && kill -- "-$pid" 2> /dev/null
     rm -f "$DIR/deadline.pid"
     log 'confirmed; health watch continues until reboot or rollback'

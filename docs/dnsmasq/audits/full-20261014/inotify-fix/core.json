@@ -1,0 +1,384 @@
+{
+  "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+  "elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+  "oracle_root": "/dev/shm/full-inotify-fix-20261014/private",
+  "unit_tests": [
+    {
+      "kind": "musl library",
+      "passed": 789,
+      "failed": 0,
+      "ignored": 20,
+      "log": "unit-lib-core.log",
+      "sha256": "efbdb5f1827210427b8260aab1299541ad65ed1ef4331b43b4a5f22f5fa200fb"
+    },
+    {
+      "kind": "musl binary",
+      "passed": 78,
+      "failed": 0,
+      "ignored": 3,
+      "log": "unit-bin-core.log",
+      "sha256": "61ee0f651747b805c30a6a9b6234e530ce6ca5d2dd670e7727a47645680a8442"
+    },
+    {
+      "kind": "native allocator",
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0,
+      "log": "allocator-core.log",
+      "sha256": "1038b891589a42382595fc77e9ea8aa3c20deb3b2b5be786112a2e60f9f02564"
+    }
+  ],
+  "build": {
+    "source": "/dev/shm/full-inotify-fix-20261014/private/source",
+    "kind": "release",
+    "cargo_target_dir": "/dev/shm/full-inotify-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-inotify-fix-20261014/private/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2089440,
+        "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d"
+      }
+    ]
+  },
+  "test_build": {
+    "source": "/dev/shm/full-inotify-fix-20261014/private/source",
+    "kind": "tests",
+    "cargo_target_dir": "/dev/shm/full-inotify-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-inotify-fix-20261014/private/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 53064464,
+        "sha256": "c999fee2c5dcc4bffd6855306f13613cfdd8d95b5c8fc6744e30904ac71ea8fa"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 71798144,
+        "sha256": "5542d2421596ba9d661a9a97962225049c1e86726104482eeed6668e57490ea3"
+      }
+    ]
+  },
+  "suite_exits": [
+    {
+      "case": "core-tcp-hup",
+      "exit": 0
+    },
+    {
+      "case": "core-tcp-snapshot",
+      "exit": 0
+    },
+    {
+      "case": "core-held-hup-cache",
+      "exit": 1
+    }
+  ],
+  "tcp64_hup": [
+    {
+      "side": "c",
+      "connections": 20,
+      "hup_old_answers": 20,
+      "hup_new_answers": 10,
+      "peak_bytes": 15859712,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "udp_after": true,
+      "exit": 0,
+      "cgroup_removed": true
+    },
+    {
+      "side": "rust",
+      "connections": 20,
+      "hup_old_answers": 20,
+      "hup_new_answers": 10,
+      "peak_bytes": 46514176,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "udp_after": true,
+      "exit": 0,
+      "cgroup_removed": true
+    }
+  ],
+  "snapshots": {
+    "matched": true,
+    "observations_per_side": [
+      42,
+      42
+    ]
+  },
+  "held_hup_cache": {
+    "paired_driver_passed": false,
+    "candidate_all_three_passed": true,
+    "cases": [
+      {
+        "side": "c",
+        "service": "shared",
+        "repeat": 1,
+        "initial_rows": 2000,
+        "new_rows": 30000,
+        "headroom_kib": 256,
+        "held_tcp": true,
+        "cache_expiry": true,
+        "reload_trigger": "SIGHUP",
+        "passed": false,
+        "pid": 13,
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "limit_bytes": 1859584,
+        "pressure_udp_dhcp_healthy": false,
+        "pressure_tcp_healthy": false,
+        "release_udp_tcp_dhcp_healthy": true,
+        "recovery_udp_tcp_dhcp_healthy": true,
+        "hup_cache_purged": true,
+        "held_tcp_snapshot_stable": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 51937,
+        "trace_sha256": "fc48f0839918b413bbf6441256d4b6944ac094c2df6e573c074f3cfbaeb657d8",
+        "upstream_requests": 10,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "side": "rust",
+        "service": "shared",
+        "repeat": 1,
+        "initial_rows": 2000,
+        "new_rows": 30000,
+        "headroom_kib": 256,
+        "held_tcp": true,
+        "cache_expiry": true,
+        "reload_trigger": "SIGHUP",
+        "passed": true,
+        "pid": 74,
+        "binary_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+        "limit_bytes": 3887104,
+        "pressure_udp_dhcp_healthy": true,
+        "pressure_tcp_healthy": true,
+        "release_udp_tcp_dhcp_healthy": true,
+        "recovery_udp_tcp_dhcp_healthy": true,
+        "hup_cache_purged": true,
+        "rust_atomic_samples": true,
+        "rust_tcp_atomic_samples": true,
+        "held_tcp_snapshot_stable": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 95,
+        "trace_sha256": "82399bfbde6b491f3275e7ccc7f0141c3ef4fee16005f0c61553d67b06aabe12",
+        "upstream_requests": 10,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "side": "c",
+        "service": "shared",
+        "repeat": 1,
+        "initial_rows": 2000,
+        "new_rows": 30000,
+        "headroom_kib": 512,
+        "held_tcp": true,
+        "cache_expiry": true,
+        "reload_trigger": "SIGHUP",
+        "passed": false,
+        "pid": 88,
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "limit_bytes": 2121728,
+        "pressure_udp_dhcp_healthy": false,
+        "pressure_tcp_healthy": false,
+        "release_udp_tcp_dhcp_healthy": true,
+        "recovery_udp_tcp_dhcp_healthy": true,
+        "hup_cache_purged": true,
+        "held_tcp_snapshot_stable": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 46489,
+        "trace_sha256": "b6a14d6cdc0b8f3c5577abb250bf17542ead2351e8cf684b69d2b2eb9654acb4",
+        "upstream_requests": 10,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "side": "rust",
+        "service": "shared",
+        "repeat": 1,
+        "initial_rows": 2000,
+        "new_rows": 30000,
+        "headroom_kib": 512,
+        "held_tcp": true,
+        "cache_expiry": true,
+        "reload_trigger": "SIGHUP",
+        "passed": true,
+        "pid": 149,
+        "binary_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+        "limit_bytes": 4149248,
+        "pressure_udp_dhcp_healthy": true,
+        "pressure_tcp_healthy": true,
+        "release_udp_tcp_dhcp_healthy": true,
+        "recovery_udp_tcp_dhcp_healthy": true,
+        "hup_cache_purged": true,
+        "rust_atomic_samples": true,
+        "rust_tcp_atomic_samples": true,
+        "held_tcp_snapshot_stable": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 277,
+        "trace_sha256": "dde08f64bca1db4eb613648c35a56b06aecc93ef41e5e6f769d2425a48b42ae1",
+        "upstream_requests": 10,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "side": "c",
+        "service": "shared",
+        "repeat": 1,
+        "initial_rows": 2000,
+        "new_rows": 30000,
+        "headroom_kib": 1024,
+        "held_tcp": true,
+        "cache_expiry": true,
+        "reload_trigger": "SIGHUP",
+        "passed": true,
+        "pid": 163,
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "limit_bytes": 2646016,
+        "pressure_udp_dhcp_healthy": true,
+        "pressure_tcp_healthy": false,
+        "release_udp_tcp_dhcp_healthy": true,
+        "recovery_udp_tcp_dhcp_healthy": true,
+        "hup_cache_purged": true,
+        "held_tcp_snapshot_stable": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 36205,
+        "trace_sha256": "da386dd03e47b5fb74797b09cdec986c1d080957bc4605eff00ac7a825b588ec",
+        "upstream_requests": 10,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "side": "rust",
+        "service": "shared",
+        "repeat": 1,
+        "initial_rows": 2000,
+        "new_rows": 30000,
+        "headroom_kib": 1024,
+        "held_tcp": true,
+        "cache_expiry": true,
+        "reload_trigger": "SIGHUP",
+        "passed": true,
+        "pid": 224,
+        "binary_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+        "limit_bytes": 4673536,
+        "pressure_udp_dhcp_healthy": true,
+        "pressure_tcp_healthy": true,
+        "release_udp_tcp_dhcp_healthy": true,
+        "recovery_udp_tcp_dhcp_healthy": true,
+        "hup_cache_purged": true,
+        "rust_atomic_samples": true,
+        "rust_tcp_atomic_samples": true,
+        "held_tcp_snapshot_stable": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 262,
+        "trace_sha256": "d32a3feb4cddd58e60b5afacb72083ce8c8ea1a7d91f4bc67fac59fed0d4de33",
+        "upstream_requests": 10,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "classification": "Paired driver exit1 retained: exact C ready UDP timeouts at256/512KiB and freshTCP shortframes at all3 headrooms; C survived and recovered. All new Rust cases passed."
+  },
+  "raw_backup": {
+    "path": "private/inotify-core-20261014/evidence-complete.tar.gz",
+    "sha256": "9993148e0cf57c714666f1bcce8e3cf6f2e77a2cbc9938fadf4cfc2137ffd01f",
+    "bytes": 28073887,
+    "excluded": "reproducible staged rootfs-overlay directories"
+  },
+  "result_hashes": {
+    "core-tcp-hup/result.json": "186b0a264927d71bca3cf8b07682de48fd6bb46311a2a3121d9586585587c08f",
+    "core-tcp-snapshot/result.json": "5967c99a879435d6aa5468754b7916ae6be2729a04da5997794ac34025ae8386",
+    "core-held-hup-cache/result.json": "082225d2db139a4f974bda87b410435d79195cd9fd528bc8596b60f160fb5438"
+  },
+  "commands": {
+    "core-tcp-hup.command.json": {
+      "argv": [
+        "env",
+        "PYTHONPATH=/dev/shm/full-inotify-fix-20261014/private/source/tools/dnsmasq",
+        "sh",
+        "/dev/shm/full-inotify-fix-20261014/private/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/dev/shm/full-integrated-fix-20261014/private/tools/full_tcp_hosts_cgroup.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/dev/shm/full-inotify-fix-20261014/private/release-final/dnsmasq-rs",
+        "--output",
+        "/dev/shm/full-inotify-fix-20261014/private/core-tcp-hup",
+        "--budget-mib",
+        "64",
+        "--hup"
+      ],
+      "elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "driver_sha256": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2"
+    },
+    "core-tcp-snapshot.command.json": {
+      "argv": [
+        "env",
+        "PYTHONPATH=/dev/shm/full-inotify-fix-20261014/private/source/tools/dnsmasq",
+        "sh",
+        "/dev/shm/full-inotify-fix-20261014/private/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/dev/shm/full-integrated-fix-20261014/private/tools/full_tcp_hosts_snapshot.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/dev/shm/full-inotify-fix-20261014/private/release-final/dnsmasq-rs",
+        "--output",
+        "/dev/shm/full-inotify-fix-20261014/private/core-tcp-snapshot"
+      ],
+      "elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "driver_sha256": "17b2a2df4c6468c4859630fa0e907133687d86662b089190fed297c8dfb62998"
+    },
+    "core-held-hup-cache.command.json": {
+      "argv": [
+        "env",
+        "PYTHONPATH=/dev/shm/full-inotify-fix-20261014/private/source/tools/dnsmasq",
+        "sh",
+        "/dev/shm/full-inotify-fix-20261014/private/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/dev/shm/full-integrated-fix-20261014/private/tools/full_r2_hosts_recovery_v2.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/dev/shm/full-inotify-fix-20261014/private/release-final/dnsmasq-rs",
+        "--output",
+        "/dev/shm/full-inotify-fix-20261014/private/core-held-hup-cache",
+        "--rust-sha256",
+        "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+        "--source-commit",
+        "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+        "--services",
+        "shared",
+        "--initial-rows",
+        "2000",
+        "--headroom-kib",
+        "256,512,1024",
+        "--repeats",
+        "1",
+        "--held-tcp",
+        "--cache-expiry"
+      ],
+      "elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "driver_sha256": "a0fd9f5a57188e6459d7e1707e78df59034ac1d647eced953216440581037ade"
+    }
+  }
+}

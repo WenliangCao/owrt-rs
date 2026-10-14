@@ -1251,7 +1251,7 @@ fn run_inner(
                 &interface_snapshot.borrow_mut(),
                 runtime.scalar.dns_port,
             ))?;
-            parent.local.config = daemon.local_config().clone();
+            parent.local.config = daemon.local_config().clone().into();
         }
     }
     #[cfg(target_os = "linux")]
@@ -3184,10 +3184,19 @@ impl SinglePoll {
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
-            // Keep the daemon's last usable view until publication, releasing
-            // the second old copy before reading the replacement.
-            local.hosts = Hosts::new();
+            // Keep the last valid local generation until publication. A failed
+            // load must restore it without another allocation, including when
+            // no TCP client currently shares it. This deliberately retains one
+            // old local table while reading its replacement.
+            let previous = std::mem::take(&mut local.hosts);
+            let previous = if self.hosts_view_valid {
+                Some(previous)
+            } else {
+                drop(previous);
+                None
+            };
             self.hosts_view_valid = false;
+            daemon.begin_hosts_reload();
             let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
                 #[cfg(target_os = "linux")]
                 if let Some(logger) = self.logger.as_mut() {
@@ -3196,13 +3205,22 @@ impl SinglePoll {
                 #[cfg(not(target_os = "linux"))]
                 let _ = notice;
             });
-            // cache.c:1644: cache_reload borrows the shared packet scratch.
-            daemon.invalidate_udp_resend();
+            let Ok(hosts) = hosts else {
+                // The reader has already dropped its incomplete generation.
+                // Restore from the published view before admitting more work;
+                // never format a completion notice while a failed load owns
+                // all available memory.
+                if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
+                    local.hosts = previous;
+                    self.hosts_view_valid = true;
+                }
+                return Ok(());
+            };
             let snapshot = match hosts.try_clone() {
                 Ok(snapshot) => snapshot,
                 Err(_) => {
                     drop(hosts);
-                    if let Ok(previous) = daemon.try_clone_hosts_source() {
+                    if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
                         local.hosts = previous;
                         self.hosts_view_valid = true;
                     }
@@ -3211,7 +3229,8 @@ impl SinglePoll {
                     return Ok(());
                 }
             };
-            daemon.reload_hosts(snapshot);
+            drop(previous);
+            daemon.publish_hosts_source(snapshot);
             local.hosts = hosts;
             self.hosts_view_valid = true;
             local.leases = Arc::new(daemon.rebuild_lease_names(
@@ -3569,7 +3588,7 @@ impl SinglePoll {
             if let Some(daemon) = &mut parent.daemon {
                 match daemon.replace_server_source(update.source, update.rows, &addresses) {
                     Ok(()) => {
-                        parent.local.config = daemon.local_config().clone();
+                        parent.local.config = daemon.local_config().clone().into();
                         self.full_reload_pending |= update.full_reload;
                     }
                     Err(error) => eprintln!("dnsmasq-rs: {error}"),
@@ -3690,37 +3709,27 @@ impl SinglePoll {
                 local.hosts = previous;
                 self.hosts_view_valid = true;
             }
-            // Work in the existing local view; the daemon retains the last
-            // published source until the fallible copy succeeds.
-            removed = match local.hosts.try_remove_uid(source.uid) {
-                Ok(removed) => removed,
-                Err(_) => return 0,
-            };
-            if let Ok(path) = dnsmasq_rs::hosts::try_copy(source.path.as_os_str().as_encoded_bytes()) {
-                local.hosts.set_source_name(source.uid, path);
-            }
-            for (name, address) in records {
-                local.hosts.insert(name, address, ttl, source.uid);
-            }
+            // Keep both published owners intact until assembly and the second
+            // publication copy succeed. Failed insertions must abandon the
+            // entire replacement, not silently publish its accepted prefix.
+            let Ok((hosts, source_removed)) = local.hosts.try_replace_source(
+                source.uid,
+                source.path.as_os_str().as_encoded_bytes(),
+                records,
+                ttl,
+            ) else { return 0; };
+            removed = source_removed;
             if let Some(daemon) = daemon {
-                let snapshot = match local.hosts.try_clone() {
-                    Ok(snapshot) => snapshot,
-                    Err(_) => {
-                        local.hosts = Hosts::new();
-                        self.hosts_view_valid = false;
-                        if let Ok(previous) = daemon.try_clone_hosts_source() {
-                            local.hosts = previous;
-                            self.hosts_view_valid = true;
-                        }
-                        return 0;
-                    }
-                };
+                let Ok(snapshot) = hosts.try_clone() else { return 0; };
                 daemon.publish_hosts_source(snapshot);
+                local.hosts = hosts;
                 local.leases = Arc::new(daemon.rebuild_lease_names(
                     &local.leases,
                     &mut local.hosts,
                     &local.config.records.cnames,
                 ));
+            } else {
+                local.hosts = hosts;
             }
         }
         if !self.hosts_bulk {
@@ -4606,7 +4615,7 @@ impl SinglePoll {
         {
             let mut parent = self.service.borrow_mut();
             parent.local.interfaces = Arc::clone(&records);
-            parent.local.config.domain_interfaces = Arc::clone(&domains);
+            parent.local.publish_domain_interfaces(Arc::clone(&domains));
             if let Some(daemon) = &mut parent.daemon {
                 daemon.publish_domain_interfaces(domains);
                 daemon.refresh_source_interface_indices();
@@ -4842,8 +4851,8 @@ impl SinglePoll {
             let ParentDns { local, daemon, .. } = &mut *parent;
             if let Some(daemon) = daemon {
                 if daemon.detect_loop(&query).unwrap_or(false) {
-                    local.config = daemon.local_config().clone();
-                    self.config = local.config.clone();
+                    local.config = daemon.local_config().clone().into();
+                    self.config = (*local.config).clone();
                     return true;
                 }
             }
@@ -5409,7 +5418,7 @@ impl SinglePoll {
         };
         let mut snapshot = LocalDnsService::new_with_limits(
             parent.local.config.clone(),
-            parent.local.hosts.clone(),
+            parent.local.hosts.tcp_snapshot(),
             parent.local.local_ttl,
             parent.local.max_udp,
             parent.local.edns_packet_max,
@@ -6790,14 +6799,14 @@ impl HostsReadNotice {
 
 #[cfg(any(test, not(target_os = "linux")))]
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    read_hosts_with_notices(config, local_ttl, |_| {})
+    read_hosts_with_notices(config, local_ttl, |_| {}).unwrap_or_default()
 }
 
 fn read_hosts_with_notices(
     config: &DnsConfig,
     local_ttl: u32,
     mut report: impl FnMut(HostsReadNotice),
-) -> Hosts {
+) -> Result<Hosts, ()> {
     fn report_error(
         report: &mut impl FnMut(HostsReadNotice),
         action: &[u8],
@@ -6824,12 +6833,12 @@ fn read_hosts_with_notices(
         source: u32,
         ttl: u32,
         report: &mut impl FnMut(HostsReadNotice),
-    ) {
+    ) -> Result<(), ()> {
         let file = match std::fs::File::open(path) {
             Ok(file) => file,
             Err(error) => {
                 report_error(report, b"failed to load names from ", path, error);
-                return;
+                return Ok(());
             }
         };
         if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
@@ -6857,9 +6866,15 @@ fn read_hosts_with_notices(
                 report(HostsReadNotice::Error(message));
             },
         );
+        if stats.allocation_failed {
+            // Returning releases the entire unpublished replacement before
+            // any completion logging or later file/directory allocation.
+            return Err(());
+        }
         if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
             report(HostsReadNotice::Complete { path, names: stats.accepted });
         }
+        Ok(())
     }
     let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
@@ -6872,7 +6887,7 @@ fn read_hosts_with_notices(
             0,
             local_ttl,
             &mut report,
-        );
+        )?;
     }
     // expand_filelist appends directory members after explicit files. Its
     // alphasort order matters when multiple names compete for PTR ownership.
@@ -6887,7 +6902,7 @@ fn read_hosts_with_notices(
                 (index + 1) as u32,
                 local_ttl,
                 &mut report,
-            );
+            )?;
             continue;
         }
         let entries = match std::fs::read_dir(path) {
@@ -6923,9 +6938,9 @@ fn read_hosts_with_notices(
             (config.addn_hosts.len() + index + 1) as u32,
             local_ttl,
             &mut report,
-        );
+        )?;
     }
-    hosts
+    Ok(hosts)
 }
 
 #[cfg(any(test, not(target_os = "linux")))]
@@ -8562,7 +8577,7 @@ mod tests {
         config.no_hosts = true;
         config.addn_hosts.push(Some(path.clone()));
         let mut notices = Vec::new();
-        let hosts = read_hosts_with_notices(&config, 37, |notice| notices.push(notice));
+        let hosts = read_hosts_with_notices(&config, 37, |notice| notices.push(notice)).unwrap();
         let message = format!("bad name at {} line 2", path.display()).into_bytes();
         assert_eq!(notices, [
             HostsReadNotice::Error(message.clone()),

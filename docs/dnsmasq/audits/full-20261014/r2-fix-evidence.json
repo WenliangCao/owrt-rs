@@ -1,0 +1,890 @@
+{
+  "runs": [
+    {
+      "name": "baseline-repro",
+      "path": "/dev/shm/full-r2-fix-20261014/private/baseline-repro/result.json",
+      "sha256": "74eef06e1f9dd652c3969f6b825da73dce29e94579be3fc8f11b1ce2ee3ec96e",
+      "rust_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "a80098a56218072e5377d66cce5ecdb0b0e3bf5f77d3d16e44d43a2c98edc625",
+      "cases": [
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 18036,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": -6,
+          "exit": -6,
+          "enomem_count": 23848
+        }
+      ]
+    },
+    {
+      "name": "baseline-backtrace",
+      "path": "/dev/shm/full-r2-fix-20261014/private/baseline-backtrace/result.json",
+      "sha256": "273df551750cf1ba9a7c7760b40a3603e8621eff3eb80be41db45b0ff0566fbd",
+      "rust_sha256": "afbaf0a2c4328db69580c681c264b4b8c1210caf96b2f8172e5a4837206888f3",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "9041ea5b68ff6737969743c020890e9c12794062ba0a19d1d5ab629fde2370d4",
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": -6,
+          "exit": -6
+        }
+      ]
+    },
+    {
+      "name": "fixed-original-sweep",
+      "path": "/dev/shm/full-r2-fix-20261014/private/fixed-original-sweep/result.json",
+      "sha256": "aca114bb9d2714cc5cfbc9b1c7560a1a58655e8f413837d18dd5efdb7ac64f4d",
+      "rust_sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "a80098a56218072e5377d66cce5ecdb0b0e3bf5f77d3d16e44d43a2c98edc625",
+      "cases": [
+        {
+          "side": "c",
+          "initial_rows": 1,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 27636,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 1,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 31,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 1,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 25236,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 1,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 61,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 1,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 20436,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 1,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 117,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 25800,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 30,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 22836,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 117,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 18036,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 15,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "fixed-repeat3",
+      "path": "/dev/shm/full-r2-fix-20261014/private/fixed-repeat3/result.json",
+      "sha256": "6392247a9f4ba4d5ee8e3055d05ee0adc5872d085d128b82a7339203ba6fa1cd",
+      "rust_sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "b1862c70b3a3376679624e464f4bb4dd3e1af6cc9f7770a1c941a0fec9023acc",
+      "cases": [
+        {
+          "side": "c",
+          "service": "dns",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36084
+        },
+        {
+          "side": "rust",
+          "service": "dns",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 172
+        },
+        {
+          "side": "c",
+          "service": "dns",
+          "repeat": 2,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36084
+        },
+        {
+          "side": "rust",
+          "service": "dns",
+          "repeat": 2,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 172
+        },
+        {
+          "side": "c",
+          "service": "dns",
+          "repeat": 3,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36084
+        },
+        {
+          "side": "rust",
+          "service": "dns",
+          "repeat": 3,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 172
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36196
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 198
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 2,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36196
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 2,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 198
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 3,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36196
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 3,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 198
+        }
+      ]
+    },
+    {
+      "name": "fixed-shared-adjacent",
+      "path": "/dev/shm/full-r2-fix-20261014/private/fixed-shared-adjacent/result.json",
+      "sha256": "09564472e390b30c88cf726b78c0bf666996d1a8937569632d3319b50a0287fc",
+      "rust_sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "b1862c70b3a3376679624e464f4bb4dd3e1af6cc9f7770a1c941a0fec9023acc",
+      "cases": [
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 1,
+          "headroom_kib": 256,
+          "passed": false,
+          "pressure_udp_dhcp_healthy": false,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 55394
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 1,
+          "headroom_kib": 256,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 284
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 1,
+          "headroom_kib": 512,
+          "passed": false,
+          "pressure_udp_dhcp_healthy": false,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 50594
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 1,
+          "headroom_kib": 512,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 277
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 1,
+          "headroom_kib": null,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 0
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 1,
+          "headroom_kib": null,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 0
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 256,
+          "passed": false,
+          "pressure_udp_dhcp_healthy": false,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 51930
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 256,
+          "passed": false,
+          "error": "RuntimeError('daemon exited under pressure: -6')",
+          "exit": -6,
+          "enomem_count": 50
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 512,
+          "passed": false,
+          "pressure_udp_dhcp_healthy": false,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 46481
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 512,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 262
+        },
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": null,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 0
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": null,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 0
+        }
+      ]
+    },
+    {
+      "name": "cache-tool/cache-01",
+      "path": "/dev/shm/full-r2-fix-20261014/private/cache-tool/cache-01/result.json",
+      "sha256": "9f67863ad8835fd961870b48f2ef3460e1b3d157fb454f91cc20b01f1e54a68e",
+      "rust_sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "6bca85c8d94c9d9fb8dac9b253f925b0d466d5dd74f411a011483d07c1b6acc3",
+      "cases": [
+        {
+          "side": "c",
+          "service": "dns",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "hup_cache_purged": true,
+          "exit": 0,
+          "enomem_count": 18045
+        },
+        {
+          "side": "rust",
+          "service": "dns",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": false,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "hup_cache_purged": false,
+          "rust_atomic_samples": true,
+          "exit": 0,
+          "enomem_count": 41
+        }
+      ]
+    },
+    {
+      "name": "cache-tool/held-01",
+      "path": "/dev/shm/full-r2-fix-20261014/private/cache-tool/held-01/result.json",
+      "sha256": "1dde4788357525bdb9b96093d821ea10a9e7a19dc9f1732dfbc9957b0865ac86",
+      "rust_sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "6bca85c8d94c9d9fb8dac9b253f925b0d466d5dd74f411a011483d07c1b6acc3",
+      "cases": [
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "enomem_count": 36199
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "exit": 0,
+          "enomem_count": 240
+        }
+      ]
+    },
+    {
+      "name": "final-original-sweep",
+      "path": "/dev/shm/full-r2-fix-20261014/private/final-original-sweep/result.json",
+      "sha256": "208b651b39d8f95d6767b93b001dfd0e51729e9401da5ba36159ea5e9d79c483",
+      "rust_sha256": "be32a7f3cac5ae9d7ae0df77eb19a07f7d2b41b69779c0302d978868363205c2",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "a80098a56218072e5377d66cce5ecdb0b0e3bf5f77d3d16e44d43a2c98edc625",
+      "cases": [
+        {
+          "side": "c",
+          "initial_rows": 1,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 27636,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 1,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 31,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 1,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 25236,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 1,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 61,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 1,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 20436,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 1,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 117,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 25800,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 256,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 15,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 22836,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 512,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 117,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 18036,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "pressure_exit": null,
+          "exit": 0,
+          "enomem_count": 304,
+          "recovered": {
+            "udp": true,
+            "tcp": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "final-held-cache",
+      "path": "/dev/shm/full-r2-fix-20261014/private/final-held-cache/result.json",
+      "sha256": "e63c2709f73c1a44b797947bde7325d6f26e46755ab95f40b4c7a0220df2a630",
+      "rust_sha256": "be32a7f3cac5ae9d7ae0df77eb19a07f7d2b41b69779c0302d978868363205c2",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "driver_sha256": "6bca85c8d94c9d9fb8dac9b253f925b0d466d5dd74f411a011483d07c1b6acc3",
+      "cases": [
+        {
+          "side": "c",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "hup_cache_purged": true,
+          "exit": 0,
+          "enomem_count": 36205
+        },
+        {
+          "side": "rust",
+          "service": "shared",
+          "repeat": 1,
+          "initial_rows": 2000,
+          "headroom_kib": 1024,
+          "passed": true,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "hup_cache_purged": true,
+          "rust_atomic_samples": true,
+          "exit": 0,
+          "enomem_count": 213
+        }
+      ]
+    }
+  ],
+  "release-fixed": {
+    "path": "/dev/shm/full-r2-fix-20261014/private/release-fixed/build.json",
+    "sha256": "81c707935c5843c94e8c2f12f0c7cd66af09ceab020f0ec48053e45b5b09a996",
+    "receipt": {
+      "source": "/dev/shm/full-r2-fix-20261014/private/source-fixed",
+      "kind": "release",
+      "cargo_target_dir": "/dev/shm/full-r2-fix-20261014/target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/dev/shm/full-r2-fix-20261014/private/source-fixed=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+      "artifacts": [
+        {
+          "path": "dnsmasq-rs",
+          "bytes": 2081248,
+          "sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490"
+        }
+      ]
+    }
+  },
+  "release-final": {
+    "path": "/dev/shm/full-r2-fix-20261014/private/release-final/build.json",
+    "sha256": "3e1d9a415c2d099172f6d0b5a9c12a553b7d278658c36e778805f8f2136f2ff0",
+    "receipt": {
+      "source": "/dev/shm/full-r2-fix-20261014/private/source-final",
+      "kind": "release",
+      "cargo_target_dir": "/dev/shm/full-r2-fix-20261014/target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/dev/shm/full-r2-fix-20261014/private/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+      "artifacts": [
+        {
+          "path": "dnsmasq-rs",
+          "bytes": 2077152,
+          "sha256": "be32a7f3cac5ae9d7ae0df77eb19a07f7d2b41b69779c0302d978868363205c2"
+        }
+      ]
+    }
+  },
+  "debug-baseline": {
+    "path": "/dev/shm/full-r2-fix-20261014/private/debug-baseline/build.json",
+    "sha256": "66324a72cbb3e2a8c8e061f75541050d2b0afb1f4538a14c48bdb78a979e9fd9",
+    "receipt": {
+      "source": "/dev/shm/full-r2-fix-20261014/private/source-baseline",
+      "kind": "release",
+      "cargo_target_dir": "/dev/shm/full-r2-fix-20261014/target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/dev/shm/full-r2-fix-20261014/private/source-baseline=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+      "artifacts": [
+        {
+          "path": "dnsmasq-rs",
+          "bytes": 19362320,
+          "sha256": "afbaf0a2c4328db69580c681c264b4b8c1210caf96b2f8172e5a4837206888f3"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1768 @@
+{
+  "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+  "source_archive_sha256": "ee39f5ebe9440012a2ec8250ae1674fa093c9dec728b52c1e7bb00c8a3492a4b",
+  "source_files_verified": 647,
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "prior_rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+  "fixed_rust_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+  "driver_sha256": "a0fd9f5a57188e6459d7e1707e78df59034ac1d647eced953216440581037ade",
+  "sample_order": [
+    "pressure update 1",
+    "pressure update 2",
+    "limit released without update",
+    "later close-write recovery"
+  ],
+  "prior": [
+    {
+      "path": "/dev/shm/full-integrated-edge-20261014/private/inotify-no-held-2000/result.json",
+      "sha256": "3d15cb3058a4dd07d4cefb12552afc9c47bcee5bf8debb24588b564dc9ff5364",
+      "passed": true,
+      "cases": [
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-integrated-edge-20261014/private/inotify-no-held-6000/result.json",
+      "sha256": "5d8d68a272f34725d9e5cd0bfcdbae7ca148c6896d1ae6af3addcb31104016a4",
+      "passed": false,
+      "cases": [
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2644,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": false,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1291,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1336,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 215,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 0,
+              "enomem_count": 111,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 104,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 262,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 0,
+              "enomem_count": 136,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": false,
+          "enomem_count": 2616,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": false,
+          "rust_tcp_atomic_samples": false,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 2490,
+              "enomem_after_source_eof": 2490
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-integrated-edge-20261014/private/inotify-no-held-6000-control/result.json",
+      "sha256": "47872112eb37cff483ccafd83b3e6adcd6488075cda7650ffbdaf3f233c37b41",
+      "passed": true,
+      "cases": [
+        {
+          "side": "c",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": null,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": null,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-integrated-edge-20261014/private/inotify-no-held-6000-repeat/result.json",
+      "sha256": "40f62533f9e8b66a2b1e558961daad5fa5295268b8749a21c176cc5376782121",
+      "passed": false,
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": false,
+          "enomem_count": 2592,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": false,
+          "rust_tcp_atomic_samples": false,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 2466,
+              "enomem_after_source_eof": 2466
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 2,
+          "held_tcp": false,
+          "passed": false,
+          "enomem_count": 2581,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": false,
+          "rust_tcp_atomic_samples": false,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 2455,
+              "enomem_after_source_eof": 2455
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 3,
+          "held_tcp": false,
+          "passed": false,
+          "enomem_count": 2592,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": false,
+          "rust_tcp_atomic_samples": false,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 2466,
+              "enomem_after_source_eof": 2466
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": null,
+              "tcp": null
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "fixed": [
+    {
+      "path": "/dev/shm/full-inotify-fix-20261014/private/inotify-2000-held/result.json",
+      "sha256": "68da931545c8c1213e69368e71b89b72e539a40bcaef014af7f3a1186f21c562",
+      "passed": true,
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": null,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-inotify-fix-20261014/private/inotify-2000-no-held/result.json",
+      "sha256": "bdc16b323445712cc7e79cf645e2220a6248a6f12ec5e04610f30f1417a2d0db",
+      "passed": true,
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 2000,
+          "headroom_kib": null,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-inotify-fix-20261014/private/inotify-6000-held/result.json",
+      "sha256": "3f92973d58f2ce4a4f0778ab0b6698d304156d2b0c7660bddc77350a3253b72d",
+      "passed": true,
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 215,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 0,
+              "enomem_count": 111,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 104,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 262,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 0,
+              "enomem_count": 136,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": null,
+          "repeat": 1,
+          "held_tcp": true,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "held_tcp_snapshot_stable": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-inotify-fix-20261014/private/inotify-6000-no-held/result.json",
+      "sha256": "dfb954e8fa115506c2e26e48ff074697492d9a036042a66d7375713802c352ef",
+      "passed": true,
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 256,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 215,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 0,
+              "enomem_count": 111,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 104,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 512,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 262,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 0,
+              "enomem_count": 136,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 0,
+              "enomem_count": 126,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": null,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 0,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 0,
+              "enomem_after_source_eof": 0
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "new",
+              "tcp": "new"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "next1",
+              "tcp": "next1"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/dev/shm/full-inotify-fix-20261014/private/inotify-6000-no-held-repeat/result.json",
+      "sha256": "05dbd2806383b9a8ae1426706e39de68a3ef8ab6eeb85e813d27cf6dbe34172f",
+      "passed": true,
+      "cases": [
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 1,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 2,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        },
+        {
+          "side": "rust",
+          "initial_rows": 2000,
+          "new_rows": 6000,
+          "headroom_kib": 1024,
+          "repeat": 3,
+          "held_tcp": false,
+          "passed": true,
+          "enomem_count": 2,
+          "pressure_udp_dhcp_healthy": true,
+          "pressure_tcp_healthy": true,
+          "release_udp_tcp_dhcp_healthy": true,
+          "recovery_udp_tcp_dhcp_healthy": true,
+          "rust_atomic_samples": true,
+          "rust_tcp_atomic_samples": true,
+          "exit": 0,
+          "pressure_source_trace": [
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            },
+            {
+              "source_eof_count": 1,
+              "enomem_count": 1,
+              "enomem_after_source_eof": 1
+            }
+          ],
+          "sample_generations": [
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "old",
+              "tcp": "old"
+            },
+            {
+              "udp": "recovered",
+              "tcp": "recovered"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

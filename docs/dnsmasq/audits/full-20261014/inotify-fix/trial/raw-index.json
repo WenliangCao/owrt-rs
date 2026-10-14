@@ -1,0 +1,154 @@
+{
+  "cleanup-receipt.json": {
+    "sha256": "8b71428f752e2c9fe91c42b87371ef2e6eb36c5e432d77b4c0372b846475960f",
+    "bytes": 152
+  },
+  "derive.py": {
+    "sha256": "ef6f5f4b616e8bbef00aeb4b912a4b17e8334d92a2949404fbf42957789c3e76",
+    "bytes": 5064
+  },
+  "derived-result.json": {
+    "sha256": "5895c44d4e182a47301ae41fe8753d68e72a39d00691ab89fe76e49ce30bbe9e",
+    "bytes": 2523
+  },
+  "postflight.json": {
+    "sha256": "d29dbc41a8422ac96ba67f3cfbabada408eb02d721241ee358b9f95d4abd1cce",
+    "bytes": 46150
+  },
+  "preflight.json": {
+    "sha256": "38bd16f832c93ff918be66f903aaf315d9243928ab585695e1a23cf9cfb62e21",
+    "bytes": 46609
+  },
+  "run-output.log": {
+    "sha256": "86526209610eca2659d210019dccc8032aee97fbcd0f00f2ec4413ab45fb276c",
+    "bytes": 706
+  },
+  "run_trial.py": {
+    "sha256": "d3b1654e7c5531363057aafdb4693f3ceaf49064f486be437d0f4c20b617c41e",
+    "bytes": 4811
+  },
+  "source-tools-verification.json": {
+    "sha256": "ea092ddc21ed8333fe1fcaaafba713b2b2f6f5a172477dbe7792c7f5cad85199",
+    "bytes": 76096
+  },
+  "trial-confirmed-rollback-killed/commands.json": {
+    "sha256": "e1f7d768f4cff25adde1866ca77c61c80b28ed20abf735a0a9537d6e4aae16f7",
+    "bytes": 6988
+  },
+  "trial-confirmed-rollback-killed/fault.json": {
+    "sha256": "28d7825fb5147b7f46aad6ee988f9d9e89a1a111107fce35fdda37a4545acfbb",
+    "bytes": 104
+  },
+  "trial-confirmed-rollback-killed/fixture/commands.json": {
+    "sha256": "1f71153ee71fec349f7623b0f304feb1c3b0adc867160b656b7c853a695bf664",
+    "bytes": 7312
+  },
+  "trial-confirmed-rollback-killed/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-confirmed-rollback-killed/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-confirmed-rollback-killed/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-confirmed-rollback-killed/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-identity.json": {
+    "sha256": "ea4d2c45039aac4852e6c4caf40f43bf2e540e302ea31001a64410b2ce08b4b3",
+    "bytes": 46097
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "bytes": 2089440
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-confirmed-rollback-killed/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/result.json": {
+    "sha256": "a65db5583503a595abe17d2d723ce442e82197741f11186deacea520da2ae367",
+    "bytes": 30535
+  },
+  "trial-confirmed-rollback-killed/trace-ready": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed-network/topology.json": {
+    "sha256": "accffe724979863a998e0d705075ed33b136b6895bdc524e3ef78724c290c8fe",
+    "bytes": 3890
+  },
+  "trial-confirmed-rollback-killed.command.json": {
+    "sha256": "de1f20e5c2f3b7d321be77d3204aadd298c3abd316ecf380026a099dd37bc79a",
+    "bytes": 1073
+  },
+  "trial-confirmed-rollback-killed.log": {
+    "sha256": "7b75c9cdbffd3cc0ed58aa6089282237420d4f4613ec088981e0d0d7263512ef",
+    "bytes": 54
+  },
+  "trial-confirmed-rollback-killed.receipt.json": {
+    "sha256": "55a71e2faeeae2ad5f57a0e68d97a05f6586e2f4fd74f678cb60fcc4050c6753",
+    "bytes": 1908
+  },
+  "trial-network-source/tmp/resolv.conf.d/resolv.conf.auto": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-suite.json": {
+    "sha256": "aed49afd68da45ae913aa3a942cab6f68e9dab0102f001184da89f2a4cdfd7e0",
+    "bytes": 2336
+  }
+}

@@ -682,9 +682,9 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream
             .replace_server_groups(routing.dispatcher_groups(), &removed);
         self.routing = routing;
-        self.local.config = self.server_sources.effective_config(&self.local.config);
+        self.local.config = self.server_sources.effective_config(&self.local.config).into();
         if !excluded.is_empty() {
-            self.local.config.rules = self
+            std::sync::Arc::make_mut(&mut self.local.config).rules = self
                 .server_sources
                 .rules()
                 .iter()
@@ -746,8 +746,7 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.counters()
     }
 
-    /// Replace the reloaded hosts snapshot and discard dynamic DNS answers.
-    /// Resolver routing and in-flight upstream requests retain their owners.
+    /// Publish a completed hosts generation without changing forwarded cache.
     pub fn publish_hosts_source(&mut self, hosts: Hosts) {
         self.local.hosts = hosts;
     }
@@ -758,13 +757,19 @@ impl<R: Random> DnsDaemon<R> {
         self.local.hosts.try_clone()
     }
 
-    pub fn reload_hosts(&mut self, hosts: Hosts) {
+    /// HUP invalidates forwarded answers even if loading replacement hosts
+    /// later fails. Keep the published hosts until a complete view is ready.
+    pub fn begin_hosts_reload(&mut self) {
         // cache_reload uses daemon->packet as its temporary reverse hash.
         self.invalidate_udp_resend();
-        self.local.hosts = hosts;
         if let Some(cache) = &mut self.cache {
             cache.clear_counted(&mut self.cache_counters);
         }
+    }
+
+    pub fn reload_hosts(&mut self, hosts: Hosts) {
+        self.begin_hosts_reload();
+        self.publish_hosts_source(hosts);
     }
 
     /// Publish a completed DHCP source against this parent's forwarded cache.
@@ -809,7 +814,7 @@ impl<R: Random> DnsDaemon<R> {
         &mut self,
         domains: std::sync::Arc<crate::config::domains::DomainInterfaces>,
     ) {
-        self.local.config.domain_interfaces = domains;
+        self.local.publish_domain_interfaces(domains);
     }
 
     #[cfg(target_os = "linux")]

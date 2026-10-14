@@ -5,6 +5,8 @@
 use std::collections::{HashMap, HashSet, TryReserveError};
 use std::io::Read;
 use std::net::IpAddr;
+use std::ops::Deref;
+use std::sync::Arc;
 
 /// Exact no-IDN check_name/canonicalise behavior. Preserve case, strip one
 /// trailing dot, allow printable ASCII (including internal empty labels).
@@ -67,17 +69,119 @@ pub struct ReadStats {
     pub inserted: usize,
     pub bad_addresses: usize,
     pub bad_names: usize,
+    /// The caller must discard an incomplete replacement before logging or
+    /// publishing it, so the failed load releases its memory first.
+    pub allocation_failed: bool,
 }
 
-/// One reload generation. Address and name indexes remain live after bulk
-/// load; C discards its bulk reverse index and scans every bucket for PTR.
+/// Owned during ingestion, shared only when a TCP child takes a snapshot.
+/// Keeping an owned empty value avoids adding infallible allocations to the
+/// fallible hosts loader. Publishing a TCP snapshot performs one allocation.
+#[derive(Clone)]
+enum Snapshot<T> {
+    Owned(T),
+    Shared(Arc<T>),
+}
+
+impl<T: Default> Default for Snapshot<T> {
+    fn default() -> Self {
+        Self::Owned(T::default())
+    }
+}
+
+impl<T> Deref for Snapshot<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        match self {
+            Self::Owned(value) => value,
+            Self::Shared(value) => value,
+        }
+    }
+}
+
+impl<T: Default> Snapshot<T> {
+    fn snapshot(&mut self) -> Self {
+        if let Self::Owned(value) = self {
+            *self = Self::Shared(Arc::new(std::mem::take(value)));
+        }
+        match self {
+            Self::Shared(value) => Self::Shared(Arc::clone(value)),
+            Self::Owned(_) => unreachable!(),
+        }
+    }
+
+    fn get_mut(&mut self) -> Option<&mut T> {
+        match self {
+            Self::Owned(value) => Some(value),
+            Self::Shared(value) => Arc::get_mut(value),
+        }
+    }
+}
+
 #[derive(Clone, Default)]
-pub struct Hosts {
+struct HostsRecords {
     entries: Vec<Host>,
     sources: HashMap<u32, Vec<u8>>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<IpAddr, usize>,
     non_terminals: HashSet<Vec<u8>>,
+}
+
+// Stable entry IDs partition query order into bounded copy-on-write pages.
+// A TCP snapshot copies the page handles; its first mutation copies at most
+// this many names' orders, irrespective of how many names the parent queried.
+// There is no chain of historical deltas to retain after clients disconnect.
+const ROTATION_PAGE_ENTRIES: usize = 64;
+type RotationPage = HashMap<usize, Vec<usize>>;
+
+#[derive(Clone, Default)]
+struct RotationPages {
+    pages: Vec<Snapshot<RotationPage>>,
+    populated: bool,
+}
+
+impl RotationPages {
+    fn is_empty(&self) -> bool {
+        !self.populated
+    }
+
+    fn get(&self, key: &usize) -> Option<&Vec<usize>> {
+        self.pages.get(key / ROTATION_PAGE_ENTRIES)?.get(key)
+    }
+
+    fn snapshot(&mut self) -> Self {
+        Self {
+            pages: self.pages.iter_mut().map(Snapshot::snapshot).collect(),
+            populated: self.populated,
+        }
+    }
+
+    fn page_mut(&mut self, key: usize) -> Result<&mut RotationPage, TryReserveError> {
+        let page_id = key / ROTATION_PAGE_ENTRIES;
+        if page_id >= self.pages.len() {
+            self.pages.try_reserve(page_id + 1 - self.pages.len())?;
+            self.pages.resize_with(page_id + 1, Snapshot::default);
+        }
+        let page = &mut self.pages[page_id];
+        if page.get_mut().is_none() {
+            let mut copy = HashMap::new();
+            copy.try_reserve(page.len())?;
+            for (&id, indices) in page.iter() {
+                copy.insert(id, try_copy(indices)?);
+            }
+            *page = Snapshot::Owned(copy);
+        }
+        Ok(page.get_mut().unwrap())
+    }
+}
+
+/// One reload generation. TCP children share its records and indexes, retaining
+/// their accepted generation after HUP. Only queried multi-address names need
+/// private ordering pages; querying a single-address name never copies a page.
+#[derive(Clone, Default)]
+pub struct Hosts {
+    records: Snapshot<HostsRecords>,
+    rotations: RotationPages,
     no_round_robin: bool,
 }
 
@@ -86,36 +190,72 @@ impl Hosts {
         Self::default()
     }
     pub fn len(&self) -> usize {
-        self.entries.len()
+        self.records.entries.len()
     }
     pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
+        self.records.entries.is_empty()
     }
     pub fn entries(&self) -> &[Host] {
-        &self.entries
+        &self.records.entries
+    }
+
+    /// Dropping this owner cannot release records retained by a TCP snapshot.
+    pub fn has_shared_records(&self) -> bool {
+        matches!(&self.records, Snapshot::Shared(records) if Arc::strong_count(records) > 1)
+    }
+
+    /// Like fork's copy-on-write view: snapshot both the accepted generation
+    /// and its current round-robin order without copying any hosts records.
+    pub fn tcp_snapshot(&mut self) -> Self {
+        Self {
+            records: self.records.snapshot(),
+            rotations: self.rotations.snapshot(),
+            no_round_robin: self.no_round_robin,
+        }
+    }
+
+    /// Structural changes fork the generation, folding private query order
+    /// into its indexes. All copying remains fallible for hostsdir ingestion.
+    fn writable_records(&mut self) -> Result<&mut HostsRecords, TryReserveError> {
+        if !self.rotations.is_empty() || self.records.get_mut().is_none() {
+            *self = self.try_clone()?;
+        }
+        Ok(self.records.get_mut().unwrap())
     }
 
     /// Keep the loader's actual file identity beside this immutable generation.
     pub fn set_source_name(&mut self, source: u32, name: Vec<u8>) {
-        if self.sources.try_reserve(1).is_ok() {
-            self.sources.insert(source, name);
+        let Ok(records) = self.writable_records() else {
+            return;
+        };
+        if records.sources.try_reserve(1).is_ok() {
+            records.sources.insert(source, name);
         }
     }
 
     pub fn source_name(&self, source: u32) -> Option<&[u8]> {
-        self.sources
+        self.records
+            .sources
             .get(&source)
             .map(Vec::as_slice)
             .or((source == 0).then_some(b"/etc/hosts".as_slice()))
     }
 
+    fn ordered<'a>(&'a self, indices: &'a [usize]) -> &'a [usize] {
+        indices
+            .first()
+            .and_then(|id| self.rotations.get(id))
+            .map_or(indices, Vec::as_slice)
+    }
+
     /// Current static address order without the lookup/round-robin mutation.
     pub fn addresses(&self, name: &[u8]) -> impl Iterator<Item = &Host> {
-        self.forward
+        self.records
+            .forward
             .get(&name.to_ascii_lowercase())
             .into_iter()
-            .flatten()
-            .map(|&id| &self.entries[id])
+            .flat_map(|indices| self.ordered(indices))
+            .map(|&id| &self.records.entries[id])
     }
 
     pub fn set_round_robin(&mut self, enabled: bool) {
@@ -136,8 +276,16 @@ impl Hosts {
         source: u32,
         configured: bool,
     ) -> bool {
-        self.try_insert(name, address, ttl, source, configured)
-            .unwrap_or(false)
+        let mut allocation_failed = false;
+        self.try_insert(
+            name,
+            address,
+            ttl,
+            source,
+            configured,
+            &mut allocation_failed,
+        )
+        .unwrap_or(false)
     }
 
     fn try_insert(
@@ -147,17 +295,20 @@ impl Hosts {
         ttl: u32,
         source: u32,
         configured: bool,
+        allocation_failed: &mut bool,
     ) -> Result<bool, TryReserveError> {
         let mut key = try_copy(&name)?;
         key.make_ascii_lowercase();
+        let no_round_robin = self.no_round_robin;
+        let records = self.writable_records()?;
         // Duplicate lookup rotates the same flags group as cache_find_by_name,
         // but must not allocate a temporary result/positions Vec while loading.
-        if let Some(indices) = self.forward.get_mut(&key) {
+        if let Some(indices) = records.forward.get_mut(&key) {
             let duplicate = indices
                 .iter()
-                .any(|&id| self.entries[id].address == address);
-            if !self.no_round_robin {
-                rotate_indices(indices, &self.entries, Some(address.is_ipv6()));
+                .any(|&id| records.entries[id].address == address);
+            if !no_round_robin {
+                rotate_indices(indices, &records.entries, Some(address.is_ipv6()));
             }
             if duplicate {
                 return Ok(false);
@@ -165,44 +316,50 @@ impl Hosts {
         }
         // Reserve all mandatory indexes before publishing any new entry. An
         // unsuccessful reservation leaves existing entries and PTR ownership live.
-        self.entries.try_reserve(1)?;
-        self.reverse.try_reserve(1)?;
-        self.forward.try_reserve(1)?;
+        records.entries.try_reserve(1)?;
+        records.reverse.try_reserve(1)?;
+        records.forward.try_reserve(1)?;
         let mut fresh_indices = Vec::new();
-        if let Some(indices) = self.forward.get_mut(&key) {
+        if let Some(indices) = records.forward.get_mut(&key) {
             indices.try_reserve(1)?;
         } else {
             fresh_indices.try_reserve(1)?;
         }
-        let reverse = !self.reverse.contains_key(&address);
+        let reverse = !records.reverse.contains_key(&address);
         // C make_non_terminals is best-effort too; the real record survives an
-        // ancestor allocation failure.
-        self.non_terminals.remove(&key);
+        // ancestor allocation failure. A replacement reader still needs the
+        // failure signal so it can release this incomplete generation.
+        records.non_terminals.remove(&key);
         for (index, &byte) in key.iter().enumerate() {
             let suffix = &key[index + 1..];
-            if byte == b'.' && !self.non_terminals.contains(suffix) {
-                if let Ok(ancestor) = try_copy(suffix) {
-                    if self.non_terminals.try_reserve(1).is_ok() {
-                        self.non_terminals.insert(ancestor);
+            if byte == b'.' && !records.non_terminals.contains(suffix) {
+                match try_copy(suffix) {
+                    Ok(ancestor) => {
+                        if records.non_terminals.try_reserve(1).is_ok() {
+                            records.non_terminals.insert(ancestor);
+                        } else {
+                            *allocation_failed = true;
+                        }
                     }
+                    Err(_) => *allocation_failed = true,
                 }
             }
         }
-        let indices = self.forward.entry(key).or_insert(fresh_indices);
-        let id = self.entries.len();
+        let indices = records.forward.entry(key).or_insert(fresh_indices);
+        let id = records.entries.len();
         let at = if reverse {
             indices
                 .iter()
-                .position(|&id| !self.entries[id].reverse)
+                .position(|&id| !records.entries[id].reverse)
                 .unwrap_or(indices.len())
         } else {
             indices.len()
         };
         indices.insert(at, id);
         if reverse {
-            self.reverse.insert(address, id);
+            records.reverse.insert(address, id);
         }
-        self.entries.push(Host {
+        records.entries.push(Host {
             name,
             address,
             ttl,
@@ -216,35 +373,72 @@ impl Hosts {
     /// Preserve both published owner views if a replacement snapshot cannot be
     /// copied. In particular, do not use derived Clone after a fallible read.
     pub fn try_clone(&self) -> Result<Self, TryReserveError> {
-        let mut copy = Self::new();
-        copy.no_round_robin = self.no_round_robin;
-        copy.entries.try_reserve_exact(self.entries.len())?;
-        copy.sources.try_reserve(self.sources.len())?;
-        copy.forward.try_reserve(self.forward.len())?;
-        copy.reverse.try_reserve(self.reverse.len())?;
-        copy.non_terminals.try_reserve(self.non_terminals.len())?;
-        for host in &self.entries {
+        let mut copy = HostsRecords::default();
+        let records = &self.records;
+        copy.entries.try_reserve_exact(records.entries.len())?;
+        copy.sources.try_reserve(records.sources.len())?;
+        copy.forward.try_reserve(records.forward.len())?;
+        copy.reverse.try_reserve(records.reverse.len())?;
+        copy.non_terminals
+            .try_reserve(records.non_terminals.len())?;
+        for host in &records.entries {
             copy.entries.push(Host {
                 name: try_copy(&host.name)?,
                 ..*host
             });
         }
-        for (&source, name) in &self.sources {
+        for (&source, name) in &records.sources {
             copy.sources.insert(source, try_copy(name)?);
         }
-        for (name, indices) in &self.forward {
-            copy.forward.insert(try_copy(name)?, try_copy(indices)?);
+        for (name, indices) in &records.forward {
+            copy.forward
+                .insert(try_copy(name)?, try_copy(self.ordered(indices))?);
         }
         copy.reverse
-            .extend(self.reverse.iter().map(|(&address, &id)| (address, id)));
-        for name in &self.non_terminals {
+            .extend(records.reverse.iter().map(|(&address, &id)| (address, id)));
+        for name in &records.non_terminals {
             copy.non_terminals.insert(try_copy(name)?);
         }
-        Ok(copy)
+        Ok(Self {
+            records: Snapshot::Owned(copy),
+            rotations: RotationPages::default(),
+            no_round_robin: self.no_round_robin,
+        })
+    }
+
+    /// Build one complete hostsdir replacement without changing this owner.
+    /// Every error means allocation failure, including source metadata and
+    /// best-effort ancestor indexes that ordinary insert otherwise tolerates.
+    pub fn try_replace_source(
+        &self,
+        source: u32,
+        source_name: &[u8],
+        records: Vec<(Vec<u8>, IpAddr)>,
+        ttl: u32,
+    ) -> Result<(Self, usize), ()> {
+        let mut replacement = self.try_clone().map_err(|_| ())?;
+        let removed = replacement.try_remove_uid(source).map_err(|_| ())?;
+        let name = try_copy(source_name).map_err(|_| ())?;
+        let owned = replacement.records.get_mut().unwrap();
+        owned.sources.try_reserve(1).map_err(|_| ())?;
+        owned.sources.insert(source, name);
+        for (name, address) in records {
+            let mut allocation_failed = false;
+            replacement
+                .try_insert(name, address, ttl, source, source == 1, &mut allocation_failed)
+                .map_err(|_| ())?;
+            if allocation_failed {
+                return Err(());
+            }
+        }
+        Ok((replacement, removed))
     }
 
     pub fn reverse(&self, address: IpAddr) -> Option<&Host> {
-        self.reverse.get(&address).map(|&id| &self.entries[id])
+        self.records
+            .reverse
+            .get(&address)
+            .map(|&id| &self.records.entries[id])
     }
 
     /// cache_remove_uid removes this path's accepted entries, without reloading
@@ -254,13 +448,14 @@ impl Hosts {
     }
 
     pub fn try_remove_uid(&mut self, source: u32) -> Result<usize, TryReserveError> {
-        let before = self.entries.len();
+        let before = self.records.entries.len();
         let mut relocated = Vec::new();
         relocated.try_reserve_exact(before)?;
         relocated.resize(before, None);
+        let records = self.writable_records()?;
         let mut old = 0;
         let mut new = 0;
-        self.entries.retain(|entry| {
+        records.entries.retain(|entry| {
             let keep = entry.source != source;
             if keep {
                 relocated[old] = Some(new);
@@ -269,7 +464,7 @@ impl Hosts {
             old += 1;
             keep
         });
-        self.forward.retain(|_, indices| {
+        records.forward.retain(|_, indices| {
             indices.retain_mut(|id| {
                 if let Some(next) = relocated[*id] {
                     *id = next;
@@ -280,7 +475,7 @@ impl Hosts {
             });
             !indices.is_empty()
         });
-        self.reverse.retain(|_, id| {
+        records.reverse.retain(|_, id| {
             if let Some(next) = relocated[*id] {
                 *id = next;
                 true
@@ -295,13 +490,35 @@ impl Hosts {
 
     pub fn name_exists(&self, name: &[u8]) -> bool {
         let key = name.to_ascii_lowercase();
-        self.forward.contains_key(&key) || self.non_terminals.contains(&key)
+        self.records.forward.contains_key(&key) || self.records.non_terminals.contains(&key)
+    }
+
+    fn rotate_shared(&mut self, key: usize, initial: &[usize], ipv6: Option<bool>) {
+        // A failed page reservation preserves the last valid order and answer.
+        let Ok(rotations) = self.rotations.page_mut(key) else {
+            return;
+        };
+        if !rotations.contains_key(&key) {
+            let Ok(indices) = try_copy(initial) else {
+                return;
+            };
+            if rotations.try_reserve(1).is_err() {
+                return;
+            }
+            rotations.insert(key, indices);
+        }
+        rotate_indices(
+            rotations.get_mut(&key).unwrap(),
+            &self.records.entries,
+            ipv6,
+        );
+        self.rotations.populated = true;
     }
 
     /// Returns the current order, then rotates the first matching flags group
     /// for the next call, as cache_find_by_name does. `ipv6=None` means both.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
-        if self.forward.is_empty() {
+        if self.records.forward.is_empty() {
             return Vec::new();
         }
         let canonical;
@@ -311,36 +528,43 @@ impl Hosts {
         } else {
             name
         };
-        let Some(indices) = self.forward.get_mut(key) else {
+        let Some(indices) = self.records.forward.get(key) else {
             return Vec::new();
         };
-        let selected: Vec<_> = indices
+        let rotation_key = indices[0];
+        let ordered = self.ordered(indices);
+        let selected: Vec<_> = ordered
             .iter()
             .copied()
-            .filter(|&id| ipv6.is_none_or(|v| self.entries[id].address.is_ipv6() == v))
+            .filter(|&id| ipv6.is_none_or(|v| self.records.entries[id].address.is_ipv6() == v))
             .collect();
         if !no_round_robin && !self.no_round_robin && selected.len() > 1 {
-            let reverse = self.entries[selected[0]].reverse;
-            let positions: Vec<_> = indices
-                .iter()
-                .enumerate()
-                .filter_map(|(pos, &id)| {
-                    (self.entries[id].reverse == reverse
-                        && ipv6.is_none_or(|v| self.entries[id].address.is_ipv6() == v))
-                    .then_some(pos)
-                })
-                .collect();
-            if positions.len() > 1 {
-                let first = indices[positions[0]];
-                for pair in positions.windows(2) {
-                    indices[pair[0]] = indices[pair[1]];
-                }
-                // This branch requires positions.len()>1; every id came
-                // from the live forward index and survives this rotation.
-                indices[*positions.last().unwrap()] = first;
+            if self.rotations.is_empty() && self.records.get_mut().is_some() {
+                let records = self.records.get_mut().unwrap();
+                rotate_indices(
+                    records.forward.get_mut(key).unwrap(),
+                    &records.entries,
+                    ipv6,
+                );
+            } else {
+                // The initial index remains immutable while shared; copy only
+                // this name's order before taking the mutable view.
+                let initial = match try_copy(self.ordered(&self.records.forward[key])) {
+                    Ok(indices) => indices,
+                    Err(_) => {
+                        return selected
+                            .into_iter()
+                            .map(|id| &self.records.entries[id])
+                            .collect();
+                    }
+                };
+                self.rotate_shared(rotation_key, &initial, ipv6);
             }
         }
-        selected.into_iter().map(|id| &self.entries[id]).collect()
+        selected
+            .into_iter()
+            .map(|id| &self.records.entries[id])
+            .collect()
     }
 
     /// The caller opens the file and records any open errors before this method.
@@ -371,6 +595,8 @@ impl Hosts {
 
     /// Diagnostics are emitted as tokens complete, never accumulated with the
     /// hosts generation. The boolean distinguishes bad addresses from names.
+    /// Allocation failure stops after the current bounded input chunk; unlike
+    /// EOF or a read error, it marks the replacement as incomplete.
     pub fn read_from_with_diagnostics(
         &mut self,
         mut input: impl Read,
@@ -382,28 +608,44 @@ impl Hosts {
     ) -> ReadStats {
         let mut parser = HostsParser::default();
         let mut inserted = 0;
+        let mut allocation_failed = false;
         let mut buffer = [0; 8192];
         let mut consume = |parser: &mut HostsParser, bytes: &[u8]| {
             parser.feed(
                 bytes,
                 expand,
                 &mut domain,
-                |name, address| {
-                    inserted +=
-                        usize::from(self.insert_with_origin(name, address, ttl, source, false));
+                |name, address| match self.try_insert(
+                    name,
+                    address,
+                    ttl,
+                    source,
+                    false,
+                    &mut allocation_failed,
+                ) {
+                    Ok(added) => inserted += usize::from(added),
+                    Err(_) => allocation_failed = true,
                 },
                 &mut invalid,
             );
+            allocation_failed || parser.allocation_failed
         };
+        let mut failed = false;
         while let Ok(length) = input.read(&mut buffer) {
             if length == 0 {
                 break;
             }
-            consume(&mut parser, &buffer[..length]);
+            if consume(&mut parser, &buffer[..length]) {
+                failed = true;
+                break;
+            }
         }
-        consume(&mut parser, b"\n");
+        if !failed {
+            failed = consume(&mut parser, b"\n");
+        }
         let mut stats = parser.stats;
         stats.inserted = inserted;
+        stats.allocation_failed = failed;
         stats
     }
 }
@@ -504,6 +746,7 @@ impl HostsParser {
                                             emit(expanded, address);
                                         } else {
                                             self.allocation_failed = true;
+                                            self.stats.allocation_failed = true;
                                         }
                                     }
                                 }
@@ -512,6 +755,7 @@ impl HostsParser {
                                     emit(name, address);
                                 } else {
                                     self.allocation_failed = true;
+                                    self.stats.allocation_failed = true;
                                 }
                             } else {
                                 self.stats.bad_names += 1;
@@ -554,6 +798,183 @@ pub fn visit_hosts(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn paired_hosts(count: usize) -> Hosts {
+        let mut hosts = Hosts::new();
+        for i in 0..count {
+            for address in ["192.0.2.1", "192.0.2.2"] {
+                hosts.insert(
+                    format!("name{i}.test").into_bytes(),
+                    address.parse().unwrap(),
+                    37,
+                    2,
+                );
+            }
+        }
+        hosts
+    }
+
+    #[test]
+    fn warm_parent_order_copies_only_one_page_per_child_query() {
+        let mut parent = paired_hosts(2048);
+        let seed = parent.tcp_snapshot();
+        for i in 0..2048 {
+            parent.lookup(format!("name{i}.test").as_bytes(), Some(false), false);
+        }
+        let mut children: Vec<_> = (0..20).map(|_| parent.tcp_snapshot()).collect();
+        for (i, child) in children.iter_mut().enumerate() {
+            let name = format!("name{}.test", i * 97);
+            let expected: Vec<_> = parent.addresses(name.as_bytes()).cloned().collect();
+            let actual: Vec<_> = child
+                .lookup(name.as_bytes(), Some(false), false)
+                .into_iter()
+                .cloned()
+                .collect();
+            assert_eq!(actual, expected);
+            assert_eq!(child.rotations.pages.len(), parent.rotations.pages.len());
+            let private: Vec<_> = child
+                .rotations
+                .pages
+                .iter()
+                .filter_map(|page| {
+                    if let Snapshot::Owned(page) = page {
+                        Some(page)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            assert_eq!(private.len(), 1);
+            assert!(private[0].len() <= ROTATION_PAGE_ENTRIES);
+            assert!(std::ptr::eq(child.entries(), parent.entries()));
+        }
+        drop((children, seed));
+        for page in &parent.rotations.pages {
+            let Snapshot::Shared(page) = page else {
+                panic!("published page");
+            };
+            assert_eq!(Arc::strong_count(page), 1);
+        }
+    }
+
+    #[test]
+    fn rolling_tcp_accepts_and_parent_queries_keep_order_without_history() {
+        let mut parent = paired_hosts(128);
+        let mut reference = parent.try_clone().unwrap();
+        let mut old = parent.tcp_snapshot();
+        let mut old_reference = reference.try_clone().unwrap();
+        let addresses = |hosts: &mut Hosts, name: &[u8]| {
+            hosts
+                .lookup(name, Some(false), false)
+                .into_iter()
+                .map(|h| h.address)
+                .collect::<Vec<_>>()
+        };
+        for i in 0..2048 {
+            let name = format!("name{}.test", i % 128);
+            assert_eq!(
+                addresses(&mut parent, name.as_bytes()),
+                addresses(&mut reference, name.as_bytes())
+            );
+            // Accept before dropping the previous connection: delta chains
+            // can otherwise hide unbounded history behind the latest owner.
+            let new = parent.tcp_snapshot();
+            let new_reference = reference.try_clone().unwrap();
+            assert_eq!(
+                addresses(&mut old, name.as_bytes()),
+                addresses(&mut old_reference, name.as_bytes())
+            );
+            old = new;
+            old_reference = new_reference;
+            assert!(parent.rotations.pages.len() <= 256usize.div_ceil(ROTATION_PAGE_ENTRIES));
+        }
+        drop(old);
+        for page in &parent.rotations.pages {
+            let Snapshot::Shared(page) = page else {
+                panic!("published page");
+            };
+            assert_eq!(Arc::strong_count(page), 1);
+        }
+    }
+
+    #[test]
+    fn tcp_snapshot_shares_records_but_keeps_each_familys_rotation_private() {
+        let mut parent = Hosts::new();
+        parent.read(b"192.0.2.1 many.test\n192.0.2.2 many.test\n2001:db8::1 many.test\n2001:db8::2 many.test\n192.0.2.9 single.test\n", 2, 37, false, |_| None);
+        let mut reference = parent.try_clone().unwrap();
+        let mut first = parent.tcp_snapshot();
+        let mut second = parent.tcp_snapshot();
+        let same_records =
+            |a: &Hosts, b: &Hosts| std::ptr::eq(a.entries().as_ptr(), b.entries().as_ptr());
+        assert!(same_records(&parent, &first) && same_records(&parent, &second));
+        for family in [Some(false), Some(true), None] {
+            let expected: Vec<_> = reference
+                .lookup(b"many.test", family, false)
+                .into_iter()
+                .cloned()
+                .collect();
+            assert_eq!(
+                first
+                    .lookup(b"many.test", family, false)
+                    .into_iter()
+                    .cloned()
+                    .collect::<Vec<_>>(),
+                expected
+            );
+            assert_eq!(
+                second
+                    .lookup(b"many.test", family, false)
+                    .into_iter()
+                    .cloned()
+                    .collect::<Vec<_>>(),
+                expected
+            );
+            assert_eq!(
+                parent
+                    .lookup(b"many.test", family, false)
+                    .into_iter()
+                    .cloned()
+                    .collect::<Vec<_>>(),
+                expected
+            );
+            assert!(same_records(&parent, &first) && same_records(&parent, &second));
+        }
+        let mut later = parent.tcp_snapshot();
+        let expected: Vec<_> = reference
+            .lookup(b"many.test", None, false)
+            .into_iter()
+            .cloned()
+            .collect();
+        assert_eq!(
+            later
+                .lookup(b"many.test", None, false)
+                .into_iter()
+                .cloned()
+                .collect::<Vec<_>>(),
+            expected
+        );
+        assert!(same_records(&parent, &later));
+        parent.remove_uid(2);
+        parent.read(b"192.0.2.99 many.test\n", 2, 37, false, |_| None);
+        assert_eq!(parent.len(), 1);
+        assert_eq!(first.len(), 5);
+        assert_eq!(later.len(), 5);
+        assert!(!same_records(&parent, &first));
+        assert_eq!(first.source_name(0), Some(b"/etc/hosts".as_slice()));
+        assert_eq!(first.source_name(2), None);
+        assert_eq!(
+            first.reverse("2001:db8::1".parse().unwrap()).unwrap().name,
+            b"many.test"
+        );
+        assert_eq!(
+            first
+                .try_clone()
+                .unwrap()
+                .addresses(b"many.test")
+                .collect::<Vec<_>>(),
+            first.addresses(b"many.test").collect::<Vec<_>>()
+        );
+    }
 
     #[test]
     fn incremental_source_removal_keeps_skipped_duplicates_and_ptr_suppressed() {
