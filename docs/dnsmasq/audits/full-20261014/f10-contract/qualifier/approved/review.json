@@ -1,0 +1,76 @@
+{
+  "status": "approved",
+  "authority": "independent audit/root source-contract review",
+  "audit_session_key": "codex:0733ce73-c5e4-4743-9174-9bd3aa322a90",
+  "received_via": "Root relayed explicit independent-auditor approvals: exact host-record entry, followed by all three exact 3ae4030d entries.",
+  "scope": [
+    {
+      "contract_id": "six-host-record-ptr-initial-order-v1",
+      "case": "six-host-record",
+      "question": "1.2.0.192.in-addr.arpa",
+      "type": 12,
+      "states": 4,
+      "target_answers": 8,
+      "queries": 28,
+      "no_dhcp": true,
+      "no_hup": true,
+      "permutation_rule": "one uniform two-owner initial permutation across all phases and UDP/TCP"
+    },
+    {
+      "contract_id": "six-hostsdir-initial-ptr-initial-order-v1",
+      "case": "six-hostsdir-initial",
+      "question": "1.2.0.192.in-addr.arpa",
+      "type": 12,
+      "states": 4,
+      "target_answers": 8,
+      "queries": 28
+    },
+    {
+      "contract_id": "leases-dhcp-ptr-initial-order-v1",
+      "case": "leases-dhcp",
+      "question": "1.2.0.192.in-addr.arpa",
+      "type": 12,
+      "states": 6,
+      "target_answers": 12,
+      "queries": 46,
+      "dhcp_request_position_and_decoded_output_remain_bound": true
+    },
+    {
+      "contract_id": "ipv6-repeated-ptr-initial-order-v1",
+      "case": "ipv6-repeated-ptr",
+      "question": "2001:db8::1 reverse pointer",
+      "type": 12,
+      "states": 4,
+      "target_answers": 8,
+      "queries": 28
+    }
+  ],
+  "source_evidence_basis": "reported-by-independent-auditor",
+  "independent_auditor_report": {
+    "typestr_va": "0x3e388",
+    "dt_relr_pointer_addends": [
+      "0x32862",
+      "0x3509a",
+      "0x31c6c",
+      "0x31b68"
+    ],
+    "observed_load_bias_count": 26,
+    "predicted_initial_orders_include_both_directions": true,
+    "original_two_six_line_c_runs_prediction": [
+      "x.test",
+      "y.test"
+    ],
+    "original_two_six_line_c_runs_observed": [
+      "x.test",
+      "y.test"
+    ],
+    "additional_reverse_order_c_daemon_executed": false
+  },
+  "limitations": "Only the four listed fixed inputs and full trajectories are approved. Auditor DT_RELR/load-bias evidence is reported, not reproduced by this agent. No new C daemon was run; no other case or source family is approved.",
+  "record_created_at": "2026-10-14T15:25:56.463470+00:00",
+  "decision_basis": "Source-derived engineering compatibility contract; not a user waiver.",
+  "reviewed_proposals": [
+    "d72ca9d9",
+    "3ae4030d"
+  ]
+}

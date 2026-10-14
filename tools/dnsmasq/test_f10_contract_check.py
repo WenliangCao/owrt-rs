@@ -312,10 +312,27 @@ class SourceBoundCheck(unittest.TestCase):
         actual['cases'][0]['dhcp']['request_wire'] = 'different-dhcp-name'
         self.assertFalse(check(reference, actual, manifest)['passed'])
         reference, actual, manifest = self.exact_case('leases-dhcp')
+        actual['cases'][0]['dhcp']['decoded']['message_type'] = 6
+        self.assertFalse(check(reference, actual, manifest)['passed'])
+        reference, actual, manifest = self.exact_case('leases-dhcp')
         for row in actual['cases'][0]['observations']:
             if row['label'].startswith('after-dhcp-'):
                 row['semantics']['records'].reverse()
         self.assertFalse(check(reference, actual, manifest)['passed'])
+
+    def test_one_approved_entry_cannot_qualify_another_listed_case(self):
+        extra_ref, extra_actual, _ = self.exact_case('six-hostsdir-initial')
+        reference, actual = copy.deepcopy(self.reference), copy.deepcopy(self.alternative)
+        reference['cases'] += extra_ref['cases']
+        actual['cases'] += extra_actual['cases']
+        manifest = build_manifest(reference, [copy.deepcopy(reference)])
+        approved = copy.deepcopy(self.entry)
+        approved['reference_document_sha256'] = digest(reference)
+        manifest['source_bound_entries'] = [approved]
+        result = check(reference, actual, manifest)
+        self.assertFalse(result['passed'])
+        self.assertEqual({row.get('case') for row in result['failures']}, {'six-hostsdir-initial'})
+        self.assertEqual(len(result['qualified_ptr_order']), 8)
 
 
 if __name__ == '__main__':
