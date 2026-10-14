@@ -16,6 +16,9 @@ import subprocess
 from native_image import preserve_directory_modes, run, sha
 
 
+STOCK_OWNERS = ("procd", "ubusd", "netifd", "rpcd", "logd", "uhttpd", "firewall4", "uci", "dnsmasq")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stock_rootfs", type=Path)
@@ -26,7 +29,7 @@ def main():
     assert os.geteuid() == 0 and not Path("/etc/openwrt_release").exists()
     root, out, apk = args.stock_rootfs.resolve(), args.output.resolve(), args.apk_tool.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    names = ["procd", "ubusd", "netifd", "rpcd", "logd", "uhttpd", "firewall4", "uci"]
+    names = STOCK_OWNERS
     packages = json.loads(run(apk, "--root", root, "--no-network", "query", "--from", "installed",
                              "--format", "json", "--fields", "name,version,license,arch,depends,provides,origin", *names))
     assert {p["name"] for p in packages} == set(names)
@@ -58,7 +61,7 @@ def main():
     (out / "fixture-provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
     subprocess.run([str(apk), "--allow-untrusted", "mkndx", "--output", str(out / "packages.adb"),
                     *map(str, sorted(out.glob("*.apk")))], check=True)
-    print("Prepared eight original payload fixtures plus native APK and offline index")
+    print(f"Prepared {len(names)} original payload fixtures plus native APK and offline index")
 
 
 if __name__ == "__main__":

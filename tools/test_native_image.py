@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 import ci_build_dnsmasq
+import native_apk_fixtures
 import native_image
 
 
@@ -18,6 +19,12 @@ FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 
 
 class NativeDnsmasqTests(unittest.TestCase):
+    def test_reinstall_fixtures_cover_every_original_package_owner(self):
+        owners = {component["stock_package"] for component in SPEC["components"].values()}
+        owners |= {item["stock_package"] for item in SPEC["integration_files"].values()}
+        self.assertEqual(set(native_apk_fixtures.STOCK_OWNERS), owners)
+        self.assertEqual(len(native_apk_fixtures.STOCK_OWNERS), len(owners))
+
     def fixture(self, directory):
         root = Path(directory)
         base, candidate, payload = (root / name for name in ("base", "candidate", "payload"))
