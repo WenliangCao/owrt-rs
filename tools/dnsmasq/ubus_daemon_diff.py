@@ -20,7 +20,7 @@ import time
 
 from dns_service_probe import query, semantics, exact_read
 from dhcp_lease_lifecycle import packet as dhcp_packet
-from ubus_contract_diff import BUS, OBJECT, Fixture, digest, fields, read_json_lines
+from ubus_contract_diff import BUS, OBJECT, NAMES, Fixture, digest, fields, read_json_lines
 from dns_udp_refusal_diff import verify_reference
 from ubus_config_diff import cases as config_cases
 from ubus_doctor_diff import cases as doctor_cases, field
@@ -256,6 +256,47 @@ def run_side(f, side):
     return observed
 
 
+def collision_recovery_guard(expected, actual, suffix):
+    """Only a removed runtime collision permits C-disabled/Rust-recovered."""
+    key = "after-collision" + suffix
+    left, right = expected.get(key), actual.get(key)
+    if not isinstance(left, dict) or not isinstance(right, dict):
+        return False
+    for observation in (left, right):
+        count = observation.get("local-queries-before")
+        if type(count) is not int or count < 2:
+            return False
+    missing = [{"event": "status", "status": 4}]
+    success = {"event": "status", "status": 0}
+    def lookup(path, signature):
+        return [{"event": "lookup", "path": path, "has_type": True,
+                 "signature": signature}, success]
+    def metrics(count):
+        return [{"event": "data", "fields": [
+            {"name": name, "type": 5, "value": count if name == "dns_local_answered" else 0}
+            for name in NAMES]}, success]
+    logs = expected.get("retry-disabled" + suffix)
+    answer = expected.get("retry-healthy" + suffix)
+    if (not isinstance(logs, list) or not any(row.startswith("UBus error:") for row in logs)
+            or answer is None or actual.get("retry-disabled" + suffix) != logs
+            or actual.get("retry-healthy" + suffix) != answer
+            or expected.get("retry-removed-other" + suffix) != missing
+            or actual.get("retry-removed-other" + suffix) != missing):
+        return False
+    c_contract = {"main": missing, "dns": missing, "metrics-before": missing,
+                  "metrics-after": missing, "answer": answer, "logs": logs,
+                  "local-queries-before": left["local-queries-before"]}
+    rust_contract = {
+        "main": lookup(OBJECT, [{"name": "metrics", "type": 2, "value": ""}]),
+        "dns": lookup(OBJECT + ".dns", []),
+        "metrics-before": metrics(right["local-queries-before"]),
+        "metrics-after": metrics(right["local-queries-before"] + 1),
+        "answer": answer, "logs": logs + ["connected to system UBus"],
+        "local-queries-before": right["local-queries-before"],
+    }
+    return left == c_contract and right == rust_contract
+
+
 def compare(f, expected, actual, inject_error):
     f.check("paired-observation-keys", list(actual), list(expected))
     for key, reference in expected.items():
@@ -305,13 +346,19 @@ def compare(f, expected, actual, inject_error):
             f.check("guard-image-later-DATA-storage-lifetime-with-independent-controls", guarded, True)
             if guarded:
                 left = right
+        if key in ("after-collision", "after-collision.dns"):
+            suffix = key[len("after-collision"):]
+            guarded = collision_recovery_guard(expected, actual, suffix)
+            f.check("guard-C-disabled-and-Rust-autonomous-collision-recovery" + suffix, guarded, True)
+            if guarded:
+                left = right
         if inject_error and key == "initial":
             left["dns_cache_inserted"] += 1
         f.check("paired-" + key, right, left)
 
 
 def ordinary_gate(report):
-    counts = {"baseline": 69, "extended": 216, "lifecycle": 19, "records": 29, "recovery": 17}
+    counts = {"baseline": 69, "extended": 216, "lifecycle": 19, "records": 29, "recovery": 13}
     if report.get("error") is not None or report.get("failed") != 0:
         return False
     if report.get("reference", {}).get("elf_sha256") != "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87":
@@ -356,7 +403,7 @@ def qualification_controls(report):
         elif name == "wrong-lifecycle":
             changed["rust"]["lifecycle/partial-1-fd-balance"] += 1
         elif name == "wrong-recovery":
-            changed["rust"]["recovery/disabled-after-collision"] = [{"event": "lookup"}]
+            changed["rust"]["recovery/after-collision"]["main"] = [{"event": "status", "status": 4}]
         elif name == "bad-reference":
             changed["reference"]["elf_sha256"] = "0" * 64
         elif name == "fixture-failure":
@@ -364,6 +411,31 @@ def qualification_controls(report):
         else:
             changed["authority"]["later-DATA-reuses-address-storage"] = False
         controls.append({"control": name, "rejected": not ordinary_gate(changed)})
+    # A passing flag cannot hide a partial recovery, invented metric, changed
+    # C defect, or weakened pre-collision behavior in either collision order.
+    for suffix in ("", ".dns"):
+        for name in ("missing-dns", "bad-signature", "corrupt-recovery-metric", "wrong-recovery-dns",
+                     "wrong-recovery-log", "changed-C-defect", "leaked-partial-object", "wrong-startup"):
+            changed = copy.deepcopy(report)
+            key = "recovery/after-collision" + suffix
+            recovery = changed["rust"][key]
+            if name == "missing-dns":
+                recovery["dns"] = [{"event": "status", "status": 4}]
+            elif name == "bad-signature":
+                recovery["main"][0]["signature"] = []
+            elif name == "corrupt-recovery-metric":
+                recovery["metrics-after"][0]["fields"][NAMES.index("dns_local_answered")]["value"] += 1
+            elif name == "wrong-recovery-dns":
+                recovery["answer"]["records"][0]["data"] = "203.0.113.99"
+            elif name == "wrong-recovery-log":
+                recovery["logs"] = recovery["logs"][:-1]
+            elif name == "changed-C-defect":
+                changed["c"][key]["main"] = copy.deepcopy(recovery["main"])
+            elif name == "leaked-partial-object":
+                changed["rust"]["recovery/retry-removed-other" + suffix] = copy.deepcopy(recovery["main"])
+            else:
+                changed["rust"]["extended/startup-collision" + suffix]["exit"] = 0
+            controls.append({"control": name + suffix, "rejected": not ordinary_gate(changed)})
     return controls
 
 
@@ -796,21 +868,35 @@ def run_recovery(f, side):
         finally:
             f.daemon.send_signal(signal.SIGCONT)
         f.exchange("local.invalid")
+        local_queries = 1
         deadline = time.monotonic() + 3
         while not any(row.startswith("UBus error:") for row in ubus_log_rows(f.daemon_log)):
             assert time.monotonic() < deadline and f.daemon.poll() is None
             f.exchange("local.invalid")
+            local_queries += 1
             time.sleep(.005)
         record("retry-disabled" + suffix, ubus_log_rows(f.daemon_log))
         record("retry-healthy" + suffix, f.exchange("local.invalid"))
+        local_queries += 1
         other = OBJECT + (".dns" if not suffix else "")
         record("retry-removed-other" + suffix, f.client_call("lookup", other))
         f.stop(holder)
-        for _ in range(20):
-            f.exchange("local.invalid")
-        record("disabled-after-collision" + suffix, f.client_call("lookup", OBJECT))
-        record("disabled-after-collision-dns" + suffix, f.client_call("lookup", OBJECT + ".dns"))
-        record("disabled-after-collision-logs" + suffix, ubus_log_rows(f.daemon_log))
+        # No DNS/HUP wakeups after removing the holder: Rust must retry on
+        # its own timer. Give the unchanged C defect the same observation window.
+        time.sleep(3)
+        def lookup(path):
+            return [{"event": "lookup", "path": row["path"], "has_type": row["type"] > 0,
+                     "signature": fields(row["wire"])} if row["event"] == "lookup" else row
+                    for row in f.client_call("lookup", path)]
+        def metrics():
+            return [{"event": "data", "fields": fields(row["wire"])} if row["event"] == "data" else row
+                    for row in f.client_call("call", method="metrics")]
+        recovered = {"main": lookup(OBJECT), "dns": lookup(OBJECT + ".dns"),
+                     "local-queries-before": local_queries, "metrics-before": metrics()}
+        recovered["answer"] = f.exchange("local.invalid")
+        recovered["metrics-after"] = metrics()
+        recovered["logs"] = ubus_log_rows(f.daemon_log)
+        record("after-collision" + suffix, recovered)
         f.stop(f.daemon)
     # With port0 and no DHCP service, an explicit SIGHUP provides C's retry
     # caller. Object state must come from the new transport, not a cached ID.
@@ -903,7 +989,8 @@ def main():
               "paired_observations": len(expected),
               "paired_matches": sum(row["pass"] for row in f.checks if row["case"].startswith("paired-") and row["case"] != "paired-observation-keys"),
               "reference_defects": ["C DNS object's type survives bus restart and cannot be resolved",
-                                    "Exact image inet_pton rejection writes a partial A destination; Rust retains the original address"],
+                                    "Exact image inet_pton rejection writes a partial A destination; Rust retains the original address",
+                                    "C permanently disables UBus after a runtime registration collision; Rust retries after removal"],
               "reference": reference,
               "authority": f.authority,
               "identities": {"c": reference["elf_sha256"], "native_client_build_c": args.c_sha256, "rust": digest(args.rust_binary),
