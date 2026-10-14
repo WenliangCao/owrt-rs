@@ -10,6 +10,8 @@ profile=$5
 rate=$6
 warm=$7
 seconds=$8
+dhcp_clients=${9:-150}
+case "$dhcp_clients" in 6|150) ;; *) exit 2;; esac
 case "$root:$side:$label" in /tmp/dnsmasq-perf-20261014-v3:c:*|/tmp/dnsmasq-perf-20261014-v3:rust:*) ;; *) exit 2;; esac
 case "$label" in *[!a-zA-Z0-9_-]*|'') exit 2;; esac
 [ ! -e "$root/STOP" ]
@@ -53,7 +55,7 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 143' TERM
 trap 'exit 130' INT
-printf '%s\n' "$side $mode $profile $rate $warm $seconds" > "$out/parameters.txt"
+printf '%s\n' "$side $mode $profile $rate $warm $seconds dhcp_clients=$dhcp_clients" > "$out/parameters.txt"
 date -u > "$out/start.txt"
 readlink /proc/self/ns/net > "$out/netns.txt"
 elf=$root/dnsmasq-$side
@@ -91,13 +93,13 @@ if [ "$mode" = dhcp ]; then
     cat >> "$out/config" <<EOF
 no-ping
 dhcp-authoritative
-dhcp-range=127.0.0.10,127.0.0.159,255.0.0.0,127.255.255.255,12h
-dhcp-lease-max=150
+dhcp-range=127.0.0.10,127.0.0.$((9+dhcp_clients)),255.0.0.0,127.255.255.255,12h
+dhcp-lease-max=$dhcp_clients
 dhcp-leasefile=$out/leases
 domain=device-perf.test
 EOF
     i=0
-    while [ "$i" -lt 150 ]; do
+    while [ "$i" -lt "$dhcp_clients" ]; do
         printf 'dhcp-host=02:00:00:6a:00:%02x,127.0.0.%s,lease%03d\n' "$i" "$((i+10))" "$i" >> "$out/config"
         i=$((i+1))
     done
@@ -129,7 +131,7 @@ clients=32
 extra=
 port=15353
 if [ "$mode" = dhcp ]; then
-    clients=150; port=67
+    clients=$dhcp_clients; port=67
     extra="--client-port 68 --interface lo --dhcp-first-address 127.0.0.10 --dhcp-renew-only"
 fi
 /usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.test --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
