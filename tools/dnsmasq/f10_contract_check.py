@@ -8,6 +8,7 @@ RRset/header/TTL/count changes, forward order, or an unobserved PTR state.
 import argparse
 import copy
 import hashlib
+import ipaddress
 import json
 from pathlib import Path
 import re
@@ -89,26 +90,55 @@ def build_manifest(reference, controls):
 def fixture_input(case):
     """Bind service options, files, mutations and the entire ordered query schedule."""
     assert case['argv'][0] == 'chroot'
-    return {'case': case['case'], 'service_options': case['argv'][3:],
+    result = {'case': case['case'], 'service_options': case['argv'][3:],
             'initial_files': case['initial_files'], 'mutations': case['mutations'],
             'queries': [{field: row[field] for field in ('label', 'name', 'type', 'transport', 'request_wire')}
                         for row in case['observations']]}
+    if 'dhcp' in case:
+        result['dhcp_event'] = {'request_wire': case['dhcp']['request_wire'],
+            'after_dns_label': 'restored-lease-ptr', 'before_dns_label': 'live-lease-a'}
+    return result
+
+
+def source_bound_spec(contract_id):
+    """Explicit fixed-case list; no other source family is inferred from names."""
+    cases = {
+        'six-host-record-ptr-initial-order-v1': 'six-host-record',
+        'six-hostsdir-initial-ptr-initial-order-v1': 'six-hostsdir-initial',
+        'leases-dhcp-ptr-initial-order-v1': 'leases-dhcp',
+        'ipv6-repeated-ptr-initial-order-v1': 'ipv6-repeated-ptr',
+    }
+    case = cases.get(contract_id)
+    if case is None:
+        return None
+    v6 = case == 'ipv6-repeated-ptr'
+    address = '2001:db8::1' if v6 else '192.0.2.1'
+    prefix = '-v6' if v6 else ''
+    states = [f'{transport}{prefix}-ptr-{phase}-{address}'
+              for transport in ('udp', 'tcp') for phase in ('before', 'after')]
+    if case == 'leases-dhcp':
+        states += [f'after-dhcp-ptr-{phase}-{address}' for phase in ('before', 'after')]
+    return {'case': case, 'name': ipaddress.ip_address(address).reverse_pointer,
+            'owners': ['x6.test', 'y6.test'] if v6 else ['x.test', 'y.test'],
+            'states': states, 'target_labels': [f'{phase}-{repeat}' for phase in states for repeat in range(2)]}
 
 
 def source_bound_track(reference, actual, entry):
-    """Check the sole reviewed source-derived transformation, across UDP and TCP.
+    """Check an explicitly listed source-derived transformation across transports.
 
     This does not authorize its use: check() additionally requires an approved
     entry. The alternative sequence is derived only from the exact C reference.
     """
     result = {'contract_id': entry.get('contract_id'), 'matches': False}
+    spec = source_bound_spec(entry.get('contract_id'))
     if (entry.get('entry_basis') != 'source-bound'
-            or entry.get('contract_id') != 'six-host-record-ptr-initial-order-v1'
+            or spec is None
             or entry.get('reference_document_sha256') != digest(reference)
             or reference.get('binary_sha256') != STOCK_SHA256):
         return {**result, 'reason': 'source-contract-reference-mismatch'}
-    expected = next((row for row in reference['cases'] if row['case'] == 'six-host-record'), None)
-    candidate = next((row for row in actual['cases'] if row['case'] == 'six-host-record'), None)
+    result['case'] = spec['case']
+    expected = next((row for row in reference['cases'] if row['case'] == spec['case']), None)
+    candidate = next((row for row in actual['cases'] if row['case'] == spec['case']), None)
     if expected is None or candidate is None:
         return {**result, 'reason': 'source-contract-case-missing'}
     if (expected.get('process_sha256') != STOCK_SHA256
@@ -117,16 +147,14 @@ def source_bound_track(reference, actual, entry):
             or fixture_input(candidate) != fixture_input(expected)):
         return {**result, 'reason': 'source-contract-fixture-mismatch'}
     targets = [row for row in expected['observations']
-               if row['name'] == '1.2.0.192.in-addr.arpa' and row['type'] == 12]
-    states = [f'{transport}-ptr-{phase}-192.0.2.1'
-              for transport in ('udp', 'tcp') for phase in ('before', 'after')]
-    labels = [f'{phase}-{repeat}' for phase in states for repeat in range(2)]
+               if row['name'] == spec['name'] and row['type'] == 12]
+    states, labels = spec['states'], spec['target_labels']
     if (entry.get('target_labels') != labels or entry.get('states') != states
             or entry.get('permutations') != [[0, 1], [1, 0]]
             or [row['label'] for row in targets] != labels
             or any(row['semantics']['records'] != entry['reference_records'] for row in targets)):
         return {**result, 'reason': 'source-contract-target-mismatch'}
-    if [row['data'] for row in entry['reference_records']] != ['x.test', 'y.test']:
+    if sorted(row['data'] for row in entry['reference_records']) != spec['owners']:
         return {**result, 'reason': 'source-contract-owner-mismatch'}
     for permutation in entry['permutations']:
         sequence = copy.deepcopy(expected['observations'])
@@ -233,7 +261,7 @@ def check(reference, actual, manifest=None, expected_cases=None):
                     qualified.append(difference)
                     continue
                 source = next((row for row in source_checks if row['matches']
-                    and case == 'six-host-record' and right['label'] in row['target_labels']), None)
+                    and case == row['case'] and right['label'] in row['target_labels']), None)
                 if source:
                     difference['kind'] = 'qualified-source-bound-ptr-order'
                     difference['contract_id'] = source['contract_id']
