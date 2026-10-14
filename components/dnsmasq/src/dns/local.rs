@@ -384,6 +384,7 @@ impl<'a> LocalAnswerer<'a> {
         let nxdomain = !owned
             && local_only
             && !has_descendant_local(self.config, self.hosts, &question.name)
+            && !cache.as_deref().is_some_and(|cache| cache.contains_forward_name(&question.name, now))
             && !wire_to_dotted(&question.name)
                 .is_some_and(|name| leases.names.name_exists(&name, leases.now));
         if local_only {

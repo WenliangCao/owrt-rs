@@ -281,6 +281,27 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
+        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp)?;
+        Ok(answer.map(|answer| self.finish_local_answer(answer)))
+    }
+
+    pub(super) fn finish_local_answer(&mut self, answer: super::local::LocalAnswer) -> Vec<u8> {
+        self.query_events.extend(answer.query_events);
+        answer.packet
+    }
+
+    /// Retain forward-rule answers until answer_request's cache lookup has
+    /// run. Their query log events belong only to the answer actually sent.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn lookup_local_parsed(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        now: i64,
+        cache: Option<&mut Cache>,
+        tcp: bool,
+    ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
         let opt = if tcp {
@@ -314,7 +335,6 @@ impl LocalDnsService {
         else {
             return Ok(None);
         };
-        self.query_events.extend(answer.query_events);
         // TCP needs OPT only after a hit; UDP needs it to size the writer.
         let opt = if tcp {
             find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
@@ -334,7 +354,7 @@ impl LocalDnsService {
                 opt_limit,
             )?;
         }
-        Ok(Some(answer.packet))
+        Ok(Some(answer))
     }
 
     pub fn handle_tcp_frame(&mut self, frame: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {

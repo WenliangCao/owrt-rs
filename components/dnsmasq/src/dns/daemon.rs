@@ -1814,30 +1814,32 @@ impl<R: Random> DnsDaemon<R> {
         cacheable: bool,
         tcp: bool,
     ) -> Result<Option<QueryResult>, DaemonError> {
-        let packet = local.handle_local_parsed(query, header, question, now, cache.as_deref_mut(), tcp);
+        let local_answer = local.lookup_local_parsed(query, header, question, now, cache.as_deref_mut(), tcp);
         // A malformed TCP question must reach tcp_request's REFUSED path;
         // UDP admission instead drops it. Valid questions share this lookup.
-        let packet = if tcp { packet.ok().flatten() } else { packet? };
-        if let Some(packet) = packet {
-            return Ok(Some(QueryResult::Local(packet)));
+        let local_answer = if tcp { local_answer.ok().flatten() } else { local_answer? };
+        if local_answer.as_ref().is_some_and(|answer| !answer.forward_rule) {
+            return Ok(Some(QueryResult::Local(local.finish_local_answer(local_answer.unwrap()))));
         }
-        if !cacheable || cache.is_none() {
-            return Ok(None);
-        }
-        let filtered_type = local.config.filter_rr.contains(&question.rrtype);
-        let maximum = local.edns_packet_max;
-        let limit = if tcp { 65536 } else { local.max_udp };
-        let answer = CacheContext::answer_from_cache(
-            cache.unwrap(), query, header, question, now, local,
-            limit, maximum, tcp, filtered_type,
-        )?;
-        Ok(answer.packet.map(|packet| {
-            if answer.stale {
-                QueryResult::Stale(packet)
-            } else {
-                QueryResult::Cached(packet)
+        if cacheable {
+            if let Some(cache) = cache {
+                let filtered_type = local.config.filter_rr.contains(&question.rrtype);
+                let maximum = local.edns_packet_max;
+                let limit = if tcp { 65536 } else { local.max_udp };
+                let answer = CacheContext::answer_from_cache(
+                    cache, query, header, question, now, local,
+                    limit, maximum, tcp, filtered_type,
+                )?;
+                if let Some(packet) = answer.packet {
+                    return Ok(Some(if answer.stale {
+                        QueryResult::Stale(packet)
+                    } else {
+                        QueryResult::Cached(packet)
+                    }));
+                }
             }
-        }))
+        }
+        Ok(local_answer.map(|answer| QueryResult::Local(local.finish_local_answer(answer))))
     }
 
     #[allow(clippy::too_many_arguments)]

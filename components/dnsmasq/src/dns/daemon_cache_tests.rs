@@ -84,6 +84,40 @@ fn shared_answer(daemon: &mut DnsDaemon, query: &[u8], now: i64, tcp: bool) -> O
 }
 
 #[test]
+fn shared_lookup_checks_cached_terminal_before_local_forward_rules() {
+    for directive in ["local=/test/", "address=/test/203.0.113.9"] {
+        let mut daemon = daemon();
+        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        daemon.cache_reply_at(&chain_reply(1, false), 100);
+        let target = Name::from_ascii("target.test").unwrap();
+        assert!(daemon.cache.as_ref().unwrap().contains_forward_name(&target, 100));
+        for tcp in [false, true] {
+            for qtype in if directive.starts_with("local=") { &[1, 28][..] } else { &[1][..] } {
+                let qtype = *qtype;
+                let response = shared_answer(&mut daemon, &packet("target.test", qtype, 0x100).finish(), 100, tcp).unwrap();
+                let message = Message::parse(&response).unwrap();
+                assert_eq!(message.header.flags, 0x8180);
+                let records = message.records(Section::Answer).collect::<Vec<_>>();
+                if qtype == 1 {
+                    assert_eq!(records.len(), 1);
+                    assert_eq!(records[0].rdata, &[192, 0, 2, 1]);
+                    assert_eq!(records[0].ttl, 40);
+                } else {
+                    assert!(records.is_empty());
+                }
+            }
+        }
+        // Expiration removes the existence proof; no stale NODATA survives.
+        if directive.starts_with("local=") {
+            for tcp in [false, true] {
+                let response = shared_answer(&mut daemon, &packet("target.test", 28, 0x100).finish(), 141, tcp).unwrap();
+                assert_eq!(Header::parse(&response).unwrap().rcode(), 3);
+            }
+        }
+    }
+}
+
+#[test]
 fn shared_lookup_keeps_udp_tcp_cname_local_cache_order_and_rd_do_gates() {
     for negative in [false, true] {
         let mut daemon = daemon();

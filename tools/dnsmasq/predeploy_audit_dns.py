@@ -338,6 +338,26 @@ def audit(args):
                     break
             except OSError:
                 time.sleep(.03)
+        if args.local_cache_only:
+            # Isolate terminal visibility from later alias AAAA/TXT/ANY replies.
+            for warm_tcp, alias, terminal in (
+                (True, 'local-chain.audit.example', 'audit-terminal.lan'),
+                (False, 'local-chain.udp.audit.example', 'audit-udp-terminal.lan'),
+            ):
+                prefix = 'tcp-warm' if warm_tcp else 'udp-warm'
+                change(prefix + '-before')
+                for tcp in (False, True):
+                    case(prefix + '-before-' + ('tcp' if tcp else 'udp'),
+                         host=terminal, type=28, tcp=tcp)
+                change(prefix)
+                case(prefix, host=alias, tcp=warm_tcp)
+                change(prefix + '-drop', {str(i): 'drop' for i in range(len(addresses))})
+                for tcp in (False, True):
+                    for kind in (1, 28):
+                        case(prefix + '-terminal-' + ('tcp' if tcp else 'udp') + '-' + str(kind),
+                             host=terminal, tcp=tcp, type=kind, timeout=2)
+            result['upstream'] = [json.loads(line) for line in (args.out / 'upstream/queries.jsonl').read_text().splitlines()]
+            return 0
         if args.public_cache_only:
             change('public-cname-warm')
             case('public-cname-warm', host='cname.public.audit.example', tcp=True)
@@ -516,6 +536,7 @@ def main():
     parser.add_argument('--image-elf', action='store_true')
     parser.add_argument('--saturation', action='store_true', help='also exercise default forwarding-table capacity during an upstream outage')
     parser.add_argument('--focused', action='store_true', help='TCP same-session local CNAME terminal and upstream close/error cases')
+    parser.add_argument('--local-cache-only', action='store_true', help='isolate cached local terminals after only one A warmup over each transport')
     parser.add_argument('--public-cache-only', action='store_true', help='one TCP CNAME warmup, then direct terminal A after upstream loss')
     parser.add_argument('--reference-build', type=Path)
     parser.add_argument('--reference', type=Path)
