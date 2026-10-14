@@ -1,0 +1,153 @@
+{
+  "cases_passed": 7,
+  "source_sha256": "f41b15785435773ccaa57c5d84b52d387ee19349ba83e49d534c5c48a800e009",
+  "elf_sha256": "a4275ff33886e724cd3261451d53059d0dfcc620a504d8658d7f46c111a22b23",
+  "cases": [
+    {
+      "mode": "good",
+      "returncode": 0,
+      "verified": true,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "bind",
+          "fd": 3,
+          "family": 2,
+          "type": 2,
+          "port": 0,
+          "effective_address": "127.0.0.1",
+          "rewritten": true,
+          "result": 0
+        },
+        {
+          "event": "bind",
+          "fd": 4,
+          "family": 2,
+          "type": 2,
+          "port": 15467,
+          "effective_address": "127.0.0.1",
+          "rewritten": true,
+          "result": 0
+        },
+        {
+          "event": "bind",
+          "fd": 5,
+          "family": 2,
+          "type": 2,
+          "port": 15353,
+          "effective_address": "127.0.0.1",
+          "rewritten": false,
+          "result": 0
+        },
+        {
+          "event": "bind",
+          "fd": 6,
+          "family": 2,
+          "type": 1,
+          "port": 15353,
+          "effective_address": "127.0.0.1",
+          "rewritten": false,
+          "result": 0
+        },
+        {
+          "event": "detached",
+          "dhcp": true,
+          "dns_udp": true,
+          "dns_tcp": true
+        }
+      ]
+    },
+    {
+      "mode": "wildcard",
+      "returncode": 1,
+      "verified": false,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "failed",
+          "reason": "unexpected wildcard port rejected",
+          "errno": 1
+        }
+      ]
+    },
+    {
+      "mode": "nonloopback",
+      "returncode": 1,
+      "verified": false,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "failed",
+          "reason": "non-loopback bind rejected",
+          "errno": 1
+        }
+      ]
+    },
+    {
+      "mode": "port53",
+      "returncode": 1,
+      "verified": false,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "failed",
+          "reason": "standard service port rejected",
+          "errno": 1
+        }
+      ]
+    },
+    {
+      "mode": "port67",
+      "returncode": 1,
+      "verified": false,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "failed",
+          "reason": "standard service port rejected",
+          "errno": 1
+        }
+      ]
+    },
+    {
+      "mode": "fork",
+      "returncode": 1,
+      "verified": false,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "failed",
+          "reason": "fork before listener guard detached",
+          "errno": 1
+        }
+      ]
+    },
+    {
+      "mode": "missing",
+      "returncode": 1,
+      "verified": false,
+      "events": [
+        {
+          "event": "started"
+        },
+        {
+          "event": "failed",
+          "reason": "child exited before all listeners were bound",
+          "errno": 10
+        }
+      ]
+    }
+  ]
+}

@@ -165,16 +165,17 @@ def main():
     parser.add_argument('--helpers',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--smoke',action='store_true')
+    parser.add_argument('--retain-answer-errors',action='store_true',help='retain failed test answers and continue paired measurements; production health gates still abort')
     parser.add_argument('--windows',default='daily:C,daily:R,daily:R,daily:C,daily:C,daily:R,busy:R,busy:C,busy:C,busy:R')
     args=parser.parse_args()
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
     root='/tmp/dnsmasq-audit-c-'+str(int(time.time()))+'-'+uuid.uuid4().hex[:8]
-    state={'root':root,'smoke':args.smoke,'windows':[],'artifact_sha256':hashlib.sha256(args.artifact.read_bytes()).hexdigest()}
+    state={'root':root,'smoke':args.smoke,'windows':[],'artifact_sha256':hashlib.sha256(args.artifact.read_bytes()).hexdigest(),'retain_answer_errors':args.retain_answer_errors}
     save=lambda:(args.output/'state.json').write_text(json.dumps(state,indent=2)+'\n')
     baseline=health(args.output,'initial')
     state['baseline']=baseline;save()
     upload=args.output/'upload';upload.mkdir()
-    for profile, count in [('daily',4),('busy',128)]:
+    for profile, count in [('daily',4),('busy',128),('dhcp',128)]:
         config,leases=configuration(root,count)
         (upload/f'{profile}.conf').write_text(config)
         (upload/f'{profile}.leases').write_text(leases)
@@ -195,7 +196,7 @@ def main():
         save()
         for index,spec in enumerate(args.windows.split(',')):
             profile,implementation=spec.split(':')
-            if profile not in ('daily','busy') or implementation not in ('C','R'):raise ValueError(spec)
+            if profile not in ('daily','busy','dhcp') or implementation not in ('C','R'):raise ValueError(spec)
             name=f'{index+1:02d}-{profile}-{implementation}'
             health(args.output,name+'-before',baseline)
             idle,warm,measure,post=(1,1,4,1) if args.smoke else (20,20,120,20)
@@ -227,6 +228,13 @@ def main():
                 subprocess.run(SSH+[f'tar -C {root}/{name} -cf - .'],stdout=target,check=True,timeout=30)
             subprocess.run(['tar','-xf',str(args.output/(name+'.tar')),'-C',str(window)],check=True)
             if not (window/'COMPLETE').exists():raise RuntimeError('window incomplete')
+            if profile=='dhcp':
+                proofs=[json.loads(line) for line in (window/'dhcp.named-dns-proof.jsonl').read_text().splitlines()]
+                epoch=json.loads((window/'dhcp.json').read_text())['measurement_start_ns']
+                if len(proofs)!=20 or {r['client'] for r in proofs}!=set(range(20)) or not all(r['correct'] and r['phase']==0 and r['monotonic_ns']<epoch for r in proofs):
+                    raise RuntimeError('named DHCP warmup DNS publication not proved')
+                row['named_dhcp_dns_proofs']={'clients':20,'all_correct':True,'all_before_measurement':True};save()
+
             actual=set(tuple(line.split()) for line in (window/'leases-final').read_text().splitlines())
             expected=set(tuple(line.split()) for line in (upload/(profile+'.leases')).read_text().splitlines())
             if actual!=expected:raise RuntimeError('DHCP lease release/persistence did not converge')
@@ -235,7 +243,8 @@ def main():
                 for phase in ('warmup','measurement'):
                     counters=result[phase]
                     if any(counters[k] for k in ('timeout','wrong','transport_error')) or counters['correct'] != counters['sent']:
-                        raise RuntimeError(f'{name}/{mode}/{phase}: incorrect/incomplete workload')
+                        row.setdefault('answer_errors',[]).append({'mode':mode,'phase':phase,'counters':counters});save()
+                        if not args.retain_answer_errors:raise RuntimeError(f'{name}/{mode}/{phase}: incorrect/incomplete workload')
                 if result['interrupted'] or result['output_failed']:
                     raise RuntimeError('interrupted workload or failed evidence output')
             remote(f'rm -rf {root}/{name}')

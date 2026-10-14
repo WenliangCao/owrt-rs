@@ -98,7 +98,9 @@ seconds=$((idle+warm+measure+post))
 "$root/probe" monitor "$daemon" "$seconds" >"$out/metrics.jsonl" 2>"$out/monitor.log" &
 monitor=$!; track "$monitor"
 pause "$idle"
-if [ "$profile" = daily ]; then udp=19; tcp=1; dhcp=0.1; bank=100; else udp=990; tcp=10; dhcp=2; bank=800; fi
+if [ "$profile" = daily ]; then udp=19; tcp=1; dhcp=0.1; bank=100
+elif [ "$profile" = dhcp ]; then udp=19; tcp=1; dhcp=2; bank=100
+else udp=990; tcp=10; dhcp=2; bank=800; fi
 "$root/loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 20 --duration-seconds "$measure" --warmup-seconds "$warm" --rate "$udp" --profile mixed --qtype mix --cache-names "$bank" --name-prefix audit.example --output "$out/udp" --epoch-file "$out/udp.epoch" >"$out/udp.log" 2>&1 &
 udp_pid=$!; track "$udp_pid"
 "$root/loadgen" --mode tcp --host 127.0.0.1 --port 15353 --clients 2 --duration-seconds "$measure" --warmup-seconds "$warm" --rate "$tcp" --profile mixed --qtype mix --cache-names "$bank" --name-prefix tcp.audit.example --output "$out/tcp" >"$out/tcp.log" 2>&1 &

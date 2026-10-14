@@ -279,6 +279,7 @@ def window(folder, spec, cores):
     return {
         'name': spec['name'], 'profile': spec['profile'], 'implementation': spec['implementation'],
         'workloads': workloads,
+        'named_dhcp_dns_proofs': spec.get('named_dhcp_dns_proofs'),
         'cpu': {
             'active_measurement': cpu_interval(nearest(rows, active_start), nearest(rows, active_end),
                                                cores, active_start, active_end),
@@ -369,7 +370,7 @@ def paired_summary(rows):
 
 def health_summary(folder):
     rows = [read_json(path) for path in sorted(folder.glob('*.json'))
-            if re.fullmatch(r'(initial|final|\d+-(daily|busy)-[CR]-(before|after|during-\d+))\.json', path.name)]
+            if re.fullmatch(r'(initial|final|\d+-(daily|busy|dhcp)-[CR]-(before|after|during-\d+))\.json', path.name)]
     def all_checked(field):
         return all(r[field] for r in rows) if rows and all(field in r for r in rows) else None
     return {'checks': len(rows), 'all_dns_ok': all_checked('dns_ok'),
@@ -391,9 +392,9 @@ def main():
     state = read_json(args.input / 'state.json')
     rows, skipped = [], []
     for spec in state['windows']:
-        if not re.fullmatch(r'\d+-(daily|busy)-[CR]', spec['name']):
+        if not re.fullmatch(r'\d+-(daily|busy|dhcp)-[CR]', spec['name']):
             raise ValueError('unexpected window name')
-        if spec['profile'] not in ('daily', 'busy') or spec['implementation'] not in ('C', 'R'):
+        if spec['profile'] not in ('daily', 'busy', 'dhcp') or spec['implementation'] not in ('C', 'R'):
             raise ValueError('unexpected workload or implementation')
         folder = args.input / spec['name']
         if not (folder / 'COMPLETE').is_file():
