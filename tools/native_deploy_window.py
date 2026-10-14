@@ -9,6 +9,7 @@ import datetime
 import hashlib
 import json
 from pathlib import Path
+import re
 import shlex
 import subprocess
 import time
@@ -22,18 +23,28 @@ def sha(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=("stage", "activate"))
+    parser.add_argument("phase", choices=("stage", "activate", "observe"))
     parser.add_argument("directory", type=Path)
     parser.add_argument("--host", default="openwrt")
     parser.add_argument("--interface", default="en0")
+    parser.add_argument("--previous-boot-id", help="required for observe; this tool never initiates a reboot")
+    parser.add_argument("--label", default="initial", help="separate receipt name for normal/power reboot observation")
     args = parser.parse_args()
     base = args.directory.resolve()
+    require(re.fullmatch(r"[a-z0-9-]+", args.label) is not None, "invalid observation label")
+    require(args.phase != "observe" or args.previous_boot_id is not None, "observe requires previous boot ID")
     gate = json.loads((base / "recovery-gate.json").read_text())
     require(gate["ready_for_staging"] is True, "recovery gate incomplete")
+    require(re.fullmatch(r"[0-9a-f]{40}", gate["rollback_source_commit"]) is not None,
+            "verified rollback source identity is missing")
     image = Path(gate["image_path"])
     config = base / "trial-config.tar.gz"
     trial = json.loads((base / "trial-config.tar.json").read_text())
     manifest = json.loads(Path(gate["manifest_path"]).read_text())
+    require(manifest["deployment_layout"] == "native-ten" and len(manifest["components"]) == 10,
+            "deployment requires the accepted ten-component image")
+    previous_boot = args.previous_boot_id if args.phase == "observe" else gate["previous_boot_id"]
+    require(re.fullmatch(r"[0-9a-f-]{36}", previous_boot) is not None, "invalid previous boot ID")
     require(sha(image) == trial["image"]["sha256"], "local image changed")
     require(sha(config) == trial["archive_sha256"], "configuration archive changed")
     require(sha(base / "guard-evidence.tar.gz") == gate["guard_evidence_sha256"], "guard evidence changed")
@@ -50,7 +61,7 @@ def main():
 
     def log(event, **fields):
         row = {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "event": event, **fields}
-        with (base / "window.jsonl").open("a") as stream:
+        with (base / ("window-" + args.label + ".jsonl")).open("a") as stream:
             stream.write(json.dumps(row) + "\n")
         print(json.dumps(row), flush=True)
 
@@ -75,34 +86,55 @@ for name in procd ubusd netifd rpcd logd uhttpd; do
     case "$pid" in ''|*[!0-9]*) exit 1;; esac
     printf '%s %s\n' "$name" "$(sha256sum /proc/$pid/exe | cut -d' ' -f1)"
 done
+for process in /proc/[0-9]*; do
+    exe=$(readlink "$process/exe" 2>/dev/null) || continue
+    case "$exe" in
+        /usr/sbin/dnsmasq) printf 'dnsmasq %s\n' "$(sha256sum "$process/exe" | cut -d' ' -f1)" ;;
+    esac
+done
 '''
-        observed = dict(line.split() for line in remote(code).splitlines())
+        observed = {}
+        for line in remote(code).splitlines():
+            process, digest = line.split()
+            observed.setdefault(process, []).append(digest)
         for name, component in manifest["components"].items():
             if name in ("uci", "fw4", "reload-config"):
                 continue
             process = "uhttpd" if name == "httpd" else name
-            require(observed[process] == component["rust_sha256"], "running identity mismatch: " + name)
+            require(observed.get(process) and all(digest == component["rust_sha256"] for digest in observed[process]),
+                    "running identity mismatch: " + name)
         paths = [c["path"] for c in manifest["components"].values()]
         actual = dict(line.split(None, 1)[::-1] for line in remote("sha256sum " + " ".join("/rom" + p for p in paths)).splitlines())
         require(actual == {"/rom" + c["path"]: c["rust_sha256"] for c in manifest["components"].values()}, "ROM identity mismatch")
+        integration = manifest["integration_files"].values()
+        expected = {prefix + c["path"]: c["replacement_sha256"]
+                    for c in integration for prefix in ("", "/rom")}
+        actual = dict(line.split(None, 1)[::-1] for line in remote(
+            "sha256sum " + " ".join(shlex.quote(path) for path in expected)).splitlines())
+        require(actual == expected, "dnsmasq init/ACL identity mismatch")
         release = json.loads(remote("cat /usr/share/owrt-control-plane/release.json"))
         require(release["source_commit"] == manifest["source_commit"], "wrong installed firmware release")
         mounts = json.loads(remote("ubus -S -t 3 call luci getMountPoints"))["result"]
         require(not any(m["mount"] in paths for m in mounts), "executable bind mount remains")
         remote('''set -eu
-for s in log rpcd uhttpd network; do /etc/init.d/$s enabled; done
+for s in log rpcd uhttpd network dnsmasq; do /etc/init.d/$s enabled; done
 for name in uci fw4 reload-config rpcd logd httpd; do
     test ! -e /etc/owrt-$name.boot-enable
     test ! -e /etc/init.d/owrt-$name
 done
 kill -0 "$(cat /tmp/owrt-native-guard-lock/pid)"
-test ! -e /root/owrt-native-trial/restored
+test ! -e /root/owrt-native-trial/rollback-requested
+test ! -e /root/owrt-native-trial/c-bridge-used
 /sbin/fw4 check >/dev/null 2>&1
 ''')
-        return {"runtime_daemons": observed, "ROM_components_verified": 9, "executable_bind_mounts": 0}
+        payload = "".join(digest + "  /" + path + "\n" for path, digest in trial["payload_sha256"].items())
+        remote("printf %s " + shlex.quote(payload) + " | sha256sum -c - >/dev/null", timeout=60)
+        return {"runtime_daemons": observed, "ROM_components_verified": len(manifest["components"]),
+                "dnsmasq_integration_files_verified": len(manifest["integration_files"]), "executable_bind_mounts": 0}
 
-    require(remote("cat /proc/sys/kernel/random/boot_id") == gate["previous_boot_id"], "pre-upgrade boot changed")
-    configurations()
+    if args.phase != "observe":
+        require(remote("cat /proc/sys/kernel/random/boot_id") == previous_boot, "pre-upgrade boot changed")
+        configurations()
     if args.phase == "stage":
         for local, dest in ((image, remote_image), (config, remote_config)):
             subprocess.run(["scp", "-O", "-q", str(local), args.host + ":" + dest], check=True, timeout=90)
@@ -120,32 +152,38 @@ test ! -e /root/owrt-native-trial/restored
     ready = json.loads((base / "stage-ready.json").read_text())
     require(ready["sysupgrade_test_passed"] and ready["driver_sha256"] == sha(Path(__file__).resolve()), "staging gate changed")
     require(ready["image_sha256"] == sha(image) and ready["config_sha256"] == sha(config), "staged artifacts changed")
-    staged_files()
-    probe(host=args.host, interface=args.interface)
-    with (base / "ACTIVATION_STARTED").open("x") as stamp:
-        stamp.write(datetime.datetime.now(datetime.timezone.utc).isoformat() + "\n")
-    log("flash_requested", image_sha256=sha(image), preserve_config=True)
-    with (base / "sysupgrade-activation.log").open("w") as output:
-        upgrade = subprocess.Popen(ssh + ["/sbin/sysupgrade -f " + remote_config + " " + remote_image],
-                                   stdin=subprocess.DEVNULL, stdout=output, stderr=subprocess.STDOUT)
+    upgrade = None
+    if args.phase == "activate":
+        staged_files()
+        probe(host=args.host, interface=args.interface)
+        with (base / "ACTIVATION_STARTED").open("x") as stamp:
+            stamp.write(datetime.datetime.now(datetime.timezone.utc).isoformat() + "\n")
+        log("flash_requested", image_sha256=sha(image), preserve_config=True)
+        with (base / "sysupgrade-activation.log").open("w") as output:
+            upgrade = subprocess.Popen(ssh + ["/sbin/sysupgrade -f " + remote_config + " " + remote_image],
+                                       stdin=subprocess.DEVNULL, stdout=output, stderr=subprocess.STDOUT)
     start = time.monotonic()
     stable = None
     verified_boot = None
     while time.monotonic() - start < 850:
         try:
             boot = remote("cat /proc/sys/kernel/random/boot_id")
-            require(boot != gate["previous_boot_id"], "waiting for new boot")
+            require(boot != previous_boot, "waiting for new boot")
+            release = json.loads(remote("cat /usr/share/owrt-control-plane/release.json"))
+            if release["source_commit"] == gate["rollback_source_commit"]:
+                log("v0.1.1_firmware_detected_requires_final_rollback_checks", boot_id=boot)
+                raise SystemExit(1)
             pid1 = remote("sha256sum /proc/1/exe").split()[0]
             if pid1 == manifest["components"]["procd"]["stock_sha256"]:
                 (base / "guard-after-fallback.log").write_text(remote("cat /root/owrt-native-trial/guard.log"))
-                log("automatic_C_fallback", boot_id=boot)
-                raise SystemExit(1)
+                log("C_bridge_detected_not_a_completed_v0.1.1_rollback", boot_id=boot)
+                raise RuntimeError("C bridge is requesting the complete rollback")
             health = probe(host=args.host, interface=args.interface)
             require(health["boot_id"] == boot, "boot changed during health probe")
             if verified_boot != boot:
                 identity = native_identities()
                 configurations()
-                (base / "native-identity.json").write_text(json.dumps(identity, indent=2) + "\n")
+                (base / ("native-identity-" + args.label + ".json")).write_text(json.dumps(identity, indent=2) + "\n")
                 verified_boot = boot
                 stable = None
             if stable is None:
@@ -155,14 +193,15 @@ test ! -e /root/owrt-native-trial/restored
             if held >= 180:
                 native_identities()
                 configurations()
-                remote("/bin/sh /root/owrt-native-trial/native_trial_guard.sh confirm " + shlex.quote(trial["token"]) + " " + shlex.quote(boot), timeout=25)
+                remote("/bin/sh /root/owrt-native-trial/native_trial_guard.sh confirm " + shlex.quote(trial["token"]) + " " + shlex.quote(boot), timeout=40)
                 result = {"status": "native_image_healthy_and_client_confirmed", "boot_id": boot,
+                          "observation_label": args.label,
                           "continuous_client_health_s": held, "image_sha256": sha(image),
                           "source_commit": manifest["source_commit"], "health": health,
                           "automatic_guard_remains_armed": True, "physical_power_cycle_tested": False}
-                (base / "result.json").write_text(json.dumps(result, indent=2) + "\n")
+                (base / ("result-" + args.label + ".json")).write_text(json.dumps(result, indent=2) + "\n")
                 log("confirmed", result=result)
-                if upgrade.poll() is None:
+                if upgrade is not None and upgrade.poll() is None:
                     upgrade.terminate()
                 return
         except (RuntimeError, OSError, ValueError, KeyError, subprocess.TimeoutExpired) as exc:

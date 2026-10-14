@@ -68,6 +68,7 @@ check-harnesses:
 	@python3 tools/test_native_release_prepare.py
 	@python3 tools/test_native_image.py
 	@python3 tools/test_native_trial_prepare.py
+	@python3 tools/test_native_deploy_window.py
 
 # The load generator must reject failed requests and count every operation.
 # Full namespace/rollback gates additionally run on the image's build host.
