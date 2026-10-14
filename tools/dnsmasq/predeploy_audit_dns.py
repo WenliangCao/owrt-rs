@@ -48,7 +48,7 @@ def response(packet, host, kind, action, tcp):
     elif host.startswith(('local-chain.', 'local-chain-invalid.', 'local-chain-dotless.')):
         target = 'audit-terminal.lan'
         if host.startswith('local-chain-dotless.'):
-            target = 'auditdotless'
+            target = 'auditdotlessdirect' if '.direct.' in host else 'auditdotless'
         if host.startswith('local-chain-invalid.'):
             target = 'audit-terminal.invalid'
         elif '.outage.' in host:
@@ -348,6 +348,10 @@ def audit(args):
                  sequence=[['local-chain-dotless.audit.example', kind] for kind in (1, 28)])
             case('dotless-direct-udp', host='auditdotless', type=28)
             case('dotless-direct-tcp', host='auditdotless', type=28, tcp=True)
+            change('dotless-direct-only')
+            case('dotless-direct-only-warm', host='local-chain-dotless.direct.audit.example', tcp=True)
+            case('dotless-direct-only-udp', host='auditdotlessdirect', type=28)
+            case('dotless-direct-only-tcp', host='auditdotlessdirect', type=28, tcp=True)
             result['upstream'] = [json.loads(line) for line in (args.out / 'upstream/queries.jsonl').read_text().splitlines()]
             return 0
         if args.local_cache_only:
