@@ -230,22 +230,23 @@ impl<'a> LocalAnswerer<'a> {
             .map_err(|_| AnswerError::Malformed)?;
         self.answer_parsed_with_query_events(
             query, header, &question, lease_names, now, local_network,
-            cache, interfaces, logging,
+            cache, interfaces, logging, &mut None,
         )
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub(crate) fn answer_parsed_with_query_events(
+    pub(crate) fn answer_parsed_with_query_events<'q>(
         &mut self,
         query: &[u8],
         header: Header,
-        question: &super::forward::Question,
+        question: &'q super::forward::Question,
         lease_names: &mut Arc<LeaseNames>,
         now: i64,
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
         mut cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
         logging: bool,
+        name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
         let mut notices = QueryEvents::new(logging);
         if header.opcode() != 0
@@ -333,7 +334,11 @@ impl<'a> LocalAnswerer<'a> {
         } else if class_in
             && cache
                 .as_deref()
-                .is_some_and(|cache| cache.has_cname(&question.name, now))
+                .is_some_and(|cache| {
+                    let (cname, lookup) = cache.inspect_name(&question.name, now);
+                    *name_lookup = Some(lookup);
+                    cname
+                })
         {
             // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
             // local records. Let CacheContext use that chain, including its

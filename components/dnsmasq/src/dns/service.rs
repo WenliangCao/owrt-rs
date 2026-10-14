@@ -344,7 +344,7 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp)?;
+        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;
         Ok(answer.map(|answer| self.finish_local_answer(answer)))
     }
 
@@ -356,14 +356,15 @@ impl LocalDnsService {
     /// Retain forward-rule answers until answer_request's cache lookup has
     /// run. Their query log events belong only to the answer actually sent.
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn lookup_local_parsed(
+    pub(super) fn lookup_local_parsed<'q>(
         &mut self,
         query: &[u8],
         header: Header,
-        question: &super::forward::Question,
+        question: &'q super::forward::Question,
         now: i64,
         cache: Option<&mut Cache>,
         tcp: bool,
+        name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
@@ -394,6 +395,7 @@ impl LocalDnsService {
             cache,
             &self.interfaces,
             self.query_logging,
+            name_lookup,
         )?
         else {
             return Ok(None);

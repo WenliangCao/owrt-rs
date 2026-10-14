@@ -1,6 +1,99 @@
 use super::*;
 
 #[test]
+fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    let id = cache.insert(record("hint.test", Kind::Ipv4, 7), 100, 60).unwrap();
+    cache.insert(record("other.test", Kind::Ipv4, 8), 100, 60).unwrap();
+    assert!(cache.commit());
+    let name = Name::from_ascii("hint.test").unwrap();
+    let before = (cache.head, cache.tail, cache.name_revision);
+    let (cname, hint) = cache.inspect_name(&name, 100);
+    assert!(!cname);
+    assert_eq!((cache.head, cache.tail, cache.name_revision), before);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, Some(&hint)), [id]);
+    assert_eq!(cache.head, Some(id.slot));
+    let (_, hint) = cache.inspect_name(&name, 100);
+    assert!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 160, true, Some(&hint)).is_empty());
+    assert!(cache.get(id).is_none(), "expiry removal must happen in actual lookup");
+}
+
+#[test]
+fn name_hint_rejects_new_members_and_a_different_question() {
+    let mut cache = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("hint.test").unwrap();
+    let (_, absent) = cache.inspect_name(&name, 100);
+    cache.start_insert();
+    let first = cache.insert(record("hint.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&absent)), [first]);
+    let (_, single) = cache.inspect_name(&name, 100);
+    let other = Name::from_ascii("other.test").unwrap();
+    assert!(cache.lookup_with_hint(&other, &[Kind::Ipv4], 100, false, Some(&single)).is_empty());
+    cache.start_insert();
+    cache.insert(record("hint.test", Kind::Ipv6, 2), 100, 60).unwrap();
+    assert!(cache.commit());
+    assert!(cache.get(first).is_some(), "old handle validity alone cannot detect the new member");
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4, Kind::Ipv6], 100, false, Some(&single)).len(), 2);
+}
+
+#[test]
+fn name_hint_rejects_cache_replacement_and_saturated_revisions() {
+    let make = |rows: &[(&str, u8)]| {
+        let mut cache = Cache::new(8, Policy::default());
+        cache.start_insert();
+        for (name, value) in rows {
+            cache.insert(record(name, Kind::Ipv4, *value), 100, 60).unwrap();
+        }
+        assert!(cache.commit());
+        cache
+    };
+    let mut cache = make(&[("hint.test", 11), ("other.test", 22)]);
+    let mut replacement = make(&[("other.test", 44), ("hint.test", 33)]);
+    assert_eq!(cache.name_revision, replacement.name_revision);
+    let name = Name::from_ascii("hint.test").unwrap();
+    let (_, hint) = cache.inspect_name(&name, 100);
+    std::mem::swap(&mut cache, &mut replacement);
+    let rows = cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&hint));
+    assert_eq!(cache.get(rows[0]).unwrap().record.data, [33]);
+    let (_, hint) = cache.inspect_name(&name, 100);
+    let mut moved = Box::new(cache);
+    let rows = moved.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&hint));
+    assert_eq!(moved.get(rows[0]).unwrap().record.data, [33]);
+
+    let mut cache = Cache::new(8, Policy::default());
+    cache.name_revision = u64::MAX;
+    let (_, hint) = cache.inspect_name(&name, 100);
+    cache.start_insert();
+    let id = cache.insert(record("hint.test", Kind::Ipv4, 55), 100, 60).unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.name_revision, u64::MAX);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&hint)), [id]);
+}
+
+#[test]
+fn name_hint_does_not_pin_multi_record_lists_or_create_rotation_cow() {
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    for value in [1, 2] {
+        cache.insert(record("hint.test", Kind::Ipv4, value), 100, 60).unwrap();
+    }
+    assert!(cache.commit());
+    let name = Name::from_ascii("hint.test").unwrap();
+    let key = name.canonical_wire();
+    let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    let buffer = indices.as_ptr();
+    assert_eq!(Arc::strong_count(indices), 1);
+    let (_, hint) = cache.inspect_name(&name, 100);
+    let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    assert_eq!(Arc::strong_count(indices), 1);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, Some(&hint)).len(), 2);
+    let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    assert_eq!(indices.as_ptr(), buffer);
+}
+
+#[test]
 fn real_mixed_rrset_rotation_keeps_unique_many_allocation_and_snapshot_order() {
     let mut parent = Cache::new(8, Policy::default());
     let name = Name::from_ascii("mixed.index.test").unwrap();
