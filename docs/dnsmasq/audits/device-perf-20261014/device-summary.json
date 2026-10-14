@@ -1,0 +1,896 @@
+{
+  "schema": 1,
+  "status": "device workload stopped under frozen protocol v2; cleanup and unchanged production final state verified from copied receipts",
+  "conclusion": "No formal paired device measurement exists. Device data cannot establish Rust/C speed, CPU, memory or FD ratios on this router.",
+  "measurement_source": "AX3000T physical device, isolated loopback namespace, C-only calibration",
+  "complete_C_pilot_runs": 6,
+  "formal_C_R_pairs": 0,
+  "Rust_device_performance_windows": 0,
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "staged_candidate_elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+  "candidate_note": "Staged identity does not imply candidate was performance-tested.",
+  "rows": [
+    {
+      "label": "pilot-udp-hit-1000-final",
+      "side": "C only",
+      "offered_qps": 1000,
+      "measurement_seconds": 20,
+      "formal_correct": 20000,
+      "correct_after_window": 0,
+      "completed_in_window_qps": 1000.0,
+      "latency_ms": {
+        "samples": 20000,
+        "p50": 0.077019,
+        "p95": 0.195433,
+        "p99": 0.440879,
+        "max": 9.906228
+      },
+      "scheduled_latency_ms": {
+        "samples": 20000,
+        "p50": 0.151721,
+        "p95": 0.312067,
+        "p99": 0.817135,
+        "max": 12.000785
+      },
+      "send_lag_ms": {
+        "samples": 20000,
+        "p50": 0.07468,
+        "p95": 0.110441,
+        "p99": 0.175985,
+        "max": 8.894358
+      },
+      "cpu": {
+        "stable_reaped_endpoints": true,
+        "ticks": 125,
+        "hz": 100,
+        "seconds": 1.25,
+        "span_s": 26.019844078,
+        "single_core_pct": 4.804025713039863,
+        "successes_including_warmup": 25000,
+        "us_per_success": 50.0,
+        "scope": "warmup plus formal plus surrounding drain; DHCP includes initial DORA"
+      },
+      "resources": {
+        "samples": 28,
+        "parent_rss_peak_kib": 1240,
+        "parent_rss_median_kib": 1240.0,
+        "parent_anon_peak_kib": 228,
+        "parent_file_peak_kib": 760,
+        "parent_shmem_peak_kib": 252,
+        "tree_rss_peak_kib": 1240,
+        "parent_fd_peak": 11,
+        "tree_fd_peak": 11,
+        "threads_peak": 1,
+        "children_peak": 0,
+        "MemAvailable_min_kib": 115312,
+        "missing_child_sample_count": 0,
+        "truncated_tree_sample_count": 0,
+        "PSS_available": false
+      },
+      "upstream_steady_requests": 0,
+      "upstream_total_requests": 800,
+      "raw_inputs_sha256": {
+        "client.json": "c12cc9c1d59bdd3d5178faade8078feaaf9a462f2474687de837c03ce795061d",
+        "client.latencies.bin": "70bb8dff3b6d798cd9d696ea2f87cbb3a7dd2eab8d962595ed4c5a3e8d490a1b",
+        "client.send-lag.bin": "6c1514e398ecace21c4c90615e00a17e35af3e9c0b2f0d0ef7afb1f2414a6d37",
+        "before.jsonl": "57804713ab06c745c40c85a846bb4eae23be3ede398a296d8107550650ce8f0f",
+        "after.jsonl": "9db63b11ca0cd7d5e9775c86ee42fb25525f74e3c950c7a328938096a81259c2",
+        "resources.jsonl": "45a694588d43856e4d12c84ab9df1994847d431061151fd60b58dbf986b72249",
+        "upstream.json": "8f0ab91f7ee749f16935f0c436b8652492d795ba45dfb0c641f3dd0a9b4bd281",
+        "config": "4a2c5b4d70e31b949eb2cebd9ee48c03e795413ccf36a827f5936b2843255b83",
+        "elf.sha256": "e5039e89d25ec067b30e69debb87e8468ad0c86a12babc3b2b1f24b4f8517dda",
+        "live.sha256": "b459f02be67711c72011698aa00727f9c5b61d676182af7e04f4a67fc2b1ec06"
+      }
+    },
+    {
+      "label": "pilot-udp-hit-200-final",
+      "side": "C only",
+      "offered_qps": 200,
+      "measurement_seconds": 20,
+      "formal_correct": 4000,
+      "correct_after_window": 0,
+      "completed_in_window_qps": 200.0,
+      "latency_ms": {
+        "samples": 4000,
+        "p50": 0.12557,
+        "p95": 0.211668,
+        "p99": null,
+        "max": 3.063145
+      },
+      "scheduled_latency_ms": {
+        "samples": 4000,
+        "p50": 0.21544,
+        "p95": 0.347597,
+        "p99": null,
+        "max": 4.903364
+      },
+      "send_lag_ms": {
+        "samples": 4000,
+        "p50": 0.088569,
+        "p95": 0.13999,
+        "p99": null,
+        "max": 4.644223
+      },
+      "cpu": {
+        "stable_reaped_endpoints": true,
+        "ticks": 39,
+        "hz": 100,
+        "seconds": 0.39,
+        "span_s": 26.019426355,
+        "single_core_pct": 1.498880085513707,
+        "successes_including_warmup": 5000,
+        "us_per_success": 78.0,
+        "scope": "warmup plus formal plus surrounding drain; DHCP includes initial DORA"
+      },
+      "resources": {
+        "samples": 28,
+        "parent_rss_peak_kib": 1212,
+        "parent_rss_median_kib": 1212.0,
+        "parent_anon_peak_kib": 228,
+        "parent_file_peak_kib": 732,
+        "parent_shmem_peak_kib": 252,
+        "tree_rss_peak_kib": 1212,
+        "parent_fd_peak": 11,
+        "tree_fd_peak": 11,
+        "threads_peak": 1,
+        "children_peak": 0,
+        "MemAvailable_min_kib": 115732,
+        "missing_child_sample_count": 0,
+        "truncated_tree_sample_count": 0,
+        "PSS_available": false
+      },
+      "upstream_steady_requests": 0,
+      "upstream_total_requests": 800,
+      "raw_inputs_sha256": {
+        "client.json": "5482ae7763b36c627f5fb039faf2ff83659a22668fecbc3b61757791c9857166",
+        "client.latencies.bin": "9adaf5f0b931f1fb1c8d349c7365df21924b1fe38bb756cb1099c186a566a5a9",
+        "client.send-lag.bin": "d26f085a57a0afa69e8768ee360658413de115594ce9142106ca488e4dd42c70",
+        "before.jsonl": "27db73427554495268caeec8349b07a8b66f8fef84e1601d0ed11c3012311a73",
+        "after.jsonl": "18622527c88c6a174c2e366055f52a5c65eddb6dac7759f270e0c2960232790c",
+        "resources.jsonl": "33990f2b3fa63ade04040b8d921eb3e3d666a480edfa598e56832b4c53fbcb75",
+        "upstream.json": "cbb12bc7b6d1b3ca9461df81c47fa1cbe4b3bfba89cc95afc8f63dc555ce1839",
+        "config": "428cf69768c667dabdecaa7fc816d55e0c4f370ff11cbeddbf74c529fcc528d6",
+        "elf.sha256": "e5039e89d25ec067b30e69debb87e8468ad0c86a12babc3b2b1f24b4f8517dda",
+        "live.sha256": "22765c5792761537d82c87ea9d79c4202e2a30e64443ce7c757352b171bf9b44"
+      }
+    },
+    {
+      "label": "pilot-udp-hit-200b",
+      "side": "C only",
+      "offered_qps": 200,
+      "measurement_seconds": 20,
+      "formal_correct": 4000,
+      "correct_after_window": 0,
+      "completed_in_window_qps": 200.0,
+      "latency_ms": {
+        "samples": 4000,
+        "p50": 0.129571,
+        "p95": 0.25768,
+        "p99": null,
+        "max": 2.902029
+      },
+      "scheduled_latency_ms": {
+        "samples": 4000,
+        "p50": 0.220571,
+        "p95": 0.409472,
+        "p99": null,
+        "max": 3.465419
+      },
+      "send_lag_ms": {
+        "samples": 4000,
+        "p50": 0.090755,
+        "p95": 0.1524,
+        "p99": null,
+        "max": 1.215255
+      },
+      "cpu": {
+        "stable_reaped_endpoints": true,
+        "ticks": 38,
+        "hz": 100,
+        "seconds": 0.38,
+        "span_s": 26.019689866,
+        "single_core_pct": 1.460432472319922,
+        "successes_including_warmup": 5000,
+        "us_per_success": 76.0,
+        "scope": "warmup plus formal plus surrounding drain; DHCP includes initial DORA"
+      },
+      "resources": {
+        "samples": 28,
+        "parent_rss_peak_kib": 1224,
+        "parent_rss_median_kib": 1224.0,
+        "parent_anon_peak_kib": 232,
+        "parent_file_peak_kib": 740,
+        "parent_shmem_peak_kib": 252,
+        "tree_rss_peak_kib": 1224,
+        "parent_fd_peak": 11,
+        "tree_fd_peak": 11,
+        "threads_peak": 1,
+        "children_peak": 0,
+        "MemAvailable_min_kib": 118528,
+        "missing_child_sample_count": 0,
+        "truncated_tree_sample_count": 0,
+        "PSS_available": false
+      },
+      "upstream_steady_requests": 0,
+      "upstream_total_requests": 800,
+      "raw_inputs_sha256": {
+        "client.json": "57d9aa14f98f3e51c8d41eb23454a698b7e05cb356ef032d3c1eeab1ce9e5f6d",
+        "client.latencies.bin": "ffccea3649316c289d586a4a88607363ab2534a6bcdcb505fad9162cebb3c28c",
+        "client.send-lag.bin": "204142f36c4be42841a32e09c0ae21866347d57dc603ccd0fdc12b1687cd6da8",
+        "before.jsonl": "723800c946652789b054bf2c0a00d0169cf98db6032a990712d9c746dd9f506a",
+        "after.jsonl": "c6312d8ba47283c833e4f024fd2d0a1cf52d8f6ce97e7dfdb139978914b77844",
+        "resources.jsonl": "c061709f66d6aa4ef749949fdcf43796c39d3e0dd4e339b502955f1ef338f854",
+        "upstream.json": "3a7ef14d246bf7c5e340b36ee9f588f7fe4ecee92703758969eba0b1a5131280",
+        "config": "f5d41f63bb296a96aa1a094f6f05ca963d88f21ac5ed9d4250fd2fabeb8bef23",
+        "elf.sha256": "e5039e89d25ec067b30e69debb87e8468ad0c86a12babc3b2b1f24b4f8517dda",
+        "live.sha256": "9f281091e243ec5e57c53248e05cd41060e25692db24b0e65a3ed7055cbdc807"
+      }
+    },
+    {
+      "label": "pilot-v2-tcp-hit",
+      "side": "C only",
+      "offered_qps": 200,
+      "measurement_seconds": 20,
+      "formal_correct": 4000,
+      "correct_after_window": 1,
+      "completed_in_window_qps": 199.95,
+      "latency_ms": {
+        "samples": 4000,
+        "p50": 0.186277,
+        "p95": 0.965085,
+        "p99": null,
+        "max": 15.04535
+      },
+      "scheduled_latency_ms": {
+        "samples": 4000,
+        "p50": 0.273927,
+        "p95": 1.320602,
+        "p99": null,
+        "max": 22.3206
+      },
+      "send_lag_ms": {
+        "samples": 4000,
+        "p50": 0.086622,
+        "p95": 0.159383,
+        "p99": null,
+        "max": 22.100545
+      },
+      "cpu": {
+        "stable_reaped_endpoints": true,
+        "ticks": 59,
+        "hz": 100,
+        "seconds": 0.59,
+        "span_s": 26.035643874,
+        "single_core_pct": 2.266124098391099,
+        "successes_including_warmup": 5000,
+        "us_per_success": 118.0,
+        "scope": "warmup plus formal plus surrounding drain; DHCP includes initial DORA"
+      },
+      "resources": {
+        "samples": 28,
+        "parent_rss_peak_kib": 1224,
+        "parent_rss_median_kib": 1224.0,
+        "parent_anon_peak_kib": 228,
+        "parent_file_peak_kib": 744,
+        "parent_shmem_peak_kib": 252,
+        "tree_rss_peak_kib": 9320,
+        "parent_fd_peak": 19,
+        "tree_fd_peak": 143,
+        "threads_peak": 9,
+        "children_peak": 8,
+        "MemAvailable_min_kib": 114412,
+        "missing_child_sample_count": 6,
+        "truncated_tree_sample_count": 0,
+        "PSS_available": false
+      },
+      "upstream_steady_requests": 0,
+      "upstream_total_requests": 800,
+      "raw_inputs_sha256": {
+        "client.json": "610aa400ed0c68abf4972c4ca6989ae5befcc90d3836d5cb0eb787f440324487",
+        "client.latencies.bin": "444f290244a5e5f321435472022801a97c3176fcd4670a278bc5c95e43323481",
+        "client.send-lag.bin": "033f85f2ca4259ddf3ee62fdad32cec5c6ee62237cd705789968aa51cf7c84fd",
+        "before.jsonl": "f2b4a952ef80e9d287e14788aedb80a4907282006382cda5d1ad1c73ad6b0ba1",
+        "after.jsonl": "32eaf7aeb90b58295e07fcfc59621f51048347522076de40709502637500cbe3",
+        "resources.jsonl": "c63b87fc357ce5fb31d6c6a6a0bbc7fce4d68c9fce794916a282b486299ac2de",
+        "upstream.json": "8f311d0340babe64a28de12ac98a39eaabe2555d3e809a1ce690e9113fcd4dbd",
+        "config": "025469a5cfb7fa961639db7cf200affaf1b20e7538eca7483ab3a6e193c74420",
+        "elf.sha256": "e5039e89d25ec067b30e69debb87e8468ad0c86a12babc3b2b1f24b4f8517dda",
+        "live.sha256": "d8ef6ab4393bb2fe3b03f04d0d2f4ad06ebe5672fc4f0599c2a6de0d1e6909ff"
+      }
+    },
+    {
+      "label": "pilot-v2-udp-miss",
+      "side": "C only",
+      "offered_qps": 200,
+      "measurement_seconds": 20,
+      "formal_correct": 4000,
+      "correct_after_window": 0,
+      "completed_in_window_qps": 200.0,
+      "latency_ms": {
+        "samples": 4000,
+        "p50": 1.629636,
+        "p95": 1.835148,
+        "p99": null,
+        "max": 12.191565
+      },
+      "scheduled_latency_ms": {
+        "samples": 4000,
+        "p50": 1.720708,
+        "p95": 1.954336,
+        "p99": null,
+        "max": 12.360001
+      },
+      "send_lag_ms": {
+        "samples": 4000,
+        "p50": 0.087873,
+        "p95": 0.125372,
+        "p99": null,
+        "max": 0.854329
+      },
+      "cpu": {
+        "stable_reaped_endpoints": true,
+        "ticks": 192,
+        "hz": 100,
+        "seconds": 1.92,
+        "span_s": 26.019302038,
+        "single_core_pct": 7.3791372158866055,
+        "successes_including_warmup": 5000,
+        "us_per_success": 384.0,
+        "scope": "warmup plus formal plus surrounding drain; DHCP includes initial DORA"
+      },
+      "resources": {
+        "samples": 28,
+        "parent_rss_peak_kib": 1220,
+        "parent_rss_median_kib": 1220.0,
+        "parent_anon_peak_kib": 228,
+        "parent_file_peak_kib": 740,
+        "parent_shmem_peak_kib": 252,
+        "tree_rss_peak_kib": 1220,
+        "parent_fd_peak": 12,
+        "tree_fd_peak": 12,
+        "threads_peak": 1,
+        "children_peak": 0,
+        "MemAvailable_min_kib": 113028,
+        "missing_child_sample_count": 0,
+        "truncated_tree_sample_count": 0,
+        "PSS_available": false
+      },
+      "upstream_steady_requests": 4000,
+      "upstream_total_requests": 5000,
+      "raw_inputs_sha256": {
+        "client.json": "6c051646aa17b2d0538aab32ab02ea340bf646c0466d21dd516c7f4ae3ccb158",
+        "client.latencies.bin": "d7df49a5d750b64620bb9b4927b7eb0fd7477f79e7d4d03fea32c147f9115332",
+        "client.send-lag.bin": "52b0c307d11bb596409607c2fcbac60d7453020bf3b3f78f187911b805aec913",
+        "before.jsonl": "07f3f43b603b75fbc35024fa68c0dcad4742e51cca26bf6571afa8ff1f9a5273",
+        "after.jsonl": "324f785e3fb090fc9508e6b1f798f40f159ed9aea4f8eb89ba30689a8ae097bb",
+        "resources.jsonl": "ba1314745b414c300f6225266210039322397854e13f43f32ac1a793fb8e1cfe",
+        "upstream.json": "baab24fa85a9eb8485448db472574d659f6368fb6dd6a51fe9c503cf55a88756",
+        "config": "b0482211c862fffbac85113b00f8b13b4d229e23560043f79fd411c0f446ec31",
+        "elf.sha256": "e5039e89d25ec067b30e69debb87e8468ad0c86a12babc3b2b1f24b4f8517dda",
+        "live.sha256": "26ae9ff5aa63b1dcecd9122304cdaeae27f841d30fd1bbc24e6ab7b3f51f3385"
+      }
+    },
+    {
+      "label": "pilot-v2-udp-mixed",
+      "side": "C only",
+      "offered_qps": 200,
+      "measurement_seconds": 20,
+      "formal_correct": 4000,
+      "correct_after_window": 0,
+      "completed_in_window_qps": 200.0,
+      "latency_ms": {
+        "samples": 4000,
+        "p50": 0.139035,
+        "p95": 1.689957,
+        "p99": null,
+        "max": 12.064456
+      },
+      "scheduled_latency_ms": {
+        "samples": 4000,
+        "p50": 0.236951,
+        "p95": 1.805908,
+        "p99": null,
+        "max": 12.23958
+      },
+      "send_lag_ms": {
+        "samples": 4000,
+        "p50": 0.091465,
+        "p95": 0.152495,
+        "p99": null,
+        "max": 7.262893
+      },
+      "cpu": {
+        "stable_reaped_endpoints": true,
+        "ticks": 71,
+        "hz": 100,
+        "seconds": 0.71,
+        "span_s": 26.019933123,
+        "single_core_pct": 2.7286772669388766,
+        "successes_including_warmup": 5000,
+        "us_per_success": 142.0,
+        "scope": "warmup plus formal plus surrounding drain; DHCP includes initial DORA"
+      },
+      "resources": {
+        "samples": 28,
+        "parent_rss_peak_kib": 1232,
+        "parent_rss_median_kib": 1232.0,
+        "parent_anon_peak_kib": 232,
+        "parent_file_peak_kib": 748,
+        "parent_shmem_peak_kib": 252,
+        "tree_rss_peak_kib": 1232,
+        "parent_fd_peak": 11,
+        "tree_fd_peak": 11,
+        "threads_peak": 1,
+        "children_peak": 0,
+        "MemAvailable_min_kib": 112968,
+        "missing_child_sample_count": 0,
+        "truncated_tree_sample_count": 0,
+        "PSS_available": false
+      },
+      "upstream_steady_requests": 800,
+      "upstream_total_requests": 1800,
+      "raw_inputs_sha256": {
+        "client.json": "15ef87d9896344c5b07f5e3f8627e3e31efafec2a21f407cfd59b5180bc36d41",
+        "client.latencies.bin": "a7d70a6fca7fe4f0c2ef61873fcc2e9a02f5a80994cfd84f96611f035037c9f1",
+        "client.send-lag.bin": "4b216860c28c20fe37faa0071e7cfab6bcdc31632bacaee7f769f01aa759f69d",
+        "before.jsonl": "e396348768e2b50c9dfef6c8d47c79232ffaf2633744db30819a850aa59d32b0",
+        "after.jsonl": "31e53edcf8bd15e6c4342a57a3afa002521d652bfdaf70e89639945b4c1b673e",
+        "resources.jsonl": "aaa252fdcf9f19dd5d38c713f7cf1cc26ab22777dfe4c10a6510ed678cabd5bd",
+        "upstream.json": "8a5eb725df85741205a8e69d2ec4f7ee622194f29d98ab73896a7e69fa2ab273",
+        "config": "bbcf6ab36de71d22e44206149cd7d764d04d32679a2ae1f21a3bbe4d10f1b51a",
+        "elf.sha256": "e5039e89d25ec067b30e69debb87e8468ad0c86a12babc3b2b1f24b4f8517dda",
+        "live.sha256": "e17056fcf45ff3ebabc4dd2dbbae5dfa48fe2de764639df59a1dee7f38dcf4c7"
+      }
+    }
+  ],
+  "guard_windows": [
+    {
+      "file": "guard-window1.jsonl",
+      "sha256": "45857cf4c5f68e12bb56bb818374d5a9b9dca2e3683b4410851ce72e7f167276",
+      "samples": 271,
+      "max_host_busy_percent": 50.549,
+      "minimum_MemAvailable_kib": 114148,
+      "production_identities": [
+        [
+          664,
+          45650128
+        ]
+      ],
+      "dns_probe_count": 107,
+      "dns_failures": 0,
+      "http_probe_count": 49,
+      "http_status_counts": {
+        "403": 49
+      },
+      "stop_events": [
+        {
+          "event": "stop",
+          "epoch": 1791999389,
+          "elapsed_s": 270.001,
+          "reason": "host_cpu_high_three_samples",
+          "stop_file": true,
+          "group_killed": 1
+        }
+      ]
+    },
+    {
+      "file": "guard-window2.jsonl",
+      "sha256": "72ca0d83ca9c0ff19f365facd49f4091028c1c71a1fe994ec7d3108b03097274",
+      "samples": 121,
+      "max_host_busy_percent": 54.359,
+      "minimum_MemAvailable_kib": 112964,
+      "production_identities": [
+        [
+          664,
+          45650128
+        ]
+      ],
+      "dns_probe_count": 48,
+      "dns_failures": 0,
+      "http_probe_count": 22,
+      "http_status_counts": {
+        "403": 22
+      },
+      "stop_events": [
+        {
+          "event": "stop",
+          "epoch": 1791999580,
+          "elapsed_s": 120.001,
+          "reason": "host_cpu_high_three_samples",
+          "stop_file": true,
+          "group_killed": 1
+        }
+      ]
+    }
+  ],
+  "external_health": {
+    "source": "external-health.jsonl",
+    "sha256_final": "45ac4c6b3be798680af39e4c90285dcee81241b49252430f1bc923003e96582f",
+    "observations": 21,
+    "family_checks": 42,
+    "failures": 0,
+    "families": [
+      "-4",
+      "-6"
+    ],
+    "monitor_stop_basis": "Root reports external watchdog stopped after final state verification.",
+    "note": "Management-Mac IPv4/IPv6 HTTPS observations; not proof of every household client."
+  },
+  "safety_abort_cases": [
+    {
+      "label": "pilot-udp-hit-2000-final",
+      "side": "C",
+      "offered_qps": 2000,
+      "stage": "warmup",
+      "reason": "host_busy_over_35_percent_for_three_samples",
+      "not_a_capacity_measurement": true
+    },
+    {
+      "label": "pilot-v2-tcp-miss",
+      "side": "C",
+      "offered_qps": 200,
+      "stage": "warmup",
+      "reason": "host_busy_over_35_percent_for_three_samples",
+      "not_a_product_defect_attribution": true
+    }
+  ],
+  "setup_failure": {
+    "label": "pilot-udp-hit-200",
+    "reason": "BusyBox sleep rejected fractional durations; helper subsequently used integer sleeps",
+    "evidence_retained": true,
+    "not_a_performance_result": true
+  },
+  "attribution": {
+    "scope": "Independent offline partial device resource attribution; no device operations",
+    "limits": [
+      "TCP-miss aborted during warmup; no completed measured window and no C/R pair",
+      "Killed dependencies did not emit final /usr/bin/time CPU; cannot attribute remaining host load to a named tool",
+      "Non-atomic tree samples are diagnostic only, not stable/reaped full-window CPU endpoints",
+      "Resource observer CPU was not directly recorded; full /proc PPID scans scale with child count"
+    ],
+    "runs": [
+      {
+        "label": "pilot-v2-tcp-miss",
+        "resources_sha256": "31ab1670198a4ebabdcb6ddaa045d21535ead55ee29c8862b682c6c5b6d7863b",
+        "samples": 3,
+        "span_s": 2.039281953,
+        "daemon_tree_delta_ticks": 3,
+        "daemon_clk_tck": 100,
+        "host_delta_ticks_first8": [
+          4,
+          59,
+          191,
+          361,
+          0,
+          2,
+          6,
+          0
+        ],
+        "host_busy_delta_ticks": 262,
+        "host_busy_fraction_from_counters": 0.420545746388443,
+        "missing_children_total": 0,
+        "max_sampled_children": 8,
+        "dependency_time_text": {
+          "client.time": "",
+          "upstream.time": ""
+        }
+      },
+      {
+        "label": "pilot-v2-tcp-hit",
+        "resources_sha256": "c63b87fc357ce5fb31d6c6a6a0bbc7fce4d68c9fce794916a282b486299ac2de",
+        "samples": 28,
+        "span_s": 26.996136438,
+        "daemon_tree_delta_ticks": 59,
+        "daemon_clk_tck": 100,
+        "host_delta_ticks_first8": [
+          157,
+          40,
+          245,
+          4743,
+          0,
+          26,
+          63,
+          0
+        ],
+        "host_busy_delta_ticks": 531,
+        "host_busy_fraction_from_counters": 0.10068259385665529,
+        "missing_children_total": 6,
+        "max_sampled_children": 8,
+        "dependency_time_text": {
+          "client.time": "0.51 0.00 25.00",
+          "upstream.time": "0.12 0.13 35.07"
+        }
+      },
+      {
+        "label": "pilot-v2-udp-miss",
+        "resources_sha256": "ba1314745b414c300f6225266210039322397854e13f43f32ac1a793fb8e1cfe",
+        "samples": 28,
+        "span_s": 26.997330955,
+        "daemon_tree_delta_ticks": 192,
+        "daemon_clk_tck": 100,
+        "host_delta_ticks_first8": [
+          43,
+          300,
+          943,
+          4859,
+          0,
+          27,
+          43,
+          0
+        ],
+        "host_busy_delta_ticks": 1356,
+        "host_busy_fraction_from_counters": 0.21818181818181817,
+        "missing_children_total": 0,
+        "max_sampled_children": 0,
+        "dependency_time_text": {
+          "client.time": "0.14 0.67 25.00",
+          "upstream.time": "0.03 0.36 30.05"
+        }
+      },
+      {
+        "label": "pilot-udp-hit-2000-final",
+        "resources_sha256": "34d8a2e945c7acd1f1aa6265883aac6cde2ebcee3fcb7cacba1112f9bb6c9db8",
+        "samples": 4,
+        "span_s": 2.997020293,
+        "daemon_tree_delta_ticks": 29,
+        "daemon_clk_tck": 100,
+        "host_delta_ticks_first8": [
+          3,
+          84,
+          245,
+          464,
+          0,
+          8,
+          15,
+          0
+        ],
+        "host_busy_delta_ticks": 355,
+        "host_busy_fraction_from_counters": 0.43345543345543347,
+        "missing_children_total": 0,
+        "max_sampled_children": 0,
+        "dependency_time_text": {
+          "client.time": "",
+          "upstream.time": ""
+        }
+      }
+    ],
+    "idle_host_crosscheck": {
+      "raw_sha256": "33099532f4322adc1bf0bb432fda8787b6f9c7ddaf8fc7bf8541ef0416a6dc48",
+      "reported_by_root": "401 host ticks / 2.00 s at 100 Hz on two CPUs; idle accounting matches expectation",
+      "interpretation": "No claim of globally unreliable kernel accounting. Per-row monotonic timestamp precedes JSON process emission, meminfo and host CPU reading; do not equate this diagnostic span to an atomic host counter interval."
+    }
+  },
+  "limitations": [
+    "Six completed C pilots are calibration observations, not five paired C/R rounds.",
+    "No paired device acceleration ratio or repeated Rust variability is measurable.",
+    "CPU guard sees full router load including tools, observer, network stack and ordinary use; its stops are neither a C throughput limit nor evidence of a C/R regression.",
+    "TCP-miss stopped before measured epoch and final dependency CPU receipts were not written; cause remains unassigned.",
+    "Resource samples include setup/warmup/drain. CPU normalization includes warmup and formal successful operations; readiness/disconnected idle is inside actual endpoint interval.",
+    "TCP C child RSS sums duplicate shared mappings; no smaps/PSS/USS. RssAnon is not private memory.",
+    "No DHCP or lifecycle device performance case completed before v2 safety termination.",
+    "Oracle fallback must be a separate environment table and cannot answer the unmeasured router speed ratio."
+  ],
+  "raw_archive_sha256": {
+    "archives/pilot-udp-hit-1000-final.tar.gz": "9fac826509d435eb3f91f55bff59fbbc4c870e6661cc431d5a6b492eea179849",
+    "archives/pilot-udp-hit-200-final.tar.gz": "f5eccbe1ad27668c59076c4cbef00dd230c8c1954430a283f467ed24b6840fd0",
+    "archives/pilot-udp-hit-2000-final.tar.gz": "236eae013be57f466a54eb9dd3b036be9758179512ceb76d7593f9a9f6050644",
+    "archives/pilot-udp-hit-200b.tar.gz": "cc19f1bf3318708b6701be75551e59c4ffafc1bc72d9064ea640e242e5dfda4f",
+    "archives/pilot-v2-tcp-hit.tar.gz": "678a15e26ea6b5e9feda2c18f8f85560b134688cd96e704bd153aaa4dd817c31",
+    "archives/pilot-v2-tcp-miss.tar.gz": "67e903f11fd96a0c09e5ce043d2a506137ed205721088f8b544611546324c426",
+    "archives/pilot-v2-udp-miss.tar.gz": "485ddf3e1616da61154d1ced9fda6925b291c2285ccad6a44014c0206d4fcbd1",
+    "archives/pilot-v2-udp-mixed.tar.gz": "98f51a2dac5e21c3b26318511cff5eaad60159bb67c95ade43e28cf6f179ba36",
+    "pilot-first-evidence.tar.gz": "b8bb9d0658105c82060d8ca840ca515a391b8ddf22e1eb22bf3b16c3fa2949e1",
+    "pilot-safety-stop-evidence.tar.gz": "197ff1a23fd4665bd81af26442e446a222eda85b682ab9f8c7af940e55a30b1c",
+    "second-safety-stop-evidence.tar.gz": "f1403d10b0c5ea066ea2a2d95202ad7ef759c3399aa349dec47d5e633b31e72c",
+    "device-final-raw.tar.gz": "77ecb4f7e3d52b880d58c30fcd79c0fb9d4dbaa4593e65fa0f2ceb57223cec65"
+  },
+  "analysis_inputs_sha256": {
+    "independent_analysis.py": "806e62cd60af0835bd2d4c75a2cf87e1cf86c75e6d0e56289caf0b15ada5377c",
+    "independent-all-device-pilots.json": "d0fee0493101b61411b34ec7d6d7b117dc5eca79dd3b9c8aa268dd5bc31ed336",
+    "independent-safety-stop-review.json": "e4eab5c1f3ee9113ae4ac2bcd64854b051eb128cbdb4eeb3f297f046aa6f3cb4",
+    "finalize_device_summary.py": "6c439e2e615aeda5f3119a1ea3c11c927465873f63d05124ba97279a611a9374"
+  },
+  "final_device_check": {
+    "status": "verified offline from final copied receipts; no new device operation",
+    "original_C_pid": 664,
+    "original_C_starttime_ticks": 45650128,
+    "original_C_disk_ROM_live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "configuration_archive_byte_identical": true,
+    "configuration_archive_sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+    "owned_tmp_removed": true,
+    "no_owned_task_processes": true,
+    "no_owned_mount_in_final_mount_table": true,
+    "task_process_basis": "Root no-task-process receipt, plus independently checked final cleanup identity/mount output",
+    "local_dns_answered": true,
+    "ubus_objects": [
+      "dnsmasq",
+      "dnsmasq.dns"
+    ],
+    "wan_interfaces": [
+      {
+        "proto": "dhcp",
+        "up_before": true,
+        "up_after": true,
+        "uptime_before": 461721,
+        "uptime_after": 462268,
+        "current_delegated_prefix_count": 0
+      },
+      {
+        "proto": "dhcpv6",
+        "up_before": true,
+        "up_after": true,
+        "uptime_before": 461718,
+        "uptime_after": 462265,
+        "current_delegated_prefix_count": 1
+      }
+    ],
+    "wan_limit": "Up and increasing uptime verified; address-list identity is not required and is not claimed.",
+    "copied_tmp_regular_files_independently_rehashed": 139,
+    "raw_sha256": {
+      "device-final-state-before-cleanup.txt": "43d785271a40e1fcd348c2683baf4c0efe492e6b6aebc2f249a4a6ee9fec5851",
+      "etc-before.tar.gz": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+      "etc-after.tar.gz": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+      "device-final-file-manifest.txt": "71aecf4a6663e84d67e8b0b9497ed5a1e64ddbe5a08bfce199b6d1bc85846fcb",
+      "device-final-raw.tar.gz": "77ecb4f7e3d52b880d58c30fcd79c0fb9d4dbaa4593e65fa0f2ceb57223cec65",
+      "final-copy-check.json": "cd98d92495ec1899426afc6d51d599cd103a9dce1be6435ef576c2460d02eaa4",
+      "final-cleanup.txt": "12b2f48106487188642408ccd695e5fa69fbf20d59a0249dfa78d9929c6c5e86"
+    }
+  },
+  "historical_same_ELF_household_observation": {
+    "date": "2026-10-14",
+    "source_report": "docs/dnsmasq/DEVICE_TRIAL_20261014.md",
+    "classification": "historical ambient household observation; not part of current controlled performance experiment",
+    "identity_binding": {
+      "source": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+      "candidate_elf": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "stock_elf": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "binding_basis": "Candidate PID/starttime traced through two files; root observed final stock PID/ELF at 16:09:57 UTC; per-sample executable hashes were not recorded.",
+      "trial_mode": "ELF-only temporary bind; stock init and ACL; no confirm; 900s deadline; root is sole router operator"
+    },
+    "C_first40": {
+      "samples": 40,
+      "span_seconds": 79.5899999999674,
+      "parent_memory_kib": {
+        "VmRSS": {
+          "n": 40,
+          "min": 1284,
+          "median": 1284.0,
+          "max": 1292,
+          "first": 1284,
+          "last": 1292
+        },
+        "RssAnon": {
+          "n": 40,
+          "min": 272,
+          "median": 272.0,
+          "max": 280,
+          "first": 272,
+          "last": 280
+        },
+        "RssFile": {
+          "n": 40,
+          "min": 1008,
+          "median": 1008.0,
+          "max": 1008,
+          "first": 1008,
+          "last": 1008
+        },
+        "RssShmem": {
+          "n": 40,
+          "min": 4,
+          "median": 4.0,
+          "max": 4,
+          "first": 4,
+          "last": 4
+        }
+      },
+      "parent_fd": {
+        "n": 40,
+        "min": 44,
+        "median": 44.0,
+        "max": 46,
+        "first": 44,
+        "last": 44
+      },
+      "threads": {
+        "n": 40,
+        "min": 1,
+        "median": 1.0,
+        "max": 1,
+        "first": 1,
+        "last": 1
+      },
+      "CPU_delta_ticks": 4
+    },
+    "Rust_first40": {
+      "samples": 40,
+      "span_seconds": 79.4100000000326,
+      "parent_memory_kib": {
+        "VmRSS": {
+          "n": 40,
+          "min": 2280,
+          "median": 2304.0,
+          "max": 2372,
+          "first": 2280,
+          "last": 2304
+        },
+        "RssAnon": {
+          "n": 40,
+          "min": 372,
+          "median": 396.0,
+          "max": 464,
+          "first": 372,
+          "last": 396
+        },
+        "RssFile": {
+          "n": 40,
+          "min": 4,
+          "median": 4.0,
+          "max": 4,
+          "first": 4,
+          "last": 4
+        },
+        "RssShmem": {
+          "n": 40,
+          "min": 1904,
+          "median": 1904.0,
+          "max": 1904,
+          "first": 1904,
+          "last": 1904
+        }
+      },
+      "parent_fd": {
+        "n": 40,
+        "min": 44,
+        "median": 44.0,
+        "max": 50,
+        "first": 46,
+        "last": 44
+      },
+      "threads": {
+        "n": 40,
+        "min": 1,
+        "median": 1.0,
+        "max": 1,
+        "first": 1,
+        "last": 1
+      },
+      "CPU_delta_ticks": 6
+    },
+    "observed_Rust_minus_C_median_RSS_kib": 1020.0,
+    "observed_Rust_minus_C_median_RssAnon_kib": 124.0,
+    "Rust_full_observed_parent_RSS_kib": {
+      "n": 397,
+      "min": 2280,
+      "median": 2324,
+      "max": 2424,
+      "first": 2280,
+      "last": 2424
+    },
+    "Rust_full_observed_FD": {
+      "n": 397,
+      "min": 36,
+      "median": 44,
+      "max": 52,
+      "first": 46,
+      "last": 42
+    },
+    "Rust_full_observed_samples": 397,
+    "Rust_full_observed_span_seconds": 873.25,
+    "raw_sha256": {
+      "identity.json": "955c24918ef87cc39d2423ce0716d47b53b1e255b5964c9478fc38088e860ab5",
+      "c-before-samples.txt": "c2ed3339365d52974fad793b4eaf5f328535871430289cb03de94e70dc43282e",
+      "rust-samples.txt": "1b05a517a648a52700babd24e9fbe9bff5cd43ba2a66a38104e5eefc0f1bf101",
+      "rust-to-c-samples.txt": "780af9c1ee6127699292f5411d5750fda208527b198f44310048d40785a5fa44",
+      "analyze-samples-local.py": "6683f7f8c1b93029a9a4c5c4386c5e7e644afcaecefafc60ed838fd36ef092ce",
+      "final-offline-analysis.json": "0045d3112640dc51068a79850b4a92a045d27abd3cb1ba7ff3b2c4de64c6907f"
+    },
+    "limitations": [
+      "Different sequential household traffic/time/cache history and only one C/R transition; not five repeated controlled rounds.",
+      "RSS includes different executable backing: C ROM/shared file pages versus Rust tmpfs image pages; observed extra RSS is not a pure heap or private-memory penalty.",
+      "RssAnon excludes file/shmem mappings but is not USS/PSS; neither private memory metric was available.",
+      "First 80-second CPU is only four versus six ticks; unknown contemporaneous CLK_TCK and tiny counters prohibit speed/CPU ratio claims.",
+      "Full Rust sample stream has a 69-second observation gap. Short trial cannot demonstrate absence of leaks."
+    ]
+  }
+}
