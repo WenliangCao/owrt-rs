@@ -35,6 +35,16 @@ class PackageBuildTests(unittest.TestCase):
             case.activate_after_transaction('candidate-upgrade')
         self.assertIsNone(report['activation_steps'][0]['command'])
 
+    def test_dns_object_acl_allows_only_the_exact_publish_addition(self):
+        stock = b'{"user":"dnsmasq","publish": [ "dnsmasq" ],"access":{"hotplug.dhcp":{"methods":["call"]}}}'
+        candidate = stock.replace(b'[ "dnsmasq" ]', b'[ "dnsmasq", "dnsmasq.dns" ]')
+        lifecycle.require_acl_contract(stock, candidate, True)
+        lifecycle.require_acl_contract(stock, stock, False)
+        for wrong in (stock, candidate.replace(b'dnsmasq.dns', b'dnsmasq.*'),
+                      candidate.replace(b'"call"', b'"*"'), candidate.replace(b'"user":"dnsmasq"', b'"user":"root"')):
+            with self.assertRaisesRegex(RuntimeError, 'exact dnsmasq.dns'):
+                lifecycle.require_acl_contract(stock, wrong, True)
+
     def test_sigterm_unwinds_sdk_recipe_and_records_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp).resolve(); sdk = root / 'sdk'; active = sdk / 'package/owrt-dnsmasq'

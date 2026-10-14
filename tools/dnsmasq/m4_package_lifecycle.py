@@ -83,6 +83,18 @@ def require_init_contract(stock, candidate, automatic_activation):
         require(candidate == stock, 'candidate changed stock init contract')
 
 
+def require_acl_contract(stock, candidate, dns_object_acl):
+    original = b'"publish": [ "dnsmasq" ]'
+    expanded = b'"publish": [ "dnsmasq", "dnsmasq.dns" ]'
+    if dns_object_acl:
+        require(json.loads(stock).get('user') == 'dnsmasq' and stock.count(original) == 1,
+                'unexpected stock dnsmasq ACL contract')
+        require(candidate == stock.replace(original, expanded),
+                'candidate ACL differs beyond the exact dnsmasq.dns publish object')
+    else:
+        require(candidate == stock, 'candidate changed stock ACL contract')
+
+
 def installed_packages(text):
     """Read the image's installed database, retaining every file's owner."""
     packages = {}
@@ -497,7 +509,11 @@ def execute(args, root, out, report):
         require_init_contract((root / 'etc/init.d/dnsmasq').read_bytes(),
                               (payload / 'etc/init.d/dnsmasq').read_bytes(),
                               args.automatic_activation)
-        for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list", "etc/init.d/dnsmasq"}:
+        require_acl_contract((root / 'usr/share/acl.d/dnsmasq_acl.json').read_bytes(),
+                             (payload / 'usr/share/acl.d/dnsmasq_acl.json').read_bytes(),
+                             args.dns_object_acl)
+        for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list", "etc/init.d/dnsmasq",
+                                     "usr/share/acl.d/dnsmasq_acl.json"}:
             require(candidate_files[path] == stock_files[path], f"candidate changed stock ancillary contract: {path}")
         previous_files = None
         if report.get("previous_package"):
@@ -580,6 +596,8 @@ def main():
     parser.add_argument("--package-release", choices=["2", "3"], default="2")
     parser.add_argument('--automatic-activation', action='store_true',
                         help='Require package transactions to activate the ELF without explicit restart')
+    parser.add_argument('--dns-object-acl', action='store_true',
+                        help='Require only the exact dnsmasq.dns publish addition to the stock ACL')
     parser.add_argument("--previous-apk", type=Path, help="accepted M5 r2 bytes, never rebuild")
     parser.add_argument("--previous-apk-sha256")
     parser.add_argument("--previous-elf-sha256")
@@ -614,6 +632,7 @@ def main():
     root = out / "rootfs-stage/rootfs"
     report = {"status": "failed", "source_commit": args.source_commit,
               "automatic_activation_required": args.automatic_activation,
+              "dns_object_acl_required": args.dns_object_acl,
               "candidate_package_id": package_id(args.package_release), "package_release": args.package_release,
               "previous_package": previous,
               "runner_files": {name: sha256(Path(__file__).with_name(name)) for name in
