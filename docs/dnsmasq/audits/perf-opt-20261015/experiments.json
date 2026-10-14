@@ -82,15 +82,15 @@
     {
       "id": "HOSTS-3d",
       "hypothesis": "Keep per-name count instead of heap vector",
-      "status": "timing-pending",
-      "evidence": "Load -8.47%,presence improved; source-removal +1.48% instructions needs plain five-pair timing",
+      "status": "accepted-screen",
+      "evidence": "Plain five-pair timing 8hosts\u22124.40%/W2.43%,1000\u22129.50%/W1.95%; clone+source-remove+0.42% withinW1.81%,3/5 adverse, no discernible regression",
       "commit": "5c2c985b"
     },
     {
       "id": "DHCP-4",
       "hypothesis": "Borrow publication keys and update already-existing ancestor expiry",
-      "status": "timing-pending",
-      "evidence": "FQDN+short300records alloc1832\u21921234; plain instruction-5.69%",
+      "status": "accepted-screen",
+      "evidence": "150FQDN+short publication plain CPU\u22126.36%,W0.655%,5/5; instr\u22125.69%,alloc1832\u21921234",
       "commit": "745212bb"
     },
     {
@@ -145,8 +145,8 @@
     {
       "id": "METRICS",
       "hypothesis": "Avoid unused metrics/query-event work",
-      "status": "profile-pending",
-      "evidence": "Need actual SDK binary hotspot profile beforeadding gates; historicalcaller shortcuts lacked stable benefit",
+      "status": "rejected",
+      "evidence": "Actual SDK ACK profile metrics0.046%control/0.124%A samples; expected whole daemon benefit below device variation/CPU precision; no extra gates added",
       "commit": ""
     }
   ]
