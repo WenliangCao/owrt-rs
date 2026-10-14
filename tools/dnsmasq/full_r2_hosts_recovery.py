@@ -8,6 +8,8 @@ Default: initial 2000, 30000 replacement rows, VmSize +1024 KiB, three repeats.
 For adjacent boundaries use --initial-rows 1,2000,10000 and
 --headroom-kib 256,512,1024,2048,none (none is the unrestricted control).
 Raw packets, traces, identities and generated files remain in private output.
+With --hostsdir, close-write events replace HUP and traces record source EOF
+and subsequent ENOMEM separately, distinguishing staging from publication.
 """
 import argparse
 import json
@@ -226,12 +228,14 @@ def run(args, side, service, initial, headroom, repeat):
     probes = out / 'probes'
     probes.mkdir()
     root = prepare(args.image_root, None, out / 'stage', args.rust)
-    hosts = root / 'm2/hosts'
+    hosts = root / ('m2/hostsdir/hosts' if args.hostsdir else 'm2/hosts')
+    hosts.parent.mkdir(exist_ok=True)
     write_hosts(hosts, 'old', initial)
     argv = ['-k', '--conf-file=', '--no-resolv', '--no-hosts', '--user=root',
             '--group=root', '--listen-address=127.0.0.1', '--port=15353',
             '--pid-file=/m2/pid', '--host-record=ready.test,192.0.2.41',
-            '--addn-hosts=/m2/hosts', '--log-facility=/dev/null']
+            '--hostsdir=/m2/hostsdir' if args.hostsdir else '--addn-hosts=/m2/hosts',
+            '--log-facility=/dev/null']
     shared = service == 'shared'
     upstream = ExpiryUpstream() if args.cache_expiry else None
     if upstream:
@@ -244,6 +248,7 @@ def run(args, side, service, initial, headroom, repeat):
     result = {'side': side, 'service': service, 'repeat': repeat, 'initial_rows': initial,
               'new_rows': args.new_rows, 'headroom_kib': headroom, 'argv': argv,
               'held_tcp': args.held_tcp, 'cache_expiry': args.cache_expiry,
+              'reload_trigger': 'hostsdir-close-write' if args.hostsdir else 'SIGHUP',
               'pressure_rounds': [], 'passed': False}
     tracer = None
     held = None
@@ -289,8 +294,9 @@ def run(args, side, service, initial, headroom, repeat):
             limit = None if headroom is None else (result['initial_memory']['VmSize'] + headroom) * 1024
             result['limit_bytes'] = limit
             trace_path = out / 'syscalls'
-            tracer = subprocess.Popen(['strace', '-f', '-qq', '-p', str(proc.pid),
-                '-e', 'trace=memory,tgkill', '-o', str(trace_path)],
+            trace_calls = 'memory,tgkill,read,close' if args.hostsdir else 'memory,tgkill'
+            tracer = subprocess.Popen(['strace', '-f', '-qq', '-yy', '-p', str(proc.pid),
+                '-e', f'trace={trace_calls}', '-o', str(trace_path)],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(.1)
             assert tracer.poll() is None, 'strace did not attach'
@@ -309,9 +315,25 @@ def run(args, side, service, initial, headroom, repeat):
                     assert hup_cache['has_expected_address'], 'pre-HUP cache prime failed'
                     upstream.address = ('198.51.100.13' if cached_address != '198.51.100.13'
                                         else '198.51.100.12')
+                trace_start = trace_path.stat().st_size
                 write_hosts(hosts, prefix, args.new_rows)
-                proc.send_signal(signal.SIGHUP)
+                if not args.hostsdir:
+                    proc.send_signal(signal.SIGHUP)
                 time.sleep(args.settle_seconds)
+                # Capture before DNS/DHCP probes, whose allocations must not
+                # be mistaken for failures while publishing the new source.
+                update_trace = trace_path.read_bytes()[trace_start:].decode(errors='replace')
+                source_trace = None
+                if args.hostsdir:
+                    lines = update_trace.splitlines()
+                    eof = [index for index, line in enumerate(lines)
+                           if 'read(' in line and '/m2/hostsdir/hosts>' in line
+                           and line.endswith('= 0')]
+                    source_trace = {
+                        'source_eof_count': len(eof),
+                        'enomem_count': update_trace.count('ENOMEM'),
+                        'enomem_after_source_eof': sum('ENOMEM' in line
+                            for line in lines[eof[0] + 1:]) if eof else 0}
                 names = sample_names(initial, args.new_rows, prefixes)
                 if shared:
                     names['lease.test'] = '127.0.0.30'
@@ -321,6 +343,8 @@ def run(args, side, service, initial, headroom, repeat):
                 observation = service_probe(proc, probes, f'pressure{generation}', names,
                                             shared, 0x74131001 + generation, held, old_names)
                 observation.update(generation=generation, prefix=prefix, hosts_sha256=sha256(hosts))
+                if source_trace is not None:
+                    observation['source_trace'] = source_trace
                 if hup_cache:
                     observation['unexpired_cache_before_hup'] = hup_cache
                     observation['hup_cache_purged'] = {
@@ -337,7 +361,8 @@ def run(args, side, service, initial, headroom, repeat):
             result['after_release_no_hup']['hosts_samples'] = hosts_sample_state(
                 result['after_release_no_hup'], initial, args.new_rows, prefixes)
             hosts.write_text('192.0.2.44 recovered.test\n')
-            proc.send_signal(signal.SIGHUP)
+            if not args.hostsdir:
+                proc.send_signal(signal.SIGHUP)
             # Readiness requires the replacement name, not the unchanged ready host.
             result['recovery_ready'] = wait_ready(
                 proc, probes, 'recovered.test', '192.0.2.44', 'recovery-readiness')
@@ -380,6 +405,10 @@ def run(args, side, service, initial, headroom, repeat):
                     state['complete_sample_generation'] == 'recovered'
                     for state in result['recovered']['hosts_samples'].values())
                 result['passed'] &= result['rust_atomic_samples']
+                result['rust_tcp_atomic_samples'] = all(
+                    row['hosts_samples']['tcp']['complete_sample_generation'] is not None
+                    for row in (*result['pressure_rounds'], result['after_release_no_hup']))
+                result['passed'] &= result['rust_tcp_atomic_samples']
             if args.held_tcp:
                 result['held_tcp_snapshot_stable'] = all(row['held_tcp_snapshot_stable'] for row in (
                     *result['pressure_rounds'], result['after_release_no_hup'], result['recovered']))
@@ -437,8 +466,12 @@ def main():
                         help='separate boundary: retain a pre-limit TCP view across HUPs; changes warmup')
     parser.add_argument('--cache-expiry', action='store_true',
                         help='separate boundary: TTL=2 upstream cache and post-expiry address change')
+    parser.add_argument('--hostsdir', action='store_true',
+                        help='replace addn-hosts/HUP with hostsdir close-write updates; no SIGHUP is sent')
     parser.add_argument('--settle-seconds', type=float, default=2)
     args = parser.parse_args()
+    if args.hostsdir and args.cache_expiry:
+        parser.error('--hostsdir cannot be combined with the HUP cache-expiry scenario')
     initial_rows = [int(value) for value in args.initial_rows.split(',')]
     headrooms = [None if value == 'none' else int(value) for value in args.headroom_kib.split(',')]
     services, sides = args.services.split(','), args.sides.split(',')
