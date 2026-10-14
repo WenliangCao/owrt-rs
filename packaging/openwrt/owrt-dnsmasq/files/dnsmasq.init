@@ -1274,7 +1274,10 @@ dnsmasq_start()
 	[ -n "$instance_ifc" ] && network_get_device instance_netdev "$instance_ifc" &&
 		[ -n "$instance_netdev" ] && procd_set_param netdev $instance_netdev
 
-	procd_add_jail dnsmasq ubus log
+	# Bind the socket directory so an ubusd restart can replace ubus.sock.
+	# The ubus jail shortcut pins the old socket inode until dnsmasq restarts.
+	procd_add_jail dnsmasq log
+	procd_add_jail_mount /var/run/ubus
 	procd_add_jail_mount $CONFIGFILE $DHCPBOGUSHOSTNAMEFILE $DHCPSCRIPT $DHCPSCRIPT_DEPENDS
 	procd_add_jail_mount $EXTRA_MOUNT $RFC6761FILE $TRUSTANCHORSFILE
 	procd_add_jail_mount $dnsmasqconffile $dnsmasqconfdir $resolvdir $user_dhcpscript

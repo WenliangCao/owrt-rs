@@ -14,8 +14,8 @@ use std::time::{Duration, Instant};
 /// Exact OpenWrt patch 200's per-record synchronous notification budget.
 pub const DNS_NOTIFY_TIMEOUT: Duration = Duration::from_millis(100);
 
-/// C retries an absent transport after a main-loop wakeup; registration errors
-/// disable the integration. Keep those two failure boundaries distinguishable.
+/// Startup registration errors remain fatal. The running daemon retries both
+/// failure kinds without retaining connection-local object or type IDs.
 #[derive(Debug)]
 pub enum ConnectError {
     Transport(io::Error),
@@ -74,16 +74,42 @@ impl UbusService {
 
     /// The configuration parser preserves arbitrary non-NUL name bytes.
     pub fn connect_bytes(socket: Option<&str>, name: &[u8]) -> Result<Self, ConnectError> {
+        Self::connect_bytes_interruptible(socket, name, None)
+    }
+
+    /// Runtime reconnection shares a short budget across HELLO and both
+    /// registrations, so a stalled bus cannot repeatedly block DNS/DHCP for
+    /// seconds. The cancellation callback also bounds shutdown latency.
+    pub fn connect_bytes_interruptible(
+        socket: Option<&str>,
+        name: &[u8],
+        cancelled: Option<fn() -> bool>,
+    ) -> Result<Self, ConnectError> {
         let name = c_string(name);
         let mut dns_name = name.to_vec();
         dns_name.extend_from_slice(b".dns");
-        let mut connection = Connection::connect(socket).map_err(ConnectError::Transport)?;
+        let deadline = cancelled.map(|_| Instant::now() + Duration::from_millis(100));
+        let mut connection = match cancelled {
+            Some(cancelled) => Connection::connect_interruptible(
+                socket, deadline.unwrap(), cancelled,
+            ),
+            None => Connection::connect(socket),
+        }.map_err(ConnectError::Transport)?;
         connection.set_server_io_timeout(Duration::from_millis(100));
+        let registration_timeout = || -> Result<i32, ConnectError> {
+            match deadline {
+                None => Ok(1000),
+                Some(deadline) => deadline.checked_duration_since(Instant::now())
+                    // Zero means unlimited to libubus; round up instead.
+                    .map(|left| left.as_millis().saturating_add(1) as i32)
+                    .ok_or_else(|| ConnectError::Registration(io::Error::from(io::ErrorKind::TimedOut))),
+            }
+        };
         let main_id = connection
-            .add_object_bytes(name, &[("metrics", &[])], 1000)
+            .add_object_bytes(name, &[("metrics", &[])], registration_timeout()?)
             .map_err(ConnectError::Registration)?;
         let dns_id = connection
-            .add_object_bytes(&dns_name, &[], 1000)
+            .add_object_bytes(&dns_name, &[], registration_timeout()?)
             .map_err(ConnectError::Registration)?;
         Ok(Self {
             connection,

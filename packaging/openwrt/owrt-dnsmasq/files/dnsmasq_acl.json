@@ -1,6 +1,6 @@
 {
 	"user": "dnsmasq",
-	"publish": [ "dnsmasq" ],
+	"publish": [ "dnsmasq", "dnsmasq.dns" ],
 	"access": {
 		"hotplug.dhcp": {
 			"methods": [ "call" ]
