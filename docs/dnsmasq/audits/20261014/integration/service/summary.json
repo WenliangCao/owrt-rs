@@ -1,0 +1,298 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+  "tool": {
+    "path": "tools/dnsmasq/audit_integration_service.py",
+    "sha256": "678d0034c03e72593efcb8bd3aa527cad42785196668768446fc8f7f2d288f35"
+  },
+  "scope": "Unmodified exact-image init, procd, ujail, ubusd, netifd; synthetic isolated service fixture. Boot hook and explicit service.event are tested, not a full system boot. No physical router access. No product changes.",
+  "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+  "rust_binary": "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+  "kernel": "6.17.0-1020-oracle",
+  "artifacts": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+    "init": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+    "procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+    "ujail": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+    "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90"
+  },
+  "raw_files": {
+    "c-final": {
+      "result.json": "b8a04637b5624e6d3698bbb35bb9b288a97e601cd6a9de3e8af4be5881f8cbf7",
+      "commands.json": "a310e9981d6ce7a2b25423f1bf4ce216136cbb39fdcb9e9e882fdf85805fbef7",
+      "rootfs-identity.json": "170be1a70026286e74c91cbe4f8ea9a0784b2e8aa3ce15208f906c9a4e98d9b5",
+      "plan.json": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038"
+    },
+    "rust-final": {
+      "result.json": "f8069e992c60038c01fb7dfa048132acd77600f004bc989d44b48a77850a68f7",
+      "commands.json": "35134ff2ab865de4d0554b64f6dd9c60945d096a75da816a085f7ba20df2b295",
+      "rootfs-identity.json": "52d64bc05a49a3b898c880133e71059a23c02006e1be068c15a522407297e010",
+      "plan.json": "5e91c8a782156227175974ebdb9305eb40a53c440f4ece0160523b910442694c"
+    }
+  },
+  "results": {
+    "c": {
+      "raw_directory": "/home/ubuntu/dnsmasq-predeploy-b-service-20261014/private/c-final",
+      "passed_management_steps": true,
+      "management_steps": {
+        "boot_before_netifd": {
+          "ok": true,
+          "seconds": 0.501
+        },
+        "explicit_interface_event_after_boot": {
+          "ok": true,
+          "seconds": 1.103
+        },
+        "init_start": {
+          "ok": true,
+          "seconds": 0.0
+        },
+        "init_reload_hosts": {
+          "ok": true,
+          "seconds": 0.0
+        },
+        "changed_config_reload": {
+          "ok": true,
+          "seconds": 0.0
+        },
+        "SIGKILL_recovery": {
+          "ok": true,
+          "seconds": 5.051
+        },
+        "SIGTERM_recovery": {
+          "ok": true,
+          "seconds": 5.05
+        },
+        "SIGCONT_health": {
+          "ok": true,
+          "seconds": 0.0
+        },
+        "init_stop": {
+          "ok": true,
+          "seconds": 0.004
+        }
+      },
+      "identity": {
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "init_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+        "proc_mounted": false
+      },
+      "boot_has_dhcp_range": false,
+      "event_generates_dhcp_range": true,
+      "reload_keeps_actual_pid": true,
+      "config_change_restarts_actual_pid": true,
+      "SIGSTOP_after_6s": {
+        "same_pid": true,
+        "dns_responded": false,
+        "procd_running": true,
+        "watchdog": null,
+        "respawn": {
+          "threshold": 3600,
+          "timeout": 5,
+          "retry": 5
+        }
+      },
+      "stop": {
+        "daemon_absent": true,
+        "service_absent": true,
+        "pidfile": null
+      },
+      "rapid_kills": [
+        {
+          "n": 1,
+          "restarted": true,
+          "seconds": 5.046
+        },
+        {
+          "n": 2,
+          "restarted": true,
+          "seconds": 5.063
+        },
+        {
+          "n": 3,
+          "restarted": true,
+          "seconds": 5.053
+        },
+        {
+          "n": 4,
+          "restarted": true,
+          "seconds": 5.049
+        },
+        {
+          "n": 5,
+          "restarted": true,
+          "seconds": 5.048
+        },
+        {
+          "n": 6,
+          "restarted": false,
+          "seconds": 7.066
+        }
+      ],
+      "after_crash_loop": {
+        "daemon_absent": true,
+        "running": false,
+        "exit_code": 9,
+        "respawn_present": false,
+        "pidfile": "1\n"
+      }
+    },
+    "rust": {
+      "raw_directory": "/home/ubuntu/dnsmasq-predeploy-b-service-20261014/private/rust-final",
+      "passed_management_steps": true,
+      "management_steps": {
+        "boot_before_netifd": {
+          "ok": true,
+          "seconds": 0.501
+        },
+        "explicit_interface_event_after_boot": {
+          "ok": true,
+          "seconds": 1.103
+        },
+        "init_start": {
+          "ok": true,
+          "seconds": 0.0
+        },
+        "init_reload_hosts": {
+          "ok": true,
+          "seconds": 0.0
+        },
+        "changed_config_reload": {
+          "ok": true,
+          "seconds": 0.501
+        },
+        "SIGKILL_recovery": {
+          "ok": true,
+          "seconds": 5.015
+        },
+        "SIGTERM_recovery": {
+          "ok": true,
+          "seconds": 5.014
+        },
+        "SIGCONT_health": {
+          "ok": true,
+          "seconds": 0.006
+        },
+        "init_stop": {
+          "ok": true,
+          "seconds": 0.006
+        }
+      },
+      "identity": {
+        "elf_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "init_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+        "proc_mounted": false
+      },
+      "boot_has_dhcp_range": false,
+      "event_generates_dhcp_range": true,
+      "reload_keeps_actual_pid": true,
+      "config_change_restarts_actual_pid": true,
+      "SIGSTOP_after_6s": {
+        "same_pid": true,
+        "dns_responded": false,
+        "procd_running": true,
+        "watchdog": null,
+        "respawn": {
+          "threshold": 3600,
+          "timeout": 5,
+          "retry": 5
+        }
+      },
+      "stop": {
+        "daemon_absent": true,
+        "service_absent": true,
+        "pidfile": null
+      },
+      "rapid_kills": [
+        {
+          "n": 1,
+          "restarted": true,
+          "seconds": 5.02
+        },
+        {
+          "n": 2,
+          "restarted": true,
+          "seconds": 5.016
+        },
+        {
+          "n": 3,
+          "restarted": true,
+          "seconds": 5.017
+        },
+        {
+          "n": 4,
+          "restarted": true,
+          "seconds": 5.016
+        },
+        {
+          "n": 5,
+          "restarted": true,
+          "seconds": 5.014
+        },
+        {
+          "n": 6,
+          "restarted": false,
+          "seconds": 7.057
+        }
+      ],
+      "after_crash_loop": {
+        "daemon_absent": true,
+        "running": false,
+        "exit_code": 9,
+        "respawn_present": false,
+        "pidfile": "1\n"
+      }
+    }
+  },
+  "machine": "aarch64",
+  "rootfs_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+  "discarded_fixture_runs": [
+    {
+      "names": [
+        "c-normal",
+        "rust-normal"
+      ],
+      "reason": "Audit fixture used UCI option address instead of list; not a daemon defect. Corrected to add_list."
+    },
+    {
+      "names": [
+        "c-boot-v2",
+        "c-fresh-v3",
+        "rust-fresh-v3"
+      ],
+      "reason": "Incorrect external ubus send injection is not procd service.event; cannot represent netifd notification/full boot. Final harness uses service.event and passes."
+    }
+  ],
+  "limits": [
+    "Not complete PID-1 OpenWrt boot or AX3000T kernel/hardware/Wi-Fi.",
+    "Uses synthetic UCI and local DNS answer; no DHCP DORA in this service subset.",
+    "Not apk install/rollback; Rust ELF copied only into disposable overlay.",
+    "SIGKILL models fatal exit and OOM-kill exit notification, not genuine memory exhaustion.",
+    "SIGSTOP observation is six seconds; cutoff observation is seven seconds after sixth kill, supported by procd state lacking respawn and its source.",
+    "All raw logs/configs/ELFs retained privately; committed JSON excludes raw logs and device data."
+  ],
+  "reproduction": {
+    "cwd": "oracle",
+    "argv": [
+      "sudo",
+      "-n",
+      "env",
+      "PYTHONPATH=/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-predeploy-b-service-20261014/audit_integration_service.py",
+      "--image-root",
+      "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+      "--rust-binary",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+      "--implementation",
+      "<c|rust>",
+      "--output",
+      "<fresh path containing private>"
+    ]
+  }
+}

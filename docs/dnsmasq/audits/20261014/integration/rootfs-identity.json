@@ -1,0 +1,49 @@
+{
+  "audit_head": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+  "inputs_verified": 178,
+  "image_sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+  "squashfs_sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc",
+  "rootfs": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+  "all_image_files_and_symlinks_match": true,
+  "shared_extraction_extras": {
+    "tmp/r131-ubusd": {
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a"
+    },
+    "tmp/r134-ubusd": {
+      "sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0"
+    }
+  },
+  "clean_rootfs": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+  "regular_files": 881,
+  "symlinks": 213,
+  "rootfs_manifest_sha256": "416fd390b5aa1bef4e9f4204753c2d24522a00f77ea104b6108f321c9dd58aff",
+  "selected": {
+    "usr/sbin/dnsmasq": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "etc/init.d/dnsmasq": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+    "etc/init.d/odhcpd": "4d59c3687e7cacee9e7b82ba9433fa815aafeb8f94af4c6926993653009e0fa4",
+    "lib/functions.sh": "9517db82e694624559c41f3773f3f18bf5d3cd1b0ffc41bfb514fa2c08d08062",
+    "lib/functions/procd.sh": "496d6c5246390db3c514ca1dc9c34305f5806fb59cc627127072617ffd0719e1",
+    "etc/rc.common": "dd8ae95c78d10cccf78cb487874f163ace4c1ee14dace05fe28393b19ba639e4",
+    "sbin/procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+    "sbin/ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "sbin/ujail": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+    "sbin/logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+    "sbin/rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+    "usr/sbin/odhcpd": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
+    "usr/share/acl.d/dnsmasq_acl.json": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "usr/lib/dnsmasq/dhcp-script.sh": "62c292e28a1d595b5eff38fcc26170ac9c7036b9631362accaa5983a4e37cf26",
+    "lib/apk/db/installed": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341"
+  },
+  "rust": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+    "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+    "bytes": 2056672
+  },
+  "reference": {
+    "path": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93",
+    "identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "files_verified": 148,
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb"
+  },
+  "scope": "File contents and symlinks; no device state or kernel execution verified."
+}

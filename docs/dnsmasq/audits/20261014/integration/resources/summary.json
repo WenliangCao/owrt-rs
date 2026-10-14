@@ -1,0 +1,1225 @@
+{
+  "scope": "Exact-image isolated process resource audit; synthetic data only; no router state or private observations.",
+  "kernel": "6.17.0-1020-oracle aarch64",
+  "source_commit": "58365e8c",
+  "driver": {
+    "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/tools/audit_integration_resources.py",
+    "sha256": "df8ba4b90e7d2879701acd082de0953b86bc47e56113fdf4695eb2890c511361",
+    "bytes": 7598
+  },
+  "fresh_rootfs": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+  "primary": {
+    "manifest": {
+      "source_commit": "58365e8c",
+      "rust_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "driver_sha256": "df8ba4b90e7d2879701acd082de0953b86bc47e56113fdf4695eb2890c511361",
+      "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+      "argv": [
+        "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/tools/audit_integration_resources.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--rust-sha256",
+        "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "--source-commit",
+        "58365e8c",
+        "--output",
+        "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources"
+      ]
+    },
+    "result": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/result.json",
+      "sha256": "3f31fb846db95b57f851a9b582a488aeeda74664a7725a90cfa0b30a46c6dc4b",
+      "bytes": 20439
+    },
+    "observations": [
+      {
+        "side": "c",
+        "kind": "memory",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-facility=/dev/null"
+        ],
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1128
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "limit_bytes": 2412544,
+        "after_reload_exit": null,
+        "during_pressure_attempts": [
+          {
+            "ok": false,
+            "error": "TimeoutError('timed out')"
+          },
+          {
+            "ok": false,
+            "error": "TimeoutError('timed out')"
+          },
+          {
+            "ok": false,
+            "error": "TimeoutError('timed out')"
+          },
+          {
+            "ok": true,
+            "reply": {
+              "id": 29714,
+              "flags": 34176,
+              "questions": [
+                [
+                  "ready.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "ready.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.41"
+                }
+              ]
+            }
+          }
+        ],
+        "during_pressure": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "last_host": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 33157,
+            "questions": [
+              [
+                "h029999.test",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          }
+        },
+        "pressure_status": {
+          "VmPeak": 2332,
+          "VmSize": 2332,
+          "VmRSS": 2060
+        },
+        "recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "recovered.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "exit": 0,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/memory-c/syscalls.log",
+          "sha256": "3a63ad3d1bedb4dd8e6819ad9ade37a7863f044c72dc28eb5c2ddf1f864799d2",
+          "bytes": 2397932,
+          "fault_count": 20455,
+          "first_fault": [
+            "12    mmap(NULL, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)"
+          ],
+          "abort_lines": []
+        }
+      },
+      {
+        "side": "rust",
+        "kind": "memory",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-facility=/dev/null"
+        ],
+        "binary_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "initial": {
+          "VmPeak": 2316,
+          "VmSize": 2316,
+          "VmRSS": 1964
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "limit_bytes": 3420160,
+        "after_reload_exit": -6,
+        "during_pressure_attempts": [
+          {
+            "ok": false,
+            "error": "TimeoutError('timed out')"
+          }
+        ],
+        "during_pressure": {
+          "ok": false,
+          "error": "TimeoutError('timed out')"
+        },
+        "last_host": {
+          "ok": false,
+          "error": "TimeoutError('timed out')"
+        },
+        "before_stop_exit": -6,
+        "exit": -6,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/memory-rust/syscalls.log",
+          "sha256": "a4d019ffc1a007f27518958d6f5b287994c676a571a296b998e8e53cfe8b0f5d",
+          "bytes": 5835,
+          "fault_count": 1,
+          "first_fault": [
+            "25    mmap(NULL, 401436, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)"
+          ],
+          "abort_lines": [
+            "25    --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=25, si_uid=0} ---",
+            "25    +++ killed by SIGABRT (core dumped) +++"
+          ]
+        }
+      },
+      {
+        "side": "c",
+        "kind": "fd",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-facility=/dev/null"
+        ],
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1132
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "limit": 11,
+        "fds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "tcp_pressure": {
+          "ok": false,
+          "error": "TimeoutError('timed out')"
+        },
+        "udp_pressure": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "tcp_recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "udp_recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "exit": 0,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/fd-c/syscalls.log",
+          "sha256": "cdb23907df6a970093944ba22d85e35a93510d7548834177d0564384ec75bf29",
+          "bytes": 505442,
+          "fault_count": 6821,
+          "first_fault": [
+            "38    accept(5, NULL, NULL)             = -1 EMFILE (Too many open files)"
+          ],
+          "abort_lines": []
+        }
+      },
+      {
+        "side": "rust",
+        "kind": "fd",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-facility=/dev/null"
+        ],
+        "binary_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "initial": {
+          "VmPeak": 2316,
+          "VmSize": 2316,
+          "VmRSS": 2072
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "limit": 12,
+        "fds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "tcp_pressure": {
+          "ok": false,
+          "error": "TimeoutError('timed out')"
+        },
+        "udp_pressure": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "tcp_recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "udp_recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "exit": 0,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/fd-rust/syscalls.log",
+          "sha256": "1607ac1dbb0622926ca0cb9c05058abd71678d5c1fba48690e392a5cc067b4ef",
+          "bytes": 563643,
+          "fault_count": 6391,
+          "first_fault": [
+            "53    accept4(7, 0xfffff6b24490, [128], SOCK_CLOEXEC) = -1 EMFILE (Too many open files)"
+          ],
+          "abort_lines": []
+        }
+      },
+      {
+        "side": "c",
+        "kind": "logblocked",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-async=25",
+          "--log-queries"
+        ],
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1128
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "queries": {
+          "sent": 300,
+          "answered": 300
+        },
+        "blocked_packets": 11,
+        "recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "forced": true,
+        "exit": -9,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/logblocked-c/syscalls.log",
+          "sha256": "0afa1dba7b9a064417ff16eb4c0406bfe61eb2336add4937909bc7878fdc1718",
+          "bytes": 590,
+          "fault_count": 0,
+          "first_fault": [],
+          "abort_lines": []
+        }
+      },
+      {
+        "side": "rust",
+        "kind": "logblocked",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-async=25",
+          "--log-queries"
+        ],
+        "binary_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "initial": {
+          "VmPeak": 2320,
+          "VmSize": 2316,
+          "VmRSS": 2100
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "queries": {
+          "sent": 300,
+          "answered": 300
+        },
+        "blocked_packets": 11,
+        "recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "exit": 0,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-resources/logblocked-rust/syscalls.log",
+          "sha256": "fa059117d15448ed49840d58f3f0cab3cfb9018f49c7916b552f1948b85ed1cc",
+          "bytes": 1962,
+          "fault_count": 0,
+          "first_fault": [],
+          "abort_lines": []
+        }
+      }
+    ]
+  },
+  "memory_negative_control": {
+    "manifest": {
+      "source_commit": "58365e8c",
+      "rust_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "driver_sha256": "df8ba4b90e7d2879701acd082de0953b86bc47e56113fdf4695eb2890c511361",
+      "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+      "argv": [
+        "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/tools/audit_integration_resources.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--rust-sha256",
+        "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "--source-commit",
+        "58365e8c",
+        "--output",
+        "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-memory-control",
+        "--kinds",
+        "memory",
+        "--memory-headroom-mib",
+        "0"
+      ]
+    },
+    "result": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-memory-control/result.json",
+      "sha256": "81b4f8541e6b2f51f3500575eca933d029f5296a7fd47eac08517c880af3ca5c",
+      "bytes": 6285
+    },
+    "observations": [
+      {
+        "side": "c",
+        "kind": "memory",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-facility=/dev/null"
+        ],
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1128
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "limit_bytes": null,
+        "after_reload_exit": null,
+        "during_pressure_attempts": [
+          {
+            "ok": true,
+            "reply": {
+              "id": 29714,
+              "flags": 34176,
+              "questions": [
+                [
+                  "ready.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "ready.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.41"
+                }
+              ]
+            }
+          }
+        ],
+        "during_pressure": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "last_host": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "h029999.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "h029999.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.250"
+              }
+            ]
+          }
+        },
+        "pressure_status": {
+          "VmPeak": 4264,
+          "VmSize": 4264,
+          "VmRSS": 4044
+        },
+        "recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "recovered.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "exit": 0,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-memory-control/memory-c/syscalls.log",
+          "sha256": "24962afcf1c6b26525a1fb3b6242456653bb8966d5be39b057e56423d588e560",
+          "bytes": 8790,
+          "fault_count": 0,
+          "first_fault": [],
+          "abort_lines": []
+        }
+      },
+      {
+        "side": "rust",
+        "kind": "memory",
+        "argv": [
+          "-k",
+          "--conf-file=",
+          "--no-resolv",
+          "--no-hosts",
+          "--no-ping",
+          "--user=root",
+          "--group=root",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--pid-file=/m2/pid",
+          "--host-record=ready.test,192.0.2.41",
+          "--addn-hosts=/m2/hosts",
+          "--log-facility=/dev/null"
+        ],
+        "binary_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+        "initial": {
+          "VmPeak": 2316,
+          "VmSize": 2316,
+          "VmRSS": 2072
+        },
+        "ready": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "limit_bytes": null,
+        "after_reload_exit": null,
+        "during_pressure_attempts": [
+          {
+            "ok": true,
+            "reply": {
+              "id": 29714,
+              "flags": 34176,
+              "questions": [
+                [
+                  "ready.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "ready.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.41"
+                }
+              ]
+            }
+          }
+        ],
+        "during_pressure": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "ready.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ]
+          }
+        },
+        "last_host": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "h029999.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "h029999.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.250"
+              }
+            ]
+          }
+        },
+        "pressure_status": {
+          "VmPeak": 16368,
+          "VmSize": 16368,
+          "VmRSS": 15952
+        },
+        "recovered": {
+          "ok": true,
+          "reply": {
+            "id": 29714,
+            "flags": 34176,
+            "questions": [
+              [
+                "recovered.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ]
+          }
+        },
+        "before_stop_exit": null,
+        "exit": 0,
+        "stderr": "",
+        "trace": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/final-memory-control/memory-rust/syscalls.log",
+          "sha256": "88211accdb0c756fd81115cab6c991b1e1c68c6d4096a132aa4ec88958f308aa",
+          "bytes": 39723,
+          "fault_count": 0,
+          "first_fault": [],
+          "abort_lines": []
+        }
+      }
+    ]
+  },
+  "lease": {
+    "result": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/private/lease/result.json",
+      "sha256": "688b9154643e749529aeaacd10a1f4591bb3040113ee72bac1deb4032060e70f",
+      "bytes": 15791
+    },
+    "driver": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-resources-20261014/tools/m5_lease_recovery.py",
+      "sha256": "d853d726a3003da10349e0180a1115ffef88d28103bf0bfd623b36afc6bb6189",
+      "bytes": 39772
+    },
+    "scenarios": [
+      {
+        "failures": [],
+        "id": "create-missing"
+      },
+      {
+        "failures": [],
+        "id": "missing-parent"
+      },
+      {
+        "failures": [],
+        "id": "permission"
+      },
+      {
+        "failures": [],
+        "id": "readonly-fs"
+      },
+      {
+        "failures": [],
+        "id": "held-inode"
+      },
+      {
+        "failures": [],
+        "id": "restart"
+      },
+      {
+        "failures": [],
+        "id": "write-failure"
+      }
+    ],
+    "all_failures": [],
+    "full_family_closed": false,
+    "note": "Only seven selected cases, not the full M5 family; stock image tree has two unrelated tmp experiment ELFs, all image files/links independently matched by main audit.",
+    "write_failure": {
+      "c": {
+        "ready": true,
+        "exit": 0,
+        "diagnostics": [
+          "failed to write /m2/storage/leases: No space left on device (retry in 60 s)"
+        ],
+        "retry_delay": 59.7665421909187
+      },
+      "rust": {
+        "ready": true,
+        "exit": 0,
+        "diagnostics": [
+          "failed to write /m2/storage/leases: No space left on device (retry in 60 s)"
+        ],
+        "retry_delay": 59.82289860607125
+      }
+    }
+  },
+  "boundaries": [
+    "RLIMIT_AS induces deterministic runtime ENOMEM; this is not a physical-router memory-load or kernel-OOM-killer probability measurement.",
+    "The traced C reload also transiently times out three 300-ms probes and omits hosts after memory exhaustion; it remains alive and answers ready.test before the limit is removed.",
+    "The memory probe uses a 30000-record addn-hosts update and SIGHUP; no claim that factory config or current client count triggers this condition.",
+    "Logblocked uses log-async=25 and log-queries plus an undrained synthetic AF_UNIX datagram socket, not a real logd outage.",
+    "C log shutdown exceeded the 2-second harness deadline and was killed by the harness, not by procd. Rust exited normally; source bounds the final log flush to 100 ms.",
+    "No memory cgroup, system-wide overcommit/OOM, physical flash ENOSPC or power-cut testing; lease ENOSPC is a real 4096-byte private tmpfs.",
+    "No new package, procd, ubus or router recovery conclusions are asserted by this subtask.",
+    "log-async=25 is an explicit test fixture, not the stock image default. The measured C stop bound is >2 seconds only; no claim of permanent hang."
+  ],
+  "logging_defaults": {
+    "fixture_options": [
+      "--log-async=25",
+      "--log-queries"
+    ],
+    "is_image_default": false,
+    "evidence_files": {
+      "etc/init.d/dnsmasq": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+      "etc/dnsmasq.conf": "1e6ab19c1ae5e70d609ac7b6246541d52042e4dee1892f825266507ef52d7dfd",
+      "etc/config/dhcp": "a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb"
+    },
+    "image_observation": "None of the three files contains log-async or logasync. init line 990 maps configured logqueries to --log-queries=extra.",
+    "shutdown_tail_loss": "Not directly measured: both final captures contain 22 records, and no exiting-on-SIGTERM message was captured; the driver does not drain the synthetic socket after stop. Rust tail loss after its 100ms limit is a source-based possibility, not an identified lost record."
+  }
+}

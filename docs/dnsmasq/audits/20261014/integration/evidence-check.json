@@ -1,0 +1,9 @@
+{
+  "checked_at": "2026-10-14T09:19:32.434894+00:00",
+  "checked": 410,
+  "mismatches": [],
+  "remaining_task_processes": [],
+  "remaining_task_mounts": [],
+  "evidence_manifest_sha256": "70b27f00cd1b4452c27f3b5dfcd76263e5822cbd0dae0f3be2b3e972176513ca",
+  "first_check_correction": "Initial closeout constructed a wrong service-tool path (/tools/); corrected to the actual reproduction argv. No artifact-content mismatch was observed."
+}

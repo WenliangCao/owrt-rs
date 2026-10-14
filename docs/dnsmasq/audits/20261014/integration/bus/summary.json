@@ -1,0 +1,1156 @@
+{
+  "audit": "B integration UBus/LuCI/odhcpd",
+  "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+  "oracle_workspace": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014",
+  "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check",
+  "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_elf_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+  "components_source_aggregate_sha256": "82e42e0db0e81868ab733db4c9b765109af5271dd2c20e6a4d4e711da604ae54",
+  "source_aggregate_method": "sorted components file path, NUL, contents; excludes target directory; identical local main and reused build source",
+  "patched_c_ubus_source": {
+    "path": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93/src/ubus.c",
+    "sha256": "b3b50a4c9146de991f1eed49ee07ee3b76f5296b0118c66ca232f9437babd479"
+  },
+  "reconnect": {
+    "stock-dnsmasq-user-c": {
+      "initial_registered": true,
+      "initial_objects": "'dnsmasq' @05335ca2\n\t\"metrics\":{}\n'dnsmasq.dns' @f7fdef0e\n",
+      "socket_initial": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "socket_restarted": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "objects_after_bus_restart": "",
+      "registered_after_bus_restart": false,
+      "dns_alive_after_bus_restart": true,
+      "dns_answer_before_bus_recovery": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "dns_answer_after_bus_restart": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "daemon_restart_recovers_both_objects": true,
+      "acl": {
+        "user": "dnsmasq",
+        "publish": [
+          "dnsmasq"
+        ],
+        "access": {
+          "hotplug.dhcp": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.neigh": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.tftp": {
+            "methods": [
+              "call"
+            ]
+          }
+        }
+      }
+    },
+    "stock-dnsmasq-user-rust": {
+      "initial_registered": true,
+      "initial_objects": "'dnsmasq' @7deca599\n\t\"metrics\":{}\n'dnsmasq.dns' @e6063e7a\n",
+      "socket_initial": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "socket_restarted": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "objects_after_bus_restart": "",
+      "registered_after_bus_restart": false,
+      "dns_alive_after_bus_restart": true,
+      "dns_answer_before_bus_recovery": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "dns_answer_after_bus_restart": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "daemon_restart_recovers_both_objects": true,
+      "acl": {
+        "user": "dnsmasq",
+        "publish": [
+          "dnsmasq"
+        ],
+        "access": {
+          "hotplug.dhcp": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.neigh": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.tftp": {
+            "methods": [
+              "call"
+            ]
+          }
+        }
+      }
+    },
+    "root-user-control-c": {
+      "initial_registered": true,
+      "initial_objects": "'dnsmasq' @d136df4d\n\t\"metrics\":{}\n'dnsmasq.dns' @a72b9b13\n",
+      "socket_initial": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "socket_restarted": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "objects_after_bus_restart": "'dnsmasq' @95676348\n\t\"metrics\":{}\n",
+      "registered_after_bus_restart": true,
+      "dns_alive_after_bus_restart": true,
+      "dns_answer_before_bus_recovery": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "dns_answer_after_bus_restart": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "daemon_restart_recovers_both_objects": true,
+      "acl": {
+        "user": "dnsmasq",
+        "publish": [
+          "dnsmasq"
+        ],
+        "access": {
+          "hotplug.dhcp": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.neigh": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.tftp": {
+            "methods": [
+              "call"
+            ]
+          }
+        }
+      }
+    },
+    "root-user-control-rust": {
+      "initial_registered": true,
+      "initial_objects": "'dnsmasq' @11bf917e\n\t\"metrics\":{}\n'dnsmasq.dns' @c9a88a66\n",
+      "socket_initial": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "socket_restarted": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "objects_after_bus_restart": "'dnsmasq' @f22e0fac\n\t\"metrics\":{}\n'dnsmasq.dns' @20a7f017\n",
+      "registered_after_bus_restart": true,
+      "dns_alive_after_bus_restart": true,
+      "dns_answer_before_bus_recovery": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "dns_answer_after_bus_restart": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "daemon_restart_recovers_both_objects": true,
+      "acl": {
+        "user": "dnsmasq",
+        "publish": [
+          "dnsmasq"
+        ],
+        "access": {
+          "hotplug.dhcp": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.neigh": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.tftp": {
+            "methods": [
+              "call"
+            ]
+          }
+        }
+      }
+    },
+    "acl-control-c": {
+      "initial_registered": true,
+      "initial_objects": "'dnsmasq' @71e8c8cb\n\t\"metrics\":{}\n'dnsmasq.dns' @b6833534\n",
+      "socket_initial": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "socket_restarted": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "objects_after_bus_restart": "'dnsmasq' @6c0c200a\n\t\"metrics\":{}\n",
+      "registered_after_bus_restart": true,
+      "dns_alive_after_bus_restart": true,
+      "dns_answer_before_bus_recovery": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "dns_answer_after_bus_restart": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "daemon_restart_recovers_both_objects": true,
+      "acl": {
+        "user": "dnsmasq",
+        "publish": [
+          "dnsmasq",
+          "dnsmasq.dns"
+        ],
+        "access": {
+          "hotplug.dhcp": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.neigh": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.tftp": {
+            "methods": [
+              "call"
+            ]
+          }
+        }
+      }
+    },
+    "acl-control-rust": {
+      "initial_registered": true,
+      "initial_objects": "'dnsmasq' @b9cec4da\n\t\"metrics\":{}\n'dnsmasq.dns' @da35233f\n",
+      "socket_initial": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "socket_restarted": {
+        "mode": "0o666",
+        "uid": 0,
+        "gid": 0
+      },
+      "objects_after_bus_restart": "'dnsmasq' @8a4b0628\n\t\"metrics\":{}\n'dnsmasq.dns' @8f5c44fb\n",
+      "registered_after_bus_restart": true,
+      "dns_alive_after_bus_restart": true,
+      "dns_answer_before_bus_recovery": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "dns_answer_after_bus_restart": [
+        {
+          "section": "answer",
+          "name": "audit.lan",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.1"
+        }
+      ],
+      "daemon_restart_recovers_both_objects": true,
+      "acl": {
+        "user": "dnsmasq",
+        "publish": [
+          "dnsmasq",
+          "dnsmasq.dns"
+        ],
+        "access": {
+          "hotplug.dhcp": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.neigh": {
+            "methods": [
+              "call"
+            ]
+          },
+          "hotplug.tftp": {
+            "methods": [
+              "call"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "events_luci": {
+    "c": {
+      "leasefile_ack": "1791969771 02:00:00:00:00:01 127.0.0.10 client1 *\n",
+      "leasefile_release": "",
+      "events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:01\",\"ip\":\"127.0.0.10\",\"name\":\"client1\",\"interface\":\"lo\"} }\n{ \"dhcp.release\": {\"mac\":\"02:00:00:00:00:01\",\"ip\":\"127.0.0.10\",\"interface\":\"lo\"} }\n",
+      "luci_leases": {
+        "dhcp_leases": [
+          {
+            "expires": 599,
+            "hostname": "client1",
+            "macaddr": "02:00:00:00:00:01",
+            "ipaddr": "127.0.0.10"
+          }
+        ],
+        "dhcp6_leases": []
+      },
+      "luci_dnsmasq_features": {
+        "ipv6": true,
+        "gnu-getopt": true,
+        "dbus": false,
+        "ubus": true,
+        "i18n": false,
+        "idn": false,
+        "dhcp": true,
+        "dhcpv6": false,
+        "lua": false,
+        "tftp": true,
+        "conntrack": false,
+        "ipset": false,
+        "nftset": false,
+        "auth": false,
+        "dnssec": false,
+        "id": false,
+        "loop-detect": true,
+        "inotify": true,
+        "dumpfile": true
+      },
+      "metric_fields": [
+        "dns_cache_inserted",
+        "dns_cache_live_freed",
+        "dns_queries_forwarded",
+        "dns_auth_answered",
+        "dns_local_answered",
+        "dns_stale_answered",
+        "dns_unanswered",
+        "dnssec_max_crypto_use",
+        "dnssec_max_sig_fail",
+        "dnssec_max_work",
+        "bootp",
+        "pxe",
+        "dhcp_ack",
+        "dhcp_decline",
+        "dhcp_discover",
+        "dhcp_inform",
+        "dhcp_nak",
+        "dhcp_offer",
+        "dhcp_release",
+        "dhcp_request",
+        "noanswer",
+        "leases_allocated_4",
+        "leases_pruned_4",
+        "leases_allocated_6",
+        "leases_pruned_6",
+        "tcp_connections",
+        "dhcp_leasequery",
+        "dhcp_lease_unassigned",
+        "dhcp_lease_actve",
+        "dhcp_lease_unknown"
+      ]
+    },
+    "rust": {
+      "leasefile_ack": "1791969772 02:00:00:00:00:01 127.0.0.10 client1 *\n",
+      "leasefile_release": "",
+      "events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:01\",\"ip\":\"127.0.0.10\",\"name\":\"client1\",\"interface\":\"lo\"} }\n{ \"dhcp.release\": {\"mac\":\"02:00:00:00:00:01\",\"ip\":\"127.0.0.10\",\"interface\":\"lo\"} }\n",
+      "luci_leases": {
+        "dhcp_leases": [
+          {
+            "expires": 600,
+            "hostname": "client1",
+            "macaddr": "02:00:00:00:00:01",
+            "ipaddr": "127.0.0.10"
+          }
+        ],
+        "dhcp6_leases": []
+      },
+      "luci_dnsmasq_features": {
+        "ipv6": true,
+        "gnu-getopt": true,
+        "dbus": false,
+        "ubus": true,
+        "i18n": false,
+        "idn": false,
+        "dhcp": true,
+        "dhcpv6": false,
+        "lua": false,
+        "tftp": true,
+        "conntrack": false,
+        "ipset": false,
+        "nftset": false,
+        "auth": false,
+        "dnssec": false,
+        "id": false,
+        "loop-detect": true,
+        "inotify": true,
+        "dumpfile": true
+      },
+      "metric_fields": [
+        "dns_cache_inserted",
+        "dns_cache_live_freed",
+        "dns_queries_forwarded",
+        "dns_auth_answered",
+        "dns_local_answered",
+        "dns_stale_answered",
+        "dns_unanswered",
+        "dnssec_max_crypto_use",
+        "dnssec_max_sig_fail",
+        "dnssec_max_work",
+        "bootp",
+        "pxe",
+        "dhcp_ack",
+        "dhcp_decline",
+        "dhcp_discover",
+        "dhcp_inform",
+        "dhcp_nak",
+        "dhcp_offer",
+        "dhcp_release",
+        "dhcp_request",
+        "noanswer",
+        "leases_allocated_4",
+        "leases_pruned_4",
+        "leases_allocated_6",
+        "leases_pruned_6",
+        "tcp_connections",
+        "dhcp_leasequery",
+        "dhcp_lease_unassigned",
+        "dhcp_lease_actve",
+        "dhcp_lease_unknown"
+      ]
+    }
+  },
+  "lifecycle": {
+    "c": {
+      "passed": true,
+      "init_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+      "steps": {
+        "init_start": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.51"
+            }
+          ]
+        },
+        "initial_identity_matches_expected": true,
+        "dhcp_range_generated": true,
+        "sighup_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "sighup_keeps_pid": true,
+        "init_reload_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "init_reload_keeps_pid": true,
+        "uci_staged_not_committed": true,
+        "uci_pending_dns": {
+          "flags": 33157,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "uci_apply_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "uci.m2",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.60"
+            }
+          ]
+        },
+        "uci_apply_committed": true,
+        "uci_apply_lifecycle": true,
+        "identity_matches_expected": true,
+        "odhcpd_init_start": true,
+        "odhcpd_publication": true,
+        "odhcpd_dns_publication": {
+          "flags": 34176,
+          "questions": [
+            [
+              "m2-dhcp6",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "m2-dhcp6",
+              "type": 28,
+              "class": 1,
+              "ttl": 0,
+              "data": "fd00:2::7ed"
+            }
+          ]
+        },
+        "init_stop_service_gone": true,
+        "init_stop_inner_gone": true
+      },
+      "initial_inner_pid": 263,
+      "after_apply_inner_pid": 615,
+      "actual_uci_apply_restarted": true,
+      "old_harness_uci_apply_restarted_not_authoritative": false,
+      "odhcpd_published_hosts": {
+        "odhcpd.hosts.lan": "fd00:2::7ed\tm2-dhcp6\n",
+        "dhcp.m2": "# auto-generated config file from /etc/config/dhcp\n192.168.1.1 m2-router\n",
+        "dhcp": "192.0.2.52 lifecycle.lan\n"
+      },
+      "odhcpd_lease": {
+        "address": "fd00:2::7ed",
+        "hostname": "m2-dhcp6",
+        "advertise_type": 2,
+        "reply_type": 7
+      },
+      "fixture_only_jail_procfs_change": false
+    },
+    "rust": {
+      "passed": true,
+      "init_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+      "steps": {
+        "init_start": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.51"
+            }
+          ]
+        },
+        "initial_identity_matches_expected": true,
+        "dhcp_range_generated": true,
+        "sighup_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "sighup_keeps_pid": true,
+        "init_reload_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "init_reload_keeps_pid": true,
+        "uci_staged_not_committed": true,
+        "uci_pending_dns": {
+          "flags": 33157,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "uci_apply_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "uci.m2",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.60"
+            }
+          ]
+        },
+        "uci_apply_committed": true,
+        "uci_apply_lifecycle": true,
+        "identity_matches_expected": true,
+        "odhcpd_init_start": true,
+        "odhcpd_publication": true,
+        "odhcpd_dns_publication": {
+          "flags": 34176,
+          "questions": [
+            [
+              "m2-dhcp6",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "m2-dhcp6",
+              "type": 28,
+              "class": 1,
+              "ttl": 0,
+              "data": "fd00:2::7ed"
+            }
+          ]
+        },
+        "init_stop_service_gone": true,
+        "init_stop_inner_gone": true
+      },
+      "initial_inner_pid": 263,
+      "after_apply_inner_pid": 592,
+      "actual_uci_apply_restarted": true,
+      "old_harness_uci_apply_restarted_not_authoritative": false,
+      "odhcpd_published_hosts": {
+        "odhcpd.hosts.lan": "fd00:2::7ed\tm2-dhcp6\n",
+        "dhcp.m2": "# auto-generated config file from /etc/config/dhcp\n192.168.1.1 m2-router\n",
+        "dhcp": "192.0.2.52 lifecycle.lan\n"
+      },
+      "odhcpd_lease": {
+        "address": "fd00:2::7ed",
+        "hostname": "m2-dhcp6",
+        "advertise_type": 2,
+        "reply_type": 7
+      },
+      "fixture_only_jail_procfs_change": false
+    }
+  },
+  "raw_artifacts": [
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-c-dnsmasq-restarted.log",
+      "sha256": "23ccb36952f65b3a89c17afdc6780c64e47eab8af5b89788e63be40ad65dc8ad",
+      "bytes": 428
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-c-dnsmasq.log",
+      "sha256": "cc45ad04c378acc9ba5e1626393d7206e2bfaf28cec2d2444c296f03302e83b8",
+      "bytes": 580
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-c-ubusd-restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-c-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-rust-dnsmasq-restarted.log",
+      "sha256": "49f9d8cafa9be4c1007d28141bdd3e4359f720e853cfda8b804425229adcdade",
+      "bytes": 428
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-rust-dnsmasq.log",
+      "sha256": "99f69a42f1c44f1089d04cfb7c810c9fb71e6ec495b3501670d0c1a4f77b74ef",
+      "bytes": 580
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-rust-ubusd-restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/acl-control-rust-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/c-events-dnsmasq.log",
+      "sha256": "ba3690c59e57cb7cbe200f2e8a660de24565056db1ad1fda4e26e979e8d2afc1",
+      "bytes": 946
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/c-events-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/c-rpcd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/c-subscribe.log",
+      "sha256": "cf9bc31eb74e5a85c44b81c907f5eb5636ab354bbbb70a933cfde43bfb4fab34",
+      "bytes": 179
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/observed.json",
+      "sha256": "6608bd04e76a6bb029d42bac517c993be5225761e7e2188c00a06ef4ee476b3f",
+      "bytes": 42099
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-c-dnsmasq-restarted.log",
+      "sha256": "acc356a8fb49187bf6d5e8a06d8edce576792fa37422f296646f29a559f6ae96",
+      "bytes": 428
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-c-dnsmasq.log",
+      "sha256": "c66402fe9b98d45039d50b705fbf7b83ff8f04308bc1d582e9b18548785b4787",
+      "bytes": 580
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-c-ubusd-restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-c-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-rust-dnsmasq-restarted.log",
+      "sha256": "a66235c8adc6a09f0863d9bcb1c02988383c0a16fc655a3f654db79bb5716b9e",
+      "bytes": 428
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-rust-dnsmasq.log",
+      "sha256": "0450968c1be93f79123286f7ffde6301e01b8d14b070e8c4c6281b8e7128bbd4",
+      "bytes": 580
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-rust-ubusd-restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/root-user-control-rust-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/rootfs-identity.json",
+      "sha256": "6f73647e2e5acdf6a6847db4cb147e79359fa4390419204b55bf5f3349afb81e",
+      "bytes": 46009
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/rust-events-dnsmasq.log",
+      "sha256": "be8b8cec53ed73c87b727bd5f1a09dfe57751b1b688896c1f20f4b4a5f8bd1cc",
+      "bytes": 946
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/rust-events-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/rust-rpcd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/rust-subscribe.log",
+      "sha256": "cf9bc31eb74e5a85c44b81c907f5eb5636ab354bbbb70a933cfde43bfb4fab34",
+      "bytes": 179
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-c-dnsmasq-restarted.log",
+      "sha256": "dee7bae0e92cf39485deb7c0a8abbdd02ca3e38559b5b92fa5d2e58003ae3c7e",
+      "bytes": 428
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-c-dnsmasq.log",
+      "sha256": "72674f99015613016898d77850fec2696dd78a1f75dc8b166dc0a05669721769",
+      "bytes": 575
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-c-ubusd-restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-c-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-rust-dnsmasq-restarted.log",
+      "sha256": "977294ece0ae7ba469f002cad8fa4b8db79df676c2507a2f6f35c8c8807812a4",
+      "bytes": 428
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-rust-dnsmasq.log",
+      "sha256": "663c0b1c6a8dbd06a17135f0996c4630b4b54143721b36aa88c57031c1fb037a",
+      "bytes": 584
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-rust-ubusd-restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final2-bus/stock-dnsmasq-user-rust-ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/commands.json",
+      "sha256": "7060cab9b660dba8cd2041f675dc587e38e749e11eb66a7098e1e3647ded6b9b",
+      "bytes": 11391
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/dhcp6-advertise.hex",
+      "sha256": "d5e88d3a39bbe1cffb938a48ab92786120a640317df56b4a8a74c4148eb438e4",
+      "bytes": 209
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/dhcp6-reply.hex",
+      "sha256": "4dfa76737c40d21e05679e259d609ae3210cc6b8271383c4213cba99ac3de381",
+      "bytes": 209
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/dhcp6-request.hex",
+      "sha256": "e0b6ce61ab80eace15380d71f12e7589fbe65f9370cbeecba393cdb7d7e6fbf5",
+      "bytes": 127
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/dhcp6-solicit.hex",
+      "sha256": "3c2b3ec30806c491c693ddb860fc60ea13ce5384565884b16dcf647a7d5da6aa",
+      "bytes": 99
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/logd.log",
+      "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+      "bytes": 23
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/netifd.log",
+      "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+      "bytes": 268
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/observed.json",
+      "sha256": "6752f9b8010478a4d5f3ece0fd282247c745e69595452274e005e2d8c3013dc6",
+      "bytes": 68645
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/plan.json",
+      "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+      "bytes": 562
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/procd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/rootfs-identity.json",
+      "sha256": "a9d9aa1fcc55d2ce2dec5a51251f0d8f9328ed459d933087f716197dbfa6ebd2",
+      "bytes": 46037
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/rpcd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-c/ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/commands.json",
+      "sha256": "63f5feb8afe2079de9451c086274219d8e5936d5c713b5d1cd9c97d17d651ab7",
+      "bytes": 11391
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/dhcp6-advertise.hex",
+      "sha256": "d5e88d3a39bbe1cffb938a48ab92786120a640317df56b4a8a74c4148eb438e4",
+      "bytes": 209
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/dhcp6-reply.hex",
+      "sha256": "4dfa76737c40d21e05679e259d609ae3210cc6b8271383c4213cba99ac3de381",
+      "bytes": 209
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/dhcp6-request.hex",
+      "sha256": "e0b6ce61ab80eace15380d71f12e7589fbe65f9370cbeecba393cdb7d7e6fbf5",
+      "bytes": 127
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/dhcp6-solicit.hex",
+      "sha256": "3c2b3ec30806c491c693ddb860fc60ea13ce5384565884b16dcf647a7d5da6aa",
+      "bytes": 99
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/logd.log",
+      "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+      "bytes": 23
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/netifd.log",
+      "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+      "bytes": 268
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/observed.json",
+      "sha256": "b02b0598ff63687c736c3cd252306b95c74ef4dc0de4fa8f14090cb7a2522fb7",
+      "bytes": 65307
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/plan.json",
+      "sha256": "5e91c8a782156227175974ebdb9305eb40a53c440f4ece0160523b910442694c",
+      "bytes": 565
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/procd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/rootfs-identity.json",
+      "sha256": "e68c6844c45e7b30bed27665861e46ef80acbfa217cfd017bae3144a262e87a8",
+      "bytes": 46049
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/rpcd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/private/final-lifecycle-rust/ubusd.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/tools/audit_integration_bus.py",
+      "sha256": "b67acdcbf6e8cf5c8506324f83dde356bdffe5e9134cd64896a298f564484ec9",
+      "bytes": 9630
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/tools/m2_lifecycle.py",
+      "sha256": "103af1794c0c50f297410dc332a053a540a74579e077b9192bee4fc2b6c2c2a6",
+      "bytes": 26448
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/tools/m2_rootfs.py",
+      "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "bytes": 15493
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/tools/actual_config_network.py",
+      "sha256": "c2c94c0264f7622953014402d1be02cc501bbd87dac122cbc2ff9bbc22c5ef17",
+      "bytes": 4725
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-predeploy-b-bus-20261014/tools/run_isolated.sh",
+      "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+      "bytes": 399
+    }
+  ],
+  "checked_observations": {
+    "stock_both_initial_objects": true,
+    "stock_both_bus_restart_registration_lost": true,
+    "stock_dns_continues": true,
+    "all_daemon_restarts_restore_both_objects": true,
+    "acl_control_rust_both_objects": true,
+    "acl_control_c_dns_object_missing": true,
+    "dhcp_events_exact_match": true,
+    "luci_features_equal": true,
+    "metric_field_names_equal": true,
+    "real_odhcpd_publication_both": true,
+    "real_uci_apply_restarts_both": true
+  }
+}

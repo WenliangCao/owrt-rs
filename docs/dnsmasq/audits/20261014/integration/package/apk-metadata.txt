@@ -1,0 +1,311 @@
+#%SCHEMA: 676B6370
+# ADB block, size: 3296, compat: 0, ver: 0
+info:
+  name: dnsmasq
+  version: 2.93-r2
+  hashes: b20e4bd178c965b605997c30f8cae58b65b22fe1
+  description: |
+    Rust implementation of the OpenWrt dnsmasq 2.93 nodhcpv6 package contract. This candidate owns the stock package paths so apk can replace the stock dnsmasq package while retaining its UCI, init, ujail and ubus ACL contract.
+  arch: aarch64_cortex-a53
+  license: GPL-2.0-only OR GPL-3.0-only
+  origin: feeds/base/owrt-dnsmasq
+  maintainer: owrt-control-plane-rs project
+  url: https://github.com/openwrt/openwrt
+  installed-size: 2100330
+  depends: # 2 items
+    - libc
+    - libubus20251202
+  provides: # 1 items
+    - dnsmasq-any
+paths: # 22 items
+  - acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: etc
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dnsmasq.conf
+        acl:
+          mode: 0600
+          user: root
+          group: root
+        size: 1368
+        mtime: 1782737960
+        hash: 1e6ab19c1ae5e70d609ac7b6246541d52042e4dee1892f825266507ef52d7dfd
+  - name: etc/config
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dhcp
+        acl:
+          mode: 0600
+          user: root
+          group: root
+        size: 1183
+        mtime: 1782737960
+        hash: a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb
+  - name: etc/hotplug.d
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: etc/hotplug.d/dhcp
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: etc/hotplug.d/neigh
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: etc/hotplug.d/ntp
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: 25-dnsmasqsec
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 277
+        mtime: 1782737960
+        hash: ad2b44ee9161d2f2e16c0500cc66e5722d460be524f03c3454781532a779007b
+  - name: etc/hotplug.d/tftp
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: etc/init.d
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dnsmasq
+        acl:
+          mode: 0755
+          user: root
+          group: root
+        size: 37441
+        mtime: 1782737960
+        hash: 610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f
+  - name: etc/uci-defaults
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 2 items
+      - name: 50-dnsmasq-migrate-ipset.sh
+        acl:
+          mode: 0755
+          user: root
+          group: root
+        size: 509
+        mtime: 1782737960
+        hash: 6affb223dd5a143f9d7f2a5b1284e16a851731d706b71e5dd016f2c010a702f2
+      - name: 50-dnsmasq-migrate-resolv-conf-auto.sh
+        acl:
+          mode: 0755
+          user: root
+          group: root
+        size: 189
+        mtime: 1782737960
+        hash: 8e373e9c7f4e2684a694b1aa0443dc81e47eebb124d9040cb7c2fbd22fad71d4
+  - name: lib
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: lib/apk
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: lib/apk/packages
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 4 items
+      - name: dnsmasq.conffiles
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 51
+        mtime: 1782737960
+        hash: 7ee4017614f382579403cd6a522def4fba05543ff378e3e3aa97fb4ca0030dbf
+      - name: dnsmasq.conffiles_static
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 165
+        mtime: 1782737960
+        hash: 8de87ce8d2140c19f93522e32e16d6f49d19e12521015adb1a05b148b380987a
+      - name: dnsmasq.list
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 410
+        mtime: 1782737960
+        hash: 22d08c6dd16343f1e1df2d2cca25a4f4e5470280d460797008cf85766c87fb37
+      - name: dnsmasq.rusers
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 24
+        mtime: 1782737960
+        hash: c9b36c033c147a7492b0a4d505f7c4f855d4a317a976b167b3a64c8752dd4c4d
+  - name: lib/upgrade
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: lib/upgrade/keep.d
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dnsmasq
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 16
+        mtime: 1782737960
+        hash: 30f2dd76858f25ff3b816d1cc675debed688637373bb1e3091a7947e281e88eb
+  - name: usr
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: usr/lib
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: usr/lib/dnsmasq
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dhcp-script.sh
+        acl:
+          mode: 0755
+          user: root
+          group: root
+        size: 1157
+        mtime: 1782737960
+        hash: 62c292e28a1d595b5eff38fcc26170ac9c7036b9631362accaa5983a4e37cf26
+  - name: usr/sbin
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dnsmasq
+        acl:
+          mode: 0755
+          user: root
+          group: root
+        size: 2056672
+        mtime: 1782737960
+        hash: e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9
+  - name: usr/share
+    acl:
+      mode: 0755
+      user: root
+      group: root
+  - name: usr/share/acl.d
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 1 items
+      - name: dnsmasq_acl.json
+        acl:
+          mode: 0644
+          user: root
+          group: root
+        size: 217
+        mtime: 1782737960
+        hash: 2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d
+  - name: usr/share/dnsmasq
+    acl:
+      mode: 0755
+      user: root
+      group: root
+    files: # 2 items
+      - name: dhcpbogushostname.conf
+        acl:
+          mode: 0600
+          user: root
+          group: root
+        size: 340
+        mtime: 1782737960
+        hash: a9fec9132087a29e864e5cd22ec849e8d7f65056ecbaa2f5e4a021626ea46f85
+      - name: rfc6761.conf
+        acl:
+          mode: 0600
+          user: root
+          group: root
+        size: 311
+        mtime: 1782737960
+        hash: 0a12cf2bca81cb16a86829502cf94bdd3cba110e73ce6a49990e775a480d768a
+scripts:
+  post-install: |
+    #!/bin/sh
+    [ "${IPKG_NO_SCRIPT}" = "1" ] && exit 0
+    [ -s ${IPKG_INSTROOT}/lib/functions.sh ] || exit 0
+    . ${IPKG_INSTROOT}/lib/functions.sh
+    export root="${IPKG_INSTROOT}"
+    export pkgname="dnsmasq"
+    add_group_and_user
+    default_postinst
+  pre-deinstall: |
+    #!/bin/sh
+    [ -s ${IPKG_INSTROOT}/lib/functions.sh ] || exit 0
+    . ${IPKG_INSTROOT}/lib/functions.sh
+    export root="${IPKG_INSTROOT}"
+    export pkgname="dnsmasq"
+    default_prerm
+  post-upgrade: |
+    #!/bin/sh
+    export PKG_UPGRADE=1
+    [ "${IPKG_NO_SCRIPT}" = "1" ] && exit 0
+    [ -s ${IPKG_INSTROOT}/lib/functions.sh ] || exit 0
+    . ${IPKG_INSTROOT}/lib/functions.sh
+    export root="${IPKG_INSTROOT}"
+    export pkgname="dnsmasq"
+    add_group_and_user
+    default_postinst
+# data block, size: 1376
+# data block, size: 1191
+# data block, size: 285
+# data block, size: 37449
+# data block, size: 517
+# data block, size: 197
+# data block, size: 59
+# data block, size: 173
+# data block, size: 418
+# data block, size: 32
+# data block, size: 24
+# data block, size: 1165
+# data block, size: 2056680
+# data block, size: 225
+# data block, size: 348
+# data block, size: 319

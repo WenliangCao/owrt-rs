@@ -1,0 +1,558 @@
+{
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/manifest.json": {
+    "sha256": "319fa01ef2c7b6333c2e1b29d245fb742b2a743babcfd250db7008c8470ee914",
+    "bytes": 98296
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/build-invocation.json": {
+    "sha256": "630b9baa11ac440ab89de798045327a437aae8ad6c1b22d54eef389913654326",
+    "bytes": 1114
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/package-freeze.json": {
+    "sha256": "750f03f8041b9281c6bf07b3fa4f0b704a9f67407d57df5c78551c4583b4bdd3",
+    "bytes": 38454
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/build.py": {
+    "sha256": "0f39e3fdd2df0f9e891895122cde5e8bd25e96bd0fbb86579bda12413ea62008",
+    "bytes": 2285
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/apk-metadata.log": {
+    "sha256": "0ea418b8ba73c7fa260bad2831800f207d3c1443536f872e2dc1a1a429b0f682",
+    "bytes": 7665
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/compile.log": {
+    "sha256": "b7d05424e2fda93c2c7eb74c3c32e67ce94b0ece3f800262d45c93c5e0f2695a",
+    "bytes": 46552
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/prepare.log": {
+    "sha256": "e5db4b9a542cc08c55ff474195a094a0d6f34a481701f83f0a359f98fdd02f14",
+    "bytes": 14714
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/result.json": {
+    "sha256": "6b23b9675a1ab415fcb2a2564cd571bbabb5ced1778b8dc6d7af8c66c3bd948d",
+    "bytes": 596097
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/016-candidate-reinstall.json": {
+    "sha256": "86bb633978abdf88aa8757be8592f17ac3f605a0059a2a5895894e954b2d4b11",
+    "bytes": 1867
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/015-ubus-service-list.json": {
+    "sha256": "71141554fd01fae592643be12a894841009c1e20260022b5e4dcfd405569ffe4",
+    "bytes": 2696
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/014-stock-to-candidate-upgrade-explicit-restart.json": {
+    "sha256": "1ddfde0b60aeec0c5c037edc25532082bb2196a5b242aaf747800a2353a4c416",
+    "bytes": 284
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/026-ubus-service-list.json": {
+    "sha256": "2ebb7a1286ae6e5e21cb04245c5b71a06b133ba0b89a45f9ddab2871efc9d493",
+    "bytes": 2697
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/004-ready-ubusd.json": {
+    "sha256": "e1cfa96b0e35daea1fec845273cf89f00d4f066f3c5718fc720869b74f13f3c0",
+    "bytes": 290
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/012-ubus-service-list.json": {
+    "sha256": "94f643eed449c42eab91fce217ebde2a0efc9fc5525eda4afe1e6d703e13f682",
+    "bytes": 2696
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/009-stock-start.json": {
+    "sha256": "502dd139de055982c81b8a519289bd8a1f5bbc2e8f34e4ce69ffd858781be396",
+    "bytes": 282
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/017-candidate-reinstall-explicit-restart.json": {
+    "sha256": "1ddfde0b60aeec0c5c037edc25532082bb2196a5b242aaf747800a2353a4c416",
+    "bytes": 284
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/006-ready-logd.json": {
+    "sha256": "e8fcc9bc2da34b3e2e7092ed4b0aecc90cbc8c7a82f0dc6faf2960c5e146b47f",
+    "bytes": 306
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/029-ubus-service-list.json": {
+    "sha256": "8f13506cb2fcf51f5af28d34e1b5b5afcd64b8ec681d1c87efb6d2211b302e45",
+    "bytes": 2697
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/032-ubus-service-list.json": {
+    "sha256": "50782905793c23503901b2d1a7169537906cb2261017715588a2befe9e2b329b",
+    "bytes": 2697
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/008-ready-procd.json": {
+    "sha256": "5eab957a1444b137acc15db1a10772e28ca0de47c5e6ee5553b94cfbbd32edba",
+    "bytes": 314
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/013-stock-to-candidate-upgrade.json": {
+    "sha256": "477215622a55f1f827459a9be9126c1f711e9bc02095657a06e23bcd8d53245b",
+    "bytes": 1850
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/018-ubus-service-list.json": {
+    "sha256": "d9c46bcbfb9a8d41ef7cb953c183f9451d648eec3e19ae3d4c834f61512c340c",
+    "bytes": 2696
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/031-direct-stock-downgrade-explicit-restart.json": {
+    "sha256": "1ddfde0b60aeec0c5c037edc25532082bb2196a5b242aaf747800a2353a4c416",
+    "bytes": 284
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/024-ubus-service-list.json": {
+    "sha256": "034b8232bd4e441e097196048d9f4f536ee0741e8180a0fc84b7bb51be491b5b",
+    "bytes": 358
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/033-cleanup-logread.json": {
+    "sha256": "ba48e6784a1be2b5bbad5169464c71da6d4181e93ed289f407a59eb9eeccdde7",
+    "bytes": 9381
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/028-candidate-upgrade-for-downgrade-explicit-restart.json": {
+    "sha256": "1ddfde0b60aeec0c5c037edc25532082bb2196a5b242aaf747800a2353a4c416",
+    "bytes": 284
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/022-ubus-service-list.json": {
+    "sha256": "d4b57971c5978cccb36e4a6a44e32f5958da00aca32eaf662aece464b8bbc728",
+    "bytes": 2697
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/011-stock-reinstall-control.json": {
+    "sha256": "1081dd95cbfa6e99bfe6c0eff2f0059a6d293f0ad1bbd001f3f96350acfc82e0",
+    "bytes": 1871
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/020-ubus-service-list.json": {
+    "sha256": "034b8232bd4e441e097196048d9f4f536ee0741e8180a0fc84b7bb51be491b5b",
+    "bytes": 358
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/034-cleanup-init-stop.json": {
+    "sha256": "db71aeb449347e9ba9aef6d6603c1d71058ca9aee08e4b8d8d0234ce6845ef1b",
+    "bytes": 281
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/025-stock-rollback-after-removal.json": {
+    "sha256": "96d7ad740ca640d39161d999ec19f8e2371b51e74594128f66ca74f40ae12f4a",
+    "bytes": 1836
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/001-candidate-metadata.json": {
+    "sha256": "66c9475c4d86229f2df9c0b9614ddb71e21c7de05f7ca64cad341ba6ae9bd704",
+    "bytes": 8366
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/007-ready-procd.json": {
+    "sha256": "e19533d567b301505b9cede15afd52103adc225a58c78db02236373179279bea",
+    "bytes": 332
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/002-stock-metadata.json": {
+    "sha256": "98405ca8322ddc2a5a4592deecae45cefb049ce5bb3639c24ef578d909991e4b",
+    "bytes": 8168
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/021-candidate-fresh-install.json": {
+    "sha256": "abedf684d8e8252ef3be3044997064ee90a9f649f2a12d3f35257e3c3178eb27",
+    "bytes": 1840
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/027-candidate-upgrade-for-downgrade.json": {
+    "sha256": "477215622a55f1f827459a9be9126c1f711e9bc02095657a06e23bcd8d53245b",
+    "bytes": 1850
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/003-extract-payload.json": {
+    "sha256": "9ea0a1cecacfc55357240bf09541460f1ca43459174fc358039e0301f9d0b0ee",
+    "bytes": 453
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/023-candidate-remove-for-rollback.json": {
+    "sha256": "e5d5ab3158a4e6875e4f7f4bbc7e71ee0334c5a903b08c47b1755c50a59c839f",
+    "bytes": 1709
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/019-candidate-uninstall.json": {
+    "sha256": "e5d5ab3158a4e6875e4f7f4bbc7e71ee0334c5a903b08c47b1755c50a59c839f",
+    "bytes": 1709
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/005-ready-logd.json": {
+    "sha256": "845066ff169dbd9394a1c6e36f2d869e38ad373fc50e1530676316fccc3bb473",
+    "bytes": 328
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/010-ubus-service-list.json": {
+    "sha256": "94f643eed449c42eab91fce217ebde2a0efc9fc5525eda4afe1e6d703e13f682",
+    "bytes": 2696
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/030-direct-stock-downgrade.json": {
+    "sha256": "a44077e6c19805ef07734722211379a906f1777f084bf2356dbe04f2bc030375",
+    "bytes": 1848
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/result.json": {
+    "sha256": "ab7e4560804e6e85e1d55ecd5cc639fa48553c44f7596a6a5822091aec70d00d",
+    "bytes": 24142
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/014-ubus-service-list.json": {
+    "sha256": "0b0e577cf97dbccca9fe151f33660c8078069c73fd9e36a907ce18a55aaf648a",
+    "bytes": 2683
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/020-cleanup-logread.json": {
+    "sha256": "67643f37249670efea1c015fe3d105e7ee8dd8797f56e519bc448535cefc12bb",
+    "bytes": 4112
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/021-cleanup-init-stop.json": {
+    "sha256": "28674defa7a1b72be2d24ddb9665d671419759620256aff4949083fcfa8fd2bd",
+    "bytes": 268
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/013-rollback.json": {
+    "sha256": "3cd28869fe74cfc10ac2a42e32169d4bc1a10e65b24b1b805692ec199b9dd877",
+    "bytes": 1835
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/012-ubus-service-list.json": {
+    "sha256": "0b0e577cf97dbccca9fe151f33660c8078069c73fd9e36a907ce18a55aaf648a",
+    "bytes": 2683
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/006-stock-start.json": {
+    "sha256": "cac4e07b63977921d1b87ce37ed147daa1675e3a4876495d625706f6b81e3425",
+    "bytes": 269
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/005-ready-procd.json": {
+    "sha256": "65f3e5d15f4a0921b1a75c5c16a77f88aec707e1db5c424998eef48221c460e5",
+    "bytes": 301
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/018-ubus-service-list.json": {
+    "sha256": "6e89bbd92b28bad58fbaa671d0c5cf59be9819e2d4bf6f847447e96d338c9734",
+    "bytes": 2683
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/010-audit-after-upgrade-no-restart.json": {
+    "sha256": "d5e8cfe65075107fb5068e400ca56152d372684c8523bfaf377f9fb8ce04abe9",
+    "bytes": 430
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/015-audit-after-rollback-no-restart.json": {
+    "sha256": "d5e8cfe65075107fb5068e400ca56152d372684c8523bfaf377f9fb8ce04abe9",
+    "bytes": 430
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/019-audit-after-rollback-restart.json": {
+    "sha256": "d5e8cfe65075107fb5068e400ca56152d372684c8523bfaf377f9fb8ce04abe9",
+    "bytes": 430
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/rootfs-identity.json": {
+    "sha256": "e522300bc5a039cca46155b9178dce6d81c8b67e63003caad7a19e9a373824bd",
+    "bytes": 46094
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/008-upgrade.json": {
+    "sha256": "701f600dc37e36be286d267fab1cc013d1413e25cc89e61651ec98c97fcf9cc8",
+    "bytes": 1837
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/007-ubus-service-list.json": {
+    "sha256": "f87f5f0d25b57aa4431ba5360ae63c9f2bd07c1c33c0ecb00f18e601ae1c0fe7",
+    "bytes": 2683
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/002-ready-ubusd.json": {
+    "sha256": "500a5dfdcff9c49ba3d3c05184170043d31f8030ba481a850f6c4cb4e142c319",
+    "bytes": 277
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/017-ubus-service-list.json": {
+    "sha256": "6e89bbd92b28bad58fbaa671d0c5cf59be9819e2d4bf6f847447e96d338c9734",
+    "bytes": 2683
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/009-ubus-service-list.json": {
+    "sha256": "f87f5f0d25b57aa4431ba5360ae63c9f2bd07c1c33c0ecb00f18e601ae1c0fe7",
+    "bytes": 2683
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/016-rollback-explicit-restart.json": {
+    "sha256": "09cb7450355865c129104609a7d36f1818a2aed4ed573dcbf4c199d4b17ec211",
+    "bytes": 271
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/004-ready-procd.json": {
+    "sha256": "6ef66ab2ad1a883750d6edfe5db6abe377fb9161d312edccab7fb44345e77de6",
+    "bytes": 319
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/003-ready-logd.json": {
+    "sha256": "cfa23e37f7182bb1d1bddaf184ee116d86d7473a31e4875c9659b4e9ef7181ae",
+    "bytes": 293
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/011-upgrade-explicit-restart.json": {
+    "sha256": "09cb7450355865c129104609a7d36f1818a2aed4ed573dcbf4c199d4b17ec211",
+    "bytes": 271
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/001-ready-ubusd.json": {
+    "sha256": "0f97ff53695c7f598886b0d2204bc3271eeb3e80611eb00219735a22504fbcca",
+    "bytes": 306
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/result.json": {
+    "sha256": "3cf4c55a93fd5e548cef9b2265067fc9dd44984892155c66eb43311d4c123768",
+    "bytes": 32091
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/016-repair-stock-explicit-restart.json": {
+    "sha256": "c6fe11b22e704a012360dd1f5bfd4f525824beedfee2c0158cfae811ec9a6d56",
+    "bytes": 273
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/008-audit-before-space-fault.json": {
+    "sha256": "70a72e47322e42723bc3fb7644963d751ca513a3671ac4e9df6469ddd396a4b5",
+    "bytes": 325
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/006-ubus-service-list.json": {
+    "sha256": "88a95eb4e032e817e17457f31d35e9f22bdfde4dddbb2907c4f74899b2cdf6e9",
+    "bytes": 2685
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/013-ubus-service-list.json": {
+    "sha256": "e4f32b303f3ce2a0ea44a8087ac6f54afca2838e7a3ab24c2f17d6f876875359",
+    "bytes": 2685
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/020-cleanup-logread.json": {
+    "sha256": "31a2fa17546bf92b43a2688181c9fe58ca24e1964dfb09202c2eaaebd3bce4d0",
+    "bytes": 4114
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/021-cleanup-init-stop.json": {
+    "sha256": "e48dfb8feb8bdda54b43862cc874165bc26d41e2db199a80e7fa813eb37786c9",
+    "bytes": 270
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/011-audit-after-low-space-transaction.json": {
+    "sha256": "70a72e47322e42723bc3fb7644963d751ca513a3671ac4e9df6469ddd396a4b5",
+    "bytes": 325
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/005-stock-start.json": {
+    "sha256": "ed00f913fae4e893c3d03ccd50b7ccc972dca8b5d7b845384189ecd498071e12",
+    "bytes": 271
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/018-ubus-service-list.json": {
+    "sha256": "2a2ae60e714461193d51129a33f8c373725722ee418f98fe2b94278833f9c916",
+    "bytes": 2685
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/rootfs-identity.json": {
+    "sha256": "015986f12c71f3e114254c6869a9529e473e8a796c2fd1270123bf586bd10b49",
+    "bytes": 46102
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/019-audit-after-space-released-c-repair.json": {
+    "sha256": "c02e1e57eec64fcba25af9fbeb940536c496a69a8345a4a29fe1d00469a4fcb5",
+    "bytes": 432
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/002-ready-logd.json": {
+    "sha256": "edcdb27cea94cea3cf6c3371fcf46ca78ea49f63cf36131b326f307a4169a20a",
+    "bytes": 295
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/014-audit-after-low-space-restart.json": {
+    "sha256": "70a72e47322e42723bc3fb7644963d751ca513a3671ac4e9df6469ddd396a4b5",
+    "bytes": 325
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/003-ready-procd.json": {
+    "sha256": "0aaf3e467ca7c4ad1a4c7ee738e3717cd4f9a143cf38ba3f9ec1d1f14460eced",
+    "bytes": 321
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/012-after-low-space-restart.json": {
+    "sha256": "c6fe11b22e704a012360dd1f5bfd4f525824beedfee2c0158cfae811ec9a6d56",
+    "bytes": 273
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/007-ubus-service-list.json": {
+    "sha256": "88a95eb4e032e817e17457f31d35e9f22bdfde4dddbb2907c4f74899b2cdf6e9",
+    "bytes": 2685
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/017-ubus-service-list.json": {
+    "sha256": "2a2ae60e714461193d51129a33f8c373725722ee418f98fe2b94278833f9c916",
+    "bytes": 2685
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/004-ready-procd.json": {
+    "sha256": "f10a709da3bf31ebdfb1f98f6625014b97c13cf07619765eeb0aefa7e9865448",
+    "bytes": 303
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/009-low-space-transaction.json": {
+    "sha256": "4f2528cc658da4e3e609b715ba42fbbe7bd10caf011a918eeda6c9f25c599f63",
+    "bytes": 1910
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/015-repair-stock.json": {
+    "sha256": "125b8be366d1ab8cb0e50dc1f5975b0d5052d84af23e3233339112a6a951432d",
+    "bytes": 1860
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/010-ubus-service-list.json": {
+    "sha256": "88a95eb4e032e817e17457f31d35e9f22bdfde4dddbb2907c4f74899b2cdf6e9",
+    "bytes": 2685
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/001-ready-ubusd.json": {
+    "sha256": "fb8601077b92a51a89fdbd16eda5477b3595cf8aaa6cc0aa17f7e8f41cf425ec",
+    "bytes": 279
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/result.json": {
+    "sha256": "30d46a31d04159383b5767adaa56bfa78834d84a74c2a75f6c4bede82bed0181",
+    "bytes": 32514
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/023-ubus-service-list.json": {
+    "sha256": "c77e74bf985703f31bafe5fc2bcd4184d6d2377fd34f949d8bfbd6bdc2d5481a",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/006-ubus-service-list.json": {
+    "sha256": "d8e976adf92f1aafbc7f67ed6b6b1ebf5253712b838cdf389d2be36f3ceb8789",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/014-ubus-service-list.json": {
+    "sha256": "22f050423d80c06047c94e91c909843f2b4002f10f0d97949c82430acb295d8b",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/020-repair-stock-explicit-restart.json": {
+    "sha256": "9a9f40f3f8bbf9883da0f6a31532dba0bf3e52f96197f487b1c1c05fd41c24ba",
+    "bytes": 274
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/012-audit-before-space-fault.json": {
+    "sha256": "6eaad1ac2887bdb3046af7b5c9f8494b156a6a4f6c0392e82aa871f8eebb8724",
+    "bytes": 433
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/026-cleanup-init-stop.json": {
+    "sha256": "83e6a40c8f13a94dc8762ceba7afcea8c93aa6bf5d0ef7a47259821ac79d0e0c",
+    "bytes": 271
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/015-audit-after-low-space-transaction.json": {
+    "sha256": "6eaad1ac2887bdb3046af7b5c9f8494b156a6a4f6c0392e82aa871f8eebb8724",
+    "bytes": 433
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/024-audit-after-space-released-c-repair.json": {
+    "sha256": "6eaad1ac2887bdb3046af7b5c9f8494b156a6a4f6c0392e82aa871f8eebb8724",
+    "bytes": 433
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/005-stock-start.json": {
+    "sha256": "755a391a88e2e1a2216132e3051a10c440ba22c410ba9ef28be56d563cb43d59",
+    "bytes": 272
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/009-pre-fault-upgrade-explicit-restart.json": {
+    "sha256": "9a9f40f3f8bbf9883da0f6a31532dba0bf3e52f96197f487b1c1c05fd41c24ba",
+    "bytes": 274
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/021-ubus-service-list.json": {
+    "sha256": "c77e74bf985703f31bafe5fc2bcd4184d6d2377fd34f949d8bfbd6bdc2d5481a",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/008-pre-fault-upgrade.json": {
+    "sha256": "19caf8a950ff9bd34740168e830fefbe086fee596f96f7ffa8f24aa6554df2ba",
+    "bytes": 1840
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/013-low-space-transaction.json": {
+    "sha256": "478771a5e06de3f51f94c091d2c9009ee6c3204e64c163463e3719089098a6bc",
+    "bytes": 1816
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/rootfs-identity.json": {
+    "sha256": "1555c49ebd42b21fa08d1a74a7d9b0354bb7a699df0698b5cba84139d80a86b4",
+    "bytes": 46106
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/016-after-low-space-restart.json": {
+    "sha256": "9a9f40f3f8bbf9883da0f6a31532dba0bf3e52f96197f487b1c1c05fd41c24ba",
+    "bytes": 274
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/018-audit-after-low-space-restart.json": {
+    "sha256": "6eaad1ac2887bdb3046af7b5c9f8494b156a6a4f6c0392e82aa871f8eebb8724",
+    "bytes": 433
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/022-ubus-service-list.json": {
+    "sha256": "c77e74bf985703f31bafe5fc2bcd4184d6d2377fd34f949d8bfbd6bdc2d5481a",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/002-ready-logd.json": {
+    "sha256": "e1379eb01712c0344abf5893f42f758a94afc7ec0fc8eb33e963b83c726dbacf",
+    "bytes": 296
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/003-ready-procd.json": {
+    "sha256": "67601382ea241fe77356c65e97a0d15f6947a8c269b09c5fa1cdc46f6139c0cb",
+    "bytes": 322
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/025-cleanup-logread.json": {
+    "sha256": "5e1187582aff3ab6a73dc55eecaae3e9058faff7644600658db964f856e45afd",
+    "bytes": 5429
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/019-repair-stock.json": {
+    "sha256": "910232e5fc1dd1c32c39a79c1cf49c3d630014270652a91d80c2048a2737108e",
+    "bytes": 1863
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/011-ubus-service-list.json": {
+    "sha256": "22f050423d80c06047c94e91c909843f2b4002f10f0d97949c82430acb295d8b",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/007-ubus-service-list.json": {
+    "sha256": "d8e976adf92f1aafbc7f67ed6b6b1ebf5253712b838cdf389d2be36f3ceb8789",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/017-ubus-service-list.json": {
+    "sha256": "61ab641d5a66af1332dc0f99256d95a3d79cb0b000c9e0331844922e0eb3af07",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/004-ready-procd.json": {
+    "sha256": "19415793dd74f65b5efc2560a9cb76b8a3a7d6fd40c801f36cc34668c5b8604d",
+    "bytes": 304
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/010-ubus-service-list.json": {
+    "sha256": "22f050423d80c06047c94e91c909843f2b4002f10f0d97949c82430acb295d8b",
+    "bytes": 2686
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/001-ready-ubusd.json": {
+    "sha256": "c15a07add3131489de9de1585c28391bb07531e93f4716e78da1810e93068e1f",
+    "bytes": 280
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/result.json": {
+    "sha256": "15b33c79f367b2d4b345b1f22a8ee9c382b8311309b69e1bd58f4990148b33cc",
+    "bytes": 32266
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/016-repair-stock-explicit-restart.json": {
+    "sha256": "02251df5a6a706aa2975f23c24df5eb6938f93821a38f06a4f3069ded0814c4a",
+    "bytes": 281
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/008-audit-before-space-fault.json": {
+    "sha256": "d0d239527f3d0ac4d0c9db3eaa83396967a725fe2ff148edc7f5eff4839cc445",
+    "bytes": 333
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/006-ubus-service-list.json": {
+    "sha256": "ba2ad158ab4a21416ac0e956ce8ff4de09d076027879f2067fe93b28b0c9b911",
+    "bytes": 2693
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/013-ubus-service-list.json": {
+    "sha256": "0be1bce9aa34474f8eccce50dd90775664d5070cb1ee95ae8a09e39076e4a32c",
+    "bytes": 2693
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/020-cleanup-logread.json": {
+    "sha256": "e652dae66f8e485158d311fd6d8738f1bdb5d37eb798a26172d707bd95e80480",
+    "bytes": 4122
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/021-cleanup-init-stop.json": {
+    "sha256": "65b7df0c93df715756f04a452d58b2a7afd9a49c97e5f8cc1a3bc880b7fe9965",
+    "bytes": 278
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/011-audit-after-low-space-transaction.json": {
+    "sha256": "d0d239527f3d0ac4d0c9db3eaa83396967a725fe2ff148edc7f5eff4839cc445",
+    "bytes": 333
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/005-stock-start.json": {
+    "sha256": "1786a105f2ce349f43b234feaa9cd09bf85a7e2ffddc166cbea302865758856f",
+    "bytes": 279
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/018-ubus-service-list.json": {
+    "sha256": "6b4cf86cc70de7d7ea4dfa764b470567f7c21e16a612bc1ebd895a84d790e0d0",
+    "bytes": 2693
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/rootfs-identity.json": {
+    "sha256": "f67982ee41fe95282efbbf9861133b272489aff951609a9fb676b716d1747482",
+    "bytes": 46134
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/019-audit-after-space-released-c-repair.json": {
+    "sha256": "b0735751266d49ad447ce32cda2ac0c6811598cfed3bd27a84c024af6b31fa11",
+    "bytes": 440
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/002-ready-logd.json": {
+    "sha256": "1ca57d1793f545d36e4fa5fab7ebdb007deeba0a34fb5ef1605c0832bd851b78",
+    "bytes": 303
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/014-audit-after-low-space-restart.json": {
+    "sha256": "d0d239527f3d0ac4d0c9db3eaa83396967a725fe2ff148edc7f5eff4839cc445",
+    "bytes": 333
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/003-ready-procd.json": {
+    "sha256": "3e9b8c6a9796d0f95277667186e171a4fdffa7b41e8fb0d1d3c7427860e5b715",
+    "bytes": 329
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/012-after-low-space-restart.json": {
+    "sha256": "02251df5a6a706aa2975f23c24df5eb6938f93821a38f06a4f3069ded0814c4a",
+    "bytes": 281
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/007-ubus-service-list.json": {
+    "sha256": "ba2ad158ab4a21416ac0e956ce8ff4de09d076027879f2067fe93b28b0c9b911",
+    "bytes": 2693
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/017-ubus-service-list.json": {
+    "sha256": "6b4cf86cc70de7d7ea4dfa764b470567f7c21e16a612bc1ebd895a84d790e0d0",
+    "bytes": 2693
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/004-ready-procd.json": {
+    "sha256": "7f1196a367144b112c153fa4a88a9dd089386fb3bbb2f7a6125473ce04e030f7",
+    "bytes": 311
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/009-low-space-transaction.json": {
+    "sha256": "b1d43dfc8c20a1d336e6bf6e29009995a65f1f5b7248fb58a6593dbc68ac2fbe",
+    "bytes": 1939
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/015-repair-stock.json": {
+    "sha256": "922b4b49f4b8121783add5ef92c6ee1c4115f75e65247cf548f6b07dab606f83",
+    "bytes": 1868
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/010-ubus-service-list.json": {
+    "sha256": "ba2ad158ab4a21416ac0e956ce8ff4de09d076027879f2067fe93b28b0c9b911",
+    "bytes": 2693
+  },
+  "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/001-ready-ubusd.json": {
+    "sha256": "3397f26ca8642b354f84f6eabe41f5211563eba4049ed5c2ebf41fc196562f2b",
+    "bytes": 287
+  }
+}

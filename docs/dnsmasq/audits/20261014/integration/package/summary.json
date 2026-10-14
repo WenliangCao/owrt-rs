@@ -1,0 +1,727 @@
+{
+  "schema": 1,
+  "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+  "scope": "fresh SDK frozen-current-ELF APK, exact-image isolated lifecycle/activation/ENOSPC; no physical router, full source rebuild or UBIFS/power-cut claim",
+  "build": {
+    "status": "failed",
+    "build_mode": "package-frozen-elf",
+    "failure_boundary": "size-target",
+    "artifact": {
+      "name": "dnsmasq-2.93-r2.apk",
+      "sha256": "9b836ac3cb10c392247c529529db921155d7f7c84b9753c52b7f9cb6682bef68",
+      "size": 1118297
+    },
+    "elf": {
+      "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "size": 2056672,
+      "install_path": "/usr/sbin/dnsmasq",
+      "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+      "expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9"
+    },
+    "sdk_recipe_restored": true,
+    "apk_metadata": {
+      "name": "dnsmasq",
+      "version": "2.93-r2",
+      "arch": "aarch64_cortex-a53",
+      "provides": [
+        "dnsmasq-any"
+      ],
+      "replacement": "same package name dnsmasq, newer release 2.93-r2",
+      "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+      "depends": [
+        "libc",
+        "libubus20251202"
+      ]
+    },
+    "budget": {
+      "schema": 1,
+      "elf_max_bytes": 1000000,
+      "apk_max_bytes": 700000,
+      "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+    },
+    "budget_checks": {
+      "apk": false,
+      "elf": false
+    },
+    "postprocess": {
+      "mode": "none",
+      "input_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "output_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "reason": "Preserve independently verified current-main retained release ELF for lifecycle audit; no new compilation claimed."
+    },
+    "source_commit_provenance": "caller; frozen source digest checked"
+  },
+  "build_raw": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/manifest.json",
+  "build_invocation": {
+    "argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/build_package.py",
+      "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+      "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package",
+      "--source-commit",
+      "58365e8c8ebe1805573baa02543baf1c9d45be68",
+      "--source-date-epoch",
+      "1791967916",
+      "--expected-source-digest",
+      "6057e515c4baea04396d1a7529ff24dc4066d2576a26009ec2d1b25d82f5bf4f",
+      "--expected-elf-sha256",
+      "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "--frozen-elf",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+      "--freeze-manifest",
+      "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/package-freeze.json",
+      "--budget",
+      "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/m5_final_budget.json"
+    ],
+    "source_digest": "6057e515c4baea04396d1a7529ff24dc4066d2576a26009ec2d1b25d82f5bf4f",
+    "component_inputs_matching_fix7": 161
+  },
+  "product_source_digest": "6057e515c4baea04396d1a7529ff24dc4066d2576a26009ec2d1b25d82f5bf4f",
+  "cases": {
+    "activation": {
+      "completed": true,
+      "error": null,
+      "script_sha256": "4fe3a590d07f687babc8fa847c764fd7e654f4a12ef242c16e6318071fccc6e0",
+      "helpers": {
+        "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+        "m4_package_lifecycle.py": "a66630bc1e35117415cf5272ac98b87dea6e2556be0557aa049cf4dbcdb328e4"
+      },
+      "cleanup": {
+        "errors": [],
+        "remaining_children": []
+      },
+      "scope": "isolated exact-image APK; synthetic no-LAN config; disk fault uses bounded tmpfs overlay upper, not UBIFS",
+      "space_fault": null,
+      "transaction": null,
+      "restart": null,
+      "repair_transaction": null,
+      "raw": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/result.json",
+      "reproduction_command": "sudo -n sh /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/run_isolated.sh python3 /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/audit_integration_package.py --rootfs /home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check --stock-apk /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/bin/packages/aarch64_cortex-a53/base/dnsmasq-2.93-r1.apk --candidate-apk /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/dnsmasq-2.93-r2.apk --candidate-elf-sha256 e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9 --source-commit 58365e8c8ebe1805573baa02543baf1c9d45be68 --scenario activation --out /home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation",
+      "observations": [
+        {
+          "label": "after-upgrade-no-restart",
+          "installed_version": "2.93-r2",
+          "disk_binary": {
+            "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+            "bytes": 2056672
+          },
+          "processes": [
+            {
+              "pid": 131,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 135,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/stage/rootfs/usr/sbin/dnsmasq (deleted)"
+            }
+          ]
+        },
+        {
+          "label": "after-rollback-no-restart",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 441,
+              "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/stage/rootfs/usr/sbin/dnsmasq (deleted)"
+            },
+            {
+              "pid": 439,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/stage/rootfs/sbin/ujail"
+            }
+          ]
+        },
+        {
+          "label": "after-rollback-restart",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 747,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 749,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-activation/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        }
+      ]
+    },
+    "full-upgrade": {
+      "completed": true,
+      "error": null,
+      "script_sha256": "4fe3a590d07f687babc8fa847c764fd7e654f4a12ef242c16e6318071fccc6e0",
+      "helpers": {
+        "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+        "m4_package_lifecycle.py": "a66630bc1e35117415cf5272ac98b87dea6e2556be0557aa049cf4dbcdb328e4"
+      },
+      "cleanup": {
+        "errors": [],
+        "remaining_children": []
+      },
+      "scope": "isolated exact-image APK; synthetic no-LAN config; disk fault uses bounded tmpfs overlay upper, not UBIFS",
+      "space_fault": {
+        "available_bytes": 131072,
+        "filler_bytes": 15290368
+      },
+      "transaction": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs",
+          "/usr/bin/apk",
+          "--root",
+          "/",
+          "--no-network",
+          "--allow-untrusted",
+          "add",
+          "/m4/candidate.apk"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 2,
+        "stdout": "(1/1) Upgrading dnsmasq (2.93-r1 -> 2.93-r2)\n2 errors; 18.0 MiB in 159 packages\n",
+        "stderr": "WARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/base/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/luci/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/routing/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/telephony/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/video/packages.adb: No such file or directory\nERROR: dnsmasq-2.93-r2: failed to extract usr/sbin/dnsmasq: No space left on device\nERROR: dnsmasq-2.93-r2: No space left on device\nERROR: System state may be inconsistent: failed to write database: No space left on device\n"
+      },
+      "restart": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs",
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "repair_transaction": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs",
+          "/usr/bin/apk",
+          "--root",
+          "/",
+          "--no-network",
+          "--allow-untrusted",
+          "add",
+          "--force-reinstall",
+          "/m4/stock.apk"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "(1/1) Replacing dnsmasq (2.93-r1 -> 2.93-r1)\n  Installing file to etc/dnsmasq.conf.apk-new\n  Installing file to etc/config/dhcp.apk-new\n  Executing dnsmasq-2.93-r1.post-upgrade\nOK: 18.0 MiB in 159 packages\n",
+        "stderr": "WARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/base/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/luci/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/routing/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/telephony/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/video/packages.adb: No such file or directory\n  * uci: Entry not found\n"
+      },
+      "raw": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/result.json",
+      "reproduction_command": "sudo -n sh /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/run_isolated.sh python3 /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/audit_integration_package.py --rootfs /home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check --stock-apk /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/bin/packages/aarch64_cortex-a53/base/dnsmasq-2.93-r1.apk --candidate-apk /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/dnsmasq-2.93-r2.apk --candidate-elf-sha256 e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9 --source-commit 58365e8c8ebe1805573baa02543baf1c9d45be68 --scenario full-upgrade --out /home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade",
+      "observations": [
+        {
+          "label": "before-space-fault",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 131,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 133,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-transaction",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 131,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 133,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-restart",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 283,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 285,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-space-released-c-repair",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 594,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            },
+            {
+              "pid": 590,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-upgrade/stage/rootfs/sbin/ujail"
+            }
+          ]
+        }
+      ]
+    },
+    "full-rollback": {
+      "completed": true,
+      "error": null,
+      "script_sha256": "4fe3a590d07f687babc8fa847c764fd7e654f4a12ef242c16e6318071fccc6e0",
+      "helpers": {
+        "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+        "m4_package_lifecycle.py": "a66630bc1e35117415cf5272ac98b87dea6e2556be0557aa049cf4dbcdb328e4"
+      },
+      "cleanup": {
+        "errors": [],
+        "remaining_children": []
+      },
+      "scope": "isolated exact-image APK; synthetic no-LAN config; disk fault uses bounded tmpfs overlay upper, not UBIFS",
+      "space_fault": {
+        "available_bytes": 131072,
+        "filler_bytes": 12976128
+      },
+      "transaction": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs",
+          "/usr/bin/apk",
+          "--root",
+          "/",
+          "--no-network",
+          "--allow-untrusted",
+          "add",
+          "/m4/stock.apk"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 1,
+        "stdout": "(1/1) Downgrading dnsmasq (2.93-r2 -> 2.93-r1)\n1 error; 19.7 MiB in 159 packages\n",
+        "stderr": "WARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/base/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/luci/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/routing/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/telephony/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/video/packages.adb: No such file or directory\nERROR: dnsmasq-2.93-r1: failed to extract usr/sbin/dnsmasq: No space left on device\nERROR: dnsmasq-2.93-r1: No space left on device\n"
+      },
+      "restart": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs",
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "repair_transaction": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs",
+          "/usr/bin/apk",
+          "--root",
+          "/",
+          "--no-network",
+          "--allow-untrusted",
+          "add",
+          "--force-reinstall",
+          "/m4/stock.apk"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "(1/1) Downgrading dnsmasq (2.93-r2 -> 2.93-r1)\n  Installing file to etc/dnsmasq.conf.apk-new\n  Installing file to etc/config/dhcp.apk-new\n  Executing dnsmasq-2.93-r1.post-upgrade\nOK: 18.0 MiB in 159 packages\n",
+        "stderr": "WARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/base/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/luci/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/routing/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/telephony/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/video/packages.adb: No such file or directory\n  * uci: Entry not found\n"
+      },
+      "raw": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/result.json",
+      "reproduction_command": "sudo -n sh /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/run_isolated.sh python3 /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/audit_integration_package.py --rootfs /home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check --stock-apk /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/bin/packages/aarch64_cortex-a53/base/dnsmasq-2.93-r1.apk --candidate-apk /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/dnsmasq-2.93-r2.apk --candidate-elf-sha256 e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9 --source-commit 58365e8c8ebe1805573baa02543baf1c9d45be68 --scenario full-rollback --out /home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback",
+      "observations": [
+        {
+          "label": "before-space-fault",
+          "installed_version": "2.93-r2",
+          "disk_binary": {
+            "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+            "bytes": 2056672
+          },
+          "processes": [
+            {
+              "pid": 440,
+              "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            },
+            {
+              "pid": 438,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/sbin/ujail"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-transaction",
+          "installed_version": "2.93-r2",
+          "disk_binary": {
+            "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+            "bytes": 2056672
+          },
+          "processes": [
+            {
+              "pid": 440,
+              "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            },
+            {
+              "pid": 438,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/sbin/ujail"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-restart",
+          "installed_version": "2.93-r2",
+          "disk_binary": {
+            "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+            "bytes": 2056672
+          },
+          "processes": [
+            {
+              "pid": 592,
+              "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            },
+            {
+              "pid": 590,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/sbin/ujail"
+            }
+          ]
+        },
+        {
+          "label": "after-space-released-c-repair",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 904,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            },
+            {
+              "pid": 897,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-rollback/stage/rootfs/sbin/ujail"
+            }
+          ]
+        }
+      ]
+    },
+    "full-stock-reinstall": {
+      "completed": true,
+      "error": null,
+      "script_sha256": "4fe3a590d07f687babc8fa847c764fd7e654f4a12ef242c16e6318071fccc6e0",
+      "helpers": {
+        "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+        "m4_package_lifecycle.py": "a66630bc1e35117415cf5272ac98b87dea6e2556be0557aa049cf4dbcdb328e4"
+      },
+      "cleanup": {
+        "errors": [],
+        "remaining_children": []
+      },
+      "scope": "isolated exact-image APK; synthetic no-LAN config; disk fault uses bounded tmpfs overlay upper, not UBIFS",
+      "space_fault": {
+        "available_bytes": 131072,
+        "filler_bytes": 15290368
+      },
+      "transaction": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs",
+          "/usr/bin/apk",
+          "--root",
+          "/",
+          "--no-network",
+          "--allow-untrusted",
+          "add",
+          "--force-reinstall",
+          "/m4/stock.apk"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 2,
+        "stdout": "(1/1) Replacing dnsmasq (2.93-r1 -> 2.93-r1)\n2 errors; 18.0 MiB in 159 packages\n",
+        "stderr": "WARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/base/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/luci/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/routing/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/telephony/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/video/packages.adb: No such file or directory\nERROR: dnsmasq-2.93-r1: failed to extract usr/sbin/dnsmasq: No space left on device\nERROR: dnsmasq-2.93-r1: No space left on device\nERROR: System state may be inconsistent: failed to write database: No space left on device\n"
+      },
+      "restart": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs",
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "repair_transaction": {
+        "command": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs",
+          "/usr/bin/apk",
+          "--root",
+          "/",
+          "--no-network",
+          "--allow-untrusted",
+          "add",
+          "--force-reinstall",
+          "/m4/stock.apk"
+        ],
+        "timeout_seconds": 30,
+        "timed_out": false,
+        "returncode": 0,
+        "stdout": "(1/1) Replacing dnsmasq (2.93-r1 -> 2.93-r1)\n  Installing file to etc/dnsmasq.conf.apk-new\n  Installing file to etc/config/dhcp.apk-new\n  Executing dnsmasq-2.93-r1.post-upgrade\nOK: 18.0 MiB in 159 packages\n",
+        "stderr": "WARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/base/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/luci/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/packages/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/routing/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/telephony/packages.adb: No such file or directory\nWARNING: opening from cache https://downloads.openwrt.org/releases/25.12.5/packages/aarch64_cortex-a53/video/packages.adb: No such file or directory\n  * uci: Entry not found\n"
+      },
+      "raw": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/result.json",
+      "reproduction_command": "sudo -n sh /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/run_isolated.sh python3 /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/tools/dnsmasq/audit_integration_package.py --rootfs /home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity/rootfs-check --stock-apk /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/bin/packages/aarch64_cortex-a53/base/dnsmasq-2.93-r1.apk --candidate-apk /home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/package/dnsmasq-2.93-r2.apk --candidate-elf-sha256 e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9 --source-commit 58365e8c8ebe1805573baa02543baf1c9d45be68 --scenario full-stock-reinstall --out /home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall",
+      "observations": [
+        {
+          "label": "before-space-fault",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 131,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 133,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-transaction",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 131,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 133,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-restart",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 283,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/sbin/ujail"
+            },
+            {
+              "pid": 285,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-space-released-c-repair",
+          "installed_version": "2.93-r1",
+          "disk_binary": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "processes": [
+            {
+              "pid": 592,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/usr/sbin/dnsmasq"
+            },
+            {
+              "pid": 590,
+              "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+              "exe": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/private/final-full-stock-reinstall/stage/rootfs/sbin/ujail"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "raw": "/home/ubuntu/dnsmasq-predeploy-b-package-20261014/source/private/lifecycle-exact/result.json",
+    "status": "passed",
+    "stages": [
+      "stock-to-candidate-upgrade",
+      "candidate-reinstall",
+      "candidate-uninstall",
+      "candidate-fresh-install",
+      "candidate-remove-for-rollback",
+      "stock-rollback-after-removal",
+      "candidate-upgrade-for-downgrade",
+      "direct-stock-downgrade"
+    ],
+    "configuration_preservation": {
+      "etc/config/dhcp": {
+        "sha256": "7385fb6882f1d85659d71e2cc1cd4a736b305b7099e3de9dc5eba2382dee4547",
+        "mode": 384,
+        "uid": 0,
+        "gid": 0
+      },
+      "etc/dnsmasq.conf": {
+        "sha256": "2974115f20ba2867523bf93ec1a4859f5f25f980ba211ca582334152dbb0655b",
+        "mode": 384,
+        "uid": 0,
+        "gid": 0
+      },
+      "etc/dnsmasq.d/m4-user.conf": {
+        "sha256": "2974115f20ba2867523bf93ec1a4859f5f25f980ba211ca582334152dbb0655b",
+        "mode": 420,
+        "uid": 0,
+        "gid": 0
+      }
+    },
+    "post_upgrade_scripts": {
+      "stock": "    #!/bin/sh\n    export PKG_UPGRADE=1\n    [ \"${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0\n    [ -s ${IPKG_INSTROOT}/lib/functions.sh ] || exit 0\n    . ${IPKG_INSTROOT}/lib/functions.sh\n    export root=\"${IPKG_INSTROOT}\"\n    export pkgname=\"dnsmasq\"\n    add_group_and_user\n    default_postinst\n",
+      "candidate": "    #!/bin/sh\n    export PKG_UPGRADE=1\n    [ \"${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0\n    [ -s ${IPKG_INSTROOT}/lib/functions.sh ] || exit 0\n    . ${IPKG_INSTROOT}/lib/functions.sh\n    export root=\"${IPKG_INSTROOT}\"\n    export pkgname=\"dnsmasq\"\n    add_group_and_user\n    default_postinst\n",
+      "semantics": "stock default_postinst invokes init start; explicit restart activates changed ELF"
+    },
+    "stock_reinstall_keeps_daemon": true,
+    "activation_steps": [
+      {
+        "transaction": "stock-to-candidate-upgrade",
+        "command": [
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "automatic_restart_claimed": false
+      },
+      {
+        "transaction": "candidate-reinstall",
+        "command": [
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "automatic_restart_claimed": false
+      },
+      {
+        "transaction": "candidate-upgrade-for-downgrade",
+        "command": [
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "automatic_restart_claimed": false
+      },
+      {
+        "transaction": "direct-stock-downgrade",
+        "command": [
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "automatic_restart_claimed": false
+      }
+    ],
+    "variant_exclusion": {
+      "status": "not-run",
+      "results": [],
+      "dependency_apks_for_simulation_only": [],
+      "missing": [
+        "dnsmasq-dhcpv6",
+        "dnsmasq-full"
+      ]
+    },
+    "cleanup": {
+      "errors": [],
+      "remaining_children": []
+    },
+    "unmount": {
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "stock_apk_sha256": "752fa57e5a986425f03c9f6579097c7f23750fc80b3af317e4ee0e2d1b7a0d89"
+  },
+  "limits": [
+    "No physical router or deployment",
+    "No UBIFS, power-loss, apk process-kill, read-only overlay or inode-exhaustion test",
+    "No hard real-memory OOM test in package scenarios",
+    "Synthetic DNS-only configuration; package DNS reply tested, LAN DHCP/client health not inferred",
+    "No dnsmasq-full/dhcpv6 variant solver test in this run",
+    "No automatic C fallback mechanism shipped by this APK; separate deployment recovery gate is not established by package lifecycle success",
+    "ENOSPC at 131072 available bytes is one deterministic point, not a measured minimum safe free-space recommendation"
+  ],
+  "provides_resolution": {
+    "status": "not-a-finding",
+    "evidence": "matching SDK include/package.mk:350 adds @$(1)-any automatically; fresh APK metadata contains dnsmasq-any"
+  }
+}
