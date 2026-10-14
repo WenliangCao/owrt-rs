@@ -1,0 +1,2444 @@
+{
+  "exchanges_each": 558,
+  "strict_equal": 555,
+  "non_ttl_differences": 0,
+  "ttl_differences": [
+    {
+      "id": 1396,
+      "label": "dotless-chain-0-28-direct",
+      "host": "t-dotless-chain-0-28",
+      "kind": 28,
+      "ttl_bounds": {
+        "c": [
+          {
+            "upstream_seq": 153,
+            "inserted_between": [
+              1791974396.5715418,
+              1791974396.5731874
+            ],
+            "queried_between": [
+              1791974396.6790233,
+              1791974396.679837
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              300,
+              300
+            ],
+            "observed": 300
+          }
+        ],
+        "rust": [
+          {
+            "upstream_seq": 153,
+            "inserted_between": [
+              1791974414.8942094,
+              1791974414.8962054
+            ],
+            "queried_between": [
+              1791974415.006408,
+              1791974415.0070214
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              299,
+              299
+            ],
+            "observed": 299
+          }
+        ]
+      }
+    },
+    {
+      "id": 1397,
+      "label": "dotless-chain-0-28-alias",
+      "host": "a-dotless-chain-0-28.audit.example",
+      "kind": 28,
+      "ttl_bounds": {
+        "c": [
+          {
+            "upstream_seq": 155,
+            "inserted_between": [
+              1791974396.6539302,
+              1791974396.6556797
+            ],
+            "queried_between": [
+              1791974396.6908824,
+              1791974396.6916995
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              300,
+              300
+            ],
+            "observed": 300
+          },
+          {
+            "upstream_seq": 155,
+            "inserted_between": [
+              1791974396.6539302,
+              1791974396.6556797
+            ],
+            "queried_between": [
+              1791974396.6908824,
+              1791974396.6916995
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              300,
+              300
+            ],
+            "observed": 300
+          },
+          {
+            "upstream_seq": 155,
+            "inserted_between": [
+              1791974396.6539302,
+              1791974396.6556797
+            ],
+            "queried_between": [
+              1791974396.6908824,
+              1791974396.6916995
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              300,
+              300
+            ],
+            "observed": 300
+          },
+          {
+            "upstream_seq": 153,
+            "inserted_between": [
+              1791974396.5715418,
+              1791974396.5731874
+            ],
+            "queried_between": [
+              1791974396.6908824,
+              1791974396.6916995
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              300,
+              300
+            ],
+            "observed": 300
+          }
+        ],
+        "rust": [
+          {
+            "upstream_seq": 155,
+            "inserted_between": [
+              1791974414.9801452,
+              1791974414.9820929
+            ],
+            "queried_between": [
+              1791974415.0190914,
+              1791974415.019654
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              299,
+              299
+            ],
+            "observed": 299
+          },
+          {
+            "upstream_seq": 155,
+            "inserted_between": [
+              1791974414.9801452,
+              1791974414.9820929
+            ],
+            "queried_between": [
+              1791974415.0190914,
+              1791974415.019654
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              299,
+              299
+            ],
+            "observed": 299
+          },
+          {
+            "upstream_seq": 155,
+            "inserted_between": [
+              1791974414.9801452,
+              1791974414.9820929
+            ],
+            "queried_between": [
+              1791974415.0190914,
+              1791974415.019654
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              299,
+              299
+            ],
+            "observed": 299
+          },
+          {
+            "upstream_seq": 153,
+            "inserted_between": [
+              1791974414.8942094,
+              1791974414.8962054
+            ],
+            "queried_between": [
+              1791974415.0190914,
+              1791974415.019654
+            ],
+            "original_ttl": 300,
+            "allowed": [
+              299,
+              299
+            ],
+            "observed": 299
+          }
+        ]
+      }
+    },
+    {
+      "id": 1537,
+      "label": "expired-current",
+      "host": "a-dotless-expire-1.audit.example",
+      "kind": 1,
+      "ttl_bounds": {
+        "c": [
+          {
+            "upstream_seq": 245,
+            "inserted_between": [
+              1791974401.9934735,
+              1791974401.9951212
+            ],
+            "queried_between": [
+              1791974402.0115476,
+              1791974402.012488
+            ],
+            "original_ttl": 2,
+            "allowed": [
+              1,
+              1
+            ],
+            "observed": 1
+          },
+          {
+            "upstream_seq": 245,
+            "inserted_between": [
+              1791974401.9934735,
+              1791974401.9951212
+            ],
+            "queried_between": [
+              1791974402.0115476,
+              1791974402.012488
+            ],
+            "original_ttl": 2,
+            "allowed": [
+              1,
+              1
+            ],
+            "observed": 1
+          }
+        ],
+        "rust": [
+          {
+            "upstream_seq": 245,
+            "inserted_between": [
+              1791974420.4218264,
+              1791974420.4240894
+            ],
+            "queried_between": [
+              1791974420.440601,
+              1791974420.4411566
+            ],
+            "original_ttl": 2,
+            "allowed": [
+              2,
+              2
+            ],
+            "observed": 2
+          },
+          {
+            "upstream_seq": 245,
+            "inserted_between": [
+              1791974420.4218264,
+              1791974420.4240894
+            ],
+            "queried_between": [
+              1791974420.440601,
+              1791974420.4411566
+            ],
+            "original_ttl": 2,
+            "allowed": [
+              2,
+              2
+            ],
+            "observed": 2
+          }
+        ]
+      }
+    }
+  ],
+  "upstream_requests": {
+    "c": 251,
+    "rust": 251
+  },
+  "upstream_host_type_transport_counts_equal": true,
+  "phase_observations": {
+    "c": [
+      {
+        "label": "expired-retained",
+        "host": "t-lan-expire-1.lan",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.7147112,
+        "response": {
+          "id": 1520,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-lan-expire-1.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.7152772
+      },
+      {
+        "label": "expired-current",
+        "host": "t-lan-expire-1.lan",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.7318313,
+        "response": {
+          "id": 1521,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-expire-1.lan",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974401.7328377
+      },
+      {
+        "label": "expired-current",
+        "host": "t-lan-expire-1.lan",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.7486105,
+        "response": {
+          "id": 1522,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-expire-1.lan",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974401.749822
+      },
+      {
+        "label": "expired-retained",
+        "host": "a-lan-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.7660563,
+        "response": {
+          "id": 1523,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-lan-expire-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.767025
+      },
+      {
+        "label": "expired-current",
+        "host": "a-lan-expire-1.audit.example",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.7833698,
+        "response": {
+          "id": 1524,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-lan-expire-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.785539
+      },
+      {
+        "label": "expired-current",
+        "host": "a-lan-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.8020947,
+        "response": {
+          "id": 1525,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-lan-expire-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.8030746
+      },
+      {
+        "label": "expired-retained",
+        "host": "t-invalid-expire-1.invalid",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.8200054,
+        "response": {
+          "id": 1526,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-invalid-expire-1.invalid",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.8203692
+      },
+      {
+        "label": "expired-current",
+        "host": "t-invalid-expire-1.invalid",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.836173,
+        "response": {
+          "id": 1527,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-expire-1.invalid",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974401.8366048
+      },
+      {
+        "label": "expired-current",
+        "host": "t-invalid-expire-1.invalid",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.8532593,
+        "response": {
+          "id": 1528,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-expire-1.invalid",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974401.854698
+      },
+      {
+        "label": "expired-retained",
+        "host": "a-invalid-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.8712103,
+        "response": {
+          "id": 1529,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-invalid-expire-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.8716416
+      },
+      {
+        "label": "expired-current",
+        "host": "a-invalid-expire-1.audit.example",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.8883407,
+        "response": {
+          "id": 1530,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-invalid-expire-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.8904421
+      },
+      {
+        "label": "expired-current",
+        "host": "a-invalid-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.906917,
+        "response": {
+          "id": 1531,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-invalid-expire-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.9081028
+      },
+      {
+        "label": "expired-retained",
+        "host": "t-dotless-expire-1",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.9249072,
+        "response": {
+          "id": 1532,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-dotless-expire-1",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.925398
+      },
+      {
+        "label": "expired-current",
+        "host": "t-dotless-expire-1",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.9416623,
+        "response": {
+          "id": 1533,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-expire-1",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974401.9420269
+      },
+      {
+        "label": "expired-current",
+        "host": "t-dotless-expire-1",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.9585001,
+        "response": {
+          "id": 1534,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-expire-1",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974401.9596393
+      },
+      {
+        "label": "expired-retained",
+        "host": "a-dotless-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.9762783,
+        "response": {
+          "id": 1535,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-dotless-expire-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.97666
+      },
+      {
+        "label": "expired-current",
+        "host": "a-dotless-expire-1.audit.example",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974401.992947,
+        "response": {
+          "id": 1536,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-dotless-expire-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974401.9951212
+      },
+      {
+        "label": "expired-current",
+        "host": "a-dotless-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.0115476,
+        "response": {
+          "id": 1537,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 1,
+              "data": "t-dotless-expire-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 1,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974402.012488
+      },
+      {
+        "label": "hup-retained",
+        "host": "t-lan-hup-1.lan",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.2013698,
+        "response": {
+          "id": 1539,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-lan-hup-1.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.2019806
+      },
+      {
+        "label": "hup-current",
+        "host": "t-lan-hup-1.lan",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.2238424,
+        "response": {
+          "id": 1540,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-hup-1.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.224276
+      },
+      {
+        "label": "hup-current",
+        "host": "t-lan-hup-1.lan",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.2410638,
+        "response": {
+          "id": 1541,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-hup-1.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.2419395
+      },
+      {
+        "label": "hup-retained",
+        "host": "a-lan-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.2639525,
+        "response": {
+          "id": 1542,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.2643356
+      },
+      {
+        "label": "hup-current",
+        "host": "a-lan-hup-1.audit.example",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.2815297,
+        "response": {
+          "id": 1543,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-lan-hup-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-hup-1.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974402.2835324
+      },
+      {
+        "label": "hup-current",
+        "host": "a-lan-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.2997682,
+        "response": {
+          "id": 1544,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-lan-hup-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-hup-1.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974402.3008907
+      },
+      {
+        "label": "hup-retained",
+        "host": "t-invalid-hup-1.invalid",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.4882689,
+        "response": {
+          "id": 1546,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-invalid-hup-1.invalid",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.4887621
+      },
+      {
+        "label": "hup-current",
+        "host": "t-invalid-hup-1.invalid",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.5058503,
+        "response": {
+          "id": 1547,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-hup-1.invalid",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.5062804
+      },
+      {
+        "label": "hup-current",
+        "host": "t-invalid-hup-1.invalid",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.5229228,
+        "response": {
+          "id": 1548,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-hup-1.invalid",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.5238967
+      },
+      {
+        "label": "hup-retained",
+        "host": "a-invalid-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.540858,
+        "response": {
+          "id": 1549,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.5418022
+      },
+      {
+        "label": "hup-current",
+        "host": "a-invalid-hup-1.audit.example",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.55859,
+        "response": {
+          "id": 1550,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-invalid-hup-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-hup-1.invalid",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974402.5608075
+      },
+      {
+        "label": "hup-current",
+        "host": "a-invalid-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.5778074,
+        "response": {
+          "id": 1551,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-invalid-hup-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-hup-1.invalid",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974402.5788176
+      },
+      {
+        "label": "hup-retained",
+        "host": "t-dotless-hup-1",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.7664764,
+        "response": {
+          "id": 1553,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-dotless-hup-1",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.766972
+      },
+      {
+        "label": "hup-current",
+        "host": "t-dotless-hup-1",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.7844682,
+        "response": {
+          "id": 1554,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-hup-1",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.7848954
+      },
+      {
+        "label": "hup-current",
+        "host": "t-dotless-hup-1",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.8019001,
+        "response": {
+          "id": 1555,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-hup-1",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.8027718
+      },
+      {
+        "label": "hup-retained",
+        "host": "a-dotless-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.8200715,
+        "response": {
+          "id": 1556,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974402.8205097
+      },
+      {
+        "label": "hup-current",
+        "host": "a-dotless-hup-1.audit.example",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.8377855,
+        "response": {
+          "id": 1557,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-dotless-hup-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-hup-1",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974402.840047
+      },
+      {
+        "label": "hup-current",
+        "host": "a-dotless-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974402.8576443,
+        "response": {
+          "id": 1558,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-dotless-hup-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-hup-1",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974402.8589492
+      }
+    ],
+    "rust": [
+      {
+        "label": "expired-retained",
+        "host": "t-lan-expire-1.lan",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.154906,
+        "response": {
+          "id": 1520,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-lan-expire-1.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.155419
+      },
+      {
+        "label": "expired-current",
+        "host": "t-lan-expire-1.lan",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.1714752,
+        "response": {
+          "id": 1521,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-expire-1.lan",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.1718915
+      },
+      {
+        "label": "expired-current",
+        "host": "t-lan-expire-1.lan",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.1874888,
+        "response": {
+          "id": 1522,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-expire-1.lan",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.1880884
+      },
+      {
+        "label": "expired-retained",
+        "host": "a-lan-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.2034876,
+        "response": {
+          "id": 1523,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-lan-expire-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.2039523
+      },
+      {
+        "label": "expired-current",
+        "host": "a-lan-expire-1.audit.example",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.220191,
+        "response": {
+          "id": 1524,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-lan-expire-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.2224238
+      },
+      {
+        "label": "expired-current",
+        "host": "a-lan-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.2382824,
+        "response": {
+          "id": 1525,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-lan-expire-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-expire-1.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.2389166
+      },
+      {
+        "label": "expired-retained",
+        "host": "t-invalid-expire-1.invalid",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.255125,
+        "response": {
+          "id": 1526,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-invalid-expire-1.invalid",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.2554944
+      },
+      {
+        "label": "expired-current",
+        "host": "t-invalid-expire-1.invalid",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.2710695,
+        "response": {
+          "id": 1527,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-expire-1.invalid",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.2715135
+      },
+      {
+        "label": "expired-current",
+        "host": "t-invalid-expire-1.invalid",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.2878318,
+        "response": {
+          "id": 1528,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-expire-1.invalid",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.2884088
+      },
+      {
+        "label": "expired-retained",
+        "host": "a-invalid-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.3042629,
+        "response": {
+          "id": 1529,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-invalid-expire-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.3046515
+      },
+      {
+        "label": "expired-current",
+        "host": "a-invalid-expire-1.audit.example",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.3204777,
+        "response": {
+          "id": 1530,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-invalid-expire-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.322596
+      },
+      {
+        "label": "expired-current",
+        "host": "a-invalid-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.3386688,
+        "response": {
+          "id": 1531,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-invalid-expire-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-expire-1.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.3392615
+      },
+      {
+        "label": "expired-retained",
+        "host": "t-dotless-expire-1",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.3555439,
+        "response": {
+          "id": 1532,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-dotless-expire-1",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.3558533
+      },
+      {
+        "label": "expired-current",
+        "host": "t-dotless-expire-1",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.3717906,
+        "response": {
+          "id": 1533,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-expire-1",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.3721976
+      },
+      {
+        "label": "expired-current",
+        "host": "t-dotless-expire-1",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.3881872,
+        "response": {
+          "id": 1534,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-expire-1",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.388718
+      },
+      {
+        "label": "expired-retained",
+        "host": "a-dotless-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.404654,
+        "response": {
+          "id": 1535,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-dotless-expire-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.4050317
+      },
+      {
+        "label": "expired-current",
+        "host": "a-dotless-expire-1.audit.example",
+        "kind": 1,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.4213166,
+        "response": {
+          "id": 1536,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-dotless-expire-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.4240894
+      },
+      {
+        "label": "expired-current",
+        "host": "a-dotless-expire-1.audit.example",
+        "kind": 1,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.440601,
+        "response": {
+          "id": 1537,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-expire-1.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-expire-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 2,
+              "data": "t-dotless-expire-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-expire-1",
+              "type": 1,
+              "cls": 1,
+              "ttl": 2,
+              "data": "08080404"
+            }
+          ]
+        },
+        "received": 1791974420.4411566
+      },
+      {
+        "label": "hup-retained",
+        "host": "t-lan-hup-1.lan",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.6294274,
+        "response": {
+          "id": 1539,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-lan-hup-1.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.6299155
+      },
+      {
+        "label": "hup-current",
+        "host": "t-lan-hup-1.lan",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.647969,
+        "response": {
+          "id": 1540,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-hup-1.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.6487865
+      },
+      {
+        "label": "hup-current",
+        "host": "t-lan-hup-1.lan",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.6659024,
+        "response": {
+          "id": 1541,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-lan-hup-1.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.6665103
+      },
+      {
+        "label": "hup-retained",
+        "host": "a-lan-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.6829786,
+        "response": {
+          "id": 1542,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.683393
+      },
+      {
+        "label": "hup-current",
+        "host": "a-lan-hup-1.audit.example",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.6994724,
+        "response": {
+          "id": 1543,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-lan-hup-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-hup-1.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974420.7015817
+      },
+      {
+        "label": "hup-current",
+        "host": "a-lan-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.717975,
+        "response": {
+          "id": 1544,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-lan-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-lan-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-lan-hup-1.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "t-lan-hup-1.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974420.718605
+      },
+      {
+        "label": "hup-retained",
+        "host": "t-invalid-hup-1.invalid",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.9044826,
+        "response": {
+          "id": 1546,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-invalid-hup-1.invalid",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.9050121
+      },
+      {
+        "label": "hup-current",
+        "host": "t-invalid-hup-1.invalid",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.9221714,
+        "response": {
+          "id": 1547,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-hup-1.invalid",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.9226148
+      },
+      {
+        "label": "hup-current",
+        "host": "t-invalid-hup-1.invalid",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.9394999,
+        "response": {
+          "id": 1548,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-invalid-hup-1.invalid",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.9401176
+      },
+      {
+        "label": "hup-retained",
+        "host": "a-invalid-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.9568121,
+        "response": {
+          "id": 1549,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974420.9572504
+      },
+      {
+        "label": "hup-current",
+        "host": "a-invalid-hup-1.audit.example",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.9741342,
+        "response": {
+          "id": 1550,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-invalid-hup-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-hup-1.invalid",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974420.976373
+      },
+      {
+        "label": "hup-current",
+        "host": "a-invalid-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974420.993408,
+        "response": {
+          "id": 1551,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-invalid-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-invalid-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-invalid-hup-1.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "t-invalid-hup-1.invalid",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974420.9940615
+      },
+      {
+        "label": "hup-retained",
+        "host": "t-dotless-hup-1",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974421.1821578,
+        "response": {
+          "id": 1553,
+          "flags": 33152,
+          "questions": [
+            [
+              "t-dotless-hup-1",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974421.1826923
+      },
+      {
+        "label": "hup-current",
+        "host": "t-dotless-hup-1",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974421.2027576,
+        "response": {
+          "id": 1554,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-hup-1",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974421.2043238
+      },
+      {
+        "label": "hup-current",
+        "host": "t-dotless-hup-1",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974421.2232473,
+        "response": {
+          "id": 1555,
+          "flags": 33155,
+          "questions": [
+            [
+              "t-dotless-hup-1",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974421.224728
+      },
+      {
+        "label": "hup-retained",
+        "host": "a-dotless-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974421.2427945,
+        "response": {
+          "id": 1556,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "received": 1791974421.2442403
+      },
+      {
+        "label": "hup-current",
+        "host": "a-dotless-hup-1.audit.example",
+        "kind": 28,
+        "tcp": false,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974421.2625878,
+        "response": {
+          "id": 1557,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-dotless-hup-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-hup-1",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974421.2658222
+      },
+      {
+        "label": "hup-current",
+        "host": "a-dotless-hup-1.audit.example",
+        "kind": 28,
+        "tcp": true,
+        "flags": 256,
+        "edns": 0,
+        "sent": 1791974421.284786,
+        "response": {
+          "id": 1558,
+          "flags": 33152,
+          "questions": [
+            [
+              "a-dotless-hup-1.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "a-dotless-hup-1.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 300,
+              "data": "t-dotless-hup-1"
+            },
+            {
+              "section": "answer",
+              "owner": "t-dotless-hup-1",
+              "type": 28,
+              "cls": 1,
+              "ttl": 300,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        },
+        "received": 1791974421.2864087
+      }
+    ]
+  },
+  "source_rows_sha256": {
+    "c": "38a4286847cf85c66a0e220f809e03cf98422a1bb5fc76904766533c3cba1125",
+    "rust": "81da5798097ae8da143efe6a98f45cd8161a319cf15527efb35bd3996b91d987"
+  }
+}

@@ -1,0 +1,1102 @@
+{
+  "responses_each": 26,
+  "strict_equal": true,
+  "observations": {
+    "c": [
+      {
+        "label": "direct-terminal-before-udp",
+        "response": {
+          "id": 16640,
+          "flags": 33155,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "direct-terminal-before-tcp",
+        "response": {
+          "id": 16640,
+          "flags": 33155,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20736,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20737,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20738,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              16,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20739,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              255,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20736,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain-invalid.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-terminal.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-terminal.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20737,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20738,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              16,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20739,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              255,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-outage",
+        "response": {
+          "id": 20736,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.outage.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.outage.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-outage-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-outage-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "local-chain-outage",
+        "response": {
+          "id": 20737,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.outage.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "udp-local-chain-warm",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.udp.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.udp.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-udp-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-udp-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "new-tcp-after-udp-warm",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.udp.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "udp-local-chain-aaaa",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.udp.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.udp.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-udp-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-udp-terminal.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 120,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        }
+      },
+      {
+        "label": "direct-terminal-udp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "direct-terminal-tcp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "direct-terminal-a-udp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "audit-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 119,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "direct-terminal-a-tcp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "audit-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 119,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "fresh-alias-tcp-aaaa",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.fresh.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.fresh.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-fresh-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-fresh-terminal.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 120,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-warm-tcp-close",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-warm-tcp-close.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-warm-tcp-close.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-failover-tcp-close",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-failover-tcp-close.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-failover-tcp-close.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-warm-servfail",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-warm-servfail.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-warm-servfail.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-failover-servfail",
+        "response": {
+          "id": 16640,
+          "flags": 33154,
+          "questions": [
+            [
+              "tcp-failover-servfail.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "tcp-warm-refused",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-warm-refused.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-warm-refused.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-failover-refused",
+        "response": {
+          "id": 16640,
+          "flags": 33157,
+          "questions": [
+            [
+              "tcp-failover-refused.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        }
+      }
+    ],
+    "rust": [
+      {
+        "label": "direct-terminal-before-udp",
+        "response": {
+          "id": 16640,
+          "flags": 33155,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "direct-terminal-before-tcp",
+        "response": {
+          "id": 16640,
+          "flags": 33155,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20736,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20737,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20738,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              16,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain",
+        "response": {
+          "id": 20739,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.audit.example",
+              255,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20736,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain-invalid.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-terminal.invalid"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-terminal.invalid",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20737,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20738,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              16,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-invalid",
+        "response": {
+          "id": 20739,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain-invalid.audit.example",
+              255,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "local-chain-outage",
+        "response": {
+          "id": 20736,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.outage.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.outage.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-outage-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-outage-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "local-chain-outage",
+        "response": {
+          "id": 20737,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.outage.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "udp-local-chain-warm",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.udp.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.udp.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-udp-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-udp-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "new-tcp-after-udp-warm",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.udp.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "udp-local-chain-aaaa",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.udp.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.udp.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-udp-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-udp-terminal.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 120,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        }
+      },
+      {
+        "label": "direct-terminal-udp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "direct-terminal-tcp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              28,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "direct-terminal-a-udp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "audit-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 119,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "direct-terminal-a-tcp",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "audit-terminal.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "audit-terminal.lan",
+              "type": 1,
+              "cls": 1,
+              "ttl": 119,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "fresh-alias-tcp-aaaa",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "local-chain.fresh.audit.example",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "local-chain.fresh.audit.example",
+              "type": 5,
+              "cls": 1,
+              "ttl": 120,
+              "data": "audit-fresh-terminal.lan"
+            },
+            {
+              "section": "answer",
+              "owner": "audit-fresh-terminal.lan",
+              "type": 28,
+              "cls": 1,
+              "ttl": 120,
+              "data": "20014860486000000000000000008844"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-warm-tcp-close",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-warm-tcp-close.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-warm-tcp-close.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-failover-tcp-close",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-failover-tcp-close.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-failover-tcp-close.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-warm-servfail",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-warm-servfail.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-warm-servfail.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-failover-servfail",
+        "response": {
+          "id": 16640,
+          "flags": 33154,
+          "questions": [
+            [
+              "tcp-failover-servfail.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        }
+      },
+      {
+        "label": "tcp-warm-refused",
+        "response": {
+          "id": 16640,
+          "flags": 33152,
+          "questions": [
+            [
+              "tcp-warm-refused.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "owner": "tcp-warm-refused.audit.example",
+              "type": 1,
+              "cls": 1,
+              "ttl": 120,
+              "data": "08080404"
+            }
+          ]
+        }
+      },
+      {
+        "label": "tcp-failover-refused",
+        "response": {
+          "id": 16640,
+          "flags": 33157,
+          "questions": [
+            [
+              "tcp-failover-refused.audit.example",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        }
+      }
+    ]
+  }
+}

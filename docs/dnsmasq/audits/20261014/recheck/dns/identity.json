@@ -1,0 +1,128 @@
+{
+  "scope": "Actual captured config; exact image C and final SDK Rust ELF; independent isolated rerun",
+  "product_freeze": "807db8a15e43452414acc048874bf04a4c639bd9",
+  "raw_evidence": {
+    "c-focused-02": {
+      "path": "/home/ubuntu/dnsmasq-recheck-dns-20261014/private/c-focused-02-manifest.json",
+      "sha256": "f3e36d3e83f6836f6247b7b98f189a2173c38d7b584de895874841f2a35ff49b",
+      "files": 150,
+      "result_sha256": "c298a70393894f6d50513d7b147904245351f6f7cf49e8fb57df2a3773ba9871",
+      "identity": {
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+        "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480",
+        "errors": [],
+        "process_exits": [
+          0,
+          0
+        ],
+        "ubus_checks": [
+          {
+            "case": "process-resources-released",
+            "actual": false,
+            "expected": false,
+            "pass": true
+          },
+          {
+            "case": "upstream-errors",
+            "actual": [],
+            "expected": [],
+            "pass": true
+          }
+        ]
+      }
+    },
+    "rust-focused-02": {
+      "path": "/home/ubuntu/dnsmasq-recheck-dns-20261014/private/rust-focused-02-manifest.json",
+      "sha256": "37e3ed869d85670448ae7079a2831c9b5988aacd91c9bd5d95faf05b6665b306",
+      "files": 150,
+      "result_sha256": "4b2558823b9bb80f72e3689e65db0980e01783de7e5750255a732a193b05b3c6",
+      "identity": {
+        "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+        "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480",
+        "errors": [],
+        "process_exits": [
+          0,
+          0
+        ],
+        "ubus_checks": [
+          {
+            "case": "process-resources-released",
+            "actual": false,
+            "expected": false,
+            "pass": true
+          },
+          {
+            "case": "upstream-errors",
+            "actual": [],
+            "expected": [],
+            "pass": true
+          }
+        ]
+      }
+    },
+    "c-matrix-02": {
+      "path": "/home/ubuntu/dnsmasq-recheck-dns-20261014/private/c-matrix-02-manifest.json",
+      "sha256": "f5b266be9c063e64a32f6062e5434a53195a99178a9c430e6cf62d8b14868845",
+      "files": 1629,
+      "result_sha256": "5c60f68185c9ad8cea89c8e969983a81b04403b1a4fc600e13183d77ae92895c",
+      "identity": {
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+        "tool_sha256": "0db8ad71ab66898bc3441093a68d662cabe98d5c1721d80bc5a1b3ba6fd48dd2",
+        "errors": [],
+        "process_exits": [
+          0,
+          0
+        ],
+        "ubus_checks": [
+          {
+            "case": "process-resources-released",
+            "actual": false,
+            "expected": false,
+            "pass": true
+          },
+          {
+            "case": "upstream-errors",
+            "actual": [],
+            "expected": [],
+            "pass": true
+          }
+        ]
+      }
+    },
+    "rust-matrix-02": {
+      "path": "/home/ubuntu/dnsmasq-recheck-dns-20261014/private/rust-matrix-02-manifest.json",
+      "sha256": "e8fbb1546ae89969fe90f1f210609312a35a0845fe6333dab323eaef4f094bf3",
+      "files": 1629,
+      "result_sha256": "08c2401b91629bd165f361bea330e68303d0b6e4cdd35d3d164a7cfc7a858b05",
+      "identity": {
+        "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+        "tool_sha256": "0db8ad71ab66898bc3441093a68d662cabe98d5c1721d80bc5a1b3ba6fd48dd2",
+        "errors": [],
+        "process_exits": [
+          0,
+          0
+        ],
+        "ubus_checks": [
+          {
+            "case": "process-resources-released",
+            "actual": false,
+            "expected": false,
+            "pass": true
+          },
+          {
+            "case": "upstream-errors",
+            "actual": [],
+            "expected": [],
+            "pass": true
+          }
+        ]
+      }
+    }
+  },
+  "collector_sha256": "265319bf37e1504138534406af1a50632a452ef3e32f3ada4b84e107de928118",
+  "decoder_tool_sha256": "0db8ad71ab66898bc3441093a68d662cabe98d5c1721d80bc5a1b3ba6fd48dd2"
+}
