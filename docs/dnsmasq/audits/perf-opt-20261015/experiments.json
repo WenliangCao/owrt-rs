@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "rules": "All numeric screens are environment-specific; no device qualification until full timing and all frozen gates pass. Rejected revisions remain in durable Git history.",
+  "experiments": [
+    {
+      "id": "DNS-1",
+      "hypothesis": "Validate encoded names without materializing discarded Name",
+      "status": "accepted-screen",
+      "evidence": "D1 hit5\u21924alloc,8RR13\u21925; native instruction -5.78%; v0.2 device conclusion pending",
+      "commit": "039fe983"
+    },
+    {
+      "id": "DNS-2",
+      "hypothesis": "Reuse one dotted query name for lease expiry and local answer",
+      "status": "accepted-screen",
+      "evidence": "Native five-round CPU hit-leases -10.44%, miss-leases -8.84%, ordinary hit -5.48% combined with DNS1",
+      "commit": "d14385f9"
+    },
+    {
+      "id": "DNS-3",
+      "hypothesis": "Use fixed255B local dotted-name scratch",
+      "status": "rejected",
+      "evidence": "Common micro improved~3%, but400configured-CNAME +2.43% above variation,5/5 adverse; not part ofA/B",
+      "commit": "b0b9ab77"
+    },
+    {
+      "id": "DNS-4",
+      "hypothesis": "Skip validation of already-validated first writer question",
+      "status": "rejected",
+      "evidence": "Ordinary hit saves54 instructions/~1.04% in API; whole daemon smaller than measured device variation/CPU precision;8RR helper -3.37%",
+      "commit": "30828e02"
+    },
+    {
+      "id": "LOOP-1",
+      "hypothesis": "Borrow UDP receive packet until deferred state needs ownership",
+      "status": "accepted-screen",
+      "evidence": "Actual owner11\u219210alloc/query,566\u2192538allocatedB, buffer restored everycall",
+      "commit": "872190e1"
+    },
+    {
+      "id": "LOOP-2",
+      "hypothesis": "Keep TCP prefix separate and write vectored; direct complete inbound frame copy",
+      "status": "accepted-screen",
+      "evidence": "One less allocation/payload copy per outbound;32/1232/65535B screen -37/-45/-50%instructions; fragmented overhead10\u201318instructions retained; small capacity retention cost",
+      "commit": "9ef559e5"
+    },
+    {
+      "id": "LOOP-4",
+      "hypothesis": "Reuse upstream poll fd/token scratch",
+      "status": "accepted-screen",
+      "evidence": "1000 pending polls2000alloc/16000B\u21920 afterwarmup;16B/socket high-water+48Binline retained; no timer/readiness shortcut",
+      "commit": "e324db85"
+    },
+    {
+      "id": "DHCP-1",
+      "hypothesis": "Encode lease hex fields in bounded stack chunks",
+      "status": "accepted-screen",
+      "evidence": "150leases Write calls4665\u21922400 (not syscalls), instruction-46.83%; five-pair instrumented local serializer time-46.75%",
+      "commit": "44af09dc"
+    },
+    {
+      "id": "DHCP-2",
+      "hypothesis": "Borrow already canonical lease lookup keys",
+      "status": "accepted-screen",
+      "evidence": "150lookup allocations150\u21920; native instructions-22.15%screen",
+      "commit": "06ecb4a3"
+    },
+    {
+      "id": "HOSTS-3",
+      "hypothesis": "Remove redundant forward-name map",
+      "status": "rejected",
+      "evidence": "Load instructions -23.35% but presence hit+83.24%,miss+37.39%; adverse non-load path forbids adoption",
+      "commit": "83f57066"
+    },
+    {
+      "id": "HOSTS-3b",
+      "hypothesis": "Keep one representative index per name",
+      "status": "rejected",
+      "evidence": "Restores lookup but clone/source-removal +7.43% instructions; not accepted",
+      "commit": "b838a2c6"
+    },
+    {
+      "id": "HOSTS-3d",
+      "hypothesis": "Keep per-name count instead of heap vector",
+      "status": "timing-pending",
+      "evidence": "Load -8.47%,presence improved; source-removal +1.48% instructions needs plain five-pair timing",
+      "commit": "5c2c985b"
+    },
+    {
+      "id": "DHCP-4",
+      "hypothesis": "Borrow publication keys and update already-existing ancestor expiry",
+      "status": "timing-pending",
+      "evidence": "FQDN+short300records alloc1832\u21921234; plain instruction-5.69%",
+      "commit": "745212bb"
+    },
+    {
+      "id": "DHCP-5",
+      "hypothesis": "Batch lease fixed prefix formatting and use one sort",
+      "status": "rejected",
+      "evidence": "Write calls2400\u2192750 but instructions+22\u201327%; single-sort portion\u22642.2% of serializer and less whole-daemon benefit; reverted",
+      "commit": "9111b803"
+    },
+    {
+      "id": "CACHE-EMPTY",
+      "hypothesis": "Share identical empty content blocks at startup",
+      "status": "rejected-before-code",
+      "evidence": "Moves mandatory allocation fromstartup tofirst insert and can turn startupOOM intoquery abort; incompatible failure boundary",
+      "commit": ""
+    },
+    {
+      "id": "CACHE-CLEAR1",
+      "hypothesis": "Check COW uniqueness once per block when clearing",
+      "status": "accepted-screen",
+      "evidence": "100k clear1000 instructions9.281B\u21924.034B; same allocation counts, contents/drop order, antiABA generations",
+      "commit": "505c0df6"
+    },
+    {
+      "id": "CACHE-CLEAR2",
+      "hypothesis": "Reuse unique zero-capacity empty name roots",
+      "status": "accepted-screen",
+      "evidence": "Clear uniqueempty65alloc/4608B\u21920; combinedinstruction9.281B\u21922.412B; shared/allocated roots still replace duringclear; startupallocation unchanged",
+      "commit": "d48c0568"
+    },
+    {
+      "id": "EXIT-1",
+      "hypothesis": "Retire pure cache memory at final successful process exit",
+      "status": "accepted-screen",
+      "evidence": "106\u21927 dealloc,96033\u21922785B allocator cleanup; FD4\u21924; onlyterminal main return, allIO Drop retained",
+      "commit": "83536032"
+    },
+    {
+      "id": "RECV-BATCH",
+      "hypothesis": "Use recvmmsg to avoid trailing failed recvmsg",
+      "status": "rejected",
+      "evidence": "Single-packet syscall count halves but wholeprobe instructions~4.4% lower; preserves deferred-error check only withgetsockopt, restoringcalls and+3.57% instructions; complexprefetch not justified",
+      "commit": "67c52439"
+    },
+    {
+      "id": "CACHE-LAYOUT",
+      "hypothesis": "One Arc slice instead of Arc plus Box block",
+      "status": "deferred-small",
+      "evidence": "Would remove only16 small metadata allocations;16large mappings remain and representation-bound probes needadaptation; simpler clear/exit mechanisms prioritized",
+      "commit": ""
+    },
+    {
+      "id": "METRICS",
+      "hypothesis": "Avoid unused metrics/query-event work",
+      "status": "profile-pending",
+      "evidence": "Need actual SDK binary hotspot profile beforeadding gates; historicalcaller shortcuts lacked stable benefit",
+      "commit": ""
+    }
+  ]
+}
