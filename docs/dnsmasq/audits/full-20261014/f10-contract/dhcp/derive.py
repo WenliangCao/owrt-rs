@@ -1,7 +1,7 @@
 from pathlib import Path
 import json,hashlib
 b=Path('/dev/shm/full-f10-dhcp-20261014/private')
-versions=['v2','v3','v4','v5','cross-alias-c-matched','candidate-b99e','candidate-b99e-no-lease']
+versions=['v2','v3','v4','v5','cross-alias-c-matched','candidate-b99e','candidate-b99e-no-lease','candidate-435f']
 reports=[]
 for version in versions:
  p=b/version/'result.json';j=json.loads(p.read_text())

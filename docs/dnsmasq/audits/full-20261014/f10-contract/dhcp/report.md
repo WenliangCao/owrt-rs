@@ -30,8 +30,8 @@ DHCP packet exchange; these cases do not claim to validate DHCP ACK handling.
 | infinite a.test | 2, v2 | x.test, y.test | 192.0.3.186, 192.0.3.185 |
 | finite a.test | 2, v3 | x.test only | 192.0.3.186, 192.0.3.185 |
 
-UDP and fresh TCP agree on the PTR sets. Both C processes and ordinary configured
-DNS remain healthy. PTR order differs across processes because C uses a process
+UDP and fresh TCP agree on the PTR sets. All C processes remained alive and exited
+normally after the probes. PTR order differs across processes because C uses a process
 address dependent name hash; set membership is the finding here.
 
 The matching source explains the finite/infinite distinction. `cache_reload`
@@ -84,6 +84,43 @@ candidate's query sequence. The earlier `v4` included four extra initial A queri
 and is not used as that candidate's sequence control. The later repair/replay
 must record a new source/ELF identity rather than replacing these observations.
 
+## Candidate 435f replay
+
+Source `435fe2d65e6b5a59ff77c38a355236627dd2aeea`, ELF
+`/dev/shm/full-f10-product-20261014/private/release-435f/dnsmasq-rs`, SHA-256
+`0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb`.
+
+The same three probes were replayed with only candidate/output identity changed.
+Infinite and finite single-lease cases now return the C first A order `.186,.185`.
+The cross-alias case still returns `.185,.186`, opposite its matched C control.
+All three PTR owner sets remain correct on UDP and TCP, and the processes remained
+alive with normal cleanup exits. The additional C/C control below establishes
+that this cross-alias order alone is not evidence of a product defect.
+
+The single-lease repair removes an early rebuild against stale lease names. C
+first reconciles lease names against the new hosts PTR owners and then publishes
+that final source. Rebuilding the old `a.test` lease beforehand performs an extra
+hosts lookup and changes the first A order. The main owner tests use the real
+provider and `LeasePublisher`, including a held DHCP-options FIFO, to check that
+hosts and leases stay on the prior generation until the final provider callback.
+
+### Cross-alias C/C ordering boundary
+
+Three fresh exact-C processes then replayed the same cross-alias inputs and query
+sequence. Two renamed the `.1` lease to `x` and returned first A `.185,.186`; one
+retained lease name `a` and returned `.186,.185`. All returned the sole PTR owner
+`x.test` over UDP and TCP. The [derived control](cross-alias-order.json) retains
+both the lease-file identities and the ordered responses.
+
+`host_from_dns` uses only the first `cache_find_by_addr` match: a retained DHCP
+record before the hosts record prevents renaming. Their relative name-hash bucket
+positions vary between C processes. The later lease publication consequently
+checks `a.test` a different number of times and changes its next A order. Thus
+435f's cross-alias response is one of the observed C states. This withdraws the
+earlier single-reference interpretation of that difference as an open defect;
+it does not prove that a hosts-only reverse lookup models every mixed DHCP/hosts
+state. The general mixed-chain contract is reviewed separately.
+
 ## Evidence and reproduction
 
 The [derived results](derived.json) bind each result to its SHA-256 and retain the
@@ -111,3 +148,5 @@ daemon logs, process identities and diagnostic drivers, excluding staged rootfs:
 | evidence.tar.gz (v2/v3 and helpers/exact C) | f29535b34a53d7a4c042dcdd5bb61602ee4e6d41bc3a65195b0f81a02bfd5345 |
 | order-evidence.tar.gz (v4/v5) | 07c378c19ccca90fdd36dc90ae79f7d4621051db7df30615bd98c741e3f10d16 |
 | candidate-b99e-evidence.tar.gz (candidate and matched C) | af37eff629ed0d1a3706970982b981daf0a59c4e22043a7961fe4cb7346ba6ce |
+| candidate-435f-evidence.tar.gz | 73b7577e4e66c3e247615452225832d600e57bc2bc28e8b46d85629bbb1f222a |
+| cross-alias-c-repeats-evidence.tar.gz | e36fe97ff5c4ecbe519ccdfbe472e40cc92a7d7de1a7b7f2083aa34a67a59d20 |

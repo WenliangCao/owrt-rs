@@ -501,6 +501,99 @@
           ]
         }
       ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/candidate-435f",
+      "result_sha256": "424cb9a49e1bd46c6233f055f4f03d3d894a969fce29bc6fd4fd4acd7ed76103",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": "infinite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+          "source_commit": "435fe2d6",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": "finite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+          "source_commit": "435fe2d6",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 2,
+          "case": "cross-alias",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+          "source_commit": "435fe2d6",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1",
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
     }
   ]
 }
