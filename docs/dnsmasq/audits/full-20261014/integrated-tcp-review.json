@@ -1,0 +1,360 @@
+{
+  "schema": 1,
+  "reviewed_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "source_tag": "audit/dnsmasq-full-19bd6162-20261014",
+  "scope": "Independent exact-image Oracle replays of frozen integrated ELF. No product changes, router access, merge or push. Root review separately verifies frozen-source provenance.",
+  "verdict": "Known TCP host/rotation memory counterexamples closed for the frozen candidate; normal snapshot and unique-address rolling checks pass. Prior repeated-address response-order boundary remains outside this resource closure.",
+  "identity": {
+    "candidate_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "candidate_bytes": 2089440,
+    "independent_candidate_copy_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "old_22fe5_sha256": "0ac4ad216c071ae708af52f5d4d4cd6e4c2130b451655033efc463888bff0834",
+    "exact_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "independent_rebuild": false,
+    "kernel": "6.17.0-1020-oracle"
+  },
+  "cases": [
+    {
+      "case": "old50k32",
+      "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-old50k32/private/result.json",
+      "raw_sha256": "59100aeb511567d8638a01768eb33ccc90db659a3ab8c460b8c4dfa6e8be8f89",
+      "driver_sha256": "8eadcabc169cae44fe476f23682ee44cd2b704041b611a6ed24181c47e8c9a11",
+      "rust_sha256": "0ac4ad216c071ae708af52f5d4d4cd6e4c2130b451655033efc463888bff0834",
+      "runs": [
+        {
+          "side": "c",
+          "budget_bytes": 33554432,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 14962688,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true
+        },
+        {
+          "side": "rust",
+          "budget_bytes": 33554432,
+          "connections_attempted": 9,
+          "connections_ok": 8,
+          "failed_connections": [
+            9
+          ],
+          "udp_after": false,
+          "exit_before_cleanup": -9,
+          "peak_bytes": 33554432,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 36,
+            "oom": 1,
+            "oom_kill": 1,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true
+        }
+      ]
+    },
+    {
+      "case": "final50k32",
+      "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-final50k32/private/result.json",
+      "raw_sha256": "4bd671b71a3beae4aab5ec3897ee48bb4674e4a452298581baa8715b85de811d",
+      "driver_sha256": "8eadcabc169cae44fe476f23682ee44cd2b704041b611a6ed24181c47e8c9a11",
+      "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "runs": [
+        {
+          "side": "c",
+          "budget_bytes": 33554432,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 15118336,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true
+        },
+        {
+          "side": "rust",
+          "budget_bytes": 33554432,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 21102592,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true
+        }
+      ]
+    },
+    {
+      "case": "final60k64",
+      "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-final60k64/private/result.json",
+      "raw_sha256": "3f8ddac806b46fc8ad52ab7c06d9992cc02f4bbe9a2fb2bc8cb1c39afa8f0710",
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "runs": [
+        {
+          "side": "c",
+          "budget_bytes": 67108864,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 16986112,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "pss_samples_kib": {
+            "startup": 6503,
+            "seed_held": 6728,
+            "parent_udp_warmed": 11613,
+            "new_tcp_1": 11808,
+            "new_tcp_10": 13198,
+            "new_tcp_19": 14370,
+            "new_tcp_20": 9506
+          },
+          "wire_observations": 20
+        },
+        {
+          "side": "rust",
+          "budget_bytes": 67108864,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 27750400,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "pss_samples_kib": {
+            "startup": 23660,
+            "seed_held": 23676,
+            "parent_udp_warmed": 26888,
+            "new_tcp_1": 27040,
+            "new_tcp_10": 27676,
+            "new_tcp_19": 28312,
+            "new_tcp_20": 28364
+          },
+          "wire_observations": 20
+        }
+      ],
+      "healthy": true,
+      "orders_matched": true,
+      "raw_order_differences": []
+    },
+    {
+      "case": "final-single50k64",
+      "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-final-single50k64/private/result.json",
+      "raw_sha256": "7645d3deac4c921425fe48750608b918d7aad9c0bc300c5f57757ee5f857b743",
+      "driver_sha256": "c77cf800ffe8a5d2b83c2653bbbec12ccd6e165f86fc677529f4c9a4219a2106",
+      "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "runs": [
+        {
+          "side": "c",
+          "budget_bytes": 67108864,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 10653696,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true
+        },
+        {
+          "side": "rust",
+          "budget_bytes": 67108864,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 23601152,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true
+        }
+      ]
+    },
+    {
+      "case": "final-snapshots",
+      "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-final-snapshots/private/result.json",
+      "raw_sha256": "6d73abb2e65ffc57f3eca8759455e38bf9decac8ac69ac54015f81e5d389141e",
+      "driver_sha256": "6aa9fd36558253fee0af945129a89006babc9b7923a1facaf331d50bebff6538",
+      "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "runs": [
+        {
+          "side": "c",
+          "wire_observations": 98,
+          "alive": true
+        },
+        {
+          "side": "rust",
+          "wire_observations": 98,
+          "alive": true
+        }
+      ],
+      "matched": true
+    },
+    {
+      "case": "final-rolling-unique",
+      "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-final-rolling-unique/private/result.json",
+      "raw_sha256": "5cc7d2cf1a77e2fb429dce7eccb53daedf41d4ce0268b15bb65250bbcb3b2374",
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "runs": [
+        {
+          "side": "c",
+          "budget_bytes": 67108864,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 16625664,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "pss_samples_kib": {
+            "startup": 6608,
+            "seed_held": 6837,
+            "parent_udp_warmed": 11727,
+            "new_tcp_1": 11913,
+            "new_tcp_10": 13140,
+            "new_tcp_19": 14283,
+            "new_tcp_20": 9420,
+            "rolling_start": 6849,
+            "rolling_end": 6692
+          },
+          "wire_observations": 6020
+        },
+        {
+          "side": "rust",
+          "budget_bytes": 67108864,
+          "connections_attempted": 20,
+          "connections_ok": 20,
+          "failed_connections": [],
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "peak_bytes": 36487168,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "pss_samples_kib": {
+            "startup": 32028,
+            "seed_held": 32044,
+            "parent_udp_warmed": 35256,
+            "new_tcp_1": 35408,
+            "new_tcp_10": 36044,
+            "new_tcp_19": 36680,
+            "new_tcp_20": 36732,
+            "rolling_start": 35452,
+            "rolling_end": 35452
+          },
+          "wire_observations": 6020
+        }
+      ],
+      "healthy": true,
+      "orders_matched": true,
+      "relative_orders_matched": true,
+      "raw_order_differences": []
+    }
+  ],
+  "prior_repeated_address_analysis": {
+    "prior_fixed_sha": "0b3bba7b38c6baf4f6ff363ac715717042ea709e37171698cadc879254769aab",
+    "observations": 6020,
+    "differences": 188,
+    "order_only": true,
+    "by_view": {
+      "new": 136,
+      "parent": 26,
+      "old": 26
+    },
+    "old_fixed_rust_wires_identical": true,
+    "old_fixed_c_differences": 3
+  },
+  "limitations": [
+    "Snapshot handle table copies still scale with max entry ID / 64; this is not absolute constant per-connection memory.",
+    "A page copy includes address-order vectors, so two-address allocation bounds do not generalize to unbounded address lists.",
+    "Raw large-table C order across restarts is not a stable invariant. Unique rolling qualification compares both raw wire and order relative to each daemon first warmup answer.",
+    "Prior repeated-address 188/6020 differences are response-order-only. Old and fixed Rust outputs are identical; cause and current integrated severity require the separate reduced reproduction.",
+    "The cgroup budget is synthetic and Oracle kernel differs from router kernel. No physical-router or arbitrary reload-generation resource qualification."
+  ],
+  "closeout": {
+    "remaining_owned_processes": [],
+    "remaining_owned_host_mounts": [],
+    "router_accessed": false,
+    "kernel": "6.17.0-1020-oracle"
+  },
+  "evidence": {
+    "oracle_root": "/dev/shm/full-audit-resume-20261014/rotation-*",
+    "local_root": "private/full-audit-20261014/resume/rotation",
+    "backup_archive_sha256": "834aa58a394ede563df025f9bb4e395aa571388984548f5a27875ab93e19931e",
+    "raw_inventory_sha256": "6b8b002f9ca08af63f981d255f13b01c11029f4f9ef10727465436632e24c246",
+    "prior_repeated_raw_sha256": "06fa1491b67d4d3cc4eb074ebfb3ac1d52c8787ad9dc933dc0a33b1eb1c2e600",
+    "prior_old_repeated_raw_sha256": "2391105d55fd6168a59725807a1cc9c9e6dda87d9e7f4496ee10b89c14e65083"
+  }
+}
