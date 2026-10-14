@@ -3709,50 +3709,27 @@ impl SinglePoll {
                 local.hosts = previous;
                 self.hosts_view_valid = true;
             }
-            // Shared records already need a copy for mutation. Keep the
-            // original owner until publication so failure can restore it
-            // without allocating another copy beside the TCP snapshots.
-            let previous = if local.hosts.has_shared_records() {
-                let Ok(working) = local.hosts.try_clone() else { return 0; };
-                Some(std::mem::replace(&mut local.hosts, working))
-            } else {
-                None
-            };
-            removed = match local.hosts.try_remove_uid(source.uid) {
-                Ok(removed) => removed,
-                Err(_) => {
-                    if let Some(previous) = previous {
-                        local.hosts = previous;
-                    }
-                    return 0;
-                }
-            };
-            if let Ok(path) = dnsmasq_rs::hosts::try_copy(source.path.as_os_str().as_encoded_bytes()) {
-                local.hosts.set_source_name(source.uid, path);
-            }
-            for (name, address) in records {
-                local.hosts.insert(name, address, ttl, source.uid);
-            }
+            // Keep both published owners intact until assembly and the second
+            // publication copy succeed. Failed insertions must abandon the
+            // entire replacement, not silently publish its accepted prefix.
+            let Ok((hosts, source_removed)) = local.hosts.try_replace_source(
+                source.uid,
+                source.path.as_os_str().as_encoded_bytes(),
+                records,
+                ttl,
+            ) else { return 0; };
+            removed = source_removed;
             if let Some(daemon) = daemon {
-                let snapshot = match local.hosts.try_clone() {
-                    Ok(snapshot) => snapshot,
-                    Err(_) => {
-                        local.hosts = Hosts::new();
-                        self.hosts_view_valid = false;
-                        if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
-                            local.hosts = previous;
-                            self.hosts_view_valid = true;
-                        }
-                        return 0;
-                    }
-                };
-                drop(previous);
+                let Ok(snapshot) = hosts.try_clone() else { return 0; };
                 daemon.publish_hosts_source(snapshot);
+                local.hosts = hosts;
                 local.leases = Arc::new(daemon.rebuild_lease_names(
                     &local.leases,
                     &mut local.hosts,
                     &local.config.records.cnames,
                 ));
+            } else {
+                local.hosts = hosts;
             }
         }
         if !self.hosts_bulk {

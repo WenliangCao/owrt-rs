@@ -382,3 +382,83 @@ fn retained_hosts_restore_without_allocating_after_failed_publication() {
         assert_eq!(held.addresses(b"old.test").count(), 2);
     }
 }
+
+#[test]
+fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
+    for shared in [false, true] {
+        for deleted in [false, true] {
+            for persistent in [false, true] {
+                let mut local = Hosts::new();
+                local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
+                local.read(b"192.0.2.42 old.test\n192.0.2.43 old.test\n", 2, 37, false, |_| None);
+                local.set_source_name(2, b"/old-hosts".to_vec());
+                // Removing source 2 must not promote another source's
+                // previously suppressed PTR ownership.
+                local.insert(b"retained.test".to_vec(), "192.0.2.42".parse().unwrap(), 37, 3);
+                let daemon = local.try_clone().unwrap();
+                let held = shared.then(|| local.tcp_snapshot());
+                local.lookup(b"old.test", Some(false), false);
+                let expected = local.try_clone().unwrap();
+                let original_records = local.entries().as_ptr();
+                let mut exercised = 0;
+                let mut completed = false;
+                for failure in 0..256 {
+                    let records = if deleted {
+                        Vec::new()
+                    } else {
+                        [
+                            (b"new.test".as_slice(), "192.0.2.44"),
+                            (b"new.test".as_slice(), "192.0.2.44"),
+                            (b"new.test".as_slice(), "192.0.2.45"),
+                            (b"leaf.deep.branch.test".as_slice(), "192.0.2.46"),
+                        ].into_iter().map(|(name, address)|
+                            (name.to_vec(), address.parse().unwrap())
+                        ).collect()
+                    };
+                    let action = || {
+                        // This is the same assembler and publication copy
+                        // used by the owner loop before either owner changes.
+                        let (replacement, removed) =
+                            local.try_replace_source(2, b"/new-hosts", records, 37)?;
+                        let published = replacement.try_clone().map_err(|_| ())?;
+                        Ok::<_, ()>((replacement, published, removed))
+                    };
+                    let (result, failed) = if persistent {
+                        with_persistent_failure(failure, action)
+                    } else {
+                        with_failure(failure, action)
+                    };
+                    assert_eq!(result.is_err(), failed,
+                        "allocation {failure}, shared={shared}, deleted={deleted}, persistent={persistent}");
+                    assert_eq!(local.entries().as_ptr(), original_records);
+                    assert_eq!(local.entries(), expected.entries());
+                    assert_eq!(local.source_name(2), Some(b"/old-hosts".as_slice()));
+                    assert_eq!(local.addresses(b"old.test").collect::<Vec<_>>(),
+                        expected.addresses(b"old.test").collect::<Vec<_>>());
+                    assert_eq!(daemon.addresses(b"old.test").count(), 2);
+                    if let Some(held) = &held {
+                        assert_eq!(held.addresses(b"old.test").count(), 2);
+                    }
+                    if let Ok((replacement, published, removed)) = result {
+                        assert_eq!(removed, 2);
+                        assert_eq!(replacement.entries(), published.entries());
+                        assert_eq!(replacement.source_name(2), Some(b"/new-hosts".as_slice()));
+                        assert_eq!(replacement.addresses(b"ready.test").count(), 1);
+                        assert_eq!(replacement.addresses(b"retained.test").count(), 1);
+                        assert_eq!(replacement.addresses(b"old.test").count(), 0);
+                        assert!(replacement.reverse("192.0.2.42".parse().unwrap()).is_none());
+                        assert_eq!(replacement.len(), if deleted { 2 } else { 5 });
+                        assert_eq!(replacement.addresses(b"new.test").count(), if deleted { 0 } else { 2 });
+                        if !deleted {
+                            assert!(replacement.name_exists(b"deep.branch.test"));
+                        }
+                        completed = true;
+                        break;
+                    }
+                    exercised += 1;
+                }
+                assert!(completed && exercised > 20);
+            }
+        }
+    }
+}

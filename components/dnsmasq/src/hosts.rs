@@ -406,6 +406,34 @@ impl Hosts {
         })
     }
 
+    /// Build one complete hostsdir replacement without changing this owner.
+    /// Every error means allocation failure, including source metadata and
+    /// best-effort ancestor indexes that ordinary insert otherwise tolerates.
+    pub fn try_replace_source(
+        &self,
+        source: u32,
+        source_name: &[u8],
+        records: Vec<(Vec<u8>, IpAddr)>,
+        ttl: u32,
+    ) -> Result<(Self, usize), ()> {
+        let mut replacement = self.try_clone().map_err(|_| ())?;
+        let removed = replacement.try_remove_uid(source).map_err(|_| ())?;
+        let name = try_copy(source_name).map_err(|_| ())?;
+        let owned = replacement.records.get_mut().unwrap();
+        owned.sources.try_reserve(1).map_err(|_| ())?;
+        owned.sources.insert(source, name);
+        for (name, address) in records {
+            let mut allocation_failed = false;
+            replacement
+                .try_insert(name, address, ttl, source, source == 1, &mut allocation_failed)
+                .map_err(|_| ())?;
+            if allocation_failed {
+                return Err(());
+            }
+        }
+        Ok((replacement, removed))
+    }
+
     pub fn reverse(&self, address: IpAddr) -> Option<&Host> {
         self.records
             .reverse
