@@ -1,0 +1,37 @@
+{
+  "status": "restored-original-C-behavior-with-fresh-build-metadata",
+  "native_original_binary_and_libraries": {
+    "dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+    "deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+  },
+  "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "actual_cache_c_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+  "explicit_cache_digest_assertion_passed": true,
+  "cases": 36,
+  "observations_per_runtime_per_repeat": 307,
+  "runtimes": 2,
+  "repeats": 3,
+  "total_observations": 1842,
+  "stdout_files": 216,
+  "actual_stdout_digest": "6624663c148bea679075197a0a3d0847673513893620a217094c7fb66e5eb43b",
+  "original_stdout_digest": "6624663c148bea679075197a0a3d0847673513893620a217094c7fb66e5eb43b",
+  "matches_original_stdout_digest": true,
+  "fresh_receipt": {
+    "mode": "fresh-c-primitive",
+    "primitive": "cache-transfer",
+    "receipt_sha256": "c3bed728f07d98ab926a123844e10a3bc646f0d9b94b125403e7e2b1c34dc70c",
+    "identity_sha256": "e9940e6db12234c921d8a1db0b4c369946452ca11035685779192ea200362639",
+    "plan_sha256": "7502e674a279a3c784062a69fa30ce101644553ebdbf015bfbec704565632fff",
+    "result_sha256": "16c0e5e1764cab8aad0f07b3321c421c3c693ac5182cdc0e3e8daf6f3c97b1e1",
+    "compiler_probes_sha256": "5d940ff6726ea897c7694e55cde7f6c58a9a32a876e09c5746b7635155904629",
+    "image_daemon_qualification": false,
+    "scope": "fresh exact-source/compiler ABI/argv/corpus C primitive; not image daemon 097a9e21"
+  },
+  "fresh_receipt_sha256": "c3bed728f07d98ab926a123844e10a3bc646f0d9b94b125403e7e2b1c34dc70c",
+  "executed_recovery_builder_sha256": "514ccf4106258e3b49d07c5dba444b42a30632e2a7e1bdd4fd82a507cb2bbacf",
+  "missing_historical_target_metadata_sha256": "fb873b9abae841a6723db1660752e1a4254a626b81bac099b19d9274a0d719aa",
+  "changed_C_fixture_or_expected_result": false,
+  "physical_router_accessed": false,
+  "namespace_cleanup": "original compatibility path is an empty directory in host namespace; no mount remains"
+}

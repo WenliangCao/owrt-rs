@@ -35,7 +35,8 @@ No optimization product code is written here. No router connection was made.
   router ELF copy was mode 0644, and this harness preserves mode. F10/protocol
   explicitly chmod their staged ELF. A separate 0755 copy retains the exact
   `8472be5a…` bytes; the complete TCP three-group attempt 2 is running in new
-  directories. Attempt 1 remains with all exec-126 failures.
+  directories and all three groups passed (13 conditions / 50 query pairs).
+  Attempt 1 remains with all exec-126 failures.
 - The environment-only fresh native-host release is `37fd4439…`, 2,126,304 B,
   with its same-build map. It is neither deployed `8472…` nor historical
   `50e…`, and provides no device performance baseline or candidate acceptance.
@@ -62,8 +63,32 @@ PID/starttime/executable at group entry, polling and completion. Error exits bef
 archiving still require preservation of the attempted run and guard logs; this was
 explicitly handed back. The measurement C sources were not modified in this review.
 
-Next: finish baseline TCP; replay every gate on the final SDK candidate and
-finish the four frozen-clock probes. No full candidate has passed yet.
+Candidate A is frozen at source `a7164697ba8d27e8bea2e37a7f1c783533acb240`,
+actual SDK ELF `b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e`,
+2,128,667 B. Source: `/home/ubuntu/dnsmasq-perf-20261015/root/source-a`; ELF,
+same-build map and receipt: `root/private/sdk-a`.
+
+- A fresh tests: **812 lib + 81 bin + 16 allocation + 19 namespace/config =
+  928 passed**, no failure. The four frozen-clock probes are still pending.
+- A F10 **13/704**, protocol **368 pairs / five negative controls**, and TCP
+  **13 conditions / 50 query pairs** passed on that exact SDK ELF.
+- A full 44-family run is active under `correctness/private/a-families` (tool
+  session 57938). First five families passed; source is not modified during it.
+- At coordinator request the supervisor PID 3774748/starttime 174196337 alone
+  was stopped while its current lease-name family finished normally. Child
+  3793539 exited naturally before `QUIET_READY`. No case was signalled. The
+  coordinator’s 100-second DHCP timing slot must finish before `SIGCONT`.
+  `a-quiet-pause-1.json` records this scheduling pause; idle after child exit is
+  harness time, not product duration. The supervisor must be resumed promptly.
+- Original cache-transfer C fixture restored: original native ELF and both
+  libraries match their historical SHA, all 148 source files match, and all
+  216 stdout hashes aggregate to the original constant. The coordinator
+  independently reviewed the recovery builder. See
+  [TRANSFER_RECOVERY.md](TRANSFER_RECOVERY.md). No golden behavior changed.
+
+Next: resume A supervisor after the timing reservation; run A's four
+source-bound corpus probes using the restored C inputs; collect all 44 families.
+No full candidate has passed yet.
 
 Reviewer clarification: PacketWriter initially reserves `min(limit, 128)`, not
 512. The first informal TCP memory note misstated this constant; the author’s
@@ -74,3 +99,13 @@ formulas were reviewed against the frozen protocol. The review requested DORA
 quantiles/maxima and 150-client comparisons, while keeping six-client DORA
 descriptive, and independent raw counter validation. Those additions remain
 the coordinator’s work; this reviewer did not alter workload or statistics.
+
+Further static B reviews completed: terminal cache-only memory retirement
+`77d143a7`, blockwise cache clear `42f3514d`, unused-unique name roots `2979b341`,
+hosts live-count map `5c2c985b`, and lease publication key borrowing `745212bb`.
+No behavioral blocker was identified. Clear2 changes name-root allocation/free
+interleaving (old entire vector replaced, new roots retired one by one); it does
+not retain populated buckets or defer shared-root separation to first insertion.
+The terminal retirement has one caller at final successful daemon exit, after
+all explicit helper/lookups/log/PID cleanup; Cache's recursive fields own no FD
+or custom Drop. These reviews do not transfer A or baseline test passes to B.
