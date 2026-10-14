@@ -1,0 +1,365 @@
+{
+  "schema": 1,
+  "private_base": "private/device-trial-20261014",
+  "purpose": "Commit only filenames, byte counts and SHA256; raw device config, identifiers, logs and executable contents remain private.",
+  "file_count": 69,
+  "files": [
+    {
+      "file": "after-reconnect-observation.txt",
+      "bytes": 6471,
+      "sha256": "43b472c3fc29ff4d2dfb2fc4eaf2b45563da9a8f04f4650d6e910fd347e4277a"
+    },
+    {
+      "file": "analyze-samples-local.py",
+      "bytes": 7686,
+      "sha256": "6683f7f8c1b93029a9a4c5c4386c5e7e644afcaecefafc60ed838fd36ef092ce"
+    },
+    {
+      "file": "backup-identity.json",
+      "bytes": 426,
+      "sha256": "f045ff722b027fec3206404554d62cfbf2dfa5e78938bb73a1ad57ebf0a1d30d"
+    },
+    {
+      "file": "c-after-client.json",
+      "bytes": 17308,
+      "sha256": "a51aee208c03c60c12534115bfda324136e7cae5a7c352d2e06279c38873c554"
+    },
+    {
+      "file": "c-baseline-analysis.json",
+      "bytes": 6535,
+      "sha256": "66757c7c412c13d01787a1cdd8ac30dc63c2bf26d91b1dc5a574074cec14cd5a"
+    },
+    {
+      "file": "c-before-client.json",
+      "bytes": 15599,
+      "sha256": "4df2b9a0472ccd9531c940ac4a133ce2dee9f225311d201a967e5efe3172e14d"
+    },
+    {
+      "file": "c-before-samples.txt",
+      "bytes": 38412,
+      "sha256": "c2ed3339365d52974fad793b4eaf5f328535871430289cb03de94e70dc43282e"
+    },
+    {
+      "file": "c-controls-state.txt",
+      "bytes": 9761,
+      "sha256": "beb63f5ee94fec6683aa2c42a8b77efb131330e77702165c8811dadfeafecb9d"
+    },
+    {
+      "file": "c-forward-metrics.txt",
+      "bytes": 5052,
+      "sha256": "b5ecb8e01249b1e9a0506514cfeba10cacc553e0c3bd910b1ed62da7ff109be1"
+    },
+    {
+      "file": "c-upstream-controls-analysis.json",
+      "bytes": 2365,
+      "sha256": "7cc5ac5ffde0a14bb9b152821effbdd61127afa8c07182763f9ff60fc9694a8a"
+    },
+    {
+      "file": "c-upstream-controls.json",
+      "bytes": 5427,
+      "sha256": "605e5e80e57693462e4b1fca0c458ea0dc9a25468d95702455f1e4c78e389bf4"
+    },
+    {
+      "file": "client-probes.py",
+      "bytes": 1917,
+      "sha256": "919b8371da3581d9aac1a755ceb71f8641a37c819edc5cdeea82508a482a781c"
+    },
+    {
+      "file": "config-final-analysis.json",
+      "bytes": 19616,
+      "sha256": "b1172226a0f9500739e88d1e9ca47b961dafe74b68e56d1a15dd2c2987fe2a3e"
+    },
+    {
+      "file": "continuation.json",
+      "bytes": 1610,
+      "sha256": "85d238525ee82ce37300fa1809d0502ec73da4213545bbb5618fc4a0b2c16fbf"
+    },
+    {
+      "file": "deadline-dns-observation.json",
+      "bytes": 31582,
+      "sha256": "f04fd9f7572e83e51e682e21a54cfc1db169cebad15ecd2ef2bcb43d38966d8d"
+    },
+    {
+      "file": "deadline-status.txt",
+      "bytes": 233,
+      "sha256": "aa3a5813a7a4a5686e87491ec58834a104724988b59489374e7d0db6de10f44e"
+    },
+    {
+      "file": "derive-public.py",
+      "bytes": 5039,
+      "sha256": "33a12164aa29c760fa83249c6bdf0a6a107880f4cf12b0021ec6c41958498bb1"
+    },
+    {
+      "file": "dhcp-events.txt",
+      "bytes": 172,
+      "sha256": "0075b2d1e6ebf9c45792355f9a75579c9a9e16a4ff773cee74552dd6817c6f8c"
+    },
+    {
+      "file": "dhcp-user-evidence.json",
+      "bytes": 590,
+      "sha256": "8312bac782cc70098c8d071d90b2597bf157d2db2ed9038c16369bad8e4383c1"
+    },
+    {
+      "file": "dnsmasq-rs",
+      "bytes": 2124571,
+      "sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c"
+    },
+    {
+      "file": "dnsmasq-trial.sh",
+      "bytes": 5982,
+      "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74"
+    },
+    {
+      "file": "etc-after.tar.gz",
+      "bytes": 165684,
+      "sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183"
+    },
+    {
+      "file": "etc-before.tar.gz",
+      "bytes": 165684,
+      "sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183"
+    },
+    {
+      "file": "final-cleanup.sh",
+      "bytes": 1571,
+      "sha256": "eded8a09047db04804c0e990b2ce8fd0359c07e0429de1aefc900381187a6943"
+    },
+    {
+      "file": "final-cleanup.txt",
+      "bytes": 6850,
+      "sha256": "cc2d556dd3c26ca0662436c327728b4ec7fd802ce0aa309de8e06f74f2fcd862"
+    },
+    {
+      "file": "final-offline-analysis.json",
+      "bytes": 19416,
+      "sha256": "0045d3112640dc51068a79850b4a92a045d27abd3cb1ba7ff3b2c4de64c6907f"
+    },
+    {
+      "file": "final-offline-analysis.py",
+      "bytes": 8916,
+      "sha256": "c16f841db892bf10b388bb6d66c70194df2838f09ed71b0b9c66758b4befad39"
+    },
+    {
+      "file": "final-router-precleanup.txt",
+      "bytes": 144629,
+      "sha256": "fec65dac27bd473297f0e67a4625270aa11db9a505ba1bdfc76324f04b3f5848"
+    },
+    {
+      "file": "identity.json",
+      "bytes": 1490,
+      "sha256": "955c24918ef87cc39d2423ce0716d47b53b1e255b5964c9478fc38088e860ab5"
+    },
+    {
+      "file": "leases-rust.txt",
+      "bytes": 410,
+      "sha256": "73a262b7857b560d3e38a43448f82b2d49bc51673f9a791c4f1645d2e1cd463a"
+    },
+    {
+      "file": "live-log.txt",
+      "bytes": 26310,
+      "sha256": "41e2b2cc9089e3f01d087a0b005b4d3cde31b1b9e8baaf760d85aff7284160d8"
+    },
+    {
+      "file": "log-before.txt",
+      "bytes": 136341,
+      "sha256": "08c800bc131b130ab691b8a3ff8ed99639860837bbe8149a76ec281ca9ae1c7e"
+    },
+    {
+      "file": "mac-dhcp-after.txt",
+      "bytes": 596,
+      "sha256": "f278272d66426575b873bbf5c7dbf0914b785eeb55e7054af8d2012fdfb89bfb"
+    },
+    {
+      "file": "mac-dhcp-before.txt",
+      "bytes": 596,
+      "sha256": "f278272d66426575b873bbf5c7dbf0914b785eeb55e7054af8d2012fdfb89bfb"
+    },
+    {
+      "file": "mac-dhcp-reconnected.txt",
+      "bytes": 596,
+      "sha256": "e289c9e016df8cdddb004cb9d652941f73e867d3f87d512f1a73c9b27a31fe7e"
+    },
+    {
+      "file": "mac-interface.txt",
+      "bytes": 648,
+      "sha256": "da88e08074bd27edb078e87b3402f995e5e44c42d425ffbf484fecfea2e32fdc"
+    },
+    {
+      "file": "mac-route.txt",
+      "bytes": 320,
+      "sha256": "e8512f8ce44ca7bc29bf107d3449e424bcd866e7e583fca510bc7d58d1b6dca2"
+    },
+    {
+      "file": "mac-tools.txt",
+      "bytes": 45,
+      "sha256": "3f16e03b6e37af8db5650360544a321f242eac02c2a5de22a3649886d1b6b288"
+    },
+    {
+      "file": "observe-deadline.py",
+      "bytes": 1501,
+      "sha256": "79d74922612b7ac9c9e496e4fc4bb9e0dba0d047f9b277745649a9fcabd09ffa"
+    },
+    {
+      "file": "post-cleanup-internet.json",
+      "bytes": 1551,
+      "sha256": "ca8a727ab35c28f4441e3e36e8b76fa34fda23295a208dca54981f53dc0e7b1a"
+    },
+    {
+      "file": "pre-reconnect.txt",
+      "bytes": 1147,
+      "sha256": "c72fc306452a09b060cb00f92e89c543cadafc898bf9cb7d14d3ac15e8bfd493"
+    },
+    {
+      "file": "preflight.txt",
+      "bytes": 1865,
+      "sha256": "5fe5bca49183afdfdf4eb6c3bf388ef21ee7f8caa36b2ca05946ef6ac388c4d8"
+    },
+    {
+      "file": "privacy-check.json",
+      "bytes": 281,
+      "sha256": "7f2e79754a9c9044e9105fb71d6bd03f0021d2931cd8573a3237760e865927ef"
+    },
+    {
+      "file": "read-samples.sh",
+      "bytes": 889,
+      "sha256": "0db8f1016b7819d2ad37fc26aec347aad77444982eed4cbd2c31dfe05ed686c8"
+    },
+    {
+      "file": "reconnect-confirmed.txt",
+      "bytes": 12723,
+      "sha256": "2e4111853139fa88fbc0937c8c83afbc875c219f4588feaf5b5290bb87daddb3"
+    },
+    {
+      "file": "resolvers-before.txt",
+      "bytes": 153,
+      "sha256": "943c974ec0d967de574ffb19fe33e8acfe65d4ab912b0db62baaa91c9038f9fd"
+    },
+    {
+      "file": "router-trial-state-after.tar.gz",
+      "bytes": 2287172,
+      "sha256": "0a5c928760ef986138d0218113908384e05666caa908e3a600f4859eccd9ca9a"
+    },
+    {
+      "file": "runtime-before.tar.gz",
+      "bytes": 1488,
+      "sha256": "e1befa00f92811f53c9ccd8c5678a5aa41267c92d295c48d9eeb4f5b78baa724"
+    },
+    {
+      "file": "rust-first-client.json",
+      "bytes": 15607,
+      "sha256": "43e91c57fd68c6924e96a5f3b064c048fa76d69f77f2b817a5f80648af00e7a5"
+    },
+    {
+      "file": "rust-first80s-analysis.json",
+      "bytes": 20023,
+      "sha256": "bc379df7d5f04503e158ac9c483a4aac4771163f9ae5680b8a12d25ba09bd88f"
+    },
+    {
+      "file": "rust-late-state.txt",
+      "bytes": 1400,
+      "sha256": "c78f2be05153d2d1e3ba838959d453ec0a22a9c544101c14a9b89d753d358629"
+    },
+    {
+      "file": "rust-live-log-analysis.json",
+      "bytes": 5265,
+      "sha256": "1470b2404460cf668ffa781b24d362a6ae505647e271fa24f3005e7f9a024a0b"
+    },
+    {
+      "file": "rust-local-contract.json",
+      "bytes": 3480,
+      "sha256": "49e1e40dc7f3b154ede5c8ee78deaad7849366637bb61543fa0f13b1694cda29"
+    },
+    {
+      "file": "rust-minute1.txt",
+      "bytes": 8044,
+      "sha256": "d7f2092212f092caa5c441a3dbd15df7015d1e44e286bd2a4038c25f09035e8c"
+    },
+    {
+      "file": "rust-minute11.txt",
+      "bytes": 8282,
+      "sha256": "30f1535f595588f13f99ca81856c78315717cbc014823da6964258d83f5dadb6"
+    },
+    {
+      "file": "rust-minute3.txt",
+      "bytes": 5837,
+      "sha256": "7d62b91f961fcf1f9ccbd5b04f705dfa80bf873f465443c77a3d7deb0b0a48c1"
+    },
+    {
+      "file": "rust-minute5.txt",
+      "bytes": 6230,
+      "sha256": "3ec0582ca409a679763648486f10709986560455f3c22d94bedd996b2e186773"
+    },
+    {
+      "file": "rust-samples.txt",
+      "bytes": 235098,
+      "sha256": "1b05a517a648a52700babd24e9fbe9bff5cd43ba2a66a38104e5eefc0f1bf101"
+    },
+    {
+      "file": "rust-start-state.txt",
+      "bytes": 6507,
+      "sha256": "2a82d4b8d314790d2792396de48c5527ddf57df99138b21621b1704606e0d2d6"
+    },
+    {
+      "file": "rust-to-c-samples.txt",
+      "bytes": 101218,
+      "sha256": "780af9c1ee6127699292f5411d5750fda208527b198f44310048d40785a5fa44"
+    },
+    {
+      "file": "ssh-route.txt",
+      "bytes": 39,
+      "sha256": "1bad59851d42e51f4d5c676a2a12c5ddc427c9de0213f7a87192a66587839b7a"
+    },
+    {
+      "file": "staged-identity.txt",
+      "bytes": 1441,
+      "sha256": "75910b5ae791117938a7d0764b7949d8cb419354804450dc5b4b03cdc2c25dde"
+    },
+    {
+      "file": "start.txt",
+      "bytes": 1204,
+      "sha256": "b5d7c5d4ab060b5b99d08822fbfa8498c2118ad4aa889ec58a8f64451b7b893e"
+    },
+    {
+      "file": "state-after.txt",
+      "bytes": 19056,
+      "sha256": "d0886cce31898ae64fd6430453059a4a3ba37323f6e0e3ff1bb788a823e89f5d"
+    },
+    {
+      "file": "state-before.txt",
+      "bytes": 9773,
+      "sha256": "7af54560d9631337910ede159d625b0df6d0e8f5a6c1f6c65546709f530ab772"
+    },
+    {
+      "file": "sysupgrade-list.txt",
+      "bytes": 1229,
+      "sha256": "df5ada877647731f20ed5d4d08110f8502fab5ca7f863c8bcce5a5df7e6966ff"
+    },
+    {
+      "file": "trial-progress.json",
+      "bytes": 1587,
+      "sha256": "c4f99a13a097d5c1d6161c2e46f532327759f805c1597f96523d4f2791e8f1f1"
+    },
+    {
+      "file": "wan-comparison.json",
+      "bytes": 508,
+      "sha256": "22f8174deaa2c4d63525d01fb70243eac98af50b01106eed34843437444a0a85"
+    },
+    {
+      "file": "wan-final-observation.json",
+      "bytes": 997,
+      "sha256": "16cac1305338bbaa5d8f383a780508f3c959c96a9f85e4184bc770f2df629efa"
+    }
+  ],
+  "derived_files": [
+    {
+      "file": "summary.json",
+      "bytes": 12591,
+      "sha256": "f555f3124e219bd0f6733ab49d400a25d94ebe4d3e0c7d73b0da0b07b9da8045"
+    },
+    {
+      "file": "runtime-analysis.json",
+      "bytes": 19416,
+      "sha256": "0045d3112640dc51068a79850b4a92a045d27abd3cb1ba7ff3b2c4de64c6907f"
+    }
+  ]
+}

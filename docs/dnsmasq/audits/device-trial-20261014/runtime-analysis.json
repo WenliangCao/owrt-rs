@@ -1,0 +1,683 @@
+{
+  "schema": 1,
+  "scope": "Offline redacted finalized sample and final logread analysis; root remains sole device operator and decision owner.",
+  "finalized_resources": true,
+  "sampling_sources": {
+    "c_before": {
+      "sha256": "c2ed3339365d52974fad793b4eaf5f328535871430289cb03de94e70dc43282e",
+      "complete_samples": 40,
+      "incomplete_trailing_blocks": 0
+    },
+    "rust_early": {
+      "sha256": "1b05a517a648a52700babd24e9fbe9bff5cd43ba2a66a38104e5eefc0f1bf101",
+      "complete_samples": 300,
+      "incomplete_trailing_blocks": 0
+    },
+    "transition": {
+      "sha256": "780af9c1ee6127699292f5411d5750fda208527b198f44310048d40785a5fa44",
+      "complete_samples": 130,
+      "incomplete_trailing_blocks": 0
+    }
+  },
+  "raw_sha256": {
+    "identity.json": "955c24918ef87cc39d2423ce0716d47b53b1e255b5964c9478fc38088e860ab5",
+    "c-before-client.json": "4df2b9a0472ccd9531c940ac4a133ce2dee9f225311d201a967e5efe3172e14d",
+    "rust-first-client.json": "43e91c57fd68c6924e96a5f3b064c048fa76d69f77f2b817a5f80648af00e7a5",
+    "c-after-client.json": "a51aee208c03c60c12534115bfda324136e7cae5a7c352d2e06279c38873c554",
+    "deadline-dns-observation.json": "f04fd9f7572e83e51e682e21a54cfc1db169cebad15ecd2ef2bcb43d38966d8d",
+    "deadline-status.txt": "aa3a5813a7a4a5686e87491ec58834a104724988b59489374e7d0db6de10f44e",
+    "live-log.txt": "41e2b2cc9089e3f01d087a0b005b4d3cde31b1b9e8baaf760d85aff7284160d8",
+    "log-before.txt": "08c800bc131b130ab691b8a3ff8ed99639860837bbe8149a76ec281ca9ae1c7e",
+    "dhcp-user-evidence.json": "8312bac782cc70098c8d071d90b2597bf157d2db2ed9038c16369bad8e4383c1",
+    "c-upstream-controls.json": "605e5e80e57693462e4b1fca0c458ea0dc9a25468d95702455f1e4c78e389bf4",
+    "final-router-precleanup.txt": "fec65dac27bd473297f0e67a4625270aa11db9a505ba1bdfc76324f04b3f5848",
+    "final-cleanup.txt": "cc2d556dd3c26ca0662436c327728b4ec7fd802ce0aa309de8e06f74f2fcd862",
+    "etc-before.tar.gz": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+    "etc-after.tar.gz": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183"
+  },
+  "identity_binding": {
+    "source": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+    "candidate_elf": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "stock_elf": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "binding_basis": "Candidate PID/starttime traced through two files; root observed final stock PID/ELF at 16:09:57 UTC; per-sample executable hashes were not recorded.",
+    "trial_mode": "ELF-only temporary bind; stock init and ACL; no confirm; 900s deadline; root is sole router operator"
+  },
+  "c_baseline": {
+    "sample_count": 40,
+    "duration_seconds": 79.5899999999674,
+    "stable_parent_identity": true,
+    "cpu": {
+      "parent_own_delta_ticks": 3,
+      "waited_children_delta_ticks": 1,
+      "endpoints_tree_ticks": 4,
+      "clock_ticks_per_second": null,
+      "cpu_seconds": null,
+      "qualification": "Current raw has no CLK_TCK; report ticks, no imported historical conversion.",
+      "host_cpu_total_delta_ticks": 15881,
+      "host_busy_percent": 2.9280272023172342,
+      "daemon_whole_machine_tick_share_percent": 0.02518733077262137
+    },
+    "parent_memory_kib": {
+      "VmSize": {
+        "n": 40,
+        "min": 1544,
+        "median": 1544.0,
+        "max": 1552,
+        "first": 1544,
+        "last": 1552
+      },
+      "VmRSS": {
+        "n": 40,
+        "min": 1284,
+        "median": 1284.0,
+        "max": 1292,
+        "first": 1284,
+        "last": 1292
+      },
+      "VmHWM": {
+        "n": 40,
+        "min": 1284,
+        "median": 1284.0,
+        "max": 1292,
+        "first": 1284,
+        "last": 1292
+      },
+      "RssAnon": {
+        "n": 40,
+        "min": 272,
+        "median": 272.0,
+        "max": 280,
+        "first": 272,
+        "last": 280
+      },
+      "RssFile": {
+        "n": 40,
+        "min": 1008,
+        "median": 1008.0,
+        "max": 1008,
+        "first": 1008,
+        "last": 1008
+      },
+      "RssShmem": {
+        "n": 40,
+        "min": 4,
+        "median": 4.0,
+        "max": 4,
+        "first": 4,
+        "last": 4
+      }
+    },
+    "sampled_tree_rss_kib": {
+      "n": 40,
+      "min": 1284,
+      "median": 1284.0,
+      "max": 3392,
+      "first": 1284,
+      "last": 1292
+    },
+    "pss_kib": null,
+    "pss_reason": "No PSS fields in supplied raw; summed RSS double-counts C shared pages.",
+    "fd_count": {
+      "n": 40,
+      "min": 44,
+      "median": 44.0,
+      "max": 46,
+      "first": 44,
+      "last": 44
+    },
+    "threads": {
+      "n": 40,
+      "min": 1,
+      "median": 1.0,
+      "max": 1,
+      "first": 1,
+      "last": 1
+    },
+    "mem_available_kib": {
+      "n": 40,
+      "min": 122484,
+      "median": 126112.0,
+      "max": 128160,
+      "first": 122484,
+      "last": 125900
+    },
+    "children": {
+      "sampled_unique": 6,
+      "max_concurrent": 2,
+      "samples_present": 9,
+      "endpoint_counts": [
+        0,
+        0
+      ],
+      "trailing_zero_samples": 23,
+      "trailing_zero_span_seconds": 44.76999999996042,
+      "limitation": "2-second observations do not exclude shorter-lived work between samples."
+    },
+    "label": "before C",
+    "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "first_sample_utc": "2026-10-14T15:50:36+00:00",
+    "last_sample_utc": "2026-10-14T15:51:56+00:00",
+    "sampling_gaps_over_3s": []
+  },
+  "rust_candidate": {
+    "sample_count": 397,
+    "duration_seconds": 873.25,
+    "stable_parent_identity": true,
+    "cpu": {
+      "parent_own_delta_ticks": 48,
+      "waited_children_delta_ticks": 0,
+      "endpoints_tree_ticks": 48,
+      "clock_ticks_per_second": null,
+      "cpu_seconds": null,
+      "qualification": "Current raw has no CLK_TCK; report ticks, no imported historical conversion.",
+      "host_cpu_total_delta_ticks": 173961,
+      "host_busy_percent": 4.3009640091744705,
+      "daemon_whole_machine_tick_share_percent": 0.027592391398071982
+    },
+    "parent_memory_kib": {
+      "VmSize": {
+        "n": 397,
+        "min": 2592,
+        "median": 2640,
+        "max": 2692,
+        "first": 2592,
+        "last": 2672
+      },
+      "VmRSS": {
+        "n": 397,
+        "min": 2280,
+        "median": 2324,
+        "max": 2424,
+        "first": 2280,
+        "last": 2424
+      },
+      "VmHWM": {
+        "n": 397,
+        "min": 2280,
+        "median": 2324,
+        "max": 2424,
+        "first": 2280,
+        "last": 2424
+      },
+      "RssAnon": {
+        "n": 397,
+        "min": 372,
+        "median": 416,
+        "max": 464,
+        "first": 372,
+        "last": 452
+      },
+      "RssFile": {
+        "n": 397,
+        "min": 4,
+        "median": 4,
+        "max": 4,
+        "first": 4,
+        "last": 4
+      },
+      "RssShmem": {
+        "n": 397,
+        "min": 1904,
+        "median": 1904,
+        "max": 1968,
+        "first": 1904,
+        "last": 1968
+      }
+    },
+    "sampled_tree_rss_kib": {
+      "n": 397,
+      "min": 2280,
+      "median": 2324,
+      "max": 2424,
+      "first": 2280,
+      "last": 2424
+    },
+    "pss_kib": null,
+    "pss_reason": "No PSS fields in supplied raw; summed RSS double-counts C shared pages.",
+    "fd_count": {
+      "n": 397,
+      "min": 36,
+      "median": 44,
+      "max": 52,
+      "first": 46,
+      "last": 42
+    },
+    "threads": {
+      "n": 397,
+      "min": 1,
+      "median": 1,
+      "max": 1,
+      "first": 1,
+      "last": 1
+    },
+    "mem_available_kib": {
+      "n": 397,
+      "min": 114316,
+      "median": 122168,
+      "max": 125648,
+      "first": 125008,
+      "last": 121748
+    },
+    "children": {
+      "sampled_unique": 0,
+      "max_concurrent": 0,
+      "samples_present": 0,
+      "endpoint_counts": [
+        0,
+        0
+      ],
+      "trailing_zero_samples": 397,
+      "trailing_zero_span_seconds": 873.25,
+      "limitation": "2-second observations do not exclude shorter-lived work between samples."
+    },
+    "label": "candidate R",
+    "elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "first_sample_utc": "2026-10-14T15:55:15+00:00",
+    "last_sample_utc": "2026-10-14T16:09:48+00:00",
+    "sampling_gaps_over_3s": [
+      {
+        "after_index": 299,
+        "seconds": 69.0
+      }
+    ]
+  },
+  "rust_quartiles": [
+    {
+      "quarter_by_observed_samples": 1,
+      "samples": 99,
+      "rss_median_kib": 2304,
+      "rss_min_kib": 2280,
+      "rss_max_kib": 2372,
+      "anon_median_kib": 396,
+      "fd_min": 44,
+      "fd_max": 50
+    },
+    {
+      "quarter_by_observed_samples": 2,
+      "samples": 99,
+      "rss_median_kib": 2308,
+      "rss_min_kib": 2304,
+      "rss_max_kib": 2324,
+      "anon_median_kib": 400,
+      "fd_min": 36,
+      "fd_max": 52
+    },
+    {
+      "quarter_by_observed_samples": 3,
+      "samples": 99,
+      "rss_median_kib": 2324,
+      "rss_min_kib": 2324,
+      "rss_max_kib": 2324,
+      "anon_median_kib": 416,
+      "fd_min": 42,
+      "fd_max": 50
+    },
+    {
+      "quarter_by_observed_samples": 4,
+      "samples": 100,
+      "rss_median_kib": 2402.0,
+      "rss_min_kib": 2324,
+      "rss_max_kib": 2424,
+      "anon_median_kib": 430.0,
+      "fd_min": 42,
+      "fd_max": 51
+    }
+  ],
+  "restored_c": {
+    "sample_count": 31,
+    "duration_seconds": 61.070000000006985,
+    "stable_parent_identity": true,
+    "cpu": {
+      "parent_own_delta_ticks": 3,
+      "waited_children_delta_ticks": 2,
+      "endpoints_tree_ticks": 5,
+      "clock_ticks_per_second": null,
+      "cpu_seconds": null,
+      "qualification": "Current raw has no CLK_TCK; report ticks, no imported historical conversion.",
+      "host_cpu_total_delta_ticks": 12168,
+      "host_busy_percent": 4.273504273504273,
+      "daemon_whole_machine_tick_share_percent": 0.041091387245233396
+    },
+    "parent_memory_kib": {
+      "VmSize": {
+        "n": 31,
+        "min": 1532,
+        "median": 1532,
+        "max": 1532,
+        "first": 1532,
+        "last": 1532
+      },
+      "VmRSS": {
+        "n": 31,
+        "min": 1256,
+        "median": 1256,
+        "max": 1256,
+        "first": 1256,
+        "last": 1256
+      },
+      "VmHWM": {
+        "n": 31,
+        "min": 1256,
+        "median": 1256,
+        "max": 1256,
+        "first": 1256,
+        "last": 1256
+      },
+      "RssAnon": {
+        "n": 31,
+        "min": 256,
+        "median": 256,
+        "max": 256,
+        "first": 256,
+        "last": 256
+      },
+      "RssFile": {
+        "n": 31,
+        "min": 996,
+        "median": 996,
+        "max": 996,
+        "first": 996,
+        "last": 996
+      },
+      "RssShmem": {
+        "n": 31,
+        "min": 4,
+        "median": 4,
+        "max": 4,
+        "first": 4,
+        "last": 4
+      }
+    },
+    "sampled_tree_rss_kib": {
+      "n": 31,
+      "min": 1256,
+      "median": 1256,
+      "max": 2412,
+      "first": 1256,
+      "last": 1256
+    },
+    "pss_kib": null,
+    "pss_reason": "No PSS fields in supplied raw; summed RSS double-counts C shared pages.",
+    "fd_count": {
+      "n": 31,
+      "min": 42,
+      "median": 44,
+      "max": 45,
+      "first": 42,
+      "last": 44
+    },
+    "threads": {
+      "n": 31,
+      "min": 1,
+      "median": 1,
+      "max": 1,
+      "first": 1,
+      "last": 1
+    },
+    "mem_available_kib": {
+      "n": 31,
+      "min": 118972,
+      "median": 122104,
+      "max": 122648,
+      "first": 118972,
+      "last": 120612
+    },
+    "children": {
+      "sampled_unique": 1,
+      "max_concurrent": 1,
+      "samples_present": 1,
+      "endpoint_counts": [
+        0,
+        0
+      ],
+      "trailing_zero_samples": 14,
+      "trailing_zero_span_seconds": 26.45000000001164,
+      "limitation": "2-second observations do not exclude shorter-lived work between samples."
+    },
+    "label": "after C",
+    "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "first_sample_utc": "2026-10-14T16:09:54+00:00",
+    "last_sample_utc": "2026-10-14T16:10:56+00:00",
+    "sampling_gaps_over_3s": []
+  },
+  "transition_no_process_samples": [
+    {
+      "utc": "2026-10-14T16:09:50+00:00",
+      "uptime_seconds": 456499.01
+    },
+    {
+      "utc": "2026-10-14T16:09:52+00:00",
+      "uptime_seconds": 456501.03
+    }
+  ],
+  "identity_changed_only_at_expected_rollback": true,
+  "dns_transition": {
+    "queries": 65,
+    "successes": 61,
+    "timeouts": 4,
+    "by_transport": {
+      "udp": {
+        "queries": 52,
+        "timeouts": 3
+      },
+      "tcp": {
+        "queries": 13,
+        "timeouts": 1
+      }
+    },
+    "timeouts_started_utc": [
+      {
+        "utc": "2026-10-14T16:09:50.071595+00:00",
+        "transport": "tcp",
+        "elapsed_seconds": 1.0018862079996325
+      },
+      {
+        "utc": "2026-10-14T16:09:51.074545+00:00",
+        "transport": "udp",
+        "elapsed_seconds": 1.0013430830003927
+      },
+      {
+        "utc": "2026-10-14T16:09:52.076441+00:00",
+        "transport": "udp",
+        "elapsed_seconds": 1.0005921669999225
+      },
+      {
+        "utc": "2026-10-14T16:09:53.078370+00:00",
+        "transport": "udp",
+        "elapsed_seconds": 1.0016007920003176
+      }
+    ],
+    "last_success_before_gap": {
+      "start_utc": "2026-10-14T16:09:49.066528+00:00",
+      "completion_utc": "2026-10-14T16:09:49.069582+00:00"
+    },
+    "first_success_after_gap": {
+      "start_utc": "2026-10-14T16:09:54.080570+00:00",
+      "completion_utc": "2026-10-14T16:09:54.095199+00:00"
+    },
+    "success_completion_to_completion_gap_seconds": 5.025616621811423,
+    "per_request_deadline_seconds": 1,
+    "qualification": "Observed rollback disruption: four consecutive failed 1-second probes; about 5.03 seconds between adjacent successful completions, not an exact continuous outage duration. TCP is sampled only every fifth query."
+  },
+  "client_dns_groups": {
+    "c-before-client.json": {
+      "local_udp": {
+        "queries": 3,
+        "exit_zero": 3,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 3
+        }
+      },
+      "local_tcp": {
+        "queries": 3,
+        "exit_zero": 3,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 3
+        }
+      },
+      "public_tcp": {
+        "queries": 6,
+        "exit_zero": 0,
+        "timeouts": 6,
+        "rcode_counts": {}
+      },
+      "public_udp": {
+        "queries": 6,
+        "exit_zero": 6,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 6
+        }
+      }
+    },
+    "rust-first-client.json": {
+      "local_udp": {
+        "queries": 3,
+        "exit_zero": 3,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 3
+        }
+      },
+      "local_tcp": {
+        "queries": 3,
+        "exit_zero": 3,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 3
+        }
+      },
+      "public_tcp": {
+        "queries": 6,
+        "exit_zero": 0,
+        "timeouts": 6,
+        "rcode_counts": {}
+      },
+      "public_udp": {
+        "queries": 6,
+        "exit_zero": 6,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 6
+        }
+      }
+    },
+    "c-after-client.json": {
+      "local_udp": {
+        "queries": 3,
+        "exit_zero": 3,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 3
+        }
+      },
+      "local_tcp": {
+        "queries": 3,
+        "exit_zero": 3,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 3
+        }
+      },
+      "public_tcp": {
+        "queries": 6,
+        "exit_zero": 6,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 6
+        }
+      },
+      "public_udp": {
+        "queries": 6,
+        "exit_zero": 6,
+        "timeouts": 0,
+        "rcode_counts": {
+          "NOERROR": 6
+        }
+      }
+    }
+  },
+  "public_tcp_interpretation": "Before C and first Rust public TCP both timed out 6/6; after automatic rollback C public TCP succeeded 6/6. The failure is time/path dependent and preceded Rust; do not say final C still fails, claim permanent ISP blockage, or retroactively mark Rust cold public TCP qualified. No matched later Rust public TCP rerun was made.",
+  "upstream_control_origin": {
+    "host": "Mac management client",
+    "interface": "en0",
+    "router_namespace": false
+  },
+  "warning_counts": {
+    "netifd_wan6_cat_broken_pipe": {
+      "live": 3,
+      "pretrial": 18
+    },
+    "dnsmasq_error": {
+      "live": 0,
+      "pretrial": 0
+    },
+    "ubus_connection_or_registration_error": {
+      "live": 0,
+      "pretrial": 0
+    },
+    "oom_or_crash": {
+      "live": 0,
+      "pretrial": 0
+    }
+  },
+  "warning_interpretation": "Final logread since candidate start contains no dnsmasq/UBus failure or OOM/crash pattern. Three netifd WAN6 pipe-write warnings also predate the trial; windows differ so counts are not rates. Local log time UTC+02 is converted explicitly. Two success records are concurrent deadline/watch recovery confirmation, not evidence of two full restart outages.",
+  "dhcp_client_evidence": {
+    "metrics": {
+      "dhcp_ack": 2,
+      "dhcp_discover": 0,
+      "dhcp_nak": 0,
+      "dhcp_offer": 0,
+      "dhcp_request": 2
+    },
+    "dhcp_ack_log_count": 2,
+    "user_confirmed_reconnected_and_pages_luci_ok": true,
+    "automatic_t1_t2_renewal_observed": false,
+    "mac_packet_contains_ack": true,
+    "mac_packet_lease_duration_seconds": 43200,
+    "mac_identity_found": true,
+    "ack_logs_match_management_mac": true,
+    "mac_packet_changed": true
+  },
+  "limits": [
+    "No PSS or current CLK_TCK in raw; CPU remains ticks with seconds = ticks/current_CLK_TCK.",
+    "Rust sample streams have a 69-second unobserved gap; stable endpoints are not continuous monitoring proof.",
+    "First/last per-process CPU accumulates across the gap, but RSS/FD behavior inside the gap is unobserved.",
+    "CPU/RSS are live household mixed workload, not controlled benchmark or per-probe exclusive cost.",
+    "Restored C process has different uptime/cache history; do not combine its counters with Rust or baseline C.",
+    "RSS includes shared and tmpfs mapping pages; C tree summed RSS may double-count shared pages.",
+    "Wi-Fi reconnect DHCP REQUEST/ACK is observed, not a full DISCOVER/OFFER DORA or 12-hour natural T1/T2 lease renewal.",
+    "No IP/hostname/MAC, raw commandline, lease/config/log content copied into this derived JSON."
+  ],
+  "final_log_review": {
+    "source": "final-router-precleanup.txt",
+    "log_lines_in_retained_capture": 1200,
+    "post_candidate_start_log_lines": 272,
+    "local_log_utc_offset_hours": 2,
+    "warning_pattern_counts_since_candidate_start": {
+      "netifd_wan6_cat_broken_pipe": 3,
+      "dnsmasq_error": 0,
+      "ubus_connection_or_registration_error": 0,
+      "oom_or_crash": 0
+    },
+    "rollback_success_records": [
+      {
+        "log_local_time": "18:09:54",
+        "utc": "2026-10-14T16:09:54Z",
+        "origin": "deadline",
+        "reports_c_running_and_answering": true
+      },
+      {
+        "log_local_time": "18:09:56",
+        "utc": "2026-10-14T16:09:56Z",
+        "origin": "watch",
+        "reports_c_running_and_answering": true
+      }
+    ],
+    "cleanup_health_gate_passed": true,
+    "configuration_archives_byte_identical": true,
+    "cleanup_identity_and_no_bind_helpers": "Verified by root final cleanup gate; this analysis does not issue device commands."
+  }
+}

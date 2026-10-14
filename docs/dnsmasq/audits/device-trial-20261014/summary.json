@@ -1,0 +1,439 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "device_model": "Xiaomi Mi Router AX3000T",
+  "image": "OpenWrt25.12.5 r33051-f5dae5ece4",
+  "verdict": {
+    "temporary_household_trial_completed": true,
+    "formal_replacement_qualified": false,
+    "final_router_implementation": "original C",
+    "reason": [
+      "Rust public TCP DNS was not successfully witnessed; pre-C/Rust timeouts and post-C success remain unexplained.",
+      "No fresh-client DORA or natural T1/T2 lease renewal.",
+      "ELF-only trial retained original init/ACL; no APK installation qualification on device.",
+      "Short observation cannot establish long-term stability or every Rust9 interface."
+    ]
+  },
+  "identity": {
+    "main_commit": "2b1e5cb63c552e4450e2ca17be6ad12144ff329a",
+    "frozen_product_source": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+    "product_and_package_inputs_match_frozen": true,
+    "elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74"
+  },
+  "candidate_size_bytes": 2124571,
+  "stock_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "trial": {
+    "start_utc": "2026-10-14T15:54:48Z",
+    "candidate_healthy_utc": "2026-10-14T15:54:54Z",
+    "deadline_seconds": 900,
+    "confirm_called": false,
+    "rollback_log_success_utc": "2026-10-14T16:09:54Z",
+    "independent_C_identity_utc": "2026-10-14T16:09:57Z",
+    "cleanup_verified_utc": "2026-10-14T16:15:57Z",
+    "client": "Mac on household Wi-Fi",
+    "user_participation_finished_after_reconnect": true
+  },
+  "checks": {
+    "dns_by_phase": {
+      "c-before-client.json": {
+        "local_udp": {
+          "queries": 3,
+          "exit_zero": 3,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 3
+          }
+        },
+        "local_tcp": {
+          "queries": 3,
+          "exit_zero": 3,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 3
+          }
+        },
+        "public_tcp": {
+          "queries": 6,
+          "exit_zero": 0,
+          "timeouts": 6,
+          "rcode_counts": {}
+        },
+        "public_udp": {
+          "queries": 6,
+          "exit_zero": 6,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 6
+          }
+        }
+      },
+      "rust-first-client.json": {
+        "local_udp": {
+          "queries": 3,
+          "exit_zero": 3,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 3
+          }
+        },
+        "local_tcp": {
+          "queries": 3,
+          "exit_zero": 3,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 3
+          }
+        },
+        "public_tcp": {
+          "queries": 6,
+          "exit_zero": 0,
+          "timeouts": 6,
+          "rcode_counts": {}
+        },
+        "public_udp": {
+          "queries": 6,
+          "exit_zero": 6,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 6
+          }
+        }
+      },
+      "c-after-client.json": {
+        "local_udp": {
+          "queries": 3,
+          "exit_zero": 3,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 3
+          }
+        },
+        "local_tcp": {
+          "queries": 3,
+          "exit_zero": 3,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 3
+          }
+        },
+        "public_tcp": {
+          "queries": 6,
+          "exit_zero": 6,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 6
+          }
+        },
+        "public_udp": {
+          "queries": 6,
+          "exit_zero": 6,
+          "timeouts": 0,
+          "rcode_counts": {
+            "NOERROR": 6
+          }
+        }
+      }
+    },
+    "http_and_ping": [
+      {
+        "source": "c-before-client.json",
+        "internet-https-4": {
+          "exit": 0,
+          "http_status": [
+            "200"
+          ],
+          "zero_ping_loss": null
+        },
+        "internet-https-6": {
+          "exit": 0,
+          "http_status": [
+            "200"
+          ],
+          "zero_ping_loss": null
+        },
+        "luci-http": {
+          "exit": 0,
+          "http_status": [
+            "403"
+          ],
+          "zero_ping_loss": null
+        },
+        "router-ping": {
+          "exit": 0,
+          "http_status": [],
+          "zero_ping_loss": true
+        }
+      },
+      {
+        "source": "rust-first-client.json",
+        "internet-https-4": {
+          "exit": 0,
+          "http_status": [
+            "200"
+          ],
+          "zero_ping_loss": null
+        },
+        "internet-https-6": {
+          "exit": 0,
+          "http_status": [
+            "200"
+          ],
+          "zero_ping_loss": null
+        },
+        "luci-http": {
+          "exit": 0,
+          "http_status": [
+            "403"
+          ],
+          "zero_ping_loss": null
+        },
+        "router-ping": {
+          "exit": 0,
+          "http_status": [],
+          "zero_ping_loss": true
+        }
+      },
+      {
+        "source": "c-after-client.json",
+        "internet-https-4": {
+          "exit": 0,
+          "http_status": [
+            "200"
+          ],
+          "zero_ping_loss": null
+        },
+        "internet-https-6": {
+          "exit": 0,
+          "http_status": [
+            "200"
+          ],
+          "zero_ping_loss": null
+        },
+        "luci-http": {
+          "exit": 0,
+          "http_status": [
+            "403"
+          ],
+          "zero_ping_loss": null
+        },
+        "router-ping": {
+          "exit": 0,
+          "http_status": [],
+          "zero_ping_loss": true
+        }
+      }
+    ],
+    "real_DHCP": {
+      "metrics": {
+        "dhcp_ack": 2,
+        "dhcp_discover": 0,
+        "dhcp_nak": 0,
+        "dhcp_offer": 0,
+        "dhcp_request": 2
+      },
+      "dhcp_ack_log_count": 2,
+      "user_confirmed_reconnected_and_pages_luci_ok": true,
+      "automatic_t1_t2_renewal_observed": false,
+      "mac_packet_contains_ack": true,
+      "mac_packet_lease_duration_seconds": 43200,
+      "mac_identity_found": true,
+      "ack_logs_match_management_mac": true,
+      "mac_packet_changed": true
+    },
+    "user_ipv6_score_C_and_Rust": "10/10",
+    "persistent_local_TCP_queries": 3,
+    "lease_name_queries_UDP_TCP": 4,
+    "public_TCP_status": "UNQUALIFIED",
+    "upstream_direct_controls": {
+      "origin": "Mac via household LAN, not router namespace",
+      "IPv4_resolvers": 2,
+      "IPv4_UDP_successes": 2,
+      "IPv4_TCP_timeouts": 2,
+      "IPv6_resolvers": 2,
+      "IPv6_UDP_successes": 2,
+      "IPv6_TCP_successes": 2,
+      "root_cause_established": false
+    }
+  },
+  "components": {
+    "unchanged_disk_files": [
+      {
+        "path": "/sbin/ubusd",
+        "sha256": "ab3bff56b6ba5d798701d0e73d20469a36cf1ea0773fdd64a0eb9411ec1fc42d"
+      },
+      {
+        "path": "/sbin/procd",
+        "sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62"
+      },
+      {
+        "path": "/sbin/netifd",
+        "sha256": "7ce3a64d094e05484721ec68855eff5f4d68a484a6ce5f073bd013d2fbb79eb1"
+      },
+      {
+        "path": "/sbin/uci",
+        "sha256": "50ba9ed8f5cf5686313be3e1d32a281278daf3d17c319b71211fb96a4dbd76a7"
+      },
+      {
+        "path": "/sbin/reload_config",
+        "sha256": "c96823a2e4b8ea3b5dd79ad375220514ae1ac2357e7f61714a722c4a2269dc7a"
+      },
+      {
+        "path": "/sbin/logd",
+        "sha256": "e1d29e61f2a1c6d5242747156a215e0a7d934a3079f17bd5ea582b2dccb73151"
+      },
+      {
+        "path": "/sbin/rpcd",
+        "sha256": "c65491f434f35b6771b3fa9e0336a3580bf88522dfd222d3cc6cc45a8c6227c1"
+      },
+      {
+        "path": "/sbin/fw4",
+        "sha256": "77e2a33ead41736ce313780adf92473765d008f9137165a39ae94bf97028582e"
+      },
+      {
+        "path": "/usr/sbin/uhttpd",
+        "sha256": "bf7b29260f008622b1157bb39bcd969ae39932c534828be8429c50343670e904"
+      }
+    ],
+    "unchanged_resident_PID_and_live_hash": [
+      "ubusd",
+      "procd",
+      "netifd",
+      "logd",
+      "rpcd",
+      "uhttpd"
+    ],
+    "preserved_other_daemon": "odhcpd",
+    "on_demand_components_not_fully_exercised": [
+      "uci",
+      "reload_config",
+      "fw4"
+    ],
+    "stock_init_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+    "stock_acl_sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "package_init_ACL_installed": false,
+    "ubus_restart_tested": false
+  },
+  "rollback": {
+    "queries": 65,
+    "successes": 61,
+    "timeouts": 4,
+    "by_transport": {
+      "udp": {
+        "queries": 52,
+        "timeouts": 3
+      },
+      "tcp": {
+        "queries": 13,
+        "timeouts": 1
+      }
+    },
+    "timeouts_started_utc": [
+      {
+        "utc": "2026-10-14T16:09:50.071595+00:00",
+        "transport": "tcp",
+        "elapsed_seconds": 1.0018862079996325
+      },
+      {
+        "utc": "2026-10-14T16:09:51.074545+00:00",
+        "transport": "udp",
+        "elapsed_seconds": 1.0013430830003927
+      },
+      {
+        "utc": "2026-10-14T16:09:52.076441+00:00",
+        "transport": "udp",
+        "elapsed_seconds": 1.0005921669999225
+      },
+      {
+        "utc": "2026-10-14T16:09:53.078370+00:00",
+        "transport": "udp",
+        "elapsed_seconds": 1.0016007920003176
+      }
+    ],
+    "last_success_before_gap": {
+      "start_utc": "2026-10-14T16:09:49.066528+00:00",
+      "completion_utc": "2026-10-14T16:09:49.069582+00:00"
+    },
+    "first_success_after_gap": {
+      "start_utc": "2026-10-14T16:09:54.080570+00:00",
+      "completion_utc": "2026-10-14T16:09:54.095199+00:00"
+    },
+    "success_completion_to_completion_gap_seconds": 5.025616621811423,
+    "per_request_deadline_seconds": 1,
+    "qualification": "Observed rollback disruption: four consecutive failed 1-second probes; about 5.03 seconds between adjacent successful completions, not an exact continuous outage duration. TCP is sampled only every fifth query."
+  },
+  "final_state": {
+    "actual_C_PID": 664,
+    "ROM_disk_actual_C_hash_equal": true,
+    "candidate_mount_absent": true,
+    "trial_helpers_and_original_process_groups_absent": true,
+    "two_ubus_objects_present": true,
+    "local_DNS_answers": true,
+    "owned_tmp_paths_removed": [
+      "/tmp/device-trial-20261014",
+      "/tmp/dnsmasq-trial"
+    ],
+    "log_and_subscription_SSH_stopped": true,
+    "configuration_archive_byte_identical": true,
+    "configuration_entry_count": 261,
+    "configuration_before_and_after_sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+    "post_cleanup_dual_stack_HTTPS": [
+      {
+        "family": "-4",
+        "start_utc": "2026-10-14T16:21:35.850392+00:00",
+        "exit": 0,
+        "http_status": [
+          "200"
+        ]
+      },
+      {
+        "family": "-6",
+        "start_utc": "2026-10-14T16:21:35.893223+00:00",
+        "exit": 0,
+        "http_status": [
+          "200"
+        ]
+      }
+    ]
+  },
+  "boundaries": {
+    "product_changed": false,
+    "flash_or_package_install_commands": false,
+    "persistent_config_edits": false,
+    "router_rebooted": false,
+    "GitHub_push": false,
+    "natural_household_activity_uncontrolled": true
+  },
+  "private_evidence_relative_directory": "private/device-trial-20261014",
+  "runtime_analysis_file": "runtime-analysis.json",
+  "WAN_final_observation": {
+    "comparison": "redacted independent parsing of before, state-after, final-router-precleanup and final-cleanup",
+    "before_and_postrollback_161017": {
+      "address_count": 6,
+      "ULA_count": 5,
+      "global_count": 1,
+      "normalized_routes_equal_to_before": true
+    },
+    "first_changed_observation_utc": "2026-10-14T16:15:24Z",
+    "confirmed_utc": "2026-10-14T16:15:57Z",
+    "final": {
+      "address_count": 2,
+      "ULA_count": 1,
+      "global_count": 1,
+      "unchanged_global_address": true,
+      "unchanged_delegated_global_prefix": true,
+      "unchanged_upstream_DNS": true,
+      "route_count_before_and_final": 18,
+      "normalized_routes_removed": 12,
+      "normalized_routes_added": 12,
+      "change_involves_ULA_target_and_source_selection": true
+    },
+    "WAN_and_WAN6_up": true,
+    "uptime_delta_before_to_cleanup_seconds": 1646,
+    "change_window_after_C_restoration": true,
+    "root_cause_established": false,
+    "post_cleanup_ipv4_and_ipv6_HTTPS_status": 200,
+    "removed_ULA_paths_tested": false
+  },
+  "integrity_analysis_private_sha256": "b1172226a0f9500739e88d1e9ca47b961dafe74b68e56d1a15dd2c2987fe2a3e"
+}
