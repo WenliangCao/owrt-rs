@@ -1426,13 +1426,17 @@ mod tests {
         });
         let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None, |_| {}).unwrap_err();
         assert_eq!(error.kind(), io::ErrorKind::OutOfMemory);
-        assert!(client.pending.is_empty());
+        assert!(client.pending.is_empty() && client.rx_fds.is_empty());
         let (messages, bytes, fds) = client.notification_pending_peak;
         assert_eq!(messages, if payload_length == 0 { 128 } else { 1 });
         assert!(bytes <= MAX_MSGLEN);
         assert_eq!(fds, messages);
-        eprintln!("notification pending peak: messages={messages} bytes={bytes} descriptors={fds}; retained after error=0");
+        eprintln!("notification pending peak: messages={messages} bytes={bytes} descriptors={fds}; userspace retained after error=0");
         worker.join().unwrap();
+        // Follow the error contract: shutdown stops the peer, but unread
+        // SCM_RIGHTS in the socket receive queue are released by close.
+        // Check userspace cleanup above before dropping the connection.
+        drop(client);
         observer.set_nonblocking(true).unwrap();
         assert_eq!(observer.read(&mut [0]).unwrap(), 0, "pending notify backlog retained passed descriptors");
       }
