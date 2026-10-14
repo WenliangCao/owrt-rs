@@ -1,0 +1,118 @@
+{
+  "scope": "Three exact C and one Rust435f close-write runs; no HUP. Same six hosts rows and cross-alias lease fixture.",
+  "finding": "All four observed one static PTR owner x.test; the hypothesized incremental mixed-first additional-owner difference was not reproduced.",
+  "runs": [
+    {
+      "side": "c",
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-inotify-c/c-retained-1-repeat0/result.json",
+      "result_sha256": "97c9d4efb89d6dda00d2d0d964bc67a8efad1a351244f5b37c8d98599384d980",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "leases": [
+        {
+          "address": "192.0.2.9",
+          "name": "a.test"
+        },
+        {
+          "address": "192.0.2.1",
+          "name": "x"
+        }
+      ],
+      "alive": true,
+      "exit": 0
+    },
+    {
+      "side": "c",
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-inotify-c/c-retained-1-repeat1/result.json",
+      "result_sha256": "b6a238b707d70fce16a696db2dd2ed6c54cff4a6e126b5f299345934ad7613f3",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "leases": [
+        {
+          "address": "192.0.2.9",
+          "name": "a.test"
+        },
+        {
+          "address": "192.0.2.1",
+          "name": "x"
+        }
+      ],
+      "alive": true,
+      "exit": 0
+    },
+    {
+      "side": "c",
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-inotify-c/c-retained-1-repeat2/result.json",
+      "result_sha256": "6c1c39fd355476467c987af5cbfde5324dd609c0fdd82c0becf9dd489437cf03",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "leases": [
+        {
+          "address": "192.0.2.9",
+          "name": "a.test"
+        },
+        {
+          "address": "192.0.2.1",
+          "name": "x"
+        }
+      ],
+      "alive": true,
+      "exit": 0
+    },
+    {
+      "side": "rust435f",
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-inotify-rust435f/c-retained-1-repeat0/result.json",
+      "result_sha256": "94b03f0e8594a5cbd3bcb559594da786da7318c000fff1c86b91651373578b27",
+      "binary_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "leases": [
+        {
+          "address": "192.0.2.9",
+          "name": "a.test"
+        },
+        {
+          "address": "192.0.2.1",
+          "name": "x"
+        }
+      ],
+      "alive": true,
+      "exit": 0
+    }
+  ]
+}

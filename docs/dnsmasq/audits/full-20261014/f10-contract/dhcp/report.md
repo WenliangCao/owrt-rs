@@ -121,6 +121,21 @@ earlier single-reference interpretation of that difference as an open defect;
 it does not prove that a hosts-only reverse lookup models every mixed DHCP/hosts
 state. The general mixed-chain contract is reviewed separately.
 
+### Incremental close-write control
+
+The same six hosts rows and cross-alias leases were also exercised through an
+initially empty `hostsdir`, using close-write instead of HUP. Three exact-C runs
+and one 435f Rust run all returned the sole PTR owner `x.test`, A order `.185,.186`,
+and renamed the `.1` lease to `x`. All processes remained alive and exited normally.
+The [derived control](inotify-lease-control.json) binds these results and final
+lease names. No additional C seed search was performed.
+
+C's incremental path passes NULL for the temporary reverse hash and instead
+checks the first reverse-cache match; a DHCP first match can therefore matter.
+These four runs did not reproduce a different static PTR owner set in that path.
+They are a bounded control, not evidence of a new incremental regression or an
+exhaustive proof over all name-hash states.
+
 ## Evidence and reproduction
 
 The [derived results](derived.json) bind each result to its SHA-256 and retain the
@@ -150,3 +165,4 @@ daemon logs, process identities and diagnostic drivers, excluding staged rootfs:
 | candidate-b99e-evidence.tar.gz (candidate and matched C) | af37eff629ed0d1a3706970982b981daf0a59c4e22043a7961fe4cb7346ba6ce |
 | candidate-435f-evidence.tar.gz | 73b7577e4e66c3e247615452225832d600e57bc2bc28e8b46d85629bbb1f222a |
 | cross-alias-c-repeats-evidence.tar.gz | e36fe97ff5c4ecbe519ccdfbe472e40cc92a7d7de1a7b7f2083aa34a67a59d20 |
+| inotify-lease-control-evidence.tar.gz | a4185edd62acaf5b137b89ac674f5815d36e06131f0822075ba9c1ca395708af |
