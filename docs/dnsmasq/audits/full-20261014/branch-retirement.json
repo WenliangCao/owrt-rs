@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-14",
+  "main_product_merge": "861782a86d6f765656bd274c3685dca3e16f6b0f",
+  "scope": "Completed task branch pointers removed only after durable tip tags; clean worktrees detached at same commits and all ignored private material preserved. No worktree/raw deletion or remote push.",
+  "branches": [
+    {
+      "branch": "fix/dnsmasq-audit-f8-20261014",
+      "commit": "dc7333372047000966b2e4268ce2f0d87327215d",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-audit-f8-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-audit-f8",
+      "private_directory_present": true,
+      "merged_into_main": true
+    },
+    {
+      "branch": "fix/dnsmasq-f5-ubus-20261014",
+      "commit": "60d56fda4d96064d1f910230bca828c4e8b2a790",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-f5-ubus-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-f5-ubus",
+      "private_directory_present": true,
+      "merged_into_main": true
+    },
+    {
+      "branch": "audit/dnsmasq-f7-20261014",
+      "commit": "715a2d64310fe555aceca3063e9cc3590ebe65de",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-f7-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-f7",
+      "private_directory_present": true,
+      "merged_into_main": true
+    },
+    {
+      "branch": "fix/dnsmasq-full-f4-20261014",
+      "commit": "daf2d0cdc68b71007f3677f4202ef88667211a44",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-f4-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-f4",
+      "private_directory_present": true,
+      "merged_into_main": true
+    },
+    {
+      "branch": "fix/dnsmasq-full-inotify-20261014",
+      "commit": "c5a1d74f7cc66403cba483c3b63b885cb2dd5b4f",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-inotify-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-inotify",
+      "private_directory_present": true,
+      "merged_into_main": true
+    },
+    {
+      "branch": "fix/dnsmasq-full-integrated-20261014",
+      "commit": "07e851be2e9c0146b80f06d6627cb80f87e38f92",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-integrated-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-integrated",
+      "private_directory_present": true,
+      "merged_into_main": false
+    },
+    {
+      "branch": "fix/dnsmasq-full-r2-20261014",
+      "commit": "ff1c0a2cab06cc6c44d9b5a1e1b5c2ee6409ab69",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-r2-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-r2",
+      "private_directory_present": true,
+      "merged_into_main": false
+    },
+    {
+      "branch": "fix/dnsmasq-full-rotation-20261014",
+      "commit": "adf4861f41ebddd0d1dc1f37bcc51842721f3905",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-rotation-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-rotation",
+      "private_directory_present": true,
+      "merged_into_main": false
+    },
+    {
+      "branch": "fix/dnsmasq-full-rotation-contract-20261014",
+      "commit": "09cc93cde9aea6b682712d4a7da34eba45464326",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-rotation-contract-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-rotation-contract",
+      "private_directory_present": true,
+      "merged_into_main": true
+    },
+    {
+      "branch": "fix/dnsmasq-full-tcp-20261014",
+      "commit": "ee0350aa4cc1d1106d0ff41671b6d9db86d9aa2c",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-tcp-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-tcp",
+      "private_directory_present": true,
+      "merged_into_main": false
+    },
+    {
+      "branch": "fix/dnsmasq-full-trial-20261014",
+      "commit": "fd62cf85ae6f90aab205827a9cc9b4cdc64b9f57",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-full-trial-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-full-trial",
+      "private_directory_present": true,
+      "merged_into_main": false
+    },
+    {
+      "branch": "fix/dnsmasq-merge-ready-20261014",
+      "commit": "861782a86d6f765656bd274c3685dca3e16f6b0f",
+      "archive_tag": "archive/dnsmasq-20261014/dnsmasq-merge-ready-20261014",
+      "worktree": "/Users/USER/Developer/owrt-dnsmasq-merge-ready",
+      "private_directory_present": true,
+      "merged_into_main": true
+    }
+  ]
+}
