@@ -1,0 +1,180 @@
+{
+  "scope": "Standalone exact-image rootfs, private network/mount/PID namespaces. Local router DNS and DHCP paths only; no physical router or external client validation. Existing completed functional runs were not repeated because source and artifact hashes still match.",
+  "artifact_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+  "source_sha256": "75d150ff323208a2b1a60c18a09423fd6b046efe653134bce01be1fe20de30bc",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+  "raw_evidence": {
+    "path": "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/probe-cases.json",
+    "sha256": "86281e7dfb98c1b05e71c287bb7f18cbfdb2fbc4c644a145752541e7b1f267fc",
+    "runner_path": "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/probe-cases.py",
+    "runner_sha256": "cfba08ca95547f2a3f3021806cb02c0b92da1c889e35f800b9b44e31b1ec9ee2",
+    "build_report_path": "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/build.json",
+    "build_report_sha256": "596b18f9704e26de8ba6eb1d9d8f02a69d361cbc411bf5e4855019aacc67376d"
+  },
+  "case_count": 12,
+  "invocation_count": 16,
+  "checks": [
+    {
+      "implementation": "dnsmasq",
+      "case": "healthy",
+      "exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "elapsed_seconds": [
+        3.008,
+        0.004,
+        0.004
+      ],
+      "leasefile_empty_after_release": true,
+      "log_sha256": "bc6115485f5c864f82f265dc8bac85076b62296e85a82f0a7daceb2b1244bf19"
+    },
+    {
+      "implementation": "dnsmasq",
+      "case": "wrong-a",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        2.004
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "04bc3544e5b6b199feb9d0442bed391993ecba3a5695ab14e2fefa0580e7b011"
+    },
+    {
+      "implementation": "dnsmasq",
+      "case": "dns-down",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        0.001
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "2775c82e0d998fcf8bb20ef65395eda3749dfeaa8452faabb93a47f205fca437"
+    },
+    {
+      "implementation": "dnsmasq",
+      "case": "dhcp-down",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        4.003
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "bc1c33c77db25da0dc959615fb31fd574658f07bf16fa581fdbce7b21a466871"
+    },
+    {
+      "implementation": "dnsmasq",
+      "case": "stopped",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        2.004
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "c08e7862dbc5cc9178e319bddb893be311156c969886f0a20b9e55f87ce9a65b"
+    },
+    {
+      "implementation": "dnsmasq",
+      "case": "crashed",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        0.001
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "ded0db881bfaf2950dba7fe09546a759febd4c4c62ca3b650f7cd91ce6201655"
+    },
+    {
+      "implementation": "dnsmasq-rs",
+      "case": "healthy",
+      "exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "elapsed_seconds": [
+        3.009,
+        0.006,
+        0.004
+      ],
+      "leasefile_empty_after_release": true,
+      "log_sha256": "b5faf7a193f3b5bc167a1b797e96da454b4e9d98df433c7f8b40b0c7f757d251"
+    },
+    {
+      "implementation": "dnsmasq-rs",
+      "case": "wrong-a",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        2.004
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "d75b6e7850053c536c69da5271bf3170771c27b4a8af0cbebeb94a6111946f5f"
+    },
+    {
+      "implementation": "dnsmasq-rs",
+      "case": "dns-down",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        0.001
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "cbb6cf71b29b3ef276baac8fbb487377ee541c8effbcbbf00c3488056e2ba846"
+    },
+    {
+      "implementation": "dnsmasq-rs",
+      "case": "dhcp-down",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        4.006
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "cc28e83e5a35285df5920a886d31c17a2d83489a928afe685c6b89a6b5b98bfa"
+    },
+    {
+      "implementation": "dnsmasq-rs",
+      "case": "stopped",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        2.004
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "5da79d9963a393ef3c6695447bd94f860b080aae31d901c406f994f30dcd606e"
+    },
+    {
+      "implementation": "dnsmasq-rs",
+      "case": "crashed",
+      "exit_codes": [
+        1
+      ],
+      "elapsed_seconds": [
+        0.001
+      ],
+      "leasefile_empty_after_release": null,
+      "log_sha256": "a879de36d0bf6654b006a5abc93834a7b5abb3b0fe3a5a6c4ad09bb840781f0f"
+    }
+  ],
+  "limits": {
+    "dns_deadline_seconds": 2,
+    "offer_deadline_seconds": 4,
+    "ack_deadline_seconds": 4,
+    "absolute_alarm_seconds": 12,
+    "synthetic_mac": "02:64:6e:73:70:01",
+    "release_is_unacknowledged": true,
+    "leasefile_cleanup_observed_for_both_implementations": true
+  }
+}
