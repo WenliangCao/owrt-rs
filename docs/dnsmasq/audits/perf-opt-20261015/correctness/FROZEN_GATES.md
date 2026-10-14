@@ -19,11 +19,19 @@ The reviewer does not optimize product code or operate `openwrt`.
 | --- | --- |
 | Precise OpenWrt image | SHA256 `a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea` |
 | Image C dnsmasq 2.93 | SHA256 `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87` |
-| Deployed v0.2.0 expected ELF | SHA256 `50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c`; the coordinator separately verifies the router file and running image |
+| Deployed v0.2.0 verified ELF | SHA256 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`; coordinator verified router file and `/proc/3086/exe` before its initial freeze |
+| Historical final SDK ELF | SHA256 `50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c`; old report only, no performance qualification transfers |
 | F10 original C JSON | SHA256 `4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94` |
 | F10 approved manifest | SHA256 `57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78` |
 | SDK archive | SHA256 `ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25` |
 | Rust | `1.98.1`, existing opt3/LTO/feature-off/static-PIE recipe; flags are not an optimization |
+
+Clerical identity correction: the first version of this table accidentally called
+the historical SDK SHA the deployed expectation. The coordinator’s initial
+`FROZEN.md` already records the verified `8472be5a…` identity. The original
+`frozen-inputs.json` is retained unchanged, including that mislabelled historical
+field; this explicit correction is authoritative. No fixture, comparison, gate
+or expectation changed.
 
 C must execute with its image interpreter and libraries. Their identities stay
 those in `docs/dnsmasq/audits/tcp-upstream-20261014/summary.json`. Matching upstream

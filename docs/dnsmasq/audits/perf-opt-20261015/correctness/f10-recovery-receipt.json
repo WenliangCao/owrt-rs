@@ -1,0 +1,25 @@
+{
+  "files": {
+    "private/perf-correctness-20261015/f10-recovery-c.json": {
+      "bytes": 909500,
+      "sha256": "e1f4e400fa4892c2c04f69449f725aa405d8aea06ef9fdbb79a107e38bf8cee4"
+    },
+    "private/perf-correctness-20261015/f10-original-c-recovered.json": {
+      "bytes": 909279,
+      "sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94"
+    },
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/recover_f10_reference.py": {
+      "bytes": 4036,
+      "sha256": "7c52206d03d704925bc29a5ebffe1be5d80198455613495f959fef78e3196633"
+    },
+    "docs/dnsmasq/audits/full-20261014/f10-contract/baseline/raw-index.json": {
+      "bytes": 51253,
+      "sha256": "7e7d8d8625942403d575ab069450c427d31fabb928e56207c0c68cce9f6f53f3"
+    }
+  },
+  "all_13_case_file_hashes_match_original": true,
+  "full_original_raw_sha_matches": true,
+  "full_original_canonical_sha_matches": true,
+  "expectations_modified": false,
+  "physical_router_accessed": false
+}
