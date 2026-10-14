@@ -3,7 +3,7 @@
 import copy
 import unittest
 
-from f10_contract_check import STOCK_SHA256, build_manifest, check
+from f10_contract_check import STOCK_SHA256, build_manifest, check, digest, fixture_input
 
 
 def fixture(kind=12, case='six-addn'):
@@ -162,6 +162,98 @@ class ContractCheck(unittest.TestCase):
         result = check(self.reference, actual, self.manifest)
         self.assertFalse(result['passed'])
         self.assertTrue(any(row['kind'] == 'observation-count' for row in result['failures']))
+
+
+class SourceBoundCheck(unittest.TestCase):
+    def setUp(self):
+        self.reference = fixture(case='six-host-record')
+        case = self.reference['cases'][0]
+        udp = case['observations']
+        tcp = copy.deepcopy(udp)
+        for row in tcp:
+            row['transport'] = 'tcp'
+            row['label'] = row['label'].replace('udp-', 'tcp-')
+        forward = copy.deepcopy(fixture(kind=1)['cases'][0]['observations'][0])
+        forward['label'] = 'udp-forward-0'
+        forward['semantics']['records'][0]['data'] = '192.0.2.1'
+        forward['semantics']['records'][1]['data'] = '192.0.2.2'
+        case['observations'] = udp[:2] + [forward] + udp[2:] + tcp
+        for row in case['observations']:
+            row['request_wire'] = 'fixed-' + row['label']
+        case.update(argv=['chroot', '/private/root', '/usr/sbin/dnsmasq', '-k', '--no-hosts'],
+                    initial_files={}, mutations=[], process_sha256=STOCK_SHA256)
+        states = [f'{transport}-ptr-{phase}-192.0.2.1'
+                  for transport in ('udp', 'tcp') for phase in ('before', 'after')]
+        self.entry = {'entry_basis': 'source-bound', 'review_status': 'approved',
+            'contract_id': 'six-host-record-ptr-initial-order-v1',
+            'reference_document_sha256': digest(self.reference),
+            'reference_case_sha256': digest(case),
+            'fixture_input_sha256': digest(fixture_input(case)), 'states': states,
+            'target_labels': [f'{phase}-{repeat}' for phase in states for repeat in range(2)],
+            'permutations': [[0, 1], [1, 0]],
+            'reference_records': copy.deepcopy(udp[0]['semantics']['records'])}
+        self.manifest = build_manifest(self.reference, [copy.deepcopy(self.reference)])
+        self.manifest['source_bound_entries'] = [self.entry]
+        self.alternative = copy.deepcopy(self.reference)
+        for row in self.alternative['cases'][0]['observations']:
+            if row['type'] == 12:
+                row['semantics']['records'].reverse()
+
+    def test_uniform_cross_transport_initial_order_qualifies(self):
+        result = check(self.reference, self.alternative, self.manifest)
+        self.assertTrue(result['passed'])
+        self.assertEqual(len(result['qualified_ptr_order']), 8)
+        self.assertTrue(all(row['kind'] == 'qualified-source-bound-ptr-order'
+                            for row in result['qualified_ptr_order']))
+
+    def test_proposed_entry_is_not_activated(self):
+        self.entry['review_status'] = 'proposed'
+        result = check(self.reference, self.alternative, self.manifest)
+        self.assertFalse(result['passed'])
+        self.assertEqual(result['failures'][0]['kind'], 'source-bound-entry-not-approved')
+
+    def test_transport_phase_or_repeat_splicing_fails(self):
+        for mode in ('transport', 'phase', 'repeat'):
+            with self.subTest(mode=mode):
+                actual = copy.deepcopy(self.reference)
+                for row in actual['cases'][0]['observations']:
+                    selected = (row['transport'] == 'tcp' if mode == 'transport' else
+                                '-after-' in row['label'] if mode == 'phase' else
+                                row['label'] == 'udp-ptr-before-192.0.2.1-1')
+                    if selected:
+                        row['semantics']['records'].reverse()
+                self.assertFalse(check(self.reference, actual, self.manifest)['passed'])
+
+    def test_changed_input_or_case_is_not_the_declared_contract(self):
+        for mode in ('argv', 'files', 'case'):
+            with self.subTest(mode=mode):
+                actual = copy.deepcopy(self.alternative)
+                case = actual['cases'][0]
+                if mode == 'argv':
+                    case['argv'].append('--no-round-robin')
+                elif mode == 'files':
+                    case['initial_files']['etc/hosts'] = '192.0.2.1 x.test\n'
+                else:
+                    case['case'] = 'unknown-source-state'
+                self.assertFalse(check(self.reference, actual, self.manifest)['passed'])
+
+    def test_content_and_forward_mutations_cannot_borrow_source_contract(self):
+        for mode in ('ttl', 'header', 'tc', 'count', 'rrset', 'forward'):
+            with self.subTest(mode=mode):
+                actual = copy.deepcopy(self.alternative)
+                observations = actual['cases'][0]['observations']
+                row = observations[0]['semantics']
+                if mode == 'ttl':
+                    row['records'][0]['ttl'] += 1
+                elif mode in ('header', 'tc'):
+                    row['flags'] ^= 1 if mode == 'header' else 0x200
+                elif mode == 'count':
+                    row['records'].pop()
+                elif mode == 'rrset':
+                    row['records'][0]['data'] = 'wrong.test'
+                else:
+                    next(row for row in observations if row['type'] == 1)['semantics']['records'].reverse()
+                self.assertFalse(check(self.reference, actual, self.manifest)['passed'])
 
 
 if __name__ == '__main__':

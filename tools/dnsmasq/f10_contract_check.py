@@ -86,6 +86,60 @@ def build_manifest(reference, controls):
             'entries': entries}
 
 
+def fixture_input(case):
+    """Bind service options, files, mutations and the entire ordered query schedule."""
+    assert case['argv'][0] == 'chroot'
+    return {'case': case['case'], 'service_options': case['argv'][3:],
+            'initial_files': case['initial_files'], 'mutations': case['mutations'],
+            'queries': [{field: row[field] for field in ('label', 'name', 'type', 'transport', 'request_wire')}
+                        for row in case['observations']]}
+
+
+def source_bound_track(reference, actual, entry):
+    """Check the sole reviewed source-derived transformation, across UDP and TCP.
+
+    This does not authorize its use: check() additionally requires an approved
+    entry. The alternative sequence is derived only from the exact C reference.
+    """
+    result = {'contract_id': entry.get('contract_id'), 'matches': False}
+    if (entry.get('entry_basis') != 'source-bound'
+            or entry.get('contract_id') != 'six-host-record-ptr-initial-order-v1'
+            or entry.get('reference_document_sha256') != digest(reference)
+            or reference.get('binary_sha256') != STOCK_SHA256):
+        return {**result, 'reason': 'source-contract-reference-mismatch'}
+    expected = next((row for row in reference['cases'] if row['case'] == 'six-host-record'), None)
+    candidate = next((row for row in actual['cases'] if row['case'] == 'six-host-record'), None)
+    if expected is None or candidate is None:
+        return {**result, 'reason': 'source-contract-case-missing'}
+    if (expected.get('process_sha256') != STOCK_SHA256
+            or digest(expected) != entry.get('reference_case_sha256')
+            or digest(fixture_input(expected)) != entry['fixture_input_sha256']
+            or fixture_input(candidate) != fixture_input(expected)):
+        return {**result, 'reason': 'source-contract-fixture-mismatch'}
+    targets = [row for row in expected['observations']
+               if row['name'] == '1.2.0.192.in-addr.arpa' and row['type'] == 12]
+    states = [f'{transport}-ptr-{phase}-192.0.2.1'
+              for transport in ('udp', 'tcp') for phase in ('before', 'after')]
+    labels = [f'{phase}-{repeat}' for phase in states for repeat in range(2)]
+    if (entry.get('target_labels') != labels or entry.get('states') != states
+            or entry.get('permutations') != [[0, 1], [1, 0]]
+            or [row['label'] for row in targets] != labels
+            or any(row['semantics']['records'] != entry['reference_records'] for row in targets)):
+        return {**result, 'reason': 'source-contract-target-mismatch'}
+    if [row['data'] for row in entry['reference_records']] != ['x.test', 'y.test']:
+        return {**result, 'reason': 'source-contract-owner-mismatch'}
+    for permutation in entry['permutations']:
+        sequence = copy.deepcopy(expected['observations'])
+        for row in sequence:
+            if row['label'] in labels:
+                row['semantics']['records'] = [copy.deepcopy(entry['reference_records'][i]) for i in permutation]
+        if all(left['semantics'] == right['semantics']
+               for left, right in zip(sequence, candidate['observations'])):
+            return {**result, 'matches': True, 'permutation': permutation,
+                    'target_labels': labels, 'fixture_input_sha256': entry['fixture_input_sha256']}
+    return {**result, 'reason': 'cross-transport-complete-case-sequence-mismatch'}
+
+
 def check(reference, actual, manifest=None, expected_cases=None):
     """Return unqualified failures separately from precisely qualified order rows."""
     failures, qualified = [], []
@@ -94,6 +148,7 @@ def check(reference, actual, manifest=None, expected_cases=None):
     if actual.get('errors'):
         failures.append({'kind': 'runtime-errors', 'errors': actual['errors']})
     allowed = {}
+    source_checks = []
     if manifest is not None:
         valid = (manifest.get('schema') == 1
                  and manifest.get('policy') == 'observed-c-c-complete-track-only'
@@ -103,6 +158,11 @@ def check(reference, actual, manifest=None, expected_cases=None):
             failures.append({'kind': 'allow-manifest-reference-mismatch'})
         else:
             allowed = {json.dumps(entry['key'], sort_keys=True): entry for entry in manifest['entries']}
+            for entry in manifest.get('source_bound_entries', []):
+                if entry.get('review_status') != 'approved':
+                    failures.append({'kind': 'source-bound-entry-not-approved', 'contract_id': entry.get('contract_id')})
+                    continue
+                source_checks.append(source_bound_track(reference, actual, entry))
     actual_tracks = tracks(actual)
     reference_tracks = tracks(reference)
     sequence_checks = []
@@ -172,6 +232,13 @@ def check(reference, actual, manifest=None, expected_cases=None):
                     difference['sequence_sha256'] = digest(sequence)
                     qualified.append(difference)
                     continue
+                source = next((row for row in source_checks if row['matches']
+                    and case == 'six-host-record' and right['label'] in row['target_labels']), None)
+                if source:
+                    difference['kind'] = 'qualified-source-bound-ptr-order'
+                    difference['contract_id'] = source['contract_id']
+                    qualified.append(difference)
+                    continue
                 difference['reason'] = ('no-corresponding-c-c-state' if not entry or state(right) not in entry['allowed_states']
                                         else 'complete-query-sequence-not-observed-in-c')
             failures.append(difference)
@@ -185,6 +252,7 @@ def check(reference, actual, manifest=None, expected_cases=None):
     return {'passed': not failures, 'case_count': len(seen),
             'failures': failures, 'qualified_ptr_order': qualified,
             'ptr_sequence_checks': sequence_checks,
+            'source_bound_checks': source_checks,
             'raw_order_preserved': True, 'policy': 'default-deny-exact-state-and-complete-track',
             'expected_cases': sorted(expected_cases),
             'elf_identity_scope': 'Candidate ELF identity is verified by the runner, independently of this semantic checker.',

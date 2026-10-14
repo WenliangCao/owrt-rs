@@ -1,0 +1,108 @@
+{
+  "proposed_does_not_activate": true,
+  "synthetic_c_uniform_reverse_qualifies": true,
+  "negative_controls": [
+    {
+      "name": "cross-transport-phase-repeat-splice-udp",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "name": "cross-transport-phase-repeat-splice-after",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 4
+      }
+    },
+    {
+      "name": "cross-transport-phase-repeat-splice-one-repeat",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "name": "unknown-case",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unknown-or-duplicate-case": 1,
+        "case-set-mismatch": 1
+      }
+    },
+    {
+      "name": "changed-service-input",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8
+      }
+    },
+    {
+      "name": "changed-ttl",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "name": "changed-header",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "name": "changed-tc",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "name": "changed-count",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "name": "changed-rrset",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "same-state-ptr-repeat-instability": 1,
+        "rrset-ttl-count-or-header": 1,
+        "unqualified-ptr-order": 7
+      }
+    },
+    {
+      "name": "changed-forward",
+      "expected": "reject",
+      "passed": false,
+      "failure_counts": {
+        "unqualified-ptr-order": 8,
+        "forward-order": 1
+      }
+    }
+  ],
+  "real_candidate_evaluated": false
+}
