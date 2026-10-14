@@ -1,0 +1,410 @@
+#!/bin/sh
+# Controlled, single-instance deployment for the pinned AX3000T image.
+# Stock init/ujail/config ABI is retained; no APK transaction is involved.
+# SC2015: every A && B || fail chain intentionally fails on either test.
+# SC2086: the unquoted expansions below split kernel/procd numeric PID lists.
+# shellcheck disable=SC2015,SC2086
+set -u
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+S=/run/dnsmasq-deploy
+C=/rom/usr/sbin/dnsmasq
+C_SHA=097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87
+PROBE=/usr/libexec/dnsmasq-deploy-probe
+
+fail() { echo "dnsmasq-deploy: $*" >&2; exit 1; }
+now() { read -r up rest < /proc/uptime; echo "${up%.*}"; }
+hash() { sha256sum "$1" 2>/dev/null | cut -d ' ' -f 1; }
+put() { printf '%s\n' "$2" > "$S/$1"; }
+get() { cat "$S/$1" 2>/dev/null; }
+phase() { put phase "$1"; }
+# A saved PID is never used without its kernel starttime.
+birth() { sed 's/.*) //' "/proc/$1/stat" 2>/dev/null | cut -d ' ' -f 20; }
+same() { [ -n "$2" ] && [ "$(birth "$1")" = "$2" ]; }
+
+load() {
+    [ -s "$S/ready" ] || fail 'prepare first'
+    CFG=$(get config_path)
+    R_SHA=$(get candidate_sha256)
+    read -r DNS NAME ANSWER IFACE SERVER < "$S/probe_args"
+}
+
+# Select by the exact frozen -C argv, then hash /proc/exe (including deleted
+# executables). Never trust a jail pidfile, procd running=true, or package DB.
+daemons() {
+    for proc in /proc/[0-9]*; do
+        [ -r "$proc/cmdline" ] || continue
+        exe=$(readlink "$proc/exe" 2>/dev/null) || continue
+        case "$exe" in */dnsmasq|*/dnsmasq\ \(deleted\)|*/candidate) ;; *) continue;; esac
+        tr '\000' '\n' < "$proc/cmdline" | grep -Fqx -- "$CFG" || continue
+        echo "${proc#/proc/}"
+    done
+}
+# expected is deliberately a function argument, not package metadata.
+verify() {
+    expected=$1
+    pids=$(daemons)
+    set -- $pids
+    [ "$#" -eq 1 ] || return 1
+    actual=$(hash "/proc/$1/exe")
+    put daemon_pid "$1"
+    put actual_sha256 "$actual"
+    [ "$actual" = "$expected" ]
+}
+wire() { "$S/probe" "$DNS" "$NAME" "$ANSWER" "$IFACE" "$SERVER" >/dev/null 2>&1; }
+objects() {
+    names=$(ubus -t 2 list 'dnsmasq*' 2>/dev/null) || return 1
+    printf '%s\n' "$names" | grep -qx dnsmasq &&
+        printf '%s\n' "$names" | grep -qx dnsmasq.dns
+}
+bus_id() {
+    # PID + starttime identifies socket generations without relying on inode reuse.
+    for pid in $(pidof ubusd 2>/dev/null); do echo "$pid:$(birth "$pid")"; done
+}
+
+stop_owned() {
+    # Killing the wrapper alone is insufficient when the jailed daemon is stopped.
+    saved=""
+    for pid in $(daemons); do
+        saved="$saved $pid:$(birth "$pid")"
+        kill -CONT "$pid" 2>/dev/null || :
+        kill -TERM "$pid" 2>/dev/null || :
+    done
+    wrapper=$(get wrapper_pid); stamp=$(get wrapper_birth)
+    if same "$wrapper" "$stamp"; then kill -TERM "$wrapper" 2>/dev/null || :; fi
+    sleep 1
+    for entry in $saved; do
+        pid=${entry%:*}; stamp=${entry#*:}
+        if same "$pid" "$stamp"; then kill -KILL "$pid" 2>/dev/null || :; fi
+    done
+    stamp=$(get wrapper_birth)
+    if same "$wrapper" "$stamp"; then kill -KILL "$wrapper" 2>/dev/null || :; fi
+    wait "$wrapper" 2>/dev/null || :
+    [ -z "$(daemons)" ]
+}
+
+launch() {
+    # Reproduce the exact image procd->ujail argv; never eval serialized strings.
+    (
+        set --
+        while IFS= read -r arg; do set -- "$@" "$arg"; done < "$S/argv"
+        exec "$@"
+    ) </dev/null >/dev/null 2>&1 &
+    wrapper=$!
+    put wrapper_pid "$wrapper"
+    put wrapper_birth "$(birth "$wrapper")"
+}
+
+wait_ready() {
+    expected=$1
+    end=$(( $(now) + 15 ))
+    while [ "$(now)" -lt "$end" ]; do
+        if verify "$expected" && wire; then return 0; fi
+        wrapper=$(get wrapper_pid)
+        same "$wrapper" "$(get wrapper_birth)" || return 1
+        sleep 1
+    done
+    return 1
+}
+
+switch_to() {
+    # No unlink/copy/rename of the executable: these mounts need no overlay space.
+    if [ -f "$S/binary_mounted" ]; then
+        umount /usr/sbin/dnsmasq || return 1
+        rm -f "$S/binary_mounted"
+    fi
+    mount -o bind "$1" /usr/sbin/dnsmasq || return 1
+    put binary_mounted 1
+}
+
+free_tmp_reserve() {
+    case "$(get tmp_reserve)" in
+        /tmp/.dnsmasq-deploy-reserve.*) rm -rf "$(get tmp_reserve)";;
+    esac
+}
+
+fallback() {
+    # Latch in process memory first, even if the private journal has an I/O error.
+    if [ "$mode" != c ]; then
+        repaired=0
+        rm -f "$S/bus_repair"
+    fi
+    mode=c
+    rm -f "$S/reserve"
+    # Exact ujail uses /tmp/ujail-XXXXXX before mounting its own tmpfs.
+    # Release preallocated shared-/tmp blocks/inodes for this one recovery.
+    free_tmp_reserve
+    put reason "$1"
+    phase reverting
+    stop_owned || { phase recovery-failed; return 1; }
+    # Re-verify immutable recovery artifact before ever starting it.
+    [ "$(hash "$C")" = "$C_SHA" ] || { phase recovery-failed; return 1; }
+    switch_to "$C" || { phase recovery-failed; return 1; }
+    launch
+    if wait_ready "$C_SHA"; then phase fallback; else phase recovery-failed; fi
+    # No automatic retry, including if C itself cannot become healthy.
+}
+
+prepare() {
+    [ "$#" -eq 7 ] || fail 'prepare CANDIDATE SHA DNS_SERVER DNS_NAME EXPECTED_A DHCP_IF DHCP_SERVER'
+    [ ! -e "$S/ready" ] || fail 'existing deployment: inspect status / release first'
+    [ "$(hash "$C")" = "$C_SHA" ] || fail 'wrong /rom C identity'
+    [ "$(hash /usr/sbin/dnsmasq)" = "$C_SHA" ] || fail 'stock disk C required; no APK replacement'
+    cmp -s /etc/init.d/dnsmasq /rom/etc/init.d/dnsmasq || fail 'stock init required'
+    [ "$(hash "$1")" = "$2" ] && [ "$2" != "$C_SHA" ] || fail 'candidate SHA mismatch'
+    [ -x "$PROBE" ] && [ -x /usr/libexec/dnsmasq-deploy-lock-init ] || fail 'install helpers first'
+    case "$*" in *[!a-zA-Z0-9_./:\ -]*) fail 'unsupported argument characters';; esac
+    mkdir -p "$S" || fail 'cannot create preparation directory'
+    # Each preparation is fresh; abandoned mounts must be explicitly released.
+    grep -q " $S " /proc/mounts && fail 'existing reserve mount'
+    mount -t tmpfs -o size=8m,mode=0700 dnsmasq-deploy "$S" || fail 'reserve tmpfs'
+    trap 'free_tmp_reserve; umount "$S"; rmdir "$S"; echo "prepare failed; stock C unchanged" >&2' EXIT
+    cp "$1" "$S/candidate" && chmod 755 "$S/candidate" || fail 'stage candidate'
+    cp "$PROBE" "$S/probe" || fail 'stage probe'
+    cp /usr/libexec/dnsmasq-deploy-lock-init "$S/locked-init" || fail 'stage init lock'
+    put candidate_sha256 "$2"
+    shift 2
+    printf '%s %s %s %s %s\n' "$@" > "$S/probe_args"
+    ubus -t 2 call service list '{"name":"dnsmasq","verbose":true}' > "$S/service.json" || fail 'procd unavailable'
+    pids=$(jsonfilter -i "$S/service.json" -e '@.dnsmasq.instances.*.pid')
+    set -- $pids
+    [ "$#" -eq 1 ] || fail 'exactly one live stock instance required'
+    wrapper=$1
+    [ "$(readlink "/proc/$wrapper/exe")" = /sbin/ujail ] || fail 'stock ujail wrapper required'
+    [ "$(tr -d '\000' < "/proc/$wrapper/cmdline" | wc -l)" -eq 0 ] || fail 'newline in argv'
+    tr '\000' '\n' < "/proc/$wrapper/cmdline" > "$S/argv"
+    CFG=$(jsonfilter -i "$S/service.json" -e '@.dnsmasq.instances.*.command[2]')
+    case "$CFG" in /var/etc/dnsmasq.conf.*) ;; *) fail 'unsupported config path';; esac
+    [ "$(grep -c '^dhcp-leasefile=/tmp/dhcp.leases$' "$CFG")" -eq 1 ] || fail 'stock /tmp/dhcp.leases required'
+    cp "$CFG" "$S/config" || fail 'snapshot config'
+    put config_path "$CFG"
+    cp -p /tmp/dhcp.leases "$S/leases" || fail 'snapshot leases'
+    mkdir "$S/pids" || fail 'reserve PID directory'
+    chown 453:453 "$S/pids" "$S/leases" || fail 'reserve ownership'
+    dd if=/dev/zero of="$S/reserve" bs=1024 count=1024 2>/dev/null || fail 'reserve recovery pages'
+    put token "$(cat /proc/sys/kernel/random/uuid)"
+    tmp_reserve="/tmp/.dnsmasq-deploy-reserve.$(get token)"
+    put tmp_reserve "$tmp_reserve"
+    mkdir -m 700 "$tmp_reserve" || fail 'reserve ujail runtime directory'
+    dd if=/dev/zero of="$tmp_reserve/blocks" bs=1024 count=256 2>/dev/null || fail 'reserve ujail runtime blocks'
+    i=0
+    while [ "$i" -lt 32 ]; do
+        : > "$tmp_reserve/inode-$i" || fail 'reserve ujail runtime inodes'
+        i=$((i + 1))
+    done
+    put ready 1
+    load
+    verify "$C_SHA" && wire && objects || fail 'stock C actual identity / DNS / DHCP / ubus baseline failed'
+    # Validate the frozen configuration with ROM C before handing it a service.
+    "$C" --test -C "$S/config" >/dev/null 2>&1 || fail 'ROM C rejects frozen config'
+    put wrapper_pid "$wrapper"; put wrapper_birth "$(birth "$wrapper")"
+    phase prepared
+    trap - EXIT
+    status
+}
+
+start() {
+    load
+    [ "$(get phase)" = prepared ] || fail 'fresh prepared session required'
+    verify "$C_SHA" && wire && objects || fail 'baseline changed'
+    [ "$(hash "$S/candidate")" = "$R_SHA" ] || fail 'staged candidate changed'
+    cmp -s "$CFG" "$S/config" || fail 'generated configuration changed since prepare'
+    # Arm the independent procd guardian before it touches the running service.
+    put fresh 1
+    ubus -t 2 call service set '{"name":"dnsmasq-deploy","instances":{"guard":{"command":["/usr/sbin/dnsmasq-deploy","supervise"],"respawn":[3600,1,0],"term_timeout":2}}}' >/dev/null || fail 'cannot arm guardian'
+    end=$(( $(now) + 25 ))
+    while [ "$(now)" -lt "$end" ]; do
+        case "$(get phase)" in trial|fallback|recovery-failed|activation-aborted) status; return;; esac
+        sleep 1
+    done
+    fail 'guardian did not report readiness; leave it armed and inspect status'
+}
+
+activate() {
+    phase activating
+    # Remove stock instance AND triggers. No config generator or package script
+    # participates in subsequent launches. Fence automatic/manual init reloads.
+    mount -o bind "$S/locked-init" /etc/init.d/dnsmasq || return 1
+    put init_mounted 1
+    ubus -t 2 call service delete '{"name":"dnsmasq"}' >/dev/null || {
+        umount /etc/init.d/dnsmasq
+        rm -f "$S/init_mounted"
+        return 1
+    }
+    put takeover 1
+    stop_owned || return 1
+    mount -o bind "$S/config" "$CFG" || return 1
+    put config_mounted 1
+    mount -o bind "$S/leases" /tmp/dhcp.leases || return 1
+    put lease_mounted 1
+    mount -o bind "$S/pids" /var/run/dnsmasq || return 1
+    put pids_mounted 1
+    # Start deadline before candidate launch; startup is part of the budget.
+    started=$(now); put started "$started"; put deadline "$((started + 180))"
+    switch_to "$S/candidate" || return 1
+    launch
+    wait_ready "$R_SHA" && objects || return 1
+    phase trial
+}
+
+supervise() {
+    load
+    put guard_pid "$$"; put guard_birth "$(birth $$)"
+    requested=0
+    trap 'requested=1' USR1 TERM INT HUP
+    mode=rust
+    if [ "$(get phase)" = prepared ] && [ -f "$S/fresh" ]; then
+        rm -f "$S/fresh"
+        if ! activate; then
+            if [ -f "$S/takeover" ]; then fallback activation-failed
+            else mode=stock; phase activation-aborted; fi
+        fi
+    else
+        # Before takeover no candidate has been started. Delete a possibly
+        # remaining stock instance before recovering an interrupted activation.
+        if [ ! -f "$S/takeover" ]; then
+            if ubus -t 2 call service delete '{"name":"dnsmasq"}' >/dev/null 2>&1; then
+                put takeover 1
+                fallback guardian-restarted
+            elif verify "$C_SHA"; then mode=stock; phase activation-aborted
+            else fallback guardian-restarted; fi
+        else
+            fallback guardian-restarted
+        fi
+    fi
+    previous_bus=$(bus_id)
+    repaired=0
+    while :; do
+        [ "$(get phase)" = releasing ] && exit 0
+        if [ "$requested" -eq 1 ] && [ "$mode" = rust ]; then fallback manual; fi
+        requested=0
+        if [ "$mode" = rust ] && [ "$(get phase)" = trial ] && [ -f "$S/confirm_request" ]; then
+            if [ "$(get confirm_request)" = "$(get token)" ] &&
+                [ "$(now)" -ge "$(( $(get started) + 150 ))" ] &&
+                [ "$(now)" -lt "$(get deadline)" ] && verify "$R_SHA" && wire && objects &&
+                [ "$(now)" -lt "$(get deadline)" ]; then
+                phase confirmed
+            fi
+            rm -f "$S/confirm_request"
+        fi
+        if [ "$mode" = rust ]; then
+            if [ "$(get phase)" = trial ] && [ "$(now)" -ge "$(get deadline)" ]; then
+                fallback confirmation-timeout
+            elif ! verify "$R_SHA" || ! wire; then
+                fallback health-failed
+            fi
+        fi
+        current_bus=$(bus_id)
+        if [ "$mode" != stock ] && [ -n "$current_bus" ] && ubus -t 2 list service >/dev/null 2>&1; then
+            if [ "$current_bus" != "$previous_bus" ] || ! objects; then
+                if [ "$repaired" -eq 0 ] && [ "$(get phase)" != recovery-failed ]; then
+                    repaired=1
+                    put bus_repair 1
+                    before_phase=$(get phase)
+                    stop_owned
+                    launch
+                    wanted=$C_SHA; [ "$mode" = rust ] && wanted=$R_SHA
+                    if wait_ready "$wanted" && objects; then
+                        phase "$before_phase"
+                    elif [ "$mode" = rust ]; then
+                        fallback bus-repair-failed
+                    else
+                        put reason bus-repair-failed
+                    fi
+                elif [ "$mode" = rust ]; then
+                    fallback bus-repair-exhausted
+                else
+                    put reason bus-repair-exhausted
+                fi
+            fi
+            previous_bus=$current_bus
+        fi
+        sleep 2
+    done
+}
+
+confirm() {
+    load
+    [ "$#" -eq 1 ] && [ "$1" = "$(get token)" ] || fail 'current session token required'
+    [ "$(get phase)" = trial ] || fail 'not an unconfirmed trial'
+    t=$(now)
+    [ "$t" -ge "$(( $(get started) + 150 ))" ] && [ "$t" -lt "$(get deadline)" ] || fail 'confirm only between 150 and 180 seconds'
+    same "$(get guard_pid)" "$(get guard_birth)" || fail 'guardian missing'
+    # Guard alone runs probes and changes the phase (no competing UDP :68 client).
+    put confirm_request "$1"
+    end=$(( $(now) + 16 ))
+    while [ "$(now)" -lt "$end" ]; do
+        case "$(get phase)" in
+            confirmed) status; return;;
+            trial) sleep 1;;
+            *) fail 'confirmation lost to recovery; inspect status';;
+        esac
+    done
+    fail 'confirmation not accepted; inspect status'
+}
+
+status() {
+    if [ -f "$S/ready" ]; then
+        load
+        live=$(daemons)
+        set -- $live
+        if [ "$#" -eq 1 ]; then
+            printf 'live_pid=%s\nlive_sha256=%s\n' "$1" "$(hash "/proc/$1/exe")"
+        else
+            printf 'live_pid=\nlive_sha256=\n'
+        fi
+    fi
+    for key in phase reason token started deadline guard_pid daemon_pid actual_sha256 bus_repair; do
+        printf '%s=%s\n' "$key" "$(get "$key")"
+    done
+}
+
+release() {
+    load
+    [ "$(get phase)" = fallback ] || fail 'release only after healthy C fallback'
+    verify "$C_SHA" || fail 'C must be running before returning to stock management'
+    ubus -t 2 list service >/dev/null 2>&1 || fail 'procd required for release'
+    # Probe writes before interrupting service. Emergency fallback remains armed
+    # if planned handback cannot acquire normal runtime storage.
+    cp "$S/leases" /tmp/.dnsmasq-deploy-handback && rm /tmp/.dnsmasq-deploy-handback || fail 'writable /tmp required for release'
+    phase releasing
+    stop_owned || fail 'cannot stop owned C'
+    ubus -t 2 call service delete '{"name":"dnsmasq-deploy"}' >/dev/null || fail 'procd required for release'
+    # Reverse mount order, leaving the underlying stock disk/init untouched.
+    for item in binary pids lease config init; do
+        [ -f "$S/${item}_mounted" ] || continue
+        case "$item" in
+            binary) target=/usr/sbin/dnsmasq;; pids) target=/var/run/dnsmasq;;
+            lease) target=/tmp/dhcp.leases;; config) target=$CFG;; init) target=/etc/init.d/dnsmasq;;
+        esac
+        umount "$target" || fail "unmount $target"
+        rm -f "$S/${item}_mounted"
+    done
+    # This planned handback needs writable /tmp and ubus; emergency recovery did not.
+    cp -p "$S/leases" /tmp/dhcp.leases || fail 'cannot hand back current leases'
+    /etc/init.d/dnsmasq restart || fail 'stock management restart failed'
+    wrapper=$(ubus -t 2 call service list '{"name":"dnsmasq"}' | jsonfilter -e '@.dnsmasq.instances.*.pid')
+    put wrapper_pid "$wrapper"; put wrapper_birth "$(birth "$wrapper")"
+    wait_ready "$C_SHA" && objects || fail 'stock restart identity/health failed; retain reserve'
+    phase released
+    free_tmp_reserve
+    status
+    umount "$S" || fail 'reserve unmount failed'
+    rmdir "$S"
+}
+
+[ "$(id -u)" -eq 0 ] || fail 'root required'
+command=${1:-}; [ "$#" -eq 0 ] || shift
+case "$command" in
+    prepare) prepare "$@";; start) start;; supervise) supervise;; confirm) confirm "$@";;
+    status) status;; rollback)
+        load
+        same "$(get guard_pid)" "$(get guard_birth)" || fail 'guardian unavailable; procd will respawn into C'
+        kill -USR1 "$(get guard_pid)";;
+    release) release;; abort)
+        load
+        [ "$(get phase)" = prepared ] || fail 'abort is only for an unstarted preparation'
+        free_tmp_reserve
+        umount "$S" && rmdir "$S";;
+    *) fail 'commands: prepare start status confirm TOKEN rollback release abort';;
+esac

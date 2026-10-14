@@ -1,0 +1,4 @@
+#!/bin/sh
+# Temporary bind only: boot sees the untouched stock init again.
+echo 'dnsmasq is owned by dnsmasq-deploy; use status/rollback/release before changing configuration or service state.' >&2
+exit 1
