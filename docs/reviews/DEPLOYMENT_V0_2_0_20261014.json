@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "final_ci_artifact_verified_tag_published_release_and_hardware_pending",
+  "status": "prerelease_published_public_download_verification_pending_hardware_pending",
   "build": {
     "source_commit": "ded73bae75f44269c93366593481d866a2e68e35",
     "canonical_run": 38636115402,
@@ -338,7 +338,7 @@
     "interpretation": "Uncontrolled daily usage only, not a performance ranking."
   },
   "hardware": {
-    "release_created": false,
+    "release_created": true,
     "flashed": false,
     "initial_acceptance": "pending",
     "normal_reboot": "pending",
@@ -367,7 +367,9 @@
     "offline-native-archive/results/native-reinstall-and-metadata/result.json": "e7180d647519dbb71e78e5218188d142165f8f53b7f8a208c021a18d5362174f",
     "offline-native-archive/results/package-reinstall-check/result.json": "a56e15a3641473fa8aeac031d901e5f629132ba0d2cb2d2bceb856a1955ef61b",
     "offline-native-boot/result.json": "ab9fef97fe67992969d8215f54890c39d73a3e0faedd1f0528432fc3009f2c52",
-    "redundant-tag-run.json": "e41b011b2c453ddb2b3931467aaa2656e08e0361332da554f151a8d06414536d"
+    "redundant-tag-run.json": "e41b011b2c453ddb2b3931467aaa2656e08e0361332da554f151a8d06414536d",
+    "manual-deploy/stage-ready.json": "27b6220e4f8ed1fee067495c7a5a5966fd65e2c36e03de8f3e6612cd62397871",
+    "manual-deploy/published-image-precheck.txt": "4e82f6f8ba97bd548437a64ed92148a11ffe6f6bf25bfe37f953af3cc9300441"
   },
   "release_blocker": {
     "original_host_tests_run": 38626687422,
@@ -456,7 +458,19 @@
     "build_logs": "retained in Actions artifact",
     "prerelease": true,
     "latest": false,
-    "public_download_verification": "pending"
+    "public_download_verification": "pending",
+    "published_at": "2026-10-14T21:12:07Z",
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0",
+    "latest_release": "v0.1.1",
+    "luci_apk_filename_mapping": {
+      "ci_version_fragment": "26.180.75667~128a781",
+      "public_version_fragment": "26.180.75667.128a781",
+      "asset_count": 4,
+      "bytes_identical": true,
+      "apk_internal_version_changed": false,
+      "canonical_ci_metadata_modified": false,
+      "outer_checksums_use": "public_asset_names"
+    }
   },
   "preflash_health": {
     "running_release": "v0.1.1",
@@ -471,5 +485,16 @@
     "diagnosis": "pending",
     "flashed": false,
     "prior_600s_observation_rewritten": false
+  },
+  "preflash_stage": {
+    "completed_at_utc": "2026-10-14T21:13:35Z",
+    "published_image_sha256_verified": true,
+    "fresh_config_backup_sha256_verified": true,
+    "board_matched": true,
+    "sysupgrade_test_with_exact_backup_exit_code": 0,
+    "boot_identity_unchanged": true,
+    "flashed": false,
+    "rebooted": false,
+    "user_disruption_confirmation": "pending"
   }
 }
