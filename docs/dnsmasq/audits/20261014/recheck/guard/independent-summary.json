@@ -1,0 +1,468 @@
+{
+  "scope": "Exact-image Oracle namespaces; final product ELF and unmodified final deployment scripts; no physical router actions",
+  "cases": [
+    {
+      "case": "c-attempt-crash",
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fault": {
+        "syscall": "openat",
+        "path": "/run/dnsmasq-deploy/c_attempted",
+        "timing": "after",
+        "guardian_pid": 449,
+        "flags": 131649,
+        "open_return": 3
+      },
+      "after_fault": {
+        "live_pid": "",
+        "live_sha256": "",
+        "phase": "recovery-failed",
+        "reason": "bus-repair-exhausted",
+        "token": "0ddafe43-e7ac-4845-ad56-a5ebdc4b50e1",
+        "started": "1699055",
+        "deadline": "1699235",
+        "guard_pid": "769",
+        "daemon_pid": "526",
+        "actual_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "c_attempted_exists": true,
+      "c_attempted_size": 0,
+      "daemons": [],
+      "after_15_seconds": {
+        "live_pid": "",
+        "live_sha256": "",
+        "phase": "recovery-failed",
+        "reason": "bus-repair-exhausted",
+        "token": "0ddafe43-e7ac-4845-ad56-a5ebdc4b50e1",
+        "started": "1699055",
+        "deadline": "1699235",
+        "guard_pid": "769",
+        "daemon_pid": "526",
+        "actual_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "failure_reproduced": true,
+      "completed": true,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-crash-v2/result.json",
+        "sha256": "b759842c37668e5b26ce1276453c484e37c4a38f9a34f3f9ed43e79ffdc972d1"
+      }
+    },
+    {
+      "case": "c-attempt-before-crash",
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fault": {
+        "syscall": "openat",
+        "path": "/run/dnsmasq-deploy/c_attempted",
+        "timing": "before",
+        "guardian_pid": 449,
+        "flags": 131649
+      },
+      "after_fault": {
+        "live_pid": "1037",
+        "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "phase": "fallback",
+        "reason": "guardian-restarted",
+        "token": "346708ae-d76a-43a5-82db-1e4151a80c3b",
+        "started": "1699255",
+        "deadline": "1699435",
+        "guard_pid": "769",
+        "daemon_pid": "1037",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "c_attempted_exists": true,
+      "c_attempted_size": 2,
+      "daemons": [
+        {
+          "pid": 1037,
+          "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "exe": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/fixture/rootfs/usr/sbin/dnsmasq",
+          "start_ticks": "169926356",
+          "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
+          "root": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/fixture/rootfs"
+        }
+      ],
+      "after_15_seconds": {
+        "live_pid": "1037",
+        "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "phase": "fallback",
+        "reason": "guardian-restarted",
+        "token": "346708ae-d76a-43a5-82db-1e4151a80c3b",
+        "started": "1699255",
+        "deadline": "1699435",
+        "guard_pid": "769",
+        "daemon_pid": "1037",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "failure_reproduced": false,
+      "completed": true,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/result.json",
+        "sha256": "fca46817e379aa390e7c9231810b5a0650a3487d8246948bb1fb6a61b0eef4d5"
+      }
+    },
+    {
+      "case": "c-tcp-connection",
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "tcp_response_bytes": 47,
+      "daemons_during_tcp": [
+        {
+          "pid": 1160,
+          "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "exe": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-tcp-connection/fixture/rootfs/usr/sbin/dnsmasq",
+          "start_ticks": "169923551",
+          "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
+          "root": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-tcp-connection/fixture/rootfs"
+        },
+        {
+          "pid": 2106,
+          "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "exe": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-tcp-connection/fixture/rootfs/usr/sbin/dnsmasq",
+          "start_ticks": "169923974",
+          "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
+          "root": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-tcp-connection/fixture/rootfs"
+        }
+      ],
+      "during_tcp": {
+        "live_pid": "",
+        "live_sha256": "",
+        "phase": "recovery-failed",
+        "reason": "c-identity-failed",
+        "token": "6818b665-d20c-4033-8698-357d659e48e5",
+        "started": "1699228",
+        "deadline": "1699408",
+        "guard_pid": "449",
+        "daemon_pid": "1160",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "after_tcp_closed": {
+        "live_pid": "1160",
+        "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "phase": "recovery-failed",
+        "reason": "c-identity-failed",
+        "token": "6818b665-d20c-4033-8698-357d659e48e5",
+        "started": "1699228",
+        "deadline": "1699408",
+        "guard_pid": "449",
+        "daemon_pid": "1160",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "healthy_client_after_failure": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "failure_reproduced": true,
+      "completed": true,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-tcp-connection/result.json",
+        "sha256": "4f13590e8d798dece6a3775dd620a660017e1e37e29eb7b66d979b25fa275868"
+      }
+    },
+    {
+      "case": "c-bus-repeat",
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "first_repair": {
+        "live_pid": "1918",
+        "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "phase": "fallback",
+        "reason": "manual",
+        "token": "7db28ad3-11f0-40f8-97dd-2c66f3ee7bf3",
+        "started": "1699026",
+        "deadline": "1699206",
+        "guard_pid": "449",
+        "daemon_pid": "1132",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "c",
+        "last_probe_failure": ""
+      },
+      "after_second_restart": {
+        "live_pid": "1918",
+        "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "phase": "fallback",
+        "reason": "bus-repair-exhausted",
+        "token": "7db28ad3-11f0-40f8-97dd-2c66f3ee7bf3",
+        "started": "1699026",
+        "deadline": "1699206",
+        "guard_pid": "449",
+        "daemon_pid": "1918",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "c",
+        "last_probe_failure": ""
+      },
+      "objects": [],
+      "client_after_second_restart": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "same_c_pid": true,
+      "failure_reproduced": true,
+      "completed": true,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-bus-repeat/result.json",
+        "sha256": "06844bfc2f634409de1572226c50ee0d1660fbb9a81fe1d6e83113b9694b3a1c"
+      }
+    },
+    {
+      "case": "guard-stopped",
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "past_deadline": {
+        "live_pid": "526",
+        "live_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "phase": "trial",
+        "reason": "",
+        "token": "48fca45b-9347-4fb0-a88d-7f09da9f03bb",
+        "started": "1699076",
+        "deadline": "1699256",
+        "guard_pid": "449",
+        "daemon_pid": "526",
+        "actual_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "guardian_stat": "T",
+      "seconds_past_deadline": 10.169999999925494,
+      "failure_reproduced": true,
+      "after_cont": {
+        "live_pid": "1057",
+        "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "phase": "fallback",
+        "reason": "confirmation-timeout",
+        "token": "48fca45b-9347-4fb0-a88d-7f09da9f03bb",
+        "started": "1699076",
+        "deadline": "1699256",
+        "guard_pid": "449",
+        "daemon_pid": "1057",
+        "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bus_repair": "",
+        "last_probe_failure": ""
+      },
+      "recovered_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.102",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "completed": true,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/guard-stopped/result.json",
+        "sha256": "2d4ce396dc7ad5fede5a69b52260a66d7ed973fea9592ef223c06a667a1c64e9"
+      }
+    },
+    {
+      "case": "services",
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+        "recheck_harness_sha256": "2deb33929e5a7009d6802bb8cf98c4d5976051acbb9bbba79a8cc58f71b4fdab"
+      },
+      "wan_udp68_bound_throughout": true,
+      "odhcpd_before": {
+        "odhcpd": {
+          "instances": {
+            "instance1": {
+              "running": true,
+              "pid": 323,
+              "command": [
+                "/usr/sbin/odhcpd"
+              ],
+              "term_timeout": 5,
+              "respawn": {
+                "threshold": 3600,
+                "timeout": 5,
+                "retry": 5
+              }
+            }
+          }
+        }
+      },
+      "rust_dhcp6": {
+        "address": "fd00:2::7ed",
+        "hostname": "m2-dhcp6",
+        "advertise_type": 2,
+        "reply_type": 7
+      },
+      "rust_dhcp6_dns": {
+        "flags": 34176,
+        "questions": [
+          [
+            "m2-dhcp6.lan",
+            28,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "m2-dhcp6.lan",
+            "type": 28,
+            "class": 1,
+            "ttl": 0,
+            "data": "fd00:2::7ed"
+          }
+        ]
+      },
+      "c_dhcp6": {
+        "address": "fd00:2::7ed",
+        "hostname": "m2-dhcp6",
+        "advertise_type": 2,
+        "reply_type": 7
+      },
+      "c_dhcp6_dns": {
+        "flags": 34176,
+        "questions": [
+          [
+            "m2-dhcp6.lan",
+            28,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "m2-dhcp6.lan",
+            "type": 28,
+            "class": 1,
+            "ttl": 0,
+            "data": "fd00:2::7ed"
+          }
+        ]
+      },
+      "odhcpd_after": {
+        "odhcpd": {
+          "instances": {
+            "instance1": {
+              "running": true,
+              "pid": 323,
+              "command": [
+                "/usr/sbin/odhcpd"
+              ],
+              "term_timeout": 5,
+              "respawn": {
+                "threshold": 3600,
+                "timeout": 5,
+                "retry": 5
+              }
+            }
+          }
+        }
+      },
+      "other_processes_alive": {
+        "ubusd": true,
+        "/sbin/logd": true,
+        "/sbin/procd": true,
+        "/sbin/netifd": true
+      },
+      "failure_reproduced": false,
+      "completed": true,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/services-v3/result.json",
+        "sha256": "a2879aed15b0b2656994373e0d0e32415116948633390b006599e8b82a1c0f95"
+      }
+    }
+  ],
+  "calibration": [
+    {
+      "case": "c-attempt-crash, binary-journal-crash first run",
+      "issue": "PTRACE_CONT after SIGKILL returned ESRCH; removed the unnecessary continue and reran."
+    },
+    {
+      "case": "services first run",
+      "issue": "DHCPv6 client lacked its synthetic fe80::2 address; reused the existing lifecycle client setup and reran."
+    },
+    {
+      "case": "binary-journal-crash-v2",
+      "issue": "Reached real pre-marker crash boundary, but C reached recovery-failed instead of expected fallback. Hidden-mount/release hypothesis not claimed as a finding; raw evidence retained.",
+      "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/binary-journal-crash-v2/result.json",
+      "sha256": "f3a02e1716bdf995e201ad25c1ba9a845353c3b7149183568af108ec448dba2c"
+    }
+  ]
+}
