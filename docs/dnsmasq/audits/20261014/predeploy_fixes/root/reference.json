@@ -1,0 +1,27 @@
+{
+  "status": "verified",
+  "identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "source_files": 148,
+  "source": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93",
+  "manifest_sha256": "678ef20eb67cd90878d80f8828c15f32c37060e5803de0507c50ba27220cecc0",
+  "build": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01",
+  "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+  "dependencies": {
+    "libubox": {
+      "source": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components/libubox",
+      "revision": "7dd127841e82eb1cfb61185da37dde7b9bd9ba6d",
+      "library_sha256": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243"
+    },
+    "ubus": {
+      "source": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components/ubus",
+      "revision": "24864e7840b3a02a9ef76284a373f6b2f00b8a9b",
+      "library_sha256": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+    }
+  },
+  "exact_image_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "runtime_config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+  "scope": "Native C supplies fixture/source evidence only; behavioral comparisons run the exact image ELF.",
+  "raw_evidence_path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/reference.json",
+  "raw_evidence_sha256": "6915b9d3d57bf6d2b8564882bf7a7be7e4448ce7cd8b66e4116cfe9e1e0f5c80"
+}

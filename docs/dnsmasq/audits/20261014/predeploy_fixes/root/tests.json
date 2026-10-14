@@ -1,0 +1,54 @@
+{
+  "source_commit": "807db8a15e43452414acc048874bf04a4c639bd9",
+  "build": {
+    "source": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52652408,
+        "sha256": "3db0b2dd01a46f0dd18f92a5d892303f0bf85600bc719b15b73e4264db2a2122"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70780616,
+        "sha256": "260daf487dd97f2f16e6e0cf0495b7d3b95cf4a37a31ebf0ac533e6c0a2bdb71"
+      }
+    ]
+  },
+  "tests": {
+    "lib": {
+      "returncode": 0,
+      "result": "ok. 784 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 4.23s",
+      "log_sha256": "b04907509fc5eb376ddfa13d568253b896d4fcf439d846cc902d31aed73f7955",
+      "private_log": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/tests-02/lib.log",
+      "passed": 784,
+      "failed": 0,
+      "ignored": 20
+    },
+    "bin": {
+      "returncode": 0,
+      "result": "ok. 78 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.09s",
+      "log_sha256": "a3ab790a027c50d95c322d5d21581562c7397f9bae0455ae0f09b58431ba8775",
+      "private_log": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/tests-02/bin-clean.log",
+      "tmpdir": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/tests-02/bin-tmp",
+      "rerun_reason": "Prior shared /tmp/dnsmasq-ready-log-1 FIFO already existed; use task-owned TMPDIR without touching the preexisting file.",
+      "passed": 78,
+      "failed": 0,
+      "ignored": 3
+    }
+  },
+  "initial_bin_attempt": {
+    "returncode": 101,
+    "result": "FAILED. 77 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.16s",
+    "log_sha256": "4b9ef666b91cb37e0e4dc2441ce50da03f9813ae08ca6b44bc535bc328f9653f",
+    "private_log": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/tests-02/bin.log"
+  },
+  "initial_bin_failure_classification": "Fixture: mkfifo /tmp/dnsmasq-ready-log-1 already existed outside this task. Same test executable passed with a new task-owned TMPDIR; preexisting FIFO was untouched. Original failed log retained.",
+  "allocation_tests": "../hosts/summary.json",
+  "ignored_executed": false
+}

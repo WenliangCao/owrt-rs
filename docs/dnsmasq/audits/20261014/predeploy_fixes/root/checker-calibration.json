@@ -1,0 +1,7 @@
+{
+  "positive_control": "precise C compared against itself",
+  "positive_control_responses": 52,
+  "historical_unfixed_rejected": true,
+  "rejection_type": "FileNotFoundError",
+  "checker_sha256": "f48a9cc726cd75f54fe9a3513e98c109eafff21906eb75edd9f3ed3bc795eefc"
+}
