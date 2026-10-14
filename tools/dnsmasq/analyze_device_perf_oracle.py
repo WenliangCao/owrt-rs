@@ -38,7 +38,18 @@ def traffic(folder):
         if any(load[phase][key] for key in ('timeout','wrong','transport_error','scheduled_skipped')):
             base['valid']=False; base['errors'].append(phase+' failure counters')
     before=json.loads((folder/'before.json').read_text());after=json.loads((folder/'after.json').read_text())
-    assert before['starttime_ticks']==after['starttime_ticks']
+    assert before['starttime_ticks']==after['starttime_ticks'] and before['pid']==after['pid']
+    assert all(b>=a for a,b in zip(before['ticks'],after['ticks']))
+    warm=load['warmup']; expected=round(load['rate']*load['warmup_seconds'])
+    if any(warm[key]!=expected for key in ('scheduled','sent','correct')):
+        base['valid']=False; base['errors'].append('warmup completion counts')
+    if load.get('renew_setup_failed'):
+        base['valid']=False; base['errors'].append('DHCP setup failed')
+    if load['mode']=='dhcp' and (warm['dora_correct']!=150 or warm['renew_correct']!=350):
+        base['valid']=False; base['errors'].append('DHCP warmup DORA/renew split')
+    upstream=json.loads((folder/'upstream.json').read_text()); totals=upstream['total']
+    if totals['requests']!=totals['replies'] or any(totals[k] for k in ('disabled_requests','dropped_requests','invalid_queries')) or upstream['delay_queue_dropped']:
+        base['valid']=False; base['errors'].append('upstream completeness')
     root_pid=before['pid']
     parents=[next(p for p in r['processes'] if p['pid']==root_pid) for r in measured]
     cpu_us=base['window_cpu_ticks']/base['clock_ticks_per_second']*1e6/base['window_completions']
@@ -61,7 +72,7 @@ def traffic(folder):
        'tree_process_peak':max(len(r['processes']) for r in measured),
        'threads_peak':max(sum(p['thread_count'] for p in r['processes']) for r in measured),
        'upstream_steady_requests':base['upstream_steady_requests'],
-       'upstream':json.loads((folder/'upstream.json').read_text()),
+       'upstream':upstream,
        'helpers':{name:json.loads((folder/(name+'.usage.json')).read_text()) for name in ('client','upstream','resources')},
        'full_daemon_usage':json.loads((folder/'daemon.usage.json').read_text()),
        'tcp_connections':load['tcp_connections'],'tcp_reconnections':load['tcp_reconnections']}
