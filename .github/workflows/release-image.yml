@@ -1,5 +1,5 @@
 name: release-image
-# Builds all nine Rust programs with the official OpenWrt SDK, assembles one
+# Builds all ten Rust programs with the official OpenWrt SDK, assembles one
 # native owrt-control-plane APK and AX3000T sysupgrade image, then validates
 # file ownership, stock recovery and execution-plane identity. The six legacy
 # packages/image are build intermediates. Nothing is flashed: the image is an
@@ -65,12 +65,15 @@ jobs:
       - name: build standalone core components
         run: sh tools/ci_build_core.sh "$GITHUB_WORKSPACE/work"
 
-      - name: integrate nine native components and verify the final image
+      - name: build accepted dnsmasq through its SDK package recipe
+        run: python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
+
+      - name: integrate ten native components and verify the final image
         run: sh tools/ci_integrate_image.sh "$GITHUB_WORKSPACE/work"
 
       - name: summary
         run: |
-          { echo '### Native nine-component image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/native/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/native/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/native/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo '### Native ten-component image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/native/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/native/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/native/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -87,6 +90,8 @@ jobs:
           path: |
             work/out/*.log
             work/out/*manifest.json
+            work/out/dnsmasq/*.log
+            work/out/dnsmasq/manifest.json
             work/native/*.log
             work/native/build-inputs.json
             work/native/bin/*-sysupgrade.bin
@@ -101,4 +106,5 @@ jobs:
             --prerelease --latest=false \
             --notes "Build candidate from ${GITHUB_SHA}; hardware qualification is separate. See docs/RELEASE.md." \
             work/native/out/*.apk work/native/out/*-sysupgrade.bin work/native/out/SHA256SUMS \
-            work/native/out/binary-sha256.txt work/native/out/manifest.json work/native/out/build-inputs.json
+            work/native/out/binary-sha256.txt work/native/out/manifest.json work/native/out/build-inputs.json \
+            work/native/out/dnsmasq-build-manifest.json

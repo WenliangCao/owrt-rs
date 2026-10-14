@@ -51,4 +51,4 @@ cmp "$work"/native/base-image/sysupgrade-*/CONTROL "$work"/native/unpacked/sysup
 "$ib/staging_dir/host/bin/fwtool" -i "$work/native/final-metadata.json" "$work/native/bin/$stock"
 cmp "$work/native/metadata.json" "$work/native/final-metadata.json"
 sudo -n python3 "$repo/tools/native_image.py" verify "$work" "$spec" "$apk"
-echo 'Native nine-component image assembled and audited; no device was flashed.'
+echo 'Native ten-component image assembled and audited; no device was flashed.'

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Assemble and audit a native nine-component image. Never contacts a router.
+"""Assemble and audit a native ten-component image. Never contacts a router.
 
 The existing SDK builds remain the binary provenance source. One APK owns the
-nine standard paths using APK's explicit file-replacement metadata; official
-packages still supply their libraries, init scripts, helpers and configuration.
+ten standard paths using APK's explicit file-replacement metadata; official
+packages supply their libraries, helpers and configuration. Two precisely
+pinned dnsmasq integration files accompany its accepted SDK binary.
 """
 import argparse
 import hashlib
@@ -45,10 +46,38 @@ def packages(apk, root):
         "--format", "json", "--fields", "name,version,license", "*"))}
 
 
-def install(source, target):
+def install(source, target, mode=0o755):
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, target)
-    target.chmod(0o755)
+    target.chmod(mode)
+
+
+def integration_files(payload, base, dnsmasq, spec, apk, installed):
+    """Install only the accepted init/ACL changes, preserving stock recovery."""
+    expected = {"etc/init.d/dnsmasq", "usr/share/acl.d/dnsmasq_acl.json"}
+    assert set(spec["integration_files"]) == expected
+    result = {}
+    for path, item in spec["integration_files"].items():
+        assert item["path"] == "/" + path and item["stock_package"] == "dnsmasq"
+        original, candidate = base / path, dnsmasq / path
+        assert sha(original) == item["stock_sha256"], f"stock integration identity drift: {path}"
+        assert sha(candidate) == item["replacement_sha256"], f"accepted integration identity drift: {path}"
+        assert (original.stat().st_mode & 0o7777) == item["mode"]
+        assert (candidate.stat().st_mode & 0o7777) == item["mode"]
+        owner = run(apk, "--root", base, "--no-network", "info", "--who-owns", item["path"])
+        assert owner.endswith(" is owned by dnsmasq-" + installed["dnsmasq"]["version"]), owner
+        install(candidate, payload / path, item["mode"])
+        install(original, payload / STOCK / path, item["mode"])
+        result[path] = dict(item, recovery_path="/" + STOCK + "/" + path)
+    # The SDK package is an intermediate, not an invitation to overwrite its
+    # remaining defaults/helpers. They must equal the exact stock image.
+    for path in ("etc/config/dhcp", "etc/dnsmasq.conf", "etc/hotplug.d/ntp/25-dnsmasqsec",
+                 "etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+                 "etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+                 "usr/lib/dnsmasq/dhcp-script.sh", "usr/share/dnsmasq/dhcpbogushostname.conf",
+                 "usr/share/dnsmasq/rfc6761.conf"):
+        assert (base / path).read_bytes() == (dnsmasq / path).read_bytes(), path
+    return result
 
 
 def preserve_directory_modes(payload, base):
@@ -82,10 +111,13 @@ def prepare(work, spec, apk):
     binary_root = work / "verify/rootfs"
     image = read(out / "manifest.json")
     core = read(out / "core-manifest.json")
-    assert image["source_commit"] == core["source_commit"]
+    dnsmasq = read(out / "dnsmasq/manifest.json")
+    assert image["source_commit"] == core["source_commit"] == dnsmasq["source_commit"]
+    assert dnsmasq["status"] == "built-and-audited"
+    assert dnsmasq["source_digest"] == spec["dnsmasq_build"]["source_digest"]
     assert image["openwrt"] == core["openwrt"] == spec["openwrt"]
     assert core["image_manifest_sha256"] == sha(out / "manifest.json")
-    hashes = image["binary_sha256"] | core["binary_sha256"]
+    hashes = image["binary_sha256"] | core["binary_sha256"] | dnsmasq["binary_sha256"]
     assert set(hashes) == {c["binary"] for c in spec["components"].values()}
     installed = packages(apk, root)
     owners = sorted({c["stock_package"] for c in spec["components"].values()})
@@ -101,6 +133,8 @@ def prepare(work, spec, apk):
         assert owner.endswith(" is owned by " + c["stock_package"] + "-" + installed[c["stock_package"]]["version"])
         binary = (out / "core-binaries" if name in ("procd", "ubusd", "netifd")
                   else binary_root / "usr/sbin") / c["binary"]
+        if name == "dnsmasq":
+            binary = out / "dnsmasq/payload/usr/sbin/dnsmasq"
         assert sha(binary) == hashes[c["binary"]], f"Rust identity drift: {name}"
         install(binary, payload / path)
         install(original, payload / STOCK / path)
@@ -108,19 +142,26 @@ def prepare(work, spec, apk):
                                 recovery_path="/" + STOCK + "/" + path)
         rust_sums.append(f"{sha(binary)}  /{path}\n")
         stock_sums.append(f"{sha(original)}  /{STOCK}/{path}\n")
+    integration = integration_files(payload, root, out / "dnsmasq/payload", spec, apk, installed)
+    for path, item in integration.items():
+        rust_sums.append(f"{item['replacement_sha256']}  /{path}\n")
+        stock_sums.append(f"{item['stock_sha256']}  {item['recovery_path']}\n")
+    rust_text, stock_text = "".join(rust_sums), "".join(stock_sums)
     manifest = {
-        "schema": 1, "layout": "native-nine", "source_commit": image["source_commit"],
+        "schema": 2, "layout": "native-ten", "source_commit": image["source_commit"],
         "openwrt": spec["openwrt"], "profile": spec["profile"],
         "package": spec["package"], "version": spec["version"],
         "components": components,
+        "integration_files": integration,
+        "stock_manifest_sha256": hashlib.sha256(stock_text.encode()).hexdigest(),
         "stock_image": spec["stock_image"],
         "luci_source": spec["luci_source"], "translations": spec["translations"],
         "stock_packages": {p: installed[p] for p in owners},
-        "recovery": "owrt-recover-c stages all nine stock programs; reboot separately",
+        "recovery": "owrt-recover-c stages all ten stock programs and exact dnsmasq init/ACL; reboot separately",
     }
     write(payload / METADATA / "release.json", manifest)
-    (payload / METADATA / "rust.sha256").write_text("".join(rust_sums))
-    (payload / METADATA / "stock.sha256").write_text("".join(stock_sums))
+    (payload / METADATA / "rust.sha256").write_text(rust_text)
+    (payload / METADATA / "stock.sha256").write_text(stock_text)
     install(REPO / "packaging/image/owrt-recover-c", payload / "usr/sbin/owrt-recover-c")
     install(REPO / "packaging/image/05-owrt-native", payload / "etc/uci-defaults/05-owrt-native")
     keep = payload / "lib/upgrade/keep.d/owrt-control-plane"
@@ -143,7 +184,7 @@ def prepare(work, spec, apk):
     dependencies += ["!" + p for p in sorted(LEGACY)]
     licenses = sorted({installed[p]["license"] for p in owners})
     info = {"name": spec["package"], "version": spec["version"],
-            "arch": spec["architecture"], "description": "Nine native Rust OpenWrt control-plane components",
+            "arch": spec["architecture"], "description": "Ten native Rust OpenWrt control-plane components",
             "license": " AND ".join(["(MIT OR Apache-2.0)", *licenses]),
             "origin": "owrt-control-plane-rs", "url": "https://github.com/WenliangCao/owrt-control-plane-rs",
             "depends": " ".join(dependencies), "replaces": " ".join(owners), "replaces-priority": "100"}
@@ -179,9 +220,9 @@ def prepare(work, spec, apk):
             "--info", "arch:noarch", "--info", "license:" + translation["license"],
             "--info", "description:Chinese translation for " + translation["package"],
             "--info", "depends:libc " + translation["package"] + "=" + installed[translation["package"]]["version"])
-    write(work / "native/build-inputs.json", {"image": image, "core": core,
+    write(work / "native/build-inputs.json", {"image": image, "core": core, "dnsmasq": dnsmasq,
           "package_metadata": info, "package_sha256": sha(package)})
-    print(f"Prepared {package.name}: nine native paths, nine verified stock recovery copies")
+    print(f"Prepared {package.name}: ten native paths, paired dnsmasq init/ACL, twelve stock recovery files")
 
 
 def verify(work, spec, apk):
@@ -189,6 +230,8 @@ def verify(work, spec, apk):
     before = work / "native/base-rootfs"
     manifest = read(work / "native/payload" / METADATA / "release.json")
     assert read(root / METADATA / "release.json") == manifest
+    assert manifest["layout"] == "native-ten" and len(manifest["components"]) == 10
+    assert sha(root / METADATA / "stock.sha256") == manifest["stock_manifest_sha256"]
     installed, previous = packages(apk, root), packages(apk, before)
     translations = {"luci-i18n-" + n + "-zh-cn" for n in spec["translations"]}
     assert set(installed) == set(previous) | {spec["package"]} | translations
@@ -203,6 +246,12 @@ def verify(work, spec, apk):
         owner = run(apk, "--root", root, "--no-network", "info", "--who-owns", c["path"])
         assert owner.endswith(" is owned by " + spec["package"] + "-" + spec["version"]), owner
         assert not (root / "usr/sbin" / c["binary"]).exists()
+    for path, item in manifest["integration_files"].items():
+        assert sha(root / path) == item["replacement_sha256"]
+        assert sha(root / item["recovery_path"].lstrip("/")) == item["stock_sha256"]
+        assert (root / path).stat().st_mode & 0o7777 == item["mode"]
+        owner = run(apk, "--root", root, "--no-network", "info", "--who-owns", item["path"])
+        assert owner.endswith(" is owned by " + spec["package"] + "-" + spec["version"]), owner
     assert not list((root / "etc").glob("owrt-*.boot-enable"))
     assert not list((root / "etc/init.d").glob("owrt-*"))
     assert not list((root / "etc/rc.d").glob("*owrt-*"))
@@ -210,6 +259,7 @@ def verify(work, spec, apk):
     for service in ("log", "rpcd", "uhttpd", "network"):
         assert (root / "etc/init.d" / service).read_bytes() == (before / "etc/init.d" / service).read_bytes()
         assert any((root / "etc/rc.d").glob("S[0-9][0-9]" + service)), service
+    assert any((root / "etc/rc.d").glob("S[0-9][0-9]dnsmasq"))
     for name in ("shadow", "passwd"):
         assert (root / "etc" / name).read_bytes() == (before / "etc" / name).read_bytes()
     for path in (before / "etc/config").iterdir():
@@ -217,6 +267,7 @@ def verify(work, spec, apk):
     # Compare the entire original filesystem, not another image assembled from
     # today's feed. Package versions alone do not prove unchanged content.
     replaced = {c["path"].lstrip("/") for c in manifest["components"].values()}
+    replaced |= set(manifest["integration_files"])
     excluded = {"etc/apk/world"}
     checked = 0
     for src in before.rglob("*"):
@@ -240,8 +291,9 @@ def verify(work, spec, apk):
         shutil.copy2(source, output / source.name)
     inputs = read(work / "native/build-inputs.json")
     hashes = {c["binary"]: c["rust_sha256"] for c in manifest["components"].values()}
-    result = dict(inputs["image"], schema_version=2, deployment_layout="native-nine",
+    result = dict(inputs["image"], schema_version=3, deployment_layout="native-ten",
                   packages={n: installed[n]["version"] for n in translations | {spec["package"]}}, components=manifest["components"],
+                  integration_files=manifest["integration_files"], stock_manifest_sha256=manifest["stock_manifest_sha256"],
                   binary_sha256=hashes, stock_packages=manifest["stock_packages"],
                   image={"file": image.name, "size": image.stat().st_size, "sha256": sha(image)},
                   apk_sha256={p.name: sha(p) for p in apks}, stock_image=spec["stock_image"],
@@ -249,8 +301,10 @@ def verify(work, spec, apk):
                   kernel_sha256=sha(next((work / "native/base-image").glob("sysupgrade-*/kernel"))),
                   imagebuilder_args={"assembly": "verified stock rootfs + offline APK install + official image tools",
                                      "rolling_feeds_used_for_final_rootfs": False},
-                  validation={"nine_native_paths": True, "package_ownership": True,
-                              "stock_recovery_hashes": True, "stock_service_scripts": True,
+                  validation={"ten_native_paths": True, "package_ownership": True,
+                              "stock_recovery_hashes": True, "stock_service_scripts_except_qualified_dnsmasq": True,
+                              "qualified_dnsmasq_init_and_acl": True, "dnsmasq_source_recipe_identical": True,
+                              "dnsmasq_reference_elf_identical": inputs["dnsmasq"]["elf"]["matches_accepted_reference"],
                               "stock_config_defaults": True, "unchanged_execution_files": checked,
                               "stock_package_versions_unchanged": len(previous),
                               "production_Chinese_catalogs_identical": len(translations),
@@ -261,6 +315,9 @@ def verify(work, spec, apk):
     (output / "binary-sha256.txt").write_text("".join(f"{h}  {n}\n" for n, h in sorted(hashes.items())))
     for source in (work / "out").glob("*.log"):
         shutil.copy2(source, output / source.name)
+    shutil.copy2(work / "out/dnsmasq/manifest.json", output / "dnsmasq-build-manifest.json")
+    for source in (work / "out/dnsmasq").glob("*.log"):
+        shutil.copy2(source, output / ("dnsmasq-" + source.name))
     for source in (work / "native").glob("*.log"):
         shutil.copy2(source, output / source.name)
     (output / "SHA256SUMS").write_text("".join(f"{sha(p)}  {p.name}\n"

@@ -4,7 +4,7 @@
   "profile": "xiaomi_mi-router-ax3000t",
   "architecture": "aarch64_cortex-a53",
   "package": "owrt-control-plane",
-  "version": "0.1.0-r3",
+  "version": "0.2.0-r1",
   "components": {
     "fw4": {
       "path": "/sbin/fw4",
@@ -59,6 +59,12 @@
       "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
       "stock_package": "uci",
       "binary": "uci-rs"
+    },
+    "dnsmasq": {
+      "path": "/usr/sbin/dnsmasq",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "stock_package": "dnsmasq",
+      "binary": "dnsmasq-rs"
     }
   },
   "stock_image": {
@@ -96,6 +102,32 @@
       "package": "luci-app-attendedsysupgrade",
       "license": "GPL-2.0",
       "sha256": "50c9d04bcf421e787e98accc876ebc13c04559dcf01805fedf185b4d44ff3f8c"
+    }
+  },
+  "dnsmasq_build": {
+    "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+    "source_digest": "3c9a37d5e5f5db8b2f1c098abba3144b0eb04b312539ca0b1a6177d5bfa8214c",
+    "reference_elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "reference_elf_bytes": 2124571,
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000,
+    "package_release": "4",
+    "qualification": "Source and SDK recipe match the accepted main product. Fresh CI ELF identity is recorded; final image runtime acceptance is separate."
+  },
+  "integration_files": {
+    "etc/init.d/dnsmasq": {
+      "path": "/etc/init.d/dnsmasq",
+      "stock_package": "dnsmasq",
+      "stock_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+      "replacement_sha256": "70fb3c6bd057c6981503138b91292182f07c9a0d5aa1aaf0454c34af4ca746f0",
+      "mode": 493
+    },
+    "usr/share/acl.d/dnsmasq_acl.json": {
+      "path": "/usr/share/acl.d/dnsmasq_acl.json",
+      "stock_package": "dnsmasq",
+      "stock_sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+      "replacement_sha256": "8bedbcdd3018c17f272f0d3ecf9573aa6f05253806cb8812ebf92e9b87ac6020",
+      "mode": 420
     }
   }
 }
