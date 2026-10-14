@@ -122,7 +122,9 @@ impl<T: Default> Snapshot<T> {
 struct HostsRecords {
     entries: Vec<Host>,
     sources: HashMap<u32, Vec<u8>>,
-    forward: HashMap<Vec<u8>, Vec<usize>>,
+    // Existence needs only a count; individual records and answer order live
+    // in HashOrder. Avoid allocating an index vector for each distinct name.
+    forward: HashMap<Vec<u8>, usize>,
     reverse: HashMap<IpAddr, usize>,
     // Most addresses have one owner. Allocate another list only when C's
     // bulk reverse chain gives the same address additional F_REVERSE records.
@@ -1090,12 +1092,6 @@ impl Hosts {
         // unsuccessful reservation leaves existing entries and PTR ownership live.
         records.entries.try_reserve(1)?;
         records.forward.try_reserve(1)?;
-        let mut fresh_indices = Vec::new();
-        if let Some(indices) = records.forward.get_mut(&key) {
-            indices.try_reserve(1)?;
-        } else {
-            fresh_indices.try_reserve(1)?;
-        }
         let reverse = match bulk.as_mut().filter(|bulk| bulk.active) {
             Some(bulk) => {
                 bulk.next.try_reserve(1)?;
@@ -1162,9 +1158,8 @@ impl Hosts {
         if let Some(bulk) = bulk.as_mut().filter(|bulk| bulk.active) {
             bulk.push(address, reverse);
         }
-        let indices = records.forward.entry(key).or_insert(fresh_indices);
         let id = records.entries.len();
-        indices.push(id);
+        *records.forward.entry(key).or_insert(0) += 1;
         if reverse {
             if records.reverse.contains_key(&address) {
                 records
@@ -1211,8 +1206,8 @@ impl Hosts {
         for (&source, name) in &records.sources {
             copy.sources.insert(source, try_copy(name)?);
         }
-        for (name, indices) in &records.forward {
-            copy.forward.insert(try_copy(name)?, try_copy(indices)?);
+        for (name, &count) in &records.forward {
+            copy.forward.insert(try_copy(name)?, count);
         }
         copy.reverse
             .extend(records.reverse.iter().map(|(&address, &id)| (address, id)));
@@ -1419,22 +1414,31 @@ impl Hosts {
             .as_ref()
             .map(|bulk| bulk.try_remap(&relocated))
             .transpose()?;
+        let lease_count = self.retained_leases().len();
         let order = self
             .order
-            .remapped(&relocated, self.retained_leases().len())?;
+            .remapped(&relocated, lease_count)?;
+        let mut canonical = Vec::new();
+        let capacity = self.records.entries.iter()
+            .filter(|entry| entry.source == source && entry.name.iter().any(u8::is_ascii_uppercase))
+            .map(|entry| entry.name.len()).max().unwrap_or(0);
+        canonical.try_reserve_exact(capacity)?;
         let records = self.writable_records()?;
+        // Touch each removed name once; no record-index remap or surviving
+        // name search is needed. Scratch growth precedes every state change.
+        for entry in records.entries.iter().filter(|entry| entry.source == source) {
+            let key = if entry.name.iter().any(u8::is_ascii_uppercase) {
+                canonical.clear();
+                canonical.extend_from_slice(&entry.name);
+                canonical.make_ascii_lowercase();
+                canonical.as_slice()
+            } else {
+                entry.name.as_slice()
+            };
+            *records.forward.get_mut(key).unwrap() -= 1;
+        }
         records.entries.retain(|entry| entry.source != source);
-        records.forward.retain(|_, indices| {
-            indices.retain_mut(|id| {
-                if let Some(next) = relocated[*id] {
-                    *id = next;
-                    true
-                } else {
-                    false
-                }
-            });
-            !indices.is_empty()
-        });
+        records.forward.retain(|_, count| *count != 0);
         for extra in records.reverse_extra.values_mut() {
             extra.retain_mut(|id| {
                 if let Some(next) = relocated[*id] {
@@ -1470,8 +1474,17 @@ impl Hosts {
     }
 
     pub fn name_exists(&self, name: &[u8]) -> bool {
-        let key = name.to_ascii_lowercase();
-        self.records.forward.contains_key(&key) || self.records.non_terminals.contains(&key)
+        if self.records.forward.is_empty() && self.records.non_terminals.is_empty() {
+            return false;
+        }
+        let canonical;
+        let key = if name.iter().any(u8::is_ascii_uppercase) {
+            canonical = name.to_ascii_lowercase();
+            canonical.as_slice()
+        } else {
+            name
+        };
+        self.records.forward.contains_key(key) || self.records.non_terminals.contains(key)
     }
 
     /// Return current static bucket order, then apply C's first matching
@@ -2167,13 +2180,13 @@ mod tests {
         assert_eq!(stats.accepted, 60000);
         assert!(!stats.allocation_failed);
         assert_eq!(
-            hosts
-                .records
-                .forward
-                .values()
-                .filter(|ids| {
-                    ids.len() == 2
-                        && hosts.entries()[ids[0]].reverse != hosts.entries()[ids[1]].reverse
+            (0..30000)
+                .filter(|i| {
+                    let name = format!("host{i:06}.test");
+                    let mut entries = hosts.addresses(name.as_bytes());
+                    let first = entries.next().unwrap();
+                    let second = entries.next().unwrap();
+                    entries.next().is_none() && first.reverse != second.reverse
                 })
                 .count(),
             835
@@ -2404,6 +2417,26 @@ mod tests {
         assert_eq!(hosts.remove_uid(7), 0);
         assert!(hosts.insert(b"new.records.test".to_vec(), address, 0, 7));
         assert_eq!(hosts.reverse(address).unwrap().name, b"new.records.test");
+    }
+
+    #[test]
+    fn source_removal_preserves_presence_until_the_last_static_name_record() {
+        for retained_lease in [false, true] {
+            let mut hosts = Hosts::new();
+            hosts.begin_bulk(1497, 1000, 1000).unwrap();
+            if retained_lease {
+                hosts.add_bulk_lease(b"same.test", "192.0.2.9".parse().unwrap(), true, false).unwrap();
+            }
+            hosts.insert_checked(b"same.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2).unwrap();
+            hosts.insert_checked(b"same.test".to_vec(), "192.0.2.2".parse().unwrap(), 37, 3).unwrap();
+            hosts.seal_bulk();
+            assert_eq!(hosts.try_remove_uid(2).unwrap(), 1);
+            assert!(hosts.name_exists(b"same.test") && hosts.name_exists(b"SAME.TEST"));
+            assert_eq!(hosts.addresses(b"same.test").count(), 1);
+            assert_eq!(hosts.try_remove_uid(3).unwrap(), 1);
+            assert!(!hosts.name_exists(b"same.test") && !hosts.name_exists(b"SAME.TEST"));
+            assert_eq!(hosts.addresses(b"same.test").count(), 0);
+        }
     }
 
     #[test]
