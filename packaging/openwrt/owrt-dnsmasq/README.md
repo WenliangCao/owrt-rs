@@ -11,3 +11,9 @@ dhcp-script, migration scripts, default data and ubus ACL paths.
 The recipe does not establish deployment readiness. The matching
 SDK build, exact-image install/upgrade/uninstall/rollback checks, complete
 M5 contract, and M6 performance gate must pass before deployment is considered.
+
+For activation and automatic recovery, follow the
+[guarded deployment runbook](../../../docs/dnsmasq/DEPLOY_RUNBOOK.md).
+This recipe builds a package artifact; APK installation alone is not a rollback
+mechanism. The guarded procedure keeps stock C on disk and activates a separate
+candidate through temporary runtime mounts, with recovery from `/rom`.
