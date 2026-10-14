@@ -278,6 +278,7 @@ fn staged_hosts_records_and_diagnostics_tolerate_failed_growth() {
         if incomplete {
             assert!(loaded.records.is_empty());
             assert!(loaded.bad_lines.is_empty());
+            assert!(loaded.line_ends.is_empty());
         }
         let mut hosts = Hosts::new();
         hosts.insert(
@@ -777,6 +778,7 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
                                 lease.name.as_slice(), IpAddr::V4(lease.address),
                                 lease.reverse, lease.expires.is_none(),
                             )),
+                            [2],
                         )?;
                         replacement.finish_bulk();
                         let published = replacement.try_clone().map_err(|_| ())?;

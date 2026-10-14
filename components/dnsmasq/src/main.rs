@@ -3818,13 +3818,26 @@ impl SinglePoll {
         records: Vec<(Vec<u8>, IpAddr)>,
         ttl: u32,
     ) -> usize {
+        let count = records.len();
+        self.publish_hosts_source_lines(source, records, ttl, 1..=count)
+    }
+
+    #[cfg(target_os = "linux")]
+    fn publish_hosts_source_lines(
+        &mut self,
+        source: &dnsmasq_rs::dns::hostsdir::HostSource,
+        records: Vec<(Vec<u8>, IpAddr)>,
+        ttl: u32,
+        line_ends: impl IntoIterator<Item = usize>,
+    ) -> usize {
         if self.hosts_bulk {
             if self.hosts_reload_failed {
                 return 0;
             }
             let Some(staged) = self.hosts_staged.as_ref() else { return 0; };
-            match staged.try_replace_source(
+            match staged.try_replace_source_with_leases(
                 source.uid, source.path.as_os_str().as_encoded_bytes(), records, ttl,
+                std::iter::empty::<(&[u8], IpAddr, bool, bool)>(), line_ends,
             ) {
                 Ok((hosts, removed)) => {
                     self.hosts_staged = Some(hosts);
@@ -3854,6 +3867,7 @@ impl SinglePoll {
                 records,
                 ttl,
                 retained_leases,
+                line_ends,
             ) else { return 0; };
             removed = source_removed;
             if parent.daemon.is_some() {
@@ -3918,7 +3932,9 @@ impl SinglePoll {
                 );
                 0
             } else {
-                self.publish_hosts_source(&loaded.source, loaded.records, loaded.ttl)
+                self.publish_hosts_source_lines(
+                    &loaded.source, loaded.records, loaded.ttl, loaded.line_ends,
+                )
             };
             if !self.hosts_bulk && removed != 0 {
                 self.hosts_notice(

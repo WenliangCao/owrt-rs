@@ -1,0 +1,22 @@
+{
+  "before_commit": "ce04a28d",
+  "scope": "same-process source-level loader comparison, not a daemon or router runtime test",
+  "before": {
+    "exit": 101,
+    "stdout": "y=cross139.test ordinaryA=[\"192.0.2.1\", \"192.0.4.1\"] stagedA=[\"192.0.4.1\", \"192.0.2.1\"] ordinaryPTR=[\"cross139.test\", \"x.test\"] stagedPTR=[\"x.test\", \"cross139.test\"]\n",
+    "stderr": "\nthread 'main' (684028) panicked at private/staged-line-probe/before/probe.rs:18:5:\nassertion `left == right` failed: staged read crossed a line rehash boundary\n  left: [\"192.0.2.1\", \"192.0.4.1\"]\n right: [\"192.0.4.1\", \"192.0.2.1\"]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "binary_sha256": "82b8da190c79c2a2d00c1c640bb99ccca30f9b15028936112ec69e1153b8c56f"
+  },
+  "fixed": {
+    "exit": 0,
+    "stdout": "{\"selected\":\"cross2722.test\",\"accepted_aliases\":1002,\"streaming_a\":[\"192.0.2.1\", \"192.0.4.1\"],\"per_record_a\":[\"192.0.4.1\", \"192.0.2.1\"],\"per_line_a\":[\"192.0.2.1\", \"192.0.4.1\"],\"streaming_ptr\":[\"cross2722.test\", \"x.test\"],\"per_record_ptr\":[\"x.test\", \"cross2722.test\"],\"per_line_ptr\":[\"cross2722.test\", \"x.test\"],\"negative_reproduced\":true,\"line_boundary_matches\":true}\n",
+    "stderr": "",
+    "binary_sha256": "61573f211c2d8dbd7289e26b4e4c4fe8f8b12777ddea2648d8a6e9991dbce0e0"
+  },
+  "inputs_sha256": {
+    "private/staged-line-probe/before/hosts.rs": "66f1957545844feb57ad66c5e4809fd2a7f974f7027b07d56914adb3d1ac6be4",
+    "private/staged-line-probe/before/probe.rs": "2b3706fdd22ae854344e0b4704f1109ecafb5181b21af7909a9607e3fe639cda",
+    "components/dnsmasq/src/hosts.rs": "9dd9f31a19a2c4cccdc7a14996e52edb6146b5125905d0b23263bf7aaa55c428",
+    "tools/dnsmasq/hosts_line_boundary_probe.rs": "8ed39194fc917c5e046406efd11626cf9e242761f4c25d3aeca5d2f01cce34d5"
+  }
+}

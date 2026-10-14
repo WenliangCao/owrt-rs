@@ -1,0 +1,36 @@
+{
+  "scope": [
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6"
+  ],
+  "files_sha256": {
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm/result.json": "9a21242806fcf44f3e9af5551773dcd9f55d1b86fb05a2df4dd3e008225811ae",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm/driver.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm/rust/result.json": "0bca30b20905ca767ff4316cf164c62ad427c5dffc8dc42c292fe8bb142e47e5",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm/c/result.json": "db268b437b13fc69dc830c1dabc42760ffb028606d1adadef99127dd5859bf2b",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-warm/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original/result.json": "9f363bd3d9395f549923450e5a9c4ff20b94c85549be460bef80d209e3c4d877",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original/driver.py": "30f7e009761ac96991269823651b17d05aeadcf8d6a798defb6a9318d00aaa8b",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original/rust/result.json": "314afc28bdaee20ba301203eff9a10d3d222eea593a40ecda918a9486b8e5090",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original/c/result.json": "00e62be90d59e8b2ecd24b943b39674616c32513af8f91a0a2f3ea888ab3ccdb",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-repeated-original/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique/result.json": "9dd3f4026d74d64fb8d28bc8658cf129cc93940060155b4ccb1e7f47177a30f4",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique/driver.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique/rust/result.json": "e731d8b6881e725efd9340e0b23e6dbca252b74fac76ec7b2aebb26ff36aaa00",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique/c/result.json": "28047bb1bfb0535d7f50873b335ee5581775c786d32a8b4f86f55443f2e5b97e",
+    "/dev/shm/full-f10-product-20261014/private/rotation-4ff6-unique/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/result.json": "0939a7da81eb6e1529b525b4cdcd523ee6fb7bdb1199c8cb4b3b9ef0beae41c7",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/driver.py": "6b578569f5485a3d780ab3d7b10a5a99a185d00b6f4f8853c17971697c7d3565",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/result.json": "3f1687495a4fec4f3facf3a266dfc1bd52d75baca5a3272ef49bc8e97837c385",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/result.json": "e862d25dbed29ad95b64439452f3f3857f28ba3c44ac348f74f3c61f3de0cd37",
+    "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "remaining_processes": [],
+  "remaining_host_mounts": []
+}

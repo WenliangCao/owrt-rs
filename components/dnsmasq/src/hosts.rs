@@ -1240,12 +1240,14 @@ impl Hosts {
         records: Vec<(Vec<u8>, IpAddr)>,
         ttl: u32,
     ) -> Result<(Self, usize), ()> {
+        let count = records.len();
         self.try_replace_source_with_leases(
             source,
             source_name,
             records,
             ttl,
             std::iter::empty::<(&[u8], IpAddr, bool, bool)>(),
+            1..=count,
         )
     }
 
@@ -1259,6 +1261,7 @@ impl Hosts {
         records: Vec<(Vec<u8>, IpAddr)>,
         ttl: u32,
         leases: impl IntoIterator<Item = (&'a [u8], IpAddr, bool, bool)>,
+        line_ends: impl IntoIterator<Item = usize>,
     ) -> Result<(Self, usize), ()> {
         let mut replacement = self.try_clone().map_err(|_| ())?;
         if replacement.bulk.is_none() {
@@ -1308,7 +1311,14 @@ impl Hosts {
         let owned = replacement.records.get_mut().unwrap();
         owned.sources.try_reserve(1).map_err(|_| ())?;
         owned.sources.insert(source, name);
-        for (name, address) in records {
+        let count = records.len();
+        let mut line_ends = line_ends.into_iter().peekable();
+        let mut previous_end = 0;
+        for (index, (name, address)) in records.into_iter().enumerate() {
+            let accepted = index + 1;
+            if line_ends.peek().is_none_or(|&end| end < accepted) {
+                return Err(());
+            }
             let mut allocation_failed = false;
             replacement
                 .try_insert(
@@ -1323,7 +1333,16 @@ impl Hosts {
             if allocation_failed {
                 return Err(());
             }
-            replacement.advance_bulk_names(1, false).map_err(|_| ())?;
+            if line_ends.peek() == Some(&accepted) {
+                replacement
+                    .advance_bulk_names(accepted - previous_end, false)
+                    .map_err(|_| ())?;
+                previous_end = accepted;
+                line_ends.next();
+            }
+        }
+        if previous_end != count || line_ends.next().is_some() {
+            return Err(());
         }
         replacement.advance_bulk_names(0, true).map_err(|_| ())?;
         Ok((replacement, removed))
@@ -1630,9 +1649,24 @@ impl HostsParser {
         &mut self,
         input: &[u8],
         expand: bool,
+        domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+        emit: impl FnMut(Vec<u8>, IpAddr),
+        invalid: impl FnMut(usize, bool),
+    ) {
+        self.feed_with_line_end(input, expand, domain, emit, invalid, |_| {});
+    }
+
+    /// Report the cumulative accepted count at each physical line boundary.
+    /// Staged readers retain only increasing endpoints, so blank/invalid lines
+    /// need no per-line allocation while aliases and expansions stay together.
+    pub fn feed_with_line_end(
+        &mut self,
+        input: &[u8],
+        expand: bool,
         mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
         mut emit: impl FnMut(Vec<u8>, IpAddr),
         mut invalid: impl FnMut(usize, bool),
+        mut line_end: impl FnMut(usize),
     ) {
         for &byte in input {
             if !self.comment {
@@ -1700,6 +1734,7 @@ impl HostsParser {
                 self.address = None;
                 self.suffix = None;
                 self.line += 1;
+                line_end(self.stats.accepted);
             }
         }
     }
@@ -1860,6 +1895,7 @@ mod tests {
                     input,
                     37,
                     [(b"lease.test".as_slice(), address, true, immortal)],
+                    [2],
                 )
                 .unwrap();
             assert_eq!(removed, 0);
@@ -1891,6 +1927,82 @@ mod tests {
             .unwrap();
         assert!(replacement.bulk.is_none());
         assert_eq!(replacement.len(), 1);
+    }
+
+    #[test]
+    fn staged_alias_line_rehashes_only_after_the_same_boundary_as_streaming_read() {
+        let y = colliding_name(b"x.test", 2100);
+        let mut seed = Hosts::new();
+        seed.begin_bulk(1497, 1000, 1000).unwrap();
+        let mut initial =
+            b"192.0.2.1 x.test\n10.0.63.213 a.test\n192.0.4.2 a.test\n192.0.2.1 ".to_vec();
+        initial.extend_from_slice(&y);
+        initial.extend_from_slice(b"\n192.0.4.1 x.test\n");
+        assert!(
+            !seed
+                .read(&initial, 2, 37, false, |_| None)
+                .allocation_failed
+        );
+        let mut input = b"192.0.2.1".to_vec();
+        for i in 0..1001 {
+            input.extend_from_slice(format!(" extra{i:04}.test").as_bytes());
+        }
+        input.extend_from_slice(b" x.test\n");
+        let mut records = Vec::new();
+        let mut ends = Vec::new();
+        let mut parser = HostsParser::default();
+        // Exercise a line crossing real reader chunks and the final newline.
+        for chunk in input.chunks(4096) {
+            parser.feed_with_line_end(
+                chunk,
+                false,
+                |_| None,
+                |name, address| records.push((name, address)),
+                |_, _| {},
+                |end| ends.push(end),
+            );
+        }
+        assert_eq!(ends, [1002]);
+        let (mut staged, _) = seed
+            .try_replace_source_with_leases(
+                3,
+                b"/hostsdir/aliases",
+                records,
+                37,
+                std::iter::empty::<(&[u8], IpAddr, bool, bool)>(),
+                ends,
+            )
+            .unwrap();
+        let mut streaming = seed.try_clone().unwrap();
+        assert!(
+            !streaming
+                .read(&input, 3, 37, false, |_| None)
+                .allocation_failed
+        );
+        staged.finish_bulk();
+        streaming.finish_bulk();
+        let address = "192.0.2.1".parse().unwrap();
+        assert_eq!(
+            staged
+                .addresses(b"x.test")
+                .map(|host| host.address)
+                .collect::<Vec<_>>(),
+            streaming
+                .addresses(b"x.test")
+                .map(|host| host.address)
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(
+            staged
+                .reverse_all(address)
+                .map(|host| &host.name)
+                .collect::<Vec<_>>(),
+            streaming
+                .reverse_all(address)
+                .map(|host| &host.name)
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(staged.entries(), streaming.entries());
     }
 
     const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";
