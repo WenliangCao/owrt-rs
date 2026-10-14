@@ -988,5 +988,176 @@
       "host_mounts": [],
       "scope": "ELF-only trial with exact stock init and C support stack; not APK-installed runtime"
     }
+  },
+  "combined_source_tests": {
+    "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+    "source": "/dev/shm/full-merge-sdk-b5872820-20261014/source",
+    "source_files_sha256": "83d689099bdd6a8f630ef8f400fec5fae542f9bb1bf2c76a9430f6faa376ab68",
+    "verified_source_files": 660,
+    "scope": "source-bound musl lib/bin/hosts allocator test ELFs; not a product/APK rebuild",
+    "shared_target": "/dev/shm/full-integrated-fix-20261014/target",
+    "target_lock": "/dev/shm/full-integrated-fix-20261014/target/.dnsmasq-build.lock",
+    "owner_permission": "root relayed prior owner authorization, no further peer writes; existing artifacts/private outputs retained",
+    "cargo_incremental": "0",
+    "test_threads": 1,
+    "driver_sha256": "706b321a23f8c76a25901593f6fc19bcc7fe088790e92485be3853cc04fdbbc8",
+    "commands": [
+      {
+        "label": "build",
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/source/components/dnsmasq/Cargo.toml",
+          "--lib",
+          "--bin",
+          "dnsmasq-rs",
+          "--test",
+          "hosts_allocations",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "start": 1791991662.8756928,
+        "end": 1791991768.8639448,
+        "exit": 0
+      },
+      {
+        "label": "lib-run",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/source/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/private-tmp.sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/lib-dnsmasq_rs",
+          "--test-threads=1"
+        ],
+        "start": 1791991769.1115158,
+        "end": 1791991774.73641,
+        "exit": 0
+      },
+      {
+        "label": "bin-run",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/source/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/private-tmp.sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/bin-dnsmasq-rs",
+          "--test-threads=1"
+        ],
+        "start": 1791991774.7367265,
+        "end": 1791991778.990663,
+        "exit": 0
+      },
+      {
+        "label": "test-run",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/source/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/private-tmp.sh",
+          "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/test-hosts_allocations",
+          "--test-threads=1"
+        ],
+        "start": 1791991778.9909685,
+        "end": 1791991780.592764,
+        "exit": 0
+      }
+    ],
+    "rustflags": "--remap-path-prefix=/dev/shm/full-merge-sdk-b5872820-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "linker_sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+    "base_helper_sha256": "e6538aadde843600c12abaa942d67ba88b1ff70476222c0a233c9cc360e4a296",
+    "lock_acquired": true,
+    "artifacts": [
+      {
+        "kind": "test",
+        "name": "hosts_allocations",
+        "path": "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/test-hosts_allocations",
+        "sha256": "907c6ad8db9d55ac8de3c34ffb187f831f8eaf96d19f6ff7554bbfcfe5bd2dbf",
+        "bytes": 34204096
+      },
+      {
+        "kind": "bin",
+        "name": "dnsmasq-rs",
+        "path": "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/bin-dnsmasq-rs",
+        "sha256": "f3dedf1a68342b0dd5d763aff11d3fe817a757ed7026f2737d184df76f00a8cf",
+        "bytes": 50483872
+      },
+      {
+        "kind": "lib",
+        "name": "dnsmasq_rs",
+        "path": "/dev/shm/full-merge-sdk-b5872820-20261014/private/final-unit-tests/lib-dnsmasq_rs",
+        "sha256": "2e93c0dcb94f11a077bbfe45c6a20b1239b94d69e9dd0e5dd0b1558a814dcc86",
+        "bytes": 71137480
+      }
+    ],
+    "source_unchanged": true,
+    "passed": true,
+    "counts": {
+      "lib": {
+        "passed": 808,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0,
+        "filtered": 0
+      },
+      "bin": {
+        "passed": 81,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered": 0
+      },
+      "test": {
+        "passed": 16,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      }
+    },
+    "closeout": {
+      "counts": {
+        "lib": {
+          "passed": 808,
+          "failed": 0,
+          "ignored": 20,
+          "measured": 0,
+          "filtered": 0
+        },
+        "bin": {
+          "passed": 81,
+          "failed": 0,
+          "ignored": 3,
+          "measured": 0,
+          "filtered": 0
+        },
+        "test": {
+          "passed": 16,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered": 0
+        }
+      },
+      "remaining_test_processes": [],
+      "shared_lock_released": true
+    },
+    "archive": {
+      "path": "private/final-sdk-b5872820-20261014/unit-tests-evidence.tar.gz",
+      "sha256": "fc4fc09593b4dc7d1b95061258d3c83ac4bb69015ef4f1955359ede937b9e2d6",
+      "bytes": 31805101
+    },
+    "receipt_sha256": "c4309a2ccf1f63fc63116173afc0b9fa52b4d2466eb96c66a1ad9a6d1cc68ed9"
   }
 }
