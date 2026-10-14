@@ -1,5 +1,5 @@
 /* Fixed M6a upstream: one process, UDP/TCP, no per-query allocation or logging. */
-#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -17,16 +17,23 @@
 
 #define CONNECTIONS 64
 #define BUFFER 8192
+#define PENDING_UDP 128
 static volatile sig_atomic_t running=1, enabled=1;
 static int failed;
-static unsigned answer_phase;
+static unsigned answer_phase, answer_ttl=3600;
+static uint64_t delay_ns, delay_queue_dropped;
 static uint64_t epoch, steady_ns=90000000000ULL;
 static double fault_start=-1, fault_end=-1;
 static const char *epoch_file, *output, *ready_file;
 struct counts { uint64_t requests,replies,generated,disabled,dropped,invalid,udp,tcp; };
 static struct counts total, phases[5]; /* setup/warm, steady, saturation, fault, recovery */
-struct connection { int fd; unsigned char rx[BUFFER],tx[BUFFER]; size_t rn,tn,sent; unsigned phase; };
+struct connection { int fd; unsigned char rx[BUFFER],tx[BUFFER]; size_t rn,tn,sent; unsigned phase; uint64_t due; };
 static struct connection clients[CONNECTIONS];
+struct datagram {
+  unsigned char data[4096]; size_t size; struct sockaddr_in peer;
+  socklen_t peer_size; unsigned phase; uint64_t due;
+};
+static struct datagram pending[PENDING_UDP];
 static uint64_t now_ns(void) {
   struct timespec t;
   if(clock_gettime(CLOCK_MONOTONIC,&t)) { perror("clock");exit(2); }
@@ -55,7 +62,7 @@ static unsigned phase(uint64_t t) {
 }
 static size_t record(unsigned char *out,const unsigned char *owner,size_t owner_n,unsigned type,
                      const unsigned char *data,size_t data_n) {
-  memcpy(out,owner,owner_n);out+=owner_n;put16(out,type);put16(out+2,1);put32(out+4,3600);
+  memcpy(out,owner,owner_n);out+=owner_n;put16(out,type);put16(out+2,1);put32(out+4,answer_ttl);
   put16(out+8,(unsigned)data_n);memcpy(out+10,data,data_n);return owner_n+10+data_n;
 }
 static size_t answer(const unsigned char *q,size_t n,unsigned char *out,bool tcp) {
@@ -100,6 +107,17 @@ static int listener(unsigned port,int kind) {
   if(kind==SOCK_STREAM && listen(fd,128)){perror("listen");exit(2);}return fd;
 }
 static void close_client(struct connection *c) { close(c->fd);c->fd=-1;c->rn=c->tn=c->sent=0; }
+static bool send_datagram(int fd,struct datagram *d) {
+  if(sendto(fd,d->data,d->size,0,(struct sockaddr *)&d->peer,d->peer_size)!=(ssize_t)d->size) {
+    perror("sendto");return false;
+  }
+  total.replies++;phases[d->phase].replies++;d->size=0;return true;
+}
+static unsigned bounded_number(const char *s,unsigned max) {
+  char *end;errno=0;unsigned long n=strtoul(s,&end,10);
+  if(errno || !*s || *s=='-' || *end || n>max){fprintf(stderr,"invalid argument: %s\n",s);exit(2);}
+  return (unsigned)n;
+}
 static void emit_counts(FILE *f,const struct counts *c) {
   fprintf(f,"{\"requests\":%"PRIu64",\"replies\":%"PRIu64",\"generated_replies\":%"PRIu64",\"disabled_requests\":%"PRIu64
     ",\"dropped_requests\":%"PRIu64",\"invalid_queries\":%"PRIu64",\"udp_requests\":%"PRIu64
@@ -117,10 +135,12 @@ int main(int argc,char **argv) {
     else if(!strcmp(key,"--ready-file"))ready_file=v;
     else if(!strcmp(key,"--fault-start"))fault_start=strtod(v,NULL);
     else if(!strcmp(key,"--fault-end"))fault_end=strtod(v,NULL);
+    else if(!strcmp(key,"--delay-us"))delay_ns=(uint64_t)bounded_number(v,1000000)*1000;
+    else if(!strcmp(key,"--ttl"))answer_ttl=bounded_number(v,3600);
     else if(!strcmp(key,"--steady-seconds"))steady_ns=(uint64_t)(strtod(v,NULL)*1e9);
     else {fprintf(stderr,"unknown argument %s\n",key);return 2;}
   }
-  if(!output || !ready_file || !port || port>65535 || (fault_start>=0 && fault_end<=fault_start))return 2;
+  if(!output || !ready_file || !answer_ttl || !port || port>65535 || (fault_start>=0 && fault_end<=fault_start))return 2;
   signal(SIGTERM,stop_handler);signal(SIGINT,stop_handler);signal(SIGUSR1,stop_handler);signal(SIGUSR2,stop_handler);
   signal(SIGPIPE,SIG_IGN);
   int udp=listener(port,SOCK_DGRAM),tcp=listener(port,SOCK_STREAM);
@@ -128,9 +148,21 @@ int main(int argc,char **argv) {
   FILE *ready=fopen(ready_file,"w");if(!ready){perror("ready");return 2;}
   fprintf(ready,"{\"ready\":true,\"pid\":%ld,\"port\":%u}\n",(long)getpid(),port);fclose(ready);
   while(running) {
-    read_epoch();struct pollfd fds[CONNECTIONS+2]={{.fd=udp,.events=POLLIN},{.fd=tcp,.events=POLLIN}};
-    for(unsigned i=0;i<CONNECTIONS;i++) {fds[i+2].fd=clients[i].fd;fds[i+2].events=clients[i].tn?POLLOUT:POLLIN;}
-    int rc=poll(fds,CONNECTIONS+2,10);if(rc<0){if(errno==EINTR)continue;perror("poll");failed=1;break;}
+    read_epoch();uint64_t now=now_ns(),wake=now+10000000;
+    for(unsigned i=0;i<PENDING_UDP;i++) if(pending[i].size) {
+      if(pending[i].due<=now) {
+        if(!send_datagram(udp,&pending[i])){failed=1;running=0;break;}
+      } else if(pending[i].due<wake)wake=pending[i].due;
+    }
+    if(!running)break;
+    struct pollfd fds[CONNECTIONS+2]={{.fd=udp,.events=POLLIN},{.fd=tcp,.events=POLLIN}};
+    for(unsigned i=0;i<CONNECTIONS;i++) {
+      struct connection *c=&clients[i];fds[i+2].fd=c->fd;
+      fds[i+2].events=c->tn?(c->due<=now?POLLOUT:0):POLLIN;
+      if(c->tn && c->due>now && c->due<wake)wake=c->due;
+    }
+    now=now_ns();struct timespec wait={0,(long)(wake>now?wake-now:0)};
+    int rc=ppoll(fds,CONNECTIONS+2,&wait,NULL);if(rc<0){if(errno==EINTR)continue;perror("poll");failed=1;break;}
     if(fds[0].revents&POLLIN) {
       for(unsigned batch=0;batch<64;batch++) {
         unsigned char q[4096],a[4096];struct sockaddr_in peer;socklen_t len=sizeof peer;
@@ -138,8 +170,11 @@ int main(int argc,char **argv) {
         if(n<0){if(errno!=EAGAIN && errno!=EWOULDBLOCK)perror("recvfrom");break;}
         size_t count=answer(q,(size_t)n,a,false);
         if(count) {
-          if(sendto(udp,a,count,0,(struct sockaddr *)&peer,len)!=(ssize_t)count) {perror("sendto");failed=1;running=0;break;}
-          total.replies++;phases[answer_phase].replies++;
+          unsigned i;for(i=0;i<PENDING_UDP && pending[i].size;i++);
+          if(i==PENDING_UDP){delay_queue_dropped++;continue;}
+          struct datagram *d=&pending[i];memcpy(d->data,a,count);d->size=count;
+          d->peer=peer;d->peer_size=len;d->phase=answer_phase;d->due=now_ns()+delay_ns;
+          if(!delay_ns && !send_datagram(udp,d)){failed=1;running=0;break;}
         }
       }
     }
@@ -166,7 +201,7 @@ int main(int argc,char **argv) {
       if(c->fd>=0 && !c->tn && c->rn>=2) {
         unsigned n=get16(c->rx);if(n>4096 || n<12){close_client(c);continue;}
         if(c->rn>=n+2) {
-          size_t len=answer(c->rx+2,n,c->tx+2,true);if(len){put16(c->tx,(unsigned)len);c->tn=len+2;c->phase=answer_phase;}
+          size_t len=answer(c->rx+2,n,c->tx+2,true);if(len){put16(c->tx,(unsigned)len);c->tn=len+2;c->phase=answer_phase;c->due=now_ns()+delay_ns;}
           memmove(c->rx,c->rx+n+2,c->rn-n-2);c->rn-=n+2;
         }
       }
@@ -175,7 +210,7 @@ int main(int argc,char **argv) {
   close(udp);close(tcp);for(unsigned i=0;i<CONNECTIONS;i++)if(clients[i].fd>=0)close_client(&clients[i]);
   FILE *f=fopen(output,"w");if(!f){perror("output");return 2;}
   fprintf(f,"{\"schema\":1,\"epoch_ns\":%"PRIu64",\"disabled\":%s,\"total\":",epoch,enabled?"false":"true");
-  emit_counts(f,&total);fprintf(f,",\"requests\":%"PRIu64",\"disabled_requests\":%"PRIu64",\"invalid_queries\":%"PRIu64",\"phases\":{",total.requests,total.disabled,total.invalid);
+  emit_counts(f,&total);fprintf(f,",\"delay_us\":%"PRIu64",\"ttl\":%u,\"delay_queue_dropped\":%"PRIu64,delay_ns/1000,answer_ttl,delay_queue_dropped);fprintf(f,",\"requests\":%"PRIu64",\"disabled_requests\":%"PRIu64",\"invalid_queries\":%"PRIu64",\"phases\":{",total.requests,total.disabled,total.invalid);
   static const char *names[]={"setup_warmup","steady","saturation","fault","recovery"};
   for(unsigned i=0;i<5;i++){if(i)fputc(',',f);fprintf(f,"\"%s\":",names[i]);emit_counts(f,&phases[i]);}
   fprintf(f,"}}\n");if(fclose(f))return 2;return failed?1:0;

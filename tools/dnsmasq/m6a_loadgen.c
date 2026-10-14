@@ -221,6 +221,7 @@ static void choose_dns(struct client *c) {
     (!strcmp(opt.profile,"mixed") && c->seq%5==4);
   unsigned index=(unsigned)(c->seq%opt.cache_names);
   const char *type=opt.qtype; bool cname=false;
+  if (!strcmp(type,"aaaa30")) type=index%10<7?"a":"aaaa";
   if (!strcmp(type,"mix")) {
     unsigned choice=index%20;
     type=choice<10?"a":choice<15?"aaaa":choice<18?"cname":"txt";
@@ -430,7 +431,7 @@ static bool safe_string(const char *value) {
 static void usage(void) {
   fprintf(stderr,"m6a_loadgen --mode udp|tcp|dhcp --host IPv4 --port N --clients N\n"
     " --duration-seconds N --warmup-seconds N --rate N (0=closed loop) --seed N\n"
-    " --name-prefix DOMAIN --profile hit|miss|mixed --qtype a|aaaa|txt|cname|mix\n"
+    " --name-prefix DOMAIN --profile hit|miss|mixed --qtype a|aaaa|aaaa30|txt|cname|mix\n"
     " --cache-names N --timeout-ms N --saturation-seconds N --output PREFIX\n"
     " --epoch-output JSON_PATH --epoch-file INTEGER_PATH\n"
     " DHCP: --client-port 68 --interface lo --dhcp-first-address IPv4\n");
@@ -477,7 +478,7 @@ int main(int argc,char **argv) {
       !opt.duration || opt.saturation>=opt.duration || strlen(opt.prefix)>200 ||
       (strcmp(opt.mode,"udp")&&strcmp(opt.mode,"tcp")&&strcmp(opt.mode,"dhcp")) ||
       (strcmp(opt.profile,"hit")&&strcmp(opt.profile,"miss")&&strcmp(opt.profile,"mixed")) ||
-      (strcmp(opt.qtype,"a")&&strcmp(opt.qtype,"aaaa")&&strcmp(opt.qtype,"txt")&&strcmp(opt.qtype,"cname")&&strcmp(opt.qtype,"mix")) ||
+      (strcmp(opt.qtype,"a")&&strcmp(opt.qtype,"aaaa")&&strcmp(opt.qtype,"aaaa30")&&strcmp(opt.qtype,"txt")&&strcmp(opt.qtype,"cname")&&strcmp(opt.qtype,"mix")) ||
       !safe_string(opt.output)||!safe_string(opt.prefix)||!safe_string(opt.interface)) { usage();return 2; }
   memset(&destination,0,sizeof(destination)); destination.sin_family=AF_INET;
   destination.sin_port=htons((uint16_t)opt.port);
