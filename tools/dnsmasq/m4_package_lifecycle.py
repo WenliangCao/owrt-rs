@@ -486,6 +486,12 @@ def execute(args, root, out, report):
             shutil.copy2(source, root / "m4" / name)
         metadata = case.apk(["adbdump", "/m4/candidate.apk"], "candidate-metadata")
         report["candidate_metadata"] = audit_metadata(metadata["stdout"], args.package_release)
+        if args.package_release == '4':
+            report['release_order'] = {}
+            for older in ('2.93-r2', '2.93-r3'):
+                order = case.apk(['version', '-t', candidate_id, older], 'compare-' + older)
+                require(order['stdout'].strip() == '>', 'new package does not upgrade ' + older)
+                report['release_order'][older] = order['stdout'].strip()
         stock_metadata = case.apk(["adbdump", "/m4/stock.apk"], "stock-metadata")
         def upgrade_script(text):
             match = re.search(r"^  post-upgrade: \|\n(.*?)(?=^  [a-z]|^#|\Z)", text,

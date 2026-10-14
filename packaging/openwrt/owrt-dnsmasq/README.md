@@ -8,7 +8,7 @@ actual APKs; the recipe does not emit a conflicts field. It installs the daemon 
 and carries the stock package's init script, UCI conffiles, hotplug helper,
 dhcp-script, migration scripts, default data and ubus ACL paths.
 
-Release r4 orders after the accepted M5 r2 and M6b r3 packages. The build and
+Release r4 orders after the M5 r2 and M6b r3 packages. The build and
 lifecycle tools still accept explicit releases 2 and 3 for historical replay.
 
 The init instance tracks both the generated configuration and the executable
