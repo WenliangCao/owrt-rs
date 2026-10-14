@@ -169,7 +169,16 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
         no_ping: true, script: Some(b"/bin/true".to_vec()),
         lease_file: Some(leases.as_os_str().as_encoded_bytes().to_vec()),
         ..Default::default()
-    }, Vec::new(), 0, || false).unwrap();
+    }, Vec::new(), 53, || false).unwrap();
+    provider.set_dns_config(&config).unwrap();
+    let parent = Rc::clone(&owner.service);
+    provider.set_reverse_host_lookup(move |address| {
+        let parent = parent.borrow();
+        Ok(parent.provider_hosts().reverse(IpAddr::V4(address)).map(|host| host.name.clone()))
+    });
+    provider.set_dns_publisher(Box::new(LeasePublisher {
+        parent: Rc::clone(&owner.service), policy: LeasePolicy::default(),
+    }));
     provider.tick(now_seconds()).unwrap();
     assert!(provider.has_frozen_script_delivery());
     let peer = super::tests::attach_test_dhcp(&mut owner, provider);
@@ -197,8 +206,15 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     owner.wait_for_files().unwrap();
     owner.step_hosts_files();
     assert!(!owner.hosts_work_pending() && !owner.files_initializing());
+    assert!(owner.service.borrow().pending_hosts.is_none(),
+        "the real lease publication commits the initial hosts generation");
     assert!(owner.dhcp_packet_work_allowed());
     assert!(owner.helper_next_due(Instant::now()).is_some());
+    let delivery = owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap()
+        .borrow_mut().take_frozen_script_delivery().unwrap();
+    assert_eq!(delivery.event.name.as_deref(), Some(b"restored".as_slice()),
+        "initial publication must preserve the previously frozen helper name");
+    owner.pending_delivery = Some(delivery);
     owner.wait_for_files().unwrap();
     owner.step_dhcp();
     assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap(),
