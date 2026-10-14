@@ -329,7 +329,7 @@ impl LeaseNames {
         cnames: &[Cname],
         cache: &mut impl PublicationCache,
     ) {
-        let key = record.name.to_ascii_lowercase();
+        let key = name_key(record.name);
         let mut blockers: Vec<_> = hosts
             .addresses(record.name)
             .map(|host| PublicationBlocker {
@@ -356,7 +356,7 @@ impl LeaseNames {
                 address: record.address,
             });
         }
-        if let Some(ids) = self.forward.get(&key) {
+        if let Some(ids) = self.forward.get(key.as_ref()) {
             blockers.extend(ids.iter().map(|&id| PublicationBlocker {
                 kind: BlockerKind::Ipv4,
                 reverse: self.entries[id].reverse,
@@ -398,7 +398,7 @@ impl LeaseNames {
         let id = self.entries.len();
         let expires = record.expires.filter(|&expires| expires != 0);
         let immortal = expires.is_none();
-        let ids = self.forward.entry(key.clone()).or_default();
+        let ids = self.forward.entry(key.as_ref().to_vec()).or_default();
         // cache_hash: reverse first; mortal before immortal for non-reverse;
         // preserve order within the same (reverse, immortal) flags group.
         let mut at = 0;
@@ -429,7 +429,7 @@ impl LeaseNames {
         if reverse {
             self.reverse.insert(record.address, id);
         }
-        self.non_terminals.remove(&key);
+        self.non_terminals.remove(key.as_ref());
         for (index, &byte) in key.iter().enumerate() {
             if byte != b'.' {
                 continue;
@@ -439,11 +439,10 @@ impl LeaseNames {
             // real address, not just a synthetic non-terminal.
             if let Some(ids) = self.forward.get(parent) {
                 extend_expiry(&mut self.entries[ids[0]].expires, expires);
+            } else if let Some(expiry) = self.non_terminals.get_mut(parent) {
+                extend_expiry(expiry, expires);
             } else {
-                self.non_terminals
-                    .entry(parent.to_vec())
-                    .and_modify(|expiry| extend_expiry(expiry, expires))
-                    .or_insert(expires);
+                self.non_terminals.insert(parent.to_vec(), expires);
             }
         }
     }
