@@ -1,5 +1,14 @@
 # 修复方最终回交：2026-10-14
 
+后继授权更新：以下保留的是上一轮有界收尾结论。用户随后明确授权继续修复
+F10；最终产品现为 `238e7ca4374b1889696f91816c1c239d7fe32baa`，独立 contract
+分支已完成已知反例、资源和发布边界修复。主审逐项批准精确源码合同后，Oracle
+与最终 SDK ELF 的 13 场景／704 观察均通过；原 observed-only 失败保持原样。
+最终回交为 `09cc93cd` 的
+`docs/dnsmasq/audits/full-20261014/f10-contract/FINAL_HANDOFF.md`，在
+`/Users/USER/Developer/owrt-dnsmasq-full-rotation-contract` 可直接读取。
+本方未合并 main、push 或部署；原冻结 refs 和活动工作树继续保留。
+
 本轮收尾。最新产品候选为 **`340ed73e` / ELF `edb5b4f9…`**，已修复
 无既有 TCP 时 hostsdir 内存不足导致的不完整发布。原 `19bd6162` 候选、
 失败反例和所有独立分支均保留。**F10 条件性多 PTR/轮转兼容问题保持开放，
