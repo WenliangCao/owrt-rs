@@ -78,6 +78,31 @@ fn pointer_cursor_uses_encoded_location() {
 }
 
 #[test]
+fn validation_preserves_decoded_cursor_and_error_boundaries() {
+    // These bytes are independent of PacketWriter and exercise the validation
+    // contract used for compressed owners and canonical CNAME targets.
+    let pointer = [1, b'a', 0, 0xc0, 0, 42];
+    assert_eq!(validate_name(&pointer, 3, 1), Ok(5));
+    assert_eq!(validate_name(&pointer, 3, 2), Err(WireError::Truncated));
+    assert_eq!(validate_name(&[0xc0, 0], 0, 0), Err(WireError::PointerLoop));
+    assert_eq!(validate_name(&[0xc0, 2, 0], 0, 0), Ok(2));
+    assert_eq!(validate_name(&[0xc0, 3], 0, 0), Err(WireError::Truncated));
+    assert_eq!(validate_name(&[65, 8, 255, 0], 0, 0), Err(WireError::LabelType));
+    assert_eq!(validate_name(&[5, 0, 1, b'.', 255, b'A', 0], 0, 0), Ok(7));
+
+    let mut maximum = Vec::new();
+    for length in [63, 63, 63, 61] {
+        maximum.push(length);
+        maximum.extend(std::iter::repeat_n(0, length.into()));
+    }
+    maximum.push(0);
+    assert_eq!(validate_name(&maximum, 0, 0), Ok(255));
+    maximum[192] = 62;
+    maximum.push(0);
+    assert_eq!(validate_name(&maximum, 0, 0), Err(WireError::NameTooLong));
+}
+
+#[test]
 fn pointer_loop_and_forward_pointer() {
     assert_eq!(decode_name(&[0xc0, 0], 0, 0), Err(WireError::PointerLoop));
     assert_eq!(decode_name(&[0xc0, 2, 0], 0, 0).unwrap().0, Name::root());

@@ -169,10 +169,29 @@ impl Name {
 /// Follow compression pointers, preserving the cursor after the first pointer.
 /// `extra` bytes must remain after that cursor, not after the pointed-to name.
 pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, usize), WireError> {
+    let mut wire = Vec::with_capacity(32);
+    let next = walk_name(packet, start, extra, |label| wire.extend_from_slice(label))?;
+    Ok((Name(wire), next))
+}
+
+/// Check the same expanded name and cursor as `decode_name` without keeping
+/// its labels. Unlike `skip_name`, this follows pointers and rejects unsupported
+/// label types. Writers use it when only the validity of an existing owner is
+/// needed; no temporary name allocation or label copy is required.
+pub(super) fn validate_name(packet: &[u8], start: usize, extra: usize) -> Result<usize, WireError> {
+    walk_name(packet, start, extra, |_| {})
+}
+
+fn walk_name(
+    packet: &[u8],
+    start: usize,
+    extra: usize,
+    mut label: impl FnMut(&[u8]),
+) -> Result<usize, WireError> {
     let mut pos = start;
     let mut resume = None;
     let mut hops = 0;
-    let mut wire = Vec::with_capacity(32);
+    let mut expanded = 0;
     loop {
         end(packet, pos, 1)?;
         let length = packet[pos];
@@ -181,16 +200,16 @@ pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, u
             0 => {
                 let next = resume.unwrap_or(pos);
                 end(packet, next, extra)?;
-                wire.push(0);
-                return Ok((Name(wire), next));
+                label(&[0]);
+                return Ok(next);
             }
             1..=63 => {
                 let label_end = end(packet, pos, length as usize)?;
-                if wire.len() + length as usize + 1 >= MAX_NAME_LEN {
+                expanded += length as usize + 1;
+                if expanded >= MAX_NAME_LEN {
                     return Err(WireError::NameTooLong);
                 }
-                wire.push(length);
-                wire.extend_from_slice(&packet[pos..label_end]);
+                label(&packet[pos - 1..label_end]);
                 pos = label_end;
             }
             192..=255 => {
@@ -665,7 +684,7 @@ impl PacketWriter {
         ttl: u32,
         data: &[u8],
     ) -> Result<(), WireError> {
-        let (_, end) = decode_name(owner, 0, 0)?;
+        let end = validate_name(owner, 0, 0)?;
         if end != owner.len() {
             return Err(WireError::InvalidName);
         }
@@ -684,7 +703,7 @@ impl PacketWriter {
         if name_offset >= 0x4000 || usize::from(name_offset) >= self.packet.len() {
             return Err(WireError::InvalidName);
         }
-        decode_name(&self.packet, name_offset.into(), 0)?;
+        validate_name(&self.packet, name_offset.into(), 0)?;
         self.append_record(
             section,
             &(0xc000 | name_offset).to_be_bytes(),
