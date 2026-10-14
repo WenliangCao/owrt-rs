@@ -27,7 +27,7 @@ CASES = ('crash', 'hang', 'startup-failure', 'dns-loss', 'dhcp-loss',
          'overlay-full', 'overlay-readonly', 'tmp-full', 'unconfirmed',
          'confirmed-fault', 'ubusd-candidate', 'ubusd-fallback', 'guard-killed',
          'manual-rollback', 'guard-restart-after-fallback', 'failed-handback',
-         'lease-before-start', 'hosts-reload')
+         'lease-before-start', 'hosts-reload', 'b5-transient-streak')
 
 # Executes outside the router chroot, but within the real client's netns. It
 # validates DHCP offer + ACK and assigned DNS/router options, then queries both
@@ -342,7 +342,16 @@ class Deployment:
             self.row['leases_before_start'] = leases
         started = time.monotonic()
         case = self.args.case
-        activation = self.control('start', check=case != 'startup-failure')
+        activation = self.control('start', check=case not in ('startup-failure', 'lease-before-start'))
+        if case == 'lease-before-start' and activation.returncode:
+            self.row['preflight_refusal'] = {'rc': activation.returncode, 'stdout': activation.stdout,
+                'stderr': activation.stderr, 'status': self.control('status').stdout,
+                'probe_result': (self.root / 'run/dnsmasq-deploy/probe_result').read_text()}
+            assert (self.root / 'run/dnsmasq-deploy/phase').read_text().strip() == 'prepared'
+            assert self.one(STOCK_SHA256), 'failed preflight interrupted stock C'
+            time.sleep(5)
+            activation = self.control('start')
+            self.row['steps']['preflight_refusal_left_c_unchanged'] = True
         self.row['start_returncode'] = activation.returncode
         if case != 'startup-failure':
             candidate = wait(lambda: self.one(self.row['candidate_sha256']), 'candidate identity')
@@ -406,6 +415,34 @@ class Deployment:
             if case == 'ubusd-fallback':
                 wait(lambda: self.one(STOCK_SHA256) and self.one(STOCK_SHA256)['pid'] != before_bus['pid'] and self.objects(),
                      'ROM C restarted and ubus objects restored', 40)
+        elif case == 'b5-transient-streak':
+            state = self.root / 'run/dnsmasq-deploy'
+            (state / 'probe').rename(state / 'probe.real')
+            (state / 'probe').write_text(
+                '#!/bin/sh\nS=/run/dnsmasq-deploy\n'
+                'n=$(cat "$S/probe_calls" 2>/dev/null || echo 0)\n'
+                'n=$((n + 1)); echo "$n" > "$S/probe_calls"\n'
+                'case "$n" in\n'
+                '1) touch "$S/probe_wait"; i=0\n'
+                ' while [ ! -e "$S/probe_allow" ] && [ "$i" -lt 10 ]; do sleep 1; i=$((i + 1)); done\n'
+                ' echo injected-first-failure >&2; exit 1;;\n'
+                '3) echo injected-third-failure >&2; exit 1;;\n'
+                '*) exec "$S/probe.real" "$@";;\nesac\n')
+            (state / 'probe').chmod(0o755)
+            self.row['probe_fault_injection'] = 'calls 1 and 3 fail; call 1 waits for ubusd restart; all other calls exec unchanged helper'
+            wait(lambda: (state / 'probe_wait').exists(), 'first injected probe')
+            self.restart_bus()
+            (state / 'probe_allow').touch()
+            self.row['before_bus_restart'] = candidate
+            wait(lambda: int((state / 'probe_calls').read_text()) >= 4 and
+                 self.one(self.row['candidate_sha256']) and self.objects(),
+                 'healthy B5 repair resets preceding failure streak', 40)
+            self.row['after_bus_restart'] = self.one(self.row['candidate_sha256'])
+            assert self.row['after_bus_restart']['pid'] != candidate['pid']
+            self.row['probe_calls'] = int((state / 'probe_calls').read_text())
+            self.row['b5_repaired_client'] = self.client()
+            self.row['steps']['b5_transient_streak_reset'] = True
+            self.control('rollback')
         elif case == 'guard-killed':
             guard = wait(self.guard_pid, 'independently supervised guard')
             self.row['killed_guard_pid'] = guard
