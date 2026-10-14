@@ -670,6 +670,30 @@ fn malformed_replacement_keeps_prefix_removal_but_zero_ttl_stops_before_removal(
 }
 
 #[test]
+fn finite_cname_negative_cutoff_does_not_contribute_stale_metadata() {
+    for (minimum, maximum) in [(0, 0), (4, 12)] {
+        let mut daemon = daemon();
+        daemon.enable_cache(32, minimum, maximum, StalePolicy::Seconds(5));
+        daemon.enable_negative_cache(5, true);
+        let mut reply = packet("alias.test", 1, 0x8183);
+        reply.record_at(Section::Answer, 12, 5, 1, 20,
+            Name::from_ascii("target.test").unwrap().as_wire()).unwrap();
+        let mut soa = Name::from_ascii("ns.test").unwrap().as_wire().to_vec();
+        soa.extend_from_slice(Name::from_ascii("hostmaster.test").unwrap().as_wire());
+        for value in [1u32, 2, 3, 4, 5] { soa.extend_from_slice(&value.to_be_bytes()); }
+        reply.record(Section::Authority, &Name::from_ascii("test").unwrap(), 6, 1, 20, &soa).unwrap();
+        daemon.cache_reply_at(&reply.finish(), 100);
+        let query = packet("alias.test", 1, 0x100).finish();
+        let question = super::super::forward::Question::parse(&query).unwrap();
+        let retained = daemon.cached_answer_at_with_local(&query, &question, 109, None).unwrap();
+        assert!(retained.packet.is_some() && retained.stale);
+        let expired = daemon.cached_answer_at_with_local(&query, &question, 110, None).unwrap();
+        assert!(expired.packet.is_none());
+        assert!(!expired.stale, "exact-C finite/min-max cname-nx-q1-at-110");
+    }
+}
+
+#[test]
 fn zero_ttl_at_expiry_is_not_yet_stale_and_new_address_precedes_old_nxdomain() {
     let mut daemon = daemon();
     daemon.enable_cache(32, 0, 0, StalePolicy::Seconds(30));
