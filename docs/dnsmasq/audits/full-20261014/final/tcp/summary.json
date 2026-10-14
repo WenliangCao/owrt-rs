@@ -1,0 +1,406 @@
+{
+  "status": "pass",
+  "candidate_source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "elf": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "frozen_origin": "/dev/shm/full-integrated-fix-20261014/private/release-final/dnsmasq-rs",
+    "tested_copy": "/dev/shm/full-final-tcp-20261014/private/release/dnsmasq-rs"
+  },
+  "stock_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "created_utc": "2026-10-14T13:47:00Z",
+  "scope": {
+    "environment": "Oracle isolated network/mount/PID namespaces; exact OpenWrt image rootfs",
+    "physical_router_modified": false,
+    "product_modified": false,
+    "main_merged": false,
+    "pushed": false
+  },
+  "suite": [
+    {
+      "case": "tcp64-hup",
+      "exit": 0,
+      "timed_out": false,
+      "seconds": 4.223958211950958
+    },
+    {
+      "case": "tcp-memory",
+      "exit": 0,
+      "timed_out": false,
+      "seconds": 14.292062425985932
+    },
+    {
+      "case": "tcp-snapshot",
+      "exit": 0,
+      "timed_out": false,
+      "seconds": 1.6298829501029104
+    }
+  ],
+  "tools": {
+    "full_tcp_hosts_cgroup.py": {
+      "sha256": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2",
+      "origin": "/dev/shm/full-integrated-fix-20261014/private/tools/full_tcp_hosts_cgroup.py"
+    },
+    "full_tcp_hosts_memory.py": {
+      "sha256": "05f892b1d29c6b47827915bb4e690f786ab4928785e41268ffcf6036b8e98129",
+      "origin": "/dev/shm/full-integrated-fix-20261014/private/tools/full_tcp_hosts_memory.py"
+    },
+    "full_tcp_hosts_snapshot.py": {
+      "sha256": "17b2a2df4c6468c4859630fa0e907133687d86662b089190fed297c8dfb62998",
+      "origin": "/dev/shm/full-integrated-fix-20261014/private/tools/full_tcp_hosts_snapshot.py"
+    },
+    "run_isolated.sh": {
+      "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+      "origin": "/home/ubuntu/full-audit-20261014/private/source/tools/dnsmasq/run_isolated.sh"
+    },
+    "m2_rootfs.py": {
+      "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "origin": "/home/ubuntu/full-audit-20261014/private/source/tools/dnsmasq/m2_rootfs.py"
+    },
+    "dns_service_probe.py": {
+      "sha256": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+      "origin": "/home/ubuntu/full-audit-20261014/private/source/tools/dnsmasq/dns_service_probe.py"
+    },
+    "elf_cost.py": {
+      "sha256": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7",
+      "origin": "/home/ubuntu/full-audit-20261014/private/source/tools/dnsmasq/elf_cost.py"
+    }
+  },
+  "suite_driver_sha256": "91f4fc2b67ef617037bf3be26d42e0104fe91aa25de5be44c85c9d1d5bede81d",
+  "tcp64_hup": {
+    "hosts": 50000,
+    "cache_size": 1000,
+    "tcp_connections": 20,
+    "budget_mib": 64,
+    "runs": [
+      {
+        "side": "c",
+        "tcp_connections_ok": 20,
+        "udp_after": true,
+        "ready_current_bytes": 5931008,
+        "final_current_bytes": 15888384,
+        "peak_bytes": 15888384,
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "hup_old_tcp": {
+          "count": 20,
+          "ipv4": "192.0.2.1"
+        },
+        "hup_new_tcp": {
+          "count": 10,
+          "ipv4": "192.0.2.2"
+        },
+        "alive_before_cleanup": true,
+        "exit": 0,
+        "cgroup_removed": true
+      },
+      {
+        "side": "rust",
+        "tcp_connections_ok": 20,
+        "udp_after": true,
+        "ready_current_bytes": 23195648,
+        "final_current_bytes": 36241408,
+        "peak_bytes": 46321664,
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "hup_old_tcp": {
+          "count": 20,
+          "ipv4": "192.0.2.1"
+        },
+        "hup_new_tcp": {
+          "count": 10,
+          "ipv4": "192.0.2.2"
+        },
+        "alive_before_cleanup": true,
+        "exit": 0,
+        "cgroup_removed": true
+      }
+    ]
+  },
+  "pss_matrix": {
+    "unit": "KiB; entire daemon process tree, including stock TCP children",
+    "rows": [
+      {
+        "side": "c",
+        "hosts": 0,
+        "samples": [
+          {
+            "tcp_connections": 0,
+            "total_process_tree_pss_kib": 392
+          },
+          {
+            "tcp_connections": 1,
+            "total_process_tree_pss_kib": 572
+          },
+          {
+            "tcp_connections": 10,
+            "total_process_tree_pss_kib": 1855
+          },
+          {
+            "tcp_connections": 20,
+            "total_process_tree_pss_kib": 3120
+          }
+        ],
+        "tcp_0_to_20_pss_delta_kib": 2728,
+        "drained_pss_kib": 349,
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 0,
+        "samples": [
+          {
+            "tcp_connections": 0,
+            "total_process_tree_pss_kib": 2004
+          },
+          {
+            "tcp_connections": 1,
+            "total_process_tree_pss_kib": 2024
+          },
+          {
+            "tcp_connections": 10,
+            "total_process_tree_pss_kib": 2240
+          },
+          {
+            "tcp_connections": 20,
+            "total_process_tree_pss_kib": 2472
+          }
+        ],
+        "tcp_0_to_20_pss_delta_kib": 468,
+        "drained_pss_kib": 2052,
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 10000,
+        "samples": [
+          {
+            "tcp_connections": 0,
+            "total_process_tree_pss_kib": 6884
+          },
+          {
+            "tcp_connections": 1,
+            "total_process_tree_pss_kib": 6900
+          },
+          {
+            "tcp_connections": 10,
+            "total_process_tree_pss_kib": 7116
+          },
+          {
+            "tcp_connections": 20,
+            "total_process_tree_pss_kib": 7352
+          }
+        ],
+        "tcp_0_to_20_pss_delta_kib": 468,
+        "drained_pss_kib": 6932,
+        "exit": 0
+      },
+      {
+        "side": "c",
+        "hosts": 10000,
+        "samples": [
+          {
+            "tcp_connections": 0,
+            "total_process_tree_pss_kib": 1356
+          },
+          {
+            "tcp_connections": 1,
+            "total_process_tree_pss_kib": 1534
+          },
+          {
+            "tcp_connections": 10,
+            "total_process_tree_pss_kib": 2829
+          },
+          {
+            "tcp_connections": 20,
+            "total_process_tree_pss_kib": 4106
+          }
+        ],
+        "tcp_0_to_20_pss_delta_kib": 2750,
+        "drained_pss_kib": 1360,
+        "exit": 0
+      },
+      {
+        "side": "c",
+        "hosts": 50000,
+        "samples": [
+          {
+            "tcp_connections": 0,
+            "total_process_tree_pss_kib": 5357
+          },
+          {
+            "tcp_connections": 1,
+            "total_process_tree_pss_kib": 5504
+          },
+          {
+            "tcp_connections": 10,
+            "total_process_tree_pss_kib": 6786
+          },
+          {
+            "tcp_connections": 20,
+            "total_process_tree_pss_kib": 8071
+          }
+        ],
+        "tcp_0_to_20_pss_delta_kib": 2714,
+        "drained_pss_kib": 5337,
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 50000,
+        "samples": [
+          {
+            "tcp_connections": 0,
+            "total_process_tree_pss_kib": 24084
+          },
+          {
+            "tcp_connections": 1,
+            "total_process_tree_pss_kib": 24100
+          },
+          {
+            "tcp_connections": 10,
+            "total_process_tree_pss_kib": 24324
+          },
+          {
+            "tcp_connections": 20,
+            "total_process_tree_pss_kib": 24556
+          }
+        ],
+        "tcp_0_to_20_pss_delta_kib": 472,
+        "drained_pss_kib": 24132,
+        "exit": 0
+      }
+    ],
+    "interpretation": "All connections completed. Rust 0-to-20 TCP incremental PSS is 468/468/472 KiB for 0/10k/50k hosts; absolute Rust idle 50k PSS remains above C (24084 vs 5357 KiB). Single run observations, not confidence intervals."
+  },
+  "snapshots": {
+    "matched_exact_wire_and_semantics": true,
+    "observations_per_side": 42,
+    "scope": [
+      "independent TCP round-robin views for A/AAAA",
+      "HUP old/second/new TCP and parent UDP views for A/AAAA and config host-record",
+      "hostsdir inotify old/new/latest TCP and parent UDP views for A/AAAA"
+    ],
+    "alive_both_sides": true
+  },
+  "raw_evidence": {
+    "oracle_directory": "/dev/shm/full-final-tcp-20261014/private",
+    "local_archive": "private/final-tcp-20261014/raw-evidence.tar.gz",
+    "archive_sha256": "97c6f1caff2adafcf3bfff08bce9e06ad89cf032d413e64ffa1063742af347e9",
+    "archive_bytes": 13248772,
+    "result_files": {
+      "tcp64-hup/result.json": "619a1ed390ab98de833d232da463daf3ed142bf18e49ef184477db789711081e",
+      "tcp-memory/result.json": "f1ba9bd8a6bea2397d7ff64a49d2519bb9cfc77024e227e155eeeba547166d70",
+      "tcp-snapshot/result.json": "0fe432ce21b7fda785744a813915d9834f2a70fa8be9a79bc91fba74f5c3b0b0"
+    },
+    "rootfs_identities": [
+      {
+        "archive_member": "private/tcp-snapshot/rust/stage/rootfs-identity.json",
+        "sha256": "9a28efe29c1d8205ce5bdbffd17506dbbaab289bea9aa800df7179b384c7c5b1",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-snapshot/c/stage/rootfs-identity.json",
+        "sha256": "5c7f602a8a086c75d3f13e4730522b84d99b037e9116b5a5b2eb989920fe6a55",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-memory/rust-50000/stage/rootfs-identity.json",
+        "sha256": "05170b880268d13766b97a714bf606bfd961b39b7468a656755edcb93377a790",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-memory/c-50000/stage/rootfs-identity.json",
+        "sha256": "828e57caece8fcaf1abe977f522fd7901bce5a069d52751ed4a3d68263e4c705",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-memory/c-10000/stage/rootfs-identity.json",
+        "sha256": "c95e1dc52daea8d90ab216b8ad90459c56d41e3965e48d4ba6ca3b11542856a5",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-memory/rust-10000/stage/rootfs-identity.json",
+        "sha256": "3f0bf288abacd5dbb1017d0b5b3bdfd9d762ac4671e8a2f8a34c38e409d27c9f",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-memory/rust-0/stage/rootfs-identity.json",
+        "sha256": "7db7fd2cc76087b91774daa965e7155e975810826703f32cbabeb6850dc67fb1",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp-memory/c-0/stage/rootfs-identity.json",
+        "sha256": "4d0d8cffc96053f7a3ed56dbe0e16d4e09bb313fc83d973f5d55876a9cc75287",
+        "namespaces": {
+          "mnt": "mnt:[4026533138]",
+          "net": "net:[4026533140]",
+          "pid": "pid:[4026533139]"
+        }
+      },
+      {
+        "archive_member": "private/tcp64-hup/rust/stage/rootfs-identity.json",
+        "sha256": "8abc8077a91f4ec2db45266505d47663e1032bda23ade8080029ae210fc3b762",
+        "namespaces": {
+          "mnt": "mnt:[4026533798]",
+          "net": "net:[4026533800]",
+          "pid": "pid:[4026533799]"
+        }
+      },
+      {
+        "archive_member": "private/tcp64-hup/c/stage/rootfs-identity.json",
+        "sha256": "b0d2362d38632d04cbc4d38d06028850cd786e8e4981ee70b6bacefe775b5f57",
+        "namespaces": {
+          "mnt": "mnt:[4026533798]",
+          "net": "net:[4026533800]",
+          "pid": "pid:[4026533799]"
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "This is the unchanged prior TCP driver suite against the final ELF, not a broad DNS audit.",
+    "The 42-case hostsdir inotify snapshot test has no memory cgroup; low-memory HUP is covered in the 64 MiB case.",
+    "Repeated-address 60k rotation and FULL_AUDIT DNS acceptance are delegated to the independent main auditor."
+  ],
+  "test_failures": []
+}

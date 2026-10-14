@@ -1,0 +1,482 @@
+{
+  "passed": true,
+  "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "candidate_path": "/dev/shm/full-integrated-fix-20261014/private/release-final/dnsmasq-rs",
+  "candidate_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+  "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+  "source_tools_verification": {
+    "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+    "files_checked": 463,
+    "all_match": true
+  },
+  "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+  "raw_root": "/dev/shm/full-final-trial-20261014/private",
+  "started_at": "2026-10-14T13:46:56.564191+00:00",
+  "finished_at": "2026-10-14T13:49:34.673165+00:00",
+  "max_workers": 2,
+  "timeout_seconds_per_case": 210,
+  "identities_unchanged": true,
+  "case_count": 12,
+  "passed_case_count": 12,
+  "client_check_count": 39,
+  "case_failures": [],
+  "cases": [
+    {
+      "case": "confirm-rollback",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "confirm; wait 12 seconds; explicit rollback twice",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 24.057,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "second_rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "rollback_client": true,
+        "second_rollback_client": true
+      },
+      "result_sha256": "bc8a096e83d44cb32f9a7ce64dc1845858066ff228effbf18297b55b72962516",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-confirm-rollback.receipt.json"
+    },
+    {
+      "case": "deadline",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "unconfirmed candidate; deadline 20 seconds",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 28.996,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "deadline_rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "deadline_rollback_client": true
+      },
+      "result_sha256": "3f2f64717325d9d137b1184c916a5616c1d25f625210366e8572a6d8da21d76f",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-deadline.receipt.json"
+    },
+    {
+      "case": "crash",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "bind static exit(1) ELF over candidate; SIGKILL running candidate",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 24.773,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "crash_rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "crash_rollback_client": true
+      },
+      "result_sha256": "64185062ed0e4fb70b307cfe374cee00803d10133310ec45903c18539ed99611",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-crash.receipt.json"
+    },
+    {
+      "case": "hang",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "SIGSTOP running candidate",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 39.091,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "hang_rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "hang_rollback_client": true
+      },
+      "result_sha256": "30470dfefc39999a34c71117bb85e3a55a16ba73a9337e8d51bc168a057380ba",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-hang.receipt.json"
+    },
+    {
+      "case": "watch-killed",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "SIGKILL watch helper; deadline 25 seconds",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 33.629,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "deadline_after_watch_killed": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "deadline_after_watch_killed_client": true
+      },
+      "result_sha256": "369c4d3e832eff8e634dd2c2f96e72c25463285bd74b044285bef819be5d8021",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-watch-killed.receipt.json"
+    },
+    {
+      "case": "partial-rollback",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "SIGKILL watch and deadline helpers; unmount candidate; explicit rollback",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 9.882,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "rollback_after_partial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "rollback_after_partial_client": true
+      },
+      "result_sha256": "8d94ad9d86a7da279844a0ec7fd6901751f4c49ac2d86619b6713237cc3e3c33",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-partial-rollback.receipt.json"
+    },
+    {
+      "case": "reload",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true
+      },
+      "fault_or_boundary": "stock init reload; assert candidate PID unchanged",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 14.089,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "reload_client": true,
+        "rollback_client": true
+      },
+      "result_sha256": "3301e4231f6f309ff92523677ec6d30ea813bdad44e4f384e283828db39a0e73",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-reload.receipt.json"
+    },
+    {
+      "case": "rollback-killed",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true,
+        "injected_phase_matches": true,
+        "injected_signal_sigkill": true,
+        "rollback_was_killed": true,
+        "helpers_cleared": true
+      },
+      "fault_or_boundary": "ptrace observes rollback request with candidate mounted; SIGKILL rollback process",
+      "fault": {
+        "pid": 512,
+        "phase": "requested",
+        "mounted": true,
+        "helper_files": [
+          "deadline.pid",
+          "watch.pid"
+        ],
+        "signal": "SIGKILL"
+      },
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 15.843,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "automatic_recovery": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "automatic_recovery_client": true
+      },
+      "result_sha256": "c76de1445b87d8081deb1759a42ab5cdd074d932674e427a993a091cc6bb094c",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-rollback-killed.receipt.json"
+    },
+    {
+      "case": "confirmed-rollback-killed",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true,
+        "injected_phase_matches": true,
+        "injected_signal_sigkill": true,
+        "rollback_was_killed": true,
+        "helpers_cleared": true
+      },
+      "fault_or_boundary": "confirm candidate; ptrace observes unmount; SIGKILL rollback process",
+      "fault": {
+        "pid": 515,
+        "phase": "unmounted",
+        "mounted": false,
+        "helper_files": [
+          "watch.pid"
+        ],
+        "signal": "SIGKILL"
+      },
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 15.042,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "automatic_recovery": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "automatic_recovery_client": true
+      },
+      "result_sha256": "e4b80a50fe452c1e9d9f35302d4dd4ff6bca06f8393c608c3fe7d92aaee58888",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-confirmed-rollback-killed.receipt.json"
+    },
+    {
+      "case": "rollback-cleanup-killed",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true,
+        "injected_phase_matches": true,
+        "injected_signal_sigkill": true,
+        "rollback_was_killed": true,
+        "helpers_cleared": true
+      },
+      "fault_or_boundary": "ptrace observes helpers cleared; SIGKILL rollback process",
+      "fault": {
+        "pid": 513,
+        "phase": "helpers-cleared",
+        "mounted": false,
+        "helper_files": [],
+        "signal": "SIGKILL"
+      },
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 11.586,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "automatic_recovery": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "automatic_recovery_client": true
+      },
+      "result_sha256": "9e246a5ee14c492870ec6ec3a40a1b215cf5686c9fda3c5d217ff6c4309fdf6d",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-rollback-cleanup-killed.receipt.json"
+    },
+    {
+      "case": "rollback-c-dns-loss",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true,
+        "unhealthy_c_rejected": true,
+        "owners_kept_for_unresponsive_c": true
+      },
+      "fault_or_boundary": "drop UDP and TCP DNS; reject unhealthy C; retain owners; remove drop rules; automatic recovery",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 51.005,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "dns_restored_automatic_recovery": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "dns_restored_automatic_recovery_client": true
+      },
+      "result_sha256": "b5349d10ab22c8d5bf8281ab386ff188d64f40bfe109fcd17c9ad709711a44e9",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-rollback-c-dns-loss.receipt.json"
+    },
+    {
+      "case": "documented-path",
+      "passed": true,
+      "checks": {
+        "raw_result_passed": true,
+        "runner_exit_zero": true,
+        "same_candidate_elf": true,
+        "stock_image_elf": true,
+        "frozen_trial_script": true,
+        "result_receipt_hash": true,
+        "candidate_process_observed": true,
+        "all_process_identities_match": true,
+        "stock_candidate_recovery_clients_present": true,
+        "all_dhcp_and_dns_clients_healthy": true,
+        "bad_upload_hash_rejected": true
+      },
+      "fault_or_boundary": "documented /tmp script and ELF; confirm; explicit rollback; reject bad upload hash",
+      "fault": null,
+      "error": null,
+      "runner_error": null,
+      "elapsed_seconds": 16.995,
+      "process_sha256": {
+        "stock_initial": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "candidate": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "documented_rollback": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bad_upload_preserved_c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "client_checks": {
+        "stock_client": true,
+        "candidate_client": true,
+        "documented_rollback_client": true,
+        "bad_upload_preserved_c_client": true
+      },
+      "result_sha256": "48a054654b6e369e7890bf1b6020fddb42b9e69e4ca75e70b45ab50aabeb003e",
+      "receipt": "/dev/shm/full-final-trial-20261014/private/trial-documented-path.receipt.json"
+    }
+  ],
+  "physical_router_accessed": false,
+  "scope": "Oracle exact-image fixture; isolated network, mount, PID namespaces; same frozen ELF and tools",
+  "setup_note": "Unprivileged initial mkdir under /dev/shm was denied; dedicated empty directory created with sudo before any case ran. No test failure was discarded.",
+  "observed_max_parallel_cases": 2,
+  "cleanup": {
+    "recorded_at": "2026-10-14T13:49:46.540758+00:00",
+    "fixture_processes_remaining": [],
+    "fixture_mounts_in_host_namespace": [],
+    "clean": true
+  },
+  "raw_backup": {
+    "path": "/Users/USER/Developer/owrt-dnsmasq-full-integrated/private/final-trial-20261014/evidence.tar.gz",
+    "sha256": "92b12c6ce5644d23db987d2e916eff6a038b7e37fee5a88ac387e5c1ceab8528",
+    "bytes": 14152149,
+    "indexed_regular_files_verified": 330,
+    "all_indexed_files_match_archive": true
+  }
+}

@@ -1,0 +1,1322 @@
+{
+  "cleanup-receipt.json": {
+    "sha256": "e32580897fe0e03a55385d4db5ee69629aa76343665b44f597259f84a96fb70d",
+    "bytes": 152
+  },
+  "derive.py": {
+    "sha256": "4a2cda88696feda46ed3b3da0ce02f832954e1ab25674ffc898dd6e12b152b00",
+    "bytes": 7052
+  },
+  "derived-result.json": {
+    "sha256": "63309afa6c0b7199618dc49728b708b55fbf33ada71e3f276ad2d0513b0b6688",
+    "bytes": 18818
+  },
+  "postflight.json": {
+    "sha256": "aebad2198423f8d10a5f161103b5407fd3382aeec6312fb37a07bce0c05dd763",
+    "bytes": 46150
+  },
+  "preflight.json": {
+    "sha256": "6a293cf736205bb18863e5ebbd898daaf24c9d4e41caf5e274e1c3cf2961d6c3",
+    "bytes": 46848
+  },
+  "run_trial_suite.py": {
+    "sha256": "76e4326b09fee5ce5452f495e3058fc01f9af43fee7f641329a16e4c911dcb92",
+    "bytes": 5040
+  },
+  "source-tools-verification.json": {
+    "sha256": "43680d7fbc9b56eb0ea7368a29ce9557eb6884220a92caca09fe1c89d72a0336",
+    "bytes": 76096
+  },
+  "suite-output.log": {
+    "sha256": "1a9c9d3fb2dcad3bdd3c14a073f806ceeeedbb78c8d43500ca7e8406616d6def",
+    "bytes": 7445
+  },
+  "trial-confirm-rollback/commands.json": {
+    "sha256": "0ee323a4575dbdb14504f93ab8919b6927d51271f65a7484b331894bb9d099c7",
+    "bytes": 8121
+  },
+  "trial-confirm-rollback/fixture/commands.json": {
+    "sha256": "4f2797aa4b4a9a516f9f58b51bf35d4c4b984aee331efad0cc42f32d2cefaaec",
+    "bytes": 8445
+  },
+  "trial-confirm-rollback/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-confirm-rollback/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-confirm-rollback/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-confirm-rollback/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirm-rollback/fixture/rootfs-identity.json": {
+    "sha256": "ece0d8386256881e035d2ee2aed071fea89ece2b767db71191b41a084a7d01ce",
+    "bytes": 46056
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-confirm-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-confirm-rollback/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirm-rollback/result.json": {
+    "sha256": "bc8a096e83d44cb32f9a7ce64dc1845858066ff228effbf18297b55b72962516",
+    "bytes": 26655
+  },
+  "trial-confirm-rollback-network/topology.json": {
+    "sha256": "c386742ce439d7d1471f246d9d428fa92c45fadab3ac11384e637a03fb7e4ad1",
+    "bytes": 3888
+  },
+  "trial-confirm-rollback.command.json": {
+    "sha256": "43ac994faec3512d920de4e858087f40cd0ae048a771d8d9942f2551bf5c431b",
+    "bytes": 1088
+  },
+  "trial-confirm-rollback.log": {
+    "sha256": "a1dca202f7d1452d0fde57c961a62803542ce5f7475c8ac4f0b81c7e91d5203b",
+    "bytes": 45
+  },
+  "trial-confirm-rollback.receipt.json": {
+    "sha256": "bd30a15da27c3b6e20153b20eb72b55658fe6acff7f21055b651bb5fdfb26f37",
+    "bytes": 1778
+  },
+  "trial-confirmed-rollback-killed/commands.json": {
+    "sha256": "21a34c70822c1eaf840bc6c5b7228fc07229cfac10df522dc5f539b4bf87d0c5",
+    "bytes": 7135
+  },
+  "trial-confirmed-rollback-killed/fault.json": {
+    "sha256": "5e24ed4100bcb46cd679f33b510982ce2a5d66099e637300ff7357631224e542",
+    "bytes": 104
+  },
+  "trial-confirmed-rollback-killed/fixture/commands.json": {
+    "sha256": "537482b06929706aa69812c5b551d723b08b29e1109340b277ff04fa050de54a",
+    "bytes": 7459
+  },
+  "trial-confirmed-rollback-killed/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-confirmed-rollback-killed/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-confirmed-rollback-killed/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-confirmed-rollback-killed/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-identity.json": {
+    "sha256": "9d6e07cd31a66863c5fe83da484085658649a7ef9c4c2bb9b743445a02904703",
+    "bytes": 46092
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-confirmed-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-confirmed-rollback-killed/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed/result.json": {
+    "sha256": "e4b80a50fe452c1e9d9f35302d4dd4ff6bca06f8393c608c3fe7d92aaee58888",
+    "bytes": 30269
+  },
+  "trial-confirmed-rollback-killed/trace-ready": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-confirmed-rollback-killed-network/topology.json": {
+    "sha256": "0ab72ce219dcafa8bca66809a5fc644b21d1c7bc1528c8e4e9eac5e2f410c3f4",
+    "bytes": 3890
+  },
+  "trial-confirmed-rollback-killed.command.json": {
+    "sha256": "ee84820ca4951e03717ee7acee10c38018d25d5afb0af2d57c51f7fc2ab04b2c",
+    "bytes": 1115
+  },
+  "trial-confirmed-rollback-killed.log": {
+    "sha256": "7b75c9cdbffd3cc0ed58aa6089282237420d4f4613ec088981e0d0d7263512ef",
+    "bytes": 54
+  },
+  "trial-confirmed-rollback-killed.receipt.json": {
+    "sha256": "d6e79d8987610acf974ab95f7279f005a4aa98b6e395f7fb96c11867d7b5fdd4",
+    "bytes": 1950
+  },
+  "trial-crash/commands.json": {
+    "sha256": "486f79bc56830584ab9a4c65a571240af9eb6af4f68bdf2e6a137e737037b387",
+    "bytes": 6890
+  },
+  "trial-crash/crash": {
+    "sha256": "0475a2de36cd96a1e57492d96c891b1fa570d5a931bf4b896d4d66fffbe941ec",
+    "bytes": 537664
+  },
+  "trial-crash/crash.c": {
+    "sha256": "7b4bb8e34d20c4ec426e4770c2c8e808fea9f4c78893f9190b02c55e9f75e88b",
+    "bytes": 29
+  },
+  "trial-crash/fixture/commands.json": {
+    "sha256": "f5504ac7f87d7148d9ce05767846bd39d18ac1a41ff1ec91496605abefe0d929",
+    "bytes": 7214
+  },
+  "trial-crash/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-crash/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-crash/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-crash/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-crash/fixture/rootfs-identity.json": {
+    "sha256": "263eb48e97d98104fc3b37165f034a8b4c1f171289b5c57bf3c8305738d56430",
+    "bytes": 46012
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-crash/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-crash/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-crash/result.json": {
+    "sha256": "64185062ed0e4fb70b307cfe374cee00803d10133310ec45903c18539ed99611",
+    "bytes": 27376
+  },
+  "trial-crash-network/topology.json": {
+    "sha256": "12cbd2be2db40a514e84ee7ffaa208dd7e7726ca9343ac443128725cfb6eca66",
+    "bytes": 3890
+  },
+  "trial-crash.command.json": {
+    "sha256": "5ddf5ce3ae768a8e16fa7e351bbfcf1a50fef3f60b210a5a1dc13659e7ff9a84",
+    "bytes": 1055
+  },
+  "trial-crash.log": {
+    "sha256": "240315451a38862f3fa555c138f9cbbda1d9414cef1e63d85ac510b1280316da",
+    "bytes": 34
+  },
+  "trial-crash.receipt.json": {
+    "sha256": "fe30474ee7773753819138600eaf012a7af8f01d938e58a258b58a6bce162b7a",
+    "bytes": 1734
+  },
+  "trial-deadline/commands.json": {
+    "sha256": "c2759e070440a9b15ea428fcc3659d1b050a1090584c23946bd0bcf9e23c7c3f",
+    "bytes": 6945
+  },
+  "trial-deadline/fixture/commands.json": {
+    "sha256": "7dfcb895d4df2a25d0922d8e1f84db2d6b8e730f949229bcf87e8d93b5f47d95",
+    "bytes": 7269
+  },
+  "trial-deadline/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-deadline/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-deadline/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-deadline/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-deadline/fixture/rootfs-identity.json": {
+    "sha256": "bc2d452f3b61438507debddc6f5e80792af5266eb8857bf2f13631cbf16538cc",
+    "bytes": 46024
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-deadline/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-deadline/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-deadline/result.json": {
+    "sha256": "3f2f64717325d9d137b1184c916a5616c1d25f625210366e8572a6d8da21d76f",
+    "bytes": 24946
+  },
+  "trial-deadline-network/topology.json": {
+    "sha256": "bbd18e1c963593ea1559abc9773f91684a1fb1e0efdb650c85a525ca0d84e49b",
+    "bytes": 3889
+  },
+  "trial-deadline.command.json": {
+    "sha256": "f69229e45747b7b27bd9004a85a625a2ce90116bfc38ac2a3edae31d79d18ba2",
+    "bytes": 1064
+  },
+  "trial-deadline.log": {
+    "sha256": "f2fbbdce060a915c04649496db982e4a6eed6d08aa81c85f960c63156d7247dc",
+    "bytes": 37
+  },
+  "trial-deadline.receipt.json": {
+    "sha256": "613e6a62baf2721f505286bf17ffbd4214c627c9f4123e542985e005e4423805",
+    "bytes": 1746
+  },
+  "trial-documented-path/commands.json": {
+    "sha256": "10ebec0f4ba4e1d22826f6c5901e557e1abe7975034dff8cd2f42f8c3d3a9437",
+    "bytes": 9188
+  },
+  "trial-documented-path/fixture/commands.json": {
+    "sha256": "1fe8c1bda6206728d1132db95435a697cf88907f9f6b9b5ccd36765f51d17297",
+    "bytes": 9512
+  },
+  "trial-documented-path/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-documented-path/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-documented-path/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-documented-path/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-documented-path/fixture/rootfs-identity.json": {
+    "sha256": "b7923702ac57af181fa20782e0519b5377c88a1d9bee77b0a4b19eadc88d05a6",
+    "bytes": 46052
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "6576356e43af3b1bf67fd2e18d2f33115396eedbd21e1f59b3c6bf503158d11b",
+    "bytes": 69
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-documented-path/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-documented-path/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-documented-path/result.json": {
+    "sha256": "48a054654b6e369e7890bf1b6020fddb42b9e69e4ca75e70b45ab50aabeb003e",
+    "bytes": 29980
+  },
+  "trial-documented-path-network/topology.json": {
+    "sha256": "9f5df3e4b22b0b029a0b6c7c78d065a06094dc6e4463387319406b8ebd01cee9",
+    "bytes": 3888
+  },
+  "trial-documented-path.command.json": {
+    "sha256": "1b5e09c0b3af08784190f93cefcf0b47dee91226e9ff813f69aafda48c5e3410",
+    "bytes": 1085
+  },
+  "trial-documented-path.log": {
+    "sha256": "7f5d2a55750cb8a4a7d9c010066f3d2a6682a982c32e18511ffa6933b84234a6",
+    "bytes": 44
+  },
+  "trial-documented-path.receipt.json": {
+    "sha256": "9ff83d1358558203c502c6b6ff0dc531419722682925af98c05295785801238a",
+    "bytes": 1774
+  },
+  "trial-hang/commands.json": {
+    "sha256": "cf49db8cfd12bbb8a675a35f28a84310a6eaf7789957ac48b759608bce72b046",
+    "bytes": 6858
+  },
+  "trial-hang/fixture/commands.json": {
+    "sha256": "17a6a865b6eab65dd853006c324c786422c21a4dd608f191f96d81fbe5af72b9",
+    "bytes": 7182
+  },
+  "trial-hang/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-hang/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-hang/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-hang/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-hang/fixture/rootfs-identity.json": {
+    "sha256": "fbb7a31b7ec13bccf7405dd0176b0d140e8e219d95cac2b883cf38892683b367",
+    "bytes": 46008
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-hang/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-hang/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-hang/result.json": {
+    "sha256": "30470dfefc39999a34c71117bb85e3a55a16ba73a9337e8d51bc168a057380ba",
+    "bytes": 27240
+  },
+  "trial-hang-network/topology.json": {
+    "sha256": "5d278943773d578de30c465e1ff69b5a34b16ebef0d66f9aaa1208455ffa2df6",
+    "bytes": 3889
+  },
+  "trial-hang.command.json": {
+    "sha256": "13149bdee04a4fd21fd42c4f77d93610b5902b999100e88ea6ecc9aac05316cb",
+    "bytes": 1052
+  },
+  "trial-hang.log": {
+    "sha256": "9eaf4c8a1e03e821f1aa01fe5784ad1b05253219dcc13854f45e6a8650beb04d",
+    "bytes": 33
+  },
+  "trial-hang.receipt.json": {
+    "sha256": "6b169a9cc0c92bd8f0d29679b345eb1380d9dfeb327ab1e291df6a13ae8c2db5",
+    "bytes": 1730
+  },
+  "trial-network-source/tmp/resolv.conf.d/resolv.conf.auto": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-partial-rollback/commands.json": {
+    "sha256": "ecd3e067fe2ba03bfe9183186c57684f53cb5210012ddf4f0a133bfe350548c3",
+    "bytes": 7358
+  },
+  "trial-partial-rollback/fixture/commands.json": {
+    "sha256": "a2a11c6b949e9b1cee43df97ca64bf335197b9282eeb1621cf64d3e28609705d",
+    "bytes": 7682
+  },
+  "trial-partial-rollback/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-partial-rollback/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-partial-rollback/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-partial-rollback/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-partial-rollback/fixture/rootfs-identity.json": {
+    "sha256": "22ecc3e7884efbe7f0494f4db2dd7c8ab035d1483b1e642809fadac06a2ed1d4",
+    "bytes": 46056
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-partial-rollback/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-partial-rollback/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-partial-rollback/result.json": {
+    "sha256": "8d94ad9d86a7da279844a0ec7fd6901751f4c49ac2d86619b6713237cc3e3c33",
+    "bytes": 28866
+  },
+  "trial-partial-rollback-network/topology.json": {
+    "sha256": "893918cab60c92de05e1ffb74dcf0d29a018e26dbcc9b716d701719e6dcc8257",
+    "bytes": 3890
+  },
+  "trial-partial-rollback.command.json": {
+    "sha256": "dffb43e53db240f892e86984ae45d0ee1004a0c9e66e747921e69e7d5c256109",
+    "bytes": 1088
+  },
+  "trial-partial-rollback.log": {
+    "sha256": "61cd56e5e6b8efbe6faf299d2c6d51d4d3bb459fb9c053643158d32e341bf355",
+    "bytes": 45
+  },
+  "trial-partial-rollback.receipt.json": {
+    "sha256": "b7326b6c79c0e2aee9ba081ccac857bc3c55769fae80183bc05d3ea3f2658231",
+    "bytes": 1777
+  },
+  "trial-reload/commands.json": {
+    "sha256": "b0e774366febcb5228d590ec93ec28fc24b2709a5dc51109d01998b62ca71ff7",
+    "bytes": 7040
+  },
+  "trial-reload/fixture/commands.json": {
+    "sha256": "1531d5b430cb16a32746408a1842059080cf10577dfb8bf14dd1277810c37e23",
+    "bytes": 7364
+  },
+  "trial-reload/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-reload/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-reload/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-reload/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-reload/fixture/rootfs-identity.json": {
+    "sha256": "c0ea240bfdf49b255bcee59d01178d0d37d21cf8da316dc811baf8945583eaa2",
+    "bytes": 46016
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-reload/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-reload/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-reload/result.json": {
+    "sha256": "3301e4231f6f309ff92523677ec6d30ea813bdad44e4f384e283828db39a0e73",
+    "bytes": 27780
+  },
+  "trial-reload-network/topology.json": {
+    "sha256": "c747596669e1ddb331e97437d3658e4d8822f97e59edd00c2e25e2a2526a5851",
+    "bytes": 3889
+  },
+  "trial-reload.command.json": {
+    "sha256": "fc95f747ee7d1d0fc3d1db5590fe70e0249be0ebddbb1c858176ceda768340f9",
+    "bytes": 1058
+  },
+  "trial-reload.log": {
+    "sha256": "cde31a7bf495ed0563144785970cb8e4c05f118c9c830e72866bb9b421d75a09",
+    "bytes": 35
+  },
+  "trial-reload.receipt.json": {
+    "sha256": "66ee46e290d8e27f942594d52521308e2916f828c105bf67d4c4581687c82030",
+    "bytes": 1738
+  },
+  "trial-rollback-c-dns-loss/commands.json": {
+    "sha256": "eee68d7135ce7b4e85dd7890cd951df8a1bc32a969b78a04187343aaeeb1c562",
+    "bytes": 7046
+  },
+  "trial-rollback-c-dns-loss/fixture/commands.json": {
+    "sha256": "4421acb6840796302626aa5738b95a78dc97ecbd4d55d1599db5283003cf922f",
+    "bytes": 7370
+  },
+  "trial-rollback-c-dns-loss/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-rollback-c-dns-loss/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-rollback-c-dns-loss/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-rollback-c-dns-loss/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-identity.json": {
+    "sha256": "0ded1804798875bb42bbc07e1b06c821a43999be7740f73a9f28bd94d76c0c23",
+    "bytes": 46068
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-rollback-c-dns-loss/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-rollback-c-dns-loss/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-c-dns-loss/result.json": {
+    "sha256": "b5349d10ab22c8d5bf8281ab386ff188d64f40bfe109fcd17c9ad709711a44e9",
+    "bytes": 29482
+  },
+  "trial-rollback-c-dns-loss-network/topology.json": {
+    "sha256": "89632b1808a50c143a4e1f12bc4ced3c5fa22aa20af4ff609e1a478f79d529c5",
+    "bytes": 3889
+  },
+  "trial-rollback-c-dns-loss.command.json": {
+    "sha256": "68adf20738048746b36dd31806f57b4d9aa2fc5b44b916da592700d524b133bd",
+    "bytes": 1097
+  },
+  "trial-rollback-c-dns-loss.log": {
+    "sha256": "cdd8bb3b545587fa71d16789d4f206010f0e1227533a3665c3ec70f1b66cc510",
+    "bytes": 48
+  },
+  "trial-rollback-c-dns-loss.receipt.json": {
+    "sha256": "8c815b6a273f2a558c3e69abf7fc479ed257fee55a41bb127df7261bc09a8fbc",
+    "bytes": 1790
+  },
+  "trial-rollback-cleanup-killed/commands.json": {
+    "sha256": "31534f59b998579130b63d19ab10b33dc7d0976470a95399569679db1d68de34",
+    "bytes": 6913
+  },
+  "trial-rollback-cleanup-killed/fault.json": {
+    "sha256": "50b9831e8a608c414f80c7e3d8ae1e05db4105ce251a3b52fe5c2b4b68b498f6",
+    "bytes": 99
+  },
+  "trial-rollback-cleanup-killed/fixture/commands.json": {
+    "sha256": "557ef02b7671368a304676a43dfde15e7e60ddd291d0defc1947d6d473474f5e",
+    "bytes": 7237
+  },
+  "trial-rollback-cleanup-killed/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-rollback-cleanup-killed/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-rollback-cleanup-killed/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-rollback-cleanup-killed/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-identity.json": {
+    "sha256": "2ae0b8f6a6eade1796a809138affb045006bdd89769ad32d184da5967f3f94ff",
+    "bytes": 46084
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-rollback-cleanup-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-rollback-cleanup-killed/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-cleanup-killed/result.json": {
+    "sha256": "9e246a5ee14c492870ec6ec3a40a1b215cf5686c9fda3c5d217ff6c4309fdf6d",
+    "bytes": 29984
+  },
+  "trial-rollback-cleanup-killed/trace-ready": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-cleanup-killed-network/topology.json": {
+    "sha256": "4ada7221ef94f263b6b290f38849baeb9af3c8aa73f6ccbca62a0c5d2c49f862",
+    "bytes": 3888
+  },
+  "trial-rollback-cleanup-killed.command.json": {
+    "sha256": "35637d25b4d9fa2a888f99c38a0f2df9a13f081fbdafa0d1e706e8abaf772f25",
+    "bytes": 1109
+  },
+  "trial-rollback-cleanup-killed.log": {
+    "sha256": "476a151617b7179e27cac089332ed18f65450c2a9a47ed717e1b384c3efea6ce",
+    "bytes": 52
+  },
+  "trial-rollback-cleanup-killed.receipt.json": {
+    "sha256": "b315da70f689d2e3f163591cef4ddefe23312f37b24a3ce75b081d6d204125c4",
+    "bytes": 1925
+  },
+  "trial-rollback-killed/commands.json": {
+    "sha256": "39e20f1c8d29c3ff820bc38ae8d2c986cbd48ca91c476a9aa702985119fa7cac",
+    "bytes": 6813
+  },
+  "trial-rollback-killed/fault.json": {
+    "sha256": "901712e82fec291796bfc83683f6b4d5d7d909bda0c6f6c6cd5e33050c633768",
+    "bytes": 119
+  },
+  "trial-rollback-killed/fixture/commands.json": {
+    "sha256": "5005fd5347642791604fcf7d90681562091c0cacb7c33e160ea8e1c8bd69d2ca",
+    "bytes": 7137
+  },
+  "trial-rollback-killed/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-rollback-killed/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-rollback-killed/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-rollback-killed/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-killed/fixture/rootfs-identity.json": {
+    "sha256": "bfde786f4c41f381fc7cfc3e203e42a0cb6b6a73ca2b6aefccffe0b4a04b76bc",
+    "bytes": 46052
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-rollback-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-rollback-killed/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-killed/result.json": {
+    "sha256": "c76de1445b87d8081deb1759a42ab5cdd074d932674e427a993a091cc6bb094c",
+    "bytes": 26007
+  },
+  "trial-rollback-killed/trace-ready": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-rollback-killed-network/topology.json": {
+    "sha256": "867901611c958ef6e09167d9c221da3f7ac9f5b53e4cafcb4e668e2318823ca8",
+    "bytes": 3890
+  },
+  "trial-rollback-killed.command.json": {
+    "sha256": "9730b7bacc3a94de16ad77eb156a35e71ddea76d10a5be31407f9c6e4b07b3b3",
+    "bytes": 1085
+  },
+  "trial-rollback-killed.log": {
+    "sha256": "0b18e6a367964d17802fff737d839d7f74f56543323b21d0440d1da62d8ed119",
+    "bytes": 44
+  },
+  "trial-rollback-killed.receipt.json": {
+    "sha256": "f0c75e63246fb217e9d6ba739f3227ba499992d90848b85d292297f5de3181bb",
+    "bytes": 1931
+  },
+  "trial-suite.json": {
+    "sha256": "532cb523b7726fe3de49faf1f947e8ce0883810e8c1f8154b7953e05bd00e1e7",
+    "bytes": 24026
+  },
+  "trial-watch-killed/commands.json": {
+    "sha256": "3b2730d407d0ed839d7ba5c082317b7cdc16c3600f7cac75969fdc4d5d23d436",
+    "bytes": 6879
+  },
+  "trial-watch-killed/fixture/commands.json": {
+    "sha256": "a1968dafe1aae5d30cf8d824277fab61055051802039c37b949938fb3e147139",
+    "bytes": 7203
+  },
+  "trial-watch-killed/fixture/logd.log": {
+    "sha256": "5625f50aa45cee8f344d524be12542001cba3b0039cdfbd89865ffd27cbb1f5d",
+    "bytes": 23
+  },
+  "trial-watch-killed/fixture/netifd.log": {
+    "sha256": "2fb60864302c12f219781be74756a4f40983411fcc37c30465e81ebd41a9203d",
+    "bytes": 268
+  },
+  "trial-watch-killed/fixture/plan.json": {
+    "sha256": "ee330e6b483cb3a26d29f15c00fc5f873b92732fd8fd9a73d4061d45fdefa038",
+    "bytes": 562
+  },
+  "trial-watch-killed/fixture/procd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-watch-killed/fixture/rootfs-identity.json": {
+    "sha256": "6b9140e0cb48e1c1500c4fb8febf24b36c2add320ab6ecaa9b0c2b5581943c1d",
+    "bytes": 46040
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/etc/config/dhcp": {
+    "sha256": "87f06f914da4e8535e8414304b531d6f1ba550b4b8c6e2fd05ee8283fe04a2da",
+    "bytes": 820
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/etc/config/network": {
+    "sha256": "f0b20b1fc80ae26d7986d1c15f0ea35e8043dd8b2f81629ed5a6f981143f0686",
+    "bytes": 360
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/etc/config/system": {
+    "sha256": "e5294b1a8203fcfae37e0cbc9e9ebb0ed4bbb0cb0785982d2994234d6e7f2c4b",
+    "bytes": 43
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/etc/dnsmasq.conf": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/etc/ethers": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "c09e5b05f48cb1614da8a27551d433bf73d1c4f0126ae22a75da4fdcce05b618",
+    "bytes": 45
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "bytes": 2089440
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/sbin/dnsmasq-trial": {
+    "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "bytes": 5982
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "trial-watch-killed/fixture/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "trial-watch-killed/fixture/ubusd.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "trial-watch-killed/result.json": {
+    "sha256": "369c4d3e832eff8e634dd2c2f96e72c25463285bd74b044285bef819be5d8021",
+    "bytes": 28340
+  },
+  "trial-watch-killed-network/topology.json": {
+    "sha256": "71993ad59dacf621a14556cb34e89590e75efce1494a1adbd335ce190ae8cab3",
+    "bytes": 3888
+  },
+  "trial-watch-killed.command.json": {
+    "sha256": "05764dbb2aa48af668c79ccc0197919d34e4e1f3b85020f8e96c9f7884458097",
+    "bytes": 1076
+  },
+  "trial-watch-killed.log": {
+    "sha256": "19e72d6e485c3d99d52b852aca68014ce0e386450fd26c53bb0166bfd5ac21b7",
+    "bytes": 41
+  },
+  "trial-watch-killed.receipt.json": {
+    "sha256": "1ecb32ac4e5bc9e33b6bcd42d1dddcf967d87211ec9160923767ecc04ca3f8a8",
+    "bytes": 1762
+  }
+}

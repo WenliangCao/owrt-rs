@@ -77,8 +77,12 @@ second daemon runtime reproduction.
 
 ## Other boundaries
 
-Same-ELF TCP and trial receipts are recorded alongside this report when their
-fresh runs complete. Earlier reports for `e2b07561...` and `d57280b8...` remain
+Same-ELF [TCP](tcp/summary.json) and [trial](trial/report.md) receipts are now
+complete. TCP passed the 50k-host/20-connection/64 MiB HUP case, the PSS matrix,
+and all 42 snapshot observations. Trial passed all 12 scenarios and 39 client
+health checks, including the three actual SIGKILL interruption boundaries.
+Neither suite removes the incremental-publication failure above.
+Earlier reports for `e2b07561...` and `d57280b8...` remain
 historical evidence and must not be counted as this candidate's validation.
 The repeated-address rolling order difference is a separate pre-existing
 compatibility issue: old/fixed Rust agreeing with each other does not establish
