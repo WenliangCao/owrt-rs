@@ -1,0 +1,178 @@
+{
+  "status": "PREPARED_LOCALLY_NOT_LAUNCHED",
+  "scope": "Read-only fixed-plan/source review and local copies of existing runner, plan and probe; no new measurement framework, compile, Oracle preparation or runtime",
+  "base_commit": "7ea56827",
+  "priority_order": [
+    "cold-metadata",
+    "fresh-frame",
+    "host-miss"
+  ],
+  "runner": {
+    "file": "dns/run_layout_native_screen.py",
+    "sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+    "historical_sha256": "9d5bc3abecde5060b080c67360d7a1c5b08fa2b229ffe222265700119f627091",
+    "only_change": "Final row-count assertion derives from the existing fixed plan dimensions; measurement loops and commands byte-identical"
+  },
+  "probe": {
+    "file": "dns/hotpath_probe_v2.rs",
+    "sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd"
+  },
+  "plans": [
+    {
+      "candidate": "cold-metadata",
+      "file": "dns/cold-metadata-native-plan.json",
+      "sha256": "99423ef51eac597f9eb21c29e0db73c72f4ab89867a8b6b3c254c59262bd8ab0",
+      "sources": {
+        "F": {
+          "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+          "git_blob_sha256_matches": 162
+        },
+        "cold-metadata": {
+          "commit": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cache-cold-metadata",
+          "git_blob_sha256_matches": 162
+        }
+      },
+      "scenes": 15,
+      "windows": 240,
+      "stat_windows": 90,
+      "plain_windows": 150,
+      "build_commands_before_measurement": 4,
+      "total_commands": 244,
+      "all_labels_unique": true,
+      "fixed_fields_identical_to_previous_hot15_screen": [
+        "probe",
+        "scenes",
+        "stat_pairs",
+        "plain_pairs",
+        "stat_event",
+        "stat_scope",
+        "plain_scope",
+        "plain_decision",
+        "cpu",
+        "nice",
+        "build_cpu",
+        "native_target",
+        "build_lock",
+        "retry_policy",
+        "stat_operations",
+        "plain_operations",
+        "duration_rationale",
+        "expected_checksum_per_2000000_operations"
+      ],
+      "checksum_scaling_integral": true,
+      "local_staging": "private/perf-opt-20261015/next-cache-native-inputs/cold-metadata",
+      "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/cold-metadata-native-screen1",
+      "descriptive_note": "The inherited builds prose says all three probe builds; executable sources contain exactly F plus one candidate, hence two probe builds and two library builds. No plan bytes changed."
+    },
+    {
+      "candidate": "fresh-frame",
+      "file": "dns/fresh-frame-native-plan.json",
+      "sha256": "7e1b32034eef89a841393098bced52c0e9680011d41b10d8501b25697eeb746e",
+      "sources": {
+        "F": {
+          "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+          "git_blob_sha256_matches": 162
+        },
+        "fresh-frame": {
+          "commit": "b343df112e430f16e21026645e56755f2d0fc391",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address-frame",
+          "git_blob_sha256_matches": 162
+        }
+      },
+      "scenes": 15,
+      "windows": 240,
+      "stat_windows": 90,
+      "plain_windows": 150,
+      "build_commands_before_measurement": 4,
+      "total_commands": 244,
+      "all_labels_unique": true,
+      "fixed_fields_identical_to_previous_hot15_screen": [
+        "probe",
+        "scenes",
+        "stat_pairs",
+        "plain_pairs",
+        "stat_event",
+        "stat_scope",
+        "plain_scope",
+        "plain_decision",
+        "cpu",
+        "nice",
+        "build_cpu",
+        "native_target",
+        "build_lock",
+        "retry_policy",
+        "stat_operations",
+        "plain_operations",
+        "duration_rationale",
+        "expected_checksum_per_2000000_operations"
+      ],
+      "checksum_scaling_integral": true,
+      "local_staging": "private/perf-opt-20261015/next-cache-native-inputs/fresh-frame",
+      "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/fresh-frame-native-screen1",
+      "descriptive_note": "The inherited builds prose says all three probe builds; executable sources contain exactly F plus one candidate, hence two probe builds and two library builds. No plan bytes changed."
+    },
+    {
+      "candidate": "host-miss",
+      "file": "dns/host-miss-native-plan.json",
+      "sha256": "29abda2498088fe043cfe9442fed416afc85915fc0eea99276edfb1d38651dea",
+      "sources": {
+        "F": {
+          "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+          "git_blob_sha256_matches": 162
+        },
+        "host-miss": {
+          "commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-host-miss-index",
+          "git_blob_sha256_matches": 162
+        }
+      },
+      "scenes": 15,
+      "windows": 240,
+      "stat_windows": 90,
+      "plain_windows": 150,
+      "build_commands_before_measurement": 4,
+      "total_commands": 244,
+      "all_labels_unique": true,
+      "fixed_fields_identical_to_previous_hot15_screen": [
+        "probe",
+        "scenes",
+        "stat_pairs",
+        "plain_pairs",
+        "stat_event",
+        "stat_scope",
+        "plain_scope",
+        "plain_decision",
+        "cpu",
+        "nice",
+        "build_cpu",
+        "native_target",
+        "build_lock",
+        "retry_policy",
+        "stat_operations",
+        "plain_operations",
+        "duration_rationale",
+        "expected_checksum_per_2000000_operations"
+      ],
+      "checksum_scaling_integral": true,
+      "local_staging": "private/perf-opt-20261015/next-cache-native-inputs/host-miss",
+      "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/host-miss-native-screen1",
+      "descriptive_note": "The inherited builds prose says all three probe builds; executable sources contain exactly F plus one candidate, hence two probe builds and two library builds. No plan bytes changed."
+    }
+  ],
+  "required_before_any_timing": [
+    "Exact-source related Linux gates complete and all gate processes exited",
+    "All three unchanged SDK builds complete",
+    "PGO smoke2 complete and its processes/builds exited",
+    "DHCP has downloaded and verified required SDK artifacts before timing",
+    "Root explicitly releases the reservation for timing",
+    "Fresh root-readable Oracle workload inventory is idle"
+  ],
+  "launch_authorized_now": false,
+  "oracle_workload_started": false,
+  "product_modified": false,
+  "performance_acceptance": false
+}
