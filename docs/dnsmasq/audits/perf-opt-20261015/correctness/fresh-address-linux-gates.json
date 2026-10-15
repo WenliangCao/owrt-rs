@@ -1,0 +1,226 @@
+{
+  "schema": 1,
+  "status": "RELATED_LINUX_GATES_PASSED",
+  "scope": "Independent F-based fresh single-address answer native musl related lib/ignored-live/bin/ignored gates; CPU2 nice10 one build job; no full qualification or performance claim.",
+  "candidate_commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_identity_sha256": "76f2baafa4f0ad0a9561e960b6cfa8a422d67e999a09d8da93b7aeb2cca2f2d2",
+  "source_inputs_verified_before": 179,
+  "source_inputs_verified_after": 179,
+  "base_F_source_files_rechecked_after": 179,
+  "source_preparation_manifest_sha256": "60938cd0b12dee96743d91d90274cbf7359955b31bccb38abf864f6e24a40d39",
+  "runner_sha256": "bcd7680f8544f165ab6cafdeb8f35e967c2b73bca947ca0ab3f946780ea821bf",
+  "affinity": [
+    2
+  ],
+  "nice": 10,
+  "build_jobs": 1,
+  "started_epoch": 1792101929.809535,
+  "finished_epoch": 1792102011.8883736,
+  "verified_epoch": 1792102157.2165613,
+  "build_receipt_sha256": "faedfbf88bb7a1b88b9cdac8c6f7914c9113274d2b3450608c54de0ec856f352",
+  "artifacts": [
+    {
+      "path": "bin-dnsmasq-rs",
+      "bytes": 50968024,
+      "sha256": "14d1f7532df9a64d5e316269db67ce6a2d570000003d9a19deab7df82e2056a8"
+    },
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 72029880,
+      "sha256": "b1f8cf1484e43150591f5be550cda4d8fe54d585654dff1eeec735a6424e4272"
+    }
+  ],
+  "commands": [
+    {
+      "name": "build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/fresh-address-linux-gates-20261015/fresh-address/tests",
+        "tests"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 68.7568690776825,
+      "stdout_sha256": "fe9dfbdc843493327bc80e21696a884a51da28fbf59656943df1231be2a4568b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lib",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/fresh-address-linux-gates-20261015/fresh-address/tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 8.119141340255737,
+      "stdout_sha256": "bdb9a01bd29c53fa2633b8cd44ac54f6dd466ec34ae9bdc79adc72ff68b5a830",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 831 passed; 0 failed; 22 ignored; 0 measured; 0 filtered out; finished in 8.08s"
+      ],
+      "passed": 831,
+      "failed": 0,
+      "ignored": 22,
+      "binary_sha256": "b1f8cf1484e43150591f5be550cda4d8fe54d585654dff1eeec735a6424e4272"
+    },
+    {
+      "name": "lib-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/fresh-address-linux-gates-20261015/fresh-address/tests/lib-dnsmasq_rs",
+        "--ignored",
+        "--skip",
+        "exact_c_oracle_driver",
+        "--skip",
+        "exact_c_stale_driver",
+        "--skip",
+        "exact_c_transfer_probe",
+        "--skip",
+        "exact_c_lease_cache_driver",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.3633861541748047,
+      "stdout_sha256": "122ade778961055ab71bca2c74cfe312c199020a6825312f8f182f00779edb6a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 835 filtered out; finished in 0.32s"
+      ],
+      "passed": 18,
+      "failed": 0,
+      "ignored": 0,
+      "binary_sha256": "b1f8cf1484e43150591f5be550cda4d8fe54d585654dff1eeec735a6424e4272"
+    },
+    {
+      "name": "bin",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/fresh-address-linux-gates-20261015/fresh-address/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 4.286912441253662,
+      "stdout_sha256": "933b97a3fb5dcf27fccd71ab8f8ca565196341d90c261a928193afc81c58c978",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 82 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 4.24s"
+      ],
+      "passed": 82,
+      "failed": 0,
+      "ignored": 4,
+      "binary_sha256": "14d1f7532df9a64d5e316269db67ce6a2d570000003d9a19deab7df82e2056a8"
+    },
+    {
+      "name": "bin-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/fresh-address-linux-gates-20261015/fresh-address/tests/bin-dnsmasq-rs",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.15293288230895996,
+      "stdout_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.11s"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "binary_sha256": "14d1f7532df9a64d5e316269db67ce6a2d570000003d9a19deab7df82e2056a8"
+    }
+  ],
+  "test_passes": {
+    "lib": 831,
+    "lib-ignored-live": 18,
+    "bin": 82,
+    "bin-ignored-live": 4
+  },
+  "total_test_passes": 935,
+  "new_fixtures_passed": [
+    "dns::cache::tests::fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback",
+    "dns::cache_engine::tests::fresh_address_reply_matches_general_flags_ttl_limits_and_logging"
+  ],
+  "original_lib_live_test_names": [
+    "config::dns::tests::dns_config_acceptance_matches_c",
+    "config::loader::tests::cli_include_acceptance_matches_c",
+    "config::records::tests::local_record_acceptance_matches_c",
+    "config::tests::scalar_config_acceptance_matches_c",
+    "dhcp::service::tests::device_binding_linux_sockets_retry_and_relay_gate",
+    "dhcp::service::tests::poll_once_is_nonblocking_and_stop_aware",
+    "dhcp::service::tests::receive_once_admits_loopback_pktinfo_and_preserves_addresses",
+    "dhcp::service::tests::receive_once_rejects_ipv6_for_dhcpv4",
+    "dhcp::service::tests::socket_listener_processes_local_ack_and_replies_to_peer",
+    "interfaces::ipv4_snapshot::tests::isolated_fresh_snapshot_and_primary_address_need_no_spare_descriptor",
+    "interfaces::linux::tests::isolated_loopback_snapshot_matches_kernel_configuration",
+    "listeners::tests::dns_socket_bound_ipv4_metadata_policy",
+    "net::tests::static_dns_ipv4_preserves_zero_port_and_receive_errors",
+    "net::tests::tcp_pktoptions_identifies_loopback_for_both_families",
+    "net::tests::udp_source_and_truncation",
+    "tftp_listener::tests::dedicated_tid_idle_tick_and_cleanup_on_ipv4_and_ipv6",
+    "tftp_listener::tests::integrated_dual_stack_shares_capacity_and_pending_mac_does_not_block",
+    "tftp_listener::tests::port_range_upper_bound_exhaustion_and_zero_start"
+  ],
+  "original_bin_ignored_test_names": [
+    "tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind",
+    "tftp_admission_tests::tftp_label_exception_resumes_the_original_rrq_without_another_packet",
+    "tftp_admission_tests::tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector",
+    "tftp_admission_tests::tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name"
+  ],
+  "excluded_full_oracle_driver_names": [
+    "dns::cache::transfer_tests::exact_c_transfer_probe",
+    "dns::daemon::cache_tests::exact_c_oracle_driver",
+    "dns::daemon::lease_cache_tests::exact_c_lease_cache_driver",
+    "dns::daemon::stale_tests::exact_c_stale_driver"
+  ],
+  "original_ignored_inventories_reconciled": true,
+  "all_ten_log_hashes_rechecked": true,
+  "both_artifact_hashes_rechecked": true,
+  "all_builds_and_tests_exited": true,
+  "owned_live_processes": [],
+  "raw_result_sha256": "7d2dea3cd44e9c9e930353a82ced09f55afd09b6b3417df1c7d3f71a78ee091a",
+  "verified_receipt_sha256": "d63e14d8024798fa94d1486b68698e44696a2dbcfc5ad6e0df8bddea1b5fe384",
+  "limitations": [
+    "Native musl debug related functional gates; four complete exact-C oracle drivers remain excluded. This is not full44/candidate qualification or performance acceptance.",
+    "The exact source was copied independently from immutable F and three Git-bound files were replaced; F and candidate179-file manifests remained unchanged after execution.",
+    "Raw logs and test binaries remain on Oracle; only derived receipts were transferred. No router access or deployment was performed.",
+    "All gate processes exited before handing the Oracle slot to the separately frozen native480 screen."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
