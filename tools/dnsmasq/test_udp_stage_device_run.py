@@ -96,7 +96,7 @@ class StageGateTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             stage_report(folder, None)
 
-    def run_controller_failure(self, partial_archive):
+    def run_controller_failure(self, partial_archive, cleanup_fault=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
@@ -112,12 +112,17 @@ class StageGateTests(unittest.TestCase):
             return root
         argv = ['udp_stage_device_run.py', '--plan', str(plan), '--health-baseline', str(health),
                 '--stage-hash', '0' * 64, '--out', str(out)]
-        with patch('sys.argv', argv), patch.object(stage, 'verify_files'), patch.object(stage, 'set_slots'), \
+        def ssh(command, **kwargs):
+            if cleanup_fault and command.startswith('cat '):
+                raise TimeoutError('guard copy timeout')
+            return SimpleNamespace(stdout=b'', returncode=0)
+        fault = TimeoutError('cleanup timeout') if cleanup_fault else None
+        with patch('sys.argv', argv), patch.object(stage, 'verify_files'), patch.object(stage, 'set_slots') as slots, \
              patch.object(stage.run, 'production_identity', return_value=[1, 2]), \
-             patch.object(stage.run, 'ssh', return_value=SimpleNamespace(stdout=b'', returncode=0)), \
+             patch.object(stage.run, 'ssh', side_effect=ssh), \
              patch.object(stage.run, 'guard_start', return_value=(3, 4)), \
-             patch.object(stage.run, 'guard_check', return_value=True), patch.object(stage.run, 'guard_stop'), \
-             patch.object(stage.run, 'stop_owned'), patch.object(stage.run, 'external_health'), \
+             patch.object(stage.run, 'guard_check', return_value=True), patch.object(stage.run, 'guard_stop', side_effect=fault), \
+             patch.object(stage.run, 'stop_owned', side_effect=fault), patch.object(stage.run, 'external_health'), \
              patch.object(stage.run, 'archive_run', side_effect=archived) as archive, \
              patch.object(stage.run, 'validate', side_effect=ValueError('malformed client JSON')), \
              patch.object(stage.subprocess, 'Popen') as launch:
@@ -127,17 +132,26 @@ class StageGateTests(unittest.TestCase):
                 stage.main()
         archive.assert_called_once()
         launch.assert_called_once()
+        self.assertEqual(slots.call_count, 2)
+        self.assertEqual(slots.call_args.args[1:], ('e', 'f'))
         failure = json.loads((out / 'failure.json').read_text())
         self.assertEqual(failure['recovery']['archive_attempt_preserved'], schedule()[0]['label'])
         self.assertEqual(failure['recovery']['archive_manifest_complete'], not partial_archive)
         self.assertEqual((out / (schedule()[0]['label'] + '.tar.gz')).read_bytes(), b'first archive bytes')
         self.assertFalse((out / 'complete.json').exists())
+        self.assertTrue((out / 'restored.json').exists())
+        if cleanup_fault:
+            self.assertIn('cleanup timeout', failure['recovery']['stop_owned_error'])
+            self.assertEqual(len(json.loads((out / 'cleanup.json').read_text())['errors']), 3)
 
     def test_validator_exception_preserves_completed_archive_and_stops(self):
         self.run_controller_failure(partial_archive=False)
 
     def test_partial_archive_failure_preserves_first_bytes_and_stops(self):
         self.run_controller_failure(partial_archive=True)
+
+    def test_cleanup_timeouts_preserve_original_failure_and_attempt_restore(self):
+        self.run_controller_failure(partial_archive=False, cleanup_fault=True)
 
 
 if __name__ == '__main__':
