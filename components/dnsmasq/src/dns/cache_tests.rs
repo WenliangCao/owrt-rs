@@ -1,6 +1,49 @@
 use super::*;
 
 #[test]
+fn fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback() {
+    let address = |name: &str, value| Record { name: Name::from_ascii(name).unwrap(),
+        kind: Kind::Ipv4, negative: false, data: vec![192,0,2,value] };
+    let mut cache = Cache::new(4, Policy::default());
+    cache.start_insert();
+    let id = cache.insert(address("fresh.test",7),100,60).unwrap();
+    cache.insert(address("other.test",8),100,60).unwrap();
+    assert!(cache.commit());
+    let name = Name::from_ascii("fresh.test").unwrap();
+    let (_, hint) = cache.inspect_name(&name,100);
+    let before = (cache.head,cache.tail,cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv6,100,hint.as_ref()),None);
+    let other_question = name.clone();
+    assert_eq!(cache.single_fresh_address_with_hint(&other_question,Kind::Ipv4,100,hint.as_ref()),None);
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,100,hint.as_ref()),Some(id));
+    assert_eq!(cache.head,Some(id.slot));
+    let (_, hint) = cache.inspect_name(&name,100);
+    let before = (cache.head,cache.tail,cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,160,hint.as_ref()),None);
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert!(cache.get(id).is_some(),"fast rejection must not expire the fallback's entry");
+    assert!(cache.lookup_with_hint(&name,&[Kind::Ipv4],160,true,hint.as_ref()).is_empty());
+    assert!(cache.get(id).is_none());
+
+    cache.start_insert();
+    cache.insert(address("fresh.test",1),200,60).unwrap();
+    assert!(cache.commit());
+    let (_, old_hint) = cache.inspect_name(&name,200);
+    cache.start_insert();
+    cache.insert(address("fresh.test",2),200,60).unwrap();
+    cache.insert(address("fresh.test",3),200,60).unwrap();
+    assert!(cache.commit());
+    let before = (cache.head,cache.tail,cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,200,old_hint.as_ref()),None);
+    let (_, many) = cache.inspect_name(&name,200);
+    assert!(many.is_none());
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,200,many.as_ref()),None);
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert_eq!(cache.lookup_with_hint(&name,&[Kind::Ipv4],200,true,many.as_ref()).len(),2);
+}
+
+#[test]
 fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
     let mut cache = Cache::new(8, Policy::default());
     cache.start_insert();
