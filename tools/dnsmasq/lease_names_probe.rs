@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "D" => {
                 let expiry: i64 = fields[1].parse()?;
                 inputs.push(LeaseInput {
-                    name: fields[3].as_bytes().to_vec(),
+                    name: fields[3].as_bytes().into(),
                     address: fields[2].parse()?,
                     expires: (expiry != 0).then_some(expiry),
                 });

@@ -818,7 +818,7 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
                         let (mut replacement, removed) = local.try_replace_source_with_leases(
                             2, b"/hostsdir/hosts", records, 37,
                             leases.active_entries().map(|lease| (
-                                lease.name.as_slice(), IpAddr::V4(lease.address),
+                                lease.name.as_ref(), IpAddr::V4(lease.address),
                                 lease.reverse, lease.expires.is_none(),
                             )),
                             [2],

@@ -12,6 +12,7 @@ use crate::hosts::Hosts;
 use std::borrow::Cow;
 use std::collections::{hash_map::Entry, HashMap};
 use std::net::{IpAddr, Ipv4Addr};
+use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug)]
 pub struct LeasePolicy {
@@ -112,14 +113,14 @@ impl PublicationCache for () {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LeaseInput {
-    pub name: Vec<u8>,
+    pub name: Arc<[u8]>,
     pub address: Ipv4Addr,
     pub expires: Option<i64>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LeaseName {
-    pub name: Vec<u8>,
+    pub name: Arc<[u8]>,
     pub address: Ipv4Addr,
     pub expires: Option<i64>,
     /// Publication-time ownership. Expiring a different PTR owner does not
@@ -152,7 +153,7 @@ pub struct LeaseNames {
     /// Per-reader cache visibility. Arc copy-on-write preserves the state a
     /// TCP child inherited while expiry removals remain local to that reader.
     active: Vec<bool>,
-    forward: HashMap<Vec<u8>, LeaseIds>,
+    forward: HashMap<Arc<[u8]>, LeaseIds>,
     reverse: HashMap<Ipv4Addr, usize>,
     non_terminals: HashMap<Vec<u8>, Option<i64>>,
     warnings: Vec<PublicationWarning>,
@@ -202,7 +203,7 @@ impl LeaseNames {
             inputs: records
                 .iter()
                 .map(|record| LeaseInput {
-                    name: record.name.to_vec(),
+                    name: Arc::from(record.name),
                     address: record.address,
                     expires: record.expires,
                 })
@@ -210,8 +211,8 @@ impl LeaseNames {
             policy,
             ..Self::default()
         };
-        for record in records {
-            result.add(*record, hosts, cnames, cache);
+        for (index, record) in records.iter().enumerate() {
+            result.add(*record, index, hosts, cnames, cache);
         }
         result
     }
@@ -354,6 +355,7 @@ impl LeaseNames {
     fn add(
         &mut self,
         record: DnsLeaseRecord<'_>,
+        input: usize,
         hosts: &mut Hosts,
         cnames: &[Cname],
         cache: &mut impl PublicationCache,
@@ -427,7 +429,14 @@ impl LeaseNames {
         let id = self.entries.len();
         let expires = record.expires.filter(|&expires| expires != 0);
         let immortal = expires.is_none();
-        match self.forward.entry(key.as_ref().to_vec()) {
+        // Borrowed canonical bytes are identical to the retained input. Mixed
+        // case keeps its original spelling and gets a separate lowercase key.
+        let forward_key = if matches!(key, Cow::Borrowed(_)) {
+            Arc::clone(&self.inputs[input].name)
+        } else {
+            Arc::from(key.as_ref())
+        };
+        match self.forward.entry(forward_key) {
             Entry::Vacant(entry) => {
                 entry.insert(LeaseIds::One(id));
             }
@@ -457,7 +466,7 @@ impl LeaseNames {
             }
         }
         self.entries.push(LeaseName {
-            name: record.name.to_vec(),
+            name: Arc::clone(&self.inputs[input].name),
             address: record.address,
             expires,
             reverse,
@@ -529,6 +538,17 @@ mod tests {
         ]);
     }
 
+    #[test]
+    fn canonical_index_does_not_change_retained_or_reverse_name_spelling() {
+        let records = [input(b"MiXeD.Example", 7, Some(1000))];
+        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        for generation in [&names, &names.rebuild(&mut Hosts::new(), &[], &mut ())] {
+            assert_eq!(generation.inputs()[0].name.as_ref(), b"MiXeD.Example");
+            assert_eq!(generation.lookup(b"mixed.example", 100).next().unwrap().name.as_ref(), b"MiXeD.Example");
+            assert_eq!(generation.reverse(records[0].address, 100).unwrap().name.as_ref(), b"MiXeD.Example");
+        }
+    }
+
     // Expected cases were first observed using exact C cache.c and
     // rfc1035.c, indexed in docs/dnsmasq/LEASE_NAMES_PHASE.md.
     #[test]
@@ -544,7 +564,7 @@ mod tests {
         };
         let names = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
         assert_eq!(
-            names.reverse(records[0].address, 999).unwrap().name,
+            names.reverse(records[0].address, 999).unwrap().name.as_ref(),
             b"lease.example"
         );
         assert_eq!(
