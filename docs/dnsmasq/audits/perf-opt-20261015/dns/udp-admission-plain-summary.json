@@ -1,0 +1,604 @@
+{
+  "scope": "One fixed quiet native screen, not whole-daemon acceptance.",
+  "reservation": "udp-admission-plain1",
+  "hashes": {
+    "baseline": "524e9a108553ecf457943b8cdc4a15852d9b6c5f6f9d10cc0c77e15adc66decb",
+    "candidate": "9feb67560b1a171ba332d7d4667ac07408a917ae6751400975e652b0f1899373"
+  },
+  "operations": 2000000,
+  "declared_windows": 50,
+  "runs": [
+    {
+      "scene": "hit",
+      "pair": 1,
+      "side": "baseline",
+      "cpu_ns": 1241208000,
+      "wall_ns": 1266058338,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 1,
+      "side": "candidate",
+      "cpu_ns": 1192161000,
+      "wall_ns": 1216019521,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 2,
+      "side": "candidate",
+      "cpu_ns": 1183890000,
+      "wall_ns": 1215954920,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 2,
+      "side": "baseline",
+      "cpu_ns": 1245789000,
+      "wall_ns": 1266514261,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 3,
+      "side": "baseline",
+      "cpu_ns": 1238417000,
+      "wall_ns": 1266283539,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 3,
+      "side": "candidate",
+      "cpu_ns": 1185887000,
+      "wall_ns": 1216120881,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 4,
+      "side": "candidate",
+      "cpu_ns": 1187145000,
+      "wall_ns": 1216309683,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 4,
+      "side": "baseline",
+      "cpu_ns": 1240505000,
+      "wall_ns": 1266228458,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 5,
+      "side": "baseline",
+      "cpu_ns": 1238700000,
+      "wall_ns": 1266242939,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit",
+      "pair": 5,
+      "side": "candidate",
+      "cpu_ns": 1186798000,
+      "wall_ns": 1216351723,
+      "returncode": 0,
+      "checksum": 3784130000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 1,
+      "side": "baseline",
+      "cpu_ns": 1272735000,
+      "wall_ns": 1316320395,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 1,
+      "side": "candidate",
+      "cpu_ns": 1220168000,
+      "wall_ns": 1265992217,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 2,
+      "side": "candidate",
+      "cpu_ns": 1223237000,
+      "wall_ns": 1265905616,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 2,
+      "side": "baseline",
+      "cpu_ns": 1267982000,
+      "wall_ns": 1316051353,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 3,
+      "side": "baseline",
+      "cpu_ns": 1273049000,
+      "wall_ns": 1315976552,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 3,
+      "side": "candidate",
+      "cpu_ns": 1212394000,
+      "wall_ns": 1216143721,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 4,
+      "side": "candidate",
+      "cpu_ns": 1212430000,
+      "wall_ns": 1216247482,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 4,
+      "side": "baseline",
+      "cpu_ns": 1262078000,
+      "wall_ns": 1266111577,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 5,
+      "side": "baseline",
+      "cpu_ns": 1272677000,
+      "wall_ns": 1316525996,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "hit-upper",
+      "pair": 5,
+      "side": "candidate",
+      "cpu_ns": 1212211000,
+      "wall_ns": 1216090841,
+      "returncode": 0,
+      "checksum": 3289090000
+    },
+    {
+      "scene": "miss",
+      "pair": 1,
+      "side": "baseline",
+      "cpu_ns": 875874000,
+      "wall_ns": 915395338,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 1,
+      "side": "candidate",
+      "cpu_ns": 815698000,
+      "wall_ns": 865373002,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 2,
+      "side": "candidate",
+      "cpu_ns": 815745000,
+      "wall_ns": 865427922,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 2,
+      "side": "baseline",
+      "cpu_ns": 875657000,
+      "wall_ns": 915479058,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 3,
+      "side": "baseline",
+      "cpu_ns": 875876000,
+      "wall_ns": 915547779,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 3,
+      "side": "candidate",
+      "cpu_ns": 819498000,
+      "wall_ns": 865440162,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 4,
+      "side": "candidate",
+      "cpu_ns": 821714000,
+      "wall_ns": 865482123,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 4,
+      "side": "baseline",
+      "cpu_ns": 880124000,
+      "wall_ns": 915636180,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 5,
+      "side": "baseline",
+      "cpu_ns": 883330000,
+      "wall_ns": 915838021,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "miss",
+      "pair": 5,
+      "side": "candidate",
+      "cpu_ns": 813949000,
+      "wall_ns": 815547027,
+      "returncode": 0,
+      "checksum": 2000000
+    },
+    {
+      "scene": "host",
+      "pair": 1,
+      "side": "baseline",
+      "cpu_ns": 1566798000,
+      "wall_ns": 1617406700,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 1,
+      "side": "candidate",
+      "cpu_ns": 1511331000,
+      "wall_ns": 1516360659,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 2,
+      "side": "candidate",
+      "cpu_ns": 1512780000,
+      "wall_ns": 1516377899,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 2,
+      "side": "baseline",
+      "cpu_ns": 1576877000,
+      "wall_ns": 1616604813,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 3,
+      "side": "baseline",
+      "cpu_ns": 1577340000,
+      "wall_ns": 1616639413,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 3,
+      "side": "candidate",
+      "cpu_ns": 1509880000,
+      "wall_ns": 1517215906,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 4,
+      "side": "candidate",
+      "cpu_ns": 1518249000,
+      "wall_ns": 1566643677,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 4,
+      "side": "baseline",
+      "cpu_ns": 1569855000,
+      "wall_ns": 1616498852,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 5,
+      "side": "baseline",
+      "cpu_ns": 1575719000,
+      "wall_ns": 1616479251,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "host",
+      "pair": 5,
+      "side": "candidate",
+      "cpu_ns": 1497151000,
+      "wall_ns": 1516231257,
+      "returncode": 0,
+      "checksum": 5552000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 1,
+      "side": "baseline",
+      "cpu_ns": 1456043000,
+      "wall_ns": 1466150720,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 1,
+      "side": "candidate",
+      "cpu_ns": 1425202000,
+      "wall_ns": 1466248161,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 2,
+      "side": "candidate",
+      "cpu_ns": 1424997000,
+      "wall_ns": 1466250041,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 2,
+      "side": "baseline",
+      "cpu_ns": 1456732000,
+      "wall_ns": 1466144240,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 3,
+      "side": "baseline",
+      "cpu_ns": 1456548000,
+      "wall_ns": 1466164600,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 3,
+      "side": "candidate",
+      "cpu_ns": 1425309000,
+      "wall_ns": 1466203840,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 4,
+      "side": "candidate",
+      "cpu_ns": 1424334000,
+      "wall_ns": 1466198321,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 4,
+      "side": "baseline",
+      "cpu_ns": 1457791000,
+      "wall_ns": 1466119919,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 5,
+      "side": "baseline",
+      "cpu_ns": 1456360000,
+      "wall_ns": 1466162440,
+      "returncode": 0,
+      "checksum": 952000000
+    },
+    {
+      "scene": "malformed",
+      "pair": 5,
+      "side": "candidate",
+      "cpu_ns": 1424936000,
+      "wall_ns": 1466271560,
+      "returncode": 0,
+      "checksum": 952000000
+    }
+  ],
+  "summaries": [
+    {
+      "scene": "hit",
+      "cpu_ns": {
+        "baseline": [
+          1241208000,
+          1245789000,
+          1238417000,
+          1240505000,
+          1238700000
+        ],
+        "candidate": [
+          1192161000,
+          1183890000,
+          1185887000,
+          1187145000,
+          1186798000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline": 1240505000,
+        "candidate": 1186798000
+      },
+      "change_percent": -4.329446475427345,
+      "W_percent": 0.6969172512929749,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "hit-upper",
+      "cpu_ns": {
+        "baseline": [
+          1272735000,
+          1267982000,
+          1273049000,
+          1262078000,
+          1272677000
+        ],
+        "candidate": [
+          1220168000,
+          1223237000,
+          1212394000,
+          1212430000,
+          1212211000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline": 1272677000,
+        "candidate": 1212430000
+      },
+      "change_percent": -4.733879845396749,
+      "W_percent": 0.9094133269549584,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "miss",
+      "cpu_ns": {
+        "baseline": [
+          875874000,
+          875657000,
+          875876000,
+          880124000,
+          883330000
+        ],
+        "candidate": [
+          815698000,
+          815745000,
+          819498000,
+          821714000,
+          813949000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline": 875876000,
+        "candidate": 815745000
+      },
+      "change_percent": -6.865241198525817,
+      "W_percent": 0.9518906030683609,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "host",
+      "cpu_ns": {
+        "baseline": [
+          1566798000,
+          1576877000,
+          1577340000,
+          1569855000,
+          1575719000
+        ],
+        "candidate": [
+          1511331000,
+          1512780000,
+          1509880000,
+          1518249000,
+          1497151000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline": 1575719000,
+        "candidate": 1511331000
+      },
+      "change_percent": -4.08626157328813,
+      "W_percent": 1.3959880396815787,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "malformed",
+      "cpu_ns": {
+        "baseline": [
+          1456043000,
+          1456732000,
+          1456548000,
+          1457791000,
+          1456360000
+        ],
+        "candidate": [
+          1425202000,
+          1424997000,
+          1425309000,
+          1424334000,
+          1424936000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline": 1456548000,
+        "candidate": 1424997000
+      },
+      "change_percent": -2.166149004358253,
+      "W_percent": 0.12000977654014836,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    }
+  ],
+  "complete": true,
+  "raw_result_sha256": "9a938e166fb40957acdfff3458d975019855285ef78bb0769264eac485825beb",
+  "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "candidate_source": "c1ea66f6491241e4eed02c4de92f60e158320fe0",
+  "interpretation": "All five fixed controls improve beyond within-side variation with five concordant pairs. Advance to combined-candidate correctness and whole-daemon/device screening; not a daemon/device claim."
+}
