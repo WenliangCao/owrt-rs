@@ -1,0 +1,1024 @@
+{
+  "scope": "Independent F-based ordinary-address dispatcher layout; Mac allocation controls and local Linux-target final ELF disassembly only",
+  "source": "26aefa79",
+  "base": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "moved_general_body_bytes": 6779,
+  "tests": {
+    "passed": 714,
+    "ignored_existing": 8,
+    "log_sha256": "f84c24ad9a8023df84b0cbdfe376d36f4c6f6b4313ce19ff75036afe56cd071d"
+  },
+  "allocation": {
+    "scope": "Mac allocation-only public-answer diagnostic; no CPU performance claim, no Oracle activity",
+    "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+    "commands": [
+      {
+        "label": "F-lib",
+        "argv": [
+          "cargo",
+          "build",
+          "--locked",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+          "--lib",
+          "--release",
+          "--target-dir",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cargo",
+          "-j",
+          "1"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-probe",
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "-C",
+          "opt-level=3",
+          "-C",
+          "panic=abort",
+          "-C",
+          "lto=true",
+          "-C",
+          "codegen-units=1",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cargo/release/libdnsmasq_rs.rlib",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cargo/release/deps",
+          "/Users/USER/Developer/owrt-perf-opt-20261015/docs/dnsmasq/audits/perf-opt-20261015/dns/hotpath_probe_v2.rs",
+          "--cfg",
+          "allocation_tracking",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-lib",
+        "argv": [
+          "cargo",
+          "build",
+          "--locked",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/components/dnsmasq/Cargo.toml",
+          "--lib",
+          "--release",
+          "--target-dir",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cargo",
+          "-j",
+          "1"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-probe",
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "-C",
+          "opt-level=3",
+          "-C",
+          "panic=abort",
+          "-C",
+          "lto=true",
+          "-C",
+          "codegen-units=1",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cargo/release/libdnsmasq_rs.rlib",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cargo/release/deps",
+          "/Users/USER/Developer/owrt-perf-opt-20261015/docs/dnsmasq/audits/perf-opt-20261015/dns/hotpath_probe_v2.rs",
+          "--cfg",
+          "allocation_tracking",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-hit",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "hit",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-hit",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "hit",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-hit-upper",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "hit-upper",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-hit-upper",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "hit-upper",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-hit-leases",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "hit-leases",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-hit-leases",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "hit-leases",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-hit-typed",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "hit-typed",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-hit-typed",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "hit-typed",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-miss",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "miss",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-miss",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "miss",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-miss-leases",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "miss-leases",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-miss-leases",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "miss-leases",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-host",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "host",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-host",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "host",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-host-localise",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "host-localise",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-host-localise",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "host-localise",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-raw-address",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "raw-address",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-raw-address",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "raw-address",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-synth-address",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "synth-address",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-synth-address",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "synth-address",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-lease-address",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "lease-address",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-lease-address",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "lease-address",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-rrset",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "rrset",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-rrset",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "rrset",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-cname",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "cname",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-cname",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "cname",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-cname-leases",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "cname-leases",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-cname-leases",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "cname-leases",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "F-cname-config",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/F-probe",
+          "cname-config",
+          "8000"
+        ],
+        "status": 0
+      },
+      {
+        "label": "dispatch-cname-config",
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/dispatch-probe",
+          "cname-config",
+          "8000"
+        ],
+        "status": 0
+      }
+    ],
+    "artifacts": {
+      "F": "c83d60b4812aa12e76a5347c7ebc50a29d3b4d5e5982e4167b9ea121c64b1e9d",
+      "dispatch": "b901a1d1476d8a371eba390b2f7ebc484c6b4e69d5568f2bbcd54b753f5c25af"
+    },
+    "counts": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "F"
+      },
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "F"
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "F"
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "hit-typed",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "F"
+      },
+      {
+        "scene": "hit-typed",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0,
+        "side": "F"
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0,
+        "side": "dispatch"
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0,
+        "side": "F"
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0,
+        "side": "dispatch"
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "F"
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "host-localise",
+        "operations": 8000,
+        "allocations": 69600,
+        "reallocations": 16960,
+        "requested_bytes": 7146880,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "F"
+      },
+      {
+        "scene": "host-localise",
+        "operations": 8000,
+        "allocations": 69600,
+        "reallocations": 16960,
+        "requested_bytes": 7118720,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "raw-address",
+        "operations": 8000,
+        "allocations": 72000,
+        "reallocations": 0,
+        "requested_bytes": 4057600,
+        "live_bytes_delta": 0,
+        "checksum": 625600,
+        "side": "F"
+      },
+      {
+        "scene": "raw-address",
+        "operations": 8000,
+        "allocations": 72000,
+        "reallocations": 0,
+        "requested_bytes": 4057600,
+        "live_bytes_delta": 0,
+        "checksum": 625600,
+        "side": "dispatch"
+      },
+      {
+        "scene": "synth-address",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4245400,
+        "live_bytes_delta": 0,
+        "checksum": 460280,
+        "side": "F"
+      },
+      {
+        "scene": "synth-address",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4245400,
+        "live_bytes_delta": 0,
+        "checksum": 460280,
+        "side": "dispatch"
+      },
+      {
+        "scene": "lease-address",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 3712000,
+        "live_bytes_delta": 0,
+        "checksum": 440000,
+        "side": "F"
+      },
+      {
+        "scene": "lease-address",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 3712000,
+        "live_bytes_delta": 0,
+        "checksum": 440000,
+        "side": "dispatch"
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400,
+        "side": "F"
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400,
+        "side": "dispatch"
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800,
+        "side": "F"
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800,
+        "side": "F"
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800,
+        "side": "dispatch"
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800,
+        "side": "F"
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800,
+        "side": "dispatch"
+      }
+    ],
+    "complete": true
+  },
+  "linux_target_final_link": {
+    "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+    "target": "aarch64-unknown-linux-musl",
+    "codegen_flags": [
+      "-Cforce-unwind-tables=no",
+      "-Crelocation-model=pie",
+      "-Ctarget-feature=+crt-static"
+    ],
+    "sources": {
+      "F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "dispatch": "26aefa79"
+    },
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/F-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-6baa13a0d0788820.rlib"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/dispatch-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private/address-dispatch/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-0fa300a98abe1f54.rlib"
+        ],
+        "returncode": 0
+      }
+    ],
+    "outputs": {
+      "F": {
+        "sha256": "d4a612f559c64e46f24eba014c49e273ab774211c3988ca8bc43c76c96e95900",
+        "bytes": 5015032
+      },
+      "dispatch": {
+        "sha256": "41e253073b10f9351fb054794ca25961cf5fdbc66ccdb4fbbef62e13cf205b2b",
+        "bytes": 5015048
+      }
+    },
+    "functions": {
+      "F": {
+        "answer_parsed_with_query_events": {
+          "symbol": "_RNvMs_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "sha256": "a64729942af4e599e5dae80d2b38d18c3cd288e106ddfd67148f69c28fb682c4",
+          "static_instructions": 3508,
+          "prologue": [
+            "",
+            "private/address-dispatch/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+            "",
+            "Disassembly of section .text:",
+            "",
+            "0000000000317ad0 <_RNvMs_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+            "  317ad0:      \tstr\td10, [sp, #-0x80]!",
+            "  317ad4:      \tstp\td9, d8, [sp, #0x10]",
+            "  317ad8:      \tstp\tx29, x30, [sp, #0x20]",
+            "  317adc:      \tadd\tx29, sp, #0x20",
+            "  317ae0:      \tstp\tx28, x27, [sp, #0x30]",
+            "  317ae4:      \tstp\tx26, x25, [sp, #0x40]",
+            "  317ae8:      \tstp\tx24, x23, [sp, #0x50]",
+            "  317aec:      \tstp\tx22, x21, [sp, #0x60]",
+            "  317af0:      \tstp\tx20, x19, [sp, #0x70]",
+            "  317af4:      \tsub\tsp, sp, #0x2d0",
+            "  317af8:      \tldp\tx25, x23, [x29, #0x68]",
+            "  317afc:      \tmov\tw8, #0x8                // =8",
+            "  317b00:      \tldrsh\tw27, [x4, #0x2]",
+            "  317b04:      \tldr\tx10, [x29, #0x80]",
+            "  317b08:      \tldrb\tw9, [x29, #0x78]",
+            "  317b0c:      \tldr\tx24, [x29, #0x60]",
+            "  317b10:      \tstp\txzr, x8, [sp, #0x130]",
+            "  317b14:      \ttst\tw27, #0x7800"
+          ],
+          "stack_adjustments": [
+            "317af4:      \tsub\tsp, sp, #0x2d0",
+            "317ba0:      \tadd\tsp, sp, #0x2d0",
+            "31aa48:      \tadd\tsp, sp, #0x2d0"
+          ]
+        },
+        "add_local_records_for_name": {
+          "symbol": "_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name",
+          "sha256": "8c4da7eccf24235a9a23399901d39f2e92c65062eaf5ba13a3bb4bcf73e1c080",
+          "static_instructions": 2510,
+          "prologue": [
+            "",
+            "private/address-dispatch/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+            "",
+            "Disassembly of section .text:",
+            "",
+            "000000000031c5bc <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name>:",
+            "  31c5bc:      \tstr\td10, [sp, #-0x80]!",
+            "  31c5c0:      \tstp\td9, d8, [sp, #0x10]",
+            "  31c5c4:      \tstp\tx29, x30, [sp, #0x20]",
+            "  31c5c8:      \tadd\tx29, sp, #0x20",
+            "  31c5cc:      \tstp\tx28, x27, [sp, #0x30]",
+            "  31c5d0:      \tstp\tx26, x25, [sp, #0x40]",
+            "  31c5d4:      \tstp\tx24, x23, [sp, #0x50]",
+            "  31c5d8:      \tstp\tx22, x21, [sp, #0x60]",
+            "  31c5dc:      \tstp\tx20, x19, [sp, #0x70]",
+            "  31c5e0:      \tsub\tsp, sp, #0x500",
+            "  31c5e4:      \tstr\txzr, [sp]",
+            "  31c5e8:      \tstr\tx7, [sp, #0x50]",
+            "  31c5ec:      \tldp\tx7, x25, [x29, #0x60]",
+            "  31c5f0:      \tand\tw8, w5, #0xffff",
+            "  31c5f4:      \tmov\tw20, w5",
+            "  31c5f8:      \tmov\tx22, x4",
+            "  31c5fc:      \tmov\tx26, x3",
+            "  31c600:      \tmov\tx19, x1"
+          ],
+          "stack_adjustments": [
+            "31c5e0:      \tsub\tsp, sp, #0x500",
+            "31e890:      \tadd\tsp, sp, #0x500"
+          ]
+        },
+        "add_address_records_for_name": {
+          "symbol": "_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "sha256": "019cd94eb29c5233a7890d903539704a054c8ca7287a1ee2a702aec3299ab01f",
+          "static_instructions": 1136,
+          "prologue": [
+            "",
+            "private/address-dispatch/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+            "",
+            "Disassembly of section .text:",
+            "",
+            "0000000000321cc4 <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local28add_address_records_for_name>:",
+            "  321cc4:      \tstp\tx29, x30, [sp, #-0x60]!",
+            "  321cc8:      \tstp\tx28, x27, [sp, #0x10]",
+            "  321ccc:      \tmov\tx29, sp",
+            "  321cd0:      \tstp\tx26, x25, [sp, #0x20]",
+            "  321cd4:      \tstp\tx24, x23, [sp, #0x30]",
+            "  321cd8:      \tstp\tx22, x21, [sp, #0x40]",
+            "  321cdc:      \tstp\tx20, x19, [sp, #0x50]",
+            "  321ce0:      \tsub\tsp, sp, #0x1a0",
+            "  321ce4:      \tmov\tw9, #0x2                // =2",
+            "  321ce8:      \tldp\tx10, x28, [x29, #0x60]",
+            "  321cec:      \tstur\tx9, [x29, #-0xb0]",
+            "  321cf0:      \tsub\tx9, x29, #0xb8",
+            "  321cf4:      \tmov\tw12, #0x100             // =256",
+            "  321cf8:      \tadd\tx20, x9, #0x10",
+            "  321cfc:      \tmov\tx9, x1",
+            "  321d00:      \tsturh\tw12, [x29, #-0xa8]",
+            "  321d04:      \tstr\tx10, [sp, #0xc0]",
+            "  321d08:      \tldur\tx12, [x6, #0x25]"
+          ],
+          "stack_adjustments": [
+            "321ce0:      \tsub\tsp, sp, #0x1a0",
+            "322e18:      \tadd\tsp, sp, #0x1a0"
+          ]
+        }
+      },
+      "dispatch": {
+        "answer_parsed_with_query_events": {
+          "symbol": "_RNvMs_NtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "sha256": "80ce4da2669cc8528081a821ea7542c777be011a62778c48e8ad657e87fdd51c",
+          "static_instructions": 3628,
+          "prologue": [
+            "",
+            "private/address-dispatch/cross-daemon-final/dispatch-daemon-elf:\tfile format elf64-littleaarch64",
+            "",
+            "Disassembly of section .text:",
+            "",
+            "0000000000317aa0 <_RNvMs_NtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+            "  317aa0:      \tstr\td10, [sp, #-0x80]!",
+            "  317aa4:      \tstp\td9, d8, [sp, #0x10]",
+            "  317aa8:      \tstp\tx29, x30, [sp, #0x20]",
+            "  317aac:      \tadd\tx29, sp, #0x20",
+            "  317ab0:      \tstp\tx28, x27, [sp, #0x30]",
+            "  317ab4:      \tstp\tx26, x25, [sp, #0x40]",
+            "  317ab8:      \tstp\tx24, x23, [sp, #0x50]",
+            "  317abc:      \tstp\tx22, x21, [sp, #0x60]",
+            "  317ac0:      \tstp\tx20, x19, [sp, #0x70]",
+            "  317ac4:      \tsub\tsp, sp, #0x2d0",
+            "  317ac8:      \tldp\tx25, x23, [x29, #0x68]",
+            "  317acc:      \tmov\tx28, x0",
+            "  317ad0:      \tldrsh\tw27, [x4, #0x2]",
+            "  317ad4:      \tldr\tx10, [x29, #0x80]",
+            "  317ad8:      \tmov\tw8, #0x8                // =8",
+            "  317adc:      \tldrb\tw9, [x29, #0x78]",
+            "  317ae0:      \tldr\tx24, [x29, #0x60]",
+            "  317ae4:      \tstp\txzr, x8, [sp, #0x130]"
+          ],
+          "stack_adjustments": [
+            "317ac4:      \tsub\tsp, sp, #0x2d0",
+            "317b74:      \tadd\tsp, sp, #0x2d0",
+            "31a910:      \tadd\tsp, sp, #0x2d0"
+          ]
+        },
+        "add_general_local_records_for_name": {
+          "symbol": "_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local34add_general_local_records_for_name",
+          "sha256": "df736a1acba6b6753c561ebb3e516462b2e3bb8dd31db5b3c674023deb7cad6f",
+          "static_instructions": 3164,
+          "prologue": [
+            "",
+            "private/address-dispatch/cross-daemon-final/dispatch-daemon-elf:\tfile format elf64-littleaarch64",
+            "",
+            "Disassembly of section .text:",
+            "",
+            "000000000031d92c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local34add_general_local_records_for_name>:",
+            "  31d92c:      \tstr\td10, [sp, #-0x80]!",
+            "  31d930:      \tstp\td9, d8, [sp, #0x10]",
+            "  31d934:      \tstp\tx29, x30, [sp, #0x20]",
+            "  31d938:      \tadd\tx29, sp, #0x20",
+            "  31d93c:      \tstp\tx28, x27, [sp, #0x30]",
+            "  31d940:      \tstp\tx26, x25, [sp, #0x40]",
+            "  31d944:      \tstp\tx24, x23, [sp, #0x50]",
+            "  31d948:      \tstp\tx22, x21, [sp, #0x60]",
+            "  31d94c:      \tstp\tx20, x19, [sp, #0x70]",
+            "  31d950:      \tsub\tsp, sp, #0x4e0",
+            "  31d954:      \tstr\txzr, [sp]",
+            "  31d958:      \tand\tw8, w5, #0xffff",
+            "  31d95c:      \tmov\tw22, w5",
+            "  31d960:      \tmov\tx19, x1",
+            "  31d964:      \tcmp\tw8, #0xff",
+            "  31d968:      \tstp\tx0, x7, [sp, #0x30]",
+            "  31d96c:      \tstr\tw6, [sp, #0x74]",
+            "  31d970:      \tstr\tx4, [sp, #0xa0]"
+          ],
+          "stack_adjustments": [
+            "31d950:      \tsub\tsp, sp, #0x4e0",
+            "32059c:      \tadd\tsp, sp, #0x4e0"
+          ]
+        },
+        "add_address_records_for_name": {
+          "symbol": "_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "sha256": "78af9876e6cba16d7332ee2c631b634ec05fd83bbd087e679132cd71be7fcd65",
+          "static_instructions": 1136,
+          "prologue": [
+            "",
+            "private/address-dispatch/cross-daemon-final/dispatch-daemon-elf:\tfile format elf64-littleaarch64",
+            "",
+            "Disassembly of section .text:",
+            "",
+            "000000000031c76c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local28add_address_records_for_name>:",
+            "  31c76c:      \tstp\tx29, x30, [sp, #-0x60]!",
+            "  31c770:      \tstp\tx28, x27, [sp, #0x10]",
+            "  31c774:      \tmov\tx29, sp",
+            "  31c778:      \tstp\tx26, x25, [sp, #0x20]",
+            "  31c77c:      \tstp\tx24, x23, [sp, #0x30]",
+            "  31c780:      \tstp\tx22, x21, [sp, #0x40]",
+            "  31c784:      \tstp\tx20, x19, [sp, #0x50]",
+            "  31c788:      \tsub\tsp, sp, #0x1a0",
+            "  31c78c:      \tmov\tw9, #0x2                // =2",
+            "  31c790:      \tldp\tx10, x28, [x29, #0x60]",
+            "  31c794:      \tstur\tx9, [x29, #-0xb0]",
+            "  31c798:      \tsub\tx9, x29, #0xb8",
+            "  31c79c:      \tmov\tw12, #0x100             // =256",
+            "  31c7a0:      \tadd\tx20, x9, #0x10",
+            "  31c7a4:      \tmov\tx9, x1",
+            "  31c7a8:      \tsturh\tw12, [x29, #-0xa8]",
+            "  31c7ac:      \tstr\tx10, [sp, #0xc0]",
+            "  31c7b0:      \tldur\tx12, [x6, #0x25]"
+          ],
+          "stack_adjustments": [
+            "31c788:      \tsub\tsp, sp, #0x1a0",
+            "31d8c0:      \tadd\tsp, sp, #0x1a0"
+          ]
+        }
+      }
+    }
+  },
+  "observations": [
+    "The dispatcher wrapper was inlined into its callers. The ordinary address path calls the original add_address_records_for_name directly.",
+    "In these local Linux-target binaries, entry frame stays848B; the removed dispatcher frame is1408B; the address helper stays512B. This is a specific call-chain saving, not total maximum stack or runtime.",
+    "The out-of-line general handler has a1376B frame and3164 static instructions; it is not marked cold and still handles raw address/ANY/non-address records.",
+    "All30 allocation controls have equal call counts/checksums/live balance. Only existing host-localise requested-byte variability remains.",
+    "These ELFs use Rust bundled musl and rust-lld; SDK build, native instruction/cycle and plain/device timing remain pending. No combination with outer reply layout or allocation prototypes is selected."
+  ]
+}
