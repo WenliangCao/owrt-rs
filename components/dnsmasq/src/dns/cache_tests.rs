@@ -436,6 +436,35 @@ fn wrapped_minimum_ttl_expires_before_now_instead_of_saturating() {
 }
 
 #[test]
+fn insertion_name_key_keeps_binary_case_and_snapshot_replacement_semantics() {
+    use super::super::wire::decode_name;
+    for byte in 0..=255 {
+        let (original, _) = decode_name(&[3, 0, byte, b'A', 0], 0, 0).unwrap();
+        let (canonical, _) = decode_name(&original.canonical_wire(), 0, 0).unwrap();
+        let mut cache = Cache::new(2, Policy::default());
+        cache.start_insert();
+        cache.insert(Record { name: canonical.clone(), kind: Kind::Ipv4,
+            negative: false, data: vec![1] }, 100, 60).unwrap();
+        assert!(cache.commit());
+        let mut retained = cache.snapshot();
+        cache.start_insert();
+        let id = cache.insert(Record { name: original.clone(), kind: Kind::Ipv4,
+            negative: false, data: vec![2] }, 100, 60).unwrap();
+        assert!(cache.commit());
+        assert_eq!(cache.get(id).unwrap().record.name, original);
+        for question in [&original, &canonical] {
+            let found = cache.lookup(question, &[Kind::Ipv4], 100, false);
+            assert_eq!(found, [id]);
+            let old = retained.lookup(question, &[Kind::Ipv4], 100, false);
+            assert_eq!(old.len(), 1);
+            assert_eq!(retained.get(old[0]).unwrap().record.data, [1]);
+        }
+        check_ownership(&cache);
+        check_ownership(&retained);
+    }
+}
+
+#[test]
 fn live_maximum_ttl_follows_cname_scan_and_leaves_other_sections_alone() {
     use super::super::wire::{Message, PacketWriter, Section};
     let alias = Name::from_ascii("alias.clip.test").unwrap();
