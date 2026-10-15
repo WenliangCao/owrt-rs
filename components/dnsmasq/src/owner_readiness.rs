@@ -121,6 +121,7 @@ impl OwnerReadiness {
         // A descriptor can have multiple original slots. Merge requested
         // masks for registration, then expand results to every original slot.
         for fd in fds {
+            if fd.fd < 0 { continue; } // poll ignores these placeholders.
             if let Some(row) = self.desired.iter_mut().find(|row| row.fd == fd.fd) {
                 if fd.events & !(POLLIN | POLLOUT) != 0 { return Err(io::ErrorKind::InvalidInput.into()); }
                 row.mask |= fd.events;
@@ -219,6 +220,7 @@ impl OwnerReadiness {
         }
         let mut direct = 0;
         for fd in fds.iter_mut() {
+            if fd.fd < 0 { fd.revents = 0; continue; }
             if !self.registered.iter().any(|row| row.fd == fd.fd) {
                 fd.revents = self.direct[direct].revents;
                 direct += 1;

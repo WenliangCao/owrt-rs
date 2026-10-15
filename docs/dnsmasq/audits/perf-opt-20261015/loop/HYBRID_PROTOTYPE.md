@@ -49,6 +49,9 @@ With no direct entries, one epoll_wait uses the original timeout. Mixed sets
 use ppoll on direct entries plus the aggregate fd, then at most one nonblocking
 event extraction sized for all registered members. No LT drain-to-empty loop,
 RDHUP translation, signal-mask change or new timer policy is introduced.
+Negative-fd placeholders remain zero in the original result but do not create
+a spurious direct entry; a probe without an ICMP socket can use the same
+single-wait path when all its actual descriptors are eligible.
 EINTR repeats the supplied timeout as in the existing wrapper. Internal
 error/stale-only fallback retains the remaining original wait budget: an
 internal wake cannot masquerade as a full idle quarter-second to a DHCP probe.

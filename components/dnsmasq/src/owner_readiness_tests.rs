@@ -28,11 +28,14 @@ fn duplicate_masks_expand_and_subset_excludes_other_ready_owner() {
     let (socket, mut peer) = pair();
     let (quiet, _quiet_peer) = pair();
     let mut owner = owner();
-    let mut fds = [interest(socket.as_raw_fd(), POLLIN), interest(socket.as_raw_fd(), POLLOUT)];
+    let mut fds = [interest(socket.as_raw_fd(), POLLIN), interest(socket.as_raw_fd(), POLLOUT),
+        PollFd { fd: -1, events: POLLIN, revents: 0x20 }];
     owner.watch(0, Key::Tcp(1));
     owner.watch(1, Key::Tcp(1));
     assert_eq!(owner.wait(&mut fds, 0).unwrap(), 1);
     assert_eq!((fds[0].revents, fds[1].revents), (0, POLLOUT));
+    assert_eq!(fds[2].revents, 0);
+    assert!(owner.direct.is_empty(), "ignored probe placeholders need no outer poll");
     peer.write_all(b"x").unwrap();
     assert_eq!(owner.wait(&mut fds, 0).unwrap(), 2);
     assert_eq!((fds[0].revents, fds[1].revents), (POLLIN, POLLOUT));
