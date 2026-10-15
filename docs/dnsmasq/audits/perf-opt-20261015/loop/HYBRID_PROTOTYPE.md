@@ -2,9 +2,9 @@
 
 Base: immutable E repair `4f869c885b47dcf60d56c872e5b0b3c62237beea`.
 This separate branch contains an unqualified prototype, not a change to E.
-No router or Oracle command was used. Local Rust 1.98.1 `cargo check --frozen
---jobs 1 --target aarch64-unknown-linux-musl --tests` passes; Linux tests have
-only been type-checked, not executed.
+Initial preparation used local Rust 1.98.1 `cargo check --frozen --jobs 1
+--target aarch64-unknown-linux-musl --tests`; later authorized Linux evidence
+is recorded separately below. No router was accessed.
 
 The private binary module `owner_readiness.rs` takes the existing complete
 PollFd slice plus marked eligible slots. It does not replace the shared ubus
@@ -69,7 +69,7 @@ waits do not keep paying optional kernel callbacks. Later large waits have
 none; returning to a small set can register again. Both transition costs must
 be counted alongside steady fallback.
 
-Eight Linux tests cover SDK event layout, duplicate masks and subset removal,
+The initial eight Linux tests cover SDK event layout, duplicate masks and subset removal,
 mixed direct regular-file readiness and unsupported registration fallback,
 numeric fd replacement with a new generation/EOF comparison, initial NVAL,
 64 simultaneously ready members and 65-entry fallback, stale-only wake idle
@@ -83,7 +83,22 @@ subsequent normal signal drain and real UDP progress, and an expired ready TCP
 client followed by a new client/probe turn with no inherited readiness. The
 fixture has a real DnsDaemon; a missing-daemon draft was caught statically
 before execution. Their module hook is included and the complete Linux-target
-test build was cross-checked again. These two tests also remain unexecuted.
+test build was cross-checked again.
+
+After the coordinator released Oracle, the frozen f404337f prototype was built
+with one job as a native Linux test artifact (`a216151d…`), verified against
+the full baseline/patch/source manifest. Its eight module and two caller
+controls passed in the existing net/mount/PID wrapper. This is not SDK/full
+candidate qualification. Both source and outputs remain in the private
+`hybrid-linux-20261015` attempt and are not overwritten by later fixes.
+
+Independent actual-code review identified two remaining timeout details:
+successful registration preparation must consume the caller's wait budget,
+and a mixed aggregate wake with zero extracted/member readiness must not return
+an early idle result. The follow-up uses the same remaining-time calculation
+on success/fallback and a direct remaining-budget wait after empty extraction.
+A ninth module control covers those two boundaries. The updated version needs
+a new Linux artifact/run; the ten earlier passes do not transfer to it.
 
 Before candidate eligibility, count actual initialization/teardown, memory
 layout, optional fd/watch cost, registration/mask churn, all-ready and large

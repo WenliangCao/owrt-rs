@@ -187,22 +187,24 @@ impl OwnerReadiness {
             self.disable();
             return fallback_wait(fds, timeout_ms, started);
         }
-        if self.desired.is_empty() { return sys::poll_fds(fds, timeout_ms); }
+        if self.desired.is_empty() { return fallback_wait(fds, timeout_ms, started); }
         for fd in fds.iter_mut() { fd.revents = 0; }
         let direct_count = self.direct.len();
+        let mut internal_wake = false;
         let count = if direct_count == 0 {
-            match self.collect(timeout_ms) {
+            match self.collect(remaining_timeout(timeout_ms, started)) {
                 Ok(count) => count,
                 Err(_) => { self.disable(); return fallback_wait(fds, timeout_ms, started); }
             }
         } else {
             self.direct.push(PollFd { fd: self.epoll.as_ref().unwrap().as_raw_fd(), events: POLLIN, revents: 0 });
-            sys::poll_fds(&mut self.direct, timeout_ms)?;
+            sys::poll_fds(&mut self.direct, remaining_timeout(timeout_ms, started))?;
             let group = self.direct[direct_count].revents;
             if group & !POLLIN != 0 {
                 self.disable(); return fallback_wait(fds, timeout_ms, started);
             }
             if group == 0 { 0 } else {
+                internal_wake = true;
                 match self.collect(0) {
                     Ok(count) => count,
                     Err(_) => { self.disable(); return fallback_wait(fds, timeout_ms, started); }
@@ -226,18 +228,27 @@ impl OwnerReadiness {
                 direct += 1;
             }
         }
-        Ok(fds.iter().filter(|fd| fd.revents != 0).count())
+        finish_wait(fds, timeout_ms, started, internal_wake)
+    }
+}
+
+fn remaining_timeout(timeout_ms: i32, started: Instant) -> i32 {
+    if timeout_ms < 0 { -1 } else {
+        Duration::from_millis(timeout_ms as u64).saturating_sub(started.elapsed())
+            .as_nanos().div_ceil(1_000_000).min(i32::MAX as u128) as i32
     }
 }
 
 fn fallback_wait(fds: &mut [PollFd], timeout_ms: i32, started: Instant) -> io::Result<usize> {
-    // An internal wake/error is not a completed caller idle interval. This
-    // matters for DHCP probe waits, which count a full quiet quarter-second.
-    let remaining = if timeout_ms < 0 { -1 } else {
-        Duration::from_millis(timeout_ms as u64).saturating_sub(started.elapsed())
-            .as_nanos().div_ceil(1_000_000).min(i32::MAX as u128) as i32
-    };
-    sys::poll_fds(fds, remaining)
+    sys::poll_fds(fds, remaining_timeout(timeout_ms, started))
+}
+
+fn finish_wait(fds: &mut [PollFd], timeout_ms: i32, started: Instant, internal_wake: bool) -> io::Result<usize> {
+    let ready = fds.iter().filter(|fd| fd.revents != 0).count();
+    // An aggregate wake may no longer have a ready member at extraction. It
+    // does not complete the caller's quiet interval, especially in probe waits.
+    if internal_wake && ready == 0 { fallback_wait(fds, timeout_ms, started) }
+    else { Ok(ready) }
 }
 
 #[cfg(test)]

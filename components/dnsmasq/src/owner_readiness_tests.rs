@@ -163,3 +163,16 @@ fn internal_extraction_failure_keeps_the_remaining_idle_budget() {
     assert!(start.elapsed() >= Duration::from_millis(20));
     assert!(owner.epoll.is_none());
 }
+
+#[test]
+fn preparation_time_and_empty_extraction_preserve_the_original_wait_budget() {
+    let expired = Instant::now() - Duration::from_millis(40);
+    assert_eq!(remaining_timeout(20, expired), 0);
+    assert_eq!(remaining_timeout(-1, expired), -1);
+    assert!(remaining_timeout(20, Instant::now() - Duration::from_millis(15)) <= 5);
+    let (socket, _peer) = pair();
+    let mut fds = [interest(socket.as_raw_fd(), POLLIN)];
+    let started = Instant::now();
+    assert_eq!(finish_wait(&mut fds, 20, started, true).unwrap(), 0);
+    assert!(started.elapsed() >= Duration::from_millis(20));
+}
