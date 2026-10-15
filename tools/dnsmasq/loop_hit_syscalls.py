@@ -211,9 +211,14 @@ def main():
     args = parser.parse_args()
     p = args.capture
     client = json.loads((p / 'client.json').read_text())
+    complete = json.loads((p / 'complete.json').read_text())
+    tail = json.loads((p / 'tree-tail.json').read_text())
+    assert complete['valid_count_profile'] and complete['tree_tail_complete']
+    assert tail['complete'] and not tail['remaining_children']
+    assert not client['interrupted'] and not client['output_failed']
     for phase, expected in (('warmup', 1000), ('measurement', 4000)):
         counts = client[phase]
-        assert counts['sent'] == counts['correct'] == expected
+        assert counts['scheduled'] == counts['sent'] == counts['correct'] == expected
         assert all(counts[key] == 0 for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
     identity = json.loads((p / 'process-identity.json').read_text())
     root_pid = identity['pid']
@@ -226,6 +231,7 @@ def main():
               'root_pid': root_pid, 'processes': sorted(pids), 'fork_parent_by_pid': trace['parents'],
               'observed_exited_pids': trace['exited'], 'incomplete_entered_calls': trace['incomplete_entries'],
               'exec_calls': trace['execs'], 'queries': queries,
+              'tree_tail': tail,
               'client_counts': {key: client[key] for key in ('warmup', 'measurement')},
               'whole_tree': aggregate(trace['calls'], pids, queries),
               'parent_only': aggregate(trace['calls'], [root_pid], queries),
