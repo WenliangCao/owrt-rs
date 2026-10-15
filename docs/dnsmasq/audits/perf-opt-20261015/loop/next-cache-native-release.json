@@ -1,0 +1,36 @@
+{
+  "status": "NATIVE_THREE_ROUNDS_COMPLETE_HOST_RELEASED_FOR_AUTHORIZED_NONTIMING_WORK",
+  "checked_at_utc": "2026-10-15T23:25:19.114236+00:00",
+  "runs": [
+    {
+      "candidate": "cold-metadata",
+      "pid": 574939,
+      "complete": true,
+      "windows": 240,
+      "commands": 244
+    },
+    {
+      "candidate": "fresh-frame",
+      "pid": 578413,
+      "complete": true,
+      "windows": 240,
+      "commands": 244
+    },
+    {
+      "candidate": "host-miss",
+      "pid": 581820,
+      "complete": true,
+      "windows": 240,
+      "commands": 244
+    }
+  ],
+  "windows_total": 720,
+  "commands_total": 732,
+  "research_processes": [],
+  "locks_available": [
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock"
+  ],
+  "SDK32_started": false,
+  "raw_measurements_unchanged": true
+}

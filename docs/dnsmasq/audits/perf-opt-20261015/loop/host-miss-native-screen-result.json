@@ -1,0 +1,6894 @@
+{
+  "scope": "Independent F/host-miss native hot15 screen, whole-process counts/CPU; prior data separate; not SDK or device acceptance",
+  "raw_result_sha256": "e814e83642aed36b9ff2df813d80b7a8ef510ee29182459b129126609c82dcc3",
+  "plan_sha256": "29abda2498088fe043cfe9442fed416afc85915fc0eea99276edfb1d38651dea",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "artifacts": {
+    "F": {
+      "elf_sha256": "aac9f2e033fda3d6ef14216640bf961402b48138d614b89633974543d23c1dcc",
+      "rlib_sha256": "0166df8c53409f7589eaf5743749d4e6a89487df797a4bd6e278a080a5dcdfe1"
+    },
+    "host-miss": {
+      "elf_sha256": "ed25e3fe20d9b23d9e3bf5f2e63d95902edccb839a43556fc57f0e72597de229",
+      "rlib_sha256": "00d9f285cb904100af486b9cf94dc46eadeaf41c9289e00fdca36702a9e5b2c4"
+    }
+  },
+  "rows": [
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-stat-r1-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905080204,
+            "enabled_ns": 119177360,
+            "running_ns": 119177360,
+            "per_operation": 4525.40102
+          },
+          "cycles:u": {
+            "raw_count": 344897494,
+            "enabled_ns": 119177360,
+            "running_ns": 119177360,
+            "per_operation": 1724.48747
+          }
+        },
+        "user_ipc": 2.624200580593375,
+        "csv_sha256": "59141ca71b728b2fa0d147d4b6361ba4769dab99d205eafbf6bdfa2babac60f6"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-stat-r1-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 841178003,
+            "enabled_ns": 106918760,
+            "running_ns": 106918760,
+            "per_operation": 4205.890015
+          },
+          "cycles:u": {
+            "raw_count": 308624993,
+            "enabled_ns": 106918760,
+            "running_ns": 106918760,
+            "per_operation": 1543.124965
+          }
+        },
+        "user_ipc": 2.7255666977042265,
+        "csv_sha256": "8bc8d40513928d4f21f81365632c069e2dbd010270e6c82d0b5193e6442fec4e"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-stat-r2-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 841164957,
+            "enabled_ns": 105298520,
+            "running_ns": 105298520,
+            "per_operation": 4205.824785
+          },
+          "cycles:u": {
+            "raw_count": 307924713,
+            "enabled_ns": 105298520,
+            "running_ns": 105298520,
+            "per_operation": 1539.623565
+          }
+        },
+        "user_ipc": 2.731722792902303,
+        "csv_sha256": "26f9c249cafaa4798e0b3e2ba18b0b4e58e635d46a3fc3b776e155c39349ff7f"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-stat-r2-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905099354,
+            "enabled_ns": 117498880,
+            "running_ns": 117498880,
+            "per_operation": 4525.49677
+          },
+          "cycles:u": {
+            "raw_count": 344471419,
+            "enabled_ns": 117498880,
+            "running_ns": 117498880,
+            "per_operation": 1722.357095
+          }
+        },
+        "user_ipc": 2.627502033775406,
+        "csv_sha256": "05169d2386c62f1d8923781b9ef3f4a82aa3a100cea3fa8a6fb8dfbfdb9697fd"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-stat-r3-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905094981,
+            "enabled_ns": 117547240,
+            "running_ns": 117547240,
+            "per_operation": 4525.474905
+          },
+          "cycles:u": {
+            "raw_count": 344035630,
+            "enabled_ns": 117547240,
+            "running_ns": 117547240,
+            "per_operation": 1720.17815
+          }
+        },
+        "user_ipc": 2.630817572586886,
+        "csv_sha256": "ca1d059781bf2264f2b6175e14efb5b2f59702a8567bc3ff5a68df6d01eced73"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-stat-r3-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 841186615,
+            "enabled_ns": 105915600,
+            "running_ns": 105915600,
+            "per_operation": 4205.933075
+          },
+          "cycles:u": {
+            "raw_count": 309113420,
+            "enabled_ns": 105915600,
+            "running_ns": 105915600,
+            "per_operation": 1545.5671
+          }
+        },
+        "user_ipc": 2.721287917554663,
+        "csv_sha256": "214b507a9ee9431db7c6d2b9391d31e1f8a0d09a56c873d98cfb87298e1406d8"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-plain-r1-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1148234000,
+      "wall_ns": 1167544696
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-plain-r1-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1025557000,
+      "wall_ns": 1034652517
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-plain-r2-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1029843000,
+      "wall_ns": 1034661117
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-plain-r2-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1146023000,
+      "wall_ns": 1166968891
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-plain-r3-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1146226000,
+      "wall_ns": 1166944171
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-plain-r3-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1027208000,
+      "wall_ns": 1034697277
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-plain-r4-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1029813000,
+      "wall_ns": 1034824119
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-plain-r4-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1145397000,
+      "wall_ns": 1166923731
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-plain-r5-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1144438000,
+      "wall_ns": 1166854571
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-plain-r5-host-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1027521000,
+      "wall_ns": 1034765358
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-upper-stat-r1-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 928051982,
+            "enabled_ns": 120922840,
+            "running_ns": 120922840,
+            "per_operation": 4640.25991
+          },
+          "cycles:u": {
+            "raw_count": 354314290,
+            "enabled_ns": 120922840,
+            "running_ns": 120922840,
+            "per_operation": 1771.57145
+          }
+        },
+        "user_ipc": 2.619290297323317,
+        "csv_sha256": "23efb8c74f519d71127e8eff6d259033c18e2f657cf885fc5f2b9d6af911a7ae"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-upper-stat-r1-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 864117541,
+            "enabled_ns": 109343640,
+            "running_ns": 109343640,
+            "per_operation": 4320.587705
+          },
+          "cycles:u": {
+            "raw_count": 319316288,
+            "enabled_ns": 109343640,
+            "running_ns": 109343640,
+            "per_operation": 1596.58144
+          }
+        },
+        "user_ipc": 2.7061492741641793,
+        "csv_sha256": "a7f898c09a5834ad6cf5eb1635803f845ff8a55227b7b7f02649530948e9e5a1"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-upper-stat-r2-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 864129781,
+            "enabled_ns": 109555600,
+            "running_ns": 109555600,
+            "per_operation": 4320.648905
+          },
+          "cycles:u": {
+            "raw_count": 319446190,
+            "enabled_ns": 109555600,
+            "running_ns": 109555600,
+            "per_operation": 1597.23095
+          }
+        },
+        "user_ipc": 2.7050871415933933,
+        "csv_sha256": "03d9de6e7bae0e9593e81622704db0bc83dacd4fb9001bf6b18ca5d033f078e7"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-upper-stat-r2-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 928011157,
+            "enabled_ns": 120936880,
+            "running_ns": 120936880,
+            "per_operation": 4640.055785
+          },
+          "cycles:u": {
+            "raw_count": 354169131,
+            "enabled_ns": 120936880,
+            "running_ns": 120936880,
+            "per_operation": 1770.845655
+          }
+        },
+        "user_ipc": 2.6202485642375195,
+        "csv_sha256": "92faf528d78842434d93e52dbed6f39f51894ee4651a05df3abdc851d1772f6a"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-upper-stat-r3-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 927999472,
+            "enabled_ns": 121077080,
+            "running_ns": 121077080,
+            "per_operation": 4639.99736
+          },
+          "cycles:u": {
+            "raw_count": 354362887,
+            "enabled_ns": 121077080,
+            "running_ns": 121077080,
+            "per_operation": 1771.814435
+          }
+        },
+        "user_ipc": 2.618782908832098,
+        "csv_sha256": "ea164842779ec463ee44a5d60101c07b94b02b3f56bad594d115eb8fb0c113e6"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-upper-stat-r3-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 864084300,
+            "enabled_ns": 109496200,
+            "running_ns": 109496200,
+            "per_operation": 4320.4215
+          },
+          "cycles:u": {
+            "raw_count": 320181195,
+            "enabled_ns": 109496200,
+            "running_ns": 109496200,
+            "per_operation": 1600.905975
+          }
+        },
+        "user_ipc": 2.698735320792341,
+        "csv_sha256": "8af4b9a9287605edfcc9590ee6aac1f40ad42cd2dd8cd5fb16d55b2bdbbbf9eb"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-upper-plain-r1-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1179233000,
+      "wall_ns": 1203219191
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-upper-plain-r1-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1063188000,
+      "wall_ns": 1066776743
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-upper-plain-r2-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1061922000,
+      "wall_ns": 1066739062
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-upper-plain-r2-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1180789000,
+      "wall_ns": 1203297953
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-upper-plain-r3-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1179379000,
+      "wall_ns": 1203426913
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-upper-plain-r3-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1063391000,
+      "wall_ns": 1066760143
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-upper-plain-r4-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1058065000,
+      "wall_ns": 1066967025
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-upper-plain-r4-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1179774000,
+      "wall_ns": 1203558115
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-upper-plain-r5-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1180896000,
+      "wall_ns": 1203687756
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-upper-plain-r5-host-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1059763000,
+      "wall_ns": 1066896825
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-leases-stat-r1-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1080288470,
+            "enabled_ns": 137660320,
+            "running_ns": 137660320,
+            "per_operation": 5401.44235
+          },
+          "cycles:u": {
+            "raw_count": 403208376,
+            "enabled_ns": 137660320,
+            "running_ns": 137660320,
+            "per_operation": 2016.04188
+          }
+        },
+        "user_ipc": 2.679231222121239,
+        "csv_sha256": "aa9453259e071b487510da02c2f6ba6795d25260eac6b3109bc49b7cafa5919c"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-leases-stat-r1-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1016869828,
+            "enabled_ns": 125188120,
+            "running_ns": 125188120,
+            "per_operation": 5084.34914
+          },
+          "cycles:u": {
+            "raw_count": 366012469,
+            "enabled_ns": 125188120,
+            "running_ns": 125188120,
+            "per_operation": 1830.062345
+          }
+        },
+        "user_ipc": 2.7782382135183488,
+        "csv_sha256": "b2f5278b6bf24421774e45a717922ce3983abe8902e2468fa1a538db0accf6c3"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-leases-stat-r2-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1016842807,
+            "enabled_ns": 125088760,
+            "running_ns": 125088760,
+            "per_operation": 5084.214035
+          },
+          "cycles:u": {
+            "raw_count": 365798200,
+            "enabled_ns": 125088760,
+            "running_ns": 125088760,
+            "per_operation": 1828.991
+          }
+        },
+        "user_ipc": 2.7797917184939673,
+        "csv_sha256": "c097d818fe300d7f27983e7a8ac49af8a624b93eea3b1c45d31826a958c1b4bc"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-leases-stat-r2-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1080129162,
+            "enabled_ns": 137296840,
+            "running_ns": 137296840,
+            "per_operation": 5400.64581
+          },
+          "cycles:u": {
+            "raw_count": 402022608,
+            "enabled_ns": 137296840,
+            "running_ns": 137296840,
+            "per_operation": 2010.11304
+          }
+        },
+        "user_ipc": 2.6867373637852725,
+        "csv_sha256": "e747dc64364885a5bda06e3c88d2641a821d1a7202e9f4f8c3849ca606b02cea"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-leases-stat-r3-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1080274868,
+            "enabled_ns": 137534680,
+            "running_ns": 137534680,
+            "per_operation": 5401.37434
+          },
+          "cycles:u": {
+            "raw_count": 403000271,
+            "enabled_ns": 137534680,
+            "running_ns": 137534680,
+            "per_operation": 2015.001355
+          }
+        },
+        "user_ipc": 2.6805809964331266,
+        "csv_sha256": "02e8f395fd6fc6b6f9a8e769a38b5b2c9620eb506785f53fd409888c71a40443"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-leases-stat-r3-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1016938665,
+            "enabled_ns": 124875560,
+            "running_ns": 124875560,
+            "per_operation": 5084.693325
+          },
+          "cycles:u": {
+            "raw_count": 364939591,
+            "enabled_ns": 124875560,
+            "running_ns": 124875560,
+            "per_operation": 1824.697955
+          }
+        },
+        "user_ipc": 2.7865945216122086,
+        "csv_sha256": "428bed678a9d06d2a5384908ef5dd33ad01a7f983d768c0bd2f96085e5903070"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-leases-plain-r1-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1337808000,
+      "wall_ns": 1367478470
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-leases-plain-r1-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1216806000,
+      "wall_ns": 1219185125
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-leases-plain-r2-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1214840000,
+      "wall_ns": 1219216044
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-leases-plain-r2-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1340670000,
+      "wall_ns": 1367741273
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-leases-plain-r3-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1339612000,
+      "wall_ns": 1367676832
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-leases-plain-r3-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1218116000,
+      "wall_ns": 1219253165
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-leases-plain-r4-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1214990000,
+      "wall_ns": 1219383886
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-leases-plain-r4-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1340774000,
+      "wall_ns": 1367561392
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-leases-plain-r5-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1339930000,
+      "wall_ns": 1367865794
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-leases-plain-r5-host-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1215718000,
+      "wall_ns": 1219514807
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-typed-stat-r1-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905185480,
+            "enabled_ns": 117789800,
+            "running_ns": 117789800,
+            "per_operation": 4525.9274
+          },
+          "cycles:u": {
+            "raw_count": 345245753,
+            "enabled_ns": 117789800,
+            "running_ns": 117789800,
+            "per_operation": 1726.228765
+          }
+        },
+        "user_ipc": 2.621858407046067,
+        "csv_sha256": "5c0b55912bd4e350b0915740067089b9ef0b8ff3c936843c6d4cae76301ac0c1"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-hit-typed-stat-r1-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 841233878,
+            "enabled_ns": 105792400,
+            "running_ns": 105792400,
+            "per_operation": 4206.16939
+          },
+          "cycles:u": {
+            "raw_count": 308939703,
+            "enabled_ns": 105792400,
+            "running_ns": 105792400,
+            "per_operation": 1544.698515
+          }
+        },
+        "user_ipc": 2.722971084101806,
+        "csv_sha256": "7cbf464aea4174ae7304a665f4c7f673dcec57e33b1ff492be534d039358eff1"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-typed-stat-r2-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 841212299,
+            "enabled_ns": 105943880,
+            "running_ns": 105943880,
+            "per_operation": 4206.061495
+          },
+          "cycles:u": {
+            "raw_count": 309363820,
+            "enabled_ns": 105943880,
+            "running_ns": 105943880,
+            "per_operation": 1546.8191
+          }
+        },
+        "user_ipc": 2.7191683209756072,
+        "csv_sha256": "39e0ffad1e6cd1c89da39bf3f101a11775c28ef241a783c6a52b66475d4bb771"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-hit-typed-stat-r2-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905105215,
+            "enabled_ns": 117972280,
+            "running_ns": 117972280,
+            "per_operation": 4525.526075
+          },
+          "cycles:u": {
+            "raw_count": 345026906,
+            "enabled_ns": 117972280,
+            "running_ns": 117972280,
+            "per_operation": 1725.13453
+          }
+        },
+        "user_ipc": 2.623288790700862,
+        "csv_sha256": "baef55d9c808a82ab9a81dd76711b7e9ee68cff388254790d73d2672535f41e3"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-typed-stat-r3-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905120110,
+            "enabled_ns": 118009800,
+            "running_ns": 118009800,
+            "per_operation": 4525.60055
+          },
+          "cycles:u": {
+            "raw_count": 344890947,
+            "enabled_ns": 118009800,
+            "running_ns": 118009800,
+            "per_operation": 1724.454735
+          }
+        },
+        "user_ipc": 2.624366101439015,
+        "csv_sha256": "609ae4ec28aebe294099088d25a5c91d9f499e946c05c0871fe79b5a1d4256f1"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-hit-typed-stat-r3-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 841225227,
+            "enabled_ns": 105181760,
+            "running_ns": 105181760,
+            "per_operation": 4206.126135
+          },
+          "cycles:u": {
+            "raw_count": 307789550,
+            "enabled_ns": 105181760,
+            "running_ns": 105181760,
+            "per_operation": 1538.94775
+          }
+        },
+        "user_ipc": 2.7331182199005783,
+        "csv_sha256": "8d358b22b433f8c8081b6e07b6a43e5b22221e6902af0ce9cd75aeafa80d2097"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-typed-plain-r1-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1146798000,
+      "wall_ns": 1167884941
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-hit-typed-plain-r1-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1026590000,
+      "wall_ns": 1035689367
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-typed-plain-r2-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1024369000,
+      "wall_ns": 1035833848
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-hit-typed-plain-r2-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1148093000,
+      "wall_ns": 1168012382
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-typed-plain-r3-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1147913000,
+      "wall_ns": 1168078303
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-hit-typed-plain-r3-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1028215000,
+      "wall_ns": 1035712768
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-typed-plain-r4-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1028967000,
+      "wall_ns": 1035804408
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-hit-typed-plain-r4-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1150103000,
+      "wall_ns": 1168065862
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-typed-plain-r5-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1147676000,
+      "wall_ns": 1168144023
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-hit-typed-plain-r5-host-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1026450000,
+      "wall_ns": 1035780888
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-miss-stat-r1-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 576711300,
+            "enabled_ns": 75882880,
+            "running_ns": 75882880,
+            "per_operation": 2883.5565
+          },
+          "cycles:u": {
+            "raw_count": 220013082,
+            "enabled_ns": 75882880,
+            "running_ns": 75882880,
+            "per_operation": 1100.06541
+          }
+        },
+        "user_ipc": 2.621259130400255,
+        "csv_sha256": "71c4c787d71476b7480185cec22b522a7839aae8acd5c67856a6ed41df388949"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-miss-stat-r1-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 512797551,
+            "enabled_ns": 64653800,
+            "running_ns": 64653800,
+            "per_operation": 2563.987755
+          },
+          "cycles:u": {
+            "raw_count": 186604783,
+            "enabled_ns": 64653800,
+            "running_ns": 64653800,
+            "per_operation": 933.023915
+          }
+        },
+        "user_ipc": 2.7480407669936304,
+        "csv_sha256": "259dfa4529a5ab2f171b662e519e054dcbf234ab1d16630455e48c1d4391d5f9"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-miss-stat-r2-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 512796583,
+            "enabled_ns": 66178920,
+            "running_ns": 66178920,
+            "per_operation": 2563.982915
+          },
+          "cycles:u": {
+            "raw_count": 190700792,
+            "enabled_ns": 66178920,
+            "running_ns": 66178920,
+            "per_operation": 953.50396
+          }
+        },
+        "user_ipc": 2.689011291573451,
+        "csv_sha256": "8ecdee3e7dce89f73084c9291fd6a411234eb53cc69ef8f9459e9ede56f289a8"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-miss-stat-r2-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 576711692,
+            "enabled_ns": 75476160,
+            "running_ns": 75476160,
+            "per_operation": 2883.55846
+          },
+          "cycles:u": {
+            "raw_count": 219198579,
+            "enabled_ns": 75476160,
+            "running_ns": 75476160,
+            "per_operation": 1095.992895
+          }
+        },
+        "user_ipc": 2.631001052246785,
+        "csv_sha256": "59d2b92002543935a4195b0a2f5b6fdd3a12a03b2fa8a1d67a33aa7e6b132d9a"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-miss-stat-r3-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 576712244,
+            "enabled_ns": 75564520,
+            "running_ns": 75564520,
+            "per_operation": 2883.56122
+          },
+          "cycles:u": {
+            "raw_count": 219483445,
+            "enabled_ns": 75564520,
+            "running_ns": 75564520,
+            "per_operation": 1097.417225
+          }
+        },
+        "user_ipc": 2.6275888097163773,
+        "csv_sha256": "99679d3bde39f1fa8e6e3b31a5dd7d286b2ce0d9ea5e05bbc985f44eacb6a0fb"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-miss-stat-r3-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 512796899,
+            "enabled_ns": 64355200,
+            "running_ns": 64355200,
+            "per_operation": 2563.984495
+          },
+          "cycles:u": {
+            "raw_count": 185902987,
+            "enabled_ns": 64355200,
+            "running_ns": 64355200,
+            "per_operation": 929.514935
+          }
+        },
+        "user_ipc": 2.7584112943811925,
+        "csv_sha256": "f8cacc2c70ebb1020782823d8e9cc6d8246e3aaa9649ef9ed613330604407342"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-miss-plain-r1-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 733176000,
+      "wall_ns": 768145314
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-miss-plain-r1-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 621131000,
+      "wall_ns": 636056621
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-miss-plain-r2-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 621482000,
+      "wall_ns": 622173307
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-miss-plain-r2-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 734661000,
+      "wall_ns": 768147075
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-miss-plain-r3-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 734001000,
+      "wall_ns": 768052034
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-miss-plain-r3-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 618875000,
+      "wall_ns": 619775807
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-miss-plain-r4-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 625270000,
+      "wall_ns": 636749227
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-miss-plain-r4-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 733299000,
+      "wall_ns": 768290676
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-miss-plain-r5-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 733649000,
+      "wall_ns": 769414245
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-miss-plain-r5-host-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 622372000,
+      "wall_ns": 636105502
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-miss-leases-stat-r1-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 751848548,
+            "enabled_ns": 94958440,
+            "running_ns": 94958440,
+            "per_operation": 3759.24274
+          },
+          "cycles:u": {
+            "raw_count": 276585095,
+            "enabled_ns": 94958440,
+            "running_ns": 94958440,
+            "per_operation": 1382.925475
+          }
+        },
+        "user_ipc": 2.7183263364209846,
+        "csv_sha256": "3719afc9c6f66235a4c5038656821c79fdca4633125b19bb58cf570acc07d3b9"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-miss-leases-stat-r1-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 688464994,
+            "enabled_ns": 83355280,
+            "running_ns": 83355280,
+            "per_operation": 3442.32497
+          },
+          "cycles:u": {
+            "raw_count": 242388816,
+            "enabled_ns": 83355280,
+            "running_ns": 83355280,
+            "per_operation": 1211.94408
+          }
+        },
+        "user_ipc": 2.8403331694973915,
+        "csv_sha256": "53116ff94487af160959d5114254646a361868be66437501daa8d64add061ac3"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-miss-leases-stat-r2-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 688499467,
+            "enabled_ns": 83455360,
+            "running_ns": 83455360,
+            "per_operation": 3442.497335
+          },
+          "cycles:u": {
+            "raw_count": 242366611,
+            "enabled_ns": 83455360,
+            "running_ns": 83455360,
+            "per_operation": 1211.833055
+          }
+        },
+        "user_ipc": 2.8407356283906613,
+        "csv_sha256": "c0abf36117aa88942a60272fbd5426ef8e7beb3ed8766e3101926dc2103d6f3a"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-miss-leases-stat-r2-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 751838759,
+            "enabled_ns": 94968960,
+            "running_ns": 94968960,
+            "per_operation": 3759.193795
+          },
+          "cycles:u": {
+            "raw_count": 276875010,
+            "enabled_ns": 94968960,
+            "running_ns": 94968960,
+            "per_operation": 1384.37505
+          }
+        },
+        "user_ipc": 2.7154446296904875,
+        "csv_sha256": "6d3ed196ed92e3e3e3f0e16d350a1011bcb462ab587d943f6f668cfd44846bdf"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-miss-leases-stat-r3-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 751913789,
+            "enabled_ns": 95092480,
+            "running_ns": 95092480,
+            "per_operation": 3759.568945
+          },
+          "cycles:u": {
+            "raw_count": 277293024,
+            "enabled_ns": 95092480,
+            "running_ns": 95092480,
+            "per_operation": 1386.46512
+          }
+        },
+        "user_ipc": 2.71162172835621,
+        "csv_sha256": "7e8a5ba41549ed5be9862b7c879e7722df98fdb069cc4e752adf3df1884f1a26"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-miss-leases-stat-r3-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 688564514,
+            "enabled_ns": 83527920,
+            "running_ns": 83527920,
+            "per_operation": 3442.82257
+          },
+          "cycles:u": {
+            "raw_count": 242881330,
+            "enabled_ns": 83527920,
+            "running_ns": 83527920,
+            "per_operation": 1214.40665
+          }
+        },
+        "user_ipc": 2.8349832982222223,
+        "csv_sha256": "f7935789c78def86d7d69d5588aa1eb56293ca20997ea95f1ddf80e6979cb462"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-miss-leases-plain-r1-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 923701000,
+      "wall_ns": 969325899
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-miss-leases-plain-r1-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 815685000,
+      "wall_ns": 820482267
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-miss-leases-plain-r2-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 808049000,
+      "wall_ns": 812416560
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-miss-leases-plain-r2-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 924824000,
+      "wall_ns": 968798054
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-miss-leases-plain-r3-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 922284000,
+      "wall_ns": 968927576
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-miss-leases-plain-r3-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 807101000,
+      "wall_ns": 808359328
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-miss-leases-plain-r4-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 807408000,
+      "wall_ns": 808453208
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-miss-leases-plain-r4-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 923587000,
+      "wall_ns": 968921016
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-miss-leases-plain-r5-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 924090000,
+      "wall_ns": 970877752
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-miss-leases-plain-r5-host-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 807303000,
+      "wall_ns": 808936373
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-host-stat-r1-F",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1354039871,
+            "enabled_ns": 175850920,
+            "running_ns": 175850920,
+            "per_operation": 6770.199355
+          },
+          "cycles:u": {
+            "raw_count": 516988634,
+            "enabled_ns": 175850920,
+            "running_ns": 175850920,
+            "per_operation": 2584.94317
+          }
+        },
+        "user_ipc": 2.619090211952319,
+        "csv_sha256": "25dcfc9f88df8352ef6655a2dc41dfb03f4fbd4171187baea5bca416cb2cc868"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-host-stat-r1-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1440561113,
+            "enabled_ns": 187167640,
+            "running_ns": 187167640,
+            "per_operation": 7202.805565
+          },
+          "cycles:u": {
+            "raw_count": 550672832,
+            "enabled_ns": 187167640,
+            "running_ns": 187167640,
+            "per_operation": 2753.36416
+          }
+        },
+        "user_ipc": 2.6160017877911215,
+        "csv_sha256": "ea41c4c5915bbbe326c6e5c255e4dd1db0ab37e9ef79a47426f26612825c7624"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-host-stat-r2-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1451961124,
+            "enabled_ns": 187894680,
+            "running_ns": 187894680,
+            "per_operation": 7259.80562
+          },
+          "cycles:u": {
+            "raw_count": 553176426,
+            "enabled_ns": 187894680,
+            "running_ns": 187894680,
+            "per_operation": 2765.88213
+          }
+        },
+        "user_ipc": 2.6247704272199046,
+        "csv_sha256": "ee5184543dad5b0a0cfcd16baa1de02423ae51bed6f88a132e6f2a82ffe439d3"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-host-stat-r2-F",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1340625157,
+            "enabled_ns": 174161480,
+            "running_ns": 174161480,
+            "per_operation": 6703.125785
+          },
+          "cycles:u": {
+            "raw_count": 512906287,
+            "enabled_ns": 174161480,
+            "running_ns": 174161480,
+            "per_operation": 2564.531435
+          }
+        },
+        "user_ipc": 2.613781875908259,
+        "csv_sha256": "df639a0be7e1b0ebf5dc3fdfdfe3946dc919e3670ddefc6f17251d74e0eb41aa"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-host-stat-r3-F",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1362115421,
+            "enabled_ns": 176771360,
+            "running_ns": 176771360,
+            "per_operation": 6810.577105
+          },
+          "cycles:u": {
+            "raw_count": 520410024,
+            "enabled_ns": 176771360,
+            "running_ns": 176771360,
+            "per_operation": 2602.05012
+          }
+        },
+        "user_ipc": 2.617388901409785,
+        "csv_sha256": "2835586a66d667d35d53fdc4aad505d4a40489c8b45f10b51dffed0002767732"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-host-stat-r3-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1445909281,
+            "enabled_ns": 187737400,
+            "running_ns": 187737400,
+            "per_operation": 7229.546405
+          },
+          "cycles:u": {
+            "raw_count": 553206836,
+            "enabled_ns": 187737400,
+            "running_ns": 187737400,
+            "per_operation": 2766.03418
+          }
+        },
+        "user_ipc": 2.613686575991624,
+        "csv_sha256": "695e79c27b1fc169f0b2c630d9c2de6ffc7df23a71038267db2fb794c1fc7c8e"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-host-plain-r1-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1724661000,
+      "wall_ns": 1770028323
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-host-plain-r1-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1838131000,
+      "wall_ns": 1870497474
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-host-plain-r2-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1824949000,
+      "wall_ns": 1838170208
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-host-plain-r2-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1723178000,
+      "wall_ns": 1770057764
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-host-plain-r3-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1721276000,
+      "wall_ns": 1770206046
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-host-plain-r3-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1859356000,
+      "wall_ns": 1870220993
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-host-plain-r4-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1833836000,
+      "wall_ns": 1838268488
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-host-plain-r4-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1745772000,
+      "wall_ns": 1770248886
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-host-plain-r5-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1734279000,
+      "wall_ns": 1770234326
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-host-plain-r5-host-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1850792000,
+      "wall_ns": 1870194113
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-host-localise-stat-r1-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2573692733,
+            "enabled_ns": 325593720,
+            "running_ns": 325593720,
+            "per_operation": 12868.463665
+          },
+          "cycles:u": {
+            "raw_count": 962484744,
+            "enabled_ns": 325593720,
+            "running_ns": 325593720,
+            "per_operation": 4812.42372
+          }
+        },
+        "user_ipc": 2.674008859926407,
+        "csv_sha256": "319e34b515bc78fd355a9ebcdd41f12710cb30d8508f70d82b4dd7d7a37aaf53"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-host-localise-stat-r1-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2759770232,
+            "enabled_ns": 349414880,
+            "running_ns": 349414880,
+            "per_operation": 13798.85116
+          },
+          "cycles:u": {
+            "raw_count": 1032157294,
+            "enabled_ns": 349414880,
+            "running_ns": 349414880,
+            "per_operation": 5160.78647
+          }
+        },
+        "user_ipc": 2.6737884313202365,
+        "csv_sha256": "aa1674aa9de338afbdcb9c0231fc7ec1e9a2dd546ab7a90a653d02a8bee28bf8"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-host-localise-stat-r2-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2646464522,
+            "enabled_ns": 336332120,
+            "running_ns": 336332120,
+            "per_operation": 13232.32261
+          },
+          "cycles:u": {
+            "raw_count": 993353587,
+            "enabled_ns": 336332120,
+            "running_ns": 336332120,
+            "per_operation": 4966.767935
+          }
+        },
+        "user_ipc": 2.664171707470766,
+        "csv_sha256": "319460629b979a8993603c218284468caf80c4227b7b591f89e43be27c016c27"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-host-localise-stat-r2-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2578648903,
+            "enabled_ns": 326658240,
+            "running_ns": 326658240,
+            "per_operation": 12893.244515
+          },
+          "cycles:u": {
+            "raw_count": 965957980,
+            "enabled_ns": 326658240,
+            "running_ns": 326658240,
+            "per_operation": 4829.7899
+          }
+        },
+        "user_ipc": 2.6695249238481367,
+        "csv_sha256": "beb6983108f178cdaf353473154ab88ebe4ca1590c32dbfa46c38787048ad40a"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-host-localise-stat-r3-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2601105701,
+            "enabled_ns": 327999880,
+            "running_ns": 327999880,
+            "per_operation": 13005.528505
+          },
+          "cycles:u": {
+            "raw_count": 969347161,
+            "enabled_ns": 327999880,
+            "running_ns": 327999880,
+            "per_operation": 4846.735805
+          }
+        },
+        "user_ipc": 2.6833582493981223,
+        "csv_sha256": "94f04eb1d772213351df2a7e374ee426a9f8b6231eec35989eb1680aa33d155e"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-host-localise-stat-r3-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2713336674,
+            "enabled_ns": 344299520,
+            "running_ns": 344299520,
+            "per_operation": 13566.68337
+          },
+          "cycles:u": {
+            "raw_count": 1017996531,
+            "enabled_ns": 344299520,
+            "running_ns": 344299520,
+            "per_operation": 5089.982655
+          }
+        },
+        "user_ipc": 2.665369273247553,
+        "csv_sha256": "d0c7f805767a447b63d8a18939ecf6a004e23cb9c08e1b604830a024e250ce58"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-host-localise-plain-r1-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3208437000,
+      "wall_ns": 3209242512
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-host-localise-plain-r1-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3500773000,
+      "wall_ns": 3522242462
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-host-localise-plain-r2-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3404546000,
+      "wall_ns": 3408788724
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-host-localise-plain-r2-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3327417000,
+      "wall_ns": 3371937940
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-host-localise-plain-r3-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3248101000,
+      "wall_ns": 3271975672
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-host-localise-plain-r3-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3439783000,
+      "wall_ns": 3471847527
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-host-localise-plain-r4-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3325703000,
+      "wall_ns": 3371824979
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-host-localise-plain-r4-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3172895000,
+      "wall_ns": 3208650229
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-host-localise-plain-r5-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3270431000,
+      "wall_ns": 3274855457
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-host-localise-plain-r5-host-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3346379000,
+      "wall_ns": 3372031982
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-raw-address-stat-r1-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11628536788,
+            "enabled_ns": 1333990520,
+            "running_ns": 1333990520,
+            "per_operation": 58142.68394
+          },
+          "cycles:u": {
+            "raw_count": 3962778356,
+            "enabled_ns": 1333990520,
+            "running_ns": 1333990520,
+            "per_operation": 19813.89178
+          }
+        },
+        "user_ipc": 2.934440370704397,
+        "csv_sha256": "17753ac5884961cf322ae54ecb56926b8894a0ff85147e5686656720a3d6e895"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-raw-address-stat-r1-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11716686855,
+            "enabled_ns": 1348401520,
+            "running_ns": 1348401520,
+            "per_operation": 58583.434275
+          },
+          "cycles:u": {
+            "raw_count": 4004522912,
+            "enabled_ns": 1348401520,
+            "running_ns": 1348401520,
+            "per_operation": 20022.61456
+          }
+        },
+        "user_ipc": 2.925863358126792,
+        "csv_sha256": "f39a5d28a52c4305c32b502e5714bf8816a1576e0d79c8163755a2cb4b8940c9"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-raw-address-stat-r2-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11732399588,
+            "enabled_ns": 1351535480,
+            "running_ns": 1351535480,
+            "per_operation": 58661.99794
+          },
+          "cycles:u": {
+            "raw_count": 4012189704,
+            "enabled_ns": 1351535480,
+            "running_ns": 1351535480,
+            "per_operation": 20060.94852
+          }
+        },
+        "user_ipc": 2.924188648483706,
+        "csv_sha256": "dc931f1784e1447d3fa0bb6034e0d973dc2b330e29e4e158aa517d6aa61048d5"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-raw-address-stat-r2-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11629494185,
+            "enabled_ns": 1339122640,
+            "running_ns": 1339122640,
+            "per_operation": 58147.470925
+          },
+          "cycles:u": {
+            "raw_count": 3974849946,
+            "enabled_ns": 1339122640,
+            "running_ns": 1339122640,
+            "per_operation": 19874.24973
+          }
+        },
+        "user_ipc": 2.9257693606026756,
+        "csv_sha256": "59aaf785b9ebad27f9c446f0f38487ff8dad45d7c1abf3ddfa06c6dca53be3f2"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-raw-address-stat-r3-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11639152138,
+            "enabled_ns": 1339018800,
+            "running_ns": 1339018800,
+            "per_operation": 58195.76069
+          },
+          "cycles:u": {
+            "raw_count": 3974851530,
+            "enabled_ns": 1339018800,
+            "running_ns": 1339018800,
+            "per_operation": 19874.25765
+          }
+        },
+        "user_ipc": 2.928197959132325,
+        "csv_sha256": "37d5d02f8b0bc942b79aebc709b1f88a8a8096f74474129342c8091b11a80d8e"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-raw-address-stat-r3-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11741780410,
+            "enabled_ns": 1353898920,
+            "running_ns": 1353898920,
+            "per_operation": 58708.90205
+          },
+          "cycles:u": {
+            "raw_count": 4020294363,
+            "enabled_ns": 1353898920,
+            "running_ns": 1353898920,
+            "per_operation": 20101.471815
+          }
+        },
+        "user_ipc": 2.920627036185012,
+        "csv_sha256": "6e1d70eb6120413701f0d5cf6412d1a6ac31b73bb745078293f1e6fce72d212d"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-raw-address-plain-r1-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1343517000,
+      "wall_ns": 1371826031
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-raw-address-plain-r1-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1349798000,
+      "wall_ns": 1371887752
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-raw-address-plain-r2-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1347593000,
+      "wall_ns": 1371704911
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-raw-address-plain-r2-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338958000,
+      "wall_ns": 1371621431
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-raw-address-plain-r3-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1335187000,
+      "wall_ns": 1371866793
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-raw-address-plain-r3-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1349057000,
+      "wall_ns": 1371088146
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-raw-address-plain-r4-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1350257000,
+      "wall_ns": 1370907065
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-raw-address-plain-r4-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1335454000,
+      "wall_ns": 1370747143
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-raw-address-plain-r5-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1336271000,
+      "wall_ns": 1371088506
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-raw-address-plain-r5-host-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1349922000,
+      "wall_ns": 1370751624
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-synth-address-stat-r1-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1294228525,
+            "enabled_ns": 163644960,
+            "running_ns": 163644960,
+            "per_operation": 6471.142625
+          },
+          "cycles:u": {
+            "raw_count": 481068257,
+            "enabled_ns": 163644960,
+            "running_ns": 163644960,
+            "per_operation": 2405.341285
+          }
+        },
+        "user_ipc": 2.690322020145262,
+        "csv_sha256": "56046d46b4b6264b9d0ced3877513414c4741750509d002517b19b88c82e819e"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-synth-address-stat-r1-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1223154664,
+            "enabled_ns": 154552640,
+            "running_ns": 154552640,
+            "per_operation": 6115.77332
+          },
+          "cycles:u": {
+            "raw_count": 453095945,
+            "enabled_ns": 154552640,
+            "running_ns": 154552640,
+            "per_operation": 2265.479725
+          }
+        },
+        "user_ipc": 2.6995489090064577,
+        "csv_sha256": "622d3454f721ef04a80d5809dd3a9d2d41e0ca8e352c7f23f9a516eac2dd17a4"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-synth-address-stat-r2-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1223155104,
+            "enabled_ns": 150399760,
+            "running_ns": 150399760,
+            "per_operation": 6115.77552
+          },
+          "cycles:u": {
+            "raw_count": 442148036,
+            "enabled_ns": 150399760,
+            "running_ns": 150399760,
+            "per_operation": 2210.74018
+          }
+        },
+        "user_ipc": 2.766392711060239,
+        "csv_sha256": "58ce895315ab417e610964c8200a73fb4844a2a0f5ef83138c12b629443e51ca"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-synth-address-stat-r2-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1294228085,
+            "enabled_ns": 163368640,
+            "running_ns": 163368640,
+            "per_operation": 6471.140425
+          },
+          "cycles:u": {
+            "raw_count": 480868674,
+            "enabled_ns": 163368640,
+            "running_ns": 163368640,
+            "per_operation": 2404.34337
+          }
+        },
+        "user_ipc": 2.69143771465554,
+        "csv_sha256": "d65448d79b12b6abd67717456248880115d6e2820a777167117e9bca3eb19e6b"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-synth-address-stat-r3-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1294228557,
+            "enabled_ns": 163374160,
+            "running_ns": 163374160,
+            "per_operation": 6471.142785
+          },
+          "cycles:u": {
+            "raw_count": 479886822,
+            "enabled_ns": 163374160,
+            "running_ns": 163374160,
+            "per_operation": 2399.43411
+          }
+        },
+        "user_ipc": 2.6969453997634467,
+        "csv_sha256": "1b352411c0cd96353c588d1628730bc32eb7a5efcffdc485086693604f9bad5d"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-synth-address-stat-r3-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1223154228,
+            "enabled_ns": 150739320,
+            "running_ns": 150739320,
+            "per_operation": 6115.77114
+          },
+          "cycles:u": {
+            "raw_count": 442548176,
+            "enabled_ns": 150739320,
+            "running_ns": 150739320,
+            "per_operation": 2212.74088
+          }
+        },
+        "user_ipc": 2.7638894347177243,
+        "csv_sha256": "3cb30166314778b62026f1dd891e7164161831d7b7d931c511350745fbf91775"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-synth-address-plain-r1-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1607320000,
+      "wall_ns": 1607891786
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-synth-address-plain-r1-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1477768000,
+      "wall_ns": 1521397390
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-synth-address-plain-r2-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1475640000,
+      "wall_ns": 1521741993
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-synth-address-plain-r2-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1604477000,
+      "wall_ns": 1607803985
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-synth-address-plain-r3-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1606510000,
+      "wall_ns": 1608055348
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-synth-address-plain-r3-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1477303000,
+      "wall_ns": 1521426671
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-synth-address-plain-r4-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1476519000,
+      "wall_ns": 1521576912
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-synth-address-plain-r4-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1604993000,
+      "wall_ns": 1608003908
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-synth-address-plain-r5-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1604991000,
+      "wall_ns": 1608155349
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-synth-address-plain-r5-host-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1477483000,
+      "wall_ns": 1521874674
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-lease-address-stat-r1-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1138638877,
+            "enabled_ns": 142932600,
+            "running_ns": 142932600,
+            "per_operation": 5693.194385
+          },
+          "cycles:u": {
+            "raw_count": 419285357,
+            "enabled_ns": 142932600,
+            "running_ns": 142932600,
+            "per_operation": 2096.426785
+          }
+        },
+        "user_ipc": 2.7156657345417385,
+        "csv_sha256": "9620dc30e1a962cb3243acc1d1e488b15409cd391eb3d203218855b5b0befadb"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-lease-address-stat-r1-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1074284200,
+            "enabled_ns": 131737440,
+            "running_ns": 131737440,
+            "per_operation": 5371.421
+          },
+          "cycles:u": {
+            "raw_count": 385917049,
+            "enabled_ns": 131737440,
+            "running_ns": 131737440,
+            "per_operation": 1929.585245
+          }
+        },
+        "user_ipc": 2.783717907212749,
+        "csv_sha256": "6c78e6fb11298e0d3322d5f23d4a0f34af280c6e8514a8f45ee007d733c1eb02"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-lease-address-stat-r2-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1074457261,
+            "enabled_ns": 132628720,
+            "running_ns": 132628720,
+            "per_operation": 5372.286305
+          },
+          "cycles:u": {
+            "raw_count": 388705789,
+            "enabled_ns": 132628720,
+            "running_ns": 132628720,
+            "per_operation": 1943.528945
+          }
+        },
+        "user_ipc": 2.764191559287531,
+        "csv_sha256": "7ff0602753f951c0467e1eb65cdb31104f757b9daafc95f3d780f237bec16ee2"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-lease-address-stat-r2-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1138348509,
+            "enabled_ns": 143121480,
+            "running_ns": 143121480,
+            "per_operation": 5691.742545
+          },
+          "cycles:u": {
+            "raw_count": 419468505,
+            "enabled_ns": 143121480,
+            "running_ns": 143121480,
+            "per_operation": 2097.342525
+          }
+        },
+        "user_ipc": 2.7137877943899507,
+        "csv_sha256": "5952d3119c4fa3ef1070841af21e22aada092ac77a647f5979b7b9b164a82818"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-lease-address-stat-r3-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1138532279,
+            "enabled_ns": 142956400,
+            "running_ns": 142956400,
+            "per_operation": 5692.661395
+          },
+          "cycles:u": {
+            "raw_count": 418955438,
+            "enabled_ns": 142956400,
+            "running_ns": 142956400,
+            "per_operation": 2094.77719
+          }
+        },
+        "user_ipc": 2.717549829249382,
+        "csv_sha256": "98f9cba8d56bf22fae0047530ca7bef5a95bdda6380eb6b55de42b6d5d364f9d"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-lease-address-stat-r3-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1074499034,
+            "enabled_ns": 132204000,
+            "running_ns": 132204000,
+            "per_operation": 5372.49517
+          },
+          "cycles:u": {
+            "raw_count": 387508873,
+            "enabled_ns": 132204000,
+            "running_ns": 132204000,
+            "per_operation": 1937.544365
+          }
+        },
+        "user_ipc": 2.772837240297205,
+        "csv_sha256": "f0d2edeb871e0ca17f34b9a475ac6cd8ee6c8be96aed19954da7de402a97f005"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-lease-address-plain-r1-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1396028000,
+      "wall_ns": 1409137822
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-lease-address-plain-r1-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1290536000,
+      "wall_ns": 1322901428
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-lease-address-plain-r2-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1290480000,
+      "wall_ns": 1321821579
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-lease-address-plain-r2-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1394409000,
+      "wall_ns": 1408219094
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-lease-address-plain-r3-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1394232000,
+      "wall_ns": 1408339535
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-lease-address-plain-r3-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1290340000,
+      "wall_ns": 1321817620
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-lease-address-plain-r4-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1288661000,
+      "wall_ns": 1321796739
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-lease-address-plain-r4-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1394961000,
+      "wall_ns": 1408495337
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-lease-address-plain-r5-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1393541000,
+      "wall_ns": 1408510617
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-lease-address-plain-r5-host-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1288615000,
+      "wall_ns": 1322120382
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-rrset-stat-r1-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2519657495,
+            "enabled_ns": 300211160,
+            "running_ns": 300211160,
+            "per_operation": 12598.287475
+          },
+          "cycles:u": {
+            "raw_count": 887612080,
+            "enabled_ns": 300211160,
+            "running_ns": 300211160,
+            "per_operation": 4438.0604
+          }
+        },
+        "user_ipc": 2.838692207749133,
+        "csv_sha256": "7522b668e7b44721bad87dea16dfaa201aa24f420746057a6fa81d97b31b3811"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-rrset-stat-r1-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2455965611,
+            "enabled_ns": 292420920,
+            "running_ns": 292420920,
+            "per_operation": 12279.828055
+          },
+          "cycles:u": {
+            "raw_count": 863423566,
+            "enabled_ns": 292420920,
+            "running_ns": 292420920,
+            "per_operation": 4317.11783
+          }
+        },
+        "user_ipc": 2.844450519665339,
+        "csv_sha256": "ebefa4c3e7fe12ab266da0c3b30fcfec595105022d56f69cf0bd0e67dfd636a7"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-rrset-stat-r2-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2455966135,
+            "enabled_ns": 289868200,
+            "running_ns": 289868200,
+            "per_operation": 12279.830675
+          },
+          "cycles:u": {
+            "raw_count": 856090344,
+            "enabled_ns": 289868200,
+            "running_ns": 289868200,
+            "per_operation": 4280.45172
+          }
+        },
+        "user_ipc": 2.8688165357930964,
+        "csv_sha256": "e625c434d222cf157dc5d5a81a9a6747f0ca36efc9665e1dbf2d07305fca8756"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-rrset-stat-r2-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2519657674,
+            "enabled_ns": 299071280,
+            "running_ns": 299071280,
+            "per_operation": 12598.28837
+          },
+          "cycles:u": {
+            "raw_count": 883582613,
+            "enabled_ns": 299071280,
+            "running_ns": 299071280,
+            "per_operation": 4417.913065
+          }
+        },
+        "user_ipc": 2.8516379079089007,
+        "csv_sha256": "3e6c775814136f1ec8ec33a32fbd105e580545f549eeef3600d3ba08501d37bb"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-rrset-stat-r3-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2519658067,
+            "enabled_ns": 299465600,
+            "running_ns": 299465600,
+            "per_operation": 12598.290335
+          },
+          "cycles:u": {
+            "raw_count": 884259176,
+            "enabled_ns": 299465600,
+            "running_ns": 299465600,
+            "per_operation": 4421.29588
+          }
+        },
+        "user_ipc": 2.8494565116053714,
+        "csv_sha256": "e78646144d4bdd40a4ce5123e7fee6b46157571209c43a1c1283d7d4c7d6b517"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-rrset-stat-r3-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2455965968,
+            "enabled_ns": 290261680,
+            "running_ns": 290261680,
+            "per_operation": 12279.82984
+          },
+          "cycles:u": {
+            "raw_count": 857072774,
+            "enabled_ns": 290261680,
+            "running_ns": 290261680,
+            "per_operation": 4285.36387
+          }
+        },
+        "user_ipc": 2.86552792540345,
+        "csv_sha256": "91a47cfb2b5c8567cdd8a8c53ece7a83affe6c5ffe2b7ae58effb9bb796e8f16"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-rrset-plain-r1-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2979543000,
+      "wall_ns": 3010046152
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-rrset-plain-r1-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2875361000,
+      "wall_ns": 2923837119
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-rrset-plain-r2-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2874162000,
+      "wall_ns": 2924695566
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-rrset-plain-r2-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2968875000,
+      "wall_ns": 2973826973
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-rrset-plain-r3-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2978152000,
+      "wall_ns": 3010138274
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-rrset-plain-r3-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2871929000,
+      "wall_ns": 2873859547
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-rrset-plain-r4-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2874734000,
+      "wall_ns": 2923883201
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-rrset-plain-r4-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2962995000,
+      "wall_ns": 2973949095
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-rrset-plain-r5-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2966484000,
+      "wall_ns": 2974462659
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-rrset-plain-r5-host-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2873785000,
+      "wall_ns": 2874877876
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-cname-stat-r1-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1859329043,
+            "enabled_ns": 239836600,
+            "running_ns": 239836600,
+            "per_operation": 9296.645215
+          },
+          "cycles:u": {
+            "raw_count": 706717527,
+            "enabled_ns": 239836600,
+            "running_ns": 239836600,
+            "per_operation": 3533.587635
+          }
+        },
+        "user_ipc": 2.6309366500259443,
+        "csv_sha256": "edf34d2f59675a1e91ae7e2256d2763c004f940fa893030662a3d8b83aad35da"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-cname-stat-r1-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1789885666,
+            "enabled_ns": 227002800,
+            "running_ns": 227002800,
+            "per_operation": 8949.42833
+          },
+          "cycles:u": {
+            "raw_count": 667742428,
+            "enabled_ns": 227002800,
+            "running_ns": 227002800,
+            "per_operation": 3338.71214
+          }
+        },
+        "user_ipc": 2.680503126573829,
+        "csv_sha256": "8a973f9fe985599a948902f0d2fb5b87c969bad0cba93c7fb83fd65f00be9a4e"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-cname-stat-r2-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1789967072,
+            "enabled_ns": 225500680,
+            "running_ns": 225500680,
+            "per_operation": 8949.83536
+          },
+          "cycles:u": {
+            "raw_count": 664595015,
+            "enabled_ns": 225500680,
+            "running_ns": 225500680,
+            "per_operation": 3322.975075
+          }
+        },
+        "user_ipc": 2.6933200394228054,
+        "csv_sha256": "94cff73b01f9bf1caeeb2997fcdf27ae25a3127e8a9b32d9c5d660e104d6d533"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-cname-stat-r2-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1859237337,
+            "enabled_ns": 236243960,
+            "running_ns": 236243960,
+            "per_operation": 9296.186685
+          },
+          "cycles:u": {
+            "raw_count": 696546682,
+            "enabled_ns": 236243960,
+            "running_ns": 236243960,
+            "per_operation": 3482.73341
+          }
+        },
+        "user_ipc": 2.6692214392028357,
+        "csv_sha256": "37d87bead61430d5bc4ac09e680b47575aabf343dc16c24d9f4c822f045c84f7"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-cname-stat-r3-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1859210858,
+            "enabled_ns": 236546800,
+            "running_ns": 236546800,
+            "per_operation": 9296.05429
+          },
+          "cycles:u": {
+            "raw_count": 697397874,
+            "enabled_ns": 236546800,
+            "running_ns": 236546800,
+            "per_operation": 3486.98937
+          }
+        },
+        "user_ipc": 2.665925617662551,
+        "csv_sha256": "52e46c3e0299cd76affbacc5c589ed074291c7178b84db6dae4e22631a1195be"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-cname-stat-r3-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1789854718,
+            "enabled_ns": 225940200,
+            "running_ns": 225940200,
+            "per_operation": 8949.27359
+          },
+          "cycles:u": {
+            "raw_count": 665751726,
+            "enabled_ns": 225940200,
+            "running_ns": 225940200,
+            "per_operation": 3328.75863
+          }
+        },
+        "user_ipc": 2.6884717652237824,
+        "csv_sha256": "f3b5bd30652972166e97472fef21f1fc3fc922067aeb1777b9a108571212ead7"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-cname-plain-r1-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2327415000,
+      "wall_ns": 2374826657
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-cname-plain-r1-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2232329000,
+      "wall_ns": 2241320112
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-cname-plain-r2-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2229909000,
+      "wall_ns": 2242417921
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-cname-plain-r2-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2333761000,
+      "wall_ns": 2373998011
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-cname-plain-r3-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2329895000,
+      "wall_ns": 2373930130
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-cname-plain-r3-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2219879000,
+      "wall_ns": 2225611302
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-cname-plain-r4-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2231513000,
+      "wall_ns": 2242228640
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-cname-plain-r4-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2339293000,
+      "wall_ns": 2373975771
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-cname-plain-r5-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2330868000,
+      "wall_ns": 2374075932
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-cname-plain-r5-host-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2222962000,
+      "wall_ns": 2225641263
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-cname-leases-stat-r1-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2284990903,
+            "enabled_ns": 284870160,
+            "running_ns": 284870160,
+            "per_operation": 11424.954515
+          },
+          "cycles:u": {
+            "raw_count": 839935176,
+            "enabled_ns": 284870160,
+            "running_ns": 284870160,
+            "per_operation": 4199.67588
+          }
+        },
+        "user_ipc": 2.720437205501678,
+        "csv_sha256": "cbd31b906562aa2ae463e3d47dae707a0053f6ea9a313640696acf9f89602818"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-cname-leases-stat-r1-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2216520819,
+            "enabled_ns": 272907560,
+            "running_ns": 272907560,
+            "per_operation": 11082.604095
+          },
+          "cycles:u": {
+            "raw_count": 805062610,
+            "enabled_ns": 272907560,
+            "running_ns": 272907560,
+            "per_operation": 4025.31305
+          }
+        },
+        "user_ipc": 2.7532278750344648,
+        "csv_sha256": "98717d1f3b9ff9bea46d3acaa2273de58332b90d7fc0898edada902e15341d76"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-cname-leases-stat-r2-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2216441951,
+            "enabled_ns": 271501080,
+            "running_ns": 271501080,
+            "per_operation": 11082.209755
+          },
+          "cycles:u": {
+            "raw_count": 800841662,
+            "enabled_ns": 271501080,
+            "running_ns": 271501080,
+            "per_operation": 4004.20831
+          }
+        },
+        "user_ipc": 2.767640666276925,
+        "csv_sha256": "1826b726068a579597a33c666db8e4ca19e26e635b83127573f1ba5e6d65acfd"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-cname-leases-stat-r2-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2285013513,
+            "enabled_ns": 282806760,
+            "running_ns": 282806760,
+            "per_operation": 11425.067565
+          },
+          "cycles:u": {
+            "raw_count": 834097842,
+            "enabled_ns": 282806760,
+            "running_ns": 282806760,
+            "per_operation": 4170.48921
+          }
+        },
+        "user_ipc": 2.7395029670871636,
+        "csv_sha256": "edc6a82f7636fe4cfb616d1ef7f1eb643f49ca3ed936533d40ec1c4564fc1c8b"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-cname-leases-stat-r3-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2284876013,
+            "enabled_ns": 284947880,
+            "running_ns": 284947880,
+            "per_operation": 11424.380065
+          },
+          "cycles:u": {
+            "raw_count": 840412847,
+            "enabled_ns": 284947880,
+            "running_ns": 284947880,
+            "per_operation": 4202.064235
+          }
+        },
+        "user_ipc": 2.718754266020876,
+        "csv_sha256": "57400b7669a952db45ff0a95f63cadc081ac8cd1137cf3233a19b57c080d1088"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-cname-leases-stat-r3-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2216697233,
+            "enabled_ns": 271307240,
+            "running_ns": 271307240,
+            "per_operation": 11083.486165
+          },
+          "cycles:u": {
+            "raw_count": 800338936,
+            "enabled_ns": 271307240,
+            "running_ns": 271307240,
+            "per_operation": 4001.69468
+          }
+        },
+        "user_ipc": 2.769698103254594,
+        "csv_sha256": "8a2ce87be05566518cd44e1069cfd2393e841e921b23a02c16a679babe0f61e2"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-cname-leases-plain-r1-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2795984000,
+      "wall_ns": 2811452353
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-cname-leases-plain-r1-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2685026000,
+      "wall_ns": 2724902317
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-cname-leases-plain-r2-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2677386000,
+      "wall_ns": 2724473193
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-cname-leases-plain-r2-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2793278000,
+      "wall_ns": 2811497953
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-cname-leases-plain-r3-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2796954000,
+      "wall_ns": 2811708076
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-cname-leases-plain-r3-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2680032000,
+      "wall_ns": 2724654995
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-cname-leases-plain-r4-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2683984000,
+      "wall_ns": 2724721876
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-cname-leases-plain-r4-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2807704000,
+      "wall_ns": 2811295593
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-cname-leases-plain-r5-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2814277000,
+      "wall_ns": 2818821815
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-cname-leases-plain-r5-host-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2687156000,
+      "wall_ns": 2725482483
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-cname-config-stat-r1-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43979373641,
+            "enabled_ns": 4522265360,
+            "running_ns": 4522265360,
+            "per_operation": 219896.868205
+          },
+          "cycles:u": {
+            "raw_count": 13449829433,
+            "enabled_ns": 4522265360,
+            "running_ns": 4522265360,
+            "per_operation": 67249.147165
+          }
+        },
+        "user_ipc": 3.269883373620624,
+        "csv_sha256": "e29589c2fda14c664159c5f7202e8c1b04f64c61f8bcb28b68085692b955daf2"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 1,
+      "label": "host-miss-cname-config-stat-r1-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44080791661,
+            "enabled_ns": 4641489880,
+            "running_ns": 4641489880,
+            "per_operation": 220403.958305
+          },
+          "cycles:u": {
+            "raw_count": 13798800711,
+            "enabled_ns": 4641489880,
+            "running_ns": 4641489880,
+            "per_operation": 68994.003555
+          }
+        },
+        "user_ipc": 3.1945378866048904,
+        "csv_sha256": "3fd85b7d3414fa6002db500eaacb6ecc703471f3d98c4fc966e1d124211db3b2"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-cname-config-stat-r2-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44056066304,
+            "enabled_ns": 4634610040,
+            "running_ns": 4634610040,
+            "per_operation": 220280.33152
+          },
+          "cycles:u": {
+            "raw_count": 13784745453,
+            "enabled_ns": 4634610040,
+            "running_ns": 4634610040,
+            "per_operation": 68923.727265
+          }
+        },
+        "user_ipc": 3.196001438997337,
+        "csv_sha256": "d5e28813806c3593222ab614d81fbb210938b45c50f6cae0146693c1370c076b"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 2,
+      "label": "host-miss-cname-config-stat-r2-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43975339884,
+            "enabled_ns": 4519234640,
+            "running_ns": 4519234640,
+            "per_operation": 219876.69942
+          },
+          "cycles:u": {
+            "raw_count": 13439018517,
+            "enabled_ns": 4519234640,
+            "running_ns": 4519234640,
+            "per_operation": 67195.092585
+          }
+        },
+        "user_ipc": 3.2722136537257067,
+        "csv_sha256": "776f7b412c74136f051aedcd8b486f51b4947e3e26b146620b0e4a8417cc1078"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-cname-config-stat-r3-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43999683676,
+            "enabled_ns": 4520923840,
+            "running_ns": 4520923840,
+            "per_operation": 219998.41838
+          },
+          "cycles:u": {
+            "raw_count": 13437466282,
+            "enabled_ns": 4520923840,
+            "running_ns": 4520923840,
+            "per_operation": 67187.33141
+          }
+        },
+        "user_ipc": 3.2744032805454744,
+        "csv_sha256": "61665cd7427a8edc12968fae577bbbe8bdf156c06a42547d7a7e536725b07277"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 3,
+      "label": "host-miss-cname-config-stat-r3-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44098904995,
+            "enabled_ns": 4643568800,
+            "running_ns": 4643568800,
+            "per_operation": 220494.524975
+          },
+          "cycles:u": {
+            "raw_count": 13808921860,
+            "enabled_ns": 4643568800,
+            "running_ns": 4643568800,
+            "per_operation": 69044.6093
+          }
+        },
+        "user_ipc": 3.193508185656429,
+        "csv_sha256": "94a08fcff2b6e78f664b537cafa0a95e8a4285d6fcf9b6f130a99d6013b35dd9"
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-cname-config-plain-r1-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4511626000,
+      "wall_ns": 4527154482
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 1,
+      "label": "host-miss-cname-config-plain-r1-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4633790000,
+      "wall_ns": 4645237979
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-cname-config-plain-r2-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4633737000,
+      "wall_ns": 4645335301
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 2,
+      "label": "host-miss-cname-config-plain-r2-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4516233000,
+      "wall_ns": 4527134803
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-cname-config-plain-r3-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4516240000,
+      "wall_ns": 4527660448
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 3,
+      "label": "host-miss-cname-config-plain-r3-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4633607000,
+      "wall_ns": 4645546864
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-cname-config-plain-r4-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4630691000,
+      "wall_ns": 4645507784
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 4,
+      "label": "host-miss-cname-config-plain-r4-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4515626000,
+      "wall_ns": 4527382446
+    },
+    {
+      "candidate": "host-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-cname-config-plain-r5-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4516852000,
+      "wall_ns": 4527106764
+    },
+    {
+      "candidate": "host-miss",
+      "side": "host-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 5,
+      "label": "host-miss-cname-config-plain-r5-host-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4635127000,
+      "wall_ns": 4645135103
+    }
+  ],
+  "summaries": [
+    {
+      "candidate": "host-miss",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 573.0115,
+          "min": 572.219,
+          "max": 574.117,
+          "rounds": [
+            574.117,
+            573.0115,
+            573.113,
+            572.6985,
+            572.219
+          ]
+        },
+        "right": {
+          "median": 513.7605,
+          "min": 512.7785,
+          "max": 514.9215,
+          "rounds": [
+            512.7785,
+            514.9215,
+            513.604,
+            514.9065,
+            513.7605
+          ]
+        },
+        "relative_change_pct": -10.340281128738251,
+        "W_pct": 0.41712042868224186,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4525.474905,
+          "cycles:u": 1722.357095,
+          "ipc": 2.627502033775406
+        },
+        "host-miss": {
+          "instructions:u": 4205.890015,
+          "cycles:u": 1543.124965,
+          "ipc": 2.7255666977042265
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.06190834572753,
+        "cycles:u": -10.406211959198863,
+        "ipc": 3.732239315830843
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 589.887,
+          "min": 589.6165,
+          "max": 590.448,
+          "rounds": [
+            589.6165,
+            590.3945,
+            589.6895,
+            589.887,
+            590.448
+          ]
+        },
+        "right": {
+          "median": 530.961,
+          "min": 529.0325,
+          "max": 531.6955,
+          "rounds": [
+            531.594,
+            530.961,
+            531.6955,
+            529.0325,
+            529.8815
+          ]
+        },
+        "relative_change_pct": -9.989370845602622,
+        "W_pct": 0.501543427860052,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4640.055785,
+          "cycles:u": 1771.57145,
+          "ipc": 2.619290297323317
+        },
+        "host-miss": {
+          "instructions:u": 4320.587705,
+          "cycles:u": 1597.23095,
+          "ipc": 2.7050871415933933
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -6.885005155169699,
+        "cycles:u": -9.841008670578876,
+        "ipc": 3.275575996969593
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 669.965,
+          "min": 668.904,
+          "max": 670.387,
+          "rounds": [
+            668.904,
+            670.335,
+            669.806,
+            670.387,
+            669.965
+          ]
+        },
+        "right": {
+          "median": 607.859,
+          "min": 607.42,
+          "max": 609.058,
+          "rounds": [
+            608.403,
+            607.42,
+            609.058,
+            607.495,
+            607.859
+          ]
+        },
+        "relative_change_pct": -9.270036494443739,
+        "W_pct": 0.2694703870470016,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 5401.37434,
+          "cycles:u": 2015.001355,
+          "ipc": 2.6805809964331266
+        },
+        "host-miss": {
+          "instructions:u": 5084.34914,
+          "cycles:u": 1828.991,
+          "ipc": 2.7797917184939673
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -5.869343245704384,
+        "cycles:u": -9.231276918918008,
+        "ipc": 3.701090255912942
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 573.9565,
+          "min": 573.399,
+          "max": 575.0515,
+          "rounds": [
+            573.399,
+            574.0465,
+            573.9565,
+            575.0515,
+            573.838
+          ]
+        },
+        "right": {
+          "median": 513.295,
+          "min": 512.1845,
+          "max": 514.4835,
+          "rounds": [
+            513.295,
+            512.1845,
+            514.1075,
+            514.4835,
+            513.225
+          ]
+        },
+        "relative_change_pct": -10.569006536209633,
+        "W_pct": 0.4478905892323307,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4525.60055,
+          "cycles:u": 1725.13453,
+          "ipc": 2.623288790700862
+        },
+        "host-miss": {
+          "instructions:u": 4206.126135,
+          "cycles:u": 1544.698515,
+          "ipc": 2.722971084101806
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.059271172308823,
+        "cycles:u": -10.459243140881313,
+        "ipc": 3.7998978135499906
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 366.8245,
+          "min": 366.588,
+          "max": 367.3305,
+          "rounds": [
+            366.588,
+            367.3305,
+            367.0005,
+            366.6495,
+            366.8245
+          ]
+        },
+        "right": {
+          "median": 310.741,
+          "min": 309.4375,
+          "max": 312.635,
+          "rounds": [
+            310.5655,
+            310.741,
+            309.4375,
+            312.635,
+            311.186
+          ]
+        },
+        "relative_change_pct": -15.288918815400828,
+        "W_pct": 1.0289919901139504,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 2883.55846,
+          "cycles:u": 1097.417225,
+          "ipc": 2.6275888097163773
+        },
+        "host-miss": {
+          "instructions:u": 2563.984495,
+          "cycles:u": 933.023915,
+          "ipc": 2.7480407669936304
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -11.082624799637319,
+        "cycles:u": -14.98001910804707,
+        "ipc": 4.584125066747213
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 461.8505,
+          "min": 461.142,
+          "max": 462.412,
+          "rounds": [
+            461.8505,
+            462.412,
+            461.142,
+            461.7935,
+            462.045
+          ]
+        },
+        "right": {
+          "median": 403.704,
+          "min": 403.5505,
+          "max": 407.8425,
+          "rounds": [
+            407.8425,
+            404.0245,
+            403.5505,
+            403.704,
+            403.6515
+          ]
+        },
+        "relative_change_pct": -12.589896514131738,
+        "W_pct": 1.0631551830053636,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 3759.24274,
+          "cycles:u": 1384.37505,
+          "ipc": 2.7154446296904875
+        },
+        "host-miss": {
+          "instructions:u": 3442.497335,
+          "cycles:u": 1211.94408,
+          "ipc": 2.8403331694973915
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -8.425776862709322,
+        "cycles:u": -12.455509798446606,
+        "ipc": 4.599193017650993
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 862.3305,
+          "min": 860.638,
+          "max": 872.886,
+          "rounds": [
+            862.3305,
+            861.589,
+            860.638,
+            872.886,
+            867.1395
+          ]
+        },
+        "right": {
+          "median": 919.0655,
+          "min": 912.4745,
+          "max": 929.678,
+          "rounds": [
+            919.0655,
+            912.4745,
+            929.678,
+            916.918,
+            925.396
+          ]
+        },
+        "relative_change_pct": 6.579263982892872,
+        "W_pct": 1.871847001111451,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 6770.199355,
+          "cycles:u": 2584.94317,
+          "ipc": 2.617388901409785
+        },
+        "host-miss": {
+          "instructions:u": 7229.546405,
+          "cycles:u": 2765.88213,
+          "ipc": 2.6160017877911215
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 6.784837874246019,
+        "cycles:u": 6.9997268063730855,
+        "ipc": -0.05299608391846622
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1624.0505,
+          "min": 1586.4475,
+          "max": 1663.7085,
+          "rounds": [
+            1604.2185,
+            1663.7085,
+            1624.0505,
+            1586.4475,
+            1635.2155
+          ]
+        },
+        "right": {
+          "median": 1702.273,
+          "min": 1662.8515,
+          "max": 1750.3865,
+          "rounds": [
+            1750.3865,
+            1702.273,
+            1719.8915,
+            1662.8515,
+            1673.1895
+          ]
+        },
+        "relative_change_pct": 4.816506629566005,
+        "W_pct": 5.142242166796987,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 12893.244515,
+          "cycles:u": 4829.7899,
+          "ipc": 2.674008859926407
+        },
+        "host-miss": {
+          "instructions:u": 13566.68337,
+          "cycles:u": 5089.982655,
+          "ipc": 2.665369273247553
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 5.223191526512361,
+        "cycles:u": 5.387247900783421,
+        "ipc": -0.3230949159641838
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6681.355,
+          "min": 6675.935,
+          "max": 6717.585,
+          "rounds": [
+            6717.585,
+            6694.79,
+            6675.935,
+            6677.27,
+            6681.355
+          ]
+        },
+        "right": {
+          "median": 6748.99,
+          "min": 6737.965,
+          "max": 6751.285,
+          "rounds": [
+            6748.99,
+            6737.965,
+            6745.285,
+            6751.285,
+            6749.61
+          ]
+        },
+        "relative_change_pct": 1.0122946617864224,
+        "W_pct": 0.6233765456258444,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 58147.470925,
+          "cycles:u": 19874.24973,
+          "ipc": 2.928197959132325
+        },
+        "host-miss": {
+          "instructions:u": 58661.99794,
+          "cycles:u": 20060.94852,
+          "ipc": 2.924188648483706
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.8848656817140865,
+        "cycles:u": 0.9394004429670755,
+        "ipc": -0.13692075141693572
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 802.4965,
+          "min": 802.2385,
+          "max": 803.66,
+          "rounds": [
+            803.66,
+            802.2385,
+            803.255,
+            802.4965,
+            802.4955
+          ]
+        },
+        "right": {
+          "median": 738.6515,
+          "min": 737.82,
+          "max": 738.884,
+          "rounds": [
+            738.884,
+            737.82,
+            738.6515,
+            738.2595,
+            738.7415
+          ]
+        },
+        "relative_change_pct": -7.955797938059532,
+        "W_pct": 0.177134728936503,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 6471.142625,
+          "cycles:u": 2404.34337,
+          "ipc": 2.69143771465554
+        },
+        "host-miss": {
+          "instructions:u": 6115.77332,
+          "cycles:u": 2212.74088,
+          "ipc": 2.7638894347177243
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -5.491600565672905,
+        "cycles:u": -7.969015257583623,
+        "ipc": 2.69193374484078
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 697.2045,
+          "min": 696.7705,
+          "max": 698.014,
+          "rounds": [
+            698.014,
+            697.2045,
+            697.116,
+            697.4805,
+            696.7705
+          ]
+        },
+        "right": {
+          "median": 645.17,
+          "min": 644.3075,
+          "max": 645.268,
+          "rounds": [
+            645.268,
+            645.24,
+            645.17,
+            644.3305,
+            644.3075
+          ]
+        },
+        "relative_change_pct": -7.463305242579486,
+        "W_pct": 0.17835513109855713,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 5692.661395,
+          "cycles:u": 2096.426785,
+          "ipc": 2.7156657345417385
+        },
+        "host-miss": {
+          "instructions:u": 5372.286305,
+          "cycles:u": 1937.544365,
+          "ipc": 2.772837240297205
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -5.6278613423484725,
+        "cycles:u": -7.57872495890669,
+        "ipc": 2.1052482648463267
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1484.4375,
+          "min": 1481.4975,
+          "max": 1489.7715,
+          "rounds": [
+            1489.7715,
+            1484.4375,
+            1489.076,
+            1481.4975,
+            1483.242
+          ]
+        },
+        "right": {
+          "median": 1437.081,
+          "min": 1435.9645,
+          "max": 1437.6805,
+          "rounds": [
+            1437.6805,
+            1437.081,
+            1435.9645,
+            1437.367,
+            1436.8925
+          ]
+        },
+        "relative_change_pct": -3.1901983074396933,
+        "W_pct": 0.5573828470380271,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 12598.28837,
+          "cycles:u": 4421.29588,
+          "ipc": 2.8494565116053714
+        },
+        "host-miss": {
+          "instructions:u": 12279.82984,
+          "cycles:u": 4285.36387,
+          "ipc": 2.86552792540345
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -2.5277920352921757,
+        "cycles:u": -3.0744834475995186,
+        "ipc": 0.564016812771917
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1165.434,
+          "min": 1163.7075,
+          "max": 1169.6465,
+          "rounds": [
+            1163.7075,
+            1166.8805,
+            1164.9475,
+            1169.6465,
+            1165.434
+          ]
+        },
+        "right": {
+          "median": 1114.9545,
+          "min": 1109.9395,
+          "max": 1116.1645,
+          "rounds": [
+            1116.1645,
+            1114.9545,
+            1109.9395,
+            1115.7565,
+            1111.481
+          ]
+        },
+        "relative_change_pct": -4.331390709383793,
+        "W_pct": 0.5583187475363466,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 9296.186685,
+          "cycles:u": 3486.98937,
+          "ipc": 2.665925617662551
+        },
+        "host-miss": {
+          "instructions:u": 8949.42833,
+          "cycles:u": 3328.75863,
+          "ipc": 2.6884717652237824
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.730113935421686,
+        "cycles:u": -4.537746554702005,
+        "ipc": 0.8457155522965998
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1398.477,
+          "min": 1396.639,
+          "max": 1407.1385,
+          "rounds": [
+            1397.992,
+            1396.639,
+            1398.477,
+            1403.852,
+            1407.1385
+          ]
+        },
+        "right": {
+          "median": 1341.992,
+          "min": 1338.693,
+          "max": 1343.578,
+          "rounds": [
+            1342.513,
+            1338.693,
+            1340.016,
+            1341.992,
+            1343.578
+          ]
+        },
+        "relative_change_pct": -4.039036752123926,
+        "W_pct": 0.7507810282185637,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 11424.954515,
+          "cycles:u": 4199.67588,
+          "ipc": 2.720437205501678
+        },
+        "host-miss": {
+          "instructions:u": 11082.604095,
+          "cycles:u": 4004.20831,
+          "ipc": 2.767640666276925
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -2.996514511725379,
+        "cycles:u": -4.654348944661891,
+        "ipc": 1.7351424498894819
+      }
+    },
+    {
+      "candidate": "host-miss",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 22581.165,
+          "min": 22558.13,
+          "max": 22584.26,
+          "rounds": [
+            22558.13,
+            22581.165,
+            22581.2,
+            22578.13,
+            22584.26
+          ]
+        },
+        "right": {
+          "median": 23168.685,
+          "min": 23153.455,
+          "max": 23175.635,
+          "rounds": [
+            23168.95,
+            23168.685,
+            23168.035,
+            23153.455,
+            23175.635
+          ]
+        },
+        "relative_change_pct": 2.6018143882301925,
+        "W_pct": 0.11571590748306111,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 219896.868205,
+          "cycles:u": 67195.092585,
+          "ipc": 3.2722136537257067
+        },
+        "host-miss": {
+          "instructions:u": 220403.958305,
+          "cycles:u": 68994.003555,
+          "ipc": 3.1945378866048904
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.23060360256119683,
+        "cycles:u": 2.67714635220484,
+        "ipc": -2.3737987595148446
+      }
+    }
+  ],
+  "independent_audit": {
+    "status": "PASS",
+    "candidate": "host-miss",
+    "checked_at_utc": "2026-10-15T23:24:58.297281+00:00",
+    "raw_result_sha256": "e814e83642aed36b9ff2df813d80b7a8ef510ee29182459b129126609c82dcc3",
+    "raw_result_bytes": 347932,
+    "plan_sha256": "29abda2498088fe043cfe9442fed416afc85915fc0eea99276edfb1d38651dea",
+    "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+    "launch": {
+      "scope": "Independent fixed native240 after exact related gates, SDK build, smoke2 stopped and SDK transfer completed; no qualification claim",
+      "candidate": "host-miss",
+      "launched_utc": "2026-10-15T23:18:01.024649+00:00",
+      "pid": 581820,
+      "starttime_ticks": 183089823,
+      "argv": [
+        "taskset",
+        "-c",
+        "0",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/host-miss-native-screen1/run-native.py",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/host-miss-native-screen1"
+      ],
+      "plan_commit": "7ea56827",
+      "plan_sha256": "29abda2498088fe043cfe9442fed416afc85915fc0eea99276edfb1d38651dea",
+      "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+      "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+      "gate_receipt_sha256": "5e024edd370116758ac9f184347b55a194efaf28f935a872fbb4cd60a748e663",
+      "related_test_passes": 934,
+      "all_three_related_test_passes": 2803,
+      "sdk_elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+      "sdk_build_receipt_sha256": "636a95819e750704b98bd24a0de792eb292f8d3a0221d7088d007979f24df88c",
+      "all_three_sdk_builds_complete": true,
+      "smoke2_state_sha256": "d164ca2e424114e3404a2eb1823c3c1827d5bf889c756f56ab361d8d20b45633",
+      "smoke2_terminal": "failed exact-E gate; no pending generate/runtime; DNS explicitly released all Oracle work",
+      "dhcp_gate": "Root reports all nine SDK bundle files downloaded and 537 source inputs verified before timing",
+      "locks_available_before_launch": [
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+      ],
+      "root_readable_research_process_inventory": [],
+      "sources_reverified": {
+        "F": 162,
+        "host-miss": 162
+      },
+      "previous_round": {
+        "candidate": "fresh-frame",
+        "status": "complete",
+        "rows": 240,
+        "result_sha256": "89d2cb02820071deb3a46a1b2d2c8cacd27dcc4c8f55c2465334b86631a35320"
+      },
+      "windows": 240,
+      "planned_build_commands": 4,
+      "planned_commands": 244,
+      "SDK32_not_authorized": true
+    },
+    "launch_sha256": "fb6bd82eea659de197e7658b8988db120276ded6d59091217501555753859bff",
+    "windows": 240,
+    "commands": 244,
+    "plain_windows": 150,
+    "stat_windows": 90,
+    "all_four_build_commands_preceded_measurement": true,
+    "all_planned_labels_order_checksums_match": true,
+    "raw_stdout_stderr_csv_files_rehashed": 578,
+    "all_recorded_unscaled_event_fields_and_same_window_ipc_match": true,
+    "source_files_rehashed": {
+      "F": 162,
+      "host-miss": 162
+    },
+    "all_two_probe_ELF_hashes_match": true,
+    "failed_commands": 0,
+    "controller_stderr_bytes": 0,
+    "scope": "Independent check of native metadata, all small raw stdout/stderr/CSV hashes, recorded PMU fields and CPU derivation; no new measurement or counter parser"
+  },
+  "analysis_script_sha256": "211c022d859ffe3192727c2f5039877a546b1e447298a9f65a2522e89c21e268",
+  "unchanged_compare_module_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "performance_acceptance": false,
+  "candidate_selected": false,
+  "deployment": false,
+  "prior_results_pooled": false
+}
