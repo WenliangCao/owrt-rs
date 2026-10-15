@@ -1086,6 +1086,15 @@ fn add_local_records_for_name(
     cache: Option<&Cache>,
     notices: &mut QueryEvents,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool, bool) {
+    if matches!(qtype, TYPE_A | TYPE_AAAA) && !config.records.has_raw_type(qtype) {
+        // CNAME was resolved by the caller. Without raw records of this type,
+        // only address sources can contribute to an A/AAAA answer here.
+        let mut rows = Vec::new();
+        let owned = add_address_records_for_name(
+            config, hosts, name, qtype, ttl, leases, cache, notices, &mut rows,
+        );
+        return (rows, owned, false);
+    }
     // Raw records and address sources compare dotted names directly. Only
     // the other configured RR loops need a wire-format key.
     let records = &config.records;
@@ -1216,6 +1225,64 @@ fn add_local_records_for_name(
         key
     };
 
+    owned |= add_address_records_for_name(
+        config, hosts, name, qtype, ttl, leases, cache, notices, &mut rows,
+    );
+    let mail_start = rows.len();
+    add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
+    // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
+    // their non-terminals, unless an explicit MX record already matched.
+    // F_NO_RR means this existence check must not rotate address records.
+    if (qtype == TYPE_MX || qtype == 255)
+        && (config.records.self_mx || config.records.local_mx)
+        && !config
+            .records
+            .mx
+            .iter()
+            .any(|record| dotted_key(&record.name) == key)
+        && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
+    {
+        let mut data = 1u16.to_be_bytes().to_vec();
+        let target = if config.records.self_mx {
+            name
+        } else {
+            config.records.mx_target.as_deref().unwrap_or_default()
+        };
+        data.extend(wire_name(target).unwrap_or_else(|| vec![0]));
+        rows.push((TYPE_MX, ttl, data));
+        owned = true;
+    }
+    add_srv(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
+    if qtype == TYPE_SRV || qtype == 255 {
+        config.records.rotate_srv(name);
+    }
+    add_naptr(
+        &config.records.naptr,
+        &key,
+        qtype,
+        ttl,
+        &mut rows,
+        &mut owned,
+    );
+    for row in &rows[mail_start..] {
+        notices.record(qlog::CONFIG, name, row.0, &row.2);
+    }
+    (rows, owned, synthetic_reverse_name.is_some())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn add_address_records_for_name(
+    config: &DnsConfig,
+    hosts: &mut Hosts,
+    name: &[u8],
+    qtype: u16,
+    ttl: u32,
+    leases: LeaseView<'_>,
+    cache: Option<&Cache>,
+    notices: &mut QueryEvents,
+    rows: &mut Vec<(u16, u32, Vec<u8>)>,
+) -> bool {
+    let mut owned = false;
     // The Hosts table passed to this function is already filtered by the
     // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).
     // C performs separate IPv4 then IPv6 lookups for ANY. Non-address
@@ -1295,46 +1362,7 @@ fn add_local_records_for_name(
             }
         }
     }
-    let mail_start = rows.len();
-    add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
-    // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
-    // their non-terminals, unless an explicit MX record already matched.
-    // F_NO_RR means this existence check must not rotate address records.
-    if (qtype == TYPE_MX || qtype == 255)
-        && (config.records.self_mx || config.records.local_mx)
-        && !config
-            .records
-            .mx
-            .iter()
-            .any(|record| dotted_key(&record.name) == key)
-        && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
-    {
-        let mut data = 1u16.to_be_bytes().to_vec();
-        let target = if config.records.self_mx {
-            name
-        } else {
-            config.records.mx_target.as_deref().unwrap_or_default()
-        };
-        data.extend(wire_name(target).unwrap_or_else(|| vec![0]));
-        rows.push((TYPE_MX, ttl, data));
-        owned = true;
-    }
-    add_srv(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
-    if qtype == TYPE_SRV || qtype == 255 {
-        config.records.rotate_srv(name);
-    }
-    add_naptr(
-        &config.records.naptr,
-        &key,
-        qtype,
-        ttl,
-        &mut rows,
-        &mut owned,
-    );
-    for row in &rows[mail_start..] {
-        notices.record(qlog::CONFIG, name, row.0, &row.2);
-    }
-    (rows, owned, synthetic_reverse_name.is_some())
+    owned
 }
 
 fn add_typed_records(
@@ -1883,6 +1911,68 @@ mod tests {
                 .answers,
             1
         );
+    }
+
+    #[test]
+    fn unrelated_raw_types_do_not_change_address_answers_or_rotation() {
+        let mut direct = DnsConfig::default();
+        for line in [
+            b"host-record=host.test,192.0.2.1,2001:db8::1,30".as_slice(),
+            b"host-record=host.test,192.0.2.2,2001:db8::2,40",
+            b"txt-record=host.test,hello",
+            b"mx-host=host.test,mail.test,10",
+            b"cname=alias.test,host.test",
+        ] {
+            apply(&mut direct, line);
+        }
+        let mut with_raw = direct.clone();
+        apply(&mut with_raw, b"dns-rr=unrelated.test,1,c0000263");
+        apply(&mut with_raw, b"dns-rr=unrelated.test,28,20010db8000000000000000000000063");
+        let mut direct_hosts = configured_hosts(&direct, 37);
+        let mut raw_hosts = configured_hosts(&with_raw, 37);
+        for name in ["host.test", "alias.test", "missing.test"] {
+            for qtype in [TYPE_A, TYPE_AAAA, TYPE_A, TYPE_TXT, TYPE_MX, 255, TYPE_AAAA] {
+                let packet = query(name, qtype);
+                let answer = LocalAnswerer {
+                    config: &direct, hosts: &mut direct_hosts, local_ttl: 37, max_packet: 1232,
+                }.answer(&packet).unwrap();
+                let fallback = LocalAnswerer {
+                    config: &with_raw, hosts: &mut raw_hosts, local_ttl: 37, max_packet: 1232,
+                }.answer(&packet).unwrap();
+                assert_eq!(answer, fallback, "{name} type {qtype}");
+            }
+        }
+    }
+
+    #[test]
+    fn raw_addresses_precede_hosts_and_suppress_synthesis() {
+        let mut config = DnsConfig::default();
+        for line in [
+            b"host-record=raw.test,192.0.2.1,2001:db8::1,30".as_slice(),
+            b"dns-rr=raw.test,1,c0000263",
+            b"dns-rr=raw.test,28,20010db8000000000000000000000063",
+            b"synth-domain=synthetic.test,192.0.2.7,192.0.2.9",
+            b"dns-rr=192-0-2-7.synthetic.test,1,c0000263",
+        ] {
+            apply(&mut config, line);
+        }
+        let mut hosts = configured_hosts(&config, 37);
+        for (name, rrtype, expected) in [
+            ("raw.test", TYPE_A, vec![vec![192, 0, 2, 99], vec![192, 0, 2, 1]]),
+            ("raw.test", TYPE_AAAA, vec![
+                "2001:db8::63".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
+                "2001:db8::1".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
+            ]),
+            ("192-0-2-7.synthetic.test", TYPE_A, vec![vec![192, 0, 2, 99]]),
+        ] {
+            let packet = LocalAnswerer {
+                config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 1232,
+            }.answer(&query(name, rrtype)).unwrap().unwrap();
+            let message = super::super::wire::Message::parse(&packet).unwrap();
+            let actual: Vec<_> = message.records(Section::Answer)
+                .map(|row| (row.rrtype, row.rdata.to_vec())).collect();
+            assert_eq!(actual, expected.into_iter().map(|data| (rrtype, data)).collect::<Vec<_>>());
+        }
     }
 
     #[test]
