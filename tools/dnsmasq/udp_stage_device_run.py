@@ -209,10 +209,13 @@ def main():
         run.write(args.out / 'summary.json', {'scope': plan['scope'], 'windows': results, 'comparisons': comparisons(results)})
     except BaseException as error:
         recovery = {}
+        failure_record = {'error': repr(error), 'label': label, 'results': results, 'recovery': recovery}
+        run.write(args.out / 'failure.json', failure_record)
         try:
             run.stop_owned('a53_udp_stage_diagnostic_failed')
         except Exception as stop_error:
             recovery['stop_owned_error'] = repr(stop_error)
+            cleanup_errors.append({'action': 'stop_owned', 'error': repr(stop_error)})
         if label in archive_attempted:
             recovery['archive_attempt_preserved'] = label
             recovery['archive_manifest_complete'] = (args.out / (label + '.archive.json')).exists()
@@ -223,7 +226,8 @@ def main():
                 recovery['attempt_archived'] = label
             except Exception as archive_error:
                 recovery['archive_error'] = repr(archive_error)
-        run.write(args.out / 'failure.json', {'error': repr(error), 'label': label, 'results': results, 'recovery': recovery})
+                cleanup_errors.append({'action': 'archive_failed_window', 'error': repr(archive_error)})
+        run.write(args.out / 'failure.json', failure_record)
         raise
     finally:
         finished.set()
