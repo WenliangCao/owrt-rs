@@ -1,0 +1,74 @@
+{
+  "status": "EXACT_SDK_AND_BATCH_QUALIFICATION_BOUND_NOT_EXECUTED",
+  "scope": "Read-only binding and local owner32 controller freeze; only integration native240 may later run under the separately authorized transfer/idle gate. No owner32 launch authorization.",
+  "batch_receipt_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/local-cache-linux-gates-20261016/verified-receipt.json",
+  "batch_receipt_sha256": "050fe64b167ad1c449449e074ff62df876ab132285317a18fa38813a25f43c53",
+  "batch_test_passes": 2809,
+  "batch_source_files": 537,
+  "batch_log_files": 30,
+  "batch_test_artifacts": 6,
+  "sdk_state_sha256": "aad68dffa7414e50ce1cbe8ed5b8ec7900a6feab26b0a39ae0021b1631e8e8be",
+  "artifacts": {
+    "local-cache-integration": {
+      "build_sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6",
+      "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "elf_bytes": 2140955,
+      "map_sha256": "641f79fc1faadfacbec4c600db5a2c55426fd69a1eb38c5c5c46ef692c2998cf",
+      "source_files_rechecked": 179,
+      "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+      "within_existing_budget": true
+    },
+    "local-address-miss": {
+      "build_sha256": "f4b80865371afc83d0919919b907872dcb6cbdf692880a0cfa3a018d66a28487",
+      "elf_sha256": "0372b8b3096dce399d4ba5d1deedf27be84206ae87ae95a2a17058e8d74b8bbe",
+      "elf_bytes": 2136859,
+      "map_sha256": "c5bb7575f8993b8d9ecc19eeebdefc8f6c90a02d642e32551189a5476996589c",
+      "source_files_rechecked": 179,
+      "source_commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+      "within_existing_budget": true
+    },
+    "local-address-miss-stack": {
+      "build_sha256": "b168a2fcf084e02b97cfcbeb50057c7db2f7986dc1ad8c96f1d09246887a3a44",
+      "elf_sha256": "70f9512eb5c62b239d3ad25d3d1a61bc9d67f898e559ef9df20214d36ecd23a5",
+      "elf_bytes": 2136859,
+      "map_sha256": "26c352cfe13e48816bf91aa05e907f1a105b27f6b953a0e892eaf2182440f9fc",
+      "source_files_rechecked": 179,
+      "source_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+      "within_existing_budget": true
+    }
+  },
+  "controllers": [
+    {
+      "candidate": "local-cache-integration",
+      "file": "run_local_cache_integration_owner_screen.py",
+      "sha256": "2f9b175b0b57da613944f19b7b79341e4d84aa30d3e1b7049553eddcf82fcf55",
+      "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+      "sdk_name": "local-cache-integration",
+      "selected_batch_candidate_test_passes": 938,
+      "windows": 32,
+      "stat_windows": 12,
+      "plain_windows": 20,
+      "qualification_scope": "Only the exact source entry is selected from the three-candidate batch; batch cardinality is not assumed to be one. All original related gate pass counts are bound.",
+      "original_measurement_loop_unchanged": true,
+      "qualification_predicates_evaluated_against_retained_exact_receipt": true,
+      "execution_not_performed": true
+    },
+    {
+      "candidate": "local-miss-stack",
+      "file": "run_local_miss_stack_owner_screen.py",
+      "sha256": "77c8a2fee7193db40c0a016c72db0c12f31ae354f7cd0342bf61869700d5bfb7",
+      "source_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+      "sdk_name": "local-address-miss-stack",
+      "selected_batch_candidate_test_passes": 936,
+      "windows": 32,
+      "stat_windows": 12,
+      "plain_windows": 20,
+      "qualification_scope": "Only the exact source entry is selected from the three-candidate batch; batch cardinality is not assumed to be one. All original related gate pass counts are bound.",
+      "original_measurement_loop_unchanged": true,
+      "qualification_predicates_evaluated_against_retained_exact_receipt": true,
+      "execution_not_performed": true
+    }
+  ],
+  "owner32_executed": false,
+  "native_executed": false
+}
