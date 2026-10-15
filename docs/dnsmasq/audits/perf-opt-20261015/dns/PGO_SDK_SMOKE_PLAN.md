@@ -12,6 +12,15 @@ merges and displays successfully. It does not train, build with profile-use,
 time workloads, select a candidate, or access a router. The small smoke
 profile must never be reused as training data.
 
+The [execution controller](../../../../../tools/dnsmasq/pgo_sdk_smoke.py) is now
+prepared locally. After explicit host release, place the plan, wrapper and
+controller in the fresh attempt's `inputs` directory and execute the plan's
+`controller_argv`. The controller creates its wrapper/sibling compiler symlink,
+uses the original builder's SDK lock for each of the two sequential builds,
+and retains the root-coordinated build reservation until both pass. It does
+not take the same lock outside the builder, which would deadlock the child.
+No other SDK build may be inserted between these two reserved invocations.
+
 ## Prepared inputs and local verification
 
 [The Cargo wrapper](../../../../../tools/dnsmasq/pgo_smoke_cargo.py) uses the
@@ -38,6 +47,20 @@ of ambient codegen overrides and unknown commands, and preservation of a
 pre-existing receipt. No compiler, linker or SDK build ran in these tests.
 Loop's independent local argv/environment review found no compatibility
 blocker and identified the phase-ordering responsibility above.
+
+The controller enforces that ordering: only a validated exact control receipt
+is recorded as passed, and generate requires that pass. It preserves every
+command's output and return status, validates runtime RELRO/NX mappings and
+profile identity, and records matched merge/show output. Four additional local
+[controller checks](../../../../../tools/dnsmasq/test_pgo_sdk_smoke.py) cover
+control hash/budget rejection, the generate-only budget exception without
+relaxing hardening, synthetic ELF/map coverage and cleanup after a launcher
+exits while its descendant remains alive. Cleanup checks the owned process
+group independently of the leader's exit; it does not infer that the whole
+group exited from a successful `wait` on its leader. These checks use no SDK,
+compiler, profile runtime, network namespace or remote host.
+Loop's final read-only review confirmed the cleanup correction and found no
+remaining static blocker; actual SDK/runtime results remain to be established.
 
 Loop separately verified the Oracle tool at
 `/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata`:
