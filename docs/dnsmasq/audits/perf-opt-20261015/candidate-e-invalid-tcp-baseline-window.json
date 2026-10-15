@@ -1,0 +1,383 @@
+{
+  "scope": "Local-only analysis of retained invalid TCP-miss baseline window; separate from the earlier phase-boundary count failure",
+  "label": "candidate-e-tcp-miss-r3-c",
+  "side": "deployed v0.2.0 baseline, not candidate E",
+  "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "live_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "original_validation": {
+    "label": "candidate-e-tcp-miss-r3-c",
+    "scene": "tcp-miss",
+    "round": 3,
+    "side": "c",
+    "valid": false,
+    "errors": [
+      "measurement error counters",
+      "measurement completion count",
+      "upstream hit/miss count"
+    ],
+    "epoch": 1792075323.0925922
+  },
+  "archive_sha256": "2ae52f7720fa582ac97fb2244fca851ccc2e2f4d5e24672ed244794b14bb3e97",
+  "verified_files": 37,
+  "raw_sha256": {
+    "client.json": "1e8060af881ea1a796b79cfadc521fa29ac0c363a69c9e7e42a6f868d59618ba",
+    "client.latencies.bin": "26c8f3b4c6d9e4d636b1fcb9548faa1e254ededdb5882f997cd0dd80ee55ec23",
+    "client.send-lag.bin": "fcb52fdc2a3eb41bc6aad359b283c31be72d3ef4a087c1bd3d6abb3812e3a641",
+    "resources.jsonl": "5d4f94556e0ff1f2617121c62b8bf70c2dcdef01c09c4425d0ec4bbbf94b4907",
+    "epoch.json": "856c4b91a23a6efb13094c931fda15fd2b693293cd909ce564857b36b7458c3d",
+    "upstream.json": "1b31ad587b6510a02fe362c6b0ed5fbc8a07b0ab534e25b4d419c2d56933aa84"
+  },
+  "epoch": {
+    "warmup_start_ns": 62364785986077,
+    "measurement_start_ns": 62369785986077,
+    "measurement_end_ns": 62389785986077,
+    "saturation_start_ns": 62389785986077
+  },
+  "load_parameters": {
+    "clients": 8,
+    "rate": 200,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "timeout_ms": 1000,
+    "tcp_connections": 56,
+    "tcp_reconnections": 48,
+    "tcp_idle_connection_errors": 0
+  },
+  "counts": {
+    "warmup": {
+      "scheduled": 1000,
+      "sent": 1000,
+      "correct": 1000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0,
+      "stale_reply": 0,
+      "datagrams_sent": 0,
+      "release_sent": 0,
+      "dora_correct": 0,
+      "renew_correct": 0,
+      "correct_in_window": 0,
+      "correct_after_window": 0,
+      "send_lag_count": 1000,
+      "send_lag_sum_ns": 90833244,
+      "send_lag_max_ns": 472733
+    },
+    "measurement": {
+      "scheduled": 4000,
+      "sent": 3975,
+      "correct": 3975,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 25,
+      "stale_reply": 0,
+      "datagrams_sent": 0,
+      "release_sent": 0,
+      "dora_correct": 0,
+      "renew_correct": 0,
+      "correct_in_window": 3975,
+      "correct_after_window": 0,
+      "send_lag_count": 3975,
+      "send_lag_sum_ns": 719830654,
+      "send_lag_max_ns": 19872148
+    }
+  },
+  "upstream_total": {
+    "requests": 4975,
+    "replies": 4975,
+    "generated_replies": 4975,
+    "disabled_requests": 0,
+    "dropped_requests": 0,
+    "invalid_queries": 0,
+    "udp_requests": 0,
+    "tcp_requests": 4975
+  },
+  "upstream_steady": {
+    "requests": 3975,
+    "replies": 3975,
+    "generated_replies": 3975,
+    "disabled_requests": 0,
+    "dropped_requests": 0,
+    "invalid_queries": 0,
+    "udp_requests": 0,
+    "tcp_requests": 3975
+  },
+  "per_client": {
+    "expected_scheduled_per_client": 500,
+    "actual_sent_correct": {
+      "0": 497,
+      "1": 498,
+      "2": 497,
+      "3": 497,
+      "4": 497,
+      "5": 497,
+      "6": 496,
+      "7": 496
+    },
+    "inferred_skips_from_equal_round_robin_schedule": {
+      "0": 3,
+      "1": 2,
+      "2": 3,
+      "3": 3,
+      "4": 3,
+      "5": 3,
+      "6": 4,
+      "7": 4
+    }
+  },
+  "long_completions": {
+    "same_client_schedule_period_ms": 40,
+    "count_latency_over_40ms": 24,
+    "max_latency_ms": 93.898793,
+    "max_send_lag_ms": 19.872148,
+    "send_seconds_from_measurement_start_range": [
+      12.617751954,
+      18.151680824
+    ],
+    "largest_four": [
+      {
+        "sequence": 11593254898240967,
+        "client": 6,
+        "qtype": 28,
+        "send_seconds_from_measurement_start": 12.640430955,
+        "latency_ms": 93.898793,
+        "send_lag_ms": 10.348844
+      },
+      {
+        "sequence": 11593254898240968,
+        "client": 7,
+        "qtype": 28,
+        "send_seconds_from_measurement_start": 12.640451422,
+        "latency_ms": 93.885404,
+        "send_lag_ms": 5.369311
+      },
+      {
+        "sequence": 11593254898240978,
+        "client": 3,
+        "qtype": 28,
+        "send_seconds_from_measurement_start": 12.737154678,
+        "latency_ms": 87.165664,
+        "send_lag_ms": 2.072567
+      },
+      {
+        "sequence": 11593254898240979,
+        "client": 4,
+        "qtype": 28,
+        "send_seconds_from_measurement_start": 12.740457881,
+        "latency_ms": 83.875618,
+        "send_lag_ms": 0.37577
+      }
+    ]
+  },
+  "existing_host_cpu_samples": {
+    "columns": [
+      "end_seconds_from_measurement_start",
+      "host_total_ticks",
+      "host_nonidle_noniowait_ticks",
+      "host_nonidle_noniowait_percent",
+      "daemon_tree_ticks",
+      "resource_sample_duration_ns",
+      "mem_available_kib"
+    ],
+    "rows": [
+      [
+        0.012924,
+        188,
+        9,
+        4.787234,
+        7,
+        5360635,
+        91488
+      ],
+      [
+        1.012864,
+        184,
+        11,
+        5.978261,
+        9,
+        5278846,
+        91488
+      ],
+      [
+        2.013725,
+        181,
+        19,
+        10.497238,
+        8,
+        6198227,
+        91420
+      ],
+      [
+        3.012885,
+        186,
+        11,
+        5.913978,
+        10,
+        5344478,
+        91420
+      ],
+      [
+        4.01293,
+        182,
+        8,
+        4.395604,
+        10,
+        5337707,
+        91420
+      ],
+      [
+        5.012886,
+        183,
+        8,
+        4.371585,
+        10,
+        5285925,
+        91420
+      ],
+      [
+        6.012892,
+        181,
+        6,
+        3.314917,
+        10,
+        5294772,
+        91420
+      ],
+      [
+        7.014294,
+        181,
+        16,
+        8.839779,
+        11,
+        8536191,
+        91420
+      ],
+      [
+        8.013097,
+        182,
+        15,
+        8.241758,
+        10,
+        5536602,
+        91360
+      ],
+      [
+        9.012988,
+        181,
+        5,
+        2.762431,
+        10,
+        5388181,
+        91360
+      ],
+      [
+        10.013711,
+        187,
+        13,
+        6.951872,
+        10,
+        6356035,
+        91360
+      ],
+      [
+        11.012849,
+        180,
+        6,
+        3.333333,
+        10,
+        5310392,
+        91360
+      ],
+      [
+        12.012885,
+        185,
+        9,
+        4.864865,
+        10,
+        5282462,
+        91360
+      ],
+      [
+        13.01348,
+        190,
+        98,
+        51.578947,
+        10,
+        6486684,
+        93704
+      ],
+      [
+        14.019132,
+        185,
+        28,
+        15.135135,
+        10,
+        11426214,
+        93016
+      ],
+      [
+        15.012841,
+        184,
+        30,
+        16.304348,
+        11,
+        5241913,
+        92524
+      ],
+      [
+        16.012897,
+        181,
+        8,
+        4.41989,
+        11,
+        5300544,
+        92524
+      ],
+      [
+        17.013332,
+        184,
+        33,
+        17.934783,
+        10,
+        5735190,
+        94492
+      ],
+      [
+        18.021932,
+        189,
+        81,
+        42.857143,
+        11,
+        14353939,
+        93768
+      ],
+      [
+        19.013414,
+        187,
+        78,
+        41.71123,
+        11,
+        5817440,
+        92288
+      ],
+      [
+        20.012925,
+        179,
+        51,
+        28.49162,
+        13,
+        5276999,
+        92088
+      ]
+    ],
+    "derivation": "Delta of /proc/stat first8 counters; nonidle subtracts idle and iowait; guest counters excluded to avoid double counting. These are aggregate host samples, not per-core or complete per-process attribution."
+  },
+  "interpretation": [
+    "The original scheduler advances round-robin and increments scheduled_skipped when the assigned client remains busy.4000 scheduled/3975 sent-and-correct/25 skipped is a real workload admission shortfall under the frozen gate, not an upstream phase-only mismatch.",
+    "There are24 measured response latencies above the40ms same-client schedule period, with maximum93.898793ms; maximum actual-send lag19.872148ms. No per-skip timestamp is recorded, so all25 skips cannot be assigned individually to these records.",
+    "The retained aggregate host sample ending13.013s is51.58% nonidle versus4.86% in the previous second; samples around18\u201319s are about42%. These coincide with delayed completions, but do not identify the responsible task/core or prove a causal product/system defect.",
+    "All actual replies are correct with zero timeout/wrong/transport errors; the upstream3975 steady count matches actual sent traffic. This does not waive the25 scheduling skips.",
+    "Original invalid status is unchanged. No retry, replacement, new router sampling or product/tool change was performed. Final attempt failure rate must include this window."
+  ]
+}
