@@ -1,0 +1,51 @@
+{
+  "scope": "Retired DNS research task branch names only; committed tips archived before deletion. All worktree directories and ignored private artifacts retained. Active D/root/main/correctness/other ownership branches untouched.",
+  "rows": [
+    {
+      "retired_branch": "perf/dnsmasq-cache-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/dns/cache",
+      "commit": "f05c69bdb2cec643237ad6a2edb6a19bf50033ed",
+      "worktree": "/Users/USER/Developer/owrt-perf-cache-20261015",
+      "worktree_retained_detached": true,
+      "private_directory_retained": true
+    },
+    {
+      "retired_branch": "perf/dnsmasq-cname-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/dns/cname",
+      "commit": "dec70adde61b976bf2eb5007766707b98acfece1",
+      "worktree": "/Users/USER/Developer/owrt-perf-cname-20261015",
+      "worktree_retained_detached": true,
+      "private_directory_retained": true
+    },
+    {
+      "retired_branch": "perf/dnsmasq-cursor-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/dns/cursor",
+      "commit": "32ef5964b1c1cec984cc98df93f1ade3c9aa2c94",
+      "worktree": "/Users/USER/Developer/owrt-perf-cursor-20261015",
+      "worktree_retained_detached": true,
+      "private_directory_retained": true
+    },
+    {
+      "retired_branch": "perf/dnsmasq-dns-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/dns/dns",
+      "commit": "30828e02621a284d605a4d33edee53c63be0d0d2",
+      "worktree": "/Users/USER/Developer/owrt-perf-dns-20261015",
+      "worktree_retained_detached": true,
+      "private_directory_retained": true
+    },
+    {
+      "retired_branch": "perf/dnsmasq-insert-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/dns/insert",
+      "commit": "2076fe1a29fa31102315400ff60a828aa44110e4",
+      "worktree": "/Users/USER/Developer/owrt-perf-insert-20261015",
+      "worktree_retained_detached": true,
+      "private_directory_retained": true
+    },
+    {
+      "retired_branch": "evidence/dnsmasq-insert-cursor-base-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/dns/insert-cursor-base",
+      "commit": "a3e09d67405ae7f94d03926fe7b482ca69c56ed0",
+      "worktree": null
+    }
+  ]
+}
