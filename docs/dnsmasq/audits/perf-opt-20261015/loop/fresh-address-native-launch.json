@@ -1,0 +1,30 @@
+{
+  "scope": "One fresh native480 launch after exact Linux935 gates, SDK build and read-only idle inventory; no other Oracle workload permitted",
+  "launched_utc": "2026-10-15T22:10:52.191648+00:00",
+  "pid": 537691,
+  "starttime_ticks": 182686940,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/fresh-address-native-screen1/run-native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/fresh-address-native-screen1"
+  ],
+  "plan_commit": "9e1856a6",
+  "plan_sha256": "4093fe855450733c3281f7e62624371c29624835730ab4a26cdb8adfaa975af3",
+  "runner_sha256": "9d5bc3abecde5060b080c67360d7a1c5b08fa2b229ffe222265700119f627091",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "linux_gate_receipt_sha256": "d63e14d8024798fa94d1486b68698e44696a2dbcfc5ad6e0df8bddea1b5fe384",
+  "linux_related_test_passes": 935,
+  "sdk_build_receipt_sha256": "1463c8849b8aecf273f058cea827815753923bcc3844c4ec467776ccaac0c660",
+  "source_files_reverified": {
+    "F": 162,
+    "fresh-address": 162,
+    "singleton-slice": 162
+  },
+  "prior_root_readable_research_process_inventory": [],
+  "all_builds_before_measurements": true,
+  "windows": 480,
+  "reservation": "exclusive Oracle; router name-buffer10 independent; small metadata transfers only"
+}
