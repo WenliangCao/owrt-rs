@@ -499,3 +499,32 @@ The fourth serial batch has exited. Loop was notified that the coordinator's
 one-slot count-only cardinality experiment may run there; the existing three
 full-family workers continue unchanged. Full 44-family completion remains the
 only pending D correctness requirement before device-comparison admission.
+
+## D full-family failure: device admission blocked
+
+The unchanged D full44 attempt encountered a new mismatch in
+`m5_interface_records-service`, case `hostsdir-dhcp-name-effects`, at the
+`initial-helper:helper` observation. Exact C emits `original`, then an empty
+name, then `fromhosts`; D emits `original` twice. All six DNS observations and
+the subsequent changed/removed helper rows match. The absent initial `fromhosts`
+event does not appear in later captured helper rows. Both actual executable
+identities, one-thread owners, expected UID0, readiness, exit0 and clean teardown
+are verified. The fixture has `cache-size=0` and no forwarded queries; a direct
+role of D's new dynamic-cache expiry code is not established.
+
+[Original failure receipt](d-interface-service-failure.json) preserves exact
+argv, raw result/log hashes, all synthetic observation rows and the corresponding
+successful C-candidate case. The service executed all 276 cases and reported
+one failure. The supervisor stopped dispatching new families and allowed its
+active children to finish naturally: **38 families finished, 37 passed; 54 jobs
+finished, 53 passed**. Remaining families were not run. No process was signalled,
+no result replaced, no expectation changed and no retry was used to hide it.
+
+**D is not correctness-qualified and must not enter device comparison.** The
+coordinator was notified immediately and owns the fix/reproducer decision.
+Original helper capture sleeps 0.25 s before reading its log; a simple delayed
+log explanation is unproven because the expected events never appeared in later
+rows. Local product-path inspection has been delegated to the DHCP owner.
+Neither a product regression nor a harness defect is yet established. The
+successful 943 short tests and daemon/corpus batches remain useful evidence but
+do not override this new failure.

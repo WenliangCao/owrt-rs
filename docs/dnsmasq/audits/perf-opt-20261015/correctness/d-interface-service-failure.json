@@ -1,0 +1,1379 @@
+{
+  "scope": "Original D full44 attempt failure, preserved without replacement or waiver; D is blocked from device admission",
+  "source_commit": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "shipping_elf_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+  "same_build_map_sha256": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13",
+  "candidate_correctness_qualified": false,
+  "families_finished": 38,
+  "families_passed": 37,
+  "jobs_finished": 54,
+  "jobs_passed": 53,
+  "scheduler_state": {
+    "state": "failed",
+    "epoch": 1792068232.4493716
+  },
+  "scheduler_result_sha256": "b2d13491e2139050ad2abc47ce1459946667bfbdda6439e29b90bea1b547f338",
+  "original_family_result_sha256": "466f778ff01d36aa7e6368e3cb89a1fa5647a8d3f1f455b7bec1b63c204b5ffc",
+  "original_service_result_sha256": "3dc7a36fc41e61d2085e7e8708e5396a230dff02d84ad8f6f10080c5676600c9",
+  "original_service_log_sha256": "8f159e619d12e985304ad3e009112639bc8f7b57be433efdf22bd729908f0e23",
+  "service_cases": 276,
+  "service_failures": [
+    {
+      "case": "hostsdir-dhcp-name-effects",
+      "error": {
+        "c": {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|original",
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|fromhosts"
+          ],
+          "id": "initial-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        "id": "initial-helper:helper",
+        "phase": "runtime",
+        "rust": {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|original",
+            "old|02:00:00:00:00:01|127.0.0.40|original"
+          ],
+          "id": "initial-helper:helper",
+          "response": null,
+          "upstreams": []
+        }
+      }
+    }
+  ],
+  "failed_job_argv": [
+    "sh",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-d/tools/dnsmasq/run_isolated.sh",
+    "/usr/bin/python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-d/tools/dnsmasq/m5_interface_records.py",
+    "--image-root",
+    "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+    "--rust",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-d-fresh-prepare/dnsmasq-rs",
+    "--source-commit",
+    "9f2a905289c6c009edd747abc590a1d013b114e5",
+    "--side",
+    "both",
+    "--mode",
+    "service",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/d-families-attempt1/m5_interface_records/m5_interface_records/service",
+    "--ordinary-scope",
+    "all",
+    "--allocator-map",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-d-fresh-prepare/link.map"
+  ],
+  "failed_job_returncode": 1,
+  "observed": {
+    "c": {
+      "startup": {
+        "ready": true
+      },
+      "exit": 0,
+      "cleanup": {
+        "live_pids": [],
+        "pid_file": false
+      },
+      "rows": [
+        {
+          "cache": false,
+          "elapsed": 0.00019216211512684822,
+          "error": null,
+          "id": "initial:udp",
+          "reply": "4000858000010001000000000966726f6d686f737473077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4000010000010000000000000966726f6d686f737473077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16384,
+            "questions": [
+              [
+                "fromhosts.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "fromhosts.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "elapsed": 0.0005941649433225393,
+          "error": null,
+          "id": "initial:tcp",
+          "reply": "4001858000010001000000000966726f6d686f737473077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4001010000010000000000000966726f6d686f737473077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16385,
+            "questions": [
+              [
+                "fromhosts.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "fromhosts.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|original",
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|fromhosts"
+          ],
+          "id": "initial-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "elapsed": 0.0002337619662284851,
+          "error": null,
+          "id": "changed:udp",
+          "reply": "400c858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "400c010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16396,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "elapsed": 0.0006380048580467701,
+          "error": null,
+          "id": "changed:tcp",
+          "reply": "400d858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "400d010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16397,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|updated"
+          ],
+          "id": "changed-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "elapsed": 0.00023640203289687634,
+          "error": null,
+          "id": "lease-name-retained:udp",
+          "reply": "4018858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4018010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16408,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "elapsed": 0.000599605031311512,
+          "error": null,
+          "id": "lease-name-retained:tcp",
+          "reply": "4019858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4019010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16409,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [],
+          "id": "removed-helper:helper",
+          "response": null,
+          "upstreams": []
+        }
+      ],
+      "actions": [
+        {
+          "daemon_alive": true,
+          "id": "initial",
+          "name": "fromhosts.records.test",
+          "op": "query"
+        },
+        {
+          "daemon_alive": true,
+          "id": "initial-helper",
+          "op": "helper-events"
+        },
+        {
+          "daemon_alive": true,
+          "op": "write",
+          "path": "dir/one",
+          "text": "127.0.0.40 updated.records.test\n"
+        },
+        {
+          "daemon_alive": true,
+          "id": "changed",
+          "name": "updated.records.test",
+          "op": "query"
+        },
+        {
+          "daemon_alive": true,
+          "id": "changed-helper",
+          "op": "helper-events"
+        },
+        {
+          "daemon_alive": true,
+          "op": "unlink",
+          "path": "dir/one"
+        },
+        {
+          "daemon_alive": true,
+          "id": "lease-name-retained",
+          "name": "updated.records.test",
+          "op": "query"
+        },
+        {
+          "daemon_alive": true,
+          "id": "removed-helper",
+          "op": "helper-events"
+        }
+      ],
+      "fixture_errors": [],
+      "source_guard_errors": [],
+      "file_diagnostics": [],
+      "stdout": "",
+      "stderr": "",
+      "identity": {
+        "pid": 7832,
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "threads": 1,
+        "uid": 0,
+        "expected_uid": 0
+      },
+      "config": "no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\nuser=root\ngroup=root\nlisten-address=127.0.0.1\nhost-record=ready.files.test,192.0.2.250\npid-file=/m2/files.pid\nport=15353\ncache-size=0\nno-resolv\nserver=127.0.0.2\nhostsdir=/m2/files/dir\ndomain=records.test\ninterface=lo\nno-ping\ndhcp-range=127.0.0.40,127.0.0.60,255.0.0.0,600\ndhcp-leasefile=/m2/files/leases\ndhcp-script=/m2/files/helper.sh\n",
+      "raw_files_sha256": {
+        "observed.json": "ca2053b6d66249b8e2a21b2a35befc53ebe58bb7d1b2251a9695dc153f77f6ca",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61",
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "rust": {
+      "startup": {
+        "ready": true
+      },
+      "exit": 0,
+      "cleanup": {
+        "live_pids": [],
+        "pid_file": false
+      },
+      "rows": [
+        {
+          "cache": false,
+          "elapsed": 0.0001820819452404976,
+          "error": null,
+          "id": "initial:udp",
+          "reply": "4000858000010001000000000966726f6d686f737473077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4000010000010000000000000966726f6d686f737473077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16384,
+            "questions": [
+              [
+                "fromhosts.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "fromhosts.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "elapsed": 0.0002667622175067663,
+          "error": null,
+          "id": "initial:tcp",
+          "reply": "4001858000010001000000000966726f6d686f737473077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4001010000010000000000000966726f6d686f737473077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16385,
+            "questions": [
+              [
+                "fromhosts.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "fromhosts.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|original",
+            "old|02:00:00:00:00:01|127.0.0.40|original"
+          ],
+          "id": "initial-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "elapsed": 0.000209880992770195,
+          "error": null,
+          "id": "changed:udp",
+          "reply": "400c858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "400c010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16396,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "elapsed": 0.0002954830415546894,
+          "error": null,
+          "id": "changed:tcp",
+          "reply": "400d858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "400d010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16397,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|updated"
+          ],
+          "id": "changed-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "elapsed": 0.0002254820428788662,
+          "error": null,
+          "id": "lease-name-retained:udp",
+          "reply": "4018858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4018010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16408,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "elapsed": 0.00028844294138252735,
+          "error": null,
+          "id": "lease-name-retained:tcp",
+          "reply": "4019858000010001000000000775706461746564077265636f72647304746573740000010001c00c000100010000000000047f000028",
+          "request": "4019010000010000000000000775706461746564077265636f72647304746573740000010001",
+          "response": {
+            "flags": 34176,
+            "id": 16409,
+            "questions": [
+              [
+                "updated.records.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "class": 1,
+                "data": "127.0.0.40",
+                "name": "updated.records.test",
+                "section": "answer",
+                "ttl": 0,
+                "type": 1
+              }
+            ]
+          },
+          "upstreams": [
+            {
+              "events": [],
+              "server": "127.0.0.2"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.3"
+            },
+            {
+              "events": [],
+              "server": "127.0.0.4"
+            },
+            {
+              "events": [],
+              "server": "::1"
+            }
+          ]
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [],
+          "id": "removed-helper:helper",
+          "response": null,
+          "upstreams": []
+        }
+      ],
+      "actions": [
+        {
+          "daemon_alive": true,
+          "id": "initial",
+          "name": "fromhosts.records.test",
+          "op": "query"
+        },
+        {
+          "daemon_alive": true,
+          "id": "initial-helper",
+          "op": "helper-events"
+        },
+        {
+          "daemon_alive": true,
+          "op": "write",
+          "path": "dir/one",
+          "text": "127.0.0.40 updated.records.test\n"
+        },
+        {
+          "daemon_alive": true,
+          "id": "changed",
+          "name": "updated.records.test",
+          "op": "query"
+        },
+        {
+          "daemon_alive": true,
+          "id": "changed-helper",
+          "op": "helper-events"
+        },
+        {
+          "daemon_alive": true,
+          "op": "unlink",
+          "path": "dir/one"
+        },
+        {
+          "daemon_alive": true,
+          "id": "lease-name-retained",
+          "name": "updated.records.test",
+          "op": "query"
+        },
+        {
+          "daemon_alive": true,
+          "id": "removed-helper",
+          "op": "helper-events"
+        }
+      ],
+      "fixture_errors": [],
+      "source_guard_errors": [],
+      "file_diagnostics": [],
+      "stdout": "",
+      "stderr": "",
+      "identity": {
+        "pid": 7853,
+        "sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+        "threads": 1,
+        "uid": 0,
+        "expected_uid": 0
+      },
+      "config": "no-hosts\nno-0x20-encode\nno-round-robin\nstrict-order\nuser=root\ngroup=root\nlisten-address=127.0.0.1\nhost-record=ready.files.test,192.0.2.250\npid-file=/m2/files.pid\nport=15353\ncache-size=0\nno-resolv\nserver=127.0.0.2\nhostsdir=/m2/files/dir\ndomain=records.test\ninterface=lo\nno-ping\ndhcp-range=127.0.0.40,127.0.0.60,255.0.0.0,600\ndhcp-leasefile=/m2/files/leases\ndhcp-script=/m2/files/helper.sh\n",
+      "raw_files_sha256": {
+        "observed.json": "ab4bc9486fc56f8adeb6697f96d1a394efa86950d2844966a0302fd48c7d706e",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61",
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "prior_candidate_C_same_case": {
+    "c": {
+      "observed_sha256": "5deb5cdc70c56c135692d328ad4600e6d9fb74b7bc32e0c83fa543f4c6098909",
+      "identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "helper_rows": [
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|original",
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|fromhosts"
+          ],
+          "id": "initial-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|updated"
+          ],
+          "id": "changed-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [],
+          "id": "removed-helper:helper",
+          "response": null,
+          "upstreams": []
+        }
+      ]
+    },
+    "rust": {
+      "observed_sha256": "7b17e7c1dae4101afb00d2db0e654c8fc61bcc44cff5138c9cd6254b9a8bfe92",
+      "identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "helper_rows": [
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|original",
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|fromhosts"
+          ],
+          "id": "initial-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [
+            "old|02:00:00:00:00:01|127.0.0.40|",
+            "old|02:00:00:00:00:01|127.0.0.40|updated"
+          ],
+          "id": "changed-helper:helper",
+          "response": null,
+          "upstreams": []
+        },
+        {
+          "cache": false,
+          "error": null,
+          "helper_events": [],
+          "id": "removed-helper:helper",
+          "response": null,
+          "upstreams": []
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "id": "logging-all-scopes-paired",
+      "family": "logging-all-scopes",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "39c5c1b0f737652622811e426a01093a7a8f4597a111ea2a0d9ac093f2651f78"
+    },
+    {
+      "id": "m5_option_matrix-paired",
+      "family": "m5_option_matrix",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "04d2f5fffba933550dfd9d98ec42ae973f1df035956b6eec4f05585ca9468856"
+    },
+    {
+      "id": "m5_option_matrix_next-paired",
+      "family": "m5_option_matrix_next",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "4e9251beb4efce7549789175f2f0bf23fdf802b27a81eecf788a9ab352660174"
+    },
+    {
+      "id": "m5_option_matrix_third-paired",
+      "family": "m5_option_matrix_third",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "d99f9c914f307ed82737dcfce5f7d6b6d72a8d8a45d8e4ae32494ae1d82ff878"
+    },
+    {
+      "id": "m5_option_matrix_tag_if-paired",
+      "family": "m5_option_matrix_tag_if",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "ba760c756d5d7ae5a8e1b4f072323b87a294344932a8533e6f1741df7e09d1c9"
+    },
+    {
+      "id": "m5_option_matrix_dhcp-paired",
+      "family": "m5_option_matrix_dhcp",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "d847a8baaac948a7d524b21a7602d1edb6d0ade00f1fc84b461c78080e3682e9"
+    },
+    {
+      "id": "m5_option_matrix_dhcp_v4-paired",
+      "family": "m5_option_matrix_dhcp_v4",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "871bb31f707d740b7f79a3c1438a04da75cac79854bbe7b9219d11ee484e86f7"
+    },
+    {
+      "id": "m5_option_matrix_lease_names-paired",
+      "family": "m5_option_matrix_lease_names",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "ad573580d5bb4641540544978b945be01c6f7012cdec3c78ea7bdfd61df2543b"
+    },
+    {
+      "id": "m5_local_records-paired",
+      "family": "m5_local_records",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "f4dcedd25734f0a90227853b210bd2fdc2cde6bdffa76233b14d431efd64cd68"
+    },
+    {
+      "id": "m5_boot-paired",
+      "family": "m5_boot",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "17352e648551612ba8228f6211f1686be620efec4d4b74cb9c18b6b1c5bd16b3"
+    },
+    {
+      "id": "m5_helper-paired",
+      "family": "m5_helper",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "1e97b4affc8e732f5e33012be494fd338643a9e7ae161753a456b52d64bda923"
+    },
+    {
+      "id": "m5_rr_filter-paired",
+      "family": "m5_rr_filter",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "efa30aee2f109b8b4ebfd244ecad04dbc3c49d7fc4710270320cf0262d074ed3"
+    },
+    {
+      "id": "m5_config_inputs-paired",
+      "family": "m5_config_inputs",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "fb33f984ed5a68ad0fb2d8428c0f9a4c00393cb76d776946d29a1e6d1499e9c6"
+    },
+    {
+      "id": "m5_listeners-paired",
+      "family": "m5_listeners",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "4ff460821d1b0fb292c6c13c4ead1bf7430946650736ce0e1e78f79e5e47aed6"
+    },
+    {
+      "id": "m5_lease_recovery-paired",
+      "family": "m5_lease_recovery",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "3837eb2b899b3c6d39b7e95ac3a41bac85b77ad57ec313aafb29278a82cfb219"
+    },
+    {
+      "id": "m5_dump-paired",
+      "family": "m5_dump",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "a02216808d08000be656f1a71fe3f5e84df9bc21900999f707528885d533aee4"
+    },
+    {
+      "id": "m5_tftp-paired",
+      "family": "m5_tftp",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "8394516c4b44d126b9fb40d2a0f959b13dea9a9939e73570d2d0d2a073d4c377"
+    },
+    {
+      "id": "dhcp-proxy-paired",
+      "family": "dhcp-proxy",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "e520af5ea4489e2e8f29fdf242b4a9b45b1dae8895ea627d0771b66f35be1348"
+    },
+    {
+      "id": "bridge-interface-paired",
+      "family": "bridge-interface",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "cbaaf211bb377d2f9dac6fef45a294703435a3a443de6416deed436a552ead52"
+    },
+    {
+      "id": "m5_dns_cache-c",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "07f63e67f6ec9c6ccbd9d695fc7816ad60b19d42cbb18b3bbbe61adee1799fff"
+    },
+    {
+      "id": "m5_dns_cache-rust",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "5936c4a0a8894e10926f9b323c7d12b7faa1841fb74fa94ef0fa717a794ce1c2"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-1",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "4aa6607dcada3c551c3bc6079a9553ab627fdd153eebe3c10ca00642a49555a1"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-2",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "230e9c2ca77b79a2728d12d4b72e8a687dff4831928579df7f924c68c4ac5949"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-3",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "db92ff08785bade418eebb709e0a43fcd44b7883b660c8743c142bc58f8c0d76"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-4",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "b2b6d3c52b65029969548b3fa0a080f1ab63b59bac63a566e2dbf4468bb6b1b2"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-5",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "396e265d910f2afeb2a195958e558732fdca793ea912578efa61e566c8de950d"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-6",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "9f817091dad4432f778c5982936deacd7fbac02a8ab4734900210efd75f78667"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-7",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "2053bbcc57ff492338c44ab72f2630a30cf5bf9c7cc9e37bc5fb1096e643f147"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-8",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "680cf4ad7bf9fa16ae2c49a84df079a0346c8aae2c2e725dac3d3fcc1a1ea9ca"
+    },
+    {
+      "id": "m5_dns_cache-compare",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "8e9dea40a67f70bd4bb8d61a54d1a00c9b13c6b5884482c26deaa3f28f9ad4ae"
+    },
+    {
+      "id": "m5_dns_cache-lease-tcp-caller",
+      "family": "m5_dns_cache",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "31c62e0dacad224c8ca3a8536859399fd366f97bf0121087969f306d23fa89aa"
+    },
+    {
+      "id": "shared-network-paired",
+      "family": "shared-network",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "c746a3b74fd33264bd18106737bb34a9fc78990f7cbb75c9d1cf0c5185038c7f"
+    },
+    {
+      "id": "dhcp-reply-delay-paired",
+      "family": "dhcp-reply-delay",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "e6b14679b66635981a81204b050f24e40dbb7842a50441b231f93c1d37eb9677"
+    },
+    {
+      "id": "m5_relay-paired",
+      "family": "m5_relay",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "7bdc7971fe416a697aeb89a5cd7d3eb1cef01a2d0ace6b99b9c5dbfea6a2b036"
+    },
+    {
+      "id": "m5_leasequery-paired",
+      "family": "m5_leasequery",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "b920f82a30dea6006f25c56bcff06e700bf13b209ea1f7037565e9626580c731"
+    },
+    {
+      "id": "dhcp-tags-options-paired",
+      "family": "dhcp-tags-options",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "f86498bbbdebc96d4fe5604506d0ced5112fb4da3cbd7d62c99cb24f452d6eb6"
+    },
+    {
+      "id": "dhcp-identities-paired",
+      "family": "dhcp-identities",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "84b9004f9238eaf87567ad497c1e463f3d7f9b4f30db4ed4745f15f8021dd4f1"
+    },
+    {
+      "id": "dhcp-range-paired",
+      "family": "dhcp-range",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "eac6e7de9a756fce517c5b067321f44d4f1de63c9dfda6b2e590bd8efa16e696"
+    },
+    {
+      "id": "dhcp-files-paired",
+      "family": "dhcp-files",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "8530e48448935e88fa663b13019bcab22e4b71088a645bb1215abf95ebc0c84c"
+    },
+    {
+      "id": "m5_pxe-paired",
+      "family": "m5_pxe",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "282a9786161a11e5232910b2091f114a8e7c8fe344271db1239c972b8cec5913"
+    },
+    {
+      "id": "cli-test-paired",
+      "family": "cli-test",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "e2ef1acca8c0cc7ad9700aaacb97a3571fb560a7899fff2cb0b5409337fc82ae"
+    },
+    {
+      "id": "cli-log-malloc-paired",
+      "family": "cli-log-malloc",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "4d3351bf84b06d3443a4bd75bd91e380f676d930f39245da18b1fa128e5005bd"
+    },
+    {
+      "id": "loop-detect-paired",
+      "family": "loop-detect",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "5fc98414e71c9722982c1095b1b32258e70cfa2265a1b34651224d2491ea656c"
+    },
+    {
+      "id": "m5_script_arp-paired",
+      "family": "m5_script_arp",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "87d3e3d040069b26fd55073af75033a2a19e282725b44e48539b4d0584be7122"
+    },
+    {
+      "id": "m5_dns_endpoints-syntax",
+      "family": "m5_dns_endpoints",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "997073e0436d053e00ea377091cca2643d2c0ca25faf97a7d8b572ea9d4a35ed"
+    },
+    {
+      "id": "m5_dns_endpoints-service",
+      "family": "m5_dns_endpoints",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "85ef4b570a514bd9f8292f16c2d6164304628c030a0e892b04d7bf0b65c4eadd"
+    },
+    {
+      "id": "m5_dns_endpoints-source-row-audit",
+      "family": "m5_dns_endpoints",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "2f53f4a4ab274c9f4c08e6613b4008a366b3a0c439a19a49c84171edc7a496fb"
+    },
+    {
+      "id": "m5_edns-c",
+      "family": "m5_edns",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "5a6b04a2b966189aaa82152eedc2832401252b0f4173eb0796310b6593113668"
+    },
+    {
+      "id": "m5_edns-rust",
+      "family": "m5_edns",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "18d9fea3baa98d5e2de835294cfa18c6ca68d9f08608f2d6ac09d09763789bef"
+    },
+    {
+      "id": "m5_edns-compare",
+      "family": "m5_edns",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "ffb09abf4020209c89563678b4fc5b7c82d858ba072f80b0faaa8b74fefdb836"
+    },
+    {
+      "id": "m5_interface_records-syntax",
+      "family": "m5_interface_records",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "62367c095431688efcde8ba1f398c324faa95e3d568ea6e8873b842c9245c3bb"
+    },
+    {
+      "id": "m5_interface_records-service",
+      "family": "m5_interface_records",
+      "passed": false,
+      "returncode": 1,
+      "error": "ValueError('command exited 1')",
+      "result_sha256": "3dc7a36fc41e61d2085e7e8708e5396a230dff02d84ad8f6f10080c5676600c9"
+    },
+    {
+      "id": "tftp-errors-paired",
+      "family": "tftp-errors",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "c27dc43ca58662e4166a22bdf1ce0b81560031212135bffee4c48c1ca640efe8"
+    },
+    {
+      "id": "dns-files-paired",
+      "family": "dns-files",
+      "passed": true,
+      "returncode": 0,
+      "error": null,
+      "result_sha256": "4d67d81139041ca0f5e7658e630642384672f5321612648ab610008dd4fea394"
+    }
+  ],
+  "source_relation": {
+    "D_only_product_delta_vs_C": "conservative dynamic-cache expiry lower bound plus tests",
+    "fixture_cache_size": 0,
+    "forwarded_queries_in_case": false,
+    "direct_expiry_code_involvement_established": false
+  },
+  "diagnostic_findings": [
+    "Correct exactC/D running identities, one owner thread and expectedUID0; both startup/exit/cleanup clean.",
+    "Only initial helper events differ: exactC original,empty,fromhosts; D original,original. All six DNS response observations and subsequent changed/removed helper rows match.",
+    "The original helper-events collector sleeps0.25s then slices the helper log; no assertion or timeout was modified. Missinginitialfromhosts does not appear in latercapturedhelperrows.",
+    "No rerun or minimum reproducer has yet executed; source inspection owned byroot/DHCP team. Realproduct-versus-harness cause remains unresolved."
+  ],
+  "next_action": "Preserve all raw evidence, diagnose original startup/helper publication path before separately authorized next-candidate fix; no D router comparison."
+}
