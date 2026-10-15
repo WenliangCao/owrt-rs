@@ -1,0 +1,228 @@
+{
+  "scope": "LocalMac realAPIallocationcounts;noCPUperformanceclaim. OriginalE and43df5899 artifacts/counts preserved, immutableEbaseline reused since unchanged.",
+  "source_candidate": "60c3bdf29905eb3ef4cbd1f18f6447b10b56826d",
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "78b1beaf6dbc5bc8bc1ef3a04e70a24588e30cfb24f87a020f2296d32cb975df"
+  },
+  "prior_report_sha256": "e306e930e3c1b7650bc632e9bdf5f8361fcd9fc3399f5fb9a60c741a85b65e5b",
+  "results": {
+    "insert-key2-insert": {
+      "artifact_sha256": "bece86a3798ef6c881bd8b73867fcf0101927bc7474305eee23308d6a09f5ff7",
+      "rows": [
+        {
+          "scene": "replace",
+          "operations": 8000,
+          "allocations": 48000,
+          "reallocations": 0,
+          "requested_bytes": 1480000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "pressure",
+          "operations": 8000,
+          "allocations": 72000,
+          "reallocations": 0,
+          "requested_bytes": 1760000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "reverse",
+          "operations": 8000,
+          "allocations": 160000,
+          "reallocations": 0,
+          "requested_bytes": 3848000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "long",
+          "operations": 8000,
+          "allocations": 49500,
+          "reallocations": 0,
+          "requested_bytes": 2076000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "short",
+          "operations": 8000,
+          "allocations": 48000,
+          "reallocations": 0,
+          "requested_bytes": 1248000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "replace-upper",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1664000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "pressure-upper",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 1944000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "reverse-upper",
+          "operations": 8000,
+          "allocations": 160000,
+          "reallocations": 0,
+          "requested_bytes": 3848000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "short-upper",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1376000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        }
+      ]
+    },
+    "insert-key2-hot": {
+      "artifact_sha256": "887960a2040894cd7e1efa3eea34da8f8e120c04c73ddb35faa21d3a9be119ae",
+      "rows": [
+        {
+          "scene": "hit",
+          "operations": 8000,
+          "allocations": 32000,
+          "reallocations": 0,
+          "requested_bytes": 1960000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "hit-upper",
+          "operations": 8000,
+          "allocations": 40000,
+          "reallocations": 0,
+          "requested_bytes": 2144000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "hit-leases",
+          "operations": 8000,
+          "allocations": 32000,
+          "reallocations": 0,
+          "requested_bytes": 1960000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "miss",
+          "operations": 8000,
+          "allocations": 16000,
+          "reallocations": 0,
+          "requested_bytes": 424000,
+          "live_bytes_delta": 0,
+          "checksum": 0
+        },
+        {
+          "scene": "miss-leases",
+          "operations": 8000,
+          "allocations": 16000,
+          "reallocations": 0,
+          "requested_bytes": 424000,
+          "live_bytes_delta": 0,
+          "checksum": 0
+        },
+        {
+          "scene": "host",
+          "operations": 8000,
+          "allocations": 64000,
+          "reallocations": 0,
+          "requested_bytes": 3996800,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "rrset",
+          "operations": 8000,
+          "allocations": 40000,
+          "reallocations": 18400,
+          "requested_bytes": 6772800,
+          "live_bytes_delta": 0,
+          "checksum": 1566400
+        },
+        {
+          "scene": "cname",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 4352000,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        },
+        {
+          "scene": "cname-leases",
+          "operations": 8000,
+          "allocations": 88000,
+          "reallocations": 0,
+          "requested_bytes": 4520000,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        },
+        {
+          "scene": "cname-config",
+          "operations": 8000,
+          "allocations": 144000,
+          "reallocations": 0,
+          "requested_bytes": 8108800,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        }
+      ]
+    }
+  },
+  "raw_sha256": {
+    "insert-key2-hot-miss-leases.json": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+    "insert-key2-hot-hit.json": "195234999588fc246281b9c66084585f2d6e1a2257f9052af5347342ef4ee96c",
+    "insert-key2-insert-rustc.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key2-hot-rrset.json": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+    "insert-key2-hot-host.json": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+    "insert-key2-insert-rustc.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key2-hot-hit-leases.json": "f129d1777cd8816232949f477545a4157ceac54c57e06980aa61026aeb6fd0ea",
+    "insert-key2-insert-pressure-upper.json": "2585dcefba8aab619aa0a84abba91fc32c26e8763f9d6971df62ac341de22a63",
+    "insert-key2-hot-cname-leases.json": "0210e7686d7f29d525f5faa96244c0a841abcdc4a1d2917ad88fa7f05cb2957b",
+    "insert-key2-insert-replace.json": "ba2a465bca1022677388a39b186af7beb5e4e4035c92c414f0422953f9a44156",
+    "key2-allocation-results.json": "b68b102e23b469279cba835d81ea44fc039a378ff52e34350ed38c9ca61472fe",
+    "insert-key2-insert-reverse.json": "358bafd25508755c19b7dceea8a8c35f9aab6f4a6ec90ac6100c97eb69367693",
+    "insert-key2-build.stderr": "8e30b9e5890187617566f8ed3a7bc9d658061bab7653251deed701c398c4c667",
+    "insert-key2-hot-miss.json": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+    "insert-key2-hot-cname.json": "8affb37453c240923d21aaa550e92cb00ac943556fb9bc6f3884fbf0ae8ed82f",
+    "insert-key2-hot-rustc.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mac-tests-key2.stderr": "1d646ffb57adf42303307bed5899d8bd0d9fa0e6cc7db228e7daa78b7085fa44",
+    "insert-key2-insert-reverse-upper.json": "94e7dcfb4f7a9c9215406cffa3f250d0cc29f537bf681d438119182d31f5192f",
+    "insert-key2-hot-rustc.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key2-hot-hit-upper.json": "4061fef0b4dc953588a89a36e4efb2e0037e3da2d29c1e362120d4e7e499f7fa",
+    "insert-key2-insert-replace-upper.json": "f4dcf9363772d2561652c1db86dec1a9c489c1b01b4e76e2f1f765b1b8bcdb0e",
+    "mac-tests-key2.stdout": "61948bf750e5d9306b62ba9e057a5ae080c2aa92cc0d15663d5c1fde1d8ca46c",
+    "insert-key2-insert-pressure.json": "cc0e8aa96da017a607d8610cb36c9c04656a0eef13b5ae760b9700ac74a79f19",
+    "insert-key2-build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key2-hot-cname-config.json": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+    "insert-key2-insert-long.json": "592d939375a17d4456c80cee322200d84c8fe4faf07f89d2b409fb98e3878b15",
+    "insert-key2-insert-short-upper.json": "a661a27a369d85ab57ed2dabf65955ce5ada410f2773f1297636544849ca5025",
+    "insert-key2-insert-short.json": "e49c08adc42143c0a89fb9c61c4096375df49ba028a2db6669f327895a19ca01"
+  },
+  "tests": {
+    "passed": 386,
+    "failed": 0,
+    "ignored_existing": 5
+  },
+  "baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "decision": "retain-for-deferred-Oracle-instruction-screen-only;noCPUgainclaimed"
+}
