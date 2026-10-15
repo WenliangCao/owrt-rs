@@ -476,3 +476,24 @@ remain separate fromfrozenE/rootproduct. Rootreviewsmechanisms andactualowner
 boundaries. OracleCPU remainsofflimits untilcorrectnessreleasesit. Every
 candidatevariation hasitsowncommits/evidence; no gainsclaimedfromallocation
 counts orsamplepercentages. Localcompilation/counts are permitted bytheuser.
+
+## E device attempt has a baseline-side invalid window; retain full run
+
+DHCP owner reports candidate-e-udp-miss-r4-c invalid under the unchanged rule.
+This is the original deployed8472 side, not E. All1000warmup+4000measurement
+queries werecorrect, withno timeouts/wrong/skips; upstream5000/5000 total, but
+steady3999+saturation1. Clienthas3999in-window and1after-window. The observation
+is a phase-boundary overrun, not an established product or host rootcause.
+No rule/expectedcount/windowchanges are permitted. Full110attempt continues with
+originalhealthguard; no selective replacement. Atthatpoint19attempts18valid,
+50externalHTTPSsuccessful, nohealthfailure. The wholeEdevice attempt therefore
+cannotpass thefrozenvalid-window gate; validscene resultswillbe diagnostic only.
+Nextcandidate research continues independently, not a repeat ofunchangedE.
+
+OracleE remains separate andvalid:60/110completed, nofailure. Itscompletion/
+verification owner stayscorrectness; rawbulkcopy waitsdevicecompletion. Root
+andloop locallyreviewselectivepersistentwaitprototype; DNS localinsert-key
+revision60c3bdf2 anditscounters are readyforpostOracle native screening. No new
+researchCPU hasrun onOracle duringE timing, androot hasnot accessedrouter since
+DHCPtook exclusiveownership. Fulloriginalfaileddeviceevidence willbe committed
+bydeviceowner aftersource/data validation; nostop/cleanup withoutfullarchival.
