@@ -1,0 +1,27 @@
+{
+  "epoch": 1792078141.680156,
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "comparison_hashes": {
+    "dnsmasq-c": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "dnsmasq-rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+  },
+  "available_memory_kib": 108916,
+  "no_active_group": true,
+  "no_STOP": true,
+  "no_owned_live_executables": true,
+  "original_invalid_router_directories_retained": [
+    "candidate-e-udp-miss-r4-c",
+    "candidate-e-tcp-miss-r3-c",
+    "candidate-e-dhcp-home6-r2-c"
+  ],
+  "both_local_controllers_exited": true,
+  "original_windows": 110,
+  "original_valid": 107,
+  "supplement_windows": 6,
+  "supplement_valid": 6,
+  "local_receipt_sha256": "fa3efaa0871a5243a3aba11ba4f3fa9a186ad672ee175f33bb386aa9686361d1"
+}
