@@ -556,3 +556,44 @@ counts(14steady+47.79%); successorstable-shapefastpathd83/e227 isparkedafter
 functionaltests whiledirectC/Eevidence takespriority. No prototypeproductis
 integratedintoE/root. LoopactiveC/Ediagnosticbranch perf/dnsmasq-c-e-hit-syscalls-20261015;
 readinessbranch perf/dnsmasq-readiness-hybrid-20261015 remainspreserved.
+
+## C/E attribution complete; next hit candidate screening
+
+The fresh exact-image-C/E router diagnostic completed 20/20 valid windows.
+UDP median CPU is 84 to 146 us/query; TCP 116 to 168 us/query. Production is
+unchanged and the router is idle. These are direct pairs, separate from E's
+accepted comparison against deployed v0.2.0.
+
+All four whole-tree syscall captures, 12 PMU stat windows, four instruction
+sample windows and four separately planned cycle sample windows completed.
+UDP E adds one terminal EAGAIN receive and 32 bytes of IP_PKTINFO per query;
+both have one completed ppoll and sendmsg per query. TCP E has many more ppoll
+calls but fewer total syscalls than C including its children. Native UDP user
+instructions are only 6.86% higher, while user cycles are 55.44% higher; do not
+equate instruction count or the shared kernel with equal CPU cost. Local
+answer functions account for 20.32% of E UDP cycle samples. Oracle Neoverse
+counts do not quantitatively explain the router Cortex-A53 gap.
+
+Three isolated exact-E-based candidates were prepared, not yet integrated:
+UDP admission c1ea66f6, local address path 6f594d7b, static bound IPv4 pktinfo
+5a03fffe. Admission removes one discarded 32-byte name allocation per query.
+Its fixed quiet 50-window plain screen passed every checksum and five of five
+pairs improve in each scene: hit -4.329%, uppercase -4.734%, miss -6.865%,
+host -4.086%, malformed -2.166%; all exceed the measured within-side range.
+The malformed instruction increase remains recorded separately. This is a
+native public-call-chain result, not whole-daemon or device acceptance.
+
+Local-address 15-scene allocation controls passed and its fixed 150-window
+plain screen is running exclusively. Pktinfo's real API mechanism screen
+completed 56/56: roughly 312--323 fewer kernel instructions per bound packet,
+unchanged syscall counts, but 3--8 extra user instructions on generic controls.
+Its fixed 40-window quiet plain screen follows local-address, before any
+selection. Correctness independently reviews source boundaries. E remains
+unchanged; all attempts and compiler/launcher failures remain preserved.
+
+The next accepted-E/F increment will use the previously approved cohort and
+queue tool repairs, with new identities frozen before measurements. The user's
+explicit current goal makes discernible UDP-hit improvement the primary
+incremental target; full eleven-scene no-regression/resource/correctness gates
+and original statistical thresholds still apply. This does not relabel E/F
+as a fresh deployed/F comparison or alter E's historical acceptance evidence.
