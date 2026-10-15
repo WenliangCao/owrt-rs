@@ -1,16 +1,16 @@
 {
   "schema": 1,
-  "status": "preregistered fixed10; Linux gate and SDK artifact identities pending; no device launch authorized until gates supplied",
+  "status": "frozen exploratory fixed10; exact-source Linux and SDK/source identities verified; fresh health pending; no workload started",
   "scope": "Exploratory unqualified F/local-address-miss-stack A53 UDP-hit comparison; no full qualification or candidate selection.",
   "reason": "Standalone bounded stack local-address-miss refinement, compared independently with F; not the owned1676 precursor.",
   "source_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
   "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
-  "prior_gate_scope": "Coordinator will supply successful exact-source Linux and SDK gates before launch; full44 incomplete.",
+  "source_files_verified": 179,
+  "elf_sha256": "70f9512eb5c62b239d3ad25d3d1a61bc9d67f898e559ef9df20214d36ecd23a5",
+  "elf_bytes": 2136859,
+  "map_sha256": "26c352cfe13e48816bf91aa05e907f1a105b27f6b953a0e892eaf2182440f9fc",
+  "build_receipt_sha256": "b168a2fcf084e02b97cfcbeb50057c7db2f7986dc1ad8c96f1d09246887a3a44",
+  "prior_gate_scope": "Exact-source Linux936 passed in batch verified receipt050fe64b167ad1c449449e074ff62df876ab132285317a18fa38813a25f43c53; source review and all179 SDK source files matched. Full44 incomplete.",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
   "entry_sha256": "44c8783df53dbbd22abb102d6f9c21b893898a6720d84aad088bc4dbaefc5e5b",
@@ -26,7 +26,7 @@
     },
     "local-address-miss-stack": {
       "name": "a53-local-address-miss-stack-artifact-local-address-miss-stack",
-      "sha256": null
+      "sha256": "70f9512eb5c62b239d3ad25d3d1a61bc9d67f898e559ef9df20214d36ecd23a5"
     }
   },
   "measurement_artifacts": {
@@ -154,9 +154,7 @@
   "automatic_replacement": false,
   "source_inputs_expected": 179,
   "pending_before_launch": [
-    "Coordinator confirms exact-source Linux gates and SDK artifact identities.",
-    "Download complete immutable ELF/map/build before Oracle next timing; verify all179 source files and full artifact hashes.",
-    "Commit bound identities, complete preceding device postflight, then fresh>=120s health and frozen original tool/recovery gates."
+    "Complete prior round postflight, then fresh>=120s health and frozen original tools/slot recovery gates."
   ],
-  "artifact_verification_receipt_sha256": null
+  "artifact_verification_receipt_sha256": "0b711c69ef79238ba98a56dcf020a8de01e18974511cbfc211e131985614665b"
 }
