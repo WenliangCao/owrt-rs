@@ -1,0 +1,252 @@
+{
+  "scope": "Independent read-only source and existing artifact review; no compilation, target-program execution, Oracle work or product edits",
+  "candidate": "26aefa7952e001881757d41ae32456c5b2a12107",
+  "baseline": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "decision": "No static correctness blocker found; dynamic instruction/cycle/IPC and SDK/device acceptance remain pending",
+  "source_proof": {
+    "file": "components/dnsmasq/src/dns/local.rs",
+    "baseline_sha256": "565488ae11ff3380c6194c0167a14ad2ee37540f50e566919fcfa1d63e878868",
+    "candidate_sha256": "ac33574e0e2df7abbdec744d0ad778049e729adc7556c20f0a2379de94881bab",
+    "general_body_bytes_without_closing": 6776,
+    "general_body_bytes_including_closing": 6779,
+    "general_body_sha256_without_closing": "f59cd67654de955917ea6ea75b66fbc696444ca7646b746e726e62cab7d0f2c0",
+    "general_body_identical": true,
+    "added_boundary_lines": 19,
+    "added_boundary_bytes": 586,
+    "removing_only_boundary_restores_entire_F_file": true,
+    "fast_guard_fast_body_address_helper_and_all_other_functions_unchanged": true
+  },
+  "semantic_review": [
+    "Only A/AAAA with no configured raw record of that type use the existing fast branch; a raw record anywhere of that type still forces general dispatch even when its owner does not match.",
+    "All eight arguments retain the same values/borrows. LeaseView is Copy with borrowed state; the wrapper adds no owning heap objects, clone, snapshot or new lookup.",
+    "The same body still emits TXT/raw/PTR before address records, keeps interface PTR and hosts/DHCP/synthesis precedence, replaces the reverse-synthesis name before ANY address/mail handling, and returns the reverse-synthesized flag unchanged.",
+    "The existing raw prefix reaches the same address helper, so raw A/AAAA still suppresses synthetic addresses. Ownership is still ORed with the helper result.",
+    "The self/local MX ownership check remains nonrotating; SRV rotation still precedes the subsequent Additional walk performed by the caller. Notices, TTL/source attribution and declaration order are unchanged.",
+    "Configured CNAME resolution and lease-expiry traversal remain in their original callers; name arguments and cache candidate checks are unchanged.",
+    "The general handler is inline(never) but is not cold. Non-address, ANY and raw-address behavior is not skipped or weakened."
+  ],
+  "observed_controls": {
+    "mac_tests_passed": 714,
+    "ignored": 8,
+    "failed": 0,
+    "test_log_sha256": "f84c24ad9a8023df84b0cbdfe376d36f4c6f6b4313ce19ff75036afe56cd071d",
+    "allocation_receipt_sha256": "840eee86d6ab1ac960a6ce12227f1ab87bc1f24530a0b0dc67d9375c7fa96cc1",
+    "allocation_rows": 30,
+    "all_allocation_call_counts_checksums_final_live_match": true,
+    "requested_byte_reallocation_variation": [
+      {
+        "scene": "host-localise",
+        "F": {
+          "scene": "host-localise",
+          "operations": 8000,
+          "allocations": 69600,
+          "reallocations": 16960,
+          "requested_bytes": 7146880,
+          "live_bytes_delta": 0,
+          "checksum": 468800,
+          "side": "F"
+        },
+        "dispatch": {
+          "scene": "host-localise",
+          "operations": 8000,
+          "allocations": 69600,
+          "reallocations": 16960,
+          "requested_bytes": 7118720,
+          "live_bytes_delta": 0,
+          "checksum": 468800,
+          "side": "dispatch"
+        }
+      }
+    ],
+    "independently_rerun": false
+  },
+  "linux_cross_artifact_review": {
+    "functions": {
+      "F": {
+        "answer_parsed_with_query_events": {
+          "symbol": "_RNvMs_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "frame_bytes": 848,
+          "static_instruction_lines": 3508,
+          "instruction_stream_sha256": "0264d7125cff9532418723e948f245f1a537e8b3e5704fbc7214bc75e3d65a2b"
+        },
+        "add_local_records_for_name": {
+          "symbol": "_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name",
+          "frame_bytes": 1408,
+          "static_instruction_lines": 2510,
+          "instruction_stream_sha256": "932f1091c2a5864dc228a6a8dfe4cc319f8120e77dda7f17460a7ba484475e9e"
+        },
+        "add_address_records_for_name": {
+          "symbol": "_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "frame_bytes": 512,
+          "static_instruction_lines": 1136,
+          "instruction_stream_sha256": "567f525b976f18144e9a17954781e26585676f571ae291da510ee7b4fa31345f"
+        }
+      },
+      "dispatch": {
+        "answer_parsed_with_query_events": {
+          "symbol": "_RNvMs_NtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "frame_bytes": 848,
+          "static_instruction_lines": 3628,
+          "instruction_stream_sha256": "f9dfcaebf68cfb5dbf42a98f2a571c1e19d2868752519e10b9ebf06da83eb755"
+        },
+        "add_general_local_records_for_name": {
+          "symbol": "_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local34add_general_local_records_for_name",
+          "frame_bytes": 1376,
+          "static_instruction_lines": 3164,
+          "instruction_stream_sha256": "7844e04967698807083c18e0c582d643dbfacc522538c15568e68b290df2b464"
+        },
+        "add_address_records_for_name": {
+          "symbol": "_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "frame_bytes": 512,
+          "static_instruction_lines": 1136,
+          "instruction_stream_sha256": "1d799565d84cf9142354bbb60ebc65ce9a1634bed00aa6611aae9b5587d20554"
+        }
+      }
+    },
+    "calls": {
+      "F-answer_parsed_with_query_events": [
+        {
+          "target": "add_local_records_for_name",
+          "static_call_sites": [
+            "318964:      \tbl\t0x31c5bc <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name>",
+            "318ccc:      \tbl\t0x31c5bc <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name>"
+          ]
+        }
+      ],
+      "F-add_local_records_for_name": [
+        {
+          "target": "add_address_records_for_name",
+          "static_call_sites": [
+            "31c6c0:      \tbl\t0x321cc4 <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local28add_address_records_for_name>",
+            "31d9a4:      \tbl\t0x321cc4 <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local28add_address_records_for_name>"
+          ]
+        }
+      ],
+      "dispatch-answer_parsed_with_query_events": [
+        {
+          "target": "add_address_records_for_name",
+          "static_call_sites": [
+            "31986c:      \tbl\t0x31c76c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local28add_address_records_for_name>",
+            "31aa30:      \tbl\t0x31c76c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local28add_address_records_for_name>"
+          ]
+        },
+        {
+          "target": "add_general_local_records_for_name",
+          "static_call_sites": [
+            "319818:      \tbl\t0x31d92c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local34add_general_local_records_for_name>",
+            "31a9e8:      \tbl\t0x31d92c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local34add_general_local_records_for_name>"
+          ]
+        }
+      ],
+      "dispatch-add_general_local_records_for_name": [
+        {
+          "target": "add_address_records_for_name",
+          "static_call_sites": [
+            "31f6f0:      \tbl\t0x31c76c <_RNvNtNtCs60SUFPnV8Z1_10dnsmasq_rs3dns5local28add_address_records_for_name>"
+          ]
+        }
+      ]
+    },
+    "files": {
+      "F": {
+        "sha256": "d4a612f559c64e46f24eba014c49e273ab774211c3988ca8bc43c76c96e95900",
+        "bytes": 5015032,
+        "executable_alloc_section_bytes": 1817896
+      },
+      "dispatch": {
+        "sha256": "41e253073b10f9351fb054794ca25961cf5fdbc66ccdb4fbbef62e13cf205b2b",
+        "bytes": 5015048,
+        "executable_alloc_section_bytes": 1818200
+      }
+    },
+    "wrapper_defined_in_dispatch": false,
+    "address_call_chain_frames": {
+      "F": [
+        848,
+        1408,
+        512
+      ],
+      "dispatch": [
+        848,
+        512
+      ],
+      "removed_reserved_bytes": 1408,
+      "scope": "These frames at the ordinary address-helper call only, excluding ancestors/deeper calls; not bytes actually touched or a complete peak stack."
+    }
+  },
+  "outer_reply_linux_supplement_review": {
+    "receipt_sha256": "8c70933ec5a30f9a87214830ece0ff519b40c9d55606cb1de5c6d41f69c150e2",
+    "functions": {
+      "F-answer_parsed_with_query_events1": {
+        "elf_sha256": "d4a612f559c64e46f24eba014c49e273ab774211c3988ca8bc43c76c96e95900",
+        "frame_bytes": 848,
+        "static_instruction_lines": 3508,
+        "symbol": "_RNvMs_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events"
+      },
+      "layout-answer_parsed_with_query_events1": {
+        "elf_sha256": "2632883407d8b00a1dc56e31327a94e2c2388c7acf8427b876aa8e30a32b673c",
+        "frame_bytes": 656,
+        "static_instruction_lines": 2008,
+        "symbol": "_RNvMs_NtNtCs3Nn05ecy0QI_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events"
+      },
+      "layout-finish_local_records0": {
+        "elf_sha256": "2632883407d8b00a1dc56e31327a94e2c2388c7acf8427b876aa8e30a32b673c",
+        "frame_bytes": 608,
+        "static_instruction_lines": 1753,
+        "symbol": "_RNvMs_NtNtCs3Nn05ecy0QI_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20finish_local_records"
+      }
+    },
+    "failed_attempt_hashes_verified": [
+      {
+        "path": "private/local-reply-layout/cross-daemon/result.json",
+        "sha256": "0fb0e488f8eb6c5b604df3cd01a8e49e170845abb70860f111b111c130764fc6",
+        "reason": "emit=asm yielded only pre-link main-crate code, excluding local-answer definitions; unusable for whole-daemon frame claims"
+      },
+      {
+        "path": "private/local-reply-layout/cross-daemon/F-link.stderr",
+        "sha256": "1a2e875c2e47a46be64275507c9327cf577d29d5d0091ea1744c2014ae72843e",
+        "reason": "gnu-lld flavor requires unstable flags; used stable ld.lld instead"
+      },
+      {
+        "path": "private/local-reply-layout/cross-daemon/link2/F-link.stderr",
+        "sha256": "201a6907dfef6e8edfdf08ba2dc69769a139316b6beb8ab2024c89ce16ced1a2",
+        "reason": "shared top-level rlib was replaced by the next source build; final attempt links each side immediately against its own Cargo-reported dependencies"
+      }
+    ],
+    "positive_call_context": [
+      "319550:      \tsub\tx10, x29, #0xe0",
+      "319554:      \tstp\tx8, x9, [sp, #0x8]",
+      "319558:      \tldur\tx5, [x29, #-0x18]",
+      "31955c:      \tstr\tx10, [sp]",
+      "319560:      \tbl\t0x31ec64 <_RNvMs_NtNtCs3Nn05ecy0QI_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20finish_local_records>",
+      "319564:      \tldr\tx8, [sp, #0xd8]",
+      "319568:      \tcmp\tx8, #0x1",
+      "31956c:      \tb.lt\t0x319574 <_RNvMs_NtNtCs3Nn05ecy0QI_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events+0x1ad4>",
+      "319570:      \ttbnz\tw22, #0x0, 0x317b6c <_RNvMs_NtNtCs3Nn05ecy0QI_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events+0xcc>",
+      "319574:      \tadd\tsp, sp, #0x210",
+      "319578:      \tldp\tx20, x19, [sp, #0x70]",
+      "31957c:      \tldp\tx22, x21, [sp, #0x60]",
+      "319580:      \tldp\tx24, x23, [sp, #0x50]",
+      "319584:      \tldp\tx26, x25, [sp, #0x40]",
+      "319588:      \tldp\tx28, x27, [sp, #0x30]",
+      "31958c:      \tldp\tx29, x30, [sp, #0x20]",
+      "319590:      \tldp\td9, d8, [sp, #0x10]",
+      "319594:      \tldr\td10, [sp], #0x80"
+    ],
+    "frames": {
+      "F_entry": 848,
+      "layout_entry": 656,
+      "helper": 608,
+      "positive_two_frame_subtotal": 1264,
+      "difference_from_F_entry": 416
+    }
+  },
+  "limitations": [
+    "The reviewed final ELFs were built locally with Rust bundled musl/rust-lld, not the exact OpenWrt SDK; they were not executed.",
+    "The ordinary fast branch already existed in F. This change exposes it to inlining and removes an intermediate frame/call, rather than newly skipping generic lookup work at runtime.",
+    "A reserved 1408-byte stack frame does not mean all 1408 bytes were read/written per query. The proven saving is the absent frame on this call chain, not cache-miss count or total peak stack.",
+    "Entry static instructions increase from 3508 to 3628; total executable ALLOC section bytes increase by 304 in these ELFs. Generic-code layout changes still need control measurements, despite unchanged source semantics.",
+    "The measured address-call chain subtotal is 2768 bytes in F versus 1360 after dispatch; callers and deeper helper frames are excluded. Do not combine it with the independent outer-reply layout or allocation prototypes without fresh evidence.",
+    "Outer-reply supplemental Linux evidence separately confirms848\u2192656 entry bytes and a 608-byte helper reached by non-tail call, giving 1264 bytes/+416 for that two-frame subtotal. All three earlier insufficient/failed codegen attempts were retained and their hashes checked."
+  ]
+}
