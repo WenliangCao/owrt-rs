@@ -1,0 +1,207 @@
+{
+  "scope": "Independent static review plus exact-SDK6/150-client DHCP renew-only functional coverage for NEXT measurement-tool version; not a rerun of E performance and not timing eligible",
+  "reviewed_tool_commit": "9e6556cf92553fe89c81c3c0a9ad1d622d3ed379",
+  "reviewed_source_sha256": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+  "daemon_source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "daemon_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "build": {
+    "compiler": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+    "compiler_sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+    "compiler_version": "aarch64-openwrt-linux-musl-gcc (OpenWrt GCC 14.3.0 r33051-f5dae5ece4) 14.3.0",
+    "flags": [
+      "-O2",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-static"
+    ],
+    "build_command": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+      "-O2",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-static",
+      "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/m6a_loadgen.c",
+      "-o",
+      "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/m6a_loadgen"
+    ],
+    "new_loadgen_sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e"
+  },
+  "frozen_old_loadgen_sha256_before": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+  "frozen_old_loadgen_sha256_after": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+  "unchanged_helpers": {
+    "dnsmasq-rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f"
+  },
+  "case_recipe": {
+    "source_sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "adapted_sha256": "9d66a1fb4e1e180bf4bb27318ef14067d947d8799ee8d08ab941504a84c6eb4b",
+    "adaptation": "Only isolated input root and task-owned /tmp output root, same as existing Oracle controller; no workload/configuration/validation change."
+  },
+  "static_review": {
+    "conclusion": "No blocker found for the intended fixed-rate, no-saturation DNS and DHCP renew-only paths.",
+    "findings": [
+      "queued_rate admits only fixed-rate/no-saturation DNS or DHCP renew-only; full DHCP cycles, closed-loop and explicit saturation retain the original request path.",
+      "DHCP renew-only DORA completion returns before the extra XID/sequence increments used by full DHCP cycles, preserving one planned sequence per queued operation.",
+      "Pending requests retain planned sequence/time per client and do not introduce a second outstanding I/O. Timeout/wrong/transport errors remain failure counters; pending work past dispatch deadline becomes skipped, not silently successful.",
+      "Reconnect refreshes time before subsequent client admission/deadline checks. Existing positive/negative DNS controls belong to the root repair receipt and were not rerun here."
+    ]
+  },
+  "cases": [
+    {
+      "clients": 6,
+      "passed": true,
+      "returncode": 0,
+      "controller_error": null,
+      "validation_errors": [],
+      "command": [
+        "taskset",
+        "-c",
+        "2",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/nice10",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/device_perf_netns",
+        "/bin/sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/device_perf_case.sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs",
+        "rust",
+        "dhcp-6-renew-queue-functional",
+        "dhcp",
+        "hit",
+        "100",
+        "5",
+        "20",
+        "6"
+      ],
+      "counts": {
+        "warmup": {
+          "scheduled": 500,
+          "sent": 500,
+          "correct": 500,
+          "scheduled_skipped": 0,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 506,
+          "dora_correct": 6,
+          "renew_correct": 494,
+          "release_sent": 0
+        },
+        "measurement": {
+          "scheduled": 2000,
+          "sent": 2000,
+          "correct": 2000,
+          "scheduled_skipped": 0,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 2000,
+          "dora_correct": 0,
+          "renew_correct": 2000,
+          "release_sent": 0
+        }
+      },
+      "unique_dora_clients": 6,
+      "measurement_binary_records": 2000,
+      "planned_sequence_numbers": "501..2500, all present exactly once",
+      "scheduled_grid": "Each actual-send minus recorded send-lag equals warmup_start+(planned_sequence-1)*10ms exactly",
+      "lease_file_rows": 6,
+      "config_equals_original_e_except_owned_file_paths": true,
+      "normalized_config_sha256": "6cd2d9e1581d2b116a5159f26c6395a098737d5412a60e4275f9aeb0da77afbe",
+      "original_e_config_sha256": "ff3392be9adbd122777ac47bf8ea7727eb28c8d6d1f7b67bcac41a924903c5af",
+      "actual_config_sha256": "ab08e42a07d93ef7811a6ff42addf5e38da36bd7e18a3be5bab3a9cd7755110d",
+      "archive_sha256": "1cc9135ff10943696ea0189c5b6650d042c6486c3534b8fcb307452569d3e955",
+      "archive_manifest_sha256": "dd1ec274f58f5557a122586c496f3fd7939f33f2b44439f242778a94a21664d8",
+      "verified_raw_files": 40
+    },
+    {
+      "clients": 150,
+      "passed": true,
+      "returncode": 0,
+      "controller_error": null,
+      "validation_errors": [],
+      "command": [
+        "taskset",
+        "-c",
+        "2",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/nice10",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/device_perf_netns",
+        "/bin/sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/device_perf_case.sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs",
+        "rust",
+        "dhcp-150-renew-queue-functional",
+        "dhcp",
+        "hit",
+        "100",
+        "5",
+        "20",
+        "150"
+      ],
+      "counts": {
+        "warmup": {
+          "scheduled": 500,
+          "sent": 500,
+          "correct": 500,
+          "scheduled_skipped": 0,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 650,
+          "dora_correct": 150,
+          "renew_correct": 350,
+          "release_sent": 0
+        },
+        "measurement": {
+          "scheduled": 2000,
+          "sent": 2000,
+          "correct": 2000,
+          "scheduled_skipped": 0,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 2000,
+          "dora_correct": 0,
+          "renew_correct": 2000,
+          "release_sent": 0
+        }
+      },
+      "unique_dora_clients": 150,
+      "measurement_binary_records": 2000,
+      "planned_sequence_numbers": "501..2500, all present exactly once",
+      "scheduled_grid": "Each actual-send minus recorded send-lag equals warmup_start+(planned_sequence-1)*10ms exactly",
+      "lease_file_rows": 150,
+      "config_equals_original_e_except_owned_file_paths": true,
+      "normalized_config_sha256": "0e80e33a77b2f55c236f819cb63e1049bc3dc8f65fc99033b26b43db68a432c7",
+      "original_e_config_sha256": "a0c055ab98a8da5e8364457a3a184cc1bb44fedd5fb955549c9071f2fae9f2ef",
+      "actual_config_sha256": "9b11a14129e1b62b5acd26adf175215f19e93a4e0b0b513fb203fdff817b333d",
+      "archive_sha256": "4881fc1d94757b5885f21383344d5a0dc81f6e899e249b6e9e902803845e4786",
+      "archive_manifest_sha256": "1b5d60a8012464f12c7fb722bc1a7577fd74744ff36755d48e90bbbd37abc4ef",
+      "verified_raw_files": 40
+    }
+  ],
+  "total_verified_archives": 2,
+  "total_verified_raw_files": 80,
+  "provenance": {
+    "identity_sha256": "59ef03906d9ee12778c3bfa179aa27282f9f52e90f402d4334b4e86753690e4d",
+    "results_sha256": "3b8a15826614d3e74a97b57874cf0d511c4b5c92a22c15648a993e91094de0d8",
+    "complete_sha256": "367c4935b1e864fd840ac220c3894157f855330cf76d8c5e3fee244122e3edf2",
+    "private_runner_sha256": "ae32c81ca82d8c6bc7af46ab921b36db42b2e253129ac9c1b578d06edcb1ecbd"
+  },
+  "limits": [
+    "Functional counts only. A concurrent independent one-job build was allowed; no latency/CPU result is used as a performance claim.",
+    "These two real DHCP cases do not inject artificial delayed DHCP replies. Delayed UDP/TCP positive controls and timeout/budget negative controls are separately retained by the root agent.",
+    "The original E measurement inputs and raw windows were not modified; a fresh private input directory contains the new SDK loadgen. No router access occurred.",
+    "Next-round tool repair only; do not retroactively relabel E original or supplemental windows."
+  ]
+}
