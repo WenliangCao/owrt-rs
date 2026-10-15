@@ -113,3 +113,39 @@ retains interrupted windows, and marks explicit2window smoke asnonacceptance.
 Both full-duration baseline smoke windows passed. Correctness scheduler bd8eb22f
 permits3 isolated families concurrently and preserves exact44families/67jobs;
 full timing remains globally exclusive.
+
+## Candidate C freeze and next execution
+
+Tag `perf/dnsmasq-candidate-c-20261015` identifies the product snapshot after
+this checkpoint. Includes all screened A/B mechanisms, separately authorized
+stale fix, atomic UDP flags, D6/D7 immutable lease publication, D8 same-call
+hosts hash, cache insertion discarded-copy removal, and alias-allocation removal
+plus independently re-screened cursor3. Original cursor2 failure remains.
+Local integrated lib:709pass/8existing ignored. Full Linux gates not transferred.
+
+Oracle immutable snapshot: `/home/ubuntu/dnsmasq-perf-20261015/root/source-c`;
+SDK output: `root/private/sdk-c`; shared build-slot/cargo-target unchanged.
+Root creates Git archive plus exact Git blob inventory before calling
+`perf_opt_sdk_build.py` with this tag's commit/epoch. Correctness agent builds
+tests from same source while SDK builds, then all loads pause for full110window
+Oracle timing. Afterwards fresh44families/67jobs use bounded3worker scheduler.
+No device eligibility until full timing and complete correctness qualification.
+
+Known frozen lease insertion corpus retains two documented originalC UID-reuse
+wrong-target differences. Original comparator/raw/exit1 remain untouched. Under
+user's broad repair authorization, reviewer is deriving a separate narrowly
+bound contract audit with original-v0.2.0 equivalence, independent correct-target
+assertions and adversarial controls. New/unclassified differences must fail.
+Report must explicitly distinguish raw exactdiff from qualified C defect.
+
+Baseline110completed router windows were copied and independently verified
+(110archives/3430files), then their unchanged remote inventory was rechecked
+and ONLY those owned /tmp window directories removed. Local archives and
+extracted evidence remain. See baseline-prune-receipt.json. Production files,
+configuration and processes were not modified.
+
+Research is not at a stopping point: current full-cache insertion still scans
+capacity. DNS agent will examine conservative expiry-bound direction locally
+while C timings run, using current interfaces/mutators and historical EPS1
+evidence without importing old implementation wholesale. No Oracle load during
+exclusive timing.

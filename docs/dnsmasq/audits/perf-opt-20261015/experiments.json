@@ -190,9 +190,37 @@
       "status": "rejected",
       "evidence": "Plain fixedbaseline hit−13.12%,miss−21.92%;400configuredCNAME+8.54%W0.17%5/5regression. Wholeattempt retained; equalinstructions butcycles+8.6%; investigating allocatingalias scan independently",
       "commit": "71e7178d"
+    },
+    {
+      "id": "CACHE-INSERT1",
+      "hypothesis": "Count escaped name length without allocation and clone names only for reverse index",
+      "status": "accepted-combined-screen",
+      "commit": "9f739ffc",
+      "evidence": "Plain replace−9.18%,pressure−2.82%,long−17.93%;8RR+0.547%W0.435 explicitly retained as small supplemental read-layout caveat; full11 acceptance pending"
+    },
+    {
+      "id": "CNAME-COMPARE",
+      "hypothesis": "Compare configured dotted alias with wire key without constructing temporary Name",
+      "status": "accepted-screen",
+      "commit": "2f638152",
+      "evidence": "Configured400CNAME819→18alloc/op;instructions−54%;plain−50.86%W1.068%,5/5,other5scenes withinW"
+    },
+    {
+      "id": "CURSOR-3",
+      "hypothesis": "Reuse query-local name inspection after independently removing alias scan allocations",
+      "status": "accepted-screen",
+      "commit": "829cc5b2",
+      "evidence": "Isolated alias→cursor increment hit−12.84%/miss−21.40%/dynamicCNAME−6.49%;configured−1.14%W1.07;8RR/hostwithinW. Previous cursor2 failure not replaced"
+    },
+    {
+      "id": "HOSTS-8",
+      "hypothesis": "Calculate one hosts bucket for both publication blocker scan and original lookup",
+      "status": "accepted-combined-screen",
+      "commit": "a929d975",
+      "evidence": "Plain owner6−7.89%/150−7.35%;single3RRsetlookupwithinW;50RRsetcounter+14.21 and repeats retained, finaltiming−2.38%W26.59 is inconclusive"
     }
   ],
   "candidate_a_status": "rejected: stale1098/1100 plus historical UBus registry346/350 mismatch; no retroactive qualification",
   "candidate_b_status": "rejected: inherited stale compatibility defect; not measured on device",
-  "candidate_c_status": "being assembled with authorized separate stale fix and UBus metadata amendment; not yet frozen/qualified"
+  "candidate_c_status": "frozen by perf/dnsmasq-candidate-c-20261015; exact SDK build/fullOracle/allcorrectness pending"
 }
