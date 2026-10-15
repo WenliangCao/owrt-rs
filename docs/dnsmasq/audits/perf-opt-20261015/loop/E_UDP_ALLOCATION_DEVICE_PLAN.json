@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "status": "preregistered count-only plan; artifact/build identity pending, workloads not started",
+  "scope": "Three fixed independent real A53 UDP-hit windows on E plus allocation meter. All instrumented CPU/latency values EXCLUDED from performance claims and acceptance.",
+  "diagnostic_source_commit": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "diagnostic_ELF_sha256": null,
+  "diagnostic_build_receipt_sha256": null,
+  "diagnostic_map_sha256": null,
+  "labels": [
+    "e-udp-allocation-r1-rust",
+    "e-udp-allocation-r2-rust",
+    "e-udp-allocation-r3-rust"
+  ],
+  "case_argv": [
+    "rust",
+    "LABEL",
+    "udp",
+    "hit",
+    "200",
+    "5",
+    "20",
+    "150"
+  ],
+  "environment": "DNSMASQ_UDP_ALLOC_OUT=/tmp/dnsmasq-perf-20261015/runs/LABEL/udp-alloc.json",
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "reused_tool_source_commit": "43f7fc58",
+  "validator_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "measurement_artifacts": {
+    "device_perf_case.sh": {
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "bytes": 7564
+    },
+    "device_perf_guard": {
+      "sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "bytes": 561456
+    },
+    "device_perf_lifecycle": {
+      "sha256": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "bytes": 635928
+    },
+    "device_perf_netns": {
+      "sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "bytes": 348152
+    },
+    "device_perf_resource_probe": {
+      "sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "bytes": 544576
+    },
+    "group.sh": {
+      "sha256": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "bytes": 692
+    },
+    "m6a_loadgen": {
+      "sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "bytes": 544760
+    },
+    "m6a_upstream": {
+      "sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "bytes": 449464
+    },
+    "nice10": {
+      "sha256": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "bytes": 162800
+    }
+  },
+  "output_requirements": [
+    "Case/group exit0 and COMPLETE; unchanged set-e case must pass final wait for the daemon, establishing normal daemon exit0.",
+    "Original validate() plus complete1000-query prewarm, zero wrong/timeout/transport/skips; upstream hit rules unchanged.",
+    "Live and file diagnostic ELF identity; exactly one daemon thread in before/resources/after observations.",
+    "udp-alloc.json exists after owner exit; nested_steps=0 and unscoped_classifications=0.",
+    "Keep all kind/query/totals/turn matrices and histogram; reject malformed dimensions or inconsistent cached denominator/histogram sums."
+  ],
+  "accounting": {
+    "cached_step": "Scope covers entire step_udp including receive, admission, process_udp, send and owned drops; classify only actual QueryResult::Cached.",
+    "denominator": "Read actual meter queries[cached]. This includes true cache hits during the1000-query prewarm as well as warmup/measurement; never substitute5000.",
+    "whole_turn": "Record all no-packet/cached-only/mixed-or-other owner turns separately; cached-only turns are conditional and include wait/control work. Sum all rows for whole normal-owner-loop totals, not process-lifetime startup/output/shutdown.",
+    "bytes": "Requested/released allocator bytes, not RSS/USS or physical malloc footprint; successful realloc recorded separately."
+  },
+  "policy": {
+    "runs": 3,
+    "optional_extensions": false,
+    "retry_for_counts_or_favorable_result": false,
+    "abnormal_outcome": "stop and retain; no automatic replacement",
+    "guard": "Existing production8472/PID-start, DNS/LuCI/dual-stack checks, fixed >=120s baseline, thresholdmax200/10p95, memory>=64MiB; no production changes.",
+    "cleanup": "Archive+hash every raw member before removing valid device copies outside the window; preserve failed cases and all local evidence. Restore staged F after all diagnostic owned instances exit and verified copies retained."
+  },
+  "pre_run_pending": [
+    "Exact SDK diagnostic artifact delivery and identity binding",
+    "Fresh125s health/preflight result",
+    "Frozen minimal three-window driver source hash before first workload"
+  ],
+  "input_source_hashes": {
+    "components/dnsmasq/src/main.rs": "643b7b1b89a99a5b0a35d79d14810e0f31c1d441215015ad08ab6cf156a9464c",
+    "components/dnsmasq/src/udp_allocation_diagnostic.rs": "e62ae10c6ca094152db543243d5963537f31aa50bf5491e386b934df8d1dc1c4"
+  }
+}
