@@ -1,0 +1,1068 @@
+{
+  "schema": 1,
+  "status": "complete fixed10 exploratory device comparison; final independent audit tracked separately",
+  "scope": "Exploratory unqualified F/UDP-name-buffer A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "candidate_eligible": false,
+  "full44_qualification_completed": false,
+  "source_commit": "f404ed754a26f9385c733e7474f28e4595520957",
+  "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_files_verified": 179,
+  "plan_commit": "1cf76591",
+  "launch_commit": "1154aeee",
+  "artifact": {
+    "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+    "elf_bytes": 2136859,
+    "map_sha256": "915e7a6abdb6593c08e373d5b176529acbc334825a3dc7d9cf0ff9cfe8fe8f15",
+    "build_receipt_sha256": "bc6cc1ff4e0afebb92cc229f751f158f19501a9f777afa8f44b9c189f976aeeb"
+  },
+  "identities": {
+    "entry_sha256": "57d28e66c66316308441b4c1537069b8124c1a745678689aed77a72c5df18810",
+    "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "plan_sha256": "e5268209e0503608ddc09db4e87eb008d51f7d8f9d42ad50af43cb7291521bb9",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7"
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 314,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "comparison": {
+    "left": [
+      "f",
+      null
+    ],
+    "right": [
+      "udp-name-buffer",
+      null
+    ],
+    "metrics": {
+      "p50_ms": {
+        "left": {
+          "median": 0.184508,
+          "min": 0.177197,
+          "max": 0.193278,
+          "rounds": [
+            0.193278,
+            0.184508,
+            0.185046,
+            0.177197,
+            0.179506
+          ]
+        },
+        "right": {
+          "median": 0.186431,
+          "min": 0.175428,
+          "max": 0.197049,
+          "rounds": [
+            0.197049,
+            0.186431,
+            0.195895,
+            0.175428,
+            0.184661
+          ]
+        },
+        "relative_change_pct": 1.0422312311661326,
+        "W_pct": 11.597320188166131,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.345932,
+          "min": 0.272914,
+          "max": 0.406562,
+          "rounds": [
+            0.406562,
+            0.402407,
+            0.345932,
+            0.274915,
+            0.272914
+          ]
+        },
+        "right": {
+          "median": 0.35655,
+          "min": 0.264374,
+          "max": 0.449881,
+          "rounds": [
+            0.449881,
+            0.35655,
+            0.393175,
+            0.264374,
+            0.277068
+          ]
+        },
+        "relative_change_pct": 3.0693893597585538,
+        "W_pct": 52.028327022857944,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 130.0,
+          "min": 124.0,
+          "max": 138.0,
+          "rounds": [
+            138.0,
+            134.0,
+            130.0,
+            124.0,
+            126.0
+          ]
+        },
+        "right": {
+          "median": 132.0,
+          "min": 124.0,
+          "max": 134.0,
+          "rounds": [
+            134.0,
+            130.0,
+            134.0,
+            124.0,
+            132.0
+          ]
+        },
+        "relative_change_pct": 1.5384615384615385,
+        "W_pct": 10.76923076923077,
+        "same_direction_pairs": 2,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 2408.0,
+          "min": 2352.0,
+          "max": 2440.0,
+          "rounds": [
+            2408.0,
+            2372.0,
+            2440.0,
+            2352.0,
+            2436.0
+          ]
+        },
+        "right": {
+          "median": 2364.0,
+          "min": 2356.0,
+          "max": 2408.0,
+          "rounds": [
+            2356.0,
+            2356.0,
+            2408.0,
+            2364.0,
+            2384.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 2408,
+          "min": 2352,
+          "max": 2440,
+          "rounds": [
+            2408,
+            2372,
+            2440,
+            2352,
+            2436
+          ]
+        },
+        "right": {
+          "median": 2364,
+          "min": 2356,
+          "max": 2408,
+          "rounds": [
+            2356,
+            2356,
+            2408,
+            2364,
+            2384
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 520,
+          "min": 516,
+          "max": 524,
+          "rounds": [
+            520,
+            524,
+            520,
+            516,
+            520
+          ]
+        },
+        "right": {
+          "median": 516,
+          "min": 516,
+          "max": 520,
+          "rounds": [
+            520,
+            520,
+            516,
+            516,
+            516
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 1884,
+          "min": 1832,
+          "max": 1916,
+          "rounds": [
+            1884,
+            1844,
+            1916,
+            1832,
+            1912
+          ]
+        },
+        "right": {
+          "median": 1844,
+          "min": 1832,
+          "max": 1888,
+          "rounds": [
+            1832,
+            1832,
+            1888,
+            1844,
+            1864
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    "cpu_median_ticks": {
+      "left": 65,
+      "right": 66,
+      "absolute_delta": 1,
+      "required_delta_exclusive": 8
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r1-c",
+      "group": "f-vs-udp-name-buffer",
+      "round": 1,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.016001746,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.098409,
+        "p50": 0.193278,
+        "p95": 0.406562,
+        "p99": null,
+        "max": 10.889228
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.177442,
+        "p50": 0.294137,
+        "p95": 0.596544,
+        "p99": null,
+        "max": 14.36261
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.067747,
+        "p50": 0.099582,
+        "p95": 0.175786,
+        "p99": null,
+        "max": 9.509286
+      },
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "dfc7afbce0f983e501ba874f82b6c578c2b36b77e70d748ce81d159056f8d94f"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r1-rust",
+      "group": "f-vs-udp-name-buffer",
+      "round": 1,
+      "side": "rust",
+      "artifact": "udp-name-buffer",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.017482086,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.099025,
+        "p50": 0.197049,
+        "p95": 0.449881,
+        "p99": null,
+        "max": 63.414743
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.177886,
+        "p50": 0.299857,
+        "p95": 0.698141,
+        "p99": null,
+        "max": 100.186327
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.049809,
+        "p50": 0.101239,
+        "p95": 0.186009,
+        "p99": null,
+        "max": 41.186444
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "e61d0048f960f434d279de25820b343d3a0b7d0402377e1fa1a27815eb80f23f"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r2-rust",
+      "group": "f-vs-udp-name-buffer",
+      "round": 2,
+      "side": "rust",
+      "artifact": "udp-name-buffer",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.015567834,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102333,
+        "p50": 0.186431,
+        "p95": 0.35655,
+        "p99": null,
+        "max": 13.976068
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.18177,
+        "p50": 0.284515,
+        "p95": 0.522287,
+        "p99": null,
+        "max": 14.888463
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.064078,
+        "p50": 0.097326,
+        "p95": 0.166675,
+        "p99": null,
+        "max": 9.917778
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "981812daaf54ca4571593066cc8c5ce863b7ab3c5ac2d7c85b21c3d96d52d559"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r2-c",
+      "group": "f-vs-udp-name-buffer",
+      "round": 2,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.015663923,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.077635,
+        "p50": 0.184508,
+        "p95": 0.402407,
+        "p99": null,
+        "max": 27.626979
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.176015,
+        "p50": 0.281586,
+        "p95": 0.589268,
+        "p99": null,
+        "max": 32.656481
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.052404,
+        "p50": 0.096322,
+        "p95": 0.176695,
+        "p99": null,
+        "max": 22.691336
+      },
+      "rss_median_kib": 2372.0,
+      "rss_peak_kib": 2372,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "7ade761c5168144cf0f63a42c7a171215613a35b8724f8eff73c44c43c96b350"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r3-c",
+      "group": "f-vs-udp-name-buffer",
+      "round": 3,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.016238822,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.099486,
+        "p50": 0.185046,
+        "p95": 0.345932,
+        "p99": null,
+        "max": 8.096385
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.17772,
+        "p50": 0.283885,
+        "p95": 0.495515,
+        "p99": null,
+        "max": 8.224448
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.051098,
+        "p50": 0.098072,
+        "p95": 0.153175,
+        "p99": null,
+        "max": 2.737744
+      },
+      "rss_median_kib": 2440.0,
+      "rss_peak_kib": 2440,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1916,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "a60614dfc619e1151e32c8d75dc179bfc2d3afbfb002a2996b1868c0220ffdb6"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r3-rust",
+      "group": "f-vs-udp-name-buffer",
+      "round": 3,
+      "side": "rust",
+      "artifact": "udp-name-buffer",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.01526356,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.100101,
+        "p50": 0.195895,
+        "p95": 0.393175,
+        "p99": null,
+        "max": 13.177731
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.178278,
+        "p50": 0.298525,
+        "p95": 0.576729,
+        "p99": null,
+        "max": 29.266367
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058345,
+        "p50": 0.100985,
+        "p95": 0.173731,
+        "p99": null,
+        "max": 24.969952
+      },
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "7b4542eaca25e6258f864f27d557fd30a2114b56115165116370eea15fd3d225"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r4-rust",
+      "group": "f-vs-udp-name-buffer",
+      "round": 4,
+      "side": "rust",
+      "artifact": "udp-name-buffer",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.01640199,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.097794,
+        "p50": 0.175428,
+        "p95": 0.264374,
+        "p99": null,
+        "max": 8.405855
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.177334,
+        "p50": 0.270501,
+        "p95": 0.397984,
+        "p99": null,
+        "max": 8.519276
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.063549,
+        "p50": 0.094299,
+        "p95": 0.140277,
+        "p99": null,
+        "max": 1.058596
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "8ddd753dc239bb2470e89a9de64a16dbfb7df36639e5cb3508cdaf1077f24b82"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r4-c",
+      "group": "f-vs-udp-name-buffer",
+      "round": 4,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.015628733,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.095485,
+        "p50": 0.177197,
+        "p95": 0.274915,
+        "p99": null,
+        "max": 5.570382
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.173873,
+        "p50": 0.27218,
+        "p95": 0.405701,
+        "p99": null,
+        "max": 5.726597
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060415,
+        "p50": 0.094665,
+        "p95": 0.139476,
+        "p99": null,
+        "max": 1.296222
+      },
+      "rss_median_kib": 2352.0,
+      "rss_peak_kib": 2352,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "8429c9168014292dd80b069bd863d257efe5ce1d2f1a66c3593039321ac2254c"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r5-c",
+      "group": "f-vs-udp-name-buffer",
+      "round": 5,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.014270314,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.097793,
+        "p50": 0.179506,
+        "p95": 0.272914,
+        "p99": null,
+        "max": 8.966148
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.175197,
+        "p50": 0.274666,
+        "p95": 0.414228,
+        "p99": null,
+        "max": 9.097469
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060859,
+        "p50": 0.095033,
+        "p95": 0.144449,
+        "p99": null,
+        "max": 3.948779
+      },
+      "rss_median_kib": 2436.0,
+      "rss_peak_kib": 2436,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "88c1f8561535a10d7a070701f7137c4328832dfc6f946d61df049535ab5fbcee"
+      }
+    },
+    {
+      "label": "a53-udp-name-buffer-f-vs-udp-name-buffer-r5-rust",
+      "group": "f-vs-udp-name-buffer",
+      "round": 5,
+      "side": "rust",
+      "artifact": "udp-name-buffer",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 66,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 132.0,
+      "cpu_endpoint_seconds": 27.014682413,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.097102,
+        "p50": 0.184661,
+        "p95": 0.277068,
+        "p99": null,
+        "max": 3.45932
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.175876,
+        "p50": 0.282668,
+        "p95": 0.413959,
+        "p99": null,
+        "max": 3.629485
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.054882,
+        "p50": 0.097128,
+        "p95": 0.144574,
+        "p99": null,
+        "max": 1.376781
+      },
+      "rss_median_kib": 2384.0,
+      "rss_peak_kib": 2384,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1864,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "a8b517d484d0e287accf8e76e7ca98c403f6b8e3d2876d4a3fdbe6d5ddb21d70"
+      }
+    }
+  ],
+  "health": {
+    "guard_samples": 423,
+    "external_checks": 28,
+    "dns_samples": 165,
+    "http_samples": 77,
+    "minimum_available_memory_kib": 85064,
+    "guard_sha256": "c843ce8bdb06b690e22d28c7f48c5673f5231e3eebea765ad888b850869b7893"
+  },
+  "preflight_health": {
+    "valid": true,
+    "elapsed_seconds": 125.25,
+    "dns_samples": 50,
+    "dns_p95_ms": 0.608,
+    "dns_max_ms": 0.663,
+    "http_samples": 23,
+    "http_max_ms": 62.79,
+    "threshold_ms": 200,
+    "raw_sha256": "85c9f9f6afc4896a5f6e04dafb77ca87ba79eda77a23766209d8120a212f900e"
+  },
+  "postflight": {
+    "epoch": 1792102412.862798,
+    "scope": "10/10exploratory windows archived/verified; restore exactE/F and reclaim only three new hash-verified immutable source copies. No production changes.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all10_verified_remote_window_copies_pruned": true,
+    "immutable_sources_pruned": {
+      "e": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-udp-name-buffer-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      },
+      "f": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-udp-name-buffer-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "udp-name-buffer": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-udp-name-buffer-artifact-udp-name-buffer",
+        "sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f"
+      }
+    },
+    "available_memory_kib": 88908,
+    "production_namespace": "net:[4026531840]",
+    "postflight_script_sha256": "7c79c438768fb56083f10284df23dbf909a527448c515c8ee8241901138f50b7",
+    "stdout": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n88908\nnet:[4026531840]\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "evidence": {
+    "summary_sha256": "138ea8644b504215f19f5a6b719b91280ef9b65a88b06abf6dcf1bc7d2d80df5",
+    "progress_sha256": "36afa650e6641783ca94729051eed19b98c9aa53f4920144f7df847998735be3",
+    "verifier_sha256": "a358de0a68e1a3464d5ce227481b835b139ef3cdabc8bf62608ab73792326a91",
+    "private_root": "private/perf-opt-20261015/a53-udp-name-buffer-device",
+    "local_verification_sha256": "cd4a0a5b84c4418f33367d4947f405e3ff708b1714690c2eb9f2255c73670572",
+    "postflight_sha256": "f7f5f6e587e1186a2be605682609c501e8f326d150cc321e86547db6f1a0f44f"
+  },
+  "interpretation": [
+    "CPU,p50 andp95 all fail the unchanged discernibility gate. This direct A53 screen does not establish a gain for the reusable UDP question-name buffer.",
+    "CPU median+1.538% is within W10.769%, only2/5pairs follow that direction and1tick does not clear the exclusive8tick precision gate; no proven gain or regression.",
+    "The result compares only contemporaneous F and this exact prototype/workload. Do not pool with other product screens or compare historical E/C medians.",
+    "No allocation-meter, per-query clocks or added logging is present. Source-level allocation expectations and native/Oracle signals do not measure allocation-site CPU cost on this A53.",
+    "No repetitions, longer windows or changed thresholds were introduced. Full44 qualification remains incomplete; neither this prototype nor any synthetic stage mode is promoted, accepted E and frozen C stay unchanged."
+  ]
+}
