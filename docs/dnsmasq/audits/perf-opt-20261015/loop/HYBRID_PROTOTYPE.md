@@ -25,9 +25,9 @@ Eligible descriptor lifetimes are explicit:
   are never tagged by that accept generation.
 
 Every other entry remains direct, including ephemeral UDP upstream, TCP
-upstream, UBus, helper, collectors, file jobs, logs/dumps and TFTP. No estimate
-claims which four previously unidentified baseline descriptors are present;
-the inventory gap remains separate from source-derived eligibility.
+upstream, UBus, helper, collectors, file jobs, logs/dumps and TFTP. The exact-E
+TCP-hit inventory below now identifies the complete 14-entry wait set for
+that scene; this observation is not generalized to other configurations.
 
 Registration stores its own checked monotonic event token. Removed lifetimes
 are reconciled before additions, including reuse of a numeric fd. Duplicate
@@ -109,6 +109,17 @@ run explicitly in that wrapper and passed. Total: 96 distinct tests, zero
 failures. This is native functional evidence, not an SDK artifact, allocation
 fault gate, full C-family result or performance acceptance. All raw logs stay
 on Oracle; the verified derived summary copied locally is 20,914 bytes.
+
+The separately authorized single exact-E TCP-hit diagnostic is recorded in
+`exact-e-fd-inventory.json`. Its only driver change adds `-v` to strace so
+ppoll input arrays are expanded. E ELF `8b8082b9…` and map `cbf86554…` match
+the frozen SDK artifact. All 4,000 measured requests were sent and correct,
+with no skip, timeout or transport failure. All 4,911 calls with input
+`nfds=14` contain one route netlink fd, one signal pipe, IPv4 and IPv6 UDP/TCP
+listeners, and eight downstream TCP connections. Thus every actual member
+of this scene's steady wait set has an eligible owner lifetime. The 5.17 MB
+raw trace remains private on Oracle; only a 5,624-byte derived role inventory
+was transferred. Instrumented elapsed time is not acceptance evidence.
 
 Before candidate eligibility, count actual initialization/teardown, memory
 layout, optional fd/watch cost, registration/mask churn, all-ready and large

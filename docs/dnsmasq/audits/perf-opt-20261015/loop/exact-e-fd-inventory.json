@@ -1,0 +1,234 @@
+{
+  "scope": "Single excluded exact-E TCP-hit trace, no timing acceptance; numeric fd roles from verbose ppoll arrays.",
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "map_sha256": "cbf8655450a025a51be7a3c8630fa84ff48aba5ca5c641a9a3f53fd0bf4637fd",
+  "driver_original_sha256": "ab4924e7a953e9ed127fe29e166c295c0c0cd3c7a8f2a157bb624bd4d4171169",
+  "driver_sha256": "8e8ff7ab2853b87fb8b6b073532824fba0573c1939d256e48ed6ed8b7c622cf6",
+  "driver_only_change": "Add -v to strace argv. No load or statistics modifications.",
+  "raw_private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/exact-e-fd-inventory-20261015",
+  "trace_sha256": "3299ba6f95ca28349d92854c9b5089b0f7252225011639ebcc5611cf70b282b3",
+  "trace_bytes": 5174427,
+  "ppoll_argument_nfds_histogram": {
+    "6": 8,
+    "7": 19,
+    "8": 19,
+    "9": 19,
+    "10": 19,
+    "11": 19,
+    "12": 19,
+    "13": 20,
+    "14": 4911
+  },
+  "fourteen_fd_signatures": [
+    {
+      "role_counts": {
+        "downstream-tcp": 8,
+        "ipv4-tcp-listener": 1,
+        "ipv4-udp-listener": 1,
+        "ipv6-tcp-listener": 1,
+        "ipv6-udp-listener": 1,
+        "route-netlink": 1,
+        "signal-pipe": 1
+      },
+      "occurrences": 4911
+    }
+  ],
+  "first_fourteen_fd_array_redacted": [
+    {
+      "fd": 11,
+      "role": "route-netlink",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 3,
+      "role": "signal-pipe",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 6,
+      "role": "ipv4-udp-listener",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 7,
+      "role": "ipv4-tcp-listener",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 8,
+      "role": "ipv6-udp-listener",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 9,
+      "role": "ipv6-tcp-listener",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 12,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 13,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 14,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 15,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 16,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 17,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 18,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    },
+    {
+      "fd": 19,
+      "role": "downstream-tcp",
+      "events": "POLLIN"
+    }
+  ],
+  "completion": {
+    "valid_count_profile": true,
+    "measurement": {
+      "scheduled": 4000,
+      "sent": 4000,
+      "correct": 4000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0,
+      "stale_reply": 0,
+      "datagrams_sent": 0,
+      "release_sent": 0,
+      "dora_correct": 0,
+      "renew_correct": 0,
+      "correct_in_window": 4000,
+      "correct_after_window": 0,
+      "send_lag_count": 4000,
+      "send_lag_sum_ns": 307749812,
+      "send_lag_max_ns": 1264717
+    },
+    "perf_statuses": [
+      -2
+    ],
+    "timing_eligible": false
+  },
+  "commands": {
+    "daemon.command.json": [
+      "taskset",
+      "-c",
+      "2",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/exact-e-fd-inventory-20261015/dnsmasq-rs",
+      "--keep-in-foreground",
+      "--conf-file=/home/ubuntu/dnsmasq-perf-20261015/loop/private/exact-e-fd-inventory-20261015/config"
+    ],
+    "strace.command.json": [
+      "strace",
+      "-v",
+      "-I2",
+      "-yy",
+      "-ttt",
+      "-s",
+      "0",
+      "-e",
+      "trace=network,ppoll,close,fcntl,ioctl",
+      "-p",
+      "256868",
+      "-o",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/exact-e-fd-inventory-20261015/syscalls.txt"
+    ],
+    "client.command.json": [
+      "taskset",
+      "-c",
+      "3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/m6a_loadgen",
+      "--mode",
+      "tcp",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "15353",
+      "--clients",
+      "8",
+      "--duration-seconds",
+      "20",
+      "--warmup-seconds",
+      "5",
+      "--rate",
+      "200",
+      "--seed",
+      "0x293001",
+      "--name-prefix",
+      "m6a.test",
+      "--profile",
+      "hit",
+      "--qtype",
+      "aaaa30",
+      "--cache-names",
+      "800",
+      "--timeout-ms",
+      "1000",
+      "--output",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/exact-e-fd-inventory-20261015/client"
+    ],
+    "prewarm.command.json": [
+      "taskset",
+      "-c",
+      "3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/m6a_loadgen",
+      "--mode",
+      "udp",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "15353",
+      "--clients",
+      "32",
+      "--duration-seconds",
+      "5",
+      "--warmup-seconds",
+      "0",
+      "--rate",
+      "200",
+      "--seed",
+      "0x293001",
+      "--name-prefix",
+      "m6a.test",
+      "--profile",
+      "hit",
+      "--qtype",
+      "aaaa30",
+      "--cache-names",
+      "800",
+      "--timeout-ms",
+      "1000",
+      "--output",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/exact-e-fd-inventory-20261015/prewarm"
+    ]
+  },
+  "inputs_sha256": {
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68"
+  }
+}
