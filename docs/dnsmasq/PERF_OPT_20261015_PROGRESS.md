@@ -5,8 +5,13 @@ Branch: `perf/dnsmasq-20261015`; worktree:
 Starting main: `51b03959`. Do not merge main, push, or deploy.
 Original main worktree has user prompt edits; leave them intact.
 
-Status: frozen protocol; first algorithm directions screened. Device baseline initial attempt was excluded after a controller archive incompatibility and overwritten guard segment. All completed/interrupted raw windows retained; fresh entire 110-window baseline uses prefix base2. No selective replacement. Current best remains
-deployed v0.2.0 SHA256 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
+Current research status, 2026-10-16: E is accepted; F completed correctness and
+both 110-window matrices but did not demonstrate the required CPU improvement.
+No G has been selected. Direct A53 attribution and allocation counting now
+guide the next independent prototypes; see the latest section at the end.
+Production remains v0.2.0 SHA256
+`8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
+The following sections retain the chronological evidence and superseded plans.
 See `audits/perf-opt-20261015/FROZEN.md` and `frozen-inputs.json`.
 
 Oracle initial observation: root 53 GiB used / 142 GiB free; `/dev/shm` empty,
@@ -748,3 +753,69 @@ or completion.32 SDK low-load windows follow before releasing Oracle for the
 new UDP follow-up. The exact downloaded SDK ELF/maps independently confirm the
 address chain2768→1360B and reply owned-answer chain848→1264B. Those observations
 remain static reservations, not dynamic stack traffic or CPU evidence.
+
+## A53 evidence and next prototypes, 2026-10-16
+
+The excluded E stage diagnostic completed 50 valid physical windows. Fresh
+same-round exact C/E CPU medians are 80/140 microseconds/query. Original E and
+diagnostic full are both140. With the same diagnostic ELF, full/receive-cut is
+136/70, full/before-answer is136/98, and full/skip-local is138/120. These are
+coarse interventions with their own controls, not additive function costs or
+candidate acceptance. Every mode retains1000 real prewarm requests; traffic,
+mode counters, archives, health and restoration passed independent review.
+See `loop/A53_UDP_STAGE_DEVICE_RESULT.md` and its independent audit. Production
+was unchanged and the temporary slots restored.
+
+The independent excluded count-only E diagnostic confirms exactly5 allocations,
+5 frees,0 reallocations and270 requested/released bytes per cached hit, in all
+15,600 physical hit requests. Whole cached-only owner turns agree; nested and
+unscoped counts are zero. Source explains32+32+14+64+128 bytes, but no backtrace
+histogram or allocator CPU cost was captured. The diagnostic exceeds the release
+ELF budget and is never a candidate. See `loop/E_UDP_ALLOCATION_DEVICE_RESULT.md`.
+Software perf is unavailable too: retained TASK_CLOCK probes return ENOSYS;
+there is no reason to install perf or alter the router kernel for this work.
+
+Completed independent screens remain separate:
+
+- Fixed read-one removes the low-load EAGAIN but causes high-load pipeline CPU
+  +28.826% and throughput−22.322%; rejected. Adaptive idle-batch preserves busy
+  batching and removes4999/5000 low-load empty receives, but Oracle CPU28→26 is
+  only1tick and inconclusive. A53 screening is queued after the current test.
+- Reply-body layout has9 native regressions and no discernible gains; retired.
+  Address-dispatch layout has small native signals but Oracle CPU28→28 and now
+  A53 F126→prototype132 in10 valid windows: only3ticks, below the original
+  precision gate. No demonstrated physical benefit; do not promote it.
+- Dotted allocation removal has a configured-CNAME native regression+5.089%.
+  Initial singleton has four native regressions. Preserve all480 windows and
+  all15 scenes from their independent screen; neither is automatically combined.
+- UDP decoded-name reuse `f404ed75` passes934 related Linux tests and the SDK
+  budget. Oracle32 gives low CPU28→28 and high variable-N CPU−1.151%, while high
+  throughput is inconclusive. A separate A53 F/name-buffer10 is running. The
+  scratch is bounded by valid DNS input, but its capacity is not universally
+  256: uneven labels retain380B with the pinned allocator growth behavior.
+
+Root's independent fresh-single-address prototype `2a9d53b0` keeps the successful
+single fresh A/AAAA answer out of the general cache state machine and removes
+its64B IDs allocation. All fallback code is unchanged. Mac716 library tests,
+musl checking and the unchanged SDK build pass; exact-source Linux runtime
+qualification is in progress. Local15-scene count pairs confirm the intended
+allocation change with equal checksums and zero retained bytes. No timing or
+full44 claim follows. `dns/FRESH_ADDRESS_PLAN.md` freezes the next480-window
+native screen, independently comparing this and singleton-slice refinement
+`8ed0cfdf` against F, then a32-window exact-SDK low/high owner screen. Oracle
+is reserved for those windows after gates/builds complete.
+
+Root also investigates using the existing hosts forward index to reject a
+published-generation name miss before C-style bucket hashing/walking. The
+separate prototype preserves bulk/retained-lease lookup and original rotation;
+it does not add an index or cache local-ownership decisions. It remains local
+and unselected. PGO is separately prepared: existing release settings already
+use fat LTO/codegen-units1, and Oracle has matching LLVM22.1.8 llvm-profdata.
+Only a narrow static-PIE profile-emission smoke test is being prepared; training
+and performance claims remain pending. Rust/C total ELF sizes do not establish
+instruction working-set sizes.
+
+Continue until an immutable next candidate has complete frozen-C correctness,
+full Oracle/device matrices and a discernible A53 improvement over E. Tool
+repairs, behavior repairs and performance patches remain separate commits and
+separate report categories. No production deployment is part of these tests.
