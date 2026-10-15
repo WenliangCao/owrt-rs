@@ -1,0 +1,10 @@
+{
+  "branch": "perf/dnsmasq-loop-c-profile-20261015",
+  "preserved_ref": "refs/archive/perf-opt-20261015/loop-final-20261015-1504",
+  "tip": "a7ad6ab9c080860a8bc838faeaa5851b880f92d7",
+  "worktree": "/Users/USER/Developer/owrt-perf-loop-20261015",
+  "clean_before_detach": true,
+  "private_artifacts_retained": true,
+  "status": "narrow TCP group rejected; all source and evidence integrated through b5dc8f13; wider readiness remains unproved, not an active product fork",
+  "main_untouched": true
+}
