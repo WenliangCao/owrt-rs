@@ -1,0 +1,50 @@
+{
+  "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_date_epoch": "1792083838",
+  "source_digest": "271d69d30406a4596e0faaf68f07be59d23e512ce0e0141053fef8c2952e716f",
+  "git_identity_sha256": "b10d9f581eb9f89698ff266375a33308d9d16684f86805e1de744654b4c06df1",
+  "status": "built-unqualified",
+  "artifacts": [
+    {
+      "path": "dnsmasq-rs",
+      "bytes": 2136859,
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    }
+  ],
+  "link_map": {
+    "path": "link.map",
+    "sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab"
+  },
+  "artifact": {
+    "name": "dnsmasq-2.93-r4.apk",
+    "bytes": 1162790,
+    "sha256": "3f1931b78e7f653c545437c2810be7b0a74e8dbbb91e1d4302cbc1e49c0049d9"
+  },
+  "prestrip": {
+    "sha256": "280a9d3d194e95fd7633a3bd4e74701f1d2e89811d560802f8e8232aa61d5322",
+    "bytes": 2138592
+  },
+  "source_unchanged": true,
+  "within_existing_budget": true,
+  "toolchain": {
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+    "map_wrapper_sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5"
+  },
+  "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "build_helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "invalidated_prepare_stamps": [
+    ".prepared_64261e14825b23f20f28f7d3526a728e_6664517399ebbbc92a37c5bb081b5c53",
+    ".prepared_64261e14825b23f20f28f7d3526a728e_6664517399ebbbc92a37c5bb081b5c53_check"
+  ],
+  "full_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+  "git_inputs_verified": 179,
+  "changes": {
+    "performance": [
+      "c1ea66f6",
+      "6f594d7b",
+      "5a03fffe"
+    ],
+    "behavior_fixes": []
+  }
+}
