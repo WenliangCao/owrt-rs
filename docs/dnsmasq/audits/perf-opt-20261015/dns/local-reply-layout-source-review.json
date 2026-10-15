@@ -54,13 +54,18 @@
     "Thirteen explicit arguments include vector descriptors and a result value; outgoing argument storage and caller/callee frames may overlap in the positive path.",
     "Configured CNAME with leases can leave the original dotted-name Vec in the caller until return; tail-call elimination must not be assumed.",
     "A smaller hot function does not prove smaller hot instruction working set, improved IPC, fewer dynamic spills or less aggregate stack. Inspect actual uninstrumented prologues and call/tail-call sites, then use separate controlled timings.",
-    "Final live allocation balance alone does not measure peak stack or heap; moving existing owning parameters is not proof of a performance gain."
+    "Final live allocation balance alone does not measure peak stack or heap; moving existing owning parameters is not proof of a performance gain.",
+    "Moving owning locals to parameters can alter allocator-free order on early error exits. QueryEvents/QueryEvent and the moved byte vectors have no custom Drop side effects; this is not a DNS correctness blocker, but byte-identical body alone does not promise identical allocation lifetime traces."
   ],
   "existing_test_evidence": {
     "root_reported_mac_library_passed": 714,
     "root_reported_ignored": 8,
     "independently_rerun": false,
-    "reason": "The requested review was source-only and the unchanged body and existing completed tests supplied the necessary semantic evidence."
+    "reason": "The requested review was source-only and the unchanged body and existing completed tests supplied the necessary semantic evidence.",
+    "independently_read_log_sha256": "d0803cbd2847ef25221762fa3c0d4f6f3f6f40de511c41d197af329dffb0c9f5",
+    "observed_passed": 714,
+    "observed_ignored": 8,
+    "observed_failed": 0
   },
   "reviewed_existing_controls": [
     "raw address/ANY declaration order",
@@ -68,5 +73,93 @@
     "optional Additional overflow",
     "Additional cache pruning and sticky lease expiry",
     "truncated answers still visiting successful mail targets"
-  ]
+  ],
+  "existing_artifact_review": {
+    "scope": "Read and independently re-disassemble existing Mac artifacts only; no recompilation or execution",
+    "input_receipt_sha256": {
+      "mac-plain-frame-with-helper.json": "81d3e68f97bad95f6946c778fab3c7add39edb9d5d7aad0d7ea6575009cb2d38",
+      "mac-counts.json": "e17d602cc27c449f20afa8074d6468c4fcea5cebba6aa42fa6eac1238752e85b"
+    },
+    "redecoded": {
+      "F-entry": {
+        "artifact_sha256": "76cd0276c96bd7de0e307ed7e8c65b530cc5f69062a3a3f1e5ba71458d3d69f9",
+        "symbol": "__RNvMs_NtNtCskiSgtEnck0U_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "static_instruction_lines": 5173,
+        "fixed_frame_bytes": 896
+      },
+      "layout-entry": {
+        "artifact_sha256": "4a97e5a35a0e657bec08430ab0c338ea06e065718eeae7ce9937202f8dcc8e9f",
+        "symbol": "__RNvMs_NtNtCscTa4hFrcQst_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "static_instruction_lines": 3715,
+        "fixed_frame_bytes": 752
+      },
+      "positive_call_context": [
+        "10002a21c:     \tadd\tx7, sp, #0x150",
+        "10002a220:     \tstp\tx9, x8, [sp]",
+        "10002a224:     \tldr\tx0, [sp, #0xc8]",
+        "10002a228:     \tmov\tx1, x21",
+        "10002a22c:     \tldr\tw3, [sp, #0xb4]",
+        "10002a230:     \tmov\tx4, x27",
+        "10002a234:     \tldr\tx5, [sp, #0xb8]",
+        "10002a238:     \tmov\tx6, x20",
+        "10002a23c:     \tbl\t0x100030bd0 <__RNvMs_NtNtCscTa4hFrcQst_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20finish_local_records>",
+        "10002a240:     \tldr\tx8, [sp, #0xf0]",
+        "10002a244:     \tcmp\tx8, #0x1",
+        "10002a248:     \tb.lt\t0x1000289d4 <__RNvMs_NtNtCscTa4hFrcQst_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events+0xd0>",
+        "10002a24c:     \ttbz\tw28, #0x0, 0x1000289d4 <__RNvMs_NtNtCscTa4hFrcQst_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events+0xd0>",
+        "10002a250:     \tldr\tx0, [sp, #0x98]",
+        "10002a254:     \tadd\tsp, sp, #0x270",
+        "10002a258:     \tldp\tx29, x30, [sp, #0x70]",
+        "10002a25c:     \tldp\tx20, x19, [sp, #0x60]",
+        "10002a260:     \tldp\tx22, x21, [sp, #0x50]",
+        "10002a264:     \tldp\tx24, x23, [sp, #0x40]",
+        "10002a268:     \tldp\tx26, x25, [sp, #0x30]",
+        "10002a26c:     \tldp\tx28, x27, [sp, #0x20]",
+        "10002a270:     \tldp\td9, d8, [sp, #0x10]",
+        "10002a274:     \tldp\td11, d10, [sp], #0x80",
+        "10002a278:     \tb\t0x1000775f0 <dyld_stub_binder+0x1000775f0>"
+      ],
+      "layout-finish": {
+        "artifact_sha256": "4a97e5a35a0e657bec08430ab0c338ea06e065718eeae7ce9937202f8dcc8e9f",
+        "symbol": "__RNvMs_NtNtCscTa4hFrcQst_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20finish_local_records",
+        "static_instruction_lines": 1752,
+        "fixed_frame_bytes": 608
+      }
+    },
+    "owned_two_frame_subtotal_bytes": 1360,
+    "owned_subtotal_delta_vs_F_entry_bytes": 464,
+    "hot_entry_frame_delta_bytes": -144,
+    "combined_static_instruction_lines": 5467,
+    "combined_static_instruction_line_delta": 294,
+    "call_is_not_tail_call": true,
+    "limitation": "Two-frame subtotal excludes callers and deeper callees; neither it nor static code size measures dynamic spills, IPC, cache misses or runtime peak stack.",
+    "allocation_rows_checked": 30,
+    "all_checksums_and_final_live_balance_match": true,
+    "all_allocation_call_counts_match": true,
+    "only_reallocation_requested_byte_variation": [
+      {
+        "scene": "host-localise",
+        "F": {
+          "scene": "host-localise",
+          "operations": 8000,
+          "allocations": 69600,
+          "reallocations": 17540,
+          "requested_bytes": 7467520,
+          "live_bytes_delta": 0,
+          "checksum": 468800,
+          "side": "F"
+        },
+        "layout": {
+          "scene": "host-localise",
+          "operations": 8000,
+          "allocations": 69600,
+          "reallocations": 16500,
+          "requested_bytes": 6845440,
+          "live_bytes_delta": 0,
+          "checksum": 468800,
+          "side": "layout"
+        }
+      }
+    ]
+  }
 }
