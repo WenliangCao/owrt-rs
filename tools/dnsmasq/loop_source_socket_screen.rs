@@ -26,7 +26,8 @@ fn receive_screen(case: &str, count: usize, burst: usize) {
     assert!(matches!(burst, 1 | 16));
     let initial_fds = std::fs::read_dir("/proc/self/fd").unwrap().count();
     let interfaces = listeners::snapshot().unwrap();
-    let config = DnsConfig { bind_interfaces: true, ..Default::default() };
+    let mut config = DnsConfig::default();
+    config.bind_interfaces = true;
     let address: SocketAddr = "127.0.0.1:0".parse().unwrap();
     let before_bind = allocation_counts();
     let server = if case == "receive-bound4" {
