@@ -1,12 +1,14 @@
-# Fixed E SDK PGO smoke2 gate
+# Fixed E SDK PGO smoke3 gate
 
 The [concrete plan](pgo-sdk-smoke-plan.json) freezes accepted E
 `4f869c885b47dcf60d56c872e5b0b3c62237beea`, the unchanged SDK recipe/linker,
 the corrected external SDK builder, fresh private paths, exact Cargo argv,
 and the static-answer startup/profile check. Root must explicitly release
-Oracle after the three queued SDK builds before smoke2 starts. Smoke1 stopped
-before compilation on a compiler-discovery setup error; its immutable
-[failure receipt](PGO_SDK_SMOKE1_FAILURE.md) remains separate.
+Oracle after the three native screens before smoke3 starts. Smoke1 stopped
+before compilation on a compiler-discovery setup error; smoke2 built but
+failed the exact-E identity gate after changing the prepared source directory.
+Both immutable [smoke1](PGO_SDK_SMOKE1_FAILURE.md) and
+[smoke2](PGO_SDK_SMOKE2_FAILURE.md) failures remain separate.
 
 This gate ends after an instrumented daemon exits normally and its profile
 merges and displays successfully. It does not train, build with profile-use,
@@ -22,8 +24,23 @@ uses a temporary dependency-free manifest and an empty PATH: direct Cargo
 fails `clean` with the same missing `rustc -vV` error/status 101; the corrected
 wrapper succeeds with `Removed 0 files`. No product compile or link occurs.
 The proxy alone also failed under the tested Homebrew/empty-CARGO_HOME layout,
-so smoke2 explicitly binds compiler discovery instead of relying on proxy
-layout. All eight wrapper/controller tests passed after this correction.
+so the wrapper explicitly binds compiler discovery instead of relying on
+proxy layout. All eight wrapper/controller tests passed after this correction.
+
+Smoke3 additionally binds the original E `build.json` by SHA256 and checks its
+source, epoch, prepared build slot and control Cargo target before any build.
+Both control and generate use the original
+`/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot`; only generate
+uses a fresh target directory, while control restores the original target.
+Fresh attempt outputs still preserve all evidence. This keeps the Cargo path
+dependency identity input stable rather than assuming source remapping also
+remaps package identities. A real pinned-toolchain two-crate regression
+verifies that same-source builds across fresh targets have identical metadata
+and rlib hashes, moving the tree plus remap changes both dependency/owner
+metadata, and returning to the original path restores both. A separate plan
+test rejects source/build-slot/control-target drift. All ten local tests pass.
+The exact E ELF hash remains the runtime build gate; local fixture evidence
+does not substitute for that gate. No profile-use stage is added.
 
 The [execution controller](../../../../../tools/dnsmasq/pgo_sdk_smoke.py) is now
 prepared locally. After explicit host release, place the plan, wrapper and

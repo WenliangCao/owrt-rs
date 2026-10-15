@@ -96,6 +96,22 @@ def check_build(plan, mode, plan_sha, tools):
     return built
 
 
+def check_baseline_paths(plan, baseline):
+    assert baseline['status'] == 'built-unqualified' and baseline['source_unchanged']
+    for key in ('source', 'source_commit', 'source_date_epoch', 'source_digest'):
+        assert plan[key] == baseline[key], key
+    assert baseline['artifacts'][0]['sha256'] == plan['expected_control_elf_sha256']
+    build_dirs = {argument.split('=', 1)[1] for command in baseline['commands']
+                  for argument in command if argument.startswith('OWRT_DNSMASQ_BUILD_DIR=')}
+    assert build_dirs == {plan['build_slot']}, 'Cargo path dependency source location must match frozen E'
+    assert plan['cargo_targets']['control'] == baseline['shared_cargo_target']
+    for stage in plan['stages']:
+        argv = stage['argv']
+        assert argv[argv.index('--source') + 1] == plan['source']
+        assert argv[argv.index('--build-slot') + 1] == plan['build_slot']
+        assert argv[argv.index('--cargo-target') + 1] == plan['cargo_targets'][stage['mode']]
+
+
 def protections(data, maps, page):
     assert data[:6] == b'\x7fELF\x02\x01' and page > 0 and page & (page - 1) == 0
     offset, = struct.unpack_from('<Q', data, 32)
@@ -289,8 +305,11 @@ def execute(plan_path):
                  str(Path(plan['source']) / 'packaging/openwrt/owrt-dnsmasq/static-pie-linker.py'): plan['static_pie_linker_sha256'],
                  plan['map_cc']: plan['map_cc_sha256'],
                  plan['isolator']['path']: plan['isolator']['sha256'],
+                 plan['baseline_receipt']['path']: plan['baseline_receipt']['sha256'],
                  plan['profdata']['path']: plan['profdata']['sha256']}
         assert all(sha(path) == digest for path, digest in fixed.items())
+        baseline = json.loads(Path(plan['baseline_receipt']['path']).read_text())
+        check_baseline_paths(plan, baseline)
         wrapper = Path(plan['wrapper_remote_path'])
         wrapper.parent.mkdir()
         shutil.copyfile(base / 'inputs/pgo_smoke_cargo.py', wrapper)
@@ -318,6 +337,7 @@ def execute(plan_path):
             state['status'] = mode + '-build'
             command(mode + '-build', stage['argv'], stage['environment'])
             built = check_build(plan, mode, state['plan_sha256'], tools)
+            assert built['source_files'] == baseline['source_files'] and built['sdk'] == baseline['sdk']
             if mode == 'generate':
                 assert built['source_files'] == control['source_files'] and built['sdk'] == control['sdk']
             else:
