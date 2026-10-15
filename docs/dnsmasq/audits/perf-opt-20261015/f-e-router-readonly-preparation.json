@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "scope": "Read-only F/E preparation inventory; no remote files, stage, daemon, config or network state changed.",
+  "captured_utc": "2026-10-15T17:06:01.650961+00:00",
+  "production": {
+    "file_and_live_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "pid_start": [
+      3086,
+      2115
+    ],
+    "other_same_name_pid": {
+      "pid_start": [
+        3082,
+        2109
+      ],
+      "exe": "/sbin/ujail",
+      "note": "Supervisor is not an additional deployed ELF; existing production_identity selects by exact ELF hash."
+    }
+  },
+  "owned_state": {
+    "STOP": false,
+    "active_group": false,
+    "live_executables_under_task_root": 0,
+    "root_mode": "0700",
+    "root_uid": 0,
+    "root_gid": 0,
+    "available_memory_kib": 96280
+  },
+  "staged_artifacts_unchanged": {
+    "dnsmasq-c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "dnsmasq-rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+  },
+  "offline_backups_rehashed": {
+    "inputs/dnsmasq-c": {
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    },
+    "inputs/dnsmasq-v020": {
+      "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "bytes": 2124571
+    },
+    "inputs/m6a_loadgen": {
+      "sha256": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+      "bytes": 544680
+    },
+    "sdk-e/dnsmasq-rs": {
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859
+    }
+  },
+  "read_only_route_inventory": {
+    "ipv4_main_default_rows": 1,
+    "ipv6_proc_default_rows": 0,
+    "interpretation": "This file inventory is not a DNS/LuCI/IPv4/IPv6 client health result. Fresh active health baseline and dual-stack HTTPS checks are still required before launch."
+  },
+  "guard_identity": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+  "stop_boundary": "Existing verified guard/controller only signals the owned active process group after PID/starttime/group identity checks; production is never restarted or replaced. No stop path was triggered during this inventory.",
+  "pending": [
+    "Exact F SDK identity and complete correctness qualification.",
+    "Fresh >=120 s active production/client health baseline and recorded threshold.",
+    "Coordinator-authorized verified atomic staging of E/F/new loadgen, then final launch-time identity recheck."
+  ],
+  "attempts": [
+    {
+      "kind": "initial read-only inventory",
+      "exit_code": 127,
+      "limitation": "BusyBox image has no stat command; stopped after memory inventory, all preceding hashes and idle checks retained."
+    },
+    {
+      "kind": "missing inventory follow-up",
+      "exit_code": 0,
+      "resolution": "Used read-only ls -ldn for task directory permissions, identified ujail, counted route entries."
+    }
+  ],
+  "private_capture_sha256": {
+    "router-readonly-preflight.json": "c6069eb4f0bb4f4b4cc42890ce75214928f8be476508ab3745d8409afcbb5fc0",
+    "router-readonly-preflight-followup.json": "33f11a4e939e97cfa5e5eb10ef8bf302c8b6d74ab8a45fd6562db08b363bedfc"
+  }
+}
