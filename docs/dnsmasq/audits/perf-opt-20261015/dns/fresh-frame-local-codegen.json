@@ -1,0 +1,345 @@
+{
+  "scope": "Mac native LTO probe codegen; not exact SDK, device stack traffic or CPU evidence",
+  "commands": [
+    {
+      "label": "parent-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-fresh-address-answer-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e14e6974576ed5723b412b86f80a815249acba985c4c142fe0788d9f19eb145f"
+    },
+    {
+      "label": "parent-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--emit=asm,llvm-ir,link",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/parent"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7ebd0827d0286054d2208a1a2e21ca7982daa14cd4d7d95f6caaa68e8894e272"
+    },
+    {
+      "label": "frame-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-fresh-address-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2abdab8287a504b8a671c9e877e308dd8e9343bc599ccbdb2af16daa1cb3469d"
+    },
+    {
+      "label": "frame-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--emit=asm,llvm-ir,link",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/frame"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7ebd0827d0286054d2208a1a2e21ca7982daa14cd4d7d95f6caaa68e8894e272"
+    },
+    {
+      "label": "F-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3f687d5756dc28e0f76e8e80fad57370fd2152c9efe8578ced6dee0da3996311"
+    },
+    {
+      "label": "F-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--emit=asm,llvm-ir,link",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-frame-local/F"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7ebd0827d0286054d2208a1a2e21ca7982daa14cd4d7d95f6caaa68e8894e272"
+    }
+  ],
+  "functions": {
+    "F": {
+      "assembly_sha256": "90cae8b70af8af319930d032500a7fc9a48f9aead31a35f7581e8d7c70a6173a",
+      "functions": {
+        "general": {
+          "symbol": "__RNvMs0_NtNtCskiSgtEnck0U_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+          "prologue": [
+            "stp\tx28, x27, [sp, #-96]!",
+            "stp\tx26, x25, [sp, #16]",
+            "stp\tx24, x23, [sp, #32]",
+            "stp\tx22, x21, [sp, #48]",
+            "stp\tx20, x19, [sp, #64]",
+            "stp\tx29, x30, [sp, #80]",
+            "add\tx29, sp, #80",
+            "sub\tsp, sp, #784",
+            "mov\tx24, x0",
+            "mov\tx21, x5",
+            "mov\tx19, x2",
+            "mov\tx22, x1",
+            "ldr\tx20, [x29, #16]",
+            "ldr\tx8, [x5, #464]",
+            "mov\tw8, #1",
+            "str\tw3, [sp, #108]",
+            "str\tx6, [sp, #136]",
+            "str\tw7, [sp, #120]"
+          ],
+          "entry_frame_bytes": 880,
+          "assembly_instruction_lines": 3077
+        },
+        "query_caller": {
+          "symbol": "__RNvMCsjH8vpl6ehRJ_16hotpath_probe_v2NtB2_7Fixture5query",
+          "prologue": [
+            "stp\tx28, x27, [sp, #-96]!",
+            "stp\tx26, x25, [sp, #16]",
+            "stp\tx24, x23, [sp, #32]",
+            "stp\tx22, x21, [sp, #48]",
+            "stp\tx20, x19, [sp, #64]",
+            "stp\tx29, x30, [sp, #80]",
+            "add\tx29, sp, #80",
+            "sub\tsp, sp, #592",
+            "ldr\tx8, [x0, #752]",
+            "mov\tx19, x0",
+            "str\tw2, [sp, #148]",
+            "ldr\tx9, [x0, #744]",
+            "mov\tw10, #24",
+            "str\tx8, [sp, #200]",
+            "add\tx8, sp, #200",
+            "ldr\tx8, [sp, #200]",
+            "ldr\tx2, [x8, #16]",
+            "add\tx24, sp, #304"
+          ],
+          "entry_frame_bytes": 688,
+          "assembly_instruction_lines": 1023
+        }
+      },
+      "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "postrun_source_files_verified": 162
+    },
+    "parent": {
+      "assembly_sha256": "e0ef7184936ce2bc8999cae1381c298a47fdb8709cfd7c5175a457394f26c8fd",
+      "functions": {
+        "general": {
+          "symbol": "__RNvMs0_NtNtCsflTKdSZsLq_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general",
+          "prologue": [
+            "stp\tx28, x27, [sp, #-96]!",
+            "stp\tx26, x25, [sp, #16]",
+            "stp\tx24, x23, [sp, #32]",
+            "stp\tx22, x21, [sp, #48]",
+            "stp\tx20, x19, [sp, #64]",
+            "stp\tx29, x30, [sp, #80]",
+            "add\tx29, sp, #80",
+            "sub\tsp, sp, #784",
+            "mov\tx24, x0",
+            "mov\tx21, x5",
+            "mov\tx19, x2",
+            "mov\tx22, x1",
+            "ldr\tx20, [x29, #16]",
+            "ldr\tx8, [x5, #464]",
+            "mov\tw8, #1",
+            "str\tw3, [sp, #108]",
+            "str\tx6, [sp, #136]",
+            "str\tw7, [sp, #120]"
+          ],
+          "entry_frame_bytes": 880,
+          "assembly_instruction_lines": 3077
+        },
+        "query_caller": {
+          "symbol": "__RNvMCsjH8vpl6ehRJ_16hotpath_probe_v2NtB2_7Fixture5query",
+          "prologue": [
+            "stp\tx28, x27, [sp, #-96]!",
+            "stp\tx26, x25, [sp, #16]",
+            "stp\tx24, x23, [sp, #32]",
+            "stp\tx22, x21, [sp, #48]",
+            "stp\tx20, x19, [sp, #64]",
+            "stp\tx29, x30, [sp, #80]",
+            "add\tx29, sp, #80",
+            "sub\tsp, sp, #656",
+            "ldr\tx8, [x0, #752]",
+            "mov\tx19, x0",
+            "str\tw2, [sp, #148]",
+            "ldr\tx9, [x0, #744]",
+            "mov\tw10, #24",
+            "str\tx8, [sp, #200]",
+            "add\tx8, sp, #200",
+            "ldr\tx8, [sp, #200]",
+            "ldr\tx2, [x8, #16]",
+            "add\tx26, sp, #304"
+          ],
+          "entry_frame_bytes": 752,
+          "assembly_instruction_lines": 1241
+        }
+      },
+      "source_commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+      "postrun_source_files_verified": 162
+    },
+    "frame": {
+      "assembly_sha256": "2daee4c3c986eb19078f55709350fec236814fd78b0a0ca0da9e0bf04e87131a",
+      "functions": {
+        "general": {
+          "symbol": "__RNvMs0_NtNtCsjnRVSIXOkS1_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general",
+          "prologue": [
+            "stp\tx28, x27, [sp, #-96]!",
+            "stp\tx26, x25, [sp, #16]",
+            "stp\tx24, x23, [sp, #32]",
+            "stp\tx22, x21, [sp, #48]",
+            "stp\tx20, x19, [sp, #64]",
+            "stp\tx29, x30, [sp, #80]",
+            "add\tx29, sp, #80",
+            "sub\tsp, sp, #784",
+            "mov\tx24, x0",
+            "mov\tx21, x5",
+            "mov\tx19, x2",
+            "mov\tx22, x1",
+            "ldr\tx20, [x29, #16]",
+            "ldr\tx8, [x5, #464]",
+            "mov\tw8, #1",
+            "str\tw3, [sp, #108]",
+            "str\tx6, [sp, #136]",
+            "str\tw7, [sp, #120]"
+          ],
+          "entry_frame_bytes": 880,
+          "assembly_instruction_lines": 3077
+        },
+        "fresh_writer": {
+          "symbol": "__RNvMs0_NtNtCsjnRVSIXOkS1_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+          "prologue": [
+            "sub\tsp, sp, #208",
+            "stp\tx28, x27, [sp, #112]",
+            "stp\tx26, x25, [sp, #128]",
+            "stp\tx24, x23, [sp, #144]",
+            "stp\tx22, x21, [sp, #160]",
+            "stp\tx20, x19, [sp, #176]",
+            "stp\tx29, x30, [sp, #192]",
+            "add\tx29, sp, #192",
+            "mov\tx19, x0",
+            "mov\tw8, #1536",
+            "mov\tx8, #-2",
+            "str\tx8, [x19]",
+            "ldp\tx29, x30, [sp, #192]",
+            "ldp\tx20, x19, [sp, #176]",
+            "ldp\tx22, x21, [sp, #160]",
+            "ldp\tx24, x23, [sp, #144]",
+            "ldp\tx26, x25, [sp, #128]",
+            "ldp\tx28, x27, [sp, #112]"
+          ],
+          "entry_frame_bytes": 208,
+          "assembly_instruction_lines": 240
+        },
+        "query_caller": {
+          "symbol": "__RNvMCsjH8vpl6ehRJ_16hotpath_probe_v2NtB2_7Fixture5query",
+          "prologue": [
+            "stp\tx28, x27, [sp, #-96]!",
+            "stp\tx26, x25, [sp, #16]",
+            "stp\tx24, x23, [sp, #32]",
+            "stp\tx22, x21, [sp, #48]",
+            "stp\tx20, x19, [sp, #64]",
+            "stp\tx29, x30, [sp, #80]",
+            "add\tx29, sp, #80",
+            "sub\tsp, sp, #592",
+            "ldr\tx8, [x0, #752]",
+            "mov\tx19, x0",
+            "str\tw2, [sp, #148]",
+            "ldr\tx9, [x0, #744]",
+            "mov\tw10, #24",
+            "str\tx8, [sp, #200]",
+            "add\tx8, sp, #200",
+            "ldr\tx8, [sp, #200]",
+            "ldr\tx2, [x8, #16]",
+            "add\tx28, sp, #304"
+          ],
+          "entry_frame_bytes": 688,
+          "assembly_instruction_lines": 1150
+        }
+      },
+      "source_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+      "postrun_source_files_verified": 162
+    }
+  },
+  "initial_extraction": "broad symbol selection also matched closures; original summary retained privately, corrected to exact method definitions",
+  "interpretation": "Refinement shared caller752->688B, but selected-hit chain688+208=896B exceeds parent752B by144B. General frame880B unchanged. F caller688B: refinement restores that static reservation, not necessarily its runtime cost. No CPU result or exact refined SDK evidence.",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd"
+}

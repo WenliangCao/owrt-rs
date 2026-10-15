@@ -31,3 +31,14 @@ same32-window SDK owner diagnostic, with the original low-load precision and
 high-load variable-N limitations. No current artifact, workload or C expectation
 is modified. Eventual candidate promotion still requires complete qualification
 and a discernible independent physical improvement against E.
+
+The [local LTO probe comparison](fresh-frame-local-codegen.json) now includes F,
+parent and refinement under the same compiler/options. Its shared query caller
+reserves688/752/688 bytes, respectively: the refinement restores F's reservation
+in this local probe. Caller assembly instruction lines are1,023/1,241/1,150.
+Its new selected-hit writer reserves208 bytes, however, so that simultaneously
+live hit chain is688+208=896 versus the parent's752, an increase of144 bytes.
+The general body remains880 bytes/3,077 assembly instruction lines in all three.
+These Mac figures must not be substituted for the exact SDK figures above.
+All six build commands passed and162 source files per variant matched their
+Git commits after compilation. No workload timing was run for the refinement.
