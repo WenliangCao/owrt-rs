@@ -1,0 +1,1072 @@
+{
+  "scope": "Fresh exact candidateC self-instruction attribution and syscall counts under unchanged DNS workloads. No instrumented elapsed time is acceptance evidence. HistoricalA and currentC are separate unpaired diagnostic windows.",
+  "archive": {
+    "name": "candidate-c-owner-profiles-20261015.tar.gz",
+    "sha256": "ff961409258ac7e428b0381a9393e87e0f87ba4fe69390c3d189f0af00c15430",
+    "bytes": 9489587,
+    "copy_hash_verified": true,
+    "contents": "regular files/directories from4PMU profiles+1strace window; transient perf FIFO endpoints excluded"
+  },
+  "tools_sha256": {
+    "loop_owner_profile.py": "ab4924e7a953e9ed127fe29e166c295c0c0cd3c7a8f2a157bb624bd4d4171169",
+    "loop_owner_profile_analyze.py": "86e23e866b400d9fe328a3c3dc3b29abf4d8bb55a1c68e98b94f2aac1a4bb88d",
+    "elf_link_map_report.py": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+    "elf_size_report.py": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+    "perf_link_map_profile.py": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d"
+  },
+  "capture_parameters": {
+    "daemon_cpu": 2,
+    "upstream_cpu": 1,
+    "client_cpu": 3,
+    "nice": 10,
+    "new_loopback_only_network_namespace_per_window": true,
+    "rate_qps": 200,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "cache_names": 800,
+    "cache_entries": 1000,
+    "qtype": "aaaa30",
+    "upstream_delay_us": 1000,
+    "upstream_ttl": 120,
+    "edns_bytes": 1232,
+    "perf_event": "instructions",
+    "sample_period": 10000
+  },
+  "datasets": {
+    "udp-hit": {
+      "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+      "build_receipt_sha256": "cd2d2cdb4ac19820c16b764c4a5771063fe096ee1379a36bf6e68a4c593ca5ce",
+      "process_identity_sha256": "276164586a45212fb6ba2c5869c565a44b137690e47050dc54c77620c7d4b4b1",
+      "maps_after_sha256": "7ebc309785f890a8de0ed9456859010b7578715d5eb4a69e0c5223b04948a19e",
+      "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+      "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+      "nice": 10,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "timing_eligible": false,
+      "driver_complete_sha256": "e0df53db27a2583295a2222a31833dff7fe618b034d3a7244e1dd6846376f122",
+      "profile_sha256": "c12426e4e719b4eeca97fab08cd6d8109bf73004bbb1e21a835496df14151918",
+      "perf_ack_bracket_valid": true,
+      "perf_controls_sha256": "73dee31e5aae23eabb960631aba7b33b87d2405561fbc4330725a45bbe4bf2e1",
+      "totals": {
+        "samples": 10598,
+        "period": 105980000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "user_attributed": 4313,
+        "kernel": 6042,
+        "user_unmapped": 243
+      },
+      "pmu_during_recording": {
+        "instructions": 188060152,
+        "cycles": 352062565
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe12a4",
+            "0xe1420"
+          ],
+          "samples": 1975,
+          "period": 19750000,
+          "percent_all_period": 18.635591621060577
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x50d5c",
+            "0x529dc"
+          ],
+          "samples": 647,
+          "period": 6470000,
+          "percent_all_period": 6.104925457633516
+        },
+        {
+          "category": "user_attributed",
+          "label": "poll",
+          "elf_range": [
+            "0x1bc3e4",
+            "0x1bc458"
+          ],
+          "samples": 410,
+          "period": 4100000,
+          "percent_all_period": 3.8686544631062465
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe6008",
+            "0xe96d8"
+          ],
+          "samples": 394,
+          "period": 3940000,
+          "percent_all_period": 3.7176825816191736
+        },
+        {
+          "category": "user_attributed",
+          "label": "memcmp",
+          "elf_range": [
+            "0x1bfc08",
+            "0x1bfc3c"
+          ],
+          "samples": 116,
+          "period": 1160000,
+          "percent_all_period": 1.0945461407812795
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::append_poll_fds",
+          "elf_range": [
+            "0x71d38",
+            "0x71f34"
+          ],
+          "samples": 104,
+          "period": 1040000,
+          "percent_all_period": 0.9813172296659747
+        },
+        {
+          "category": "user_attributed",
+          "label": "sccp",
+          "elf_range": [
+            "0x1c0624",
+            "0x1c0648"
+          ],
+          "samples": 104,
+          "period": 1040000,
+          "percent_all_period": 0.9813172296659747
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::answer_local_or_cached",
+          "elf_range": [
+            "0x80f1c",
+            "0x81cf0"
+          ],
+          "samples": 84,
+          "period": 840000,
+          "percent_all_period": 0.7926023778071334
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::add_local_records_for_name",
+          "elf_range": [
+            "0xeaaf4",
+            "0xeee9c"
+          ],
+          "samples": 48,
+          "period": 480000,
+          "percent_all_period": 0.4529156444612191
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5f0c",
+            "0x1b6268"
+          ],
+          "samples": 43,
+          "period": 430000,
+          "percent_all_period": 0.4057369314965088
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::find_pseudoheader",
+          "elf_range": [
+            "0xb1a94",
+            "0xb1f84"
+          ],
+          "samples": 37,
+          "period": 370000,
+          "percent_all_period": 0.34912247593885637
+        },
+        {
+          "category": "user_attributed",
+          "label": "<core::hash::sip::Hasher<core::hash::sip::Sip13Rounds> as core::hash::Hasher>::write",
+          "elf_range": [
+            "0x9c5a8",
+            "0x9c790"
+          ],
+          "samples": 32,
+          "period": 320000,
+          "percent_all_period": 0.30194376297414605
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 243,
+          "period": 2430000,
+          "percent_all_period": 2.292885450084922
+        }
+      ],
+      "historical_a": {
+        "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+        "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+        "nice": 0,
+        "pmu_during_recording": {
+          "instructions": 197116728,
+          "cycles": 463806204
+        },
+        "instruction_total_change_percent": -4.59452431657652,
+        "interpretation": "unpaired diagnostic only, not an acceptance comparison"
+      },
+      "selected_sample_comparison": {
+        "Cache>::names_for": {
+          "A": 15.357172488177218,
+          "C": 18.635591621060577
+        },
+        "Cache>::insert_at_counted": {
+          "A": 0,
+          "C": 0
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "A": 3.4846096407533396,
+          "C": 3.7176825816191736
+        },
+        "UpstreamResolver>::send_plan_with_source": {
+          "A": 0,
+          "C": 0
+        },
+        "Name>::dnsmasq_bytes": {
+          "A": 0,
+          "C": 0
+        }
+      }
+    },
+    "udp-miss": {
+      "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+      "build_receipt_sha256": "cd2d2cdb4ac19820c16b764c4a5771063fe096ee1379a36bf6e68a4c593ca5ce",
+      "process_identity_sha256": "01c98f6ed70d97198caea81b885c6c8c8aa843c8693c796103ac44aca94fd844",
+      "maps_after_sha256": "b633587f6c81315e92d4ef8d4a378e32672d560c54bf8a6c3886278715dfc836",
+      "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+      "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+      "nice": 10,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "timing_eligible": false,
+      "driver_complete_sha256": "f7de67ea686fa9a85501a6fc47a09c077eeabcfeed963daaa6e4591b18862efb",
+      "profile_sha256": "9e9bf782f8862c44001441cc2c9b12577ab47caf3c1dae980da4b23c6aaf120f",
+      "perf_ack_bracket_valid": true,
+      "perf_controls_sha256": "702d9f961a237c189284c305b7bd81bd4c1e499c8b04214927dcdd6b40fef579",
+      "totals": {
+        "samples": 43738,
+        "period": 437380000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "user_attributed": 17958,
+        "kernel": 25698,
+        "user_unmapped": 82
+      },
+      "pmu_during_recording": {
+        "instructions": 826621047,
+        "cycles": 1368534353
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf5104",
+            "0xf5e8c"
+          ],
+          "samples": 4851,
+          "period": 48510000,
+          "percent_all_period": 11.091042114408523
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe6008",
+            "0xe96d8"
+          ],
+          "samples": 3020,
+          "period": 30200000,
+          "percent_all_period": 6.904751017421922
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe12a4",
+            "0xe1420"
+          ],
+          "samples": 1409,
+          "period": 14090000,
+          "percent_all_period": 3.2214550276647307
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::cache_engine::local_cache_match",
+          "elf_range": [
+            "0xf4798",
+            "0xf5104"
+          ],
+          "samples": 1360,
+          "period": 13600000,
+          "percent_all_period": 3.109424299236362
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5f0c",
+            "0x1b6268"
+          ],
+          "samples": 737,
+          "period": 7370000,
+          "percent_all_period": 1.6850336092185285
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6ed8",
+            "0x1b7330"
+          ],
+          "samples": 587,
+          "period": 5870000,
+          "percent_all_period": 1.3420823997439297
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::dnsmasq_bytes",
+          "elf_range": [
+            "0xaed78",
+            "0xaef6c"
+          ],
+          "samples": 494,
+          "period": 4940000,
+          "percent_all_period": 1.1294526498696786
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::poll_inner",
+          "elf_range": [
+            "0x78830",
+            "0x7b8d4"
+          ],
+          "samples": 443,
+          "period": 4430000,
+          "percent_all_period": 1.012849238648315
+        },
+        {
+          "category": "user_attributed",
+          "label": "<core::slice::iter::Iter<dnsmasq_rs::dns::forward::Server> as core::iter::traits::iterator::Iterator>::find::<<dnsmasq_rs::dns::forward::ForwardTable>::accept_reply::{closure#1}>",
+          "elf_range": [
+            "0x11a524",
+            "0x11a670"
+          ],
+          "samples": 315,
+          "period": 3150000,
+          "percent_all_period": 0.7201975398966574
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::send_plan_with_source::<<std::net::udp::UdpSocket>::send_to<core::net::socket_addr::SocketAddr>, dnsmasq_rs::dns::upstream::wait_udp_retry>",
+          "elf_range": [
+            "0x266fc",
+            "0x28e30"
+          ],
+          "samples": 223,
+          "period": 2230000,
+          "percent_all_period": 0.5098541314189035
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b65a0",
+            "0x1b6ed8"
+          ],
+          "samples": 187,
+          "period": 1870000,
+          "percent_all_period": 0.42754584114499977
+        },
+        {
+          "category": "user_attributed",
+          "label": "<core::hash::sip::Hasher<core::hash::sip::Sip13Rounds> as core::hash::Hasher>::write",
+          "elf_range": [
+            "0x9c5a8",
+            "0x9c790"
+          ],
+          "samples": 180,
+          "period": 1800000,
+          "percent_all_period": 0.4115414513695185
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 82,
+          "period": 820000,
+          "percent_all_period": 0.18747999451278066
+        }
+      ],
+      "historical_a": {
+        "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+        "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+        "nice": 0,
+        "pmu_during_recording": {
+          "instructions": 816869505,
+          "cycles": 1404567564
+        },
+        "instruction_total_change_percent": 1.1937698665835272,
+        "interpretation": "unpaired diagnostic only, not an acceptance comparison"
+      },
+      "selected_sample_comparison": {
+        "Cache>::names_for": {
+          "A": 1.0837610244655937,
+          "C": 3.2214550276647307
+        },
+        "Cache>::insert_at_counted": {
+          "A": 10.012955304200508,
+          "C": 11.091042114408523
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "A": 10.204793462554187,
+          "C": 6.904751017421922
+        },
+        "UpstreamResolver>::send_plan_with_source": {
+          "A": 12.987692461009518,
+          "C": 0.5098541314189035
+        },
+        "Name>::dnsmasq_bytes": {
+          "A": 6.216054611590015,
+          "C": 1.1294526498696786
+        }
+      }
+    },
+    "udp-mixed": {
+      "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+      "build_receipt_sha256": "cd2d2cdb4ac19820c16b764c4a5771063fe096ee1379a36bf6e68a4c593ca5ce",
+      "process_identity_sha256": "4a4106d2ebce0024dabe291205e0df8f0385993721cfbb32794a4dcaee737e01",
+      "maps_after_sha256": "c2466db8567cea6c9acc82b36d7224ab84589ff0098d674fecfb9a1f918be75e",
+      "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+      "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+      "nice": 10,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "timing_eligible": false,
+      "driver_complete_sha256": "6ff5a8a5ef47f70783996f772ee3a0e104f6905d29695bde7837c335f27a742f",
+      "profile_sha256": "22eb12b87a620cfc77fed56c5aabaef277aedeb918780a249f798cabcece00ff",
+      "perf_ack_bracket_valid": true,
+      "perf_controls_sha256": "68a7b11313a22630326b7dd9b0368e25848c25bdc5881fd98dae486f283722fa",
+      "totals": {
+        "samples": 18729,
+        "period": 187290000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "user_attributed": 7838,
+        "kernel": 10638,
+        "user_unmapped": 253
+      },
+      "pmu_during_recording": {
+        "instructions": 310349175,
+        "cycles": 606937890
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe12a4",
+            "0xe1420"
+          ],
+          "samples": 2007,
+          "period": 20070000,
+          "percent_all_period": 10.716001922152811
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x50d5c",
+            "0x529dc"
+          ],
+          "samples": 830,
+          "period": 8300000,
+          "percent_all_period": 4.4316300923701215
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf5104",
+            "0xf5e8c"
+          ],
+          "samples": 804,
+          "period": 8040000,
+          "percent_all_period": 4.292807944898286
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe6008",
+            "0xe96d8"
+          ],
+          "samples": 766,
+          "period": 7660000,
+          "percent_all_period": 4.089914037054835
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::cache_engine::local_cache_match",
+          "elf_range": [
+            "0xf4798",
+            "0xf5104"
+          ],
+          "samples": 570,
+          "period": 5700000,
+          "percent_all_period": 3.04340861765177
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::add_local_records_for_name",
+          "elf_range": [
+            "0xeaaf4",
+            "0xeee9c"
+          ],
+          "samples": 421,
+          "period": 4210000,
+          "percent_all_period": 2.2478509263708686
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::dnsmasq_bytes",
+          "elf_range": [
+            "0xaed78",
+            "0xaef6c"
+          ],
+          "samples": 191,
+          "period": 1910000,
+          "percent_all_period": 1.019808852581558
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::append_poll_fds",
+          "elf_range": [
+            "0x71d38",
+            "0x71f34"
+          ],
+          "samples": 187,
+          "period": 1870000,
+          "percent_all_period": 0.9984515991243527
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::hosts::Hosts>::lookup_in_bucket",
+          "elf_range": [
+            "0xf08d0",
+            "0xf0c78"
+          ],
+          "samples": 183,
+          "period": 1830000,
+          "percent_all_period": 0.9770943456671473
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6ed8",
+            "0x1b7330"
+          ],
+          "samples": 165,
+          "period": 1650000,
+          "percent_all_period": 0.8809867051097229
+        },
+        {
+          "category": "user_attributed",
+          "label": "poll",
+          "elf_range": [
+            "0x1bc3e4",
+            "0x1bc458"
+          ],
+          "samples": 115,
+          "period": 1150000,
+          "percent_all_period": 0.6140210368946554
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5f0c",
+            "0x1b6268"
+          ],
+          "samples": 110,
+          "period": 1100000,
+          "percent_all_period": 0.5873244700731486
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 253,
+          "period": 2530000,
+          "percent_all_period": 1.3508462811682418
+        }
+      ],
+      "historical_a": {
+        "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+        "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+        "nice": 0,
+        "pmu_during_recording": {
+          "instructions": 343240647,
+          "cycles": 959206381
+        },
+        "instruction_total_change_percent": -9.582627316280522,
+        "interpretation": "unpaired diagnostic only, not an acceptance comparison"
+      },
+      "selected_sample_comparison": {
+        "Cache>::names_for": {
+          "A": 6.821946689423222,
+          "C": 10.716001922152811
+        },
+        "Cache>::insert_at_counted": {
+          "A": 4.743737764168466,
+          "C": 4.292807944898286
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "A": 5.371216304402389,
+          "C": 4.089914037054835
+        },
+        "UpstreamResolver>::send_plan_with_source": {
+          "A": 1.7870588825862155,
+          "C": 0.048053820278712155
+        },
+        "Name>::dnsmasq_bytes": {
+          "A": 1.2900958787209478,
+          "C": 1.019808852581558
+        }
+      }
+    },
+    "tcp-miss": {
+      "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+      "build_receipt_sha256": "cd2d2cdb4ac19820c16b764c4a5771063fe096ee1379a36bf6e68a4c593ca5ce",
+      "process_identity_sha256": "5208e3da5553da7a410736ef8f713ceae6fa4e845d69c7adf599054e2bff9c6e",
+      "maps_after_sha256": "53dd95c3615780faf04a5244d6f673336091e20c474cdeba05b99d207c6e2db7",
+      "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+      "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+      "nice": 10,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "timing_eligible": false,
+      "driver_complete_sha256": "d66420d9aaeb8d042e1529ca2e1819705c4da40c1262510d43af465f22f25c5d",
+      "profile_sha256": "74512eadb5692076943a5bf2c347a5c94c1dab7664bf3258585ff93eaca96169",
+      "perf_ack_bracket_valid": true,
+      "perf_controls_sha256": "e0371826fab7dee30bd591192303296fa04b47ea9673a06abdd3ef72ed023719",
+      "totals": {
+        "samples": 40801,
+        "period": 408010000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "user_attributed": 20861,
+        "kernel": 19371,
+        "user_unmapped": 569
+      },
+      "pmu_during_recording": {
+        "instructions": 936190419,
+        "cycles": 1413486513
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf5104",
+            "0xf5e8c"
+          ],
+          "samples": 7392,
+          "period": 73920000,
+          "percent_all_period": 18.117203009730154
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::tcp_upstream::TcpUpstream>::step",
+          "elf_range": [
+            "0xf9b4c",
+            "0xfad90"
+          ],
+          "samples": 1137,
+          "period": 11370000,
+          "percent_all_period": 2.7866964044998896
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6ed8",
+            "0x1b7330"
+          ],
+          "samples": 1093,
+          "period": 10930000,
+          "percent_all_period": 2.6788559103943532
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::insert_reply_with_events",
+          "elf_range": [
+            "0xf6c6c",
+            "0xf8238"
+          ],
+          "samples": 1070,
+          "period": 10700000,
+          "percent_all_period": 2.6224847430210043
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::eq_ignore_ascii_case",
+          "elf_range": [
+            "0xf8a0c",
+            "0xf8a60"
+          ],
+          "samples": 1041,
+          "period": 10410000,
+          "percent_all_period": 2.5514080537241735
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::routing::dotted_name",
+          "elf_range": [
+            "0xb0de8",
+            "0xb1058"
+          ],
+          "samples": 887,
+          "period": 8870000,
+          "percent_all_period": 2.173966324354795
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5f0c",
+            "0x1b6268"
+          ],
+          "samples": 644,
+          "period": 6440000,
+          "percent_all_period": 1.5783926864537634
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::TcpDnsWork>::run_forward",
+          "elf_range": [
+            "0x4c094",
+            "0x4cffc"
+          ],
+          "samples": 643,
+          "period": 6430000,
+          "percent_all_period": 1.575941766133183
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b65a0",
+            "0x1b6ed8"
+          ],
+          "samples": 635,
+          "period": 6350000,
+          "percent_all_period": 1.55633440356854
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::query_policy::QueryPolicy>::reply_with_cache",
+          "elf_range": [
+            "0xaf730",
+            "0xb00bc"
+          ],
+          "samples": 503,
+          "period": 5030000,
+          "percent_all_period": 1.23281292125193
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::decode_name",
+          "elf_range": [
+            "0xaf500",
+            "0xaf730"
+          ],
+          "samples": 473,
+          "period": 4730000,
+          "percent_all_period": 1.1592853116345188
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::routing::RoutingTable>::select",
+          "elf_range": [
+            "0xb124c",
+            "0xb1790"
+          ],
+          "samples": 440,
+          "period": 4400000,
+          "percent_all_period": 1.0784049410553662
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 569,
+          "period": 5690000,
+          "percent_all_period": 1.394573662410235
+        }
+      ],
+      "historical_a": {
+        "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+        "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+        "nice": 0,
+        "pmu_during_recording": {
+          "instructions": 924350897,
+          "cycles": 1481751348
+        },
+        "instruction_total_change_percent": 1.2808471369937013,
+        "interpretation": "unpaired diagnostic only, not an acceptance comparison"
+      },
+      "selected_sample_comparison": {
+        "Cache>::names_for": {
+          "A": 0.4619396498199429,
+          "C": 0.3578343668047352
+        },
+        "Cache>::insert_at_counted": {
+          "A": 18.291320004967094,
+          "C": 18.117203009730154
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "A": 0.022351918539674654,
+          "C": 0.24019019141687703
+        },
+        "UpstreamResolver>::send_plan_with_source": {
+          "A": 0,
+          "C": 0
+        },
+        "Name>::dnsmasq_bytes": {
+          "A": 0.04222029057494102,
+          "C": 0.09558589250263475
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Self instruction samples are not inclusive cost or exact CPU shares. Code inlining, address layout, sample skid and diagnostic kernel work affect attribution.",
+    "Anice0 and Cnice10 are recorded scheduling differences; no paired timing conclusion or significance test applies to these windows.",
+    "PMU instruction/cycle totals include kernel work and profiling overhead; single-window ratios are diagnostics, not gains or regressions.",
+    "A and C are different frozen SDK artifacts and source commits; no device performance result is inferred.",
+    "All target ELF addresses are checked against exact link-map input sections and unchanged executable process mappings; unmapped vDSO samples remain explicit."
+  ],
+  "udp_miss_syscalls": {
+    "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+    "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+    "build_receipt_sha256": "cd2d2cdb4ac19820c16b764c4a5771063fe096ee1379a36bf6e68a4c593ca5ce",
+    "process_identity_sha256": "6e48c1b6cd5c1b3248ab84a70ba456bc5c80f796c553c226504f07e0824cf4eb",
+    "maps_after_sha256": "6575f6ae9cbb65bc295b39e920503ab7002bcae1b4e870c6a7e2b6a797095d77",
+    "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+    "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+    "nice": 10,
+    "correct_warmup": 1000,
+    "correct_measured": 4000,
+    "timing_eligible": false,
+    "driver_complete_sha256": "4875358ef168f395512784a3076ea358d20eea743b61f68d46c30d1a8e3c6cec",
+    "trace_sha256": "2114d33339d1b5b589cb8173d615d8b2abb6a527002c79a72334329e309d1d10",
+    "observed_syscalls": {
+      "ppoll": 19996,
+      "recvmsg": 9999,
+      "socket": 5000,
+      "sendto": 5000,
+      "recvfrom": 5000,
+      "close": 5000,
+      "sendmsg": 5000
+    },
+    "total_observed_syscalls": 54995,
+    "zero_timeout_ppoll": 9998,
+    "one_fd_zero_timeout_ppoll": 9996,
+    "atomic_udp_sockets": 5000,
+    "FIONBIO": 0,
+    "F_SETFD": 0,
+    "historical_a_trace": {
+      "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+      "correct_operations": 5000,
+      "counts": {
+        "ppoll": 19879,
+        "recvmsg": 9993,
+        "socket": 5000,
+        "ioctl": 5000,
+        "fcntl": 5000,
+        "sendto": 5000,
+        "recvfrom": 5000,
+        "close": 5000,
+        "sendmsg": 5000
+      },
+      "total_selected_syscalls": 64872,
+      "zero_timeout_ppoll": 9943,
+      "one_fd_zero_timeout_ppoll": 9931,
+      "removed_setup_calls_if_factory_used": 10000,
+      "selected_call_reduction_percent": 15.414971019854482,
+      "trace_sha256": "0ce95e4abb0680fe31bbdc351b6c38c638c7d50754ca070b15c37707d1949a63",
+      "note": "This is a mechanistic count projection, not measured end-to-end candidate performance. A previous hand-summed total was corrected to this computed value."
+    },
+    "observed_net_call_reduction": 9877,
+    "interpretation": "The exact daemon confirms5000atomic socket creates remove5000FIONBIO+5000F_SETFD. Poll/receive-terminal counts vary with scheduling, so total selected-call difference is9877, not10000. No syscall count is a measured CPU/latency saving."
+  },
+  "updated_projection_limits": {
+    "prior_native_ppoll_instructions_per_call": 1635.83583,
+    "C_zero_timeout_calls": 9998,
+    "C_total_instructions": 826621047,
+    "L10_projected_instruction_percent": 1.9785470848699551,
+    "L08_single_owner_projected_instruction_percent": 0.36907897652405164,
+    "interpretation": "Separate native count mechanism projected onto freshC totals only; not mathematical speedup bounds or fresh device variance. Final device acceptance/noise remains root-owned; significant cache/user work remains."
+  },
+  "transfer_during_device_sequence": {
+    "artifact": "candidate-c-owner-profiles-20261015.tar.gz",
+    "bytes": 9489587,
+    "local_birthtime_epoch": 1792059506.8682644,
+    "local_mtime_epoch": 1792059507.4922152,
+    "local_ctime_epoch": 1792059507.4922152,
+    "local_birthtime_utc": "2026-10-15T10:18:26.868264+00:00",
+    "local_last_write_utc": "2026-10-15T10:18:27.492215+00:00",
+    "scp_tool_wall_seconds": 0.980612792,
+    "timestamp_limit": "File creation/last-write observations bound the local data write, not full SSH handshake or exact network interval; no preserved packet-level transfer timestamps.",
+    "device_overlap_assessment": "Coordinator notified immediately after new transfer restriction; any overlap/validity decision belongs to root. No further bulk transfers made.",
+    "root_reported_overlap": {
+      "device_window": "candidate-c-udp-miss-r1-rust",
+      "window_start_utc": "2026-10-15T10:18:19Z",
+      "window_end_utc": "2026-10-15T10:18:49Z",
+      "assessment": "Near warmup/measurement boundary; exact wall-to-monotonic offset absent; CPU endpoint covers transfer. Whole attempted series retained, no sample exclusion or replacement."
+    }
+  },
+  "measurement_tool_sha256": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "measurement_tool_identity_note": "Loadgen/upstream hashes freshly rechecked before capture; unchanged namespace/nice helpers match prior Oracle compatibility receipt.",
+  "one_only_hint_workload_check": {
+    "measured_queries": 4000,
+    "distinct_hot_names": 800,
+    "names_with_multiple_observed_qtypes": 0,
+    "distinct_A_names": 560,
+    "distinct_AAAA_names": 240,
+    "wire_samples_checked": 40,
+    "sampled_answer_rr_count": 1,
+    "measurement_latency_records_sha256": "df62989f6d656563f962d75c3e7be53208e8d5d0cb3d464a3391756009aa9de2",
+    "wire_samples_sha256": "04153a41aa15d6a9c38664125c06695ddcbca2e0a254d97de99a91231dffded5",
+    "interpretation": "Frozen aaaa30 maps qtype deterministically from hot-name index. Dual A+AAAA names do not explain One-only hint bypass here. Internal SlotIndices state and actual hint hit-rate were not instrumented; a remaining initial names_for lookup is still required."
+  },
+  "invocations": [
+    [
+      "sudo",
+      "-n",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/loop_owner_profile.py",
+      "--build",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-c",
+      "--tools",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-udp-hit-20261015",
+      "--mode",
+      "udp",
+      "--profile",
+      "hit"
+    ],
+    [
+      "sudo",
+      "-n",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/loop_owner_profile.py",
+      "--build",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-c",
+      "--tools",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-udp-miss-20261015",
+      "--mode",
+      "udp",
+      "--profile",
+      "miss"
+    ],
+    [
+      "sudo",
+      "-n",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/loop_owner_profile.py",
+      "--build",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-c",
+      "--tools",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-udp-mixed-20261015",
+      "--mode",
+      "udp",
+      "--profile",
+      "mixed"
+    ],
+    [
+      "sudo",
+      "-n",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/loop_owner_profile.py",
+      "--build",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-c",
+      "--tools",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-tcp-miss-20261015",
+      "--mode",
+      "tcp",
+      "--profile",
+      "miss"
+    ],
+    [
+      "sudo",
+      "-n",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/loop_owner_profile.py",
+      "--build",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-c",
+      "--tools",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/syscalls-c-udp-miss-20261015",
+      "--mode",
+      "udp",
+      "--profile",
+      "miss",
+      "--strace"
+    ]
+  ]
+}
