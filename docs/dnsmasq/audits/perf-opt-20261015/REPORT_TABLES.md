@@ -2,10 +2,98 @@
 
 These tables report analyzer results, not final candidate acceptance. Correctness, client health and justification of memory/ELF growth remain separate gates. Summary consistency is checked here; raw-file verification is performed by the analyzer.
 
-Separate compatibility correction: Authorized stale CNAME repair b1136023 is separate from performance changes; whole-artifact timing includes its layout, but the benchmark does not trigger that expired-negative terminal case.
+Separate compatibility correction: Expired-negative-CNAME correction b1136023 and startup hosts/lease reconciliation 4f869c88 are separate behavior repairs; E includes both. Tool fixes are next-version only and were not used in these windows.
 It is not classified as a performance optimization; whole-artifact timing cannot attribute its individual effect.
 
-**Baseline-only: no fresh deployed/candidate device comparison is supplied; candidate acceptance is unavailable.**
+## Primary — authorized effective paired DEVICE comparison
+
+The user approved [the supplement rule](FROZEN_TOOL_WINDOW_SUPPLEMENT.md) after
+three original tool-invalid windows, before any supplement ran. This effective
+view contains **104 original windows plus six once-only supplemental windows**,
+selected as complete pairs with the original odd/even order. Original 110/107
+valid and all three invalid windows remain retained and are reported separately
+below; no original side is paired with a supplemental side. See the
+[pair mapping](candidate-e-pair-selection.json) and
+[independent audit](correctness/e-device-effective-independent-audit.json).
+
+Input: `candidate-e-effective-summary.json`; SHA256 `e3a0e556b189f35cde0a5a48abab3aab23d7c76711d03689a8bd439b3411071b`.
+Complete: 11 scenes, five alternating pairs each, 110 valid verified windows.
+
+| Side | ELF SHA256 | ELF bytes |
+| --- | --- | --- |
+| Deployed v0.2.0 | 8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7 | 2124571 |
+| Candidate | 8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27 | 2136859 |
+
+All intervals are median [minimum, maximum] of the five per-round statistics; individual operations and historical rounds are never pooled. Δ is right relative to left. Pairs count agreement with the median direction. “Inconclusive” is not proof of equivalence.
+
+| Scene | Metric | Deployed v0.2.0 | Candidate | Δ | W | Pairs | CPU precision | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| udp-hit | p50_ms | 0.191202 [0.181661, 0.200973] | 0.189124 [0.181507, 0.194356] | -1.087% | 10.100% | 3/5 | — | inconclusive |
+| udp-hit | p95_ms | 0.292458 [0.267759, 0.387173] | 0.269144 [0.266835, 0.320695] | -7.972% | 40.831% | 3/5 | — | inconclusive |
+| udp-hit | cpu_us | 134 [130, 140] | 132 [130, 136] | -1.493% | 7.463% | 1/5 | no | inconclusive |
+| udp-miss | p50_ms | 1.7222 [1.7185, 1.72528] | 1.61694 [1.61194, 1.62517] | -6.112% | 0.818% | 5/5 | — | faster |
+| udp-miss | p95_ms | 1.95133 [1.92463, 2.12922] | 1.85362 [1.80506, 1.96911] | -5.008% | 10.485% | 4/5 | — | inconclusive |
+| udp-miss | cpu_us | 514 [510, 516] | 438 [434, 444] | -14.786% | 2.283% | 5/5 | yes | faster |
+| udp-mixed | p50_ms | 0.209283 [0.206667, 0.210822] | 0.20382 [0.201204, 0.21313] | -2.610% | 5.851% | 3/5 | — | inconclusive |
+| udp-mixed | p95_ms | 1.79414 [1.78821, 1.8213] | 1.73789 [1.68488, 1.91125] | -3.135% | 13.025% | 4/5 | — | inconclusive |
+| udp-mixed | cpu_us | 218 [214, 218] | 200 [196, 212] | -8.257% | 8.000% | 5/5 | yes | faster |
+| tcp-hit | p50_ms | 0.221824 [0.211207, 0.226364] | 0.210052 [0.199511, 0.213361] | -5.307% | 6.833% | 4/5 | — | inconclusive |
+| tcp-hit | p95_ms | 0.366476 [0.324157, 0.47281] | 0.32208 [0.307538, 0.506895] | -12.114% | 61.897% | 4/5 | — | inconclusive |
+| tcp-hit | cpu_us | 162 [152, 164] | 156 [150, 158] | -3.704% | 7.407% | 4/5 | no | inconclusive |
+| tcp-miss | p50_ms | 1.70973 [1.7055, 1.73566] | 1.56931 [1.56131, 1.58478] | -8.213% | 1.764% | 5/5 | — | faster |
+| tcp-miss | p95_ms | 2.00211 [1.96095, 2.09444] | 1.84392 [1.81922, 2.1226] | -7.901% | 16.453% | 4/5 | — | inconclusive |
+| tcp-miss | cpu_us | 472 [470, 478] | 378 [374, 390] | -19.915% | 4.233% | 5/5 | yes | faster |
+| dhcp-home6 | p50_ms | 0.390635 [0.389558, 0.393559] | 0.397637 [0.392713, 0.427721] | +1.792% | 8.804% | 5/5 | — | inconclusive |
+| dhcp-home6 | p95_ms | 0.638774 [0.635465, 0.721256] | 0.612767 [0.605381, 0.729257] | -4.071% | 20.216% | 3/5 | — | inconclusive |
+| dhcp-home6 | cpu_us | 400 [396, 408] | 412 [408, 416] | +3.000% | 3.000% | 4/5 | no | inconclusive |
+| dhcp-home6 | dora_p50_ms | 1.87647 [1.76652, 1.92725] | 1.79244 [1.7282, 1.88293] | — | — | — | — | descriptive only |
+| dhcp-home6 | dora_p95_ms | 2.39806 [2.19162, 5.93624] | 2.2721 [2.09429, 3.23588] | — | — | — | — | descriptive only |
+| dhcp | p50_ms | 3.86973 [3.85265, 4.07832] | 2.60272 [2.60111, 2.62396] | -32.741% | 5.832% | 5/5 | — | faster |
+| dhcp | p95_ms | 4.43048 [4.349, 4.97531] | 2.97474 [2.96304, 3.08946] | -32.857% | 14.136% | 5/5 | — | faster |
+| dhcp | cpu_us | 3868 [3844, 3944] | 2592 [2580, 2608] | -32.989% | 2.585% | 5/5 | yes | faster |
+| dhcp | dora_p50_ms | 2.91149 [2.84078, 3.15763] | 2.20916 [2.158, 2.25356] | -24.123% | 10.883% | 5/5 | — | faster |
+| dhcp | dora_p95_ms | 4.4888 [4.37639, 4.68747] | 3.49571 [3.37622, 3.73092] | -22.124% | 10.147% | 5/5 | — | faster |
+| startup-small | p50_ms | 4.75102 [4.71501, 4.85867] | 4.56682 [4.48611, 4.62507] | -3.877% | 3.043% | 5/5 | — | inconclusive |
+| startup-small | p95_ms | 5.89254 [5.02917, 8.18411] | 5.07718 [4.92507, 14.7918] | -13.837% | 194.335% | 3/5 | — | inconclusive |
+| startup-small | cpu_us | 5941.5 [5852.15, 6005.75] | 5444.8 [5326.9, 5680.85] | -8.360% | 6.501% | 5/5 | no | inconclusive |
+| config-small | p50_ms | 7.06991 [7.00643, 7.08329] | 5.88738 [5.80421, 5.97479] | -16.726% | 2.897% | 5/5 | — | faster |
+| config-small | p95_ms | 8.06623 [7.3856, 29.6638] | 7.12607 [6.82785, 7.27965] | -11.655% | 276.191% | 5/5 | — | inconclusive |
+| config-small | cpu_us | 6280.15 [6208.25, 6532] | 5718.4 [5642.25, 5899.35] | -8.945% | 5.155% | 5/5 | no | inconclusive |
+| hup-small | p50_ms | 1.07542 [1.06803, 1.11335] | 1.01456 [1.01202, 1.02195] | -5.659% | 4.214% | 5/5 | — | inconclusive |
+| hup-small | p95_ms | 1.23192 [1.1656, 1.34364] | 1.15583 [1.08396, 1.41743] | -6.177% | 28.851% | 4/5 | — | inconclusive |
+| hup-small | cpu_us | 1338.35 [1316, 1352.3] | 1234.5 [1222.1, 1256.5] | -7.760% | 2.787% | 5/5 | no | inconclusive |
+| hup-large | p50_ms | 17.423 [17.0128, 17.6784] | 14.9701 [14.8715, 15.0647] | -14.078% | 3.820% | 5/5 | — | faster |
+| hup-large | p95_ms | 19.0566 [18.5693, 19.8866] | 16.8425 [16.0639, 17.2814] | -11.619% | 7.229% | 5/5 | — | faster |
+| hup-large | cpu_us | 19136.3 [18925.8, 19429] | 16333.7 [16132.9, 16467.2] | -14.645% | 2.630% | 5/5 | no | inconclusive |
+
+CPU is µs/operation; all CPU rounds need ≥10 ticks and the median difference must exceed 8 ticks. Lifecycle latency uses a 1 ms observation floor; lifecycle CPU includes startup, idle and shutdown for the whole round. Home6 DORA has only six samples per round and is not ranked.
+
+| Scene | Side | RSS median KiB | RSS peak KiB | Anon peak KiB | File peak KiB | Shmem peak KiB | Tree FD peak | Parent FD peak |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| udp-hit | Deployed v0.2.0 | 2324 [2316, 2332] | 2324 [2316, 2332] | 516 [512, 516] | 4 [4, 4] | 1804 [1796, 1812] | 12 [12, 12] | 12 [12, 12] |
+| udp-hit | Candidate | 2404 [2288, 2468] | 2404 [2288, 2468] | 520 [520, 552] | 4 [4, 4] | 1880 [1764, 1916] | 12 [12, 12] | 12 [12, 12] |
+| udp-miss | Deployed v0.2.0 | 2408 [2336, 2468] | 2460 [2380, 2516] | 676 [664, 680] | 4 [4, 4] | 1784 [1700, 1832] | 13 [12, 13] | 13 [12, 13] |
+| udp-miss | Candidate | 2440 [2394, 2514] | 2492 [2436, 2556] | 672 [668, 692] | 4 [4, 4] | 1796 [1764, 1876] | 13 [12, 13] | 13 [12, 13] |
+| udp-mixed | Deployed v0.2.0 | 2408 [2300, 2444] | 2420 [2312, 2452] | 616 [608, 616] | 4 [4, 4] | 1800 [1692, 1840] | 12 [12, 12] | 12 [12, 12] |
+| udp-mixed | Candidate | 2478 [2434, 2524] | 2484 [2440, 2528] | 608 [604, 616] | 4 [4, 4] | 1872 [1832, 1916] | 12 [12, 13] | 12 [12, 13] |
+| tcp-hit | Deployed v0.2.0 | 2512 [2504, 2552] | 2512 [2504, 2552] | 716 [712, 716] | 4 [4, 4] | 1796 [1788, 1832] | 20 [20, 20] | 20 [20, 20] |
+| tcp-hit | Candidate | 2580 [2552, 2600] | 2580 [2552, 2600] | 716 [712, 716] | 4 [4, 4] | 1864 [1832, 1880] | 20 [20, 20] | 20 [20, 20] |
+| tcp-miss | Deployed v0.2.0 | 3548 [3472, 3596] | 3980 [3868, 4020] | 2152 [2084, 2180] | 4 [4, 4] | 1796 [1772, 1840] | 28 [28, 28] | 28 [28, 28] |
+| tcp-miss | Candidate | 3502 [3426, 3598] | 3900 [3768, 4012] | 2104 [2052, 2156] | 4 [4, 4] | 1804 [1708, 1852] | 28 [28, 28] | 28 [28, 28] |
+| dhcp-home6 | Deployed v0.2.0 | 2300 [2268, 2324] | 2300 [2268, 2324] | 356 [352, 356] | 4 [4, 4] | 1940 [1908, 1964] | 18 [18, 18] | 18 [18, 18] |
+| dhcp-home6 | Candidate | 2312 [2284, 2340] | 2312 [2284, 2340] | 360 [360, 360] | 4 [4, 4] | 1948 [1920, 1976] | 18 [18, 18] | 18 [18, 18] |
+| dhcp | Deployed v0.2.0 | 2804 [2776, 2888] | 2820 [2780, 2892] | 896 [892, 924] | 4 [4, 4] | 1920 [1880, 1968] | 18 [18, 18] | 18 [18, 18] |
+| dhcp | Candidate | 2756 [2724, 2804] | 2764 [2732, 2820] | 860 [820, 876] | 4 [4, 4] | 1928 [1892, 1944] | 18 [18, 18] | 18 [18, 18] |
+| startup-small | Deployed v0.2.0 | 2210 [2206, 2210] | 2260 [2252, 2260] | 352 [352, 352] | 4 [4, 4] | 1904 [1900, 1904] | 18 [18, 18] | 18 [18, 18] |
+| startup-small | Candidate | 2270 [2268, 2284] | 2320 [2296, 2324] | 340 [340, 340] | 4 [4, 4] | 1980 [1952, 1980] | 18 [18, 18] | 18 [18, 18] |
+| config-small | Deployed v0.2.0 | 2208 [2204, 2210] | 2260 [2256, 2260] | 352 [352, 352] | 4 [4, 4] | 1904 [1900, 1904] | 18 [18, 18] | 18 [18, 18] |
+| config-small | Candidate | 2272 [2256, 2294] | 2320 [2316, 2324] | 340 [340, 340] | 4 [4, 4] | 1976 [1972, 1980] | 18 [18, 18] | 18 [18, 18] |
+| hup-small | Deployed v0.2.0 | 2216 [2188, 2268] | 2216 [2188, 2268] | 364 [360, 364] | 4 [4, 4] | 1848 [1820, 1900] | 18 [18, 18] | 18 [18, 18] |
+| hup-small | Candidate | 2288 [2276, 2328] | 2292 [2280, 2328] | 356 [352, 356] | 4 [4, 4] | 1936 [1920, 1972] | 18 [18, 18] | 18 [18, 18] |
+| hup-large | Deployed v0.2.0 | 3268 [3260, 3276] | 3308 [3300, 3316] | 1436 [1436, 1436] | 4 [4, 4] | 1868 [1860, 1876] | 18 [18, 18] | 18 [18, 18] |
+| hup-large | Candidate | 3120 [3072, 3148] | 3124 [3076, 3152] | 1168 [1168, 1172] | 4 [4, 4] | 1948 [1904, 1980] | 18 [18, 18] | 18 [18, 18] |
+
+Lifecycle memory/FD values are readiness snapshots, not transient peaks. RSS and RssAnon are not private memory; device PSS/USS are unavailable. ELF byte sizes are measured only when matching local files are supplied with `--elf`.
 
 ## Context only — earlier exact-C / deployed DEVICE baseline
 
@@ -90,81 +178,103 @@ Lifecycle memory/FD values are readiness snapshots, not transient peaks. RSS and
 
 ## ORACLE screen only — not device measurements or acceptance
 
-Input: `oracle-c-summary.json`; SHA256 `2d492f076fe77007704ceabcf8b160913c1b5ca04583d2466ac045f2900b8a6a`.
+Input: `oracle-e-summary-verified.json`; SHA256 `202ef36e07e8e829551a4823107d6ba7ac2137873e937877f620a353c939144a`.
 Complete: 11 scenes, five alternating pairs each, 110 valid verified windows.
 
 | Side | ELF SHA256 | ELF bytes |
 | --- | --- | --- |
 | Oracle baseline | 8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7 | 2124571 |
-| Oracle candidate | b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1 | 2136859 |
+| Oracle candidate | 8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27 | 2136859 |
 
 All intervals are median [minimum, maximum] of the five per-round statistics; individual operations and historical rounds are never pooled. Δ is right relative to left. Pairs count agreement with the median direction. “Inconclusive” is not proof of equivalence.
 
 | Scene | Metric | Oracle baseline | Oracle candidate | Δ | W | Pairs | CPU precision | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| udp-hit | p50_ms | 0.0358 [0.033961, 0.03932] | 0.034521 [0.03384, 0.03584] | -3.573% | 14.969% | 3/5 | — | inconclusive |
-| udp-hit | p95_ms | 0.062321 [0.06076, 0.076001] | 0.06128 [0.061, 0.06232] | -1.670% | 24.456% | 4/5 | — | inconclusive |
-| udp-hit | cpu_us | 28 [26, 30] | 26 [26, 28] | -7.143% | 14.286% | 2/5 | no | inconclusive |
-| udp-miss | p50_ms | 1.18641 [1.18077, 1.18785] | 1.18089 [1.17809, 1.20917] | -0.465% | 2.632% | 3/5 | — | inconclusive |
-| udp-miss | p95_ms | 1.22817 [1.20613, 1.23757] | 1.22645 [1.22441, 1.24949] | -0.140% | 2.560% | 2/5 | — | inconclusive |
-| udp-miss | cpu_us | 88 [84, 92] | 86 [80, 94] | -2.273% | 16.279% | 3/5 | no | inconclusive |
-| udp-mixed | p50_ms | 0.039441 [0.03872, 0.05768] | 0.03832 [0.037361, 0.038761] | -2.842% | 48.072% | 4/5 | — | inconclusive |
-| udp-mixed | p95_ms | 1.25701 [1.24409, 1.27057] | 1.25213 [1.24877, 1.25741] | -0.388% | 2.107% | 4/5 | — | inconclusive |
-| udp-mixed | cpu_us | 48 [44, 50] | 44 [44, 46] | -8.333% | 12.500% | 3/5 | no | inconclusive |
-| tcp-hit | p50_ms | 0.044601 [0.04364, 0.05152] | 0.04248 [0.0414, 0.04468] | -4.755% | 17.668% | 4/5 | — | inconclusive |
-| tcp-hit | p95_ms | 0.076721 [0.075601, 0.089] | 0.076881 [0.0744, 0.097881] | +0.209% | 30.542% | 3/5 | — | inconclusive |
-| tcp-hit | cpu_us | 36 [32, 38] | 34 [32, 36] | -5.556% | 16.667% | 2/5 | no | inconclusive |
-| tcp-miss | p50_ms | 1.19697 [1.19125, 1.21529] | 1.19789 [1.19177, 1.21109] | +0.077% | 2.008% | 3/5 | — | inconclusive |
-| tcp-miss | p95_ms | 1.24305 [1.24053, 1.25457] | 1.25013 [1.23241, 1.26597] | +0.570% | 2.685% | 2/5 | — | inconclusive |
-| tcp-miss | cpu_us | 90 [86, 92] | 88 [86, 98] | -2.222% | 13.636% | 2/5 | no | inconclusive |
-| dhcp-home6 | p50_ms | 0.059841 [0.05932, 0.067761] | 0.062161 [0.060401, 0.068721] | +3.877% | 14.106% | 4/5 | — | inconclusive |
-| dhcp-home6 | p95_ms | 2.0613 [1.90194, 2.3327] | 2.15734 [1.83478, 2.27738] | +4.659% | 20.898% | 4/5 | — | inconclusive |
-| dhcp-home6 | cpu_us | 80 [76, 84] | 80 [76, 84] | +0.000% | 10.000% | 0/5 | no | inconclusive |
-| dhcp-home6 | dora_p50_ms | 2.56766 [2.3689, 2.68446] | 2.59106 [2.38142, 2.88406] | — | — | — | — | descriptive only |
-| dhcp-home6 | dora_p95_ms | 5.0324 [3.49723, 7.8025] | 4.01191 [2.98407, 5.23408] | — | — | — | — | descriptive only |
-| dhcp | p50_ms | 2.83478 [2.7877, 2.97959] | 2.63406 [2.54946, 2.76914] | -7.081% | 8.340% | 5/5 | — | inconclusive |
-| dhcp | p95_ms | 3.32159 [3.23055, 3.57235] | 3.13403 [3.08783, 3.21843] | -5.647% | 10.290% | 5/5 | — | inconclusive |
-| dhcp | cpu_us | 732 [712, 892] | 544 [520, 552] | -25.683% | 24.590% | 5/5 | yes | faster |
-| dhcp | dora_p50_ms | 2.49142 [2.43682, 2.96902] | 2.5665 [2.49358, 2.67002] | +3.014% | 21.362% | 4/5 | — | inconclusive |
-| dhcp | dora_p95_ms | 3.11587 [2.89494, 3.44447] | 3.01066 [2.88578, 3.40935] | -3.376% | 17.636% | 2/5 | — | inconclusive |
-| startup-small | p50_ms | 1.45909 [1.45009, 1.47401] | 1.44637 [1.43585, 1.48601] | -0.872% | 3.468% | 3/5 | — | inconclusive |
-| startup-small | p95_ms | 1.52673 [1.49101, 1.55561] | 1.53657 [1.47365, 2.32138] | +0.645% | 55.170% | 3/5 | — | inconclusive |
-| startup-small | cpu_us | 1602.95 [1591.4, 1629.95] | 1516.3 [1509.7, 1556.45] | -5.406% | 3.083% | 5/5 | no | inconclusive |
-| config-small | p50_ms | 2.48522 [2.43794, 2.5097] | 2.49178 [2.4615, 2.51946] | +0.264% | 2.888% | 3/5 | — | inconclusive |
-| config-small | p95_ms | 2.57138 [2.50446, 2.58698] | 2.58674 [2.50694, 2.61002] | +0.597% | 3.985% | 3/5 | — | inconclusive |
-| config-small | cpu_us | 1738.25 [1701.35, 1775.3] | 1665.95 [1630.65, 1696.35] | -4.159% | 4.254% | 5/5 | no | inconclusive |
-| hup-small | p50_ms | 0.302803 [0.298443, 0.309483] | 0.276523 [0.265282, 0.283922] | -8.679% | 6.741% | 5/5 | — | inconclusive |
-| hup-small | p95_ms | 0.333643 [0.321083, 0.354123] | 0.305883 [0.297483, 0.315883] | -8.320% | 9.903% | 5/5 | — | inconclusive |
-| hup-small | cpu_us | 338.45 [333.1, 349.7] | 308.3 [299.9, 312.7] | -8.908% | 4.905% | 5/5 | no | inconclusive |
-| hup-large | p50_ms | 3.00226 [2.99415, 3.04799] | 2.63826 [2.58982, 2.7183] | -12.124% | 4.870% | 5/5 | — | inconclusive |
-| hup-large | p95_ms | 3.13115 [3.09127, 3.34651] | 3.19231 [3.03039, 3.43899] | +1.953% | 12.800% | 2/5 | — | inconclusive |
-| hup-large | cpu_us | 3263.6 [3225.15, 3352.2] | 2921.3 [2893.4, 3035.25] | -10.488% | 4.856% | 5/5 | no | inconclusive |
+| udp-hit | p50_ms | 0.035481 [0.03456, 0.03648] | 0.034 [0.03304, 0.035121] | -4.174% | 6.121% | 5/5 | — | inconclusive |
+| udp-hit | p95_ms | 0.06232 [0.06212, 0.063241] | 0.060641 [0.05976, 0.061881] | -2.694% | 3.498% | 5/5 | — | inconclusive |
+| udp-hit | cpu_us | 28 [26, 28] | 26 [24, 28] | -7.143% | 15.385% | 3/5 | no | inconclusive |
+| udp-miss | p50_ms | 1.18149 [1.17785, 1.19921] | 1.16881 [1.16809, 1.17813] | -1.073% | 1.808% | 5/5 | — | inconclusive |
+| udp-miss | p95_ms | 1.23137 [1.21389, 1.24881] | 1.20993 [1.18689, 1.22133] | -1.741% | 2.847% | 5/5 | — | inconclusive |
+| udp-miss | cpu_us | 88 [82, 92] | 74 [72, 80] | -15.909% | 11.364% | 5/5 | no | inconclusive |
+| udp-mixed | p50_ms | 0.039401 [0.0384, 0.04104] | 0.03784 [0.03732, 0.039441] | -3.962% | 6.700% | 4/5 | — | inconclusive |
+| udp-mixed | p95_ms | 1.25165 [1.24421, 1.27049] | 1.23249 [1.22997, 1.23805] | -1.531% | 2.100% | 5/5 | — | inconclusive |
+| udp-mixed | cpu_us | 44 [42, 48] | 42 [40, 42] | -4.545% | 13.636% | 4/5 | no | inconclusive |
+| tcp-hit | p50_ms | 0.044681 [0.04232, 0.056761] | 0.0426 [0.04188, 0.049961] | -4.657% | 32.320% | 4/5 | — | inconclusive |
+| tcp-hit | p95_ms | 0.07616 [0.073841, 0.095841] | 0.07456 [0.070201, 0.07588] | -2.101% | 28.887% | 5/5 | — | inconclusive |
+| tcp-hit | cpu_us | 36 [34, 38] | 32 [32, 34] | -11.111% | 11.111% | 5/5 | no | inconclusive |
+| tcp-miss | p50_ms | 1.20585 [1.19129, 1.20893] | 1.17897 [1.17513, 1.19729] | -2.229% | 1.880% | 5/5 | — | faster |
+| tcp-miss | p95_ms | 1.24705 [1.23157, 1.25577] | 1.22441 [1.21345, 1.24273] | -1.815% | 2.391% | 4/5 | — | inconclusive |
+| tcp-miss | cpu_us | 90 [86, 92] | 78 [74, 80] | -13.333% | 7.692% | 5/5 | no | inconclusive |
+| dhcp-home6 | p50_ms | 0.062601 [0.061881, 0.086881] | 0.059601 [0.05736, 0.086681] | -4.792% | 49.195% | 3/5 | — | inconclusive |
+| dhcp-home6 | p95_ms | 2.17598 [1.91106, 2.3205] | 2.02038 [1.9299, 2.30502] | -7.151% | 18.817% | 3/5 | — | inconclusive |
+| dhcp-home6 | cpu_us | 80 [72, 88] | 76 [72, 92] | -5.000% | 26.316% | 2/5 | no | inconclusive |
+| dhcp-home6 | dora_p50_ms | 2.41594 [2.28834, 2.68338] | 2.6121 [2.37046, 2.8077] | — | — | — | — | descriptive only |
+| dhcp-home6 | dora_p95_ms | 4.7138 [2.90346, 7.57546] | 6.12873 [4.33468, 7.6607] | — | — | — | — | descriptive only |
+| dhcp | p50_ms | 2.92575 [2.85426, 2.97214] | 2.63082 [2.53246, 2.74574] | -10.080% | 8.107% | 5/5 | — | faster |
+| dhcp | p95_ms | 3.38915 [3.34279, 3.47475] | 3.20887 [3.04967, 3.48423] | -5.319% | 13.543% | 4/5 | — | inconclusive |
+| dhcp | cpu_us | 756 [732, 764] | 548 [532, 556] | -27.513% | 4.380% | 5/5 | yes | faster |
+| dhcp | dora_p50_ms | 2.56318 [2.47722, 2.71174] | 2.51694 [2.3677, 2.68218] | -1.804% | 12.495% | 3/5 | — | inconclusive |
+| dhcp | dora_p95_ms | 3.12191 [2.98267, 3.18263] | 3.02671 [2.93774, 3.14331] | -3.049% | 6.792% | 3/5 | — | inconclusive |
+| startup-small | p50_ms | 1.47665 [1.44121, 1.50357] | 1.42669 [1.41609, 1.46777] | -3.383% | 4.223% | 5/5 | — | inconclusive |
+| startup-small | p95_ms | 1.54537 [1.50329, 2.31554] | 1.52865 [1.45917, 2.31722] | -1.082% | 56.131% | 3/5 | — | inconclusive |
+| startup-small | cpu_us | 1628.85 [1568.85, 1636.05] | 1492.2 [1472.1, 1546.45] | -8.389% | 4.983% | 5/5 | no | inconclusive |
+| config-small | p50_ms | 2.43762 [2.40454, 2.44474] | 2.4781 [2.44738, 2.4937] | +1.661% | 1.869% | 5/5 | — | inconclusive |
+| config-small | p95_ms | 2.48898 [2.48054, 2.54506] | 2.56406 [2.53694, 2.57926] | +3.016% | 2.592% | 5/5 | — | inconclusive |
+| config-small | cpu_us | 1669.85 [1664.4, 1834.55] | 1657.95 [1636.35, 1714.85] | -0.713% | 10.190% | 4/5 | no | inconclusive |
+| hup-small | p50_ms | 0.303083 [0.294322, 0.317002] | 0.275082 [0.266882, 0.286203] | -9.239% | 7.483% | 5/5 | — | inconclusive |
+| hup-small | p95_ms | 0.613285 [0.328763, 0.724286] | 0.319723 [0.308443, 0.619686] | -47.867% | 97.348% | 4/5 | — | inconclusive |
+| hup-small | cpu_us | 391.6 [332.15, 445.15] | 304.65 [303.95, 347.4] | -22.204% | 28.856% | 5/5 | no | inconclusive |
+| hup-large | p50_ms | 3.00459 [2.98678, 3.01531] | 2.65782 [2.62038, 2.72242] | -11.541% | 3.839% | 5/5 | — | inconclusive |
+| hup-large | p95_ms | 3.13515 [3.11955, 3.14779] | 3.36595 [3.25179, 3.42283] | +7.362% | 5.082% | 5/5 | — | inconclusive |
+| hup-large | cpu_us | 3243.55 [3227.1, 3253.85] | 2970.25 [2926.7, 3026.45] | -8.426% | 3.358% | 5/5 | no | inconclusive |
 
 CPU is µs/operation; all CPU rounds need ≥10 ticks and the median difference must exceed 8 ticks. Lifecycle latency uses a 1 ms observation floor; lifecycle CPU includes startup, idle and shutdown for the whole round. Home6 DORA has only six samples per round and is not ranked.
 
 | Scene | Side | RSS median KiB | RSS peak KiB | Anon peak KiB | File peak KiB | Shmem peak KiB | Tree FD peak | Parent FD peak |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| udp-hit | Oracle baseline | 2320 [2252, 2320] | 2320 [2252, 2320] | 516 [512, 516] | 1804 [1740, 1804] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
+| udp-hit | Oracle baseline | 2316 [2316, 2320] | 2316 [2316, 2320] | 512 [512, 516] | 1804 [1804, 1804] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
 | udp-hit | Oracle candidate | 2388 [2384, 2388] | 2388 [2384, 2388] | 520 [516, 520] | 1868 [1868, 1868] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
-| udp-miss | Oracle baseline | 2432 [2428, 2448] | 2476 [2472, 2480] | 672 [668, 676] | 1804 [1804, 1804] | 0 [0, 0] | 13 [12, 14] | 13 [12, 14] |
-| udp-miss | Oracle candidate | 2438 [2434, 2442] | 2476 [2472, 2484] | 672 [668, 680] | 1804 [1804, 1804] | 0 [0, 0] | 13 [12, 13] | 13 [12, 13] |
-| udp-mixed | Oracle baseline | 2408 [2404, 2410] | 2416 [2408, 2420] | 612 [604, 616] | 1804 [1804, 1804] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
-| udp-mixed | Oracle candidate | 2470 [2464, 2480] | 2480 [2472, 2484] | 612 [604, 616] | 1868 [1868, 1868] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
+| udp-miss | Oracle baseline | 2432 [2422, 2436] | 2472 [2464, 2492] | 668 [660, 688] | 1804 [1804, 1804] | 0 [0, 0] | 13 [12, 13] | 13 [12, 13] |
+| udp-miss | Oracle candidate | 2428 [2424, 2432] | 2476 [2464, 2476] | 672 [660, 672] | 1804 [1804, 1804] | 0 [0, 0] | 13 [12, 13] | 13 [12, 13] |
+| udp-mixed | Oracle baseline | 2406 [2404, 2416] | 2416 [2412, 2416] | 612 [608, 612] | 1804 [1804, 1804] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
+| udp-mixed | Oracle candidate | 2468 [2468, 2476] | 2480 [2476, 2480] | 612 [608, 612] | 1868 [1868, 1868] | 0 [0, 0] | 12 [12, 12] | 12 [12, 12] |
 | tcp-hit | Oracle baseline | 2520 [2516, 2520] | 2520 [2516, 2520] | 716 [712, 716] | 1804 [1804, 1804] | 0 [0, 0] | 20 [20, 20] | 20 [20, 20] |
 | tcp-hit | Oracle candidate | 2584 [2580, 2584] | 2584 [2580, 2584] | 716 [712, 716] | 1868 [1868, 1868] | 0 [0, 0] | 20 [20, 20] | 20 [20, 20] |
-| tcp-miss | Oracle baseline | 3540 [3516, 3550] | 3964 [3896, 3992] | 2160 [2092, 2188] | 1804 [1804, 1804] | 0 [0, 0] | 28 [28, 28] | 28 [28, 28] |
-| tcp-miss | Oracle candidate | 3528 [3510, 3556] | 3928 [3884, 3968] | 2124 [2080, 2164] | 1804 [1804, 1804] | 0 [0, 0] | 28 [28, 28] | 28 [28, 28] |
+| tcp-miss | Oracle baseline | 3542 [3492, 3554] | 3932 [3924, 3968] | 2128 [2120, 2164] | 1804 [1804, 1804] | 0 [0, 0] | 28 [28, 28] | 28 [28, 28] |
+| tcp-miss | Oracle candidate | 3552 [3540, 3558] | 3948 [3920, 3956] | 2144 [2116, 2152] | 1804 [1804, 1804] | 0 [0, 0] | 28 [28, 28] | 28 [28, 28] |
 | dhcp-home6 | Oracle baseline | 2292 [2288, 2292] | 2292 [2288, 2292] | 360 [356, 360] | 1932 [1932, 1932] | 0 [0, 0] | 18 [18, 18] | 18 [18, 18] |
 | dhcp-home6 | Oracle candidate | 2292 [2292, 2292] | 2292 [2292, 2292] | 360 [360, 360] | 1932 [1932, 1932] | 0 [0, 0] | 18 [18, 18] | 18 [18, 18] |
-| dhcp | Oracle baseline | 2800 [2800, 2804] | 2800 [2800, 2804] | 868 [868, 872] | 1932 [1932, 1932] | 0 [0, 0] | 18 [18, 18] | 18 [18, 18] |
-| dhcp | Oracle candidate | 2748 [2746, 2752] | 2752 [2748, 2752] | 820 [816, 820] | 1932 [1932, 1932] | 0 [0, 0] | 18 [18, 18] | 18 [18, 18] |
-| startup-small | Oracle baseline | 2212 [2210, 2212] | 2212 [2212, 2212] | 344 [344, 344] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
+| dhcp | Oracle baseline | 2804 [2800, 2804] | 2804 [2800, 2804] | 872 [868, 872] | 1932 [1932, 1932] | 0 [0, 0] | 18 [18, 18] | 18 [18, 18] |
+| dhcp | Oracle candidate | 2750 [2746, 2752] | 2752 [2748, 2752] | 820 [816, 820] | 1932 [1932, 1932] | 0 [0, 0] | 18 [18, 18] | 18 [18, 18] |
+| startup-small | Oracle baseline | 2212 [2212, 2212] | 2212 [2212, 2212] | 344 [344, 344] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
 | startup-small | Oracle candidate | 2208 [2208, 2208] | 2208 [2208, 2208] | 340 [340, 340] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
-| config-small | Oracle baseline | 2212 [2212, 2212] | 2212 [2212, 2212] | 344 [344, 344] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
+| config-small | Oracle baseline | 2212 [2208, 2212] | 2212 [2212, 2212] | 344 [344, 344] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
 | config-small | Oracle candidate | 2208 [2208, 2208] | 2208 [2208, 2208] | 340 [340, 340] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
 | hup-small | Oracle baseline | 2232 [2228, 2232] | 2236 [2232, 2236] | 368 [364, 368] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
 | hup-small | Oracle candidate | 2280 [2276, 2280] | 2288 [2284, 2288] | 356 [352, 356] | 1932 [1932, 1932] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
-| hup-large | Oracle baseline | 3276 [3276, 3276] | 3300 [3300, 3300] | 1432 [1432, 1432] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
-| hup-large | Oracle candidate | 3100 [3096, 3100] | 3104 [3100, 3104] | 1172 [1168, 1172] | 1932 [1932, 1932] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
+| hup-large | Oracle baseline | 3276 [3272, 3276] | 3300 [3296, 3300] | 1432 [1428, 1432] | 1868 [1868, 1868] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
+| hup-large | Oracle candidate | 3094 [3072, 3098] | 3104 [3104, 3104] | 1172 [1172, 1172] | 1932 [1932, 1932] | 0 [0, 0] | 19 [19, 19] | 19 [19, 19] |
 
 Lifecycle memory/FD values are readiness snapshots, not transient peaks. RSS and RssAnon are not private memory; device PSS/USS are unavailable. ELF byte sizes are measured only when matching local files are supplied with `--elf`.
+
+## Excluded attempt — candidate-c-summary.json
+
+SHA256 `6cfcf047f3c7550e28780944e4431beae4aaf3909e0d84f0ab2ba60c0587a052`. Excluded regardless of any favorable individual windows.
+
+| Window count | Valid windows | Complete marker | Parse failures |
+| --- | --- | --- | --- |
+| 110 | 109 | False | 0 |
+
+- candidate-c-tcp-miss-r2-rust: ['measurement error counters', 'measurement completion count', 'upstream hit/miss count']
+
+## Excluded attempt — candidate-e-original-summary.json
+
+SHA256 `1da8de115310b2d87a0fb4ec0e0a217131542892b402ab52ca6d0e61da408c28`. Excluded regardless of any favorable individual windows.
+
+| Window count | Valid windows | Complete marker | Parse failures |
+| --- | --- | --- | --- |
+| 110 | 107 | False | 0 |
+
+- candidate-e-udp-miss-r4-c: ['upstream hit/miss count']
+- candidate-e-tcp-miss-r3-c: ['measurement error counters', 'measurement completion count', 'upstream hit/miss count']
+- candidate-e-dhcp-home6-r2-c: ['measurement error counters', 'measurement completion count', 'DORA/renew boundary']

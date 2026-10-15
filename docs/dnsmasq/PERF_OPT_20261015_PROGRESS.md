@@ -497,3 +497,62 @@ revision60c3bdf2 anditscounters are readyforpostOracle native screening. No new
 researchCPU hasrun onOracle duringE timing, androot hasnot accessedrouter since
 DHCPtook exclusiveownership. Fulloriginalfaileddeviceevidence willbe committed
 bydeviceowner aftersource/data validation; nostop/cleanup withoutfullarchival.
+
+## E accepted after authorized supplements; next-version tool fixes complete
+
+User amendment7691e8aa (FROZEN_TOOL_WINDOW_SUPPLEMENT.md) was frozen before any
+supplement: symmetric once-only complete-pair replay for demonstrated tool
+invalidity, no response-error/response-timeout/crash waiver, all old raw retained.
+OriginalE110/107valid had3baselineinvalids:udp-missr4phasecounter3999;tcp-missr3
+25skips;dhcp-home6r2one skip. Afteroriginalcomplete, originalvalidator/tools ran
+3wholepairs/6windows once inoriginalorder;6/6passed. Effectiveview110 contains
+104original+6supplement, no mixedsides or116window pooling. FinalmappingSHA
+96fee31a9be5612d0e2bf983c318017401fc8709b89d1520913e7034275c0361; analyzer summary
+SHAe3a0e556b189f35cde0a5a48abab3aab23d7c76711d03689a8bd439b3411071b.
+Independentfinalaudit4f544c3d(root90d3f021) verifiesallraw/35metrics/resources/
+3938guard samples/262HTTPS. Sixof11scenes improve,0discernibleprimaryregression.
+UDPmissCPU−14.79%,TCPmiss−19.92%,mixed−8.26%(narrowW8.00%,9ticks),DHCP150−32.99%;
+configp50−16.73%,largeHUPp50−14.08%. E944short+44/67+boundary/corpora allpassed.
+OracleE110/110valid/110tar3430files retainedlocallyundercorrectness/private/
+oracle-e-transfer; rootprivate/oracle-e-summary-verified.json copied/hashverified.
+
+Toolfixes forNEXTround only are integratedas a2dc1fa6(cohort) and0f8ced6c(queue).
+Queue independentbranch9e6556cf+ab7f3695: original three delayed-cohort tests fail,
+all5isolatedLinuxnetworktests passafter; DHCP6/150SDKstatic toolfunctionalcontrols
+pass (ae3f5cf7/root207cdd88). Newloadgen SHA f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e;
+oldb5inputs/routerunchanged. No Eretime usednewtool. Mainproductstill exactE4f869.
+
+## Latest user priority: direct exact-C/E UDP/TCP hit accounting
+
+User explicitly selected C/E hitgap as mainattack and asked four-agent parallel
+research. Do not stop atE; nextoptimizationmusttarget largestverifieddifference.
+Rootowns source/call-chain audit and coordination; loopowns whole-process-tree
+syscall audit; DNSowns stat-only user/kernel PMU and separatefunctionsampling;
+correctnessowns independentreview; DHCPissolephysicalrouteroperator.
+
+Freshrouter diagnosticPID40801,rootprivate/c-e-hit-diagnostic,launchsameprefix.
+ExactimageC097a9e21 versusE8b8082b9, twohit scenes×5pairs=20windows; oldEprivate
+controller/analyzerfromGit4f869,oldb5measurementtool, originalhealth125s/200ms.
+Latest11/20valid,32HTTPSsuccess. Prod[3086,2115]/8472unchanged. Only/tmp comparator
+leftsidechangedtoexactC (notdeployed8472), rightEunchanged. Thisisdiagnosticnot
+newcandidatequalification. BulktransfersagainforbiddenuntilDHCPdeclaresidle.
+
+OracleloopfixedstraceplanCUDP→EUDP→CTCP→ETCP, -f/-v/trace=all, b5/01frozenloadgen/
+upstream,5000correct+fixed1sgrace, Cchildrenincluded. FirstCUDPidentityprecheck
+failed BEFOREprewarm/capture because readonlyTZifwasmisclassifiedasELF; retained.
+Minimalidentityfix keepsC+4ELFexact, recordsnonexecutablereadonlyTZifdata separately;
+newdriver/plan mustbehashedbeforefresh4attempt. No performancewindowsreplaced.
+DNSthenowns12stat-onlywindows(3alternatingC/Epairs×2scenes) +4separateuser-sample
+windows, same1sgrace; instructions:u/k andcycles:u/k group mustnot silentlyscale
+multiplexedcounts. Csymbolsource verifiedvia originalsstrip-z reproducing097
+byte-for-byte,22ALLOCsegments/332sizedfunctions. No foreignbinarymaps.
+MatchingCsrc: /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/dnsmasq-nodhcpv6/dnsmasq-2.93/src.
+Rootsavedsmallhash-bound Csnippets inprivate/perf-opt-20261015/c-e-hit-source-snippets.json.
+
+Priorinsert-keybranch60c3 rejectedafter150plainwindows (upperpressure+1.518%,
+dynamicCNAME+0.475% beyondsmallW); allhistoryunderrefs/archive/perf-opt-20261015/dns/insert-key-rejected,
+worktree/private retained. Readiness9ce prototype rejectedby110PMUready/runnable
+counts(14steady+47.79%); successorstable-shapefastpathd83/e227 isparkedafter
+functionaltests whiledirectC/Eevidence takespriority. No prototypeproductis
+integratedintoE/root. LoopactiveC/Ediagnosticbranch perf/dnsmasq-c-e-hit-syscalls-20261015;
+readinessbranch perf/dnsmasq-readiness-hybrid-20261015 remainspreserved.

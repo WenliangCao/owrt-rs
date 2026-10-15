@@ -59,7 +59,8 @@ fn main() {
     let iterations: usize = args[2].parse().unwrap();
     let uppercase = scene.ends_with("-upper");
     let base_scene = scene.strip_suffix("-upper").unwrap_or(scene);
-    assert!(["replace", "pressure", "reverse", "long", "short", "expiry", "expiry-stale"].contains(&base_scene));
+    assert!(["replace", "pressure", "reverse", "long", "short", "expiry", "expiry-stale",
+        "replace-upper", "pressure-upper", "reverse-upper", "short-upper"].contains(&scene.as_str()));
     let expiry = base_scene.starts_with("expiry");
     let population = match base_scene { "pressure" | "expiry" | "expiry-stale" => 1200, "long" => 80, _ => 800 };
     let reverse = base_scene == "reverse";
