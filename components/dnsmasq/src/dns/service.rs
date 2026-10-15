@@ -450,10 +450,12 @@ impl LocalDnsService {
         {
             return false;
         }
-        let Some(name) = super::local::wire_to_dotted(&question.name) else { return false };
-        self.hosts.is_published() && !self.hosts.name_exists(&name)
-            && !self.leases.has_expired_name(&name, now)
-            && self.leases.lookup(&name, now).next().is_none()
+        let mut dotted = [0; 253];
+        let Some(length) = super::local::query_dotted_name(&question.name, &mut dotted) else { return false };
+        let name = &dotted[..length];
+        self.hosts.is_published() && !self.hosts.name_exists(name)
+            && !self.leases.has_expired_name(name, now)
+            && self.leases.lookup(name, now).next().is_none()
     }
 
     /// Forwarding rules select by the CNAME cursor, but make_local_answer
