@@ -57,17 +57,23 @@ fn main() {
     assert_eq!(args.len(), 3, "probe SCENE OPERATIONS");
     let scene = &args[1];
     let iterations: usize = args[2].parse().unwrap();
-    assert!(["replace", "pressure", "reverse", "long"].contains(&scene.as_str()));
-    let population = match scene.as_str() { "pressure" => 1200, "long" => 80, _ => 800 };
-    let reverse = scene == "reverse";
+    let uppercase = scene.ends_with("-upper");
+    let base_scene = scene.strip_suffix("-upper").unwrap_or(scene);
+    assert!(["replace", "pressure", "reverse", "long", "short"].contains(&base_scene));
+    let population = match base_scene { "pressure" => 1200, "long" => 80, _ => 800 };
+    let reverse = base_scene == "reverse";
     let records: Vec<_> = (0..population).map(|i| {
-        let name = if scene == "long" {
+        let name = if base_scene == "long" {
             let mut wire = vec![38];
             wire.extend(std::iter::repeat_n(0, 36));
             wire.extend_from_slice(&(i as u16).to_be_bytes());
             wire.push(0);
             decode_name(&wire, 0, 0).unwrap().0
-        } else { Name::from_ascii(&format!("name{i:04}.perf.invalid")).unwrap() };
+        } else {
+            let name = if base_scene == "short" { format!("q{i:04x}.m6a.test") }
+                else { format!("name{i:04}.perf.invalid") };
+            Name::from_ascii(&if uppercase { name.to_ascii_uppercase() } else { name }).unwrap()
+        };
         Record { name, kind: if reverse { Kind::ReverseIpv4 } else { Kind::Ipv4 },
             negative: false, data: vec![192, 0, (i / 256) as u8, i as u8] }
     }).collect();

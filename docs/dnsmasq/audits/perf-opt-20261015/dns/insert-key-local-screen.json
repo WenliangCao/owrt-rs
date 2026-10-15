@@ -1,0 +1,445 @@
+{
+  "scope": "Localnative macOS allocationdiagnostic, not timing/SDK/device; actualCacheAPI and sameSystemallocator. Counts excludecreation/priming; allprobechecksunchanged.",
+  "source_baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "source_candidate": "43df58994a82aaf52b993752161c6423f449823d",
+  "probe_sha256": "6f55057cd7248444262a19787e4cf136960fdb4d1f9bbdbd07b739929c1d9830",
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "results": {
+    "baseline-e-insert": {
+      "artifact_sha256": "20c1e85582f04ce39cee895e5d6262d2483b06cd07695ebc7cc6c65a47571f76",
+      "rows": [
+        {
+          "scene": "replace",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1664000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "pressure",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 1944000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "reverse",
+          "operations": 8000,
+          "allocations": 168000,
+          "reallocations": 0,
+          "requested_bytes": 4032000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "long",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 2336000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "short",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1376000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "replace-upper",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1664000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "pressure-upper",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 1944000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "reverse-upper",
+          "operations": 8000,
+          "allocations": 168000,
+          "reallocations": 0,
+          "requested_bytes": 4032000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "short-upper",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1376000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        }
+      ]
+    },
+    "baseline-e-hot": {
+      "artifact_sha256": "2f73a6b2ff546a7ec9c2eb1677e791c652ac8ce928a5ee79f6b0b82fea6396c5",
+      "rows": [
+        {
+          "scene": "hit",
+          "operations": 8000,
+          "allocations": 32000,
+          "reallocations": 0,
+          "requested_bytes": 1960000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "hit-upper",
+          "operations": 8000,
+          "allocations": 40000,
+          "reallocations": 0,
+          "requested_bytes": 2144000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "hit-leases",
+          "operations": 8000,
+          "allocations": 32000,
+          "reallocations": 0,
+          "requested_bytes": 1960000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "miss",
+          "operations": 8000,
+          "allocations": 16000,
+          "reallocations": 0,
+          "requested_bytes": 424000,
+          "live_bytes_delta": 0,
+          "checksum": 0
+        },
+        {
+          "scene": "miss-leases",
+          "operations": 8000,
+          "allocations": 16000,
+          "reallocations": 0,
+          "requested_bytes": 424000,
+          "live_bytes_delta": 0,
+          "checksum": 0
+        },
+        {
+          "scene": "host",
+          "operations": 8000,
+          "allocations": 64000,
+          "reallocations": 0,
+          "requested_bytes": 3996800,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "rrset",
+          "operations": 8000,
+          "allocations": 40000,
+          "reallocations": 18400,
+          "requested_bytes": 6772800,
+          "live_bytes_delta": 0,
+          "checksum": 1566400
+        },
+        {
+          "scene": "cname",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 4352000,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        },
+        {
+          "scene": "cname-leases",
+          "operations": 8000,
+          "allocations": 88000,
+          "reallocations": 0,
+          "requested_bytes": 4520000,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        },
+        {
+          "scene": "cname-config",
+          "operations": 8000,
+          "allocations": 144000,
+          "reallocations": 0,
+          "requested_bytes": 8108800,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        }
+      ]
+    },
+    "insert-key-insert": {
+      "artifact_sha256": "042bcba96ad8949839482f481d65f599010705f604e55d83ae5d93dcde486051",
+      "rows": [
+        {
+          "scene": "replace",
+          "operations": 8000,
+          "allocations": 48000,
+          "reallocations": 0,
+          "requested_bytes": 1480000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "pressure",
+          "operations": 8000,
+          "allocations": 72000,
+          "reallocations": 0,
+          "requested_bytes": 1760000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "reverse",
+          "operations": 8000,
+          "allocations": 160000,
+          "reallocations": 0,
+          "requested_bytes": 3848000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "long",
+          "operations": 8000,
+          "allocations": 49500,
+          "reallocations": 0,
+          "requested_bytes": 2076000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "short",
+          "operations": 8000,
+          "allocations": 48000,
+          "reallocations": 0,
+          "requested_bytes": 1248000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "replace-upper",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1664000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "pressure-upper",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 1944000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "reverse-upper",
+          "operations": 8000,
+          "allocations": 168000,
+          "reallocations": 0,
+          "requested_bytes": 4032000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        },
+        {
+          "scene": "short-upper",
+          "operations": 8000,
+          "allocations": 56000,
+          "reallocations": 0,
+          "requested_bytes": 1376000,
+          "live_bytes_delta": 0,
+          "checksum": 1760000
+        }
+      ]
+    },
+    "insert-key-hot": {
+      "artifact_sha256": "6ccedef24c54bfbdc1d842faac7c7184ff65c30ce10a3388a693c679e9f1f1a8",
+      "rows": [
+        {
+          "scene": "hit",
+          "operations": 8000,
+          "allocations": 32000,
+          "reallocations": 0,
+          "requested_bytes": 1960000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "hit-upper",
+          "operations": 8000,
+          "allocations": 40000,
+          "reallocations": 0,
+          "requested_bytes": 2144000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "hit-leases",
+          "operations": 8000,
+          "allocations": 32000,
+          "reallocations": 0,
+          "requested_bytes": 1960000,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "miss",
+          "operations": 8000,
+          "allocations": 16000,
+          "reallocations": 0,
+          "requested_bytes": 424000,
+          "live_bytes_delta": 0,
+          "checksum": 0
+        },
+        {
+          "scene": "miss-leases",
+          "operations": 8000,
+          "allocations": 16000,
+          "reallocations": 0,
+          "requested_bytes": 424000,
+          "live_bytes_delta": 0,
+          "checksum": 0
+        },
+        {
+          "scene": "host",
+          "operations": 8000,
+          "allocations": 64000,
+          "reallocations": 0,
+          "requested_bytes": 3996800,
+          "live_bytes_delta": 0,
+          "checksum": 468800
+        },
+        {
+          "scene": "rrset",
+          "operations": 8000,
+          "allocations": 40000,
+          "reallocations": 18400,
+          "requested_bytes": 6772800,
+          "live_bytes_delta": 0,
+          "checksum": 1566400
+        },
+        {
+          "scene": "cname",
+          "operations": 8000,
+          "allocations": 80000,
+          "reallocations": 0,
+          "requested_bytes": 4352000,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        },
+        {
+          "scene": "cname-leases",
+          "operations": 8000,
+          "allocations": 88000,
+          "reallocations": 0,
+          "requested_bytes": 4520000,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        },
+        {
+          "scene": "cname-config",
+          "operations": 8000,
+          "allocations": 144000,
+          "reallocations": 0,
+          "requested_bytes": 8108800,
+          "live_bytes_delta": 0,
+          "checksum": 764800
+        }
+      ]
+    }
+  },
+  "status": "local-allocation-screen-only-pending-Oracle-counter-and-quiet-timing",
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "f622f21eb30791a34f595bec2c93a218d4209eb061af77cd58bec556ffe85917",
+    "components/dnsmasq/src/dns/cache_tests.rs": "8a08e83d5e0e2ee9d074f79d4a0b54e7d35e8bcc70d8d4e685dd8392bd6aa76c"
+  },
+  "raw_sha256": {
+    "allocation-results.json": "e306e930e3c1b7650bc632e9bdf5f8361fcd9fc3399f5fb9a60c741a85b65e5b",
+    "baseline-e-build.stderr": "94f612ea591596d1dec98ee212be04b9a527d8862aafea01451103e9efe739e0",
+    "baseline-e-build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-e-hot-cname-config.json": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+    "baseline-e-hot-cname-leases.json": "0210e7686d7f29d525f5faa96244c0a841abcdc4a1d2917ad88fa7f05cb2957b",
+    "baseline-e-hot-cname.json": "8affb37453c240923d21aaa550e92cb00ac943556fb9bc6f3884fbf0ae8ed82f",
+    "baseline-e-hot-hit-leases.json": "f129d1777cd8816232949f477545a4157ceac54c57e06980aa61026aeb6fd0ea",
+    "baseline-e-hot-hit-upper.json": "4061fef0b4dc953588a89a36e4efb2e0037e3da2d29c1e362120d4e7e499f7fa",
+    "baseline-e-hot-hit.json": "195234999588fc246281b9c66084585f2d6e1a2257f9052af5347342ef4ee96c",
+    "baseline-e-hot-host.json": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+    "baseline-e-hot-miss-leases.json": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+    "baseline-e-hot-miss.json": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+    "baseline-e-hot-rrset.json": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+    "baseline-e-hot-rustc.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-e-hot-rustc.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-e-insert-long.json": "9b1da5e7db2770dec66d8132d427cbbe367d647fb66bd57f47bd6f5a6142307a",
+    "baseline-e-insert-pressure-upper.json": "2585dcefba8aab619aa0a84abba91fc32c26e8763f9d6971df62ac341de22a63",
+    "baseline-e-insert-pressure.json": "d648113649e2bd26bb2f8d3dca9e03d38ff04fd7bf0251ca16e90c95f2a2d67f",
+    "baseline-e-insert-replace-upper.json": "f4dcf9363772d2561652c1db86dec1a9c489c1b01b4e76e2f1f765b1b8bcdb0e",
+    "baseline-e-insert-replace.json": "e0585ce8d2343bbf96cdc99497e1032a153d914fb129d45bb30b9df7ae4085d7",
+    "baseline-e-insert-reverse-upper.json": "dc215e202021f89b721d975b3d287a185d73c99e9f9bb49f1c40c5d4a78379a3",
+    "baseline-e-insert-reverse.json": "fde6b551180c618e8631fd041b53cc6d79d85cd6dae78a241b1e3796e8fb9496",
+    "baseline-e-insert-rustc.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-e-insert-rustc.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-e-insert-short-upper.json": "a661a27a369d85ab57ed2dabf65955ce5ada410f2773f1297636544849ca5025",
+    "baseline-e-insert-short.json": "a7447714e8abfc7d1b0876a4a7f230d983f9e4cfc7ffaa44228c455a3911a74a",
+    "insert-key-build.stderr": "5a738fa8d4caeaa542791757a827d99c40921387cf41f7cc12ab9647465b8802",
+    "insert-key-build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key-hot-cname-config.json": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+    "insert-key-hot-cname-leases.json": "0210e7686d7f29d525f5faa96244c0a841abcdc4a1d2917ad88fa7f05cb2957b",
+    "insert-key-hot-cname.json": "8affb37453c240923d21aaa550e92cb00ac943556fb9bc6f3884fbf0ae8ed82f",
+    "insert-key-hot-hit-leases.json": "f129d1777cd8816232949f477545a4157ceac54c57e06980aa61026aeb6fd0ea",
+    "insert-key-hot-hit-upper.json": "4061fef0b4dc953588a89a36e4efb2e0037e3da2d29c1e362120d4e7e499f7fa",
+    "insert-key-hot-hit.json": "195234999588fc246281b9c66084585f2d6e1a2257f9052af5347342ef4ee96c",
+    "insert-key-hot-host.json": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+    "insert-key-hot-miss-leases.json": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+    "insert-key-hot-miss.json": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+    "insert-key-hot-rrset.json": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+    "insert-key-hot-rustc.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key-hot-rustc.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key-insert-long.json": "592d939375a17d4456c80cee322200d84c8fe4faf07f89d2b409fb98e3878b15",
+    "insert-key-insert-pressure-upper.json": "2585dcefba8aab619aa0a84abba91fc32c26e8763f9d6971df62ac341de22a63",
+    "insert-key-insert-pressure.json": "cc0e8aa96da017a607d8610cb36c9c04656a0eef13b5ae760b9700ac74a79f19",
+    "insert-key-insert-replace-upper.json": "f4dcf9363772d2561652c1db86dec1a9c489c1b01b4e76e2f1f765b1b8bcdb0e",
+    "insert-key-insert-replace.json": "ba2a465bca1022677388a39b186af7beb5e4e4035c92c414f0422953f9a44156",
+    "insert-key-insert-reverse-upper.json": "dc215e202021f89b721d975b3d287a185d73c99e9f9bb49f1c40c5d4a78379a3",
+    "insert-key-insert-reverse.json": "358bafd25508755c19b7dceea8a8c35f9aab6f4a6ec90ac6100c97eb69367693",
+    "insert-key-insert-rustc.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key-insert-rustc.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "insert-key-insert-short-upper.json": "a661a27a369d85ab57ed2dabf65955ce5ada410f2773f1297636544849ca5025",
+    "insert-key-insert-short.json": "e49c08adc42143c0a89fb9c61c4096375df49ba028a2db6669f327895a19ca01",
+    "mac-tests.stderr": "e5b981b0ca5f290c71af1536518e7db62ce2cad1d83d8dfb5295c86d8a933a00",
+    "mac-tests.stdout": "74c1fef57645b023a0bbbad5b40b12f31694626827abab5b759e702788deb3c3"
+  },
+  "native_tests": {
+    "command": "cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dns:: -j1",
+    "passed": 386,
+    "failed": 0,
+    "ignored_existing_fixture_tests": 5
+  },
+  "static_review": "Independent correctness agent found no borrowing/lifetime/COW/canonicalization or new allocation-failure blocker; actual key is borrowed from caller-owned Record, not cache storage.",
+  "layout_and_algorithm": "No type layout, state, hash algorithm, randomized HashMap hasher,64shards,allocator or compiler flags changed.",
+  "limitations": [
+    "Uppercase adds an early detection scan before the same canonical allocation; it may cost CPU despite identical allocation counts.",
+    "Counts are localmacOS realAPI diagnostics,not Oracle/musl/SDK/device performance results.",
+    "No OracleCPU job or router access occurred; remote counter/timing remains deferred until root release.",
+    "Many-name/index probe changes were not selected based on highselfsamplepercentages."
+  ]
+}
