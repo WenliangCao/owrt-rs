@@ -10,6 +10,7 @@ static COUNTS: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
 static KIND: AtomicUsize = AtomicUsize::new(0);
 static DEPTH: AtomicUsize = AtomicUsize::new(0);
 static NESTED: AtomicU64 = AtomicU64::new(0);
+static UNSCOPED: AtomicU64 = AtomicU64::new(0);
 static QUERIES: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
 static TOTALS: [[AtomicU64; 5]; 5] = [const { [const { AtomicU64::new(0) }; 5] }; 5];
 static TURNS: [[AtomicU64; 7]; 3] = [const { [const { AtomicU64::new(0) }; 7] }; 3];
@@ -46,7 +47,15 @@ unsafe impl GlobalAlloc for Meter {
 
 fn snapshot() -> [u64; 5] { std::array::from_fn(|i| COUNTS[i].load(Relaxed)) }
 
-pub fn classify(kind: Kind) { KIND.store(kind as usize, Relaxed); }
+pub fn classify(kind: Kind) {
+    if DEPTH.load(Relaxed) == 0 {
+        // Deferred interface/MAC continuations can call process_udp outside
+        // step_udp. Do not silently claim complete per-query attribution.
+        UNSCOPED.fetch_add(1, Relaxed);
+        return;
+    }
+    KIND.store(kind as usize, Relaxed);
+}
 
 pub struct Step {
     before: [u64; 5],
@@ -107,9 +116,10 @@ pub fn write_report() -> std::io::Result<()> {
     });
     let histogram = std::array::from_fn::<_, 65, _>(|i| HIT_ALLOCATION_HISTOGRAM[i].load(Relaxed));
     let nested = NESTED.load(Relaxed);
+    let unscoped = UNSCOPED.load(Relaxed);
     let turns = std::array::from_fn::<_, 3, _>(|i| {
         std::array::from_fn::<_, 7, _>(|j| TURNS[i][j].load(Relaxed))
     });
     let mut file = std::fs::File::create(path)?;
-    writeln!(file, "{{\"scope\":\"count-only diagnostic, not timing; complete step_udp including receive/admission/process/send and owned drops; single-thread UDP workload required; startup/wait/control work outside step excluded\",\"kinds\":[\"no_packet_or_error\",\"other_packet\",\"local\",\"cached\",\"stale\"],\"columns\":[\"alloc\",\"dealloc\",\"realloc\",\"requested_bytes\",\"released_bytes\"],\"queries\":{queries:?},\"totals\":{totals:?},\"cached_allocation_histogram_64_is_overflow\":{histogram:?},\"nested_steps\":{nested},\"turn_kinds\":[\"no_packet\",\"cached_only\",\"mixed_or_other\"],\"turn_columns\":[\"turns\",\"cached_queries\",\"alloc\",\"dealloc\",\"realloc\",\"requested_bytes\",\"released_bytes\"],\"whole_owner_turns\":{turns:?}}}")
+    writeln!(file, "{{\"scope\":\"count-only diagnostic, not timing; complete step_udp including receive/admission/process/send and owned drops; single-thread UDP workload required; startup/wait/control work outside step excluded\",\"kinds\":[\"no_packet_or_error\",\"other_packet\",\"local\",\"cached\",\"stale\"],\"columns\":[\"alloc\",\"dealloc\",\"realloc\",\"requested_bytes\",\"released_bytes\"],\"queries\":{queries:?},\"totals\":{totals:?},\"cached_allocation_histogram_64_is_overflow\":{histogram:?},\"nested_steps\":{nested},\"unscoped_classifications\":{unscoped},\"turn_kinds\":[\"no_packet\",\"cached_only\",\"mixed_or_other\"],\"turn_columns\":[\"turns\",\"cached_queries\",\"alloc\",\"dealloc\",\"realloc\",\"requested_bytes\",\"released_bytes\"],\"whole_owner_turns\":{turns:?}}}")
 }

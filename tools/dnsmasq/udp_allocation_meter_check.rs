@@ -46,5 +46,7 @@ fn main() {
             dealloc(pointer, layout);
         }
     }
+    // A deferred continuation must be exposed rather than silently omitted.
+    meter::classify(meter::Kind::Cached);
     meter::write_report().unwrap();
 }
