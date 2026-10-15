@@ -52,3 +52,22 @@ fixed-N acceptance result. No fresh strace matrix is needed for this change.
 Only supported immutable changes may enter a subsequent combined candidate;
 that candidate still needs full correctness, complete timing and an independent
 E comparison on A53. Product sources already being measured will not change.
+
+## Allocation mechanism checked locally
+
+[Thirty Mac count-only controls](fresh-address-local-allocation.json) completed
+with equal output checksums and zero live-byte deltas in all 15 scene pairs.
+Ordinary hit, upper-case hit, hit with leases and typed-config hit each remove
+one 64-byte allocation. Ordinary fixture hits change from 4 allocations/245
+requested bytes to 3/181. These fixture names differ from the physical 270-byte
+whole-E-owner count, and the scopes must not be pooled. Other allocation counts
+stay equal. Host-localise requested-byte/reallocation variation remains visible;
+that fixture's bucket/rotation depends on process addresses and no causal
+improvement is claimed for it. All 34 commands and their logs were rechecked;
+162 input files on each side matched the source commits after the run.
+
+The unchanged SDK builder completed source `2a9d53b0`: ELF
+`b52432a274ab9dda36d60e568e4b618e755d34e69ffce72bc5343df485fcce7f`,
+2,136,859 bytes, receipt
+`1463c8849b8aecf273f058cea827815753923bcc3844c4ec467776ccaac0c660`.
+This is a built unqualified prototype, with no CPU result yet.

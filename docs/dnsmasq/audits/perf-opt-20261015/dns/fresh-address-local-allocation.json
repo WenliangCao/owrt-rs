@@ -1,0 +1,746 @@
+{
+  "scope": "Mac allocation-only public local/cache answer fixture, not whole-owner/device CPU or SDK timing",
+  "sources": {
+    "F": {
+      "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "postrun_files_verified": 162
+    },
+    "fresh-address": {
+      "commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+      "postrun_files_verified": 162
+    }
+  },
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "commands": [
+    {
+      "label": "F-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/cargo",
+        "-j",
+        "1"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5445d26d2b899f2054a8350862f18d753223d38ff23d934e9e810562ca7c3ca9"
+    },
+    {
+      "label": "F-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-hit",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "hit",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "195234999588fc246281b9c66084585f2d6e1a2257f9052af5347342ef4ee96c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-hit-upper",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "hit-upper",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "4061fef0b4dc953588a89a36e4efb2e0037e3da2d29c1e362120d4e7e499f7fa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-hit-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "hit-leases",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "f129d1777cd8816232949f477545a4157ceac54c57e06980aa61026aeb6fd0ea",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-hit-typed",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "hit-typed",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "6c72b63aad8c5d65d981305a2e371d94ed16115f78b836aaa284c745ca48db1b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-miss",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "miss",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-miss-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "miss-leases",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-host",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "host",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-host-localise",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "host-localise",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "5fbd55c9592a999301124ae2e68b025083a5636520f072793ab19c3838f08775",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-raw-address",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "raw-address",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "8fb8eccef03c8528a55d5e788019fdac60b5bacc6a03747bad235b480977b8bb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-synth-address",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "synth-address",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "5628690c8ac59d3282e59166e224ba3c60413c4cd0eefaea28afbdb7ef5ee1f5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-lease-address",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "lease-address",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "f263b21636b78c1342d75a1c54fa50aac61bac0b28ae4c8cb637fd8708123066",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-rrset",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "rrset",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-cname",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "cname",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "8affb37453c240923d21aaa550e92cb00ac943556fb9bc6f3884fbf0ae8ed82f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-cname-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "cname-leases",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "0210e7686d7f29d525f5faa96244c0a841abcdc4a1d2917ad88fa7f05cb2957b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-cname-config",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/F",
+        "cname-config",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-fresh-address-answer-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/cargo",
+        "-j",
+        "1"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e0f5313efe57432c7544daece6706b4340d54e9a9e233a29907dce663a89972a"
+    },
+    {
+      "label": "fresh-address-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-hit",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "hit",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "4bc7a39dee4f26382a696f22b822b7f1188754ed7a2637404b5ca86d9c4745d8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-hit-upper",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "hit-upper",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "d8ba221b9b8b3b96627378d42a716d21098cdd1d40783098f6299b52196eb9b7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-hit-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "hit-leases",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "6b6f303aa5bbd6c70aa8c9403d86aba24adcbadb5abe0c769f7020ff52b504d9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-hit-typed",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "hit-typed",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "68408f2884faba070b32f3bcc0ce7dc0727fff1cae2590d7daee78b998ea8b06",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-miss",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "miss",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-miss-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "miss-leases",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-host",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "host",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-host-localise",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "host-localise",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "fd8e7dea97982308896fd986281adda14a4e877f7481877337167ed43c7d7719",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-raw-address",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "raw-address",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "8fb8eccef03c8528a55d5e788019fdac60b5bacc6a03747bad235b480977b8bb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-synth-address",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "synth-address",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "5628690c8ac59d3282e59166e224ba3c60413c4cd0eefaea28afbdb7ef5ee1f5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-lease-address",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "lease-address",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "f263b21636b78c1342d75a1c54fa50aac61bac0b28ae4c8cb637fd8708123066",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-rrset",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "rrset",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-cname",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "cname",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "8affb37453c240923d21aaa550e92cb00ac943556fb9bc6f3884fbf0ae8ed82f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-cname-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "cname-leases",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "0210e7686d7f29d525f5faa96244c0a841abcdc4a1d2917ad88fa7f05cb2957b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "fresh-address-cname-config",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/fresh-address-local/fresh-address",
+        "cname-config",
+        "8000"
+      ],
+      "returncode": 0,
+      "stdout_sha256": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rows": [
+    {
+      "side": "F",
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "F",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 0,
+      "requested_bytes": 2144000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "F",
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "F",
+      "scene": "hit-typed",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "F",
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "F",
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "F",
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 64000,
+      "reallocations": 0,
+      "requested_bytes": 3996800,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "F",
+      "scene": "host-localise",
+      "operations": 8000,
+      "allocations": 69600,
+      "reallocations": 17630,
+      "requested_bytes": 7452800,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "F",
+      "scene": "raw-address",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 4057600,
+      "live_bytes_delta": 0,
+      "checksum": 625600
+    },
+    {
+      "side": "F",
+      "scene": "synth-address",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4245400,
+      "live_bytes_delta": 0,
+      "checksum": 460280
+    },
+    {
+      "side": "F",
+      "scene": "lease-address",
+      "operations": 8000,
+      "allocations": 56000,
+      "reallocations": 0,
+      "requested_bytes": 3712000,
+      "live_bytes_delta": 0,
+      "checksum": 440000
+    },
+    {
+      "side": "F",
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 18400,
+      "requested_bytes": 6772800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400
+    },
+    {
+      "side": "F",
+      "scene": "cname",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4352000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "F",
+      "scene": "cname-leases",
+      "operations": 8000,
+      "allocations": 88000,
+      "reallocations": 0,
+      "requested_bytes": 4520000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "F",
+      "scene": "cname-config",
+      "operations": 8000,
+      "allocations": 144000,
+      "reallocations": 0,
+      "requested_bytes": 8108800,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1632000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "hit-typed",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "fresh-address",
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "fresh-address",
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 64000,
+      "reallocations": 0,
+      "requested_bytes": 3996800,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "host-localise",
+      "operations": 8000,
+      "allocations": 69600,
+      "reallocations": 18080,
+      "requested_bytes": 8114560,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "raw-address",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 4057600,
+      "live_bytes_delta": 0,
+      "checksum": 625600
+    },
+    {
+      "side": "fresh-address",
+      "scene": "synth-address",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4245400,
+      "live_bytes_delta": 0,
+      "checksum": 460280
+    },
+    {
+      "side": "fresh-address",
+      "scene": "lease-address",
+      "operations": 8000,
+      "allocations": 56000,
+      "reallocations": 0,
+      "requested_bytes": 3712000,
+      "live_bytes_delta": 0,
+      "checksum": 440000
+    },
+    {
+      "side": "fresh-address",
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 18400,
+      "requested_bytes": 6772800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400
+    },
+    {
+      "side": "fresh-address",
+      "scene": "cname",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4352000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "cname-leases",
+      "operations": 8000,
+      "allocations": 88000,
+      "reallocations": 0,
+      "requested_bytes": 4520000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "fresh-address",
+      "scene": "cname-config",
+      "operations": 8000,
+      "allocations": 144000,
+      "reallocations": 0,
+      "requested_bytes": 8108800,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    }
+  ],
+  "all_15_checksums_equal": true,
+  "all_live_byte_deltas_zero": true,
+  "ordinary_hit_change": "4 to 3 allocations, 245 to 181 requested bytes; removes one 64-byte IDs allocation",
+  "retained_variability": "host-localise same allocation count with differing reallocations/requested bytes; fixture bucket/rotation depends on process address; no causal saving claimed"
+}
