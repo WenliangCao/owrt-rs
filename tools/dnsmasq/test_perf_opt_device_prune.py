@@ -12,7 +12,7 @@ import perf_opt_device_run as run
 
 
 class PruneTests(unittest.TestCase):
-    def simulate(self, invalid_first=False, archive_failure=False):
+    def simulate(self, invalid_first=False, archive_failure=False, cleanup_failure=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         base = Path(temporary.name)
@@ -42,6 +42,8 @@ class PruneTests(unittest.TestCase):
                 self.assertEqual(progress[-1]['label'], label)
                 self.assertTrue(progress[-1]['valid'])
                 deleted.append(label)
+                if cleanup_failure:
+                    raise RuntimeError('fixture prune failure')
             return SimpleNamespace(stdout=b'', returncode=0)
 
         process = SimpleNamespace(poll=lambda: 0, returncode=0)
@@ -55,8 +57,9 @@ class PruneTests(unittest.TestCase):
              patch.object(run, 'validate', side_effect=validate), \
              patch.object(run.subprocess, 'Popen', return_value=process), \
              contextlib.redirect_stdout(io.StringIO()):
-            if archive_failure:
-                with self.assertRaisesRegex(RuntimeError, 'copy hash mismatch'):
+            if archive_failure or cleanup_failure:
+                expected = 'copy hash mismatch' if archive_failure else 'fixture prune failure'
+                with self.assertRaisesRegex(RuntimeError, expected):
                     run.main()
             else:
                 run.main()
@@ -79,6 +82,14 @@ class PruneTests(unittest.TestCase):
         out, archived, deleted = self.simulate(archive_failure=True)
         self.assertEqual(deleted, [])
         self.assertTrue((out / 'failure.json').exists())
+
+    def test_cleanup_failure_does_not_overwrite_completed_archive(self):
+        out, archived, deleted = self.simulate(cleanup_failure=True)
+        self.assertEqual(archived, ['fixture-udp-hit-r1-c'])
+        self.assertEqual(deleted, archived)
+        failure = json.loads((out / 'failure.json').read_text())
+        self.assertEqual(failure['recovery'], {'attempt_already_archived': archived[0]})
+        self.assertEqual(len(json.loads((out / 'progress.json').read_text())), 1)
 
 
 if __name__ == '__main__':
