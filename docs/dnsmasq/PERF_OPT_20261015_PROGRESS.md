@@ -337,3 +337,22 @@ its total deferred instruction saving projects only7.16–7.89% against D TCP-hi
 below current CPUprecision before productbookkeeping. Do not implement that
 productfork based on the ideal14-to-1 projection; all new primitive evidence
 will be retained. This does not establish allreadiness costsirreducible.
+
+## D device release withdrawn before launch, 14:59 CEST
+
+All67 original jobs are now covered (65rawpass, service+itsqualify rawfail),
+but D remains BLOCKED. The provisional interpretation as the previously recorded
+HUP mixed-chain difference was premature. Offline actual-mapping reconstruction
+fits all6 Rust observations, yet exactC original-namebucket2 precedes static59
+and C stillrenames. Initial startup may not contain the same retained DHCP
+nodes as HUP. Correctness andDHCP independently reproduced this counterevidence
+and are reading exactC initialization/publication order; no new samples/seedsearch.
+Do not finalize a43+1 qualification receipt or treat this as an accepted waiver.
+
+Root copied exactD4167609f andoriginal8472 onlytoowned/tmp comparator paths after
+freshproduction/9toolhashchecks. NO devicecontroller or Dwindowwasstarted; D has
+not been measuredondevice. ProductionPID/start[3086,2115] andoriginalhash remain
+unchanged. Launch was withdrawn immediately on the counterevidence. Any actual
+startupdefect will receive a separate deterministicreproducer/fixcommit andenter
+a newfrozen candidate withfulltiming; D itself staysunchanged. The stagingstep
+is retained here to avoid mistaking stagedartifact presence for an executedtest.
