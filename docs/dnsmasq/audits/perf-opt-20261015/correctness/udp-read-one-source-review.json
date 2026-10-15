@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "status": "PASS_SOURCE_REVIEW_RUNTIME_PENDING",
+  "candidate_commit": "4bd3c9a4c9abcdfad9ce638dfc16a38c29fa4c0f",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "product_file_sha256": "f1daeddd3f0de9165caa4402f75fe04bd006fd50ba7c1a3e0d90941917e0d5cf",
+  "scope": "Local read-only review of the separate read-one UDP scheduling prototype. Immutable F and its active110-window tests are unchanged. No Oracle workload by reviewer.",
+  "authorized_change": "The user explicitly reopened one-read scheduling; the former16packet/EAGAIN preservation condition is not a prohibition. This prototype chooses to retain the existing cross-listener budget and service ordering.",
+  "implementation": "One step_udp call per listener per owner turn instead of repeatedly calling that listener until false or budget exhaustion. TCP admission and later upstream/control/DHCP/TFTP calls remain in their original positions.",
+  "step_udp_body_unchanged_sha256": "cc597d41737c670813399f911b2ca05a98e7132f406fcc12d0ee10342e3a7437",
+  "return_path_review": [
+    {
+      "path": "Interface work pending, files initializing, absent UDP socket or fd not ready",
+      "receive_attempt": false,
+      "effect": "False return remains unchanged; no new receive."
+    },
+    {
+      "path": "Successful receive larger than edns_max",
+      "receive_attempt": true,
+      "effect": "Datagram consumed; resend state invalidated; false return."
+    },
+    {
+      "path": "Ok(None) after packet-info/truncation/peer validation rejection",
+      "receive_attempt": true,
+      "effect": "Datagram consumed; resend state invalidated; false return."
+    },
+    {
+      "path": "WouldBlock or TimedOut",
+      "receive_attempt": true,
+      "effect": "False return without clearing the most recent forward; existing empty-read contract retained."
+    },
+    {
+      "path": "Other receive error, including EINTR",
+      "receive_attempt": true,
+      "effect": "Resend invalidated and receive error recorded; false return."
+    },
+    {
+      "path": "Short packet, QR packet, ACL rejection or deferred interface work",
+      "receive_attempt": true,
+      "effect": "True return counts against the existing budget but no second read from that listener occurs in this turn."
+    },
+    {
+      "path": "Admitted packet, local/cache/forward or deferred EDNS-MAC work",
+      "receive_attempt": true,
+      "effect": "Existing processing and copied deferred state remain unchanged; helper returns true."
+    }
+  ],
+  "fairness_limits": [
+    "With at most16ready listeners returning true, each receives at most one attempt before the next poll; a single busy listener can no longer consume the whole true-return budget.",
+    "The budget counts step_udp true returns, not all actual recvmsg attempts. Consumed oversize/Ok(None) and hard-error false paths did not decrement it before and still do not.",
+    "With more than16continuously busy listeners, fixed iteration order can still starve later listeners. No round-robin policy was added.",
+    "Exact C check_dns_listeners returns after the first ready DNS event. This prototype is not identical whole-owner scheduling; its single-ready-UDP path follows the one-read idea."
+  ],
+  "test_review": {
+    "new_real_queue_test": "Two valid datagrams, a short-invalid first datagram and an oversize false-return first datagram; second packet must remain for the next wait_for_files/step cycle.",
+    "existing_resend_tests": "Direct WouldBlock preservation and local/cached/short/QR/oversize/ACL invalidation fixtures remain intact.",
+    "author_reported_compile": "Linux-musl all-target check passed.",
+    "linux_queue_test_execution": "Pending; reviewer did not run it during F Oracle exclusivity."
+  },
+  "blockers": []
+}
