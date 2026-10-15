@@ -314,7 +314,7 @@ impl<'a> LocalAnswerer<'a> {
             && {
                 let key = question.name.canonical_wire();
                 self.config.records.cnames.iter()
-                    .any(|record| dotted_key(&record.alias) == key)
+                    .any(|record| dotted_key_matches(&record.alias, &key))
             };
         if has_cname {
             let (local_owned, terminal) = add_cname_chain(
@@ -861,6 +861,33 @@ fn dotted_key(name: &[u8]) -> Vec<u8> {
         .unwrap_or_default()
 }
 
+/// Compare a canonical wire key without constructing each configured alias's
+/// wire name. Invalid dotted names retain dotted_key's empty-key behavior.
+fn dotted_key_matches(name: &[u8], key: &[u8]) -> bool {
+    if name.is_empty() {
+        return key == [0];
+    }
+    let valid = name.len() <= 253
+        && name.split(|&byte| byte == b'.').all(|label| !label.is_empty() && label.len() <= 63);
+    if !valid {
+        return key.is_empty();
+    }
+    if key.len() != name.len() + 2 {
+        return false;
+    }
+    let mut pos = 0;
+    for label in name.split(|&byte| byte == b'.') {
+        let end = pos + label.len() + 1;
+        if key[pos] != label.len() as u8
+            || !key[pos + 1..end].eq_ignore_ascii_case(label)
+        {
+            return false;
+        }
+        pos = end;
+    }
+    key[pos] == 0
+}
+
 pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
     let wire = name.as_wire();
     let mut out = Vec::with_capacity(wire.len().saturating_sub(2));
@@ -998,7 +1025,7 @@ fn add_cname_chain(
             .records
             .cnames
             .iter()
-            .find(|record| dotted_key(&record.alias) == current_key)
+            .find(|record| dotted_key_matches(&record.alias, &current_key))
         else {
             break;
         };
@@ -1709,6 +1736,32 @@ fn labels(wire: &[u8]) -> Vec<&[u8]> {
 mod tests {
     use super::*;
     use crate::config::{lex_line, validate_directive};
+
+    #[test]
+    fn cname_alias_comparison_matches_allocated_keys() {
+        let mut names = vec![
+            Vec::new(), b".".to_vec(), b"a.".to_vec(), b".a".to_vec(),
+            b"a..b".to_vec(), b"Alias.Example".to_vec(), b"alias.example".to_vec(),
+            vec![b'a'; 63], vec![b'a'; 64],
+        ];
+        for last in [61, 62] {
+            let mut name = Vec::new();
+            for length in [63, 63, 63, last] {
+                if !name.is_empty() { name.push(b'.'); }
+                name.extend(std::iter::repeat_n(b'a', length));
+            }
+            names.push(name);
+        }
+        for byte in 0..=255 {
+            names.push(vec![byte, b'.', b'A']);
+        }
+        let keys: Vec<_> = names.iter().map(|name| dotted_key(name)).collect();
+        for (name, expected) in names.iter().zip(&keys) {
+            for key in &keys {
+                assert_eq!(dotted_key_matches(name, key), expected == key, "{name:?} vs {key:?}");
+            }
+        }
+    }
 
     fn apply(config: &mut DnsConfig, line: &[u8]) {
         let directive = lex_line(line).unwrap().unwrap();
