@@ -53,8 +53,13 @@ class StageGateTests(unittest.TestCase):
         import udp_name_buffer_device_run as names
         import udp_idle_batch_device_run as idle
         import fresh_address_device_run as fresh
+        import cache_cold_metadata_device_run as cold
+        import fresh_address_frame_device_run as frame
+        import host_miss_index_device_run as host
         for entry, role in ((address, 'address-dispatch'), (names, 'udp-name-buffer'),
-                            (idle, 'udp-idle-batch'), (fresh, 'fresh-address')):
+                            (idle, 'udp-idle-batch'), (fresh, 'fresh-address'),
+                            (cold, 'cache-cold-metadata'), (frame, 'fresh-address-frame'),
+                            (host, 'host-miss-index')):
             with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
                                 ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
                 entry.configure()
