@@ -443,3 +443,36 @@ fromabortedprelaunch, noDwindows) andrunsfresh110deployed/Edevicepairs. Nochange
 toloads/thresholds/windowreplacement. AlllocalSDK-Efiles alreadydownloaded and
 verifiedbeforetiming. Remainingreadinessaudit islocalonlyandunselected; do not
 resumeOraclework untiltimingcomplete.
+
+## User-authorized parallel E device/Oracle validation and active research
+
+The user explicitly changed the scheduling and ownership boundary: start E
+on the router now, concurrently with Oracle timing, delegate one agent per
+measurement host, and use root plus two agents for local next-round research.
+This supersedes the earlier root-only router and Oracle-before-device sequence;
+the frozen workloads, statistics, health controls and production isolation stay
+unchanged. Root does not access the router while the DHCP agent owns it.
+
+Oracle owner: correctness; controller PID225895 and outputroot/private/oracle-e
+continue unchanged. Latest48/110valid, nofailure. No CPU research workload during
+timing. Aftercomplete, correctness releasesOracleCPU and runs existing analysis/
+hash audit single-core atlowpriority. RawstaysOracle untildevicefinished; only
+small summariesmaytransfer duringdevice timing.
+
+Device owner: DHCP. LocaldetachedcontrollerPID43894, output
+private/perf-opt-20261015/candidate-e, stdout/stderr/launchreceipt alongside.
+Source4f869c88/ELF8b8082b9 versus original8472; full110 originalparameters, no
+resume/sceneselection. FreshproductionPID/start[3086,2115], file/liveSHA8472,
+9toolhashes, noactiveownedgroup/STOP, 113696KiBavailablememory verified. Ewas
+stagedvia.new/hash/chmod/renameonlyinowned/tmp; productionunchanged. Original
+125shealthbaseline/200msthreshold retained. Latest11/110valid (UDP-hit10/10),
+30externalHTTPSchecks successful. Receiptbc93fd41. Onlytheoriginal per-window
+archiveflow usesrouterlink; nobulkOracletransfers orotherrouteroperators.
+
+Research: DNS owns lower-case insertion-key borrowing and avoiding an unused
+reverse-insertionkey on perf/dnsmasq-insert-key-20261015; loopowns selective
+readinessprototype onperf/dnsmasq-readiness-hybrid-20261015. BothbaseE4f869 and
+remain separate fromfrozenE/rootproduct. Rootreviewsmechanisms andactualowner
+boundaries. OracleCPU remainsofflimits untilcorrectnessreleasesit. Every
+candidatevariation hasitsowncommits/evidence; no gainsclaimedfromallocation
+counts orsamplepercentages. Localcompilation/counts are permitted bytheuser.
