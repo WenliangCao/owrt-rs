@@ -1228,7 +1228,7 @@ fn run_inner(
     // every socket without leaving an already-running partial service.
     let mut listeners = Vec::new();
     for address in addresses {
-        match open_dns_listener(address, daemon_config.bind_dynamic) {
+        match open_dns_listener(address, &daemon_config, &interface_snapshot.borrow()) {
             Ok((udp, tcp)) if udp.is_some() || tcp.is_some() => listeners.push((address, udp, tcp)),
             Ok(_) => {}
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
@@ -1856,7 +1856,7 @@ fn run_inner(
                         continue;
                     }
                     let (udp, tcp, mut bind_errors) = if dns_addresses.contains(&address) {
-                        open_late_dns_listener(address, daemon_config.bind_dynamic)
+                        open_late_dns_listener(address, &daemon_config, &interfaces)
                     } else {
                         (None, None, Vec::new())
                     };
@@ -2098,9 +2098,17 @@ fn optional_listener<T>(result: io::Result<T>, dynamic: bool) -> io::Result<Opti
     }
 }
 
-fn open_dns_listener(address: SocketAddr, dynamic: bool) -> io::Result<DnsListenerPair> {
-    let udp = optional_listener(DnsSocket::bind(address), dynamic)?.map(Arc::new);
-    let tcp = optional_listener(listeners::tcp_bind(address), dynamic)?;
+fn open_dns_listener(
+    address: SocketAddr,
+    config: &DnsConfig,
+    interfaces: &[DnsInterface],
+) -> io::Result<DnsListenerPair> {
+    let udp = optional_listener(
+        DnsSocket::bind_config(address, config, interfaces),
+        config.bind_dynamic,
+    )?
+    .map(Arc::new);
+    let tcp = optional_listener(listeners::tcp_bind(address), config.bind_dynamic)?;
     if let Some(tcp) = &tcp {
         tcp.set_nonblocking(true)?;
     }
@@ -2112,10 +2120,14 @@ fn open_dns_listener(address: SocketAddr, dynamic: bool) -> io::Result<DnsListen
 /// C iface->done, and never fills in a failed half until that address retires.
 fn open_late_dns_listener(
     address: SocketAddr,
-    dynamic: bool,
+    config: &DnsConfig,
+    interfaces: &[DnsInterface],
 ) -> (Option<Arc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
     let mut errors = Vec::new();
-    let udp = match optional_listener(DnsSocket::bind(address), dynamic) {
+    let udp = match optional_listener(
+        DnsSocket::bind_config(address, config, interfaces),
+        config.bind_dynamic,
+    ) {
         Ok(socket) => socket.map(Arc::new),
         Err(error) => {
             errors.push(error);
@@ -2127,7 +2139,7 @@ fn open_late_dns_listener(
             tcp.set_nonblocking(true)?;
             Ok(tcp)
         }),
-        dynamic,
+        config.bind_dynamic,
     ) {
         Ok(socket) => socket,
         Err(error) => {
@@ -7410,6 +7422,46 @@ mod tests {
             assert_eq!(observed_errno, 5, "pipe={has_pipe}, saturated={saturated}");
             drop((reader, writer));
         }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    #[ignore = "requires Linux isolated network namespace; run with run_isolated.sh"]
+    fn dns_listener_factories_preserve_bound_ipv4_policy_on_rebind() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let mut interfaces = listeners::snapshot().unwrap();
+        let mut config = DnsConfig::default();
+        config.bind_interfaces = true;
+        let (udp, tcp) = open_dns_listener("127.0.0.1:0".parse().unwrap(), &config, &interfaces).unwrap();
+        let udp = udp.unwrap();
+        let address = udp.local_addr().unwrap();
+        let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        // Later snapshots do not alter metadata policy of an already bound fd.
+        interfaces.clear();
+        let check = |udp: &DnsSocket, no_pktinfo: bool| {
+            client.send_to(b"factory", udp.local_addr().unwrap()).unwrap();
+            let mut bytes = [0; 32];
+            let incoming = udp.receive(&mut bytes).unwrap().unwrap();
+            assert_eq!(incoming.destination, address.ip());
+            assert_eq!(incoming.interface == 0, no_pktinfo);
+            assert_eq!(&bytes[..incoming.len], b"factory");
+        };
+        check(&udp, true);
+        drop((udp, tcp));
+        // Every new fd derives policy from its own creation snapshot.
+        for known in [false, true] {
+            if known { interfaces = listeners::snapshot().unwrap(); }
+            let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces);
+            assert!(errors.is_empty(), "{errors:?}");
+            let udp = udp.unwrap();
+            check(&udp, known);
+            drop((udp, tcp));
+        }
+        config.bind_dynamic = true;
+        let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces);
+        assert!(errors.is_empty(), "{errors:?}");
+        check(&udp.unwrap(), false);
+        drop(tcp);
     }
 
     #[test]
