@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "status": "PASS_LOCAL_SOURCE_REVIEW_EXACT_LINUX_INPUTS_PREPARED",
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
   "candidate_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
   "parent_candidate": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "scope": "Local read-only review and local exact-source preparation. No upload, Oracle access, reviewer build/test or timing. The parent1676 manifests remain unchanged.",
+  "scope": "Initial review and input preparation were local-only. Later explicitly authorized exact-source related Linux gates are separately bound here; no device changes or performance timing by reviewer.",
   "source_sha256": {
     "components/dnsmasq/src/dns/local.rs": "5d0212e2a0a5151a6fc7df58a382d454faf095c96c8c1c32bc539927a074c4f6",
     "components/dnsmasq/src/dns/service.rs": "3472d515d3625968a97513bae267e77922ca52676136497fdf53d8c53b5bd424",
@@ -37,7 +37,7 @@
     "reviewer_reran_tests": false
   },
   "prepared_linux_inputs": {
-    "status": "prepared-locally-not-uploaded-or-executed",
+    "status": "Prepared exact source uploaded after explicit release; related Linux gates passed, original manifest unchanged.",
     "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-address-miss-stack",
     "inputs": 179,
     "identity_sha256": "ad6ac2f6dcc84f643c0e7312c8340c4a650ac7092b08ec6b43a70bbfd6437680",
@@ -64,8 +64,14 @@
     "This is an independent child of1676, not a replacement for the parent artifact or any active measurement source.",
     "Eliminating the temporary Vec in this predicate introduces253 bytes of local storage; actual compiled frames and runtime effects still require separately bound evidence.",
     "The parent allocation diagnostic is not reused as a stack-result claim. The new local hot15 evidence was not yet reviewed here.",
-    "Exact-source Linux gates remain prepared only; no full44, performance acceptance or deployment claim."
+    "Exact-source related Linux gates passed; no full44, performance acceptance or deployment claim."
   ],
   "performance_acceptance": false,
-  "deployment": false
+  "deployment": false,
+  "related_linux_gates": {
+    "file": "local-cache-linux-gates.json",
+    "sha256": "2fc7f3817ef1e8c76c82689d6a484d3bfd998b1f6a61b8f5057e6d41f9e3d444",
+    "candidate": "local-address-miss-stack",
+    "total_test_passes": 936
+  }
 }
