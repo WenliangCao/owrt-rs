@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_SOURCE_REVIEW_LINUX_GATES_PENDING",
+  "candidate_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+  "parent_candidate": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "scope": "Local read-only source and retained local-log review of the independent fresh writer-frame refinement. No upload, Oracle access, build or test execution by this review.",
+  "source_file": "components/dnsmasq/src/dns/cache_engine.rs",
+  "source_sha256": "53011d50ec2b3b06869eb2fde43c0d8bbf77991cc83fc8652e6a04e7055542d0",
+  "general_body_byte_identical_to_parent_and_F": true,
+  "general_body_sha256": "c1ad35b21bbd5636b99b357efe0eaac92f0698d6462e7ad111e1ad3bd1d807c7",
+  "writer_body_equivalence": "Only indentation and the two old match-arm return keywords differ after extraction; the caller immediately returns the new helper result.",
+  "normalized_writer_body_sha256": "921ca801f875ac09dddbe60247ed08af0b7d9c9bc1289c176882f7f2bddce126",
+  "review": [
+    "The eligibility helper and successful LRU promotion run in their original order before the writer helper call. Fallback enters the same unchanged inline-never general body.",
+    "PacketWriter construction, question emission, record_cached logging, entry access, reply_ttl, owner offset12, classIN and RDATA emission retain the original statement order.",
+    "Full still finishes through the same truncation/section-reset path. Other WireError conversions and all Result returns remain unchanged.",
+    "The new helper borrows Cache immutably and LocalDnsService mutably for one synchronous call. It introduces no stored references, asynchronous boundary or new mutable-cache operation.",
+    "No ownership-relevant destructor moves across later caller work: the outer success branch directly returns the helper result, while its remaining locals are borrowed or Copy values."
+  ],
+  "local_evidence": {
+    "coordinator_mac_lib_passed": 716,
+    "mac_lib_failed": 0,
+    "mac_lib_ignored": 8,
+    "mac_lib_stdout_sha256": "bbbb6bed13502877048f6753be9caf698d527b6bb7f2398fb8e66003cf192a01",
+    "coordinator_linux_musl_all_target_check": "passed",
+    "check_stderr_sha256": "b670b9b1b5e9f7b27803fa3ac707a303792fca148cbd2de297dce83011d9c292",
+    "reviewer_reran_tests": false
+  },
+  "remaining_blocking_findings": [],
+  "limits": [
+    "Source extraction and inline-never express the intended frame separation; actual SDK frame/text changes and runtime tradeoffs require separately bound artifacts and measurement.",
+    "The previous2a9 artifact remains independent. This refinement is not substituted into any running device/native experiment.",
+    "Exact-source Linux related gates are prepared locally but have not run; no full44, performance acceptance or deployment claim."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
