@@ -197,3 +197,19 @@ performance changes remain separate in reports. C's own errors/already recorded
 differences do not justify new audit rules/frameworks; testing tools stay limited
 to acceptance needs. C full Oracle+44families+device comparison remains first
 priority, then next optimization iteration resumes.
+
+## C Oracle complete / full correctness running, 11:33 CEST
+
+OracleC110/110valid, nofailure, all110archives and extractedfilehashes verified
+locally. Raw+analyzer JSON in private/perf-opt-20261015/oracle-c*; derived summary
+committed under audits/oracle-c-summary.json. No p50/p95/CPU regression meets
+frozen discernibility criteria.150DHCP CPU732→544µs/op,−25.68%W24.59%,5pairs,
+precisionpassed; all otherprimarymetrics inconclusive. No deviceclaim.
+
+Correctness started immediately after complete marker:44family schedulerPID4064310
+output`<task>/correctness/private/c-families-attempt1`,3workers. Fourth-slot batch
+PID4068233,`c-remaining.log` and`c-remaining-state.json`: releaseprobe build,F10,
+protocol,31existing checker tests,TCP3groups,fourcorpora. Exact sourcef7f7a2ed /
+shippingELFb4c4a8e...; no new framework. KnownoriginalUID2rawexit1 recorded per
+user; any newfailureblocks. Once fullcorrectnesspasses, stage C only under
+router/tmp and run110fresh deployed/C pairs with original guard and workloads.
