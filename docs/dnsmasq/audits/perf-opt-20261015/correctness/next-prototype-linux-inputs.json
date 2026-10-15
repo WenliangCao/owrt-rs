@@ -1,5 +1,5 @@
 {
-  "status": "prepared_locally_not_uploaded_or_executed",
+  "status": "EXACT_SOURCES_PREPARED_RELATED_LINUX_GATES_PASSED",
   "manifest_sha256": "8fdced04fdc2d20cf259e179234713c9651a7722a5802e9f9ce5df583e4d23b6",
   "input_archive_sha256": "74d5076121c62c44bfa068ea4f49ed916ea3cd8aaba324956a34d9c5694f181b",
   "runner_sha256": "8e4be617cf52ff26571e89ead56a90fa8c803666369e2b7ca61731aa9fbc6809",
@@ -29,7 +29,7 @@
   "source_files_total": 537,
   "changed_files_total": 6,
   "remote_release_required": "Explicit root release after current loop owner32; elapsed time is not authorization.",
-  "scope": "Fixed local preparation only; all three exact-source related Linux gate runs await explicit coordinator release after owner32.",
+  "scope": "Initially prepared locally; later explicit coordinator release authorized exact-source upload and related Linux execution. See linked receipt.",
   "local_input_directory": "private/post-f-next-linux-inputs",
   "local_runner": "private/post-f-next-linux-gates/run.py",
   "gates": [
@@ -56,6 +56,11 @@
   "nice": 10,
   "build_jobs": 1,
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "no_remote_actions_performed": true,
-  "performance_acceptance": false
+  "performance_acceptance": false,
+  "initial_preparation_status": "prepared_locally_not_uploaded_or_executed",
+  "initial_preparation_no_remote_actions": true,
+  "execution_receipt": {
+    "file": "next-prototype-linux-gates.json",
+    "sha256": "ea373c209c44acc094b4c29f2042f1f3125753876b85d69783efdd72529b78e5"
+  }
 }

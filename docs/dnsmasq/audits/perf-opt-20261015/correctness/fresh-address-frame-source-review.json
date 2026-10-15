@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "status": "PASS_LOCAL_SOURCE_REVIEW_LINUX_GATES_PENDING",
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
   "candidate_commit": "b343df112e430f16e21026645e56755f2d0fc391",
   "parent_candidate": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "scope": "Local read-only source and retained local-log review of the independent fresh writer-frame refinement. No upload, Oracle access, build or test execution by this review.",
+  "scope": "Initial source/local-log review was local-only. Later explicitly authorized exact-source related Linux gates are separately bound here; no product edits, router access or timing by reviewer.",
   "source_file": "components/dnsmasq/src/dns/cache_engine.rs",
   "source_sha256": "53011d50ec2b3b06869eb2fde43c0d8bbf77991cc83fc8652e6a04e7055542d0",
   "general_body_byte_identical_to_parent_and_F": true,
@@ -31,8 +31,14 @@
   "limits": [
     "Source extraction and inline-never express the intended frame separation; actual SDK frame/text changes and runtime tradeoffs require separately bound artifacts and measurement.",
     "The previous2a9 artifact remains independent. This refinement is not substituted into any running device/native experiment.",
-    "Exact-source Linux related gates are prepared locally but have not run; no full44, performance acceptance or deployment claim."
+    "Exact-source related Linux gates passed; they do not establish full44 qualification, performance acceptance or deployment."
   ],
   "performance_acceptance": false,
-  "deployment": false
+  "deployment": false,
+  "related_linux_gates": {
+    "file": "next-prototype-linux-gates.json",
+    "sha256": "ea373c209c44acc094b4c29f2042f1f3125753876b85d69783efdd72529b78e5",
+    "candidate": "fresh-address-frame",
+    "total_passed": 935
+  }
 }

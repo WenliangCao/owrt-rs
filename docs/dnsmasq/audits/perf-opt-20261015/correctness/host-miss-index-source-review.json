@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "status": "PASS_LOCAL_SOURCE_REVIEW",
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
   "candidate_commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
   "source_file": "components/dnsmasq/src/hosts.rs",
   "source_sha256": "a40e22f9bde6371d0627b6b9c63982f39ca5d3d5a624101c1cc2c49b2cab1442",
-  "scope": "Local read-only review of the independent F-based published-hosts miss prototype and retained local test/check logs. No reviewer build, test execution or remote access.",
+  "scope": "Initial source/local-log review was local-only. Later explicitly authorized exact-source related Linux gates are separately bound here; no product edits, router access or timing by reviewer.",
   "implementation": "When bulk is None, an empty existing forward index or a lowercase name absent from that index returns an empty answer before computing the C name bucket. All other lookups retain the original lookup_in_bucket path.",
   "invariant_review": [
     "try_insert reserves mandatory index capacity before publishing entries, adds the lowercase forward count with each Host, and commits bucket links in the same synchronous mutation. The fast path adds no new index or ownership cache.",
@@ -47,7 +47,12 @@
     "This review and local checks do not establish exact-source Linux runtime qualification, full44 qualification, performance improvement or candidate acceptance.",
     "The prototype is independent of name-buffer, fresh-address, idle-batch and singleton changes."
   ],
-  "related_linux_gates": "not performed by this review",
+  "related_linux_gates": {
+    "file": "next-prototype-linux-gates.json",
+    "sha256": "ea373c209c44acc094b4c29f2042f1f3125753876b85d69783efdd72529b78e5",
+    "candidate": "host-miss-index",
+    "total_passed": 934
+  },
   "performance_acceptance": false,
   "deployment": false
 }
