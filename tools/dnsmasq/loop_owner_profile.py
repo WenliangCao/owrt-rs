@@ -29,29 +29,72 @@ def save(path, value):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--build', type=Path, required=True)
+    parser.add_argument('--build', type=Path)
+    parser.add_argument('--stock-image-root', type=Path)
+    parser.add_argument('--c-symbol-receipt', type=Path)
     parser.add_argument('--tools', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--mode', choices=('udp', 'tcp'), required=True)
     parser.add_argument('--profile', choices=('hit', 'miss', 'mixed'), required=True)
+    parser.add_argument('--observer', choices=('stat', 'sample'), default='sample',
+                        help='stat-only totals or separate self-sampling; never concurrent')
     parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
+    observer = 'strace' if args.strace else args.observer
+    assert bool(args.build) != bool(args.stock_image_root), 'select one exact implementation'
     assert os.readlink('/proc/self/ns/net') != os.readlink('/proc/1/ns/net')
     assert {name for _, name in socket.if_nameindex()} == {'lo'}
     out = args.out.resolve()
     assert 'private' in out.parts and not out.exists()
     out.mkdir(parents=True)
-    for name in ('dnsmasq-rs', 'link.map', 'build.json'):
-        shutil.copy2(args.build / name, out / name)
-    (out / 'dnsmasq-rs').chmod(0o755)
-    build = json.loads((out / 'build.json').read_text())
-    expected = next(item['sha256'] for item in build['artifacts'] if item['path'] == 'dnsmasq-rs')
-    assert sha(out / 'dnsmasq-rs') == expected
-    assert sha(out / 'link.map') == build['link_map']['sha256']
+    image_files = {}
+    if args.stock_image_root:
+        from dns_udp_refusal_diff import TARGET_FILES, C_HASH
+        image_root = args.stock_image_root.resolve()
+        for name, digest in TARGET_FILES.items():
+            assert sha(image_root / name) == digest, name
+        artifact = out / 'dnsmasq-c'
+        shutil.copy2(image_root / 'usr/sbin/dnsmasq', artifact)
+        expected = C_HASH
+        assert args.c_symbol_receipt is not None
+        receipt = json.loads(args.c_symbol_receipt.read_text())
+        assert receipt['stripped_sha256'] == expected and receipt['strip_reproduces_exact_image']
+        companion = Path(receipt['companion_path'])
+        assert sha(companion) == receipt['companion_sha256']
+        shutil.copy2(companion, out / 'dnsmasq-c-symbols')
+        shutil.copy2(args.c_symbol_receipt, out / 'c-symbol-receipt.json')
+        build = {'source_commit': None, 'reference': 'exact image C dnsmasq 2.93',
+                 'artifacts': [{'path': artifact.name, 'sha256': expected, 'bytes': artifact.stat().st_size}],
+                 'symbol_receipt_sha256': sha(args.c_symbol_receipt)}
+        save(out / 'build.json', build)
+        launch = [image_root / 'lib/libc.so', '--library-path',
+                  f'{image_root}/lib:{image_root}/usr/lib', artifact]
+        image_files = {str(image_root / name): digest for name, digest in TARGET_FILES.items()
+                       if name.startswith('lib/')}
+        process_expected = TARGET_FILES['lib/libc.so']
+    else:
+        for name in ('dnsmasq-rs', 'link.map', 'build.json'):
+            shutil.copy2(args.build / name, out / name)
+        artifact = out / 'dnsmasq-rs'
+        build = json.loads((out / 'build.json').read_text())
+        expected = next(item['sha256'] for item in build['artifacts'] if item['path'] == artifact.name)
+        assert sha(out / 'link.map') == build['link_map']['sha256']
+        launch = [artifact]
+        process_expected = expected
+    artifact.chmod(0o755)
+    assert sha(artifact) == expected
+    image_files[str(artifact)] = expected
+    # This diagnostic retains the original frozen workload executables.
+    assert sha(args.tools / 'm6a_loadgen') == 'b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd'
+    assert sha(args.tools / 'm6a_upstream') == '01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68'
     save(out / 'profile-scope.json', {'scope': __doc__, 'mode': args.mode,
          'profile': args.profile, 'elf_sha256': expected,
-         'observer': 'strace' if args.strace else 'perf',
+         'observer': observer,
          'source_commit': build.get('source_commit'),
+         'artifact_file': artifact.name, 'mapped_images': image_files,
+         'process_tree': 'root and every inherited fork; no --no-inherit',
+         'counter_window': '1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded',
+         'sample_event': 'instructions:u', 'sample_period': 10000,
          'deployed_baseline': expected == '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'})
     (out / 'config').write_text(
         'no-hosts\nno-resolv\nno-poll\nuser=root\ngroup=root\ninterface=lo\n'
@@ -65,7 +108,10 @@ def main():
 
     def start(argv, label):
         with (out / f'{label}.stdout').open('wb') as stdout, (out / f'{label}.stderr').open('wb') as stderr:
-            child = subprocess.Popen(list(map(str, argv)), stdout=stdout, stderr=stderr)
+            environment = dict(os.environ)
+            environment.pop('LD_PRELOAD', None)
+            environment.pop('LD_LIBRARY_PATH', None)
+            child = subprocess.Popen(list(map(str, argv)), stdout=stdout, stderr=stderr, env=environment)
         children.append(child)
         save(out / f'{label}.command.json', list(map(str, argv)))
         return child
@@ -109,7 +155,13 @@ def main():
         status = child.wait(timeout=duration + warm + 10)
         children.remove(child)
         assert status == 0
-        counts = json.loads((out / f'{label}.json').read_text())['measurement']
+        full = json.loads((out / f'{label}.json').read_text())
+        assert not full['interrupted'] and not full['output_failed']
+        for phase, seconds in (('warmup', warm), ('measurement', duration)):
+            part = full[phase]
+            assert all(part[key] == seconds * 200 for key in ('scheduled', 'sent', 'correct'))
+            assert not any(part[key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
+        counts = full['measurement']
         assert counts['correct'] == duration * 200 and counts['sent'] == duration * 200
         assert not any(counts[key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
         return counts
@@ -122,7 +174,7 @@ def main():
         while not (out / 'upstream.ready').exists():
             assert upstream.poll() is None and time.monotonic() < deadline
             time.sleep(.01)
-        daemon = start(['taskset', '-c', '2', out / 'dnsmasq-rs', '--keep-in-foreground',
+        daemon = start(['nice', '-n', '10', 'taskset', '-c', '2', *launch, '--keep-in-foreground',
                         '--conf-file=' + str(out / 'config')], 'daemon')
         query = struct.pack('!6H', 0x2930, 0x100, 1, 0, 0, 0) + b'\x05ready\x0bdevice-perf\x04test\0' + struct.pack('!HH', 1, 1)
         deadline = time.monotonic() + 5
@@ -140,11 +192,19 @@ def main():
         identity = {'pid': daemon.pid, 'exe': os.readlink(proc / 'exe'),
                     'sha256': sha(proc / 'exe'), 'maps': (proc / 'maps').read_text(),
                     'stat': (proc / 'stat').read_text()}
-        assert identity['sha256'] == expected and os.sched_getaffinity(daemon.pid) == {2}
+        assert identity['sha256'] == process_expected and os.sched_getaffinity(daemon.pid) == {2}
+        mapped = {line.split()[-1] for line in identity['maps'].splitlines()
+                  if len(line.split()) >= 6 and line.split()[-1].startswith('/')}
+        assert mapped == set(image_files), (mapped, set(image_files))
+        assert all(sha(path) == digest for path, digest in image_files.items())
+        identity['mapped_images'] = image_files
         save(out / 'process-identity.json', identity)
         if args.profile != 'miss':
             load('udp', 'hit', 5, 0, 'prewarm')
-        if args.strace:
+        child_path = proc / 'task' / str(daemon.pid) / 'children'
+        assert not child_path.read_text().strip(), 'prewarm must leave no unobserved children'
+        instruments = []
+        if observer == 'strace':
             tracer = start(['strace', '-I2', '-yy', '-ttt', '-s', '0', '-e',
                 'trace=network,ppoll,close,fcntl,ioctl', '-p', daemon.pid,
                 '-o', out / 'syscalls.txt'], 'strace')
@@ -153,38 +213,55 @@ def main():
                 assert tracer.poll() is None and time.monotonic() < deadline
                 time.sleep(.01)
         else:
-            record = instrument(['perf', 'record', '-e', 'instructions', '-c', '10000', '-p', daemon.pid,
-                                 '-o', out / 'perf.data'], 'perf-record')
-            stat = instrument(['perf', 'stat', '-x,', '-e', 'instructions,cycles', '-p', daemon.pid,
-                               '-o', out / 'perf-stat.csv'], 'perf-stat')
-            for channel in (record, stat):
+            if observer == 'sample':
+                instruments.append(instrument(['perf', 'record', '-e', 'instructions:u', '-c', '10000', '-p', daemon.pid,
+                                   '-o', out / 'perf.data'], 'perf-record'))
+            else:
+                instruments.append(instrument(['perf', 'stat', '-vv', '-x,', '-e',
+                                   '{instructions:u,instructions:k,cycles:u,cycles:k}', '-p', daemon.pid,
+                                   '-o', out / 'perf-stat.csv'], 'perf-stat'))
+            for channel in instruments:
                 control(channel, 'enable')
         load_start = time.monotonic_ns()
         counts = load(args.mode, args.profile, 20, 5, 'client')
         load_end = time.monotonic_ns()
-        if not args.strace:
-            for channel in (record, stat):
+        drain_started = time.monotonic_ns()
+        time.sleep(1)
+        drain_ended = time.monotonic_ns()
+        remaining_children = child_path.read_text().strip().split()
+        save(out / 'tree-tail.json', {'root_pid': daemon.pid,
+             'root_starttime_ticks': identity['stat'].rsplit(')', 1)[1].split()[19],
+             'drain_started_ns': drain_started, 'drain_ended_ns': drain_ended,
+             'remaining_children': remaining_children, 'complete': not remaining_children})
+        if observer != 'strace':
+            for channel in instruments:
                 control(channel, 'disable')
             save(out / 'perf-controls.json', {'controls': controls,
                  'load_start_ns': load_start, 'load_end_ns': load_end})
         (out / 'maps-after').write_text((proc / 'maps').read_text())
-        assert sha(proc / 'exe') == expected
-        statuses = ([finish(tracer, signal.SIGINT)] if args.strace else
-                    [finish(channel[0], signal.SIGINT) for channel in (record, stat)])
+        assert sha(proc / 'exe') == process_expected
+        assert all(sha(path) == digest for path, digest in image_files.items())
+        statuses = ([finish(tracer, signal.SIGINT)] if observer == 'strace' else
+                    [finish(channel[0], signal.SIGINT) for channel in instruments])
         assert all(status in (0, 130, -signal.SIGINT) for status in statuses)
+        assert not remaining_children, 'fixed post-load drain ended with live children; retain incomplete attempt'
         assert re.search(r'TracerPid:\s+0\b', (proc / 'status').read_text())
         assert finish(daemon, signal.SIGTERM) == 0
         assert finish(upstream, signal.SIGTERM) == 0
-        exports = [] if args.strace else [(['perf', 'script', '-i', out / 'perf.data', '--hide-call-graph',
+        exports = [] if observer != 'sample' else [(['perf', 'script', '-i', out / 'perf.data', '--hide-call-graph',
                             '-F', 'pid,tid,misc,period,event,ip,sym,dso'], 'samples.txt'),
                            (['perf', 'report', '-i', out / 'perf.data', '--stdio', '--no-children',
                             '--sort', 'dso,symbol', '--show-nr-samples', '--show-total-period',
                             '--percent-limit', '0', '-g', 'none', '--field-separator', ';',
-                            '--no-demangle'], 'self.txt')]
+                            '--no-demangle'], 'self.txt'),
+                           (['perf', 'script', '-i', out / 'perf.data', '--show-task-events',
+                             '--show-mmap-events', '--show-lost-events', '--ns',
+                             '-F', 'pid,tid,misc,time,event,ip,sym,dso'], 'task-events.txt')]
         for argv, name in exports:
             with (out / name).open('wb') as stdout:
                 subprocess.run(list(map(str, argv)), stdout=stdout, check=True)
         save(out / 'complete.json', {'valid_count_profile': True, 'measurement': counts,
+             'completed_operations': 5000, 'tree_tail_complete': True,
              'perf_statuses': statuses, 'timing_eligible': False})
     finally:
         for child in reversed(children):
