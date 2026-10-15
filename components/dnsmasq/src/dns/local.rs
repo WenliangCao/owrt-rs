@@ -336,7 +336,7 @@ impl<'a> LocalAnswerer<'a> {
                 .as_deref()
                 .is_some_and(|cache| {
                     let (cname, lookup) = cache.inspect_name(&question.name, now);
-                    *name_lookup = Some(lookup);
+                    *name_lookup = lookup;
                     cname
                 })
         {

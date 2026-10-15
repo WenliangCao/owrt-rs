@@ -260,7 +260,6 @@ type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
 enum NameSelection {
     Missing,
     One(EntryId),
-    Several,
 }
 
 /// A read-only inspection already required by the local/CNAME ordering. This
@@ -516,7 +515,7 @@ impl Cache {
     /// has_cname does. Keep the query name borrowed until this synchronous
     /// answer operation ends; object/root identities also reject replacement
     /// or movement of the owning cache. Saturation permanently disables reuse.
-    pub(super) fn inspect_name<'a>(&self, name: &'a Name, now: i64) -> (bool, NameLookup<'a>) {
+    pub(super) fn inspect_name<'a>(&self, name: &'a Name, now: i64) -> (bool, Option<NameLookup<'a>>) {
         let canonical;
         let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
             canonical = name.canonical_wire();
@@ -529,18 +528,21 @@ impl Cache {
             self.entry(slot).is_some_and(|entry| entry.record.kind == Kind::Cname)
                 && !self.invalid(slot, now)
         }));
+        if self.name_revision == u64::MAX {
+            return (cname, None);
+        }
         let selection = match indices {
             None | Some(SlotIndices::Empty) => NameSelection::Missing,
             Some(SlotIndices::One(slot)) => NameSelection::One(self.id(*slot)),
-            Some(SlotIndices::Many(_)) => NameSelection::Several,
+            Some(SlotIndices::Many(_)) => return (cname, None),
         };
-        (cname, NameLookup {
+        (cname, Some(NameLookup {
             name,
             owner: self as *const Self as usize,
             roots: self.names.as_ptr() as usize,
             revision: self.name_revision,
             selection,
-        })
+        }))
     }
 
     pub(super) fn lookup_with_hint(
@@ -562,25 +564,18 @@ impl Cache {
             Some(NameSelection::Missing) => Vec::new(),
             Some(NameSelection::One(id)) if self.get(id).is_some() => {
                 let mut found = Vec::new();
-                if let Some(id) = self.lookup_slot(id.slot, kinds, now) {
-                    found.push(id);
+                // Same single-slot step as lookup; leave its multi-slot loop
+                // intact so it has no extra per-record dispatch or calls.
+                if self.invalid(id.slot, now) {
+                    self.remove(id.slot);
+                } else if kinds.iter().any(|kind| self.entry(id.slot).unwrap().record.kind.matches(*kind)) {
+                    self.unlink(id.slot);
+                    self.link_head(id.slot);
+                    found.push(self.id(id.slot));
                 }
                 found
             }
             _ => self.lookup(name, kinds, now, round_robin),
-        }
-    }
-
-    fn lookup_slot(&mut self, slot: usize, kinds: &[Kind], now: i64) -> Option<EntryId> {
-        if self.invalid(slot, now) {
-            self.remove(slot);
-            None
-        } else if kinds.iter().any(|kind| self.entry(slot).unwrap().record.kind.matches(*kind)) {
-            self.unlink(slot);
-            self.link_head(slot);
-            Some(self.id(slot))
-        } else {
-            None
         }
     }
 
@@ -1162,8 +1157,15 @@ impl Cache {
         let mut found = Vec::new();
         let indices = self.names_for(key).cloned().unwrap_or_default();
         for &slot in indices.iter() {
-            if let Some(id) = self.lookup_slot(slot, kinds, now) {
-                found.push(id);
+            if self.invalid(slot, now) {
+                self.remove(slot);
+            } else if kinds
+                .iter()
+                .any(|kind| self.entry(slot).unwrap().record.kind.matches(*kind))
+            {
+                self.unlink(slot);
+                self.link_head(slot);
+                found.push(self.id(slot));
             }
         }
         // The iteration snapshot must not force an otherwise unique Many
