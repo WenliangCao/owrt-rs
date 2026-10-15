@@ -12,6 +12,8 @@
     target_feature = "crt-static"
 ))]
 mod startup_relro;
+#[cfg(target_os = "linux")]
+mod owner_readiness;
 
 use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
@@ -2277,6 +2279,10 @@ struct SinglePoll {
     signal_wake_write: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
     poll_fds: Vec<owrt_ubus::sys::PollFd>,
+    #[cfg(target_os = "linux")]
+    readiness: owner_readiness::OwnerReadiness,
+    #[cfg(target_os = "linux")]
+    next_tcp_generation: u64,
     ubus_ready: bool,
     #[cfg(target_os = "linux")]
     ready_fds: Vec<owrt_ubus::sys::PollFd>,
@@ -2661,6 +2667,8 @@ fn lookup_edns_mac(
 }
 
 struct PollTcpClient {
+    #[cfg(target_os = "linux")]
+    generation: Option<u64>,
     // A log-blocked C worker still holds G/the connection limit. Its DNS work
     // has already ended: keep only the accepted log destination and poll slot.
     #[cfg(target_os = "linux")]
@@ -3153,6 +3161,10 @@ impl SinglePoll {
             signal_wake_write: None,
             #[cfg(target_os = "linux")]
             poll_fds: Vec::new(),
+            #[cfg(target_os = "linux")]
+            readiness: owner_readiness::OwnerReadiness::new(),
+            #[cfg(target_os = "linux")]
+            next_tcp_generation: 0,
             ubus_ready: false,
             #[cfg(target_os = "linux")]
             ready_fds: Vec::new(),
@@ -4152,11 +4164,20 @@ impl SinglePoll {
             // hot path no longer allocates a fresh Vec every poll.
             let mut fds = std::mem::take(&mut self.poll_fds);
             fds.clear();
+            self.readiness.begin();
             self.append_file_fds(&mut fds, true);
+            // RouteWatch owns one fd from startup until this owner is dropped;
+            // retry state suppresses its interest without replacing the fd.
+            if let Some(watch) = &self.route_watch {
+                if let Some(slot) = fds.iter().position(|fd| fd.fd == watch.raw_fd()) {
+                    self.readiness.watch(slot, owner_readiness::Key::Route);
+                }
+            }
             let file_fd_count = fds.len();
             let mut signal_fd_index = None;
             if let Some(signal) = &self.signal_wake_read {
                 signal_fd_index = Some(fds.len());
+                self.readiness.watch(fds.len(), owner_readiness::Key::Signal);
                 fds.push(PollFd {
                     fd: signal.as_raw_fd(),
                     events: POLLIN,
@@ -4192,6 +4213,7 @@ impl SinglePoll {
             let dns_admission_ready = !self.files_initializing() && !self.interface_work_pending();
             for listener in self.listeners.iter().filter(|_| dns_admission_ready) {
                 if let Some(udp) = &listener.udp {
+                    self.readiness.watch(fds.len(), owner_readiness::Key::Listener(listener.token.0, false));
                     fds.push(PollFd {
                         fd: udp.as_raw_fd(),
                         events: POLLIN,
@@ -4200,6 +4222,7 @@ impl SinglePoll {
                 }
                 if self.clients.len() < self.tcp_limit {
                     if let Some(tcp) = &listener.tcp {
+                        self.readiness.watch(fds.len(), owner_readiness::Key::Listener(listener.token.0, true));
                         fds.push(PollFd {
                             fd: tcp.as_raw_fd(),
                             events: POLLIN,
@@ -4265,6 +4288,11 @@ impl SinglePoll {
                     }
                 };
                 client.poll_slot = Some(fds.len());
+                if matches!(&work.phase, TcpClientPhase::Reading | TcpClientPhase::Writing { .. }) {
+                    if let Some(generation) = client.generation {
+                        self.readiness.watch(fds.len(), owner_readiness::Key::Tcp(generation));
+                    }
+                }
                 fds.push(PollFd {
                     fd,
                     events,
@@ -4395,7 +4423,7 @@ impl SinglePoll {
             let started = Instant::now();
             let timeout = owner_poll_timeout(deadline, started, runnable);
             debug_assert!(!runnable || timeout == 0);
-            let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
+            let poll_result = self.readiness.wait(&mut fds, timeout);
             let ready = match poll_result {
                 Ok(ready) => ready,
                 Err(error) => {
@@ -5659,7 +5687,13 @@ impl SinglePoll {
             event.tcp_active = event.tcp_active.saturating_add(1);
             event.tcp_high_water = event.tcp_high_water.max(event.tcp_active);
         }
+        #[cfg(target_os = "linux")]
+        let generation = self.next_tcp_generation.checked_add(1);
+        #[cfg(target_os = "linux")]
+        if let Some(generation) = generation { self.next_tcp_generation = generation; }
         self.clients.push(PollTcpClient {
+            #[cfg(target_os = "linux")]
+            generation,
             #[cfg(target_os = "linux")]
             log_context: (!cache_debug)
                 .then(|| {
@@ -5906,6 +5940,8 @@ impl SinglePoll {
             events: POLLIN,
             revents: 0,
         }];
+        // Probe waits intentionally omit normal-only signal/route/file work.
+        self.readiness.begin();
         if let Some(fd) = self.dump.poll_fd() {
             fds.push(PollFd {
                 fd,
@@ -5940,6 +5976,7 @@ impl SinglePoll {
         let dns_admission_ready = !self.files_initializing() && !self.interface_work_pending();
         for listener in self.listeners.iter().filter(|_| dns_admission_ready) {
             if let Some(udp) = &listener.udp {
+                self.readiness.watch(fds.len(), owner_readiness::Key::Listener(listener.token.0, false));
                 fds.push(PollFd {
                     fd: udp.as_raw_fd(),
                     events: POLLIN,
@@ -5948,6 +5985,7 @@ impl SinglePoll {
             }
             if self.clients.len() < self.tcp_limit {
                 if let Some(tcp) = &listener.tcp {
+                    self.readiness.watch(fds.len(), owner_readiness::Key::Listener(listener.token.0, true));
                     fds.push(PollFd {
                         fd: tcp.as_raw_fd(),
                         events: POLLIN,
@@ -6007,6 +6045,11 @@ impl SinglePoll {
                 }
             };
             client.poll_slot = Some(fds.len());
+            if matches!(&work.phase, TcpClientPhase::Reading | TcpClientPhase::Writing { .. }) {
+                if let Some(generation) = client.generation {
+                    self.readiness.watch(fds.len(), owner_readiness::Key::Tcp(generation));
+                }
+            }
             fds.push(PollFd {
                 fd,
                 events,
@@ -6045,7 +6088,7 @@ impl SinglePoll {
             .as_nanos()
             .div_ceil(1_000_000)
             .min(i32::MAX as u128) as i32;
-        let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
+        let ready = self.readiness.wait(&mut fds, millis)?;
         self.ready_fds.clear();
         self.ready_fds.extend(fds.iter().filter(|fd| fd.revents != 0).copied());
         for client in &mut self.clients {
