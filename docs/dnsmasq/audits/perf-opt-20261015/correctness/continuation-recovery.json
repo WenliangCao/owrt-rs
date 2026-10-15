@@ -1,0 +1,757 @@
+{
+  "scope": "Read-only continuation recovery; does not qualify candidate A or any successor",
+  "observed_utc": "2026-10-15T08:09:26.272867+00:00",
+  "a_families": {
+    "result_sha256": "fd0f87f11207e40d5ec57f51d56a00ba284d7c6734bcf03fb44b7cd242106da9",
+    "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+    "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+    "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "selected_families": 44,
+    "unique_executed_families": 44,
+    "executed_jobs": 67,
+    "unique_job_ids": 67,
+    "passed_jobs": 66,
+    "passed": false,
+    "complete_44_families": false,
+    "summed_job_elapsed_seconds": 6245.467216600897,
+    "jobs": [
+      {
+        "id": "m5_option_matrix-paired",
+        "family": "m5_option_matrix",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 15.519964919891208,
+        "result_sha256": "2134ae76a56c53e355d9c2ff717be9376cc579a36432c237a15a26b3af971a83",
+        "error": null
+      },
+      {
+        "id": "m5_option_matrix_next-paired",
+        "family": "m5_option_matrix_next",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 62.43822351493873,
+        "result_sha256": "c883634cbd89000d91d630503f445cc00fca9a16f6ed42a95d033475f7bf3bef",
+        "error": null
+      },
+      {
+        "id": "m5_option_matrix_third-paired",
+        "family": "m5_option_matrix_third",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 15.932830129051581,
+        "result_sha256": "a2fbdb1a0802840cb4ec404462e3a220828d62f0e1490eefe21cc8217bff90cf",
+        "error": null
+      },
+      {
+        "id": "m5_option_matrix_tag_if-paired",
+        "family": "m5_option_matrix_tag_if",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 41.645910426042974,
+        "result_sha256": "5f7837c6b2e59ed8b53e9e4978e813508a7e80930e43ed80edf19cad48496b31",
+        "error": null
+      },
+      {
+        "id": "m5_option_matrix_dhcp-paired",
+        "family": "m5_option_matrix_dhcp",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 94.90106453001499,
+        "result_sha256": "1a02bf68a832c1e31a6f0b644e38663ec0c8d3a196175a6de7cb15083d614544",
+        "error": null
+      },
+      {
+        "id": "m5_option_matrix_dhcp_v4-paired",
+        "family": "m5_option_matrix_dhcp_v4",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 55.14809217280708,
+        "result_sha256": "8984f73c09a525514727d8362fb2dfeed2068bc6f719a2312add3c5aec82bc93",
+        "error": null
+      },
+      {
+        "id": "m5_option_matrix_lease_names-paired",
+        "family": "m5_option_matrix_lease_names",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 246.57267517596483,
+        "result_sha256": "0531cf3d97c7273752e6465c9d130dd9f63500fd4a41b33f12cbb9c36f234ef3",
+        "error": null
+      },
+      {
+        "id": "m5_local_records-paired",
+        "family": "m5_local_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 87.03813540306874,
+        "result_sha256": "42d161e17302b4edb7d8968625b1c23ec1cf1555e531a028f2ddfeb4d026a61c",
+        "error": null
+      },
+      {
+        "id": "m5_boot-paired",
+        "family": "m5_boot",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 1.7338896470610052,
+        "result_sha256": "bc6f71ae31267cd9369b5bff5aa4bd684bbb4f111e99aefe893560f475c16ab6",
+        "error": null
+      },
+      {
+        "id": "m5_helper-paired",
+        "family": "m5_helper",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 25.55107550485991,
+        "result_sha256": "b2f8c41cdfdbf119547455d17811f6e3fa31f62c7a19bb0d65bb62bf0c4e84a7",
+        "error": null
+      },
+      {
+        "id": "m5_rr_filter-paired",
+        "family": "m5_rr_filter",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 6.596046722959727,
+        "result_sha256": "19d8c5c0028a0731459336b4394dd3539796d887384df4898aa17c21232f3abc",
+        "error": null
+      },
+      {
+        "id": "m5_config_inputs-paired",
+        "family": "m5_config_inputs",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 27.685110450023785,
+        "result_sha256": "05c9cdadf305da491f36072bb205424b5cd5d52151db05d45f0392cd2442f440",
+        "error": null
+      },
+      {
+        "id": "m5_lease_recovery-paired",
+        "family": "m5_lease_recovery",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 196.40704119112343,
+        "result_sha256": "45319b5e523afe32aec8fbb1850f12563aedf9853a0e6c0a74821c56d1ce2372",
+        "error": null
+      },
+      {
+        "id": "m5_listeners-paired",
+        "family": "m5_listeners",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 1139.4412596670445,
+        "result_sha256": "98e5b235e63ec62a26c2db17c3f5eb92de98463ff0de1a507a3a4775a65810c2",
+        "error": null
+      },
+      {
+        "id": "m5_tftp-paired",
+        "family": "m5_tftp",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 277.0140230359975,
+        "result_sha256": "42f3dc63152a11e283d258a21916db2fc4fbf1635520d8f9702fc2b1f3ba8913",
+        "error": null
+      },
+      {
+        "id": "m5_dump-paired",
+        "family": "m5_dump",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 13.056824091821909,
+        "result_sha256": "af0047605efbdebd8a85b4af10fe6356de415e209137c2b24464c3212f2f751c",
+        "error": null
+      },
+      {
+        "id": "m5_script_arp-paired",
+        "family": "m5_script_arp",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 452.20577713893726,
+        "result_sha256": "5fec0ea8cc239df297cd0085a1d80d26fab2e0858f8f576076fbf0c36f81f8b9",
+        "error": null
+      },
+      {
+        "id": "dhcp-proxy-paired",
+        "family": "dhcp-proxy",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.633551890961826,
+        "result_sha256": "4f8b227924e018a4a77ade333d87823d042b55cd2da7a9996998f7d49e4143c7",
+        "error": null
+      },
+      {
+        "id": "bridge-interface-paired",
+        "family": "bridge-interface",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 9.024872590089217,
+        "result_sha256": "c4cb2297a71b580a61de1a8b02f9b441619865edba8449d654b413d2329b7dd6",
+        "error": null
+      },
+      {
+        "id": "shared-network-paired",
+        "family": "shared-network",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 7.404619042063132,
+        "result_sha256": "6c23dc03e1ed36a19ab6aca1380b26639275eeab3bbbea9377d53780b9ad5625",
+        "error": null
+      },
+      {
+        "id": "dhcp-reply-delay-paired",
+        "family": "dhcp-reply-delay",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 33.036215404979885,
+        "result_sha256": "dd1dcaa5a43997a39f35dea84f828711127f3d02b600283031f8937a492d4c0b",
+        "error": null
+      },
+      {
+        "id": "m5_relay-paired",
+        "family": "m5_relay",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 101.35141837596893,
+        "result_sha256": "4bc78e4de94ac1b61490852e3407ba55f0adb72ab1f9bc40706edc257447d77d",
+        "error": null
+      },
+      {
+        "id": "m5_pxe-paired",
+        "family": "m5_pxe",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 203.9733380319085,
+        "result_sha256": "faa31643d376301900d2730651383594b61d5ca861206351d9cd76e2af93350f",
+        "error": null
+      },
+      {
+        "id": "m5_leasequery-paired",
+        "family": "m5_leasequery",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 31.72564248391427,
+        "result_sha256": "8b941bbcf8eaf14decd0cb5a195dd5babd01b8aab4d00985b235cc07ea477c9e",
+        "error": null
+      },
+      {
+        "id": "dhcp-tags-options-paired",
+        "family": "dhcp-tags-options",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 4.2518794080242515,
+        "result_sha256": "690374e3b12e3ac31c39847f499964a62b0e9ae246a0eb86c423efa83f839d8e",
+        "error": null
+      },
+      {
+        "id": "dhcp-identities-paired",
+        "family": "dhcp-identities",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 29.36618253402412,
+        "result_sha256": "0166866198d69912c1be680e7aabbbb3c69a73a8aa9068fb3d378ae4387a6ee4",
+        "error": null
+      },
+      {
+        "id": "dhcp-range-paired",
+        "family": "dhcp-range",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.9262254808563739,
+        "result_sha256": "eab7fa27e0b1460d681313ccf91a91b4fd10904c018a8e51ec84391eb14724b6",
+        "error": null
+      },
+      {
+        "id": "dhcp-files-paired",
+        "family": "dhcp-files",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 59.50603670999408,
+        "result_sha256": "6e076f36373e15372e5484a6cd406942b5192a6d5265fa95ab49a19d8054cb26",
+        "error": null
+      },
+      {
+        "id": "loop-detect-paired",
+        "family": "loop-detect",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 59.37734456988983,
+        "result_sha256": "d7630963f8e5d3f2c56a67240993c97b267f906aa0497c24837cb9e7151b37e0",
+        "error": null
+      },
+      {
+        "id": "logging-all-scopes-paired",
+        "family": "logging-all-scopes",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 576.8608043370768,
+        "result_sha256": "eefda1d2096862256fd55822c208f0d885595f21e0123627225731ba058d112e",
+        "error": null
+      },
+      {
+        "id": "cli-test-paired",
+        "family": "cli-test",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 2.908537409035489,
+        "result_sha256": "1cee00bb54316383975f1dadfea6396c93ba4461af1c25f79d7c185dc213d410",
+        "error": null
+      },
+      {
+        "id": "cli-log-malloc-paired",
+        "family": "cli-log-malloc",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 2.213550663087517,
+        "result_sha256": "a274d60095ade164145eb0245f8c82bc72e00b6d3605586f8f8c4c9a00b5b932",
+        "error": null
+      },
+      {
+        "id": "m5_edns-c",
+        "family": "m5_edns",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 122.16298583499156,
+        "result_sha256": "def71f2513a4e28490cc2bc9d6e487a77ac47d912391ba22a39918f33922ded6",
+        "error": null
+      },
+      {
+        "id": "m5_edns-rust",
+        "family": "m5_edns",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 108.29224433214404,
+        "result_sha256": "2b7d51779b6611cc5c8936e3d12e3f96534e42d575ae9727fc21a274ec43dfe7",
+        "error": null
+      },
+      {
+        "id": "m5_edns-compare",
+        "family": "m5_edns",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.1713297760579735,
+        "result_sha256": "fc44dac2059fd5b98ff280b554f99fbf4a11d30cf2d38f158eaabd358a3feb4b",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 699.3582562319934,
+        "result_sha256": "63f2ab970ff257dd2a1ada9ab1d9cc6393704da88e6501ad9cba7ce11e15be2b",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-rust",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 699.9963243061211,
+        "result_sha256": "ab3aeaed077a441b6adb5d38868bbdbf07178e38c32277518336e6396059b613",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-1",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 4.601092136930674,
+        "result_sha256": "22de59b72d773867d291c3d777b8335f643fa2a08c580070bfdb4b582b412cb2",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-2",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.9787964369170368,
+        "result_sha256": "8192901e209743d66319127c25da03a4e8bb5e6aeb7a39a816bca51a887d7898",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-3",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.9771809428930283,
+        "result_sha256": "2534e2eec89568b37a08d9b2e5573f04919b981db1bd81d0d7a168ada16c69a6",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-4",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 4.026842153863981,
+        "result_sha256": "c3c285aa2ed2ade8346f035f209542fab467bdf56707d6d8cc5425b370178da9",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-5",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.978600475937128,
+        "result_sha256": "b5e424c50f23a0dc82ad481e40986f27ff5195177ee2f2503b807337ac094aa0",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-6",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 4.030009421054274,
+        "result_sha256": "1a0ceb42aaa70af0c5594dcb6b21ffedef6570c8ec9dfbcc442065de0bf99951",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-7",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.977251786040142,
+        "result_sha256": "f9386e24205eb055c8f417114ff46ab0476a1ef7cb3c322e816d5d143223113c",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-c-reverse-8",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.9743232019245625,
+        "result_sha256": "304a53000391a5ca8084c46d2978c1981440d07c6da56ed1cffa0d565cd52e54",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-compare",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 1.1576963257975876,
+        "result_sha256": "2c92b49e357250c06debcc5a4df8e1f6c36d2126b0723aac8a306c5c2800453d",
+        "error": null
+      },
+      {
+        "id": "m5_dns_cache-lease-tcp-caller",
+        "family": "m5_dns_cache",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.8672214869875461,
+        "result_sha256": "5b598b2ca95e7d2c7f96fc34569bbabb29f6e6f0edb7e77c1060f3c18aba0a88",
+        "error": null
+      },
+      {
+        "id": "m5_dns_endpoints-syntax",
+        "family": "m5_dns_endpoints",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 14.318177403882146,
+        "result_sha256": "afb168dabff08c8105cb3744da34fa8535473d542d81654e9aabaed44958f231",
+        "error": null
+      },
+      {
+        "id": "m5_dns_endpoints-service",
+        "family": "m5_dns_endpoints",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 166.87739005708136,
+        "result_sha256": "791a2b71d05eb4793caecbe4a8c2fc87d93e302bbf340dab9b2bc13da8f74e00",
+        "error": null
+      },
+      {
+        "id": "m5_dns_endpoints-source-row-audit",
+        "family": "m5_dns_endpoints",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.24654687801375985,
+        "result_sha256": "f952c185cd5e3e02257c457540d73ea6c1de8133760fc7ffe5d8d8173934e0fd",
+        "error": null
+      },
+      {
+        "id": "m5_interface_records-syntax",
+        "family": "m5_interface_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 7.144647873938084,
+        "result_sha256": "7c24cf79d7d484ccf001d0685c0eb98292fe2d92b91987cd250c8e3702b08ebf",
+        "error": null
+      },
+      {
+        "id": "m5_interface_records-service",
+        "family": "m5_interface_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 165.7587262049783,
+        "result_sha256": "f0b9e628f79ccda6b5702b1c2eadb0e02b6a849395e2cff620f8df6db33d00e5",
+        "error": null
+      },
+      {
+        "id": "m5_interface_records-qualify",
+        "family": "m5_interface_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 1.494887484004721,
+        "result_sha256": "e335bf9e39913a00d3d83f3606a234a73722a5ba0ec7c027f05a91aef33718bf",
+        "error": null
+      },
+      {
+        "id": "m5_interface_records-closeout-syntax",
+        "family": "m5_interface_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.9249419309198856,
+        "result_sha256": "81083b652f05a61aa280c0c67e4f1ffad282c8ce51947a15600950ff884975f3",
+        "error": null
+      },
+      {
+        "id": "m5_interface_records-closeout-rust-refusals",
+        "family": "m5_interface_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.5744531909003854,
+        "result_sha256": "c10334cc7d7905987d5a6e218b31d9deecfd7fa8135cb749647402713d2f18ea",
+        "error": null
+      },
+      {
+        "id": "m5_interface_records-closeout-service",
+        "family": "m5_interface_records",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 2.763287496054545,
+        "result_sha256": "e96f85c650d0f206c55549757cded3cafb271f3e96ef0241380af744b7725af8",
+        "error": null
+      },
+      {
+        "id": "dns-files-paired",
+        "family": "dns-files",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 82.30166271119379,
+        "result_sha256": "3c06bdc07820748d30631b509465ef4fa61eb32f740d5cef9f4bef67f2d0c4d1",
+        "error": null
+      },
+      {
+        "id": "tftp-errors-paired",
+        "family": "tftp-errors",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 65.90618126699701,
+        "result_sha256": "a950a0213a839324b89218caf71932bf9bda299425b827a7b099b1923711f589",
+        "error": null
+      },
+      {
+        "id": "filterwin2k-paired",
+        "family": "filterwin2k",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.5794769369531423,
+        "result_sha256": "46ce5882fd3e7e2c1ffa2a96c67e5726c85fa02701772aa97d2ec81898e085d3",
+        "error": null
+      },
+      {
+        "id": "helper-shutdown-paired",
+        "family": "helper-shutdown",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 63.875420845113695,
+        "result_sha256": "afa10c37908679ed8932a7d55c311683447eb54a13596a03bcc9430ce956088d",
+        "error": null
+      },
+      {
+        "id": "ubus-ordinary-all",
+        "family": "ubus-ordinary",
+        "passed": false,
+        "returncode": 0,
+        "elapsed_seconds": 36.10288010397926,
+        "result_sha256": "4a3aff7749f32f23e1113ec03d800ae478e5518a5bf68298105015c38e27e010",
+        "error": "ValueError('/home/ubuntu/dnsmasq-perf-20261015/correctness/private/a-families/ubus-ordinary/result.json: paired_observations differs from 350')"
+      },
+      {
+        "id": "logging-dhcp-companion-all",
+        "family": "logging-dhcp-companion",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 66.03942443500273,
+        "result_sha256": "0c555354dc36952b6fc4a25be2075fee226571a7f94015dcea5e2bbcaafa6f72",
+        "error": null
+      },
+      {
+        "id": "logging-dhcp-companion-overflow-seven",
+        "family": "logging-dhcp-companion",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 8.376276523806155,
+        "result_sha256": "8e3fd2725a111d26d42fb4164bc0eb5f48d6aa3886b4635f025cce6a5f221b57",
+        "error": null
+      },
+      {
+        "id": "dhcp-device-binding-c",
+        "family": "dhcp-device-binding",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 2.9703709159512073,
+        "result_sha256": "8dd3cab75210895eeee2438b24e18900a2f583b42422bde91968fd26fd67384d",
+        "error": null
+      },
+      {
+        "id": "dhcp-device-binding-rust",
+        "family": "dhcp-device-binding",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.014475439907983,
+        "result_sha256": "68ab6b2d30a2c71ad92f99dfd8a8a88ca99267d164dada3b861797c76b77ec0d",
+        "error": null
+      },
+      {
+        "id": "dhcp-device-binding-compare",
+        "family": "dhcp-device-binding",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 0.2712549229618162,
+        "result_sha256": "151138bd3aabfad31d5575f5606ec63a4558272a13d735d1ead56ef8577cce52",
+        "error": null
+      },
+      {
+        "id": "query-id-wrap-source-controls-sdk-source-probe",
+        "family": "query-id-wrap-source-controls",
+        "passed": true,
+        "returncode": 0,
+        "elapsed_seconds": 3.9284164761193097,
+        "result_sha256": "1d07ec4fbf6b973b0ae01274d2d059e779d50e8e847aaf29610bdeb8f895d447",
+        "error": null
+      }
+    ]
+  },
+  "ubus": {
+    "result_sha256": "4a3aff7749f32f23e1113ec03d800ae478e5518a5bf68298105015c38e27e010",
+    "paired_observations": 346,
+    "paired_matches": 346,
+    "passed_assertions": 2146,
+    "failed_assertions": 0,
+    "normal_contract_qualified": true,
+    "suite_counts": {
+      "baseline": 69,
+      "extended": 216,
+      "lifecycle": 19,
+      "records": 29,
+      "recovery": 13
+    },
+    "negative_controls": 26,
+    "all_negative_controls_rejected": true,
+    "tool_sha256": "858adf692f28317479d7b0b425f86114df2b0479bf0cc1608c25111cb9cc50ab"
+  },
+  "stale_live_matrix": {
+    "c_result_sha256": "f5f5ea86f0c48b7cd7a75a4ff7c774c7aeea234379a605012118222d10d00839",
+    "rust_result_sha256": "e2e40cd4d5b0b4f14985f49ffb0d966a48cff000a7d1606dbfbe78c545aee4d0",
+    "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "cases": [
+      {
+        "id": "finite-udp-ordinary",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          true
+        ],
+        "c_upstream_queries": 2,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "finite-udp-txt-terminal",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          false
+        ],
+        "c_upstream_queries": 1,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "finite-tcp-ordinary",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          true
+        ],
+        "c_upstream_queries": 2,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "finite-tcp-txt-terminal",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          false
+        ],
+        "c_upstream_queries": 1,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "min-max-udp-ordinary",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          true
+        ],
+        "c_upstream_queries": 2,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "min-max-udp-txt-terminal",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          false
+        ],
+        "c_upstream_queries": 1,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "min-max-tcp-ordinary",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          true
+        ],
+        "c_upstream_queries": 2,
+        "rust_upstream_queries": 2
+      },
+      {
+        "id": "min-max-tcp-txt-terminal",
+        "c_runtime_passed": true,
+        "rust_runtime_passed": true,
+        "c_exit": 0,
+        "rust_exit": 0,
+        "semantics_equal": [
+          true,
+          false
+        ],
+        "c_upstream_queries": 1,
+        "rust_upstream_queries": 2
+      }
+    ]
+  },
+  "scope_decision": {
+    "separate_b1136023_compatibility_fix": "User explicitly approved during continuation, as relayed by coordinator",
+    "frozen_ubus_registry_correction": "pending user approval; unapplied patch only"
+  }
+}

@@ -109,3 +109,65 @@ not retain populated buckets or defer shared-root separation to first insertion.
 The terminal retirement has one caller at final successful daemon exit, after
 all explicit helper/lookups/log/PID cleanup; Cache's recursive fields own no FD
 or custom Drop. These reviews do not transfer A or baseline test passes to B.
+
+## Continuation recovery, 2026-10-15 morning
+
+Read-only recovery found A's original full run had finished at all **44 families,
+67 unique jobs**: **66 jobs passed**, `ubus-ordinary-all` failed its registry
+count check. Summed job time was 6,245.47 seconds (104.1 minutes), including the
+previous scheduling pause in a child interval; this is not a performance metric.
+The stopped sudo monitors only parent zombie completed Python supervisors, not
+active workload. The original raw outputs remain untouched. A also retains its
+independent 1,098/1,100 stale-corpus failure and is not qualified. See
+[recovered evidence](continuation-recovery.json).
+
+The UBus failure is an existing frozen-input inconsistency, not four missing
+executions. Pre-freeze commit `72e843ed22d24a9bad9dba9a822d638c29909144`
+replaced three top-level recovery observations with one richer composite for
+each of two collision orders. Its source-bound checker changed recovery 17 to
+13 and expanded negative controls from 10 to 26. The registry retained total
+350, although the unchanged tool now requires 69+216+19+29+13 = **346**. Fresh
+A produced exactly 346 pairs, 2,146 passing assertions, no failed assertions,
+and 26 rejected negative controls. The richer records still check both object
+lookups and logs, plus metrics before/after and DNS health. Adding four duplicate
+records would not restore a missing semantic case.
+
+[Exact diagnosis](ubus-inventory-diagnostic.json) preserves source hashes and the
+historical diff. The [proposed two-number metadata patch](ubus-registry-bookkeeping.proposed.patch)
+is **unapplied**, awaiting the coordinator's explicit user boundary decision.
+No fixture, comparator, C behavior, source expectation or frozen file was edited.
+`git apply --check` accepts the proposal; it is not an acceptance result.
+
+The supplementary live stale-boundary matrix finished all eight cases per ELF:
+finite/min-max × UDP/TCP × ordinary/TXT-terminal. All ordinary pairs match;
+all four TXT-terminal pairs expose old v0.2.0 EDE3 plus an extra upstream query
+where exact C produces neither. Original initial finding and probe are retained
+as `stale-finding-receipt.json` and `stale_cutoff_daemon.py`; their pending flags
+record the earlier checkpoint. The coordinator reports that the user explicitly
+approved separate compatibility fix `b1136023` during this continuation. It may
+now enter a newly frozen candidate; it does not retroactively qualify A/B.
+
+Independent current static reviews identified no behavior blocker:
+
+- `4d717b87`: UDP atomic socket flags equal the retained SDK definitions;
+  OwnedFd lifetime, IPv6-only setup, port randomness/retries, interface binding,
+  and binding-error classification are preserved. Exact SDK `sys/socket.h` has
+  DGRAM 2, NONBLOCK 04000, CLOEXEC 02000000; `bits/fcntl.h` confirms the flags.
+- `4e8d548e` and current D6 refinement: singleton lease index preserves ordering
+  by reverse/mortal/immortal group and first-entry parent-expiry extension.
+- `72d1cbb7`: immutable lease name sharing keeps every input, mixed-case and PTR
+  spelling, suppression/rebuild order, and per-reader active state. Fallible
+  hosts replacement still receives borrowed bytes and retains its `try_*`
+  allocation boundaries. This remains a prototype until selected by its owner.
+- `4b054367` plus `71e7178d`: query-local cache hint adds no Arc pin/COW;
+  owner/root/Name identity, index revision and generation validate reuse.
+  Actual expiry removal, CNAME validity and LRU effects remain at lookup time;
+  all mutable index accessors invalidate hints, saturation disables them, and
+  the multi-record loop is unchanged. The bounded synchronous call site does
+  not replace its Cache while the hint is live. Full fresh candidate gates
+  remain required for every selected change.
+
+The carried per-family scheduler now records duplicate-free exact 67-job
+coverage and exact C identity as requested in its earlier review. It preserves
+unchanged original runner calls and waits only before a new family. No new
+Oracle build, correctness execution or timing was started in this continuation.
