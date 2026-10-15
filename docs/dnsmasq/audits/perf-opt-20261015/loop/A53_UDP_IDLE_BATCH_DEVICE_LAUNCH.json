@@ -1,0 +1,57 @@
+{
+  "scope": "Exploratory unqualified F/udp-idle-batch A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "plan_commit": "08b93f0d",
+  "static_entry_commit": "58fd7af4",
+  "plan_sha256": "48cc3b6c3d6a2afc77268fbe31aa222ad4f48e7bd5800c79e9c8941fb0b2470a",
+  "source_commit": "1b934951750559c08807db93bb5c4196745cd25c",
+  "source_files_verified": 179,
+  "elf_sha256": "18794b7266a2c1f7ac5993fe5c01e955769afce178703d38ebefa5bc88ac23e2",
+  "elf_bytes": 2136859,
+  "map_sha256": "9067bf018df09b6076b2cb3ab807523492c8560e41e3bdaa2392743b5bcef98a",
+  "build_receipt_sha256": "c8289db977d34366b369c5634dfb79c99334e54181a617a250c1e857889e5948",
+  "entry_sha256": "0df2007b8bb96116985bb49164da7cc8a7841623bc46a9bd452798df403831d8",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.751,
+    "dns_samples": 49,
+    "dns_p95_ms": 0.612,
+    "dns_max_ms": 0.952,
+    "http_samples": 23,
+    "http_max_ms": 60.392,
+    "threshold_ms": 200,
+    "raw_sha256": "91219a4f8dacdfd8c112670724c3411a7733f4d9f437127c15f6279e06169db2"
+  },
+  "health_summary_sha256": "6675a52c52f728de080cc40360b73ea2576648ec35de67e754b0d3908c26522e",
+  "preflight_sha256": "6f13e3d125c8dca5e70f8504c4dc3deb0cf9a137a82282bfcb0d961efc223146",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "fixed_windows": 10,
+  "replacement": false,
+  "candidate_eligible": false,
+  "full44_qualification": false,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-a53-udp-idle-batch/udp_idle_batch_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_UDP_IDLE_BATCH_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-udp-idle-batch/summary.json",
+    "--experiment-hash",
+    "18794b7266a2c1f7ac5993fe5c01e955769afce178703d38ebefa5bc88ac23e2",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-udp-idle-batch-device"
+  ],
+  "pid": 19331,
+  "launch_epoch": 1792103354.22167,
+  "started_utc": "2026-10-15T22:29:14.221681+00:00"
+}
