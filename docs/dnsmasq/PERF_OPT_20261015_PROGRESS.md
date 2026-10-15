@@ -267,3 +267,25 @@ Oracleworkloads untilcomplete. Then startD44family --jobs3 and F10/protocol/TCP/
 4corpora immediately fromsourceD/SDKfreshpreparepath; knownUID2onlynonblocking.
 Dartifactnotdownloadedlocallyyet (deferbulk untiltimingends). Afterallgates,
 freshDdevice110pairs; no reuseCnumbers asacceptance.
+
+## D Oracle complete / correctness active, 14:15 CEST
+
+D full Oracle attempt completed 110/110 valid windows, no failure marker.
+All 110 archive hashes and 3,430 extracted files verified locally; exact shipping
+ELF, same-link map and the public build-receipt fields match downloaded artifacts.
+Local raw: private/perf-opt-20261015/oracle-d; SDK: private/perf-opt-20261015/sdk-d.
+Full derived summary committed as oracle-d-summary.json (SHA256
+39f42344986bcb1f0c5190b3ef956d28ee9f4138bdf35b0fa932852d32e14b02).
+No primary metric regresses beyond frozen criteria. Discernible improvements:
+150-client DHCP p50 2.941464→2.693102 ms (−8.443%, W8.324%) and CPU
+760→544 µs/op (−28.421%, W8.421%); mixed UDP p95 1.25653→1.23325 ms
+(−1.853%, W1.703%). Other metrics remain inconclusive. Parent/tree FDs unchanged;
+DNS RSS differences are mostly file-backed, with UDP-hit anonymous peak +4 KiB,
+TCP-miss +4 KiB; large-HUP anonymous peak falls 1,432→1,172 KiB.
+Oracle is screening evidence, never a device performance claim.
+
+Correctness agent verified completion before launching D full44 scheduler
+PID13199 (--jobs3) and serial boundary/corpus batch PID13200. F10/protocol/TCP
+and all four original corpora completed without new failures; known UID2 raw
+exit1 retained. Full44 remains active. Fourth slot released to the existing
+narrow readiness-count screen. No D device launch until complete qualification.
