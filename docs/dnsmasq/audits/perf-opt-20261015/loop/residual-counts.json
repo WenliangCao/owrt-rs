@@ -1,0 +1,488 @@
+{
+  "scope": "Oracle-only native instruction screens, excluded from timing acceptance.\n\nPreserve complete commands, compiler/source/ELF identities and raw perf output.\nThe ppoll skip is an ideal removed-call control, not an owner implementation.\nThe inline set is a rejected standalone prototype, not a product container.\n",
+  "timing_eligible": false,
+  "compiler": {
+    "gcc": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n"
+  },
+  "kernel": "Linux 6.17.0-1020-oracle #20-Ubuntu SMP Sat Jul 25 00:52:17 UTC 2026 aarch64",
+  "affinity_cpu": 2,
+  "commands": [
+    {
+      "label": "gcc-version",
+      "argv": [
+        "gcc",
+        "--version"
+      ]
+    },
+    {
+      "label": "rustc-version",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/rustc",
+        "+1.98.1",
+        "-Vv"
+      ]
+    },
+    {
+      "label": "kernel",
+      "argv": [
+        "uname",
+        "-srvm"
+      ]
+    },
+    {
+      "label": "build-ppoll",
+      "argv": [
+        "gcc",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/loop_ppoll_screen.c",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-screen"
+      ]
+    },
+    {
+      "label": "build-owners",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/rustc",
+        "+1.98.1",
+        "-O",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/loop_socket_owners_screen.rs",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen"
+      ]
+    },
+    {
+      "label": "ppoll-skip",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-skip.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-screen",
+        "skip",
+        "100000"
+      ]
+    },
+    {
+      "label": "ppoll-empty",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-empty.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-screen",
+        "empty",
+        "100000"
+      ]
+    },
+    {
+      "label": "ppoll-ready",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-ready.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/ppoll-screen",
+        "ready",
+        "100000"
+      ]
+    },
+    {
+      "label": "owners-baseline-1",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-baseline-1.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "baseline",
+        "1",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-inline-1",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-inline-1.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "inline",
+        "1",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-baseline-2",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-baseline-2.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "baseline",
+        "2",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-inline-2",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-inline-2.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "inline",
+        "2",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-baseline-16",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-baseline-16.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "baseline",
+        "16",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-inline-16",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-inline-16.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "inline",
+        "16",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-baseline-150",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-baseline-150.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "baseline",
+        "150",
+        "10000"
+      ]
+    },
+    {
+      "label": "owners-inline-150",
+      "argv": [
+        "taskset",
+        "-c",
+        "2",
+        "perf",
+        "stat",
+        "-x,",
+        "-e",
+        "instructions,cycles",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-inline-150.perf",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3/owners-screen",
+        "inline",
+        "150",
+        "10000"
+      ]
+    }
+  ],
+  "sources": {
+    "loop_ppoll_screen.c": "4978ae52c95be1cfaccb5efea89b734430ee310bd92d0c88db738c5029b6e5de",
+    "loop_socket_owners_screen.rs": "44ac852471166ac27597f04e16c89924720004bd09d51e47178f76f7d5967c5c"
+  },
+  "elfs": {
+    "ppoll-screen": "dead16d98b76e372aa8994f69f268e1369c04e20a4a6dd71e750873b3aac4383",
+    "owners-screen": "ede18303a889d9f60d3cf9efcd9f3a9b27f608e15834cfbd1c51f42120d7fded"
+  },
+  "cases": {
+    "ppoll-skip": {
+      "result": {
+        "mode": "skip",
+        "iterations": 100000,
+        "ready_results": 0
+      },
+      "counters": {
+        "instructions": 1281797,
+        "cycles": 1081979
+      },
+      "perf_sha256": "a92895f03d7b94b9a8f00da4f389590c10d9cd82c90548729021acf42e38620b"
+    },
+    "ppoll-empty": {
+      "result": {
+        "mode": "empty",
+        "iterations": 100000,
+        "ready_results": 0
+      },
+      "counters": {
+        "instructions": 164865380,
+        "cycles": 76167673
+      },
+      "perf_sha256": "6faca6eeecf449ea365432be0a5b9c4cfbb153589ae1810491b05acf57541b06"
+    },
+    "ppoll-ready": {
+      "result": {
+        "mode": "ready",
+        "iterations": 100000,
+        "ready_results": 100000
+      },
+      "counters": {
+        "instructions": 164364178,
+        "cycles": 75678321
+      },
+      "perf_sha256": "c5a394e92ad51db537a944781e2fe60f02d0c47efb61fd1f0f35ad14c8d53fb7"
+    },
+    "owners-baseline-1": {
+      "result": {
+        "method": "baseline",
+        "owners": 1,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 8171003,
+        "cycles": 6307760
+      },
+      "perf_sha256": "0fd922ce0a76c0ce74609b3ffcf2c1fd775d3e0b083bd1d37a3724b5ed918b03"
+    },
+    "owners-inline-1": {
+      "result": {
+        "method": "inline",
+        "owners": 1,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 2069234,
+        "cycles": 1510865
+      },
+      "perf_sha256": "a8881f711051bf349ef39422b8aeb1fd140182f18d72e69f4df500d9318d7618"
+    },
+    "owners-baseline-2": {
+      "result": {
+        "method": "baseline",
+        "owners": 2,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 17843585,
+        "cycles": 7635272
+      },
+      "perf_sha256": "24ab53825efe269c286af2ab2662347574f1aa9cc7f2275e4c7a8c4fdac23699"
+    },
+    "owners-inline-2": {
+      "result": {
+        "method": "inline",
+        "owners": 2,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 12501526,
+        "cycles": 5383814
+      },
+      "perf_sha256": "7acdfbf140a106e75f917c838c5f69390a4b2fc766874c56fc6c6ec33b9bc4c1"
+    },
+    "owners-baseline-16": {
+      "result": {
+        "method": "baseline",
+        "owners": 16,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 96037276,
+        "cycles": 42390797
+      },
+      "perf_sha256": "b680e29411aeead05d94d6d78216a1e70b17ce0379cf7769623bbad38e88de86"
+    },
+    "owners-inline-16": {
+      "result": {
+        "method": "inline",
+        "owners": 16,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 92373774,
+        "cycles": 39943581
+      },
+      "perf_sha256": "c3875cfd754ad5a51cea08e5418f13687459792cc142854ca435b86ee909fb33"
+    },
+    "owners-baseline-150": {
+      "result": {
+        "method": "baseline",
+        "owners": 150,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 744467140,
+        "cycles": 351855288
+      },
+      "perf_sha256": "5ee1ab31c0d8430fc87cab9cb0a80ed87d5c846eb01901245b1b9840c81380f6"
+    },
+    "owners-inline-150": {
+      "result": {
+        "method": "inline",
+        "owners": 150,
+        "iterations": 10000,
+        "baseline_inline_bytes": 48,
+        "candidate_inline_bytes": 64
+      },
+      "counters": {
+        "instructions": 758197133,
+        "cycles": 352782626
+      },
+      "perf_sha256": "7891997295895a3c9c30c46a64c199bdb239a006e9d3e51d5f46fc5e5634ffc0"
+    }
+  },
+  "invocation": [
+    "sudo",
+    "-n",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/loop_residual_counts.py",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/residual-counts-r3"
+  ],
+  "runner_sha256": "a752b7d9b5f4a001914afb5277c9d282df668e6a98c4efbb576521a3e1fbcec9",
+  "attempts": [
+    {
+      "name": "prior session standalone screen",
+      "status": "retained, earlier ppoll and owners raw files; did not contain full build command receipts"
+    },
+    {
+      "name": "residual-counts-r2",
+      "status": "excluded: non-root perf rejected by unchanged perf_event_paranoid=4; no instructions measured",
+      "stderr_sha256": "3e16d8f851a488f8fd897a68f4b3bdf14c890916b53a59cf3456a56555dcb6bc"
+    },
+    {
+      "name": "residual-counts-r3",
+      "status": "11 cases passed; explicit sudo invocation, exact commands/compiler/source/ELF hashes captured"
+    }
+  ],
+  "ppoll_screen": {
+    "instructions_removed_per_call": {
+      "empty": 1635.83583,
+      "ready": 1630.82381
+    },
+    "all_zero_timeout_calls_in_sdk_a_trace": 9943,
+    "one_fd_zero_timeout_calls_in_sdk_a_trace": 9931,
+    "trace_operations": 5000,
+    "total_sdk_a_miss_instructions": 816869505,
+    "upper_projection_percent": 1.9911522658310032,
+    "interpretation": "Screen estimate only, combines separate Oracle count diagnostics. Includes native glibc ppoll wrapper and kernel work, not exact SDK musl wrapper or router cycles. Treating every nested ppoll as the one-fd case deliberately projects a generous saving before safe owner bookkeeping. Not a strict mathematical speedup bound."
+  },
+  "owner_screen": {
+    "instructions_saved_per_lifetime": {
+      "1": 610.1769,
+      "2": 534.2059,
+      "16": 366.3502,
+      "150": -1372.9993
+    },
+    "single_owner_projected_percent_of_sdk_a_miss_instructions": 0.3734849301296907,
+    "interpretation": "Standalone native HashSet prototype includes identical assertions, not actual owner. Adds 16 inline bytes and slows large owner sets; rejected before product integration."
+  },
+  "frozen_noise_context": {
+    "report": "../baseline-summary.json",
+    "report_sha256": "44283e735c7f0259e6f6647b3cbef250e4f9ee6a26e2b4d0d41c655cde3622f4",
+    "deployed_cpu_us": {
+      "median": 522.0,
+      "min": 512.0,
+      "max": 536.0,
+      "rounds": [
+        522.0,
+        536.0,
+        518.0,
+        512.0,
+        524.0
+      ]
+    },
+    "deployed_own_range_pct": 4.597701149425287,
+    "c_deployed_W_pct": 10.344827586206899,
+    "cpu_8_tick_minimum_pct_at_5000_operations": 3.065134099616858,
+    "decision": "L08 and L10 predicted whole-query benefit below measured deployed variation and frozen CPU precision; do not add product container/readiness state. Count screen does not prove universal irreducibility."
+  }
+}

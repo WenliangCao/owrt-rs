@@ -44,9 +44,9 @@ No candidate is qualified yet; full correctness and timing are pending.
 | L05 | Startup/config stop-start overhead | screened in: independent terminal-boundary review passed; actual daemon teardown 106 → 7 deallocations, removing 93,248 bytes of allocator cleanup; FD count restored 4 → 4 on both sides |
 | L06 | recvmmsg removes terminal WouldBlock syscall without reducing the 16-packet fairness budget | reject unchecked batching: failure boundary changes; SO_ERROR-screen loses syscall saving and adds single-packet instructions |
 | L07 | Avoid metrics snapshots when no DNS UBus subscriber exists | reject before edits: only 0.046%/0.124% of total instruction samples in control/A; no evidence for a measurable end-to-end gain |
-| L08 | Inline the common single upstream-socket owner | reject isolated prototype: ~601 instructions saved per single-owner lifetime, but 150-owner lifetime adds ~1376; expected whole-query gain too small for added container state |
+| L08 | Inline the common single upstream-socket owner | reject isolated prototype: source/ELF-bound repeat saves ~610 instructions per single-owner lifetime, but 150-owner lifetime adds ~1373; projected 0.37% whole-miss instructions below frozen variation |
 | L09 | Create upstream UDP descriptors with both flags atomically | screened in: 2 setup syscalls/socket removed; flags, bound tuples, port-range random calls, errors and FD cleanup verified |
-| L10 | Reuse owner readiness instead of nested zero-timeout upstream ppoll | investigate saved-call cost first; token/epoch and consumed-error safeguards required |
+| L10 | Reuse owner readiness instead of nested zero-timeout upstream ppoll | reject before product edits: projected 1.99% whole-miss instructions below deployed 4.60% CPU range and frozen 3.07% precision floor; token/epoch/error bookkeeping would reduce benefit |
 
 L01 uses `Cow<[u8]>`; pending interface admission still owns its original copy,
 and deferred interface-record/MAC lookups materialize a Vec before returning.
@@ -196,5 +196,47 @@ passed. Linux full unit/C/upstream-bind/exec gates remain root-owned and pending
 The same trace contains 9943 zero-timeout ppoll calls, 9931 polling one fd,
 within 19,879 total ppolls. Removing them safely requires accounting for fd
 reuse, already-consumed POLLERR, new socket generations and unchanged timer/
-reply ordering. L10 is not implemented yet; its expected benefit must justify
-the additional state and pass the frozen precision gate.
+reply ordering. The owner's readiness booleans are only wakeups: it can accept
+new queries and consume errors before the nested transport phase. Reusing the
+raw fd numbers alone would not preserve that boundary.
+
+## Residual screen decisions and limits
+
+`residual-counts.json` binds the standalone L08/L10 sources, exact native ELF
+hashes, compiler versions and every invocation. Its 11 count-only cases passed
+on Oracle CPU 2. The first receipt run lacked perf privilege, failed before any
+measurement and remains archived; a separate explicit sudo run succeeded with
+unchanged host policy. Earlier session counts remain archived too. The new run
+fills their missing build-command receipt, not an acceptance rerun.
+
+A one-fd zero-timeout ppoll costs about 1631–1636 extra instructions relative
+to an ideal skip control, whether ready or empty. Applying the larger value
+to every nested call in A's 5000-query miss trace projects 1.99% of the separate
+816,869,505-instruction A miss profile. This is an intentionally generous screen
+estimate before generation/error bookkeeping. The probe is native glibc, while
+the DNS artifact uses exact SDK musl; it is not a mathematical speedup bound or
+a device measurement. The fresh deployed baseline has UDP-miss CPU
+522 [512,536] microseconds/query: its own range is 4.60%, and the frozen 8-tick
+minimum is 3.07% at 5000 operations. L10's expected gain is below both, so no
+readiness-state implementation is introduced.
+
+The inline-owner set saves 610/534/366 instructions for 1/2/16-owner lifetimes
+and adds 1373 for 150 owners. It also adds 16 inline bytes per set. Even assuming
+one saved lifetime per miss, the projected whole-query instruction saving is
+only 0.37%. L08 is rejected on measured cost and variation, without replacing
+the existing HashSet or its caller/ownership rules.
+
+`owner-profile-scenes.json` preserves four additional exact A SDK profiles,
+locally revalidated against their ELF/map/process identities and perf ACKs;
+each has 4000 correct measured queries plus warmup. TCP-hit's sampled kernel
+share is 93.82%, but UDP-miss still has substantial user work. Cache insertion
+accounts for 10.01% of all UDP-miss instruction samples and 18.29% of TCP-miss;
+the DNS agent owns that investigation. The large inlined upstream send function
+has 12.99% of UDP-miss samples and contains multiple map operations and socket
+selection; its aggregate label is not evidence that all of it can be removed.
+Do not claim all residual daemon work is irreducible from these profiles.
+
+Independent correctness review of L09 was repeated against the retained SDK
+headers: constants, immediate OwnedFd ownership, IPv6-only/source/interface
+setup, port randomness, bind-error classification and single-close cleanup
+have no blocker. Full fresh integrated candidate gates remain mandatory.
