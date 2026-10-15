@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "status": "PASS_SOURCE_AND_LOCAL_CONTROL_REVIEW",
+  "candidate_commit": "6f594d7bc8b89a704ad67e96b8eae3256e5d6744",
+  "base_E": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "product_file": "components/dnsmasq/src/dns/local.rs",
+  "candidate_file_sha256": "565488ae11ff3380c6194c0167a14ad2ee37540f50e566919fcfa1d63e878868",
+  "scope": "Independent local source/control review; no new workload, no SDK artifact or full performance qualification.",
+  "source_checks": {
+    "moved_address_loop_bytes": 3549,
+    "moved_address_loop_sha256": "8419b0013ccd17119e00d520fb4fc29c7ef9a8aa6230dfe402431b7ab824c140",
+    "address_loop_byte_identical_to_E": true,
+    "baseline_manifest_files_independently_matched_to_git": 172,
+    "only_product_change_file": "components/dnsmasq/src/dns/local.rs"
+  },
+  "equivalence_boundaries": [
+    "Fast path requires exactly A or AAAA and absence of any configured raw record of that type. Even an unrelated-owner raw A/AAAA keeps the general path.",
+    "The address-family block is moved byte-for-byte, including interface-source precedence, DHCPv4 records, Hosts rotation/no-round-robin, localise filtering, logging notices and cached-candidate suppression of synthesis.",
+    "General path passes the original rows vector, preserving configured raw/TXT/PTR prefixes. Its original ownership is ORed with helper ownership; raw address rows still suppress synthetic answers.",
+    "The helper does not read the incoming owned flag, so a fresh helper-local false plus caller OR is equivalent to the original monotonic true assignments.",
+    "The skipped TXT/MX/SRV/NAPTR helpers immediately reject A/AAAA before contributions or rotations. PTR/reverse synthesis and SRV rotation were guarded by other qtypes.",
+    "CNAME selection/chaining happens before this collector, and CNAME-only ownership remains with the unchanged caller. Empty ordinary A/AAAA returns rows empty/owned false/reverse false.",
+    "ANY/PTR/mail ordering and their existing shared rows path remain unchanged. The reliable raw-type index is maintained alongside private raw records."
+  ],
+  "tests_reviewed": [
+    "Fast result versus general fallback forced by unrelated raw A/AAAA, across host/alias/missing names and an interleaved A/AAAA/TXT/MX/ANY sequence to detect rotation differences.",
+    "Same-owner raw A/AAAA must precede host address rows; a raw synthesized-name A suppresses synthesis."
+  ],
+  "retained_control_evidence": {
+    "commit": "4550114f",
+    "receipt_sha256": "ea00079e0c3374f827c8d2dde731b3fc48d48ab4b493d8ff1bdbd9c459ad16d2",
+    "scenes": 15,
+    "runs": 30,
+    "all_8000_operations": true,
+    "all_answer_length_checksums_match": true,
+    "all_final_live_requested_bytes_zero": true,
+    "hit_typed_saved_allocations_per_operation": 1,
+    "hit_typed_saved_requested_bytes_per_operation": 23,
+    "author_reported_tests": {
+      "mac_library_tests": {
+        "passed": 713,
+        "ignored": 8,
+        "failed": 0
+      },
+      "linux_library_tests": {
+        "passed": 828,
+        "ignored": 20,
+        "failed": 0
+      },
+      "address_loop_sha256": "8419b0013ccd17119e00d520fb4fc29c7ef9a8aa6230dfe402431b7ab824c140",
+      "address_loop_byte_identical_to_E": true
+    },
+    "host_localise_allocation_difference_retained": {
+      "E": {
+        "scene": "host-localise",
+        "operations": 8000,
+        "allocations": 69600,
+        "reallocations": 16630,
+        "requested_bytes": 6901120,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "E"
+      },
+      "candidate": {
+        "scene": "host-localise",
+        "operations": 8000,
+        "allocations": 69600,
+        "reallocations": 16840,
+        "requested_bytes": 7013760,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "side": "local-hit1"
+      }
+    },
+    "control_limit": "These probe checksums summarize answer lengths, not byte-for-byte wire identity. Source equivalence and existing response tests support this narrow step; full boundary/family comparisons remain required for F."
+  },
+  "aslr_control_note": "Unchanged Hosts::name_hash_bucket incorporates relocated typestr pointer bytes and rotation copies a bucket. The individual-process host-localise allocation difference is retained and not used alone to infer candidate benefit or regression.",
+  "blockers": []
+}
