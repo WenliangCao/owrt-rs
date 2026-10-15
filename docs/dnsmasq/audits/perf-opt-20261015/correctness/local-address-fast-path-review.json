@@ -75,5 +75,20 @@
     "control_limit": "These probe checksums summarize answer lengths, not byte-for-byte wire identity. Source equivalence and existing response tests support this narrow step; full boundary/family comparisons remain required for F."
   },
   "aslr_control_note": "Unchanged Hosts::name_hash_bucket incorporates relocated typestr pointer bytes and rotation copies a bucket. The individual-process host-localise allocation difference is retained and not used alone to infer candidate benefit or regression.",
-  "blockers": []
+  "blockers": [],
+  "plain_screen_review": {
+    "commit": "6f143ec5",
+    "summary_sha256": "b46f5998693b218660c00eb81ef2f8fb0e861115feb97ff92ad8b2ce4790aa4a",
+    "windows": 150,
+    "scenes": 15,
+    "rounds_per_side": 5,
+    "all_whole_process_cpu_sums_and_medians_ranges_recomputed": true,
+    "all_paired_checksums_match": true,
+    "decisions": {
+      "improvement": 12,
+      "indistinguishable": 3
+    },
+    "close_boundary": "hit-upper remains indistinguishable: -2.69859155% does not exceed W2.69899170%; no rounding-based promotion.",
+    "scope": "Native uninstrumented wholeprocess CPU/wall including setup andpriming; no SDK/device performance claim."
+  }
 }
