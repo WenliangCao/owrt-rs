@@ -1,0 +1,178 @@
+{
+  "scope": "Independent local derived-summary arithmetic/order audit only; no remote raw or fresh measurements accessed.",
+  "passed": true,
+  "checks": [
+    {
+      "summary": "docs/dnsmasq/audits/perf-opt-20261015/dns/udp-admission-plain-summary.json",
+      "sha256": "ba6a428c17c475e00c94bc1791eed102b0e00c617b3d7f43eedecce8903de265",
+      "fixed_windows_verified": 50,
+      "source_baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "candidate_source": "c1ea66f6491241e4eed02c4de92f60e158320fe0",
+      "operations_per_window": 2000000,
+      "decisions": {
+        "improvement": 5
+      },
+      "details": [
+        {
+          "scene": "hit",
+          "decision": "improvement",
+          "change_percent": -4.329446475427345,
+          "W_percent": 0.6969172512929749,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "hit-upper",
+          "decision": "improvement",
+          "change_percent": -4.733879845396749,
+          "W_percent": 0.9094133269549584,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "miss",
+          "decision": "improvement",
+          "change_percent": -6.865241198525817,
+          "W_percent": 0.9518906030683609,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "host",
+          "decision": "improvement",
+          "change_percent": -4.08626157328813,
+          "W_percent": 1.3959880396815787,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "malformed",
+          "decision": "improvement",
+          "change_percent": -2.166149004358253,
+          "W_percent": 0.12000977654014836,
+          "improving_pairs": 5
+        }
+      ]
+    },
+    {
+      "summary": "docs/dnsmasq/audits/perf-opt-20261015/dns/local-hit1-plain-summary.json",
+      "sha256": "b46f5998693b218660c00eb81ef2f8fb0e861115feb97ff92ad8b2ce4790aa4a",
+      "fixed_windows_verified": 150,
+      "source_baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "candidate_source": "6f594d7b",
+      "operations_per_window": 200000,
+      "decisions": {
+        "improvement": 12,
+        "indistinguishable": 3
+      },
+      "details": [
+        {
+          "scene": "hit",
+          "decision": "improvement",
+          "change_percent": -2.6951141737826867,
+          "W_percent": 2.208933466957105,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "hit-upper",
+          "decision": "indistinguishable",
+          "change_percent": -2.69859154929577,
+          "W_percent": 2.6989917036816466,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "hit-leases",
+          "decision": "improvement",
+          "change_percent": -2.2708915590310297,
+          "W_percent": 1.0464542783825705,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "hit-typed",
+          "decision": "improvement",
+          "change_percent": -10.922429636830355,
+          "W_percent": 1.2128438416088219,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "miss",
+          "decision": "improvement",
+          "change_percent": -4.452015611294035,
+          "W_percent": 1.0976729333812318,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "miss-leases",
+          "decision": "improvement",
+          "change_percent": -3.8657876771649557,
+          "W_percent": 1.024015976687079,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "host",
+          "decision": "improvement",
+          "change_percent": -2.0646001943285253,
+          "W_percent": 1.5787994701014492,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "host-localise",
+          "decision": "indistinguishable",
+          "change_percent": -2.715062573589211,
+          "W_percent": 2.857276541322894,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "raw-address",
+          "decision": "indistinguishable",
+          "change_percent": 0.09841300583046664,
+          "W_percent": 0.5739989140966454,
+          "improving_pairs": 2
+        },
+        {
+          "scene": "synth-address",
+          "decision": "improvement",
+          "change_percent": -2.4814801517490603,
+          "W_percent": 0.5338373084781955,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "lease-address",
+          "decision": "improvement",
+          "change_percent": -1.2678365498172917,
+          "W_percent": 0.5745210009309046,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "rrset",
+          "decision": "improvement",
+          "change_percent": -1.9461028574437655,
+          "W_percent": 0.6187507816665461,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "cname",
+          "decision": "improvement",
+          "change_percent": -1.8110915294911711,
+          "W_percent": 0.5712000199982501,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "cname-leases",
+          "decision": "improvement",
+          "change_percent": -1.4926051536659601,
+          "W_percent": 0.806769337796061,
+          "improving_pairs": 5
+        },
+        {
+          "scene": "cname-config",
+          "decision": "improvement",
+          "change_percent": -2.226506134708961,
+          "W_percent": 0.1774781667971436,
+          "improving_pairs": 5
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "No daemon, SDK or device acceptance inferred from native screens.",
+    "Zero diagnostic allocation fields in uninstrumented plain artifacts are not independent allocation evidence.",
+    "Local-address initial argparse rejection remains recorded before any measured windows; no sample replacement inferred."
+  ]
+}
