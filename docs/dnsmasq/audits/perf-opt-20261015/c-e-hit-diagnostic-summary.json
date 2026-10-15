@@ -1,0 +1,609 @@
+{
+  "schema": 1,
+  "scope": "Fresh physical router exact image C versus E: UDP-hit and TCP-hit,5 alternating pairs each,20/20 valid. Diagnostic only,not full candidate acceptance.",
+  "complete": false,
+  "identity": {
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "comparison": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "controller_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+    "scenes": [
+      [
+        "udp-hit",
+        "udp",
+        "hit",
+        200,
+        5,
+        20,
+        150
+      ],
+      [
+        "tcp-hit",
+        "tcp",
+        "hit",
+        200,
+        5,
+        20,
+        150
+      ]
+    ],
+    "threshold_ms": 200,
+    "health_baseline_sha256": "c4e41b8437a0fa0ae9c7f85b708b1d57561c15b5a80e702edd53a6ab80c9f874"
+  },
+  "window_count": 20,
+  "valid_windows": 20,
+  "parse_failures": [],
+  "comparisons": {
+    "tcp-hit": {
+      "p50_ms": {
+        "left": {
+          "median": 0.185662,
+          "min": 0.181814,
+          "max": 0.191047,
+          "rounds": [
+            0.182815,
+            0.191047,
+            0.1862,
+            0.185662,
+            0.181814
+          ]
+        },
+        "right": {
+          "median": 0.225364,
+          "min": 0.221594,
+          "max": 0.23829,
+          "rounds": [
+            0.23829,
+            0.221594,
+            0.232134,
+            0.225364,
+            0.224209
+          ]
+        },
+        "relative_change_pct": 21.384020424211748,
+        "W_pct": 7.408459203776996,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.331236,
+          "min": 0.309461,
+          "max": 0.389328,
+          "rounds": [
+            0.312616,
+            0.347548,
+            0.331236,
+            0.389328,
+            0.309461
+          ]
+        },
+        "right": {
+          "median": 0.392482,
+          "min": 0.362628,
+          "max": 0.464807,
+          "rounds": [
+            0.464807,
+            0.380017,
+            0.392482,
+            0.425105,
+            0.362628
+          ]
+        },
+        "relative_change_pct": 18.490139960632305,
+        "W_pct": 26.034060160720752,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 116.0,
+          "min": 116.0,
+          "max": 118.0,
+          "rounds": [
+            116.0,
+            118.0,
+            116.0,
+            118.0,
+            116.0
+          ]
+        },
+        "right": {
+          "median": 168.0,
+          "min": 166.0,
+          "max": 178.0,
+          "rounds": [
+            178.0,
+            166.0,
+            170.0,
+            168.0,
+            166.0
+          ]
+        },
+        "relative_change_pct": 44.827586206896555,
+        "W_pct": 7.142857142857142,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 1248.0,
+          "min": 1228.0,
+          "max": 1248.0,
+          "rounds": [
+            1248.0,
+            1228.0,
+            1248.0,
+            1248.0,
+            1232.0
+          ]
+        },
+        "right": {
+          "median": 2592.0,
+          "min": 2548.0,
+          "max": 2596.0,
+          "rounds": [
+            2588.0,
+            2592.0,
+            2596.0,
+            2548.0,
+            2592.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 1248,
+          "min": 1228,
+          "max": 1248,
+          "rounds": [
+            1248,
+            1228,
+            1248,
+            1248,
+            1232
+          ]
+        },
+        "right": {
+          "median": 2592,
+          "min": 2548,
+          "max": 2596,
+          "rounds": [
+            2588,
+            2592,
+            2596,
+            2548,
+            2592
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 232,
+          "min": 232,
+          "max": 232,
+          "rounds": [
+            232,
+            232,
+            232,
+            232,
+            232
+          ]
+        },
+        "right": {
+          "median": 716,
+          "min": 712,
+          "max": 716,
+          "rounds": [
+            712,
+            716,
+            716,
+            712,
+            716
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 764,
+          "min": 744,
+          "max": 764,
+          "rounds": [
+            764,
+            744,
+            764,
+            764,
+            748
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 252,
+          "min": 252,
+          "max": 252,
+          "rounds": [
+            252,
+            252,
+            252,
+            252,
+            252
+          ]
+        },
+        "right": {
+          "median": 1872,
+          "min": 1832,
+          "max": 1876,
+          "rounds": [
+            1872,
+            1872,
+            1876,
+            1832,
+            1872
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 143,
+          "min": 143,
+          "max": 143,
+          "rounds": [
+            143,
+            143,
+            143,
+            143,
+            143
+          ]
+        },
+        "right": {
+          "median": 20,
+          "min": 20,
+          "max": 20,
+          "rounds": [
+            20,
+            20,
+            20,
+            20,
+            20
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 19,
+          "min": 19,
+          "max": 19,
+          "rounds": [
+            19,
+            19,
+            19,
+            19,
+            19
+          ]
+        },
+        "right": {
+          "median": 20,
+          "min": 20,
+          "max": 20,
+          "rounds": [
+            20,
+            20,
+            20,
+            20,
+            20
+          ]
+        }
+      }
+    },
+    "udp-hit": {
+      "p50_ms": {
+        "left": {
+          "median": 0.142343,
+          "min": 0.14065,
+          "max": 0.145036,
+          "rounds": [
+            0.141189,
+            0.14065,
+            0.142958,
+            0.145036,
+            0.142343
+          ]
+        },
+        "right": {
+          "median": 0.20659,
+          "min": 0.202511,
+          "max": 0.208744,
+          "rounds": [
+            0.202511,
+            0.203281,
+            0.20659,
+            0.207359,
+            0.208744
+          ]
+        },
+        "relative_change_pct": 45.13534209620424,
+        "W_pct": 3.081289561130509,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.252755,
+          "min": 0.234981,
+          "max": 0.282686,
+          "rounds": [
+            0.252755,
+            0.250293,
+            0.234981,
+            0.257987,
+            0.282686
+          ]
+        },
+        "right": {
+          "median": 0.38171,
+          "min": 0.331543,
+          "max": 0.39556,
+          "rounds": [
+            0.331543,
+            0.334929,
+            0.38171,
+            0.392328,
+            0.39556
+          ]
+        },
+        "relative_change_pct": 51.019762220331934,
+        "W_pct": 18.874008427132992,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 84.0,
+          "min": 82.0,
+          "max": 86.0,
+          "rounds": [
+            82.0,
+            84.0,
+            82.0,
+            86.0,
+            84.0
+          ]
+        },
+        "right": {
+          "median": 146.0,
+          "min": 142.0,
+          "max": 146.0,
+          "rounds": [
+            142.0,
+            144.0,
+            146.0,
+            146.0,
+            146.0
+          ]
+        },
+        "relative_change_pct": 73.80952380952381,
+        "W_pct": 4.761904761904762,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 1232.0,
+          "min": 1176.0,
+          "max": 1244.0,
+          "rounds": [
+            1212.0,
+            1236.0,
+            1232.0,
+            1244.0,
+            1176.0
+          ]
+        },
+        "right": {
+          "median": 2396.0,
+          "min": 2380.0,
+          "max": 2436.0,
+          "rounds": [
+            2396.0,
+            2396.0,
+            2436.0,
+            2404.0,
+            2380.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 1232,
+          "min": 1176,
+          "max": 1244,
+          "rounds": [
+            1212,
+            1236,
+            1232,
+            1244,
+            1176
+          ]
+        },
+        "right": {
+          "median": 2396,
+          "min": 2380,
+          "max": 2436,
+          "rounds": [
+            2396,
+            2396,
+            2436,
+            2404,
+            2380
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 228,
+          "min": 228,
+          "max": 228,
+          "rounds": [
+            228,
+            228,
+            228,
+            228,
+            228
+          ]
+        },
+        "right": {
+          "median": 520,
+          "min": 516,
+          "max": 528,
+          "rounds": [
+            516,
+            528,
+            520,
+            520,
+            520
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 752,
+          "min": 696,
+          "max": 764,
+          "rounds": [
+            732,
+            756,
+            752,
+            764,
+            696
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 252,
+          "min": 252,
+          "max": 252,
+          "rounds": [
+            252,
+            252,
+            252,
+            252,
+            252
+          ]
+        },
+        "right": {
+          "median": 1876,
+          "min": 1856,
+          "max": 1912,
+          "rounds": [
+            1876,
+            1864,
+            1912,
+            1880,
+            1856
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 11,
+          "min": 11,
+          "max": 11,
+          "rounds": [
+            11,
+            11,
+            11,
+            11,
+            11
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 11,
+          "min": 11,
+          "max": 11,
+          "rounds": [
+            11,
+            11,
+            11,
+            11,
+            11
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    }
+  },
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "source_summary_sha256": "da7e84f47b372f79b985e1fcad94020f8144a50626bafd9da21673f660efae2a",
+  "diagnostic_complete": true,
+  "analyzer_complete_note": "Original analyzer complete remains false because its full-candidate gate requires11scenes/110windows. No completeness threshold was changed.",
+  "supplement_windows": 0
+}
