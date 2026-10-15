@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_DERIVED_AND_SOURCE_REVIEW",
+  "evidence_commit": "45518e73",
+  "report_sha256": "2f79daf3cd84b88b519ec19e2e3051f2744f547f097d7d6e30d2a646f54363d1",
+  "scope": "Independent local recomputation of all56derivedattempts and Git/source-manifest verification; source/harness review; no additional Oracle capture or raw-counter reread.",
+  "inventory": {
+    "allocation_runs": 8,
+    "syscall_runs": 8,
+    "counter_runs": 40,
+    "total": 56,
+    "fixed_pair_order_verified": true
+  },
+  "source_manifests": {
+    "e": {
+      "commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "git_files": 172,
+      "copied_files": 164,
+      "source_digest": "9c411d3d5633e07d2f9999283a6e1da7a91502c374bc2db909a2fb4fe9519054"
+    },
+    "candidate": {
+      "commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+      "git_files": 172,
+      "copied_files": 164,
+      "source_digest": "3b6543209f57677083702d02e6b3acbf52acc15a45c8714d07a112947a099e08"
+    }
+  },
+  "verified": [
+    "All56packet,receive,EAGAIN,metadata andFD result formulas match their declarediterations/bursts.",
+    "All8allocation results have zero measured bind/loop allocation and reallocation counts.",
+    "All8trace summaries retain exact send/receive counts, terminalEAGAIN andsuccessful32-byte/zero-byte control lengths; generic controls keep packet info.",
+    "All40event per-packet values andeveryfive-pair median/fullrange/pairedpercentage summary independently recompute.",
+    "All40eventgroups report100percent running; raw nanosecond equality is not independently inferred from a rounded percentage.",
+    "All172listedGitfiles per source matchthe exactGitarchive;164copiednonfuzzfile hashes reproduceboth recordedsource digests.",
+    "No raw packet or product response interpretation is fabricated: payload is32syntheticbytes, notDNS parsing oranswering."
+  ],
+  "bound_kernel_instruction_reduction_per_packet": {
+    "burst1": 312.28050000000076,
+    "burst16": 322.5463687500014
+  },
+  "generic_user_instruction_increase_per_packet": {
+    "burst1": 3.0003000000000384,
+    "burst16": 7.872925000000009
+  },
+  "limits": [
+    "NativeactualAPI mechanism result, notSDK/full-owner/device acceptance.",
+    "PMU includes sender,receiver,setup,teardown,checks andoutput; no subtraction.",
+    "TerminalEAGAIN and16packetbudget remain unchanged. The smallsaving does not explain the entire exactC/E device gap.",
+    "Generic-path instructionincrease isretained; no claim ofuniform improvement."
+  ],
+  "blockers": []
+}
