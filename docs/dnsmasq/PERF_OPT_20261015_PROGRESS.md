@@ -626,3 +626,67 @@ Tool identities and incremental criteria were fixed beforehand in
 `F_E_NEXT_ROUND.md`. Router remains idle, production unchanged, old comparator
 staging untouched. Root and DNS prepare later experiments only in isolated
 F-based local worktrees; they must not mutate F or consume Oracle CPU now.
+
+## F fully qualified; both performance controllers running
+
+F completed 950 short tests, all 44 families/67 original jobs, F10/protocol/TCP
+and the four source corpora. There are no new failures; the original explicitly
+recorded differences remain separate. Qualification SHA
+`84ca19157d7f40710715fc000d1491e8c9918961ce9600a67abcc92185b8a821` binds source
+3a3d8e3e, SDK b7926bcf, map75efe620 and all original result identities.
+The original complete family run took2064.10s. See `correctness/f-full44-gates.json`
+and `correctness/f-correctness-qualification.json`.
+
+Loop owns exclusive Oracle E/F110, started17:53:31UTC, PID416211,
+`root/private/oracle-f-vs-e`. DHCP owns router E/F110, started18:18:41UTC,
+local controller80604, `private/perf-opt-20261015/candidate-f-vs-e`. The device
+handoff initially failed to wake the completed agent; root explicitly used
+followup_task and corrected that delay before its fresh125s health/staging.
+Production8472/PID3086/start2115 remained unchanged. No new Oracle CPU research
+or raw bulk transfer is allowed during timing. The primary predeclared increment
+is discernible UDP-hit CPU/query improvement, not latency-only improvement.
+
+The user explicitly reopened terminal-EAGAIN scheduling and requires low/high
+load costs, plus user-cycle/locality/layout evidence, before choosing the next
+candidate. The user also instructed root to personally research and prototype
+while agents execute acceptance, rather than repeatedly sleep/poll progress.
+Root now owns the following independent F-based product prototypes:
+
+- UDP read-one `4bd3c9a4`, worktree `owrt-perf-udp-read-one-20261015`: per-listener
+  while becomes if; existing cross-listener true-result budget and service
+  ordering remain. This is not C's entire global-first-event scheduling policy.
+  Source/error/resend review and local Linux-musl all-target check pass; the new
+  real queued-packet Linux test remains pending. Plan `UDP_READ_ONE_PLAN.md`
+  declares separate low200/s/high-unpaced syscall, PMU and plain windows.
+- Reply construction layout `2bd0d6b2`, worktree
+  `owrt-perf-local-reply-layout-20261015`: the6045B owned-answer body moves intact
+  behind inline(never). Mac714tests and15scene allocation controls pass. A local
+  final Linux-target ELF (Rust bundled musl, not SDK) shows entry848→656B, but
+  owned two-frame subtotal1264B, +416B. SDK/native cycle/timing remain pending.
+- Address dispatcher layout `26aefa79`, worktree
+  `owrt-perf-address-dispatch-20261015`:6779B general-record body moves intact
+  behind a separate boundary. Mac714tests and15scene controls pass. Local final
+  Linux-target disassembly shows the ordinary dispatcher inlined into its caller,
+  removing the old1408B frame; the848B caller and512B address helper remain.
+  General/raw/ANY paths retain their semantics; no CPU result is claimed.
+- Singleton IDs `0a94e3b0`+`b1180f72`, worktree
+  `owrt-perf-hit-singleton-20261015`: one64B allocation removed for ordinary hits;
+  explicit drop restores the original fallback Vec release point. Source review,
+  Mac63cache tests and Linux830library tests passed. Separate native instruction
+  controls include a+0.962% host and+0.413% RRset change; no timing conclusion.
+
+DNS's independent dotted-name prototype `c627927d` remains in
+`owrt-perf-local-residual-20261015`; it saves a small name allocation but increases
+the Mac entry frame240B. Its counter controls include configured-CNAME+0.073%.
+The two allocation prototypes completed320 fixed native rows in the spare
+correctness slot before F timing (80allocation/240instructions, all unscaled),
+and are now idle. They are not automatically selected as the next candidate.
+DHCP also prepared recipe-only A53 tuning `c076835d`, with evidence `eab6538d`;
+fat LTO and codegen-units1 were already enabled. Compiler experiments stay
+separate from product changes and require independent timing.
+
+The existing diagnostic owner driver gained only the requested explicit rate,
+uninstrumented mode, bound tool identity, full-cohort CPU endpoints and sender
+CPU accounting (bec57a22/039de987/7c958af9). The frozen110 controllers are untouched.
+Do not use the old C/E fixed5000 analyzer on unpaced/F-prototype data. No Linux
+runtime, SDK or timing claim is attached to locally cross-linked ELF inspection.
