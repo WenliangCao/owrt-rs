@@ -51,7 +51,10 @@ class StageGateTests(unittest.TestCase):
     def test_product_prototypes_are_single_static_groups_without_stage_modes(self):
         import address_dispatch_device_run as address
         import udp_name_buffer_device_run as names
-        for entry, role in ((address, 'address-dispatch'), (names, 'udp-name-buffer')):
+        import udp_idle_batch_device_run as idle
+        import fresh_address_device_run as fresh
+        for entry, role in ((address, 'address-dispatch'), (names, 'udp-name-buffer'),
+                            (idle, 'udp-idle-batch'), (fresh, 'fresh-address')):
             with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
                                 ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
                 entry.configure()

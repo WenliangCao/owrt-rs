@@ -1,0 +1,161 @@
+{
+  "schema": 1,
+  "status": "preregistered exploratory fixed10; ELF/map/build download and local source verification pending; no workload started",
+  "scope": "Exploratory unqualified F/udp-idle-batch A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "reason": "Direct A53 test of independent F-based adaptive idle/busy UDP batching after the Oracle screen; no name-buffer or layout changes combined.",
+  "source_commit": "1b934951750559c08807db93bb5c4196745cd25c",
+  "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_files_verified": null,
+  "elf_sha256": "18794b7266a2c1f7ac5993fe5c01e955769afce178703d38ebefa5bc88ac23e2",
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": "c8289db977d34366b369c5634dfb79c99334e54181a617a250c1e857889e5948",
+  "prior_gate_scope": "Related Linux83+4 passed in c38108d9. Prior Oracle low-load EAGAIN reduction is separate evidence, not a measured A53 syscall count; full44 is incomplete.",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "entry_sha256": "0df2007b8bb96116985bb49164da7cc8a7841623bc46a9bd452798df403831d8",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "artifacts": {
+    "e": {
+      "name": "a53-udp-idle-batch-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-udp-idle-batch-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "udp-idle-batch": {
+      "name": "a53-udp-idle-batch-artifact-udp-idle-batch",
+      "sha256": "18794b7266a2c1f7ac5993fe5c01e955769afce178703d38ebefa5bc88ac23e2"
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "schedule": [
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 1,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r1-c"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 1,
+      "side": "rust",
+      "artifact": "udp-idle-batch",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r1-rust"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 2,
+      "side": "rust",
+      "artifact": "udp-idle-batch",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r2-rust"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 2,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r2-c"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 3,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r3-c"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 3,
+      "side": "rust",
+      "artifact": "udp-idle-batch",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r3-rust"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 4,
+      "side": "rust",
+      "artifact": "udp-idle-batch",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r4-rust"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 4,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r4-c"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 5,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r5-c"
+    },
+    {
+      "group": "f-vs-udp-idle-batch",
+      "round": 5,
+      "side": "rust",
+      "artifact": "udp-idle-batch",
+      "mode": null,
+      "label": "a53-udp-idle-batch-f-vs-udp-idle-batch-r5-rust"
+    }
+  ],
+  "measurement_environment": "No DNSMASQ_UDP_STAGE or allocation-meter variables. Both normal product ELFs use the unchanged real cache/local answer.",
+  "output_requirements": [
+    "10 attempts in five alternating F/address-dispatch pairs; no extra windows, supplements or replacement.",
+    "Each6000 fixture replies correct, including1000 prewarm; original steady upstream0, file/live ELF, single process/thread samples and final endpoint, isolated namespace, case/daemon exit0.",
+    "Original20s measurement and100Hz CPU endpoint over5000 completed warmup+measurement queries; original W/direction and exclusive8tick median-difference gate.",
+    "First archive attempt retained even if partial; any failed gate stops; verify all raw bytes before pruning valid device copies.",
+    "Fresh>=120s health; unchanged guard/prod identity; restore E/F slots only after no owned daemon remains."
+  ],
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "automatic_replacement": false,
+  "source_inputs_expected": 179,
+  "pending_before_launch": [
+    "Wait for explicit Oracle transfer gap; read-only download ELF/map/build, verify full hashes and all179 source files.",
+    "Bind final map/build/ELF size identities before fresh health/launch; no workload starts with pending identities.",
+    "Previous diagnostic postflight complete; fresh>=120s health and exact originalE/F restoration/source copies required."
+  ]
+}
