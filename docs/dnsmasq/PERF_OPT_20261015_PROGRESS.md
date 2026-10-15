@@ -372,3 +372,30 @@ semantics, andinclude deterministicregressioncoverage forbothrelativebucketorder
 DHCPownsfix innewworktreebasedonD, DNSreviewsRustchanges, correctnessbindsexactC
 andrelatedgates. NootherproductoptimizationiscurrentlyselectedforE; behavior
 repairwillbe reportedseparately fromD'sperformancemechanism andfreshwholeELFtiming.
+
+## E frozen after independently verified startup repair, 15:14 CEST
+
+Behavior-onlyrepair4f869c885b47dcf60d56c872e5b0b3c62237beea is tagged
+perf/dnsmasq-candidate-e-20261015 (rootcherry-pick aca71a51). AgainstD itchanges
+only17main lines andadds113lines ofdeterministicownerregression. Coldinitial
+hosts bulk excludesprovisionalretainedleases usingtheexistinginitialization
+latch, includingHUPbeforefirstpublication; runtimeHUPstillretainsleases. Itdoes
+notdelayproviderinitialization orfirstfrozenoriginalhelpercallback, andadds
+no state/API/heapallocation. LazyemptydefaultavoidsruntimeHUPwork.
+
+Linuxbefore(afteraddingonlytest)fails exit101 exactlyin thetwoDHCP-firstcold
+branches; all6sceneoutcomes retained. Fixedtestpasses plus existingmodules:
+7hostsdirinit+1initialHUP+4TCPimport=12passed. IndependentDNS/codeandcorrectness
+reviewscompleted, receipts c26de50b/874c572e. FrozenDremainsfailed, no retro-pass.
+
+E source /home/ubuntu/dnsmasq-perf-20261015/root/source-e recreated independently
+fromsourceD +8,975BfullGitpatch, all179inputGitblobs verified; identity16,708B.
+LocalMacsystemPython3.9 failedimporttomllibbeforeanymutation; explicitinstalled
+python3.14 preparationpassed. SDKbuild PID122516 outputroot/private/sdk-e
+launched15:14 with externalfixedbuilderroot/private/sdk-builder-5e6c41f6,
+originalSDKflags/build-slot/sharedcargo-cache. stdout/stderr/launchjsonalongside.
+Correctnessowns Eshort/alloc/namespace/probe andthenfresh44 --jobs3 plusfourth
+boundary/corpusbatches. Avoidduplicatinginterfacefamilyoutsidefull44. Afterall
+correctnesscompletes, rootreservesOracleexclusivelyforfresh110-windowEtiming,
+thenqualifiedEgoesdirectlytofreshexactdeployed/Edevicepairs. D/tmpstageisnotE
+andneverran; restage exactEhashonlyaftertheseprerequisites.
