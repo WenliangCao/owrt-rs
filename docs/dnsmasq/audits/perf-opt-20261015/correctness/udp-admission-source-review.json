@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "status": "PASS_SOURCE_REVIEW",
+  "candidate_commit": "c1ea66f6491241e4eed02c4de92f60e158320fe0",
+  "base_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "scope": "Independent read-only review of the separate UDP admission allocation candidate. E remains unchanged. No Oracle test/build/capture by reviewer.",
+  "product_change": "Replace the discarded Question::parse(query,HEADER_LEN).is_err() result with existing validate_name(query,HEADER_LEN,4).is_err(); no new parser/API/state.",
+  "source_sha256": {
+    "components/dnsmasq/src/dns/udp_query.rs": "9edba0b699a678a68690717ec57ea6395c97d9b42da548f1b265354ed0b4c27c",
+    "components/dnsmasq/src/dns/wire.rs": "a54fc016d2fef97ae697140f009880e4ca0883977b37840a83a3122409ae0c2c"
+  },
+  "equivalence_argument": [
+    "Question::parse delegates to decode_name(packet,start,4), which uses walk_name and collects labels into a Vec. After success it reads qtype/class inside the already checked four-byte tail; these reads add no validation.",
+    "validate_name delegates to the same walk_name(packet,start,4), with a no-op label callback. Binary labels, forward/backward pointers, pointer-hop limit, encoded cursor, expanded-name bound, unsupported-label rejection and four-byte tail boundary therefore use the identical control flow.",
+    "The caller tests only is_err and discards Question. Header, QR/oversize/opcode/count checks retain their order. Failure still follows the same error_reply/skip_questions/OPT path; REFUSED versus Drop behavior is unchanged.",
+    "The candidate removes one discarded temporary Name allocation/copy; it does not remove later answer parsing or claim its cost as saved."
+  ],
+  "new_boundary_test_review": [
+    "Root and binary labels including embedded zero, one, dot and255 remain valid.",
+    "A forward pointer target at offset18 is valid while the encoded question cursor remains at14 with the four-byte QTYPE/QCLASS tail.",
+    "Expanded names at255bytes remain valid;256bytes are refused.",
+    "Self-pointer loop and skippable unsupported label retain REFUSED; an unskippably truncated question remains Drop."
+  ],
+  "validation_status": {
+    "author_reported_local_Mac_tests": {
+      "tests": 5,
+      "failures": 0
+    },
+    "reviewer_test_execution": "Not repeated; code/control-flow review only.",
+    "next_evidence": "Native allocation and complete-answer controls plus narrow PMU screen before any SDK/full-gate candidate admission."
+  },
+  "blockers": []
+}
