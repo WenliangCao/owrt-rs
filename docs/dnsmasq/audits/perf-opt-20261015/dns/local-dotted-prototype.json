@@ -1,0 +1,721 @@
+{
+  "scope": "Mac allocation-only public-answer diagnostic; no CPU performance claim, no Oracle activity",
+  "probe_sha256": "48782d3b4532761b02b453bba65df59d1f8ddc42e84a1dcfc71a34a54da6bdd0",
+  "commands": [
+    {
+      "label": "F-lib",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo",
+        "-j",
+        "1"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-probe",
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/docs/dnsmasq/audits/perf-opt-20261015/dns/hotpath_probe_v2.rs",
+        "--cfg",
+        "allocation_tracking",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-lib",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo",
+        "-j",
+        "1"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-probe",
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/docs/dnsmasq/audits/perf-opt-20261015/dns/hotpath_probe_v2.rs",
+        "--cfg",
+        "allocation_tracking",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-hit",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "hit",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-hit",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "hit",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-hit-upper",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "hit-upper",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-hit-upper",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "hit-upper",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-hit-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "hit-leases",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-hit-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "hit-leases",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-miss",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "miss",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-miss",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "miss",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-miss-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "miss-leases",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-miss-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "miss-leases",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-host",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "host",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-host",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "host",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-rrset",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "rrset",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-rrset",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "rrset",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-cname",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "cname",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-cname",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "cname",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-cname-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "cname-leases",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-cname-leases",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "cname-leases",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "F-cname-config",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-probe",
+        "cname-config",
+        "8000"
+      ],
+      "status": 0
+    },
+    {
+      "label": "dotted-cname-config",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-probe",
+        "cname-config",
+        "8000"
+      ],
+      "status": 0
+    }
+  ],
+  "artifacts": {
+    "F": "dd06a78a4ed9c895d5d506c8384416cf22f55440d051a2217fff0cbea1a99e45",
+    "dotted": "91c2776ccf57bf9f3da9ecd48105bb5a8c3f6d99b9b5d99004f296f0bdb1e0b9"
+  },
+  "counts": [
+    {
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "F"
+    },
+    {
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1792000,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "dotted"
+    },
+    {
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 0,
+      "requested_bytes": 2144000,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "F"
+    },
+    {
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1976000,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "dotted"
+    },
+    {
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "F"
+    },
+    {
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1792000,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "dotted"
+    },
+    {
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0,
+      "side": "F"
+    },
+    {
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 8000,
+      "reallocations": 0,
+      "requested_bytes": 256000,
+      "live_bytes_delta": 0,
+      "checksum": 0,
+      "side": "dotted"
+    },
+    {
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0,
+      "side": "F"
+    },
+    {
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 8000,
+      "reallocations": 0,
+      "requested_bytes": 256000,
+      "live_bytes_delta": 0,
+      "checksum": 0,
+      "side": "dotted"
+    },
+    {
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 64000,
+      "reallocations": 0,
+      "requested_bytes": 3996800,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "F"
+    },
+    {
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 56000,
+      "reallocations": 0,
+      "requested_bytes": 3828800,
+      "live_bytes_delta": 0,
+      "checksum": 468800,
+      "side": "dotted"
+    },
+    {
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 18400,
+      "requested_bytes": 6772800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400,
+      "side": "F"
+    },
+    {
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 18400,
+      "requested_bytes": 6604800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400,
+      "side": "dotted"
+    },
+    {
+      "scene": "cname",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4352000,
+      "live_bytes_delta": 0,
+      "checksum": 764800,
+      "side": "F"
+    },
+    {
+      "scene": "cname",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 4168000,
+      "live_bytes_delta": 0,
+      "checksum": 764800,
+      "side": "dotted"
+    },
+    {
+      "scene": "cname-leases",
+      "operations": 8000,
+      "allocations": 88000,
+      "reallocations": 0,
+      "requested_bytes": 4520000,
+      "live_bytes_delta": 0,
+      "checksum": 764800,
+      "side": "F"
+    },
+    {
+      "scene": "cname-leases",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 4168000,
+      "live_bytes_delta": 0,
+      "checksum": 764800,
+      "side": "dotted"
+    },
+    {
+      "scene": "cname-config",
+      "operations": 8000,
+      "allocations": 144000,
+      "reallocations": 0,
+      "requested_bytes": 8108800,
+      "live_bytes_delta": 0,
+      "checksum": 764800,
+      "side": "F"
+    },
+    {
+      "scene": "cname-config",
+      "operations": 8000,
+      "allocations": 144000,
+      "reallocations": 0,
+      "requested_bytes": 8108800,
+      "live_bytes_delta": 0,
+      "checksum": 764800,
+      "side": "dotted"
+    }
+  ],
+  "complete": true,
+  "candidate_source": "c627927d",
+  "baseline_source": "3a3d8e3e",
+  "prototype_only": true,
+  "product_file": "components/dnsmasq/src/dns/local.rs",
+  "product_file_sha256": "0ce4fa8915177e27a23f1ac0f120c819e2ee24db740f5cf9217f8c30d6a52933",
+  "baseline_product_file_sha256": "565488ae11ff3380c6194c0167a14ad2ee37540f50e566919fcfa1d63e878868",
+  "tests": {
+    "mac_lib_passed": 715,
+    "ignored": 8,
+    "failed": 0,
+    "new_codec_cases": 515,
+    "stdout_sha256": "ec75dc2df7eee5c7475880b001887eabe4b1c7b5f91ff19fe4b60d7720ad007f",
+    "stderr_sha256": "a69413d76eebe6e0fed3fd7acec41eb726deb3e4331b31fc35fd7547282e8e1e"
+  },
+  "allocation_frame": {
+    "F": {
+      "symbol": "__RNvMs_NtNtCskiSgtEnck0U_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+      "instructions": 5630,
+      "prologue": [
+        "",
+        "private/perf-opt-20261015/local-dotted/F-probe:\tfile format mach-o arm64",
+        "",
+        "Disassembly of section __TEXT,__text:",
+        "",
+        "00000001000238d4 <__RNvMs_NtNtCskiSgtEnck0U_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+        "1000238d4:     \tstp\td11, d10, [sp, #-0x80]!",
+        "1000238d8:     \tstp\td9, d8, [sp, #0x10]",
+        "1000238dc:     \tstp\tx28, x27, [sp, #0x20]",
+        "1000238e0:     \tstp\tx26, x25, [sp, #0x30]",
+        "1000238e4:     \tstp\tx24, x23, [sp, #0x40]",
+        "1000238e8:     \tstp\tx22, x21, [sp, #0x50]",
+        "1000238ec:     \tstp\tx20, x19, [sp, #0x60]",
+        "1000238f0:     \tstp\tx29, x30, [sp, #0x70]",
+        "1000238f4:     \tadd\tx29, sp, #0x70",
+        "1000238f8:     \tsub\tsp, sp, #0x310",
+        "1000238fc:     \tldr\tx11, [x29, #0x28]",
+        "100023900:     \tldrb\tw10, [x29, #0x20]",
+        "100023904:     \tldp\tx24, x21, [x29, #0x10]",
+        "100023908:     \tstrb\tw10, [sp, #0x148]",
+        "10002390c:     \tmov\tw8, #0x8                ; =8",
+        "100023910:     \tstp\txzr, x8, [sp, #0x130]"
+      ],
+      "stack_adjustments": [
+        "1000238f8:     \tsub\tsp, sp, #0x310",
+        "1000239d0:     \tadd\tsp, sp, #0x310",
+        "100026e80:     \tadd\tsp, sp, #0x310"
+      ]
+    },
+    "dotted": {
+      "symbol": "__RNvMs_NtNtCsizatty9bzyL_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+      "instructions": 5620,
+      "prologue": [
+        "",
+        "private/perf-opt-20261015/local-dotted/dotted-probe:\tfile format mach-o arm64",
+        "",
+        "Disassembly of section __TEXT,__text:",
+        "",
+        "00000001000238d4 <__RNvMs_NtNtCsizatty9bzyL_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+        "1000238d4:     \tstp\td11, d10, [sp, #-0x80]!",
+        "1000238d8:     \tstp\td9, d8, [sp, #0x10]",
+        "1000238dc:     \tstp\tx28, x27, [sp, #0x20]",
+        "1000238e0:     \tstp\tx26, x25, [sp, #0x30]",
+        "1000238e4:     \tstp\tx24, x23, [sp, #0x40]",
+        "1000238e8:     \tstp\tx22, x21, [sp, #0x50]",
+        "1000238ec:     \tstp\tx20, x19, [sp, #0x60]",
+        "1000238f0:     \tstp\tx29, x30, [sp, #0x70]",
+        "1000238f4:     \tadd\tx29, sp, #0x70",
+        "1000238f8:     \tsub\tsp, sp, #0x3f0",
+        "1000238fc:     \tmov\tx25, x0",
+        "100023900:     \tldrb\tw9, [x29, #0x20]",
+        "100023904:     \tstrb\tw9, [sp, #0x128]",
+        "100023908:     \tmov\tw8, #0x8                ; =8",
+        "10002390c:     \tstp\txzr, x8, [sp, #0x110]",
+        "100023910:     \tstr\txzr, [sp, #0x120]"
+      ],
+      "stack_adjustments": [
+        "1000238f8:     \tsub\tsp, sp, #0x3f0",
+        "100023958:     \tadd\tsp, sp, #0x3f0"
+      ]
+    }
+  },
+  "plain_frame": {
+    "scope": "Mac uninstrumented binary inspection only; no execution/timing, not SDK code",
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--locked",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+          "--lib",
+          "--release",
+          "--target-dir",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo",
+          "-j",
+          "1"
+        ],
+        "status": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "-C",
+          "opt-level=3",
+          "-C",
+          "panic=abort",
+          "-C",
+          "lto=true",
+          "-C",
+          "codegen-units=1",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/libdnsmasq_rs.rlib",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/deps",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/docs/dnsmasq/audits/perf-opt-20261015/dns/hotpath_probe_v2.rs",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-plain-probe"
+        ],
+        "status": 0
+      },
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--locked",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/components/dnsmasq/Cargo.toml",
+          "--lib",
+          "--release",
+          "--target-dir",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo",
+          "-j",
+          "1"
+        ],
+        "status": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "-C",
+          "opt-level=3",
+          "-C",
+          "panic=abort",
+          "-C",
+          "lto=true",
+          "-C",
+          "codegen-units=1",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/libdnsmasq_rs.rlib",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/cargo/release/deps",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/docs/dnsmasq/audits/perf-opt-20261015/dns/hotpath_probe_v2.rs",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-plain-probe"
+        ],
+        "status": 0
+      }
+    ],
+    "binaries": {
+      "F": {
+        "sha256": "37c47d8ad9dfa50b70cf5b35d3be9c0956ea10fb44746004673349d0f0369e78",
+        "symbol": "__RNvMs_NtNtCskiSgtEnck0U_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "assembly_sha256": "736ed6d9b956b805b04947617ac4e51424f23ef4906bd352501fca1379398d9f",
+        "instructions": 5173,
+        "prologue": [
+          "",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/F-plain-probe:\tfile format mach-o arm64",
+          "",
+          "Disassembly of section __TEXT,__text:",
+          "",
+          "0000000100021e84 <__RNvMs_NtNtCskiSgtEnck0U_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+          "100021e84:     \tstp\td11, d10, [sp, #-0x80]!",
+          "100021e88:     \tstp\td9, d8, [sp, #0x10]",
+          "100021e8c:     \tstp\tx28, x27, [sp, #0x20]",
+          "100021e90:     \tstp\tx26, x25, [sp, #0x30]",
+          "100021e94:     \tstp\tx24, x23, [sp, #0x40]",
+          "100021e98:     \tstp\tx22, x21, [sp, #0x50]",
+          "100021e9c:     \tstp\tx20, x19, [sp, #0x60]",
+          "100021ea0:     \tstp\tx29, x30, [sp, #0x70]",
+          "100021ea4:     \tadd\tx29, sp, #0x70",
+          "100021ea8:     \tsub\tsp, sp, #0x300",
+          "100021eac:     \tmov\tx25, x0",
+          "100021eb0:     \tldr\tx11, [x29, #0x28]",
+          "100021eb4:     \tldrb\tw10, [x29, #0x20]",
+          "100021eb8:     \tldp\tx27, x21, [x29, #0x10]",
+          "100021ebc:     \tstrb\tw10, [sp, #0x138]",
+          "100021ec0:     \tmov\tw8, #0x8                ; =8"
+        ],
+        "stack_adjustments": [
+          "100021ea8:     \tsub\tsp, sp, #0x300",
+          "100021f58:     \tadd\tsp, sp, #0x300",
+          "1000257d4:     \tadd\tsp, sp, #0x300"
+        ]
+      },
+      "dotted": {
+        "sha256": "45c1d74dfc530fb1601252b2b05e3087e2f7304bb9f6ffce33d3a8f8860c370f",
+        "symbol": "__RNvMs_NtNtCsizatty9bzyL_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "assembly_sha256": "12c636dabbd994c536cb4cd5acdc4c05ff2c2a754264c664a064ab96199f27e0",
+        "instructions": 5034,
+        "prologue": [
+          "",
+          "/Users/USER/Developer/owrt-perf-local-residual-20261015/private/perf-opt-20261015/local-dotted/dotted-plain-probe:\tfile format mach-o arm64",
+          "",
+          "Disassembly of section __TEXT,__text:",
+          "",
+          "0000000100021e84 <__RNvMs_NtNtCsizatty9bzyL_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+          "100021e84:     \tstp\td11, d10, [sp, #-0x80]!",
+          "100021e88:     \tstp\td9, d8, [sp, #0x10]",
+          "100021e8c:     \tstp\tx28, x27, [sp, #0x20]",
+          "100021e90:     \tstp\tx26, x25, [sp, #0x30]",
+          "100021e94:     \tstp\tx24, x23, [sp, #0x40]",
+          "100021e98:     \tstp\tx22, x21, [sp, #0x50]",
+          "100021e9c:     \tstp\tx20, x19, [sp, #0x60]",
+          "100021ea0:     \tstp\tx29, x30, [sp, #0x70]",
+          "100021ea4:     \tadd\tx29, sp, #0x70",
+          "100021ea8:     \tsub\tsp, sp, #0x3f0",
+          "100021eac:     \tmov\tx27, x0",
+          "100021eb0:     \tldrb\tw10, [x29, #0x20]",
+          "100021eb4:     \tstrb\tw10, [sp, #0x128]",
+          "100021eb8:     \tmov\tw8, #0x8                ; =8",
+          "100021ebc:     \tstp\txzr, x8, [sp, #0x110]",
+          "100021ec0:     \tstr\txzr, [sp, #0x120]"
+        ],
+        "stack_adjustments": [
+          "100021ea8:     \tsub\tsp, sp, #0x3f0",
+          "100021ef4:     \tadd\tsp, sp, #0x3f0"
+        ]
+      }
+    },
+    "fixed_frame_bytes": {
+      "F": 896,
+      "dotted": 1136,
+      "delta": 240
+    },
+    "observations": [
+      "Same saved-register groups in both prologues; this does not establish equal dynamic spill traffic.",
+      "The prototype contains explicit vector stores that initialize the 253-byte buffer.",
+      "Whole emitted function has 5173 versus 5034 static instructions in these Mac binaries; static instruction count is not runtime cost."
+    ]
+  },
+  "status": "Hold as an independent post-F prototype. No Oracle capture, native CPU screen, SDK build, device test or F inclusion is claimed."
+}
