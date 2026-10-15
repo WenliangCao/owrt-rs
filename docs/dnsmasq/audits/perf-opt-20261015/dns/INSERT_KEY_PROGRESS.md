@@ -72,3 +72,20 @@ detection scan may cost CPU, so future Oracle PMU and plain timing must include
 uppercase, reverse, binary, ordinary read and configured-CNAME controls. No
 remote work begins until root releases the current timing reservation. The
 candidate is not integrated or correctness/performance qualified.
+
+## Reverse-path refinement
+
+Root independently noted that reverse insertion never uses the canonical key.
+Revision `60c3bdf2` moves the entire key construction into the existing forward
+branch, with the same conflict/expiry loop. Reverse names now avoid both the
+discarded copy and the new uppercase detection scan. No helper or state is
+added. The prior `43df5899` source, allocation results and binaries remain
+preserved rather than being replaced by the better result.
+
+The same 386 DNS tests pass again. The same nine insertion and ten answer
+allocation controls were rerun: the only counter change from the first variant
+is uppercase reverse insertion, now also 21 → 20 allocations and 23 fewer
+requested bytes per operation. Every checksum/live-byte balance matches E.
+`insert-key2-local-screen.json` records the new artifacts and raw hashes.
+CPU remains unmeasured; the forward-uppercase detection overhead still needs
+the deferred Oracle controls. No remote work was run.
