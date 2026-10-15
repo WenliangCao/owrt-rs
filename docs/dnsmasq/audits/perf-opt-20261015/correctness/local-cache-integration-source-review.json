@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_INTERACTION_REVIEW_ONLY",
+  "integration_source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "scope": "Local read-only source interaction and existing local-log review. No remote preparation/qualification, builds, tests, timing or candidate selection by this review.",
+  "file_composition": {
+    "b343df112e430f16e21026645e56755f2d0fc391": {
+      "components/dnsmasq/src/dns/cache.rs": "4d787005be4dc7e4cf07e960c2485649cbb90ea5413351c2a23244e44a7ddab7",
+      "components/dnsmasq/src/dns/cache_engine.rs": "53011d50ec2b3b06869eb2fde43c0d8bbf77991cc83fc8652e6a04e7055542d0",
+      "components/dnsmasq/src/dns/cache_tests.rs": "5f85d683d81e1a8d10b854da8e6fc10725e069494b6552184a2380918d5b3cfb"
+    },
+    "c44cd116283b9e358f7cfedab13ee5eb3d9b920e": {
+      "components/dnsmasq/src/dns/local.rs": "5d0212e2a0a5151a6fc7df58a382d454faf095c96c8c1c32bc539927a074c4f6",
+      "components/dnsmasq/src/dns/service.rs": "3472d515d3625968a97513bae267e77922ca52676136497fdf53d8c53b5bd424",
+      "components/dnsmasq/src/hosts.rs": "fdac0442933c9dfa9c73eb7d7ffa936e5055c849c82f7f6f91d457c334259429"
+    }
+  },
+  "all_six_modified_files_byte_identical_to_component_prototypes": true,
+  "no_other_modified_files_against_F": true,
+  "shared_owner_and_lease_name_code_byte_identical_to_F": [
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/lease_names.rs"
+  ],
+  "interaction_review": [
+    "answer_local_or_cached still passes the same borrowed Question and cache through the local lookup and subsequent cache answer. NameLookup borrows the original Name; the253-byte stack dotted slice is used only by immediate hosts/lease checks and never stored in the hint.",
+    "A proven local miss performs the original read-only inspect_name and returns None. It does not alter cache roots, generation, revision, expiry or LRU before the fresh helper checks them.",
+    "The fresh-address helper still requires the same owner/root/revision/name identity, single copied generation-checked ID, matching A/AAAA positive length, freshness and policy validity. Rejection is read-only and returns to unchanged general lookup for expiry/rotation.",
+    "Ordinary local answers still win before cache lookup. Configured/local-only forward-rule answers retain their existing deferred position behind cache lookup. Configured CNAME, matching raw/interface/synthetic sources and unproven misses stay in the original local body.",
+    "Expired lease names and non-terminals reject the local shortcut, so the existing local owner performs sticky expiry before the later cache phase. Live lease or hosts ownership also keeps the original path.",
+    "Cached CNAME hints are retained by the local miss inspection but rejected by the address-only fast helper; original general CNAME/negative/DO/filter behavior still owns those cases.",
+    "The fresh writer remains inside its inline-never helper and the original general cache body is unchanged. No new mutation boundary, retained borrow or local/cache result alias is introduced by this composition."
+  ],
+  "local_evidence": {
+    "author_lib_passed": 719,
+    "failed": 0,
+    "ignored": 8,
+    "stdout_sha256": "c51f79b33ea0a32fe3108a18bffc1458bb5cefe20f374d03f020cfe4d2c05c37",
+    "author_linux_musl_all_target_check": "passed",
+    "check_stderr_sha256": "7a0ade9a2b1581d5e40557c43c7db781d8487bab356b5b70a4c5a5a777c5ed45",
+    "reviewer_reran_tests": false
+  },
+  "remaining_blocking_findings": [],
+  "limits": [
+    "This confirms source composition and the reviewed control-flow interaction, not that the two separate runtime effects add together.",
+    "No remote source was prepared and no exact-source Linux/SDK/device/native qualification for this integration was performed by this review.",
+    "No G selection, full44 qualification, performance acceptance or deployment conclusion. Runtime candidate decisions remain separate from this local-only composition check."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
