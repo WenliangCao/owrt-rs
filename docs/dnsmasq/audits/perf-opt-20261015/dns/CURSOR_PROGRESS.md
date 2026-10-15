@@ -45,3 +45,32 @@ One-job native diagnostic builds are in progress; the same whole-DnsDaemon v2
 probe will measure allocation and instruction counts first. No timing is
 authorized. If ordinary gains cannot exceed expected device variation, reject
 the added state and retain the experiment as evidence.
+
+## Resumed screen
+
+Recovered the pre-interruption cursor2 source and counters without replacing
+any observations. Commit `71e7178d` retains the ordinary multi-record lookup
+loop and returns no hint for a Many index. Its product source SHA matches the
+completed isolated Oracle source `dns/candidate-cursor2`. The new assertion
+only confirms that Many inspections return no hint. Three-pass whole-API
+instruction changes against B: singleton hit −10.72%, miss −18.22%, dynamic
+CNAME −5.28%, eight-record RRset +0.41%, hosts +0.71%, and 400 configured CNAMEs
+−0.007%. The original cursor1 RRset regression was +1.87%. These are native
+instruction counters, not accepted timing. The exact v2 fixture, derived
+counts, and raw hashes are committed in `hotpath_probe_v2.rs` and
+`cursor2-screen.json`; raw files and executables remain private.
+
+Allocation counts and requested bytes are unchanged in nine of ten scenes.
+An uppercase singleton hit avoids the redundant canonicalization allocation
+(six to five calls including the fixture's question parsing, 291 to 268
+requested bytes per operation). Eight-record rotation keeps its original
+Arc ownership and allocation counts.
+
+The user explicitly approved the independent stale compatibility fix
+`b1136023`; this branch carries it separately as `c01cef6b`. New native macOS
+DNS tests pass: 379 passed, five existing fixture tests ignored. Native quiet
+timing will compare B plus that fix to cursor2 plus the same fix. Initial new
+build selection failed before compilation because the host's default rustc
+was 1.98.0; the retained retry explicitly selects the existing 1.98.1 toolchain.
+No fixture expectations were changed. Full frozen Linux/exact-C gates and
+same-build SDK/device acceptance remain mandatory.
