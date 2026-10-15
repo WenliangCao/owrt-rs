@@ -36,7 +36,8 @@ def main():
     assert 'private' in out.parts and not out.exists()
     out.mkdir(parents=True)
     report={'source':str(source),'source_commit':a.commit,'source_date_epoch':a.epoch,'features':'','opt_level':'3','status':'building',
-            'scope':'SDK recipe research artifact; compatibility and performance pending'}
+            'scope':'SDK recipe research artifact; compatibility and performance pending',
+            'builder_sha256':audit.sha(Path(__file__)), 'build_helper_sha256':audit.sha(Path(audit.__file__))}
     def save(): (out/'build.json').write_text(json.dumps(report,indent=2)+'\n')
     save()
     try:
@@ -77,6 +78,14 @@ def main():
         report['commands']=[]
         with (sdk/'.owrt-dnsmasq-build.lock').open('a') as lock:
             fcntl.flock(lock,fcntl.LOCK_EX)
+            # SDK prepare stamps do not track the external component snapshot.
+            # Recopy this owned package; its external Cargo cache survives.
+            report['invalidated_prepare_stamps']=[]
+            for stamp in sorted(build.glob('.prepared_*')):
+                assert stamp.is_file() and not stamp.is_symlink()
+                report['invalidated_prepare_stamps'].append(stamp.name)
+                stamp.unlink()
+            save()
             with audit.package_recipe(sdk,source/'packaging/openwrt/owrt-dnsmasq',out,report):
                 target=Path(report['sdk_recipe_path']).relative_to(sdk)
                 for stage in ('prepare','compile'):
@@ -86,7 +95,7 @@ def main():
                     if stage=='prepare':
                         for name,digest in source_files.items():
                             if name.startswith('components/'):
-                                assert audit.sha(build/name.removeprefix('components/'))==digest
+                                assert audit.sha(build/name.removeprefix('components/'))==digest, 'prepared source differs: '+name
                         if a.cargo_target:
                             cache=audit.safe_path(a.cargo_target.resolve())
                             assert 'private' in cache.parts and not cache.is_relative_to(build)
