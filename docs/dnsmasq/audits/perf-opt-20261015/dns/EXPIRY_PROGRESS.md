@@ -78,3 +78,41 @@ Oracle, 44-family and device comparison before further optimization. D is
 therefore preserved and paused here. Its active branch/worktree and all local
 private logs remain intact; restart only after root releases that boundary,
 with fresh profiling rather than transferring historical EPS1 percentages.
+
+## Resumed current-source counter screen
+
+After C completed its first four full device scenes, root authorized this
+screen while the remaining C sequence continues independently. Fresh exact-C
+candidate profiling still attributes 11.09% of UDP-miss and 18.12% of TCP-miss
+instruction samples to insertion; no historical gain was reused.
+
+Oracle baseline is frozen C `f7f7a2ed`; D product source is `9f2a9052`. All 172
+tracked component files were verified before host-local copying, and exactly
+the two D cache/test files were patched and reverified. Frozen C was checked
+unchanged afterwards. Only 33,792 bytes of patch, identity and probe source were
+uploaded; the 34,019-byte derived result was retrieved. Raw artifacts remain
+on Oracle. No router access or bulk source/artifact transfer occurred.
+
+The existing insertion probe now also covers advancing-clock mixed TTLs and
+finite stale retention, and reports actual type sizes. Native Linux cache
+tests pass 41/41. Three-pass instruction medians versus C:
+
+| Primitive | Change |
+| --- | ---: |
+| Full unexpired pressure | −84.540% |
+| Advancing-clock expiry | −77.647% |
+| Advancing-clock finite stale | −85.271% |
+| Replacement | +0.103% |
+| Reverse insertion | +0.002% |
+| Binary long names | −0.090% |
+
+All 32 allocation-scene outputs have identical allocation/reallocation counts,
+requested bytes, live-byte deltas and checksums. Actual native Cache layout is
+216 → 224 bytes (+8 fixed bytes); Entry remains 72 bytes. This fixed per-Cache
+cost can affect enclosing service allocations and still requires final total
+memory assessment. Whole-answer instruction controls are effectively flat for
+hit/miss/eight-record/dynamic-CNAME, +0.009% configured CNAME and +0.519% hosts.
+These are counter results only, not accepted CPU timing or device gains.
+`expiry1-screen.json` retains every sample and raw/artifact identity. A root
+quiet reservation is requested for plain timing; final exact-C/SDK gates are
+still outstanding.

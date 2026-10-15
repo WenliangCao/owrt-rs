@@ -1,6 +1,6 @@
 //! Native diagnostic of real cache insertion/removal/commit paths.
 //! Counts exclude fixture creation and priming; whole-process PMU/timing include both.
-use dnsmasq_rs::dns::cache::{Cache, Kind, Policy, Record};
+use dnsmasq_rs::dns::cache::{Cache, Entry, Kind, Policy, Record, StalePolicy};
 use dnsmasq_rs::dns::wire::{decode_name, Name};
 use std::hint::black_box;
 #[cfg(allocation_tracking)]
@@ -57,8 +57,9 @@ fn main() {
     assert_eq!(args.len(), 3, "probe SCENE OPERATIONS");
     let scene = &args[1];
     let iterations: usize = args[2].parse().unwrap();
-    assert!(["replace", "pressure", "reverse", "long"].contains(&scene.as_str()));
-    let population = match scene.as_str() { "pressure" => 1200, "long" => 80, _ => 800 };
+    assert!(["replace", "pressure", "reverse", "long", "expiry", "expiry-stale"].contains(&scene.as_str()));
+    let expiry = scene.starts_with("expiry");
+    let population = match scene.as_str() { "pressure" | "expiry" | "expiry-stale" => 1200, "long" => 80, _ => 800 };
     let reverse = scene == "reverse";
     let records: Vec<_> = (0..population).map(|i| {
         let name = if scene == "long" {
@@ -71,11 +72,16 @@ fn main() {
         Record { name, kind: if reverse { Kind::ReverseIpv4 } else { Kind::Ipv4 },
             negative: false, data: vec![192, 0, (i / 256) as u8, i as u8] }
     }).collect();
-    let mut cache = Cache::new(1000, Policy::default());
+    let policy = Policy { stale: if scene == "expiry-stale" { StalePolicy::Seconds(5) } else { StalePolicy::Disabled }, ..Policy::default() };
+    let mut cache = Cache::new(1000, policy);
+    let mut clock_index = 0usize;
     let mut insert = |i: usize| {
         cache.start_insert();
         let record = black_box(&records[i % population]).clone();
-        let id = cache.insert(record, 100, 120).unwrap();
+        let now = if expiry { 100 + (clock_index / 1000) as i64 } else { 100 };
+        let ttl = if expiry { [1, 2, 30, 120][i % 4] } else { 120 };
+        clock_index += 1;
+        let id = cache.insert(record, now, ttl).unwrap();
         assert!(cache.commit());
         black_box(cache.get(id).unwrap().expires as u64)
     };
@@ -85,6 +91,6 @@ fn main() {
     for i in 0..iterations { checksum = checksum.wrapping_add(insert(i)); }
     let after = counts();
     let delta = std::array::from_fn::<_, 4, _>(|i| after[i] - before[i]);
-    println!("{{\"scene\":\"{}\",\"operations\":{iterations},\"allocations\":{},\"reallocations\":{},\"requested_bytes\":{},\"live_bytes_delta\":{},\"checksum\":{checksum}}}",
-        scene, delta[0], delta[1], delta[2], delta[3]);
+    println!("{{\"scene\":\"{}\",\"operations\":{iterations},\"allocations\":{},\"reallocations\":{},\"requested_bytes\":{},\"live_bytes_delta\":{},\"checksum\":{checksum},\"cache_layout\":{},\"entry_layout\":{}}}",
+        scene, delta[0], delta[1], delta[2], delta[3], std::mem::size_of::<Cache>(), std::mem::size_of::<Entry>());
 }
