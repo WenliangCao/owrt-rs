@@ -1,0 +1,96 @@
+{
+  "scope": "Local exact-E production-API allocation stages plus source-only owner/caller audit. Not actual Linux step_udp allocation totals or elapsed-time evidence.",
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "source_sha256": {
+    "components/dnsmasq/src/dns/udp_query.rs": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+    "components/dnsmasq/src/dns/forward_service.rs": "2115b3fb09f97f0c8bd2ff6c9359d082e54012e2b792406fe75a649b1770e810",
+    "components/dnsmasq/src/dns/edns_policy.rs": "f6a2e24ed00c5a0aba731c2a9c535bdb70d077a9be7c78e496fb25a8d0aff739",
+    "components/dnsmasq/src/dns/wire.rs": "a54fc016d2fef97ae697140f009880e4ca0883977b37840a83a3122409ae0c2c",
+    "components/dnsmasq/src/dns/local.rs": "647faa59d44eafbcc781c9eeb7e474a0f29d678bbf1708d67540b7673e710427",
+    "components/dnsmasq/src/dns/cache.rs": "ca58d8711daa4520ac4874f35c2994cf7591988230c8dda3f8c82788a6fa6a49",
+    "components/dnsmasq/src/dns/cache_engine.rs": "f8dd4763da8a5ff1cba60d079cfbfdbd032c31f1e37d656fe9f7d304813e2382",
+    "components/dnsmasq/src/main.rs": "33c613a4391b2b401f6ea22adce9e15122eb2a9c37198aa1b90232a7f200255c",
+    "components/dnsmasq/src/listeners.rs": "b3ad164d2836c83be31c22da848e6c2ba576dd376fa7ddd904888b80f5333c8f",
+    "components/dnsmasq/src/net.rs": "a635712f6825778df81706769d718b28c719eb958ab3ff4b87433f9db81420b1"
+  },
+  "probe": {
+    "source_sha256": "873d763df7d9bd2a786abea27db8fcc52573721f0e324d0f9df545250128aa07",
+    "binary_sha256": "3cc395252820af6d09150a8c8c882feefa79d19b9b1df3417c9b7207e1e2bca1",
+    "output_sha256": "895e173d23fb5e5b08a407674f400aad7e4c04da4e3b5231ea4140b408754a3f",
+    "runtime": "Local Apple AArch64, Rust1.98.1, exactE release library, System wrapper counts only. Reuses standalone counting pattern from loop_owner_screen.rs; setup/priming/printing excluded.",
+    "query": "q0000.m6a.test A and q0007.m6a.test AAAA; frozen loadgen format,32B packet,16B wire name,14B dotted name,noOPT;800 primed cache entries,A/AAAA70/30.",
+    "counts_each_query": [
+      {
+        "stage": "udp_query::inspect",
+        "allocations": 1,
+        "requested_bytes": 32,
+        "copies": "16 expanded name bytes into temporary Vec,then discarded"
+      },
+      {
+        "stage": "forward_service::query_metadata",
+        "allocations": 0,
+        "requested_bytes": 0
+      },
+      {
+        "stage": "edns_policy::client_subnet_cacheable",
+        "allocations": 0,
+        "requested_bytes": 0
+      },
+      {
+        "stage": "local::interface_forward_name with empty rules",
+        "allocations": 0,
+        "requested_bytes": 0
+      },
+      {
+        "stage": "forward::Question::parse_with_header",
+        "allocations": 1,
+        "requested_bytes": 32,
+        "copies": "16 expanded wire-name bytes retained for answer"
+      },
+      {
+        "stage": "DnsDaemon::answer_local_or_cached",
+        "allocations": 3,
+        "requested_bytes": 206,
+        "allocation_sizes_in_order": [
+          14,
+          64,
+          128
+        ],
+        "objects": [
+          "lowercase dotted local-lookup name",
+          "Vec<EntryId> singleton result capacity4\u00d716B",
+          "PacketWriter reply capacity128B"
+        ]
+      }
+    ],
+    "reallocations": 0,
+    "stage_total_allocations": 5,
+    "stage_total_requested_bytes": 270,
+    "answer_lengths": [
+      48,
+      60
+    ],
+    "answer_checksums": [
+      1963992203923178845,
+      5262918096051232276
+    ]
+  },
+  "concrete_small_opportunity": "Initial inspect materializes a name only to test parse error. Using the existing exact walk_name validation path could remove1allocation/32requestedB and16copiednameB per ordinary hit without carrying parsed ownership across layers. Not implemented or timed.",
+  "edns_scans": "Ordinary no-config-EDNS UDP cache hit calls find_pseudoheader in query_metadata(true),client_subnet_cacheable(false),local lookup(true),cache answer(true):four nonallocating scans. At most three repeated scans might be reusable only after preserving each caller signing and malformed-section behavior; no speedup bound is claimed.",
+  "C_source_comparison": {
+    "snippet_sha256": "3a617d6959b259bfe32cf79c894378fd818573befdee6dd5c4c5986ea842a35f",
+    "receive": "forward.c1581\u20131668 uses daemon packet scratch and zeros its unreceivedtail;1880+ obtains pseudoheader,1930+ calls add_edns0_config and blockdata_alloc(saved query),then answer_request. C is not assumed to perform zero per-query allocations.",
+    "answer": "rfc1035.c1693+ uses daemon.namebuff and writes into the existing packet after the question;cache.c1174+ returns existing chain nodes and applies expiry/LRU/rotation without an owned Vec of IDs. blockdata allocation/reuse costs are not measured here."
+  },
+  "error_constraints": [
+    "Keep opcodeNOTIMP before extract_requestREFUSED and unskippable-question drop. validate_name follows compression pointers and rejects unsupportedlabeltypes/loops; skip_name is not equivalent.",
+    "Keep originalpacket metadata before decoration; false/true signing scans differ for nonQUERY/TKEY/TSIG and error replies. Local lookup treats invalidadditional as noOPT while cache may propagate a WireError.",
+    "Do not skip local/CNAME/negative/lease checks,cacheLRU/expiry/rotation or send-before-stalerefresh. Empty lease/interface/config collections do not justify workload-specific bypasses."
+  ],
+  "limits": [
+    "Old loop_owner_screen 10alloc/538B was a host-record local-answer fixture; it is not this dynamic-cache hit.",
+    "No actual full Linux owner counter was run in this task. Metrics/socket/poll/send outside these public stages are source-audited only.",
+    "Dotted14B,singleton64B andreply128B are existing ownership/API costs,not free removable allocations.",
+    "No Oracle/router workload or product change was performed for this audit."
+  ]
+}
