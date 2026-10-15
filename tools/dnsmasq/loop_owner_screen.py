@@ -29,6 +29,8 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--cargo', default='/home/ubuntu/.cargo/bin/cargo')
     parser.add_argument('--target-dir', type=Path, required=True)
+    parser.add_argument('--instructions', action='store_true',
+                        help='optimized perf-stat harness without the counting allocator')
     args = parser.parse_args()
     if not re.fullmatch(r'[0-9a-f]{40}', args.source_commit):
         parser.error('--source-commit must be a full lowercase SHA1')
@@ -48,6 +50,10 @@ def main():
     retirement = 'pub fn retire_cache_for_process_exit(' in daemon_source.read_text()
     harness_text = harness.read_text().replace('/* RETIRE_CACHE */',
         'daemon.retire_cache_for_process_exit();' if retirement else '')
+    if args.instructions:
+        hook = '#[global_allocator]\n    static METER: Meter = Meter;'
+        assert harness_text.count(hook) == 1
+        harness_text = harness_text.replace(hook, '')
     readiness_source = copied / 'dnsmasq/src/owner_readiness.rs'
     readiness = readiness_source.is_file()
     if readiness:
@@ -92,6 +98,8 @@ impl OwnerReadiness {
     argv = [args.cargo, '+1.98.1', 'test', '--frozen', '--jobs', '1',
             '--manifest-path', str(copied / 'dnsmasq/Cargo.toml'), '--bin', 'dnsmasq-rs',
             '--no-run', '--message-format=json']
+    if args.instructions:
+        argv.append('--release')
     built = subprocess.run(argv, env=environment, capture_output=True, text=True)
     (out / 'build.stdout').write_text(built.stdout)
     (out / 'build.stderr').write_text(built.stderr)
@@ -103,7 +111,8 @@ impl OwnerReadiness {
     binaries = [row['executable'] for row in artifacts if row.get('reason') == 'compiler-artifact'
                 and row.get('executable') and row.get('profile', {}).get('test')]
     assert len(binaries) == 1
-    shutil.copy2(binaries[0], out / 'owner-allocation')
+    executable = out / ('owner-instructions' if args.instructions else 'owner-allocation')
+    shutil.copy2(binaries[0], executable)
     report = {'source_commit': args.source_commit, 'driver_sha256': sha(Path(__file__)),
               'source_files': source_files, 'source_digest': source_digest,
               'instrumented_files': instrumented_files,
@@ -111,7 +120,8 @@ impl OwnerReadiness {
               'owner_readiness': readiness,
               'original_main_sha256': original_sha, 'harness_sha256': sha(harness),
               'instrumented_main_sha256': sha(main_rs), 'argv': argv,
-              'elf_sha256': sha(out / 'owner-allocation'), 'timing_prohibited': True,
+              'elf_sha256': sha(executable), 'executable': executable.name,
+              'counting_allocator': not args.instructions, 'timing_prohibited': True,
               'terminal_cache_retirement': retirement,
               'daemon_sha256': sha(daemon_source)}
     (out / 'build.json').write_text(json.dumps(report, indent=2) + '\n')

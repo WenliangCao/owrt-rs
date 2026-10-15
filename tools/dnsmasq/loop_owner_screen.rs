@@ -38,6 +38,19 @@ mod loop_allocation_screen {
 
     /* READINESS_RESOURCES */
 
+    fn repetitions(stage: &str) -> usize {
+        match std::env::var("OWNER_SCREEN_STAGE") {
+            Err(_) => 1000,
+            Ok(selected) if selected == stage => std::env::var("OWNER_SCREEN_ITERATIONS")
+                .unwrap().parse::<usize>().unwrap().max(1000),
+            Ok(_) => 1,
+        }
+    }
+
+    fn selected(stage: &str) -> bool {
+        std::env::var("OWNER_SCREEN_STAGE").as_deref() == Ok(stage)
+    }
+
     fn all_counts() -> [u64; 6] {
         [ALLOCATIONS.load(Relaxed), REALLOCATIONS.load(Relaxed), BYTES.load(Relaxed),
          DEALLOCATIONS.load(Relaxed), FREED_BYTES.load(Relaxed),
@@ -108,6 +121,12 @@ mod loop_allocation_screen {
             size_of::<PollTcpClient>(), align_of::<PollTcpClient>(),
             size_of::<TcpDnsWork>(), align_of::<TcpDnsWork>(),
             size_of::<Option<u64>>(), align_of::<Option<u64>>());
+        if selected("init_drop") {
+            let iterations = repetitions("init_drop");
+            measured("init_drop", iterations, || {
+                for _ in 0..iterations { drop(prepared_owner()()); }
+            });
+        }
         let constructor = prepared_owner();
         let mut owner = measured("owner_init_prepared_inputs", 1, constructor);
         report_resources("owner_init", &owner);
@@ -131,8 +150,9 @@ mod loop_allocation_screen {
         measured("first_normal_six", 1, || owner.wait_for_files().unwrap());
         assert_eq!(owner.poll_fds.len(), 6);
         report_resources("first_normal_six", &owner);
-        measured("steady_normal_ready_six", 1000, || {
-            for _ in 0..1000 { owner.wait_for_files().unwrap(); }
+        let iterations = repetitions("steady_normal_ready_six");
+        measured("steady_normal_ready_six", iterations, || {
+            for _ in 0..iterations { owner.wait_for_files().unwrap(); }
         });
         let mut peers = Vec::with_capacity(64);
         for _ in 0..8 {
@@ -143,8 +163,9 @@ mod loop_allocation_screen {
         measured("first_normal_fourteen", 1, || owner.wait_for_files().unwrap());
         assert_eq!(owner.poll_fds.len(), 14);
         report_resources("first_normal_fourteen", &owner);
-        measured("steady_normal_ready_fourteen", 1000, || {
-            for _ in 0..1000 { owner.wait_for_files().unwrap(); }
+        let iterations = repetitions("steady_normal_ready_fourteen");
+        measured("steady_normal_ready_fourteen", iterations, || {
+            for _ in 0..iterations { owner.wait_for_files().unwrap(); }
         });
         let frame = TcpWriteFrame::new(vec![0; 12]).unwrap();
         owner.clients[0].dns_work.as_mut().unwrap().phase =
@@ -152,12 +173,40 @@ mod loop_allocation_screen {
         measured("reading_to_writing", 1, || owner.wait_for_files().unwrap());
         owner.clients[0].dns_work.as_mut().unwrap().phase = TcpClientPhase::Reading;
         measured("writing_to_reading", 1, || owner.wait_for_files().unwrap());
+        if selected("mask_transitions") {
+            let iterations = repetitions("mask_transitions");
+            let mut other = TcpClientPhase::Writing {
+                frame: TcpWriteFrame::new(vec![0; 12]).unwrap(), offset: 0 };
+            measured("mask_transitions", iterations, || {
+                for _ in 0..iterations {
+                    std::mem::swap(&mut owner.clients[0].dns_work.as_mut().unwrap().phase, &mut other);
+                    owner.wait_for_files().unwrap();
+                    std::mem::swap(&mut owner.clients[0].dns_work.as_mut().unwrap().phase, &mut other);
+                    owner.wait_for_files().unwrap();
+                }
+            });
+        }
         let (pending, replacement_peer) = prepared_client();
         measured("client_retirement", 1, || drop(owner.clients.remove(0)));
         drop(peers.remove(0));
         measured("client_accept", 1, || owner.finish_tcp_accept(pending));
         peers.push(replacement_peer);
         measured("lifetime_reconcile", 1, || owner.wait_for_files().unwrap());
+        if selected("lifetime_churn") {
+            let iterations = repetitions("lifetime_churn");
+            measured("lifetime_churn", iterations, || {
+                for _ in 0..iterations {
+                    // Count the complete connection fixture and owner turnover;
+                    // this is deliberately not reported as pure reconcile cost.
+                    let (pending, replacement) = prepared_client();
+                    drop(owner.clients.remove(0));
+                    drop(peers.remove(0));
+                    owner.finish_tcp_accept(pending);
+                    peers.push(replacement);
+                    owner.wait_for_files().unwrap();
+                }
+            });
+        }
         assert!(owner.step_udp(0));
         let mut answer = [0; 1232];
         let (size, _) = peer.recv_from(&mut answer).unwrap();
@@ -166,8 +215,9 @@ mod loop_allocation_screen {
             owner.wait_during_probe(None, Duration::ZERO, Default::default()).unwrap();
         });
         report_resources("first_probe_subset", &owner);
-        measured("normal_probe_transitions", 1000, || {
-            for _ in 0..1000 {
+        let iterations = repetitions("normal_probe_transitions");
+        measured("normal_probe_transitions", iterations, || {
+            for _ in 0..iterations {
                 owner.wait_for_files().unwrap();
                 owner.wait_during_probe(None, Duration::ZERO, Default::default()).unwrap();
             }
@@ -181,17 +231,30 @@ mod loop_allocation_screen {
         measured("first_normal_sixty_four", 1, || owner.wait_for_files().unwrap());
         assert_eq!(owner.poll_fds.len(), 64);
         report_resources("first_normal_sixty_four", &owner);
-        measured("steady_normal_sixty_four", 1000, || {
-            for _ in 0..1000 { owner.wait_for_files().unwrap(); }
+        let iterations = repetitions("steady_normal_sixty_four");
+        measured("steady_normal_sixty_four", iterations, || {
+            for _ in 0..iterations { owner.wait_for_files().unwrap(); }
         });
         let (pending, peer65) = prepared_client();
         owner.finish_tcp_accept(pending);
         measured("first_oversized_sixty_five", 1, || owner.wait_for_files().unwrap());
         assert_eq!(owner.poll_fds.len(), 65);
         report_resources("first_oversized_sixty_five", &owner);
-        measured("steady_oversized_sixty_five", 1000, || {
-            for _ in 0..1000 { owner.wait_for_files().unwrap(); }
+        let iterations = repetitions("steady_oversized_sixty_five");
+        measured("steady_oversized_sixty_five", iterations, || {
+            for _ in 0..iterations { owner.wait_for_files().unwrap(); }
         });
+        if selected("oversized_transitions") {
+            let iterations = repetitions("oversized_transitions");
+            measured("oversized_transitions", iterations, || {
+                for _ in 0..iterations {
+                    let extra = owner.clients.pop().unwrap();
+                    owner.wait_for_files().unwrap();
+                    owner.clients.push(extra);
+                    owner.wait_for_files().unwrap();
+                }
+            });
+        }
         drop(owner.clients.pop());
         drop(peer65);
         measured("return_to_sixty_four", 1, || owner.wait_for_files().unwrap());
@@ -202,8 +265,9 @@ mod loop_allocation_screen {
         report_resources("return_to_fourteen", &owner);
         // Ready downstream clients remain unread by the normal wait alone.
         for peer in &mut peers { peer.write_all(b"x").unwrap(); }
-        measured("all_downstream_ready_fourteen", 1000, || {
-            for _ in 0..1000 { owner.wait_for_files().unwrap(); }
+        let iterations = repetitions("all_downstream_ready_fourteen");
+        measured("all_downstream_ready_fourteen", iterations, || {
+            for _ in 0..iterations { owner.wait_for_files().unwrap(); }
         });
         measured("owner_drop_with_inputs", 1, || drop(owner));
         drop(peers);
