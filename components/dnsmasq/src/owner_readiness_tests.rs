@@ -1,5 +1,5 @@
 use super::*;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 
 fn pair() -> (UnixStream, UnixStream) {
@@ -69,6 +69,69 @@ fn direct_regular_file_and_grouped_socket_keep_original_ready_count() {
 }
 
 #[test]
+fn stable_shape_reuses_ordered_members_and_invalidates_changed_interests() {
+    let (mut direct, mut direct_peer) = pair();
+    let (mut grouped, mut grouped_peer) = pair();
+    let (replacement, _replacement_peer) = pair();
+    let mut owner = owner();
+    let mut fds = [interest(direct.as_raw_fd(), POLLIN), interest(grouped.as_raw_fd(), POLLIN)];
+    owner.watch(1, Key::Tcp(1));
+    direct_peer.write_all(b"d").unwrap();
+    grouped_peer.write_all(b"g").unwrap();
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 2);
+    assert!(owner.ordered && owner.unchanged(&fds));
+    assert_eq!(owner.direct.len(), 1, "aggregate slot never persists in cached direct entries");
+    let mut byte = [0];
+    direct.read_exact(&mut byte).unwrap();
+    grouped.read_exact(&mut byte).unwrap();
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 0);
+    assert!(fds.iter().all(|fd| fd.revents == 0), "old ready bits cannot survive a cache hit");
+    let first_token = owner.registered[0].token;
+    fds[0].events = POLLOUT;
+    assert!(!owner.unchanged(&fds));
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 1);
+    fds[1].events = POLLOUT;
+    assert!(!owner.unchanged(&fds));
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 2);
+    assert_eq!(owner.registered[0].token, first_token, "mask updates retain the same lifetime");
+    owner.begin();
+    owner.watch(1, Key::Tcp(2));
+    assert!(!owner.unchanged(&fds));
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 2);
+    assert_ne!(owner.registered[0].token, first_token);
+    fds[1].fd = replacement.as_raw_fd();
+    assert!(!owner.unchanged(&fds));
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 2);
+    // Moving an unchanged tagged member across direct slots keeps membership
+    // identical; projection must use the current slot, not an earlier slot.
+    fds.swap(0, 1);
+    owner.begin();
+    owner.watch(0, Key::Tcp(2));
+    assert!(owner.unchanged(&fds));
+    assert_eq!(owner.wait(&mut fds, 0).unwrap(), 2);
+    let mut alias = [interest(replacement.as_raw_fd(), POLLIN),
+        interest(replacement.as_raw_fd(), POLLOUT)];
+    assert!(!owner.unchanged(&alias));
+    assert_eq!(owner.wait(&mut alias, 0).unwrap(), 1);
+    assert!(!owner.ordered);
+    assert_eq!((alias[0].revents, alias[1].revents), (0, POLLOUT));
+    let mut negative = [interest(-1, POLLOUT), interest(replacement.as_raw_fd(), POLLOUT)];
+    owner.begin();
+    owner.watch(1, Key::Tcp(2));
+    assert_eq!(owner.wait(&mut negative, 0).unwrap(), 1);
+    assert!(!owner.ordered && negative[0].revents == 0);
+    owner.begin();
+    owner.watch(0, Key::Tcp(2));
+    let mut single = [interest(replacement.as_raw_fd(), POLLOUT)];
+    assert_eq!(owner.wait(&mut single, 0).unwrap(), 1);
+    assert!(owner.unchanged(&single));
+    single[0].events |= 0x2; // POLLPRI retains the original generic fallback.
+    assert!(!owner.unchanged(&single));
+    assert_eq!(owner.wait(&mut single, 0).unwrap(), 1);
+    assert!(owner.epoll.is_none());
+}
+
+#[test]
 fn a_replaced_numeric_fd_requires_a_new_generation() {
     unsafe extern "C" { fn dup2(old: i32, new: i32) -> i32; }
     let (socket, mut peer) = pair();
@@ -127,6 +190,12 @@ fn all_ready_members_fit_one_extraction_and_large_sets_remain_direct() {
     owner.watch(0, Key::Tcp(0));
     assert_eq!(owner.wait(&mut fds[..1], 0).unwrap(), 1);
     assert_eq!(owner.registered.len(), 1);
+    assert!(owner.unchanged(&fds[..1]));
+    owner.begin();
+    assert!(!owner.unchanged(&[]));
+    assert_eq!(owner.wait(&mut [], 0).unwrap(), 0);
+    assert!(owner.registered.is_empty() && owner.direct.is_empty());
+    assert!(owner.unchanged(&[]));
 }
 
 #[test]

@@ -52,6 +52,7 @@ pub(super) struct OwnerReadiness {
     events: Vec<Event>,
     next_token: u64,
     oversized: bool,
+    ordered: bool,
 }
 
 impl OwnerReadiness {
@@ -61,7 +62,7 @@ impl OwnerReadiness {
         Self {
             epoll: (fd >= 0).then(|| unsafe { OwnedFd::from_raw_fd(fd) }),
             tags: Vec::new(), desired: Vec::new(), registered: Vec::new(),
-            direct: Vec::new(), events: Vec::new(), next_token: 0, oversized: false,
+            direct: Vec::new(), events: Vec::new(), next_token: 0, oversized: false, ordered: false,
         }
     }
 
@@ -74,6 +75,7 @@ impl OwnerReadiness {
         self.registered = Vec::new();
         self.direct = Vec::new();
         self.events = Vec::new();
+        self.ordered = false;
     }
 
     pub(super) fn begin(&mut self) { self.tags.clear(); self.oversized = false; }
@@ -100,6 +102,27 @@ impl OwnerReadiness {
             Err(error) if matches!(error.raw_os_error(), Some(2 | 9)) => Ok(()),
             Err(error) => Err(error),
         }
+    }
+
+    fn unchanged(&self, fds: &[PollFd]) -> bool {
+        if !self.ordered || self.tags.len() != self.registered.len()
+            || fds.len() != self.registered.len() + self.direct.len() { return false; }
+        let mut tagged = 0;
+        let mut direct = 0;
+        for (slot, fd) in fds.iter().enumerate() {
+            if self.tags.get(tagged).is_some_and(|&(at, _)| at == slot) {
+                let row = self.registered[tagged];
+                if row.key != self.tags[tagged].1 || row.fd != fd.fd || row.mask != fd.events {
+                    return false;
+                }
+                tagged += 1;
+            } else {
+                let Some(row) = self.direct.get(direct) else { return false; };
+                if row.fd != fd.fd || row.events != fd.events { return false; }
+                direct += 1;
+            }
+        }
+        tagged == self.tags.len() && direct == self.direct.len()
     }
 
     fn prepare(&mut self, fds: &[PollFd]) -> io::Result<()> {
@@ -155,6 +178,15 @@ impl OwnerReadiness {
             }
             self.desired[index] = new;
         }
+        // Keep unique registrations in tag order. Simple sets can then verify
+        // their complete shape linearly, without rebuilding the same interests.
+        self.registered.copy_from_slice(&self.desired);
+        self.ordered = self.tags.len() == self.registered.len()
+            && fds.len() == self.registered.len() + self.direct.len()
+            && self.tags.windows(2).all(|pair| pair[0].0 < pair[1].0)
+            && self.tags.iter().zip(&self.registered).all(|(&(slot, key), row)| {
+                fds.get(slot).is_some_and(|fd| key == row.key && fd.fd == row.fd && fd.events == row.mask)
+            });
         Ok(())
     }
 
@@ -174,6 +206,7 @@ impl OwnerReadiness {
         if self.epoll.is_none() { return sys::poll_fds(fds, timeout_ms); }
         let started = Instant::now();
         if self.oversized {
+            self.ordered = false;
             // Do not keep kernel callbacks on a former small set while the
             // owner uses direct poll for a large one. Transition cost is at
             // most MAX_TAGS deletions; subsequent large waits have none.
@@ -183,11 +216,11 @@ impl OwnerReadiness {
             }
             return fallback_wait(fds, timeout_ms, started);
         }
-        if self.prepare(fds).is_err() {
+        if !self.unchanged(fds) && self.prepare(fds).is_err() {
             self.disable();
             return fallback_wait(fds, timeout_ms, started);
         }
-        if self.desired.is_empty() { return fallback_wait(fds, timeout_ms, started); }
+        if self.registered.is_empty() { return fallback_wait(fds, timeout_ms, started); }
         for fd in fds.iter_mut() { fd.revents = 0; }
         let direct_count = self.direct.len();
         let mut internal_wake = false;
@@ -198,8 +231,9 @@ impl OwnerReadiness {
             }
         } else {
             self.direct.push(PollFd { fd: self.epoll.as_ref().unwrap().as_raw_fd(), events: POLLIN, revents: 0 });
-            sys::poll_fds(&mut self.direct, remaining_timeout(timeout_ms, started))?;
-            let group = self.direct[direct_count].revents;
+            let result = sys::poll_fds(&mut self.direct, remaining_timeout(timeout_ms, started));
+            let group = self.direct.pop().unwrap().revents;
+            result?;
             if group & !POLLIN != 0 {
                 self.disable(); return fallback_wait(fds, timeout_ms, started);
             }
@@ -213,17 +247,31 @@ impl OwnerReadiness {
         };
         for event in &self.events[..count] {
             let token = event.token;
-            let Some(row) = self.registered.iter().find(|row| row.token == token) else {
+            let Some(at) = self.registered.iter().position(|row| row.token == token) else {
                 self.disable(); return fallback_wait(fds, timeout_ms, started);
             };
-            for fd in fds.iter_mut().filter(|fd| fd.fd == row.fd) {
+            let row = self.registered[at];
+            if self.ordered {
+                let fd = &mut fds[self.tags[at].0];
                 fd.revents |= event.events as i16 & (fd.events | POLLERR | POLLHUP);
+            } else {
+                for fd in fds.iter_mut().filter(|fd| fd.fd == row.fd) {
+                    fd.revents |= event.events as i16 & (fd.events | POLLERR | POLLHUP);
+                }
             }
         }
         let mut direct = 0;
-        for fd in fds.iter_mut() {
+        let mut tagged = 0;
+        for (slot, fd) in fds.iter_mut().enumerate() {
+            if direct == direct_count { break; }
             if fd.fd < 0 { fd.revents = 0; continue; }
-            if !self.registered.iter().any(|row| row.fd == fd.fd) {
+            let grouped = if self.ordered {
+                if self.tags.get(tagged).is_some_and(|&(at, _)| at == slot) {
+                    tagged += 1;
+                    true
+                } else { false }
+            } else { self.registered.iter().any(|row| row.fd == fd.fd) };
+            if !grouped {
                 fd.revents = self.direct[direct].revents;
                 direct += 1;
             }
