@@ -1,0 +1,57 @@
+{
+  "scope": "Exploratory unqualified F/host-miss-index A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "source_commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+  "source_files_verified": 179,
+  "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+  "elf_bytes": 2136859,
+  "map_sha256": "261cb11b3f4a7d5cd452902a17e1cee7924ee78a327949ae5d079d69a82dd411",
+  "build_receipt_sha256": "636a95819e750704b98bd24a0de792eb292f8d3a0221d7088d007979f24df88c",
+  "entry_sha256": "4554ebb15391ffa7499318ed5a01c2f124a39f0ae518d00f8f1297468f6b1558",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "plan_commit": "4060f669",
+  "plan_sha256": "a4752a16794e5e9516f04654b69ef34aae863b279b51c1a9c69388f221a585c0",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.622,
+    "dns_samples": 51,
+    "dns_p95_ms": 0.622,
+    "dns_max_ms": 0.682,
+    "http_samples": 23,
+    "http_max_ms": 71.731,
+    "threshold_ms": 200,
+    "raw_sha256": "e643250ccb09cfd25d6074c182867dc7443420a04dd154575bb03414f51d32b9"
+  },
+  "health_summary_sha256": "5d088072aeaa9ffca6bf68afb6f63c9931255da3491a54d93987c9f6f3dd17ee",
+  "preflight_sha256": "62867d53598bc2d0400f304df216c334a6000b665fd80fab80a14dcaf42f7fed",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "fixed_windows": 10,
+  "replacement": false,
+  "candidate_eligible": false,
+  "full44_qualification": false,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-a53-host-miss-index/host_miss_index_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_HOST_MISS_INDEX_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-host-miss-index/summary.json",
+    "--experiment-hash",
+    "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-host-miss-index-device"
+  ],
+  "setup_script_sha256": "62f7a6bb562a167b1c70d76f976493d872955d308e0ce07643ace084717eb89a",
+  "pid": 93850,
+  "launch_epoch": 1792106470.703304,
+  "started_utc": "2026-10-15T23:21:10.703332+00:00"
+}
