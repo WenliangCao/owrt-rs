@@ -149,3 +149,39 @@ capacity. DNS agent will examine conservative expiry-bound direction locally
 while C timings run, using current interfaces/mutators and historical EPS1
 evidence without importing old implementation wholesale. No Oracle load during
 exclusive timing.
+
+## User priority and running C screen, 10:40 CEST
+
+User reiterated C through complete Oracle timing +44families then fresh device
+comparison is first priority. Only blocking or real-use bugs may be fixed;
+no workflow expansion. The two existing UID-reuse C discrepancies are expressly
+nonblocking and must only be recorded. No new qualifier/audit framework. Draft
+qualifier work was retired unexecuted/uncommitted under private; original
+comparators/rawexit1 retained. This supersedes earlier qualifier proposal.
+
+C SDK SHA `b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1`,
+2,136,859bytes (+12,288/+0.578%vs deployed), within existing budget. Exact build
+manifest/map/ELF copied locally to private/perf-opt-20261015/sdk-c and hashchecked.
+Source f7f7a2edd9f2ecfac72953e43cfc873a354b468b. Linux shortgates941passed/0failed:
+824lib+81bin+17allocation+16ignorednamespace/config+3ignoredbin. Four frozen
+corpus probes pending and will run after timing.
+
+Full110window Oracle screen launched10:40CEST detached controllerPID4043998.
+Output `/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-c`, stdout/stderr
+and launchreceipt alongside. Baselineexact8472 vsCexactb4c4,CPU2; all other
+research workloads paused. Initial3windowsvalid. Poll progress.json/failure.json/
+complete.json, independently derive fullresults; never select replacement windows.
+
+Immediately after timing release, correctness agent launches source-c's
+`run_family_gates.py --jobs3 --source <root>/source-c --elf <root>/private/sdk-c/dnsmasq-rs
+--link-map <root>/private/sdk-c/link.map --commit f7f7a2edd9f2ecfac72953e43cfc873a354b468b
+--base-identity <task>/correctness/private/family-base-identity.json
+--out <task>/correctness/private/c-families-attempt1`, plus existingF10/TCP/protocol/
+fourcorpus probes. No new C differences permitted; knownUID2 explicitly recorded.
+Then qualifiedC goes to router using same110window frozen B/N comparison.
+
+D research paused until C device comparison completes. Exact preserved Dtip
+9f2a905289c6c009edd747abc590a1d013b114e5, activeperf/dnsmasq-expiry-20261015
+worktreeowrt-perf-expiry-20261015. Notintegrated;41localcachetests passed,
+noOracle/Cdiff/perfqualification. OldDNSbranches archived/detached with private
+evidence retained; cleanDworktree intact.
