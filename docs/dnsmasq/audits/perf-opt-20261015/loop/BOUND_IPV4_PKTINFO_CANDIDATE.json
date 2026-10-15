@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "kind": "narrow-candidate-correctness-receipt",
+  "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "status": "prepared-and-tested; not yet selected into the next candidate",
+  "implementation": {
+    "scope": "DNS only; bind_interfaces true, bind_dynamic false, IPv4 neither unspecified/multicast/global-broadcast, matching a non-tentative published DnsInterface.address",
+    "policy": "Cache the proven local IPv4 address in the socket owner once; do not enable IP_PKTINFO; return that destination/local address and interface 0 after the existing error/drop checks.",
+    "fallback": "Generic bind, DHCP/exclusive constructors, unknown explicit aliases, directed broadcasts, wildcard, IPv6, dynamic binding and local-service-only remain on the original pktinfo path.",
+    "lifetime": "Both initial and late factories derive policy at socket creation. Later snapshots do not mutate an existing socket capability; recreated sockets use their new creation snapshot.",
+    "unchanged": [
+      "recvmsg and 40-byte control buffer",
+      "receive buffer capacity",
+      "MSG_TRUNC/MSG_CTRUNC and length rejection",
+      "peer decoding and zero source-port rejection",
+      "errno/EAGAIN behavior",
+      "16-packet owner budget",
+      "resend invalidation",
+      "send path and source selection"
+    ]
+  },
+  "matching_C_source": {
+    "network.c": {
+      "sha256": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+      "reference": "969: IP_PKTINFO only without OPT_NOWILD"
+    },
+    "forward.c": {
+      "sha256": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+      "reference": "1625 and 1720: static IPv4 !check_dst uses known listener address and no ingress pktinfo; receive interface remains 0"
+    },
+    "limit": "Eligibility intentionally remains narrower than all C NOWILD configurations to preserve E metadata in unknown/broadcast cases."
+  },
+  "source_file_sha256": {
+    "components/dnsmasq/src/net.rs": "b0ebaba5a387523ae4ce577cd2e9b38609d143d375d9eaff0f0141949a99d390",
+    "components/dnsmasq/src/listeners.rs": "e5dce8d9c6b73eea63148ab67d73040a11cb4dbeb5a5320a644d868bc4b74901",
+    "components/dnsmasq/src/main.rs": "39d4c45f300c51c9dd971098dff33969bd298ecf811a82fb067d8389ff7ad4c3"
+  },
+  "compile_checks": [
+    {
+      "command": "cargo check --manifest-path components/dnsmasq/Cargo.toml --target aarch64-unknown-linux-musl --all-targets -j1",
+      "exit_code": 0,
+      "log_sha256": "07a8f396b8027650b69551d3f39527ce3123d3a820ab5fabe4ca5487883d3747"
+    },
+    {
+      "command": "cargo check --manifest-path components/dnsmasq/Cargo.toml --all-targets -j1",
+      "platform": "aarch64-apple-darwin",
+      "exit_code": 0,
+      "log_sha256": "d00c23deca835f5a4c2981de741fcc5123f2112fd5d76bbc5615cb84e8773f14"
+    }
+  ],
+  "native_checks": {
+    "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+    "artifacts": {
+      "bin": {
+        "path": "/home/ubuntu/dnsmasq-perf-20261015/dhcp/bound-ipv4-5a03fffe/target/debug/deps/dnsmasq_rs-c577ced3b796bab6",
+        "sha256": "b5e156ea1e0e568f6399873d1b32e15f23546e0b27cca4593de62a940cf97ae2"
+      },
+      "lib": {
+        "path": "/home/ubuntu/dnsmasq-perf-20261015/dhcp/bound-ipv4-5a03fffe/target/debug/deps/dnsmasq_rs-7f9a5a200d06e955",
+        "sha256": "ea82346bc4aaa12f75e92d1754cbbb0c10c3bb02857e5c151388de8dd67a2991"
+      }
+    },
+    "checks": [
+      {
+        "label": "net",
+        "kind": "lib",
+        "case": "net::tests::",
+        "returncode": 0,
+        "command": [
+          "sudo",
+          "-n",
+          "sh",
+          "tools/dnsmasq/run_isolated.sh",
+          "/home/ubuntu/dnsmasq-perf-20261015/dhcp/bound-ipv4-5a03fffe/target/debug/deps/dnsmasq_rs-7f9a5a200d06e955",
+          "net::tests::",
+          "--include-ignored",
+          "--test-threads=1",
+          "--nocapture"
+        ],
+        "log_sha256": "c033ca484e92165c1f867c8a0dd6271f9f54128b3589affff93131308b71f5f7",
+        "summary": "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 842 filtered out; finished in 0.01s"
+      },
+      {
+        "label": "listeners",
+        "kind": "lib",
+        "case": "listeners::tests::",
+        "returncode": 0,
+        "command": [
+          "sudo",
+          "-n",
+          "sh",
+          "tools/dnsmasq/run_isolated.sh",
+          "/home/ubuntu/dnsmasq-perf-20261015/dhcp/bound-ipv4-5a03fffe/target/debug/deps/dnsmasq_rs-7f9a5a200d06e955",
+          "listeners::tests::",
+          "--include-ignored",
+          "--test-threads=1",
+          "--nocapture"
+        ],
+        "log_sha256": "89ddc4bef6c1ad02321153cd7649e587456eff86fe24ecedb2b2ba8aeb166719",
+        "summary": "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 837 filtered out; finished in 0.01s"
+      },
+      {
+        "label": "factory-rebind",
+        "kind": "bin",
+        "case": "tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind",
+        "returncode": 0,
+        "command": [
+          "sudo",
+          "-n",
+          "sh",
+          "tools/dnsmasq/run_isolated.sh",
+          "/home/ubuntu/dnsmasq-perf-20261015/dhcp/bound-ipv4-5a03fffe/target/debug/deps/dnsmasq_rs-c577ced3b796bab6",
+          "tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind",
+          "--include-ignored",
+          "--test-threads=1",
+          "--nocapture"
+        ],
+        "log_sha256": "6f81a947f9c435e76d02df99813d2b060dade90a51c5088cf6a2b13011092cd4",
+        "summary": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 85 filtered out; finished in 0.01s"
+      },
+      {
+        "label": "udp-acl",
+        "kind": "bin",
+        "case": "udp_acl_tests::",
+        "returncode": 0,
+        "command": [
+          "sudo",
+          "-n",
+          "sh",
+          "tools/dnsmasq/run_isolated.sh",
+          "/home/ubuntu/dnsmasq-perf-20261015/dhcp/bound-ipv4-5a03fffe/target/debug/deps/dnsmasq_rs-c577ced3b796bab6",
+          "udp_acl_tests::",
+          "--include-ignored",
+          "--test-threads=1",
+          "--nocapture"
+        ],
+        "log_sha256": "991bc94d0ef0bd693744cb5c22e790f333262bd276cd6213aa8774d07fad4175",
+        "summary": "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.01s"
+      }
+    ],
+    "passed": true,
+    "toolchain": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n"
+  },
+  "native_pass_count": 22,
+  "test_boundary_details": [
+    "10 actual UDP receive modes prove destination, peer, pktinfo option, ingress zero/nonzero, reply source, EAGAIN, truncation and recovery.",
+    "Multicast and global broadcast sockets retain enabled IP_PKTINFO; no multicast delivery claim.",
+    "Raw IPv4 UDP source port 0 is discarded in both default and optimized sockets; a following valid datagram succeeds.",
+    "Initial optimized listener keeps its policy after the input snapshot is cleared; late same-address rebind falls back with an empty snapshot and optimizes with a current known address; dynamic rebind always uses pktinfo.",
+    "Existing ABI, cmsg parsing, TCP ingress, wildcard/source/truncation, listener ACL and production UDP ACL gates also passed."
+  ],
+  "preserved_attempts": {
+    "default_native_toolchain": "Initial unpinned cargo used rustc 1.98.0 and was rejected by unchanged rust-version 1.98.1; preserved logs, rerun explicitly cargo +1.98.1 succeeded.",
+    "local_test_compile": "First all-targets check caught two new test fixtures using a private DnsConfig field via struct update; corrected to Default then assignment before final commit."
+  },
+  "evidence_archive": {
+    "relative_private_path": "private/bound-ipv4-checks/native-evidence.tar.gz",
+    "sha256": "e4f0f3e61d6acc0092382208275b1eb7d3224458133e89391d909c260ae43311",
+    "members": {
+      "build.log": "06204fa3d60d281812e983cdc070846a5d7f804ff92fe0c717f830f74dce895e",
+      "build.jsonl": "f52aff2b1139a7d196a3cd0daf5470882ac0215b2b46304c0f098c9ef9189edd",
+      "build-default-toolchain.log": "030c4fad4e8fb243c73c2a1d61237c774b5005680201541f5fdff53128d8533d",
+      "build-default-toolchain.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net.log": "c033ca484e92165c1f867c8a0dd6271f9f54128b3589affff93131308b71f5f7",
+      "listeners.log": "89ddc4bef6c1ad02321153cd7649e587456eff86fe24ecedb2b2ba8aeb166719",
+      "factory-rebind.log": "6f81a947f9c435e76d02df99813d2b060dade90a51c5088cf6a2b13011092cd4",
+      "udp-acl.log": "991bc94d0ef0bd693744cb5c22e790f333262bd276cd6213aa8774d07fad4175",
+      "tests-receipt.json": "942ce66214a9ea232476de3a1ceab6461a7d3934def3781871807f059d2570ba"
+    }
+  },
+  "limits": [
+    "Native debug tests validate behavior, not performance or the exact SDK ELF.",
+    "No full acceptance rerun or device deployment was performed for this candidate.",
+    "Independent mechanism cost screen remains separate."
+  ]
+}
