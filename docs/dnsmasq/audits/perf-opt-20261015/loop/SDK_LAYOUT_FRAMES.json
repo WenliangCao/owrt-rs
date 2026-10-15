@@ -1,0 +1,885 @@
+{
+  "schema": 1,
+  "scope": "Read-only local exact SDK artifact/map stack and call-chain review; no build, execution, profiling or remote access",
+  "disassembler": {
+    "package": "capstone",
+    "version": "5.0.7"
+  },
+  "artifacts": {
+    "f": {
+      "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "source_local_rs_sha256": "565488ae11ff3380c6194c0167a14ad2ee37540f50e566919fcfa1d63e878868",
+      "ELF_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "ELF_bytes": 2136859,
+      "ELF_kind": "ET_DYN static PIE; no section headers",
+      "map_sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+      "build_json_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+      "all_executable_input_sections_checked": 2700,
+      "executable_file_backed_loads": [
+        {
+          "file_offset": "0x0",
+          "virtual_start": "0x0",
+          "file_bytes": 2085792
+        }
+      ],
+      "functions": {
+        "outer": {
+          "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "virtual_start": "0xe65b8",
+          "input_section_bytes": 14032,
+          "file_offset": "0xe65b8",
+          "code_sha256": "a19a222a007ec1917e03c37b1bb6ef62d70b3f20a3d5ae1a14838f03a798fcad",
+          "entry_frame_bytes": 848,
+          "entry_allocations": [
+            {
+              "address": "0xe65b8",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xe65dc",
+              "bytes_le": "ff430bd1",
+              "instruction": "sub sp, sp, #0x2d0",
+              "reserved_bytes": 720
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xe65b8",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xe65dc",
+              "instruction": "sub sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe6688",
+              "instruction": "add sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe66a8",
+              "instruction": "ldr d10, [sp], #0x80"
+            },
+            {
+              "address": "0xe9530",
+              "instruction": "add sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe9550",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xe744c",
+              "instruction": "bl #0xeb0a4",
+              "target": "local_dispatch",
+              "target_address": "0xeb0a4",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe77b4",
+              "instruction": "bl #0xeb0a4",
+              "target": "local_dispatch",
+              "target_address": "0xeb0a4",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "9fd59420be9281498bc091656677446bf317ea4476abba56f5764fa023647475"
+        },
+        "local_dispatch": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+          "virtual_start": "0xeb0a4",
+          "input_section_bytes": 10040,
+          "file_offset": "0xeb0a4",
+          "code_sha256": "8ff05a5555fe68c99568003dd5963b0032cc84efbe1fb5adee872335456282a0",
+          "entry_frame_bytes": 1408,
+          "entry_allocations": [
+            {
+              "address": "0xeb0a4",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xeb0c8",
+              "bytes_le": "ff0314d1",
+              "instruction": "sub sp, sp, #0x500",
+              "reserved_bytes": 1280
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xeb0a4",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xeb0c8",
+              "instruction": "sub sp, sp, #0x500"
+            },
+            {
+              "address": "0xed378",
+              "instruction": "add sp, sp, #0x500"
+            },
+            {
+              "address": "0xed398",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xeb1a8",
+              "instruction": "bl #0xf0744",
+              "target": "address",
+              "target_address": "0xf0744",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xec48c",
+              "instruction": "bl #0xf0744",
+              "target": "address",
+              "target_address": "0xf0744",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "0a182b0cfb04a99760e2ffe78e2b5010c56b38fa84fbc653ff14bb7e60a4e60d"
+        },
+        "address": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "virtual_start": "0xf0744",
+          "input_section_bytes": 4544,
+          "file_offset": "0xf0744",
+          "code_sha256": "fd93c9162bb1dac37f9417fa823b7d13ddc3291b4dd975ea5c216076dbcf2f6b",
+          "entry_frame_bytes": 512,
+          "entry_allocations": [
+            {
+              "address": "0xf0744",
+              "bytes_le": "fd7bbaa9",
+              "instruction": "stp x29, x30, [sp, #-0x60]!",
+              "reserved_bytes": 96
+            },
+            {
+              "address": "0xf0760",
+              "bytes_le": "ff8306d1",
+              "instruction": "sub sp, sp, #0x1a0",
+              "reserved_bytes": 416
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xf0744",
+              "instruction": "stp x29, x30, [sp, #-0x60]!"
+            },
+            {
+              "address": "0xf0760",
+              "instruction": "sub sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xf1898",
+              "instruction": "add sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xf18b0",
+              "instruction": "ldp x29, x30, [sp], #0x60"
+            }
+          ],
+          "calls_to_selected_functions": [],
+          "private_disassembly_sha256": "c07b77fb5f765f3e97515fa6622da5b33e4895e4b144d86595c14120ceaef712"
+        }
+      },
+      "local_wrapper_defined": true
+    },
+    "reply-layout": {
+      "source_commit": "2bd0d6b2c15c4616e3c4c2a0e3203eca69adecbf",
+      "source_local_rs_sha256": "efd5a98343b433e8aab5b7d30a7f1ad54343971fbeabd2df5367a549dfaaafd5",
+      "ELF_sha256": "afc32ddc00b34c5a9b45553a6fd52e724e098cffd5329f89d013fd76e099fdee",
+      "ELF_bytes": 2136859,
+      "ELF_kind": "ET_DYN static PIE; no section headers",
+      "map_sha256": "c7da8f8a6dcbbc4aefe06136abe5457b1ec7bde40333d18f417ba90ad80813de",
+      "build_json_sha256": "e6672873fff321db73df4e199bb338669f1ac1153c9c483dc16da96e9b2022b5",
+      "all_executable_input_sections_checked": 2698,
+      "executable_file_backed_loads": [
+        {
+          "file_offset": "0x0",
+          "virtual_start": "0x0",
+          "file_bytes": 2086328
+        }
+      ],
+      "functions": {
+        "outer": {
+          "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "virtual_start": "0xe6588",
+          "input_section_bytes": 8032,
+          "file_offset": "0xe6588",
+          "code_sha256": "9e46085aa0320c8fd9a6bc8629894d353b1566f657ba133dc45057ef6260438f",
+          "entry_frame_bytes": 656,
+          "entry_allocations": [
+            {
+              "address": "0xe6588",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xe65ac",
+              "bytes_le": "ff4308d1",
+              "instruction": "sub sp, sp, #0x210",
+              "reserved_bytes": 528
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xe6588",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xe65ac",
+              "instruction": "sub sp, sp, #0x210"
+            },
+            {
+              "address": "0xe6658",
+              "instruction": "add sp, sp, #0x210"
+            },
+            {
+              "address": "0xe6678",
+              "instruction": "ldr d10, [sp], #0x80"
+            },
+            {
+              "address": "0xe805c",
+              "instruction": "add sp, sp, #0x210"
+            },
+            {
+              "address": "0xe807c",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xe77ec",
+              "instruction": "bl #0xe9904",
+              "target": "local_dispatch",
+              "target_address": "0xe9904",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe7b54",
+              "instruction": "bl #0xe9904",
+              "target": "local_dispatch",
+              "target_address": "0xe9904",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe8048",
+              "instruction": "bl #0xed74c",
+              "target": "finish",
+              "target_address": "0xed74c",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "0fd1d9a52eb54a86bf85f97f0e32a36bd1a8c138b3e56a3f1a25d0a14bb3620c"
+        },
+        "local_dispatch": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+          "virtual_start": "0xe9904",
+          "input_section_bytes": 10040,
+          "file_offset": "0xe9904",
+          "code_sha256": "5ff4afc92a28166d94b08261b0f0b4211b550d6c6f40d540ffa029916c7312a3",
+          "entry_frame_bytes": 1408,
+          "entry_allocations": [
+            {
+              "address": "0xe9904",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xe9928",
+              "bytes_le": "ff0314d1",
+              "instruction": "sub sp, sp, #0x500",
+              "reserved_bytes": 1280
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xe9904",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xe9928",
+              "instruction": "sub sp, sp, #0x500"
+            },
+            {
+              "address": "0xebbd8",
+              "instruction": "add sp, sp, #0x500"
+            },
+            {
+              "address": "0xebbf8",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xe9a08",
+              "instruction": "bl #0xf0914",
+              "target": "address",
+              "target_address": "0xf0914",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xeacec",
+              "instruction": "bl #0xf0914",
+              "target": "address",
+              "target_address": "0xf0914",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "2bb56098c5565efed03d03d549ef8d4863ad58ba6c78a26b1d5e6170a881f974"
+        },
+        "address": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "virtual_start": "0xf0914",
+          "input_section_bytes": 4544,
+          "file_offset": "0xf0914",
+          "code_sha256": "2cdd021383b2e4aedd2b448ebefb5f933474b4b52a0ad3586834c459943fc562",
+          "entry_frame_bytes": 512,
+          "entry_allocations": [
+            {
+              "address": "0xf0914",
+              "bytes_le": "fd7bbaa9",
+              "instruction": "stp x29, x30, [sp, #-0x60]!",
+              "reserved_bytes": 96
+            },
+            {
+              "address": "0xf0930",
+              "bytes_le": "ff8306d1",
+              "instruction": "sub sp, sp, #0x1a0",
+              "reserved_bytes": 416
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xf0914",
+              "instruction": "stp x29, x30, [sp, #-0x60]!"
+            },
+            {
+              "address": "0xf0930",
+              "instruction": "sub sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xf1a68",
+              "instruction": "add sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xf1a80",
+              "instruction": "ldp x29, x30, [sp], #0x60"
+            }
+          ],
+          "calls_to_selected_functions": [],
+          "private_disassembly_sha256": "2bce5a46340968a5fc336b65cd755a2bb1f7c04e215db376f435d9693e2cea4f"
+        },
+        "finish": {
+          "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20finish_local_records",
+          "virtual_start": "0xed74c",
+          "input_section_bytes": 7012,
+          "file_offset": "0xed74c",
+          "code_sha256": "04a9ae5889d630d94ec271d482d157d196f58fa9c7be25ad5b70a3358c86fd9d",
+          "entry_frame_bytes": 608,
+          "entry_allocations": [
+            {
+              "address": "0xed74c",
+              "bytes_le": "fd7bbaa9",
+              "instruction": "stp x29, x30, [sp, #-0x60]!",
+              "reserved_bytes": 96
+            },
+            {
+              "address": "0xed768",
+              "bytes_le": "ff0308d1",
+              "instruction": "sub sp, sp, #0x200",
+              "reserved_bytes": 512
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xed74c",
+              "instruction": "stp x29, x30, [sp, #-0x60]!"
+            },
+            {
+              "address": "0xed768",
+              "instruction": "sub sp, sp, #0x200"
+            },
+            {
+              "address": "0xed9d8",
+              "instruction": "add sp, sp, #0x200"
+            },
+            {
+              "address": "0xed9f0",
+              "instruction": "ldp x29, x30, [sp], #0x60"
+            },
+            {
+              "address": "0xeefcc",
+              "instruction": "add sp, sp, #0x200"
+            },
+            {
+              "address": "0xeefe4",
+              "instruction": "ldp x29, x30, [sp], #0x60"
+            }
+          ],
+          "calls_to_selected_functions": [],
+          "private_disassembly_sha256": "5a3ab97ba5cde29b923784eb24fc1761fd93db8bc73ad36fec84933cb83a5480"
+        }
+      },
+      "local_wrapper_defined": true
+    },
+    "address-dispatch": {
+      "source_commit": "26aefa7952e001881757d41ae32456c5b2a12107",
+      "source_local_rs_sha256": "ac33574e0e2df7abbdec744d0ad778049e729adc7556c20f0a2379de94881bab",
+      "ELF_sha256": "77dca9febedc4211f51da547027729faea4efd7aac43653875a8505ad5e1dc40",
+      "ELF_bytes": 2136859,
+      "ELF_kind": "ET_DYN static PIE; no section headers",
+      "map_sha256": "95e7995b1511807da8dca0efebfa73557d6fd69fc368ce64edb1b3ea64680071",
+      "build_json_sha256": "affcacb92e32f1ac0680e14d18e9ce4ac3df80fb895e804ae95014da2ada6fa6",
+      "all_executable_input_sections_checked": 2698,
+      "executable_file_backed_loads": [
+        {
+          "file_offset": "0x0",
+          "virtual_start": "0x0",
+          "file_bytes": 2086000
+        }
+      ],
+      "functions": {
+        "outer": {
+          "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "virtual_start": "0xe65b8",
+          "input_section_bytes": 14512,
+          "file_offset": "0xe65b8",
+          "code_sha256": "3bca779dd3e62454d5458e55abd878be0712cfb9446e940fdee9fe2526a9b66d",
+          "entry_frame_bytes": 848,
+          "entry_allocations": [
+            {
+              "address": "0xe65b8",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xe65dc",
+              "bytes_le": "ff430bd1",
+              "instruction": "sub sp, sp, #0x2d0",
+              "reserved_bytes": 720
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xe65b8",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xe65dc",
+              "instruction": "sub sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe668c",
+              "instruction": "add sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe66ac",
+              "instruction": "ldr d10, [sp], #0x80"
+            },
+            {
+              "address": "0xe9428",
+              "instruction": "add sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe9448",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xe8330",
+              "instruction": "bl #0xec444",
+              "target": "general_dispatch",
+              "target_address": "0xec444",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe8384",
+              "instruction": "bl #0xeb284",
+              "target": "address",
+              "target_address": "0xeb284",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe9500",
+              "instruction": "bl #0xec444",
+              "target": "general_dispatch",
+              "target_address": "0xec444",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe9548",
+              "instruction": "bl #0xeb284",
+              "target": "address",
+              "target_address": "0xeb284",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "ff9bf30eb2b074aa8f6a85f33a3d8ee10bcc18daa6a496d8f9f995ed0412cba6"
+        },
+        "general_dispatch": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local34add_general_local_records_for_name",
+          "virtual_start": "0xec444",
+          "input_section_bytes": 12656,
+          "file_offset": "0xec444",
+          "code_sha256": "6ef53bc5a2a053d47d1ea561f5ac2c5f624e3929c16b33fbdd09a8f59c1613b9",
+          "entry_frame_bytes": 1376,
+          "entry_allocations": [
+            {
+              "address": "0xec444",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xec468",
+              "bytes_le": "ff8313d1",
+              "instruction": "sub sp, sp, #0x4e0",
+              "reserved_bytes": 1248
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xec444",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xec468",
+              "instruction": "sub sp, sp, #0x4e0"
+            },
+            {
+              "address": "0xef0b4",
+              "instruction": "add sp, sp, #0x4e0"
+            },
+            {
+              "address": "0xef0d4",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xee208",
+              "instruction": "bl #0xeb284",
+              "target": "address",
+              "target_address": "0xeb284",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "37e0ffe271b7f70a74eea3f105b731372d91cae2050079e5a1aff0bee229483f"
+        },
+        "address": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "virtual_start": "0xeb284",
+          "input_section_bytes": 4544,
+          "file_offset": "0xeb284",
+          "code_sha256": "a8f7a5b81108c289af1273918cb5f53d0c592647e0a2e0b6603764ecd3af1c62",
+          "entry_frame_bytes": 512,
+          "entry_allocations": [
+            {
+              "address": "0xeb284",
+              "bytes_le": "fd7bbaa9",
+              "instruction": "stp x29, x30, [sp, #-0x60]!",
+              "reserved_bytes": 96
+            },
+            {
+              "address": "0xeb2a0",
+              "bytes_le": "ff8306d1",
+              "instruction": "sub sp, sp, #0x1a0",
+              "reserved_bytes": 416
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xeb284",
+              "instruction": "stp x29, x30, [sp, #-0x60]!"
+            },
+            {
+              "address": "0xeb2a0",
+              "instruction": "sub sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xec3d8",
+              "instruction": "add sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xec3f0",
+              "instruction": "ldp x29, x30, [sp], #0x60"
+            }
+          ],
+          "calls_to_selected_functions": [],
+          "private_disassembly_sha256": "46cffb66ae3b5666ce15c0d40e5008a0fb02d90692bc3bcdf484c48f7a5fbf68"
+        }
+      },
+      "local_wrapper_defined": false
+    },
+    "udp-read-one": {
+      "source_commit": "4bd3c9a4c9abcdfad9ce638dfc16a38c29fa4c0f",
+      "source_local_rs_sha256": "565488ae11ff3380c6194c0167a14ad2ee37540f50e566919fcfa1d63e878868",
+      "ELF_sha256": "5216c41d2ad980603da0d59ae0672085a3bd468348c5c4cb20b0937bcb8151e0",
+      "ELF_bytes": 2136859,
+      "ELF_kind": "ET_DYN static PIE; no section headers",
+      "map_sha256": "48cad71cb8f2e4d351b897d69c34ca8e8b174ec0ec5f338ce0da445cace3faf6",
+      "build_json_sha256": "ca6a7645d54aa072ccf0555a169cf42ca7df7b60874c5a33d042e17faffdd68f",
+      "all_executable_input_sections_checked": 2700,
+      "executable_file_backed_loads": [
+        {
+          "file_offset": "0x0",
+          "virtual_start": "0x0",
+          "file_bytes": 2085664
+        }
+      ],
+      "functions": {
+        "outer": {
+          "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "virtual_start": "0xe6544",
+          "input_section_bytes": 14032,
+          "file_offset": "0xe6544",
+          "code_sha256": "446815ba5380ce0cfba983a3d805ca82c4069ec9cd53b237eb294b73e6a98278",
+          "entry_frame_bytes": 848,
+          "entry_allocations": [
+            {
+              "address": "0xe6544",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xe6568",
+              "bytes_le": "ff430bd1",
+              "instruction": "sub sp, sp, #0x2d0",
+              "reserved_bytes": 720
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xe6544",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xe6568",
+              "instruction": "sub sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe6614",
+              "instruction": "add sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe6634",
+              "instruction": "ldr d10, [sp], #0x80"
+            },
+            {
+              "address": "0xe94bc",
+              "instruction": "add sp, sp, #0x2d0"
+            },
+            {
+              "address": "0xe94dc",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xe73d8",
+              "instruction": "bl #0xeb030",
+              "target": "local_dispatch",
+              "target_address": "0xeb030",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xe7740",
+              "instruction": "bl #0xeb030",
+              "target": "local_dispatch",
+              "target_address": "0xeb030",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "0a6e6c80bf316937c8f171ea5ee0463f90f4bc00196578f6bc5d9a1520ed68f7"
+        },
+        "local_dispatch": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+          "virtual_start": "0xeb030",
+          "input_section_bytes": 10040,
+          "file_offset": "0xeb030",
+          "code_sha256": "3cd77b16c10f7501d0fea3d070b90513cd46e1db286d2b2cff2711d4d5738d81",
+          "entry_frame_bytes": 1408,
+          "entry_allocations": [
+            {
+              "address": "0xeb030",
+              "bytes_le": "ea0f18fc",
+              "instruction": "str d10, [sp, #-0x80]!",
+              "reserved_bytes": 128
+            },
+            {
+              "address": "0xeb054",
+              "bytes_le": "ff0314d1",
+              "instruction": "sub sp, sp, #0x500",
+              "reserved_bytes": 1280
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xeb030",
+              "instruction": "str d10, [sp, #-0x80]!"
+            },
+            {
+              "address": "0xeb054",
+              "instruction": "sub sp, sp, #0x500"
+            },
+            {
+              "address": "0xed304",
+              "instruction": "add sp, sp, #0x500"
+            },
+            {
+              "address": "0xed324",
+              "instruction": "ldr d10, [sp], #0x80"
+            }
+          ],
+          "calls_to_selected_functions": [
+            {
+              "address": "0xeb134",
+              "instruction": "bl #0xf06d0",
+              "target": "address",
+              "target_address": "0xf06d0",
+              "BL_encoding_verified": true
+            },
+            {
+              "address": "0xec418",
+              "instruction": "bl #0xf06d0",
+              "target": "address",
+              "target_address": "0xf06d0",
+              "BL_encoding_verified": true
+            }
+          ],
+          "private_disassembly_sha256": "27a6e8522f49bdc3e42cd48bde9c0d202982c0b64e46357ba5b934a1e0cce55e"
+        },
+        "address": {
+          "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local28add_address_records_for_name",
+          "virtual_start": "0xf06d0",
+          "input_section_bytes": 4544,
+          "file_offset": "0xf06d0",
+          "code_sha256": "e38334e3043573f756d2b34fc274f1aa624aacd16d1f4b7c040610bf217c1293",
+          "entry_frame_bytes": 512,
+          "entry_allocations": [
+            {
+              "address": "0xf06d0",
+              "bytes_le": "fd7bbaa9",
+              "instruction": "stp x29, x30, [sp, #-0x60]!",
+              "reserved_bytes": 96
+            },
+            {
+              "address": "0xf06ec",
+              "bytes_le": "ff8306d1",
+              "instruction": "sub sp, sp, #0x1a0",
+              "reserved_bytes": 416
+            }
+          ],
+          "stack_adjustments": [
+            {
+              "address": "0xf06d0",
+              "instruction": "stp x29, x30, [sp, #-0x60]!"
+            },
+            {
+              "address": "0xf06ec",
+              "instruction": "sub sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xf1824",
+              "instruction": "add sp, sp, #0x1a0"
+            },
+            {
+              "address": "0xf183c",
+              "instruction": "ldp x29, x30, [sp], #0x60"
+            }
+          ],
+          "calls_to_selected_functions": [],
+          "private_disassembly_sha256": "e275555183626c3c030301803658195cf94e5af2dfcae00952cf7f2f39b761ee"
+        }
+      },
+      "local_wrapper_defined": true
+    }
+  },
+  "prior_evidence_distinction": "Earlier Rust-bundled-musl ET_EXEC addresses and symbol hashes are not used. All addresses below are fresh virtual offsets in these sectionless SDK ET_DYN files, translated via their own PT_LOAD tables.",
+  "method": "Verify ELF/map against their same-build receipt; use existing LoadElf/input_sections to bound every linker executable input section; extract only mapped file-backed bytes; decode AArch64 locally; manually cross-check direct BL encodings and constant prologue allocations.",
+  "derived_call_chains": {
+    "F_ordinary_address": {
+      "frames": [
+        848,
+        1408,
+        512
+      ],
+      "subtotal": 2768,
+      "path": [
+        "outer",
+        "local_dispatch",
+        "address"
+      ]
+    },
+    "address_dispatch_ordinary_address": {
+      "frames": [
+        848,
+        512
+      ],
+      "subtotal": 1360,
+      "delta_from_F": -1408,
+      "path": [
+        "outer",
+        "address"
+      ],
+      "scope": "Existing A/AAAA fast guard with no configured raw record of that type; both call sites branch directly to address helper. General dispatch remains callable and uses1376 bytes."
+    },
+    "reply_layout_lookup_address": {
+      "frames": [
+        656,
+        1408,
+        512
+      ],
+      "subtotal": 2576,
+      "delta_from_F": -192,
+      "path": [
+        "outer",
+        "local_dispatch",
+        "address"
+      ]
+    },
+    "reply_layout_positive_emit": {
+      "frames": [
+        656,
+        608
+      ],
+      "subtotal": 1264,
+      "path": [
+        "outer",
+        "finish"
+      ],
+      "callsite": "0xe8048",
+      "SP_restore_after_call": "0xe805c",
+      "tail_call": false,
+      "compared_outer_frame_F": 848,
+      "two_named_frame_delta_from_F_outer": 416
+    },
+    "udp_read_one_control": {
+      "frames": [
+        848,
+        1408,
+        512
+      ],
+      "subtotal": 2768,
+      "note": "Only a control observation for the same local-answer chain; not an analysis of its UDP-loop performance."
+    }
+  },
+  "limits": [
+    "Frame reservations are not measured bytes read/written, cache misses, IPC, cycles or end-to-end speed.",
+    "Subtotals include only the named simultaneously live frames at those calls; ancestors, deeper calls and whole-daemon peak stack are excluded.",
+    "Reply-layout lookup and positive emit occur at different stages. Do not add all of its listed frames together or label the positive helper call as tail-call elimination.",
+    "These prototypes are independent. No claim about their unbuilt combination or G acceptance."
+  ]
+}
