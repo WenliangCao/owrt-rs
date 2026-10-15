@@ -116,13 +116,17 @@ class StageGateTests(unittest.TestCase):
             if cleanup_fault and command.startswith('cat '):
                 raise TimeoutError('guard copy timeout')
             return SimpleNamespace(stdout=b'', returncode=0)
+        def stop_owned(reason):
+            self.assertTrue((out / 'failure.json').exists())
+            if cleanup_fault:
+                raise TimeoutError('cleanup timeout')
         fault = TimeoutError('cleanup timeout') if cleanup_fault else None
         with patch('sys.argv', argv), patch.object(stage, 'verify_files'), patch.object(stage, 'set_slots') as slots, \
              patch.object(stage.run, 'production_identity', return_value=[1, 2]), \
              patch.object(stage.run, 'ssh', side_effect=ssh), \
              patch.object(stage.run, 'guard_start', return_value=(3, 4)), \
              patch.object(stage.run, 'guard_check', return_value=True), patch.object(stage.run, 'guard_stop', side_effect=fault), \
-             patch.object(stage.run, 'stop_owned', side_effect=fault), patch.object(stage.run, 'external_health'), \
+             patch.object(stage.run, 'stop_owned', side_effect=stop_owned), patch.object(stage.run, 'external_health'), \
              patch.object(stage.run, 'archive_run', side_effect=archived) as archive, \
              patch.object(stage.run, 'validate', side_effect=ValueError('malformed client JSON')), \
              patch.object(stage.subprocess, 'Popen') as launch:
@@ -142,7 +146,7 @@ class StageGateTests(unittest.TestCase):
         self.assertTrue((out / 'restored.json').exists())
         if cleanup_fault:
             self.assertIn('cleanup timeout', failure['recovery']['stop_owned_error'])
-            self.assertEqual(len(json.loads((out / 'cleanup.json').read_text())['errors']), 3)
+            self.assertEqual(len(json.loads((out / 'cleanup.json').read_text())['errors']), 4)
 
     def test_validator_exception_preserves_completed_archive_and_stops(self):
         self.run_controller_failure(partial_archive=False)
