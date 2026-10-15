@@ -1,0 +1,1507 @@
+{
+  "scope": "Fresh exact candidateD five-scene self-instruction attribution with unchanged profiletool, no timingacceptance. Raw staysOracle; independent correctness jobs may overlap counts.",
+  "elf_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+  "map_sha256": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13",
+  "source_commit": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "datasets": {
+    "tcp-hit": {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-d-tcp-hit-20261015",
+      "profile_sha256": "92a6f864de7c5785566e7c9312e840e59f26ad7cf74ff52c144775c563c61f68",
+      "source_digest": "d7a168ed7a748cfc8d85afe9980003677c2252563a7346ab7ef425a11a9676c8",
+      "totals": {
+        "samples": 20043,
+        "period": 200430000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "kernel": 19042,
+        "user_attributed": 968,
+        "user_unmapped": 33
+      },
+      "pmu_during_recording": {
+        "instructions": 267053903,
+        "cycles": 679894232
+      },
+      "nice": 10,
+      "threads_at_identity": 1,
+      "sample_pids": [
+        62081
+      ],
+      "sample_tids": [
+        62081
+      ],
+      "perf_ack_bracket_valid": true,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "prewarm_correct": 1000,
+      "upstream_total": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "raw_sha256": {
+        "maps-after": "b16b41f51f46c495c4693f58bca5122f0e5374eeb388cfd2d194e55a179675f4",
+        "perf-record.command.json": "e83b4622677724740bef8ba3d9d9c481f771f48e1f6a59a8992a16cafe07a01c",
+        "build.json": "0287a917dfeb92a59e02ed34201b368e52134e11ef4ad0e4ad3c4f6ead8daf63",
+        "client.send-lag.bin": "c218f5c706c1db2aa073d0084b013abc64669b6711800b7ada6edecf9e476c97",
+        "prewarm.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq-rs": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+        "prewarm.command.json": "39129c71c6b72d2ba4a27e97a08de933aa91fbc3dee4b95e94351b8dd37f53a5",
+        "client.latencies.bin": "84b4514c1ba09e4e393ac77c14144a0c781b88ab68bbf9a815bea402faa73716",
+        "upstream.ready": "93de9af769948979abbf159e94fef06911c3c8387a8ed32ba3dcdc1f7074dbbd",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf-stat.command.json": "9cfe9104f2763cad2913d0bfb03132bfb2526b1315461bf1838a872fac29ff12",
+        "perf-record.stderr": "6b7041629b38a79b800ba4b5741ff44fd799cb563035672aded9f6f0de5ad5a5",
+        "perf-stat.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "prewarm.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process-identity.json": "dd5b678dcfbfe5e0b96523c698ebf0129b8c14c770346767bb6b09f34db1197c",
+        "profile.json": "92a6f864de7c5785566e7c9312e840e59f26ad7cf74ff52c144775c563c61f68",
+        "client.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "profile-scope.json": "c8418041165957f4bbae98588e64d35d0af48618438879cf7f3f0058048873d5",
+        "perf-stat.csv": "769319cb476aff6f4e5b366970e24a9b3a5530e55177b1fd5f595b59e69850a8",
+        "perf-controls.json": "c91909817d8a372a7ee4462c4beb2816954bf512f5632c47ef264a52637495c4",
+        "prewarm.wire-samples.jsonl": "409ee4c801100f0bca35fd9f77af74125d8ad6d7d3c7a05e69cdb51df896741b",
+        "prewarm.json": "e8b80789a9c4008fbc56bf84edca2e303d9c6b53275d1c26bc26fb3fa3fc7557",
+        "upstream.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.log": "ac85385127cfb4b15925c8d4b9254eeb90c7bed2f2a966395a2b9fe600097407",
+        "client.command.json": "4698b53b2afb81e4af52d41a28a30582003260829ebdf438f467b63b7cd59fde",
+        "complete.json": "77ce85285f1eb543c3b268811ab6ecd04b2756de0cd675f711797b1c1a4edf46",
+        "upstream.command.json": "e63c92ffd83b9c488bd2eba48a331b3a52635746c22410f283e0e756deeffcfd",
+        "self.txt": "e2e6b60c9e00be9638bc2f05bad3a4f714004a030757a2c85a17b4e1d9ca4de3",
+        "daemon.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf.data": "a2e770b086e2d4d911805b3323ed78bc9da1ca9ea9897fb50906ef8fa2c1b347",
+        "prewarm.send-lag.bin": "9995b6c9e21c43c7493b6cb9b9c7deaa43163bf9ab3d11a637229dd5bf6ff172",
+        "prewarm.latencies.bin": "f851d7b69d68a27ba5b50d7f956dc852a299dd1e6a9ee836dadffbb47edb9330",
+        "perf-stat.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+        "client.wire-samples.jsonl": "1d03314739286364c53cd489955b69e4abb6b3860c1a472e101615b49670d54a",
+        "config": "a5b8ec222d2b84f5ca236636138471d57755667b527641cc9088b04707470d9a",
+        "perf-record.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.command.json": "cd4e7f49e75ca4388a7c0df7a51ac212db7e8ff94b406d3fed139adb3e699a79",
+        "samples.txt": "5f99c4688686a615f939ea4b39e65128b2274f6b8f994d3ed8342db2bb53d885",
+        "client.json": "9cff0ac83b261b4625f54c1e2f34cbf1f2eaab8345fb93cbf8dcfa3e36ae0f35",
+        "link.map": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13"
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x50d64",
+            "0x529e4"
+          ],
+          "samples": 163,
+          "period": 1630000,
+          "percent_all_period": 0.8132515092551015
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step_tcp_clients",
+          "elf_range": [
+            "0x5821c",
+            "0x59fa4"
+          ],
+          "samples": 56,
+          "period": 560000,
+          "percent_all_period": 0.27939929152322507
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::answer_records_filtered",
+          "elf_range": [
+            "0xdab54",
+            "0xde028"
+          ],
+          "samples": 48,
+          "period": 480000,
+          "percent_all_period": 0.2394851070199072
+        },
+        {
+          "category": "user_attributed",
+          "label": "[unnamed input section]",
+          "elf_range": [
+            "0x1bf820",
+            "0x1bf9ac"
+          ],
+          "samples": 42,
+          "period": 420000,
+          "percent_all_period": 0.2095494686424188
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::answer_local_or_cached",
+          "elf_range": [
+            "0x80f30",
+            "0x81d04"
+          ],
+          "samples": 40,
+          "period": 400000,
+          "percent_all_period": 0.19957092251658934
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::add_local_records_for_name",
+          "elf_range": [
+            "0xeab08",
+            "0xeeeb0"
+          ],
+          "samples": 39,
+          "period": 390000,
+          "percent_all_period": 0.1945816494536746
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::cache_reply::append_positive_record",
+          "elf_range": [
+            "0xe5bd4",
+            "0xe5f5c"
+          ],
+          "samples": 37,
+          "period": 370000,
+          "percent_all_period": 0.18460310332784513
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step",
+          "elf_range": [
+            "0x6627c",
+            "0x6a73c"
+          ],
+          "samples": 34,
+          "period": 340000,
+          "percent_all_period": 0.16963528413910092
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5e7c",
+            "0x1b61d8"
+          ],
+          "samples": 30,
+          "period": 300000,
+          "percent_all_period": 0.149678191887442
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::append_file_fds",
+          "elf_range": [
+            "0x529e4",
+            "0x52fa8"
+          ],
+          "samples": 29,
+          "period": 290000,
+          "percent_all_period": 0.14468891882452728
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step_udp",
+          "elf_range": [
+            "0x6a9a4",
+            "0x6b084"
+          ],
+          "samples": 27,
+          "period": 270000,
+          "percent_all_period": 0.1347103726986978
+        },
+        {
+          "category": "user_attributed",
+          "label": "<std::sys::pal::unix::time::Timespec>::sub_timespec",
+          "elf_range": [
+            "0x19f174",
+            "0x19f264"
+          ],
+          "samples": 25,
+          "period": 250000,
+          "percent_all_period": 0.12473182657286833
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe601c",
+            "0xe96ec"
+          ],
+          "samples": 23,
+          "period": 230000,
+          "percent_all_period": 0.11475328044703886
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::PacketWriter>::append_record",
+          "elf_range": [
+            "0xe2c70",
+            "0xe2fb0"
+          ],
+          "samples": 23,
+          "period": 230000,
+          "percent_all_period": 0.11475328044703886
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step_tcp_accept",
+          "elf_range": [
+            "0x55874",
+            "0x56018"
+          ],
+          "samples": 22,
+          "period": 220000,
+          "percent_all_period": 0.10976400738412413
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 33,
+          "period": 330000,
+          "percent_all_period": 0.1646460110761862
+        }
+      ],
+      "selected_samples": {
+        "Cache>::insert_at_counted": {
+          "samples": 0,
+          "percent_all": 0
+        },
+        "Cache>::names_for": {
+          "samples": 2,
+          "percent_all": 0.009978546125829466
+        },
+        "SinglePoll>::wait_for_files": {
+          "samples": 163,
+          "percent_all": 0.8132515092551015
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "samples": 23,
+          "percent_all": 0.11475328044703886
+        },
+        "__libc_malloc_impl": {
+          "samples": 17,
+          "percent_all": 0.08481764206955046
+        },
+        "__libc_free": {
+          "samples": 30,
+          "percent_all": 0.149678191887442
+        }
+      },
+      "historical_C": {
+        "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+        "nice": 10,
+        "instructions": 263529427,
+        "instruction_total_change_percent": 1.3374126905379757,
+        "note": "Separate unpaired diagnostic windows; no statistical timing acceptance."
+      }
+    },
+    "udp-hit": {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-d-udp-hit-20261015",
+      "profile_sha256": "2b26dfc9e9b6ac05e6af81912c1e26edf396e2d1f5b0d586e5ef55a689248298",
+      "source_digest": "d7a168ed7a748cfc8d85afe9980003677c2252563a7346ab7ef425a11a9676c8",
+      "totals": {
+        "samples": 11982,
+        "period": 119820000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "user_attributed": 4356,
+        "kernel": 7451,
+        "user_unmapped": 175
+      },
+      "pmu_during_recording": {
+        "instructions": 197895203,
+        "cycles": 471302452
+      },
+      "nice": 10,
+      "threads_at_identity": 1,
+      "sample_pids": [
+        63381
+      ],
+      "sample_tids": [
+        63381
+      ],
+      "perf_ack_bracket_valid": true,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "prewarm_correct": 1000,
+      "upstream_total": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "raw_sha256": {
+        "maps-after": "262b2180974d3f4a635b89896a2c45839ab80b5042a50d6690d78e2d7cb54835",
+        "perf-record.command.json": "a9d0af1451908b9a9b12e89e0eadf65e2b7cd6b11382c3f35b708ba3b99ae05a",
+        "build.json": "0287a917dfeb92a59e02ed34201b368e52134e11ef4ad0e4ad3c4f6ead8daf63",
+        "client.send-lag.bin": "decafa31951c29fda84fc41bfc86073ea753e2b38fec85f31ff276da82e17e7f",
+        "prewarm.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq-rs": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+        "prewarm.command.json": "42e582633b8a9d29e65b10b07abc8a4dfffe0f7e618b94e431ce73cdec9c7d22",
+        "client.latencies.bin": "fb7e6ab4dcdc706d193f5693bcbfdc35de21d9b56ffc9dbeaf8e9577b83029eb",
+        "upstream.ready": "9680e395d9774e25fb84524f58b77e03b9bfdbd4d74be5ae4859c17e04a1ad94",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf-stat.command.json": "0a7c51351ff215b87c551a2fd99ed6399a3b3c9fac773c7de99adbcc39ed537c",
+        "perf-record.stderr": "c4b321e3ed953277d82c24e9867d66382cd3f0fd0b300360f23c7c48d21cbf50",
+        "perf-stat.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "prewarm.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process-identity.json": "352114226e7d3feb89273f1a149c73beeb39ffb7dc6aa8c1ee2085c0e5f96282",
+        "profile.json": "2b26dfc9e9b6ac05e6af81912c1e26edf396e2d1f5b0d586e5ef55a689248298",
+        "client.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "profile-scope.json": "3274a85b1fd3a7454908b13deca018d92e58d0ee9c800433232b5f13bf218936",
+        "perf-stat.csv": "3c6f1f3aaab457459546172c36fb69746546c1b61c5a1dd7d58d83e87c90980c",
+        "perf-controls.json": "d8a8f96723a260e7d065f2ca609a1688c32b5f21bf55623f7554198f8bf3c541",
+        "prewarm.wire-samples.jsonl": "409ee4c801100f0bca35fd9f77af74125d8ad6d7d3c7a05e69cdb51df896741b",
+        "prewarm.json": "04ae89779dcc105198d5e9af6b0014b1557b44d891df9b30231b09a3b73fab00",
+        "upstream.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.log": "b52135550b0af00db16935a1794c6152eec3cca80543197ab587e0ac18427cc8",
+        "client.command.json": "978a91322300821165ce2d83514b478ecdd63c6810aaa5a1bf302fa2f714e8fa",
+        "complete.json": "f2dc7f94536f707cdeb84d6ea9cdeb1bef407d894db901c03f2d1d8592183c79",
+        "upstream.command.json": "a48c98b72553a21338bd7db39b86e4d84924bd468aa7f028768289025bf19f4c",
+        "self.txt": "49c0e03d12255ca5375066f7be1031989257dae5891f22b5cc9ecdc8a96f1fad",
+        "daemon.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf.data": "aab1441494a09f24eec9ffe0dcddc6debfa8123df4523d0fd30402b613ac6900",
+        "prewarm.send-lag.bin": "011444428609028c9026df265bbe397ac6f63ba544085d40ba2448adeaf2acaf",
+        "prewarm.latencies.bin": "ee700f056d9c456d693cf432a5d5bb4d5dd1191b2e366aedd2924c2679b443b6",
+        "perf-stat.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+        "client.wire-samples.jsonl": "04153a41aa15d6a9c38664125c06695ddcbca2e0a254d97de99a91231dffded5",
+        "config": "11b7fe0d9d5b16e4a73a0bb62c667e387d5d92eec653216498e35dd14a4a737b",
+        "perf-record.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.command.json": "d1b156f1f5b73402495dfd39e75513af6a9bc93011fdad99910e4f858b540d0e",
+        "samples.txt": "333d80d7009afd9b9d8ec5536ad8cc5d38e5717b61269c1478bac67a7f2fd362",
+        "client.json": "d9b7eaa7b77823b74556567ed69ca0e656441dada6e1a29d5b6ad249f0685462",
+        "link.map": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13"
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe12b8",
+            "0xe1434"
+          ],
+          "samples": 1756,
+          "period": 17560000,
+          "percent_all_period": 14.655316307795026
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x50d64",
+            "0x529e4"
+          ],
+          "samples": 591,
+          "period": 5910000,
+          "percent_all_period": 4.932398597896845
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe601c",
+            "0xe96ec"
+          ],
+          "samples": 526,
+          "period": 5260000,
+          "percent_all_period": 4.3899182106493075
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::append_poll_fds",
+          "elf_range": [
+            "0x71d1c",
+            "0x71f18"
+          ],
+          "samples": 145,
+          "period": 1450000,
+          "percent_all_period": 1.2101485561675847
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::add_local_records_for_name",
+          "elf_range": [
+            "0xeab08",
+            "0xeeeb0"
+          ],
+          "samples": 120,
+          "period": 1200000,
+          "percent_all_period": 1.0015022533800702
+        },
+        {
+          "category": "user_attributed",
+          "label": "sccp",
+          "elf_range": [
+            "0x1c0594",
+            "0x1c05b8"
+          ],
+          "samples": 109,
+          "period": 1090000,
+          "percent_all_period": 0.9096978801535637
+        },
+        {
+          "category": "user_attributed",
+          "label": "memcmp",
+          "elf_range": [
+            "0x1bfb78",
+            "0x1bfbac"
+          ],
+          "samples": 92,
+          "period": 920000,
+          "percent_all_period": 0.7678183942580538
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5e7c",
+            "0x1b61d8"
+          ],
+          "samples": 76,
+          "period": 760000,
+          "percent_all_period": 0.6342847604740444
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::hosts::Hosts>::lookup_in_bucket",
+          "elf_range": [
+            "0xf08e4",
+            "0xf0c8c"
+          ],
+          "samples": 66,
+          "period": 660000,
+          "percent_all_period": 0.5508262393590385
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::answer_local_or_cached",
+          "elf_range": [
+            "0x80f30",
+            "0x81d04"
+          ],
+          "samples": 65,
+          "period": 650000,
+          "percent_all_period": 0.542480387247538
+        },
+        {
+          "category": "user_attributed",
+          "label": "poll",
+          "elf_range": [
+            "0x1bc354",
+            "0x1bc3c8"
+          ],
+          "samples": 65,
+          "period": 650000,
+          "percent_all_period": 0.542480387247538
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6e48",
+            "0x1b72a0"
+          ],
+          "samples": 46,
+          "period": 460000,
+          "percent_all_period": 0.3839091971290269
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::wire_to_dotted",
+          "elf_range": [
+            "0xb021c",
+            "0xb05c4"
+          ],
+          "samples": 42,
+          "period": 420000,
+          "percent_all_period": 0.35052578868302453
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::find_pseudoheader",
+          "elf_range": [
+            "0xb1aa8",
+            "0xb1f98"
+          ],
+          "samples": 41,
+          "period": 410000,
+          "percent_all_period": 0.34217993657152396
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::answer_udp_prepared_with_local",
+          "elf_range": [
+            "0x83414",
+            "0x83928"
+          ],
+          "samples": 40,
+          "period": 400000,
+          "percent_all_period": 0.3338340844600234
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 175,
+          "period": 1750000,
+          "percent_all_period": 1.4605241195126022
+        }
+      ],
+      "selected_samples": {
+        "Cache>::insert_at_counted": {
+          "samples": 0,
+          "percent_all": 0
+        },
+        "Cache>::names_for": {
+          "samples": 1756,
+          "percent_all": 14.655316307795026
+        },
+        "SinglePoll>::wait_for_files": {
+          "samples": 591,
+          "percent_all": 4.932398597896845
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "samples": 526,
+          "percent_all": 4.3899182106493075
+        },
+        "__libc_malloc_impl": {
+          "samples": 46,
+          "percent_all": 0.3839091971290269
+        },
+        "__libc_free": {
+          "samples": 76,
+          "percent_all": 0.6342847604740444
+        }
+      },
+      "historical_C": {
+        "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+        "nice": 10,
+        "instructions": 188060152,
+        "instruction_total_change_percent": 5.229736813144759,
+        "note": "Separate unpaired diagnostic windows; no statistical timing acceptance."
+      }
+    },
+    "udp-miss": {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-d-udp-miss-20261015",
+      "profile_sha256": "71af79ae5ce68ab8de760ce05801b1df313bb81b10d56ec802cd3b558f3bc77e",
+      "source_digest": "d7a168ed7a748cfc8d85afe9980003677c2252563a7346ab7ef425a11a9676c8",
+      "totals": {
+        "samples": 41913,
+        "period": 419130000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "kernel": 24640,
+        "user_attributed": 17123,
+        "user_unmapped": 150
+      },
+      "pmu_during_recording": {
+        "instructions": 709818707,
+        "cycles": 1478574748
+      },
+      "nice": 10,
+      "threads_at_identity": 1,
+      "sample_pids": [
+        64429
+      ],
+      "sample_tids": [
+        64429
+      ],
+      "perf_ack_bracket_valid": true,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "prewarm_correct": 0,
+      "upstream_total": {
+        "requests": 5000,
+        "replies": 5000,
+        "generated_replies": 5000,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 5000,
+        "tcp_requests": 0
+      },
+      "raw_sha256": {
+        "maps-after": "75cc8bed8e28dd54d89245fbc27513344df11249f6556051ed723470ddd56b86",
+        "perf-record.command.json": "51b73be89cbd1426b38a0b9394e62e06b1fb07ecb992c8940087cc80bca158e3",
+        "build.json": "0287a917dfeb92a59e02ed34201b368e52134e11ef4ad0e4ad3c4f6ead8daf63",
+        "client.send-lag.bin": "f1f9d9293a7d2dab6a533b3ec3d188f77ecb1e9b4901ac573d707505f3e50f06",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq-rs": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+        "client.latencies.bin": "8207be559437dcafad59e856a26b8261a32631e7e5aac81b950af3b9d1283616",
+        "upstream.ready": "83533b523fd9b4cafc7580bb7f34a8d6f1bd16de0df82bc170573a102b818a21",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf-stat.command.json": "e2e851cc7846ac7554452416b35b4de4ff6bf22685a9f588b1eab4c15419d2d4",
+        "perf-record.stderr": "a13f447daa135081bbc56a1c951768607acc3920fcb2c8283971b05cf4a98920",
+        "perf-stat.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process-identity.json": "29d1978b0f1488d385ae16d42622567c975fe560a8ecca454d026e50035bcedf",
+        "profile.json": "71af79ae5ce68ab8de760ce05801b1df313bb81b10d56ec802cd3b558f3bc77e",
+        "client.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "profile-scope.json": "87593b5892c493e8f75c34318a6cae4b36342eff86a78e1f0b51854f634bbd61",
+        "perf-stat.csv": "2b8384fe9434cfcecb86db2290a2b5ea5394b359d649a122c462f34aefa46a54",
+        "perf-controls.json": "98279c4f8c33a6dbc09005eca282b842de32e4bcab37bd99f5f7d4bcd2714b72",
+        "upstream.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.log": "2584805d7ad22386cf4d393d104e6ea6473c4b04a0a63e2faac7162e2620265e",
+        "client.command.json": "fdb9bcd0873eceef7b30bce391075a2fa7720fa4808a4f2f8f340203c54b8869",
+        "complete.json": "2e33d90e47abcc556e575656362553175fd00fccd023499ef3f197fba9084fba",
+        "upstream.command.json": "ccf203e9e9a49005f4fcbb10ef220703f1a1d7e4fb226f30a3984cfde8d4072a",
+        "self.txt": "b7b8e6423ac54d94e31799cf8d06aafc2187be125b3cc9768c3470af9d707e58",
+        "daemon.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf.data": "5e86e04a814b3fd182a6d80ebe4ba5e3867aa5c42bd37260e8122bfc58249af0",
+        "perf-stat.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "upstream.json": "6069a72f60a031d3dd8bd01c1c7b0bddc7020cb310aeff3ccc96eec011b71dd5",
+        "client.wire-samples.jsonl": "b79443afcc9a52814824688326dc867d7b7aa8e458c0d546884741a55463fa27",
+        "config": "35a40458c7d35a70e3c7c418e63cb65b7c1c36a8e435fc1fb77be32c443e2ee8",
+        "perf-record.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.command.json": "51ff13eb30c2bb696b252cbf45d6df864c5e51fed4eb4b8c45a081d5ba659f3d",
+        "samples.txt": "2511616c75c5658b53b8bd85d521dce9550a70d51798821968b05ab270d2af5e",
+        "client.json": "f879978d39d496e9b8ac23d282a411b7991177fdd9706f74e6c6a32565945e06",
+        "link.map": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13"
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe12b8",
+            "0xe1434"
+          ],
+          "samples": 2765,
+          "period": 27650000,
+          "percent_all_period": 6.5969985446043
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe601c",
+            "0xe96ec"
+          ],
+          "samples": 1895,
+          "period": 18950000,
+          "percent_all_period": 4.521270250280343
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::cache_engine::local_cache_match",
+          "elf_range": [
+            "0xf4788",
+            "0xf50f4"
+          ],
+          "samples": 1512,
+          "period": 15120000,
+          "percent_all_period": 3.607472621859566
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::forward::Recipient>::restore_question",
+          "elf_range": [
+            "0x11beac",
+            "0x11c170"
+          ],
+          "samples": 980,
+          "period": 9800000,
+          "percent_all_period": 2.3381766993534225
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6e48",
+            "0x1b72a0"
+          ],
+          "samples": 955,
+          "period": 9550000,
+          "percent_all_period": 2.2785293345739985
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::dnsmasq_bytes",
+          "elf_range": [
+            "0xaed8c",
+            "0xaef80"
+          ],
+          "samples": 932,
+          "period": 9320000,
+          "percent_all_period": 2.2236537589769285
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::poll_inner",
+          "elf_range": [
+            "0x78814",
+            "0x7b8b8"
+          ],
+          "samples": 895,
+          "period": 8950000,
+          "percent_all_period": 2.135375659103381
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5e7c",
+            "0x1b61d8"
+          ],
+          "samples": 601,
+          "period": 6010000,
+          "percent_all_period": 1.433922649297354
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b6510",
+            "0x1b6e48"
+          ],
+          "samples": 354,
+          "period": 3540000,
+          "percent_all_period": 0.8446066852766445
+        },
+        {
+          "category": "user_attributed",
+          "label": "<core::hash::sip::Hasher<core::hash::sip::Sip13Rounds> as core::hash::Hasher>::write",
+          "elf_range": [
+            "0x9c5bc",
+            "0x9c7a4"
+          ],
+          "samples": 349,
+          "period": 3490000,
+          "percent_all_period": 0.8326772123207596
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::eq_ignore_ascii_case",
+          "elf_range": [
+            "0xf8990",
+            "0xf89e4"
+          ],
+          "samples": 327,
+          "period": 3270000,
+          "percent_all_period": 0.7801875313148665
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::commit_inner",
+          "elf_range": [
+            "0xf3768",
+            "0xf4788"
+          ],
+          "samples": 253,
+          "period": 2530000,
+          "percent_all_period": 0.6036313315677714
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf50f4",
+            "0xf5f14"
+          ],
+          "samples": 238,
+          "period": 2380000,
+          "percent_all_period": 0.5678429127001169
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::decode_name",
+          "elf_range": [
+            "0xaf514",
+            "0xaf744"
+          ],
+          "samples": 238,
+          "period": 2380000,
+          "percent_all_period": 0.5678429127001169
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::insert_reply_with_events",
+          "elf_range": [
+            "0xf6bf0",
+            "0xf81bc"
+          ],
+          "samples": 237,
+          "period": 2370000,
+          "percent_all_period": 0.56545701810894
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 150,
+          "period": 1500000,
+          "percent_all_period": 0.35788418867654426
+        }
+      ],
+      "selected_samples": {
+        "Cache>::insert_at_counted": {
+          "samples": 238,
+          "percent_all": 0.5678429127001169
+        },
+        "Cache>::names_for": {
+          "samples": 2787,
+          "percent_all": 6.649488225610193
+        },
+        "SinglePoll>::wait_for_files": {
+          "samples": 176,
+          "percent_all": 0.41991744804714526
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "samples": 1895,
+          "percent_all": 4.521270250280343
+        },
+        "__libc_malloc_impl": {
+          "samples": 955,
+          "percent_all": 2.2785293345739985
+        },
+        "__libc_free": {
+          "samples": 601,
+          "percent_all": 1.433922649297354
+        }
+      },
+      "historical_C": {
+        "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+        "nice": 10,
+        "instructions": 826621047,
+        "instruction_total_change_percent": -14.13009509301788,
+        "note": "Separate unpaired diagnostic windows; no statistical timing acceptance."
+      }
+    },
+    "udp-mixed": {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-d-udp-mixed-20261015",
+      "profile_sha256": "b11198ac9cac3522bfac10221541df476e13424bcc5246ed910babd912a7d2ab",
+      "source_digest": "d7a168ed7a748cfc8d85afe9980003677c2252563a7346ab7ef425a11a9676c8",
+      "totals": {
+        "samples": 24084,
+        "period": 240840000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "kernel": 14520,
+        "user_attributed": 9382,
+        "user_unmapped": 182
+      },
+      "pmu_during_recording": {
+        "instructions": 336693417,
+        "cycles": 802058148
+      },
+      "nice": 10,
+      "threads_at_identity": 1,
+      "sample_pids": [
+        64975
+      ],
+      "sample_tids": [
+        64975
+      ],
+      "perf_ack_bracket_valid": true,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "prewarm_correct": 1000,
+      "upstream_total": {
+        "requests": 1800,
+        "replies": 1800,
+        "generated_replies": 1800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 1800,
+        "tcp_requests": 0
+      },
+      "raw_sha256": {
+        "maps-after": "b6d7f3273ceed35b6eff28f1d1529c9e1501ff7d3b1a4dc5b3e6a3abc56adf3b",
+        "perf-record.command.json": "3e6760de96f7710b2590e7e45810c5c02fde7fd14d07ddf4ffb078eb922bfcd2",
+        "build.json": "0287a917dfeb92a59e02ed34201b368e52134e11ef4ad0e4ad3c4f6ead8daf63",
+        "client.send-lag.bin": "c04d31a1becd88024437cf92f665de283c3adfec9231cf63864f737d53af50b0",
+        "prewarm.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq-rs": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+        "prewarm.command.json": "43de326dff3b4a023acb2db17871bc2db8ff88e8eef87ef6d4c68fd64596d2dd",
+        "client.latencies.bin": "aa32c71b604abcd504048dc2c14b34e08d536fae7b6b539959aef2eba4b61269",
+        "upstream.ready": "e58a24494a3cf842e0cd6b1631c81fea0cc0d6906eb289cf1b985c83f85cc70f",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf-stat.command.json": "e2ec1c781cdf2d11bac5eae4920c6a0a2cef529e8489127dd749ca14d771082b",
+        "perf-record.stderr": "85e76a824bc7f9184fc55278e052991c89a94c6698401ba7af9b59e258e3d64f",
+        "perf-stat.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "prewarm.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process-identity.json": "e8485dd74fcd6c7babb1a7a334064b10b7570accebf1926430df6e00ceac249d",
+        "profile.json": "b11198ac9cac3522bfac10221541df476e13424bcc5246ed910babd912a7d2ab",
+        "client.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "profile-scope.json": "15096c13dd5705420fbe974a2cfd08d9b13624ede738f22703b1c9862cac4b65",
+        "perf-stat.csv": "ffaa565c8f077d09fc4307bfac03405db295849315addf0126df59bc5bc4e341",
+        "perf-controls.json": "85af7dfae6c9c4005b9da8df132f2495161b701f143f5af62be500b44fc940a6",
+        "prewarm.wire-samples.jsonl": "409ee4c801100f0bca35fd9f77af74125d8ad6d7d3c7a05e69cdb51df896741b",
+        "prewarm.json": "82767cdc9d93fea0d698cd6c6a43a9f1ad7735ed2ca901e3f9259fa2b2a1454f",
+        "upstream.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.log": "f3f4d67de3f93a3255d5f1f33b7193df1edd8b63caf6ce6e699b91e36af08969",
+        "client.command.json": "7521f4abf31b75cafe685fee8b935be7e0c1f8c254f3a51aa9f8dee9aebdfb20",
+        "complete.json": "5c55af5d4e207e4275fadbf8b7bcdf8554bf75cc09f9b3a8c9231c2495d47cf2",
+        "upstream.command.json": "2ed2236fc2fab365552f24eb92e5a7b9972deda024b53d6285a027a54b5bca44",
+        "self.txt": "14bf531121c356a7a24a3babb3e67fbc6492676953221d2771df525e63ac3950",
+        "daemon.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf.data": "edd31d4764e95a408c12315c541123c1ecbaa63d78f02e1c2b756fe49015c9a6",
+        "prewarm.send-lag.bin": "134093846bacca2c76a195a0641c62ad8ef6dee03f496983e03f85b5694d963f",
+        "prewarm.latencies.bin": "296b084e71e84ceef5810ad626bd25cbd27929401c67b01e5d012a08f56856a7",
+        "perf-stat.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "upstream.json": "f24ec71ca8cacfdb074e238cd69ea44f09dde08052441c4d3b8622a204f05ba0",
+        "client.wire-samples.jsonl": "e8eb68d746cda9130b8c3b01ad7034abd928faa9efa68b3b0f997fc9888cdcc5",
+        "config": "65affda469ab6a235b8c35382cd505865f6eb5daa19d395a7711ccbeb484cbd7",
+        "perf-record.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.command.json": "b1acc2144d1a4f8d4172841f347843a60e5bc0c58dcb54c48623070b605e5fd0",
+        "samples.txt": "252e5c0dae6c5a399282943fa331e14c68bb0a146cd70faf17f6b30daeaad033",
+        "client.json": "431310ce63f853ee96da4b38f26376188d4129fb9e3345042eef715f4ddfb73c",
+        "link.map": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13"
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe12b8",
+            "0xe1434"
+          ],
+          "samples": 1310,
+          "period": 13100000,
+          "percent_all_period": 5.439295798040193
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::forward::Recipient>::restore_question",
+          "elf_range": [
+            "0x11beac",
+            "0x11c170"
+          ],
+          "samples": 575,
+          "period": 5750000,
+          "percent_all_period": 2.3874771632619165
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6e48",
+            "0x1b72a0"
+          ],
+          "samples": 499,
+          "period": 4990000,
+          "percent_all_period": 2.071914964291646
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::cache_engine::local_cache_match",
+          "elf_range": [
+            "0xf4788",
+            "0xf50f4"
+          ],
+          "samples": 429,
+          "period": 4290000,
+          "percent_all_period": 1.7812655705032387
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe601c",
+            "0xe96ec"
+          ],
+          "samples": 412,
+          "period": 4120000,
+          "percent_all_period": 1.7106792891546254
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5e7c",
+            "0x1b61d8"
+          ],
+          "samples": 309,
+          "period": 3090000,
+          "percent_all_period": 1.283009466865969
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x50d64",
+            "0x529e4"
+          ],
+          "samples": 308,
+          "period": 3080000,
+          "percent_all_period": 1.2788573326689918
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::answer_local_or_cached",
+          "elf_range": [
+            "0x80f30",
+            "0x81d04"
+          ],
+          "samples": 296,
+          "period": 2960000,
+          "percent_all_period": 1.229031722305265
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::add_local_records_for_name",
+          "elf_range": [
+            "0xeab08",
+            "0xeeeb0"
+          ],
+          "samples": 273,
+          "period": 2730000,
+          "percent_all_period": 1.1335326357747881
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::dnsmasq_bytes",
+          "elf_range": [
+            "0xaed8c",
+            "0xaef80"
+          ],
+          "samples": 270,
+          "period": 2700000,
+          "percent_all_period": 1.1210762331838564
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::hosts::Hosts>::lookup_in_bucket",
+          "elf_range": [
+            "0xf08e4",
+            "0xf0c8c"
+          ],
+          "samples": 219,
+          "period": 2190000,
+          "percent_all_period": 0.909317389138017
+        },
+        {
+          "category": "user_attributed",
+          "label": "sccp",
+          "elf_range": [
+            "0x1c0594",
+            "0x1c05b8"
+          ],
+          "samples": 198,
+          "period": 1980000,
+          "percent_all_period": 0.8221225710014948
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b6510",
+            "0x1b6e48"
+          ],
+          "samples": 173,
+          "period": 1730000,
+          "percent_all_period": 0.7183192160770636
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::answer_records_filtered",
+          "elf_range": [
+            "0xdab54",
+            "0xde028"
+          ],
+          "samples": 157,
+          "period": 1570000,
+          "percent_all_period": 0.6518850689254276
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::process_udp",
+          "elf_range": [
+            "0x4d88c",
+            "0x4ea10"
+          ],
+          "samples": 146,
+          "period": 1460000,
+          "percent_all_period": 0.606211592758678
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 182,
+          "period": 1820000,
+          "percent_all_period": 0.7556884238498588
+        }
+      ],
+      "selected_samples": {
+        "Cache>::insert_at_counted": {
+          "samples": 19,
+          "percent_all": 0.07889054974256768
+        },
+        "Cache>::names_for": {
+          "samples": 1310,
+          "percent_all": 5.439295798040193
+        },
+        "SinglePoll>::wait_for_files": {
+          "samples": 308,
+          "percent_all": 1.2788573326689918
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "samples": 412,
+          "percent_all": 1.7106792891546254
+        },
+        "__libc_malloc_impl": {
+          "samples": 499,
+          "percent_all": 2.071914964291646
+        },
+        "__libc_free": {
+          "samples": 309,
+          "percent_all": 1.283009466865969
+        }
+      },
+      "historical_C": {
+        "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+        "nice": 10,
+        "instructions": 310349175,
+        "instruction_total_change_percent": 8.488581289123776,
+        "note": "Separate unpaired diagnostic windows; no statistical timing acceptance."
+      }
+    },
+    "tcp-miss": {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-d-tcp-miss-20261015",
+      "profile_sha256": "2210f784407a221159b2dc0102e0bf5a8e0b1db5c63bdac66f09b1e2441f966f",
+      "source_digest": "d7a168ed7a748cfc8d85afe9980003677c2252563a7346ab7ef425a11a9676c8",
+      "totals": {
+        "samples": 40091,
+        "period": 400910000,
+        "lost_samples": 0
+      },
+      "categories": {
+        "user_attributed": 22341,
+        "kernel": 17075,
+        "user_unmapped": 675
+      },
+      "pmu_during_recording": {
+        "instructions": 679773254,
+        "cycles": 1323898113
+      },
+      "nice": 10,
+      "threads_at_identity": 1,
+      "sample_pids": [
+        65194
+      ],
+      "sample_tids": [
+        65194
+      ],
+      "perf_ack_bracket_valid": true,
+      "correct_warmup": 1000,
+      "correct_measured": 4000,
+      "prewarm_correct": 0,
+      "upstream_total": {
+        "requests": 5000,
+        "replies": 5000,
+        "generated_replies": 5000,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 5000
+      },
+      "raw_sha256": {
+        "maps-after": "506623ebe611a69d738ae7bf697ec366eb836d95935ee2b2a7faf6cdf822b521",
+        "perf-record.command.json": "7cd23651ee04dbb1a27b2c6716c9d5aa459bf00a725b1df85f4316a9a59559a3",
+        "build.json": "0287a917dfeb92a59e02ed34201b368e52134e11ef4ad0e4ad3c4f6ead8daf63",
+        "client.send-lag.bin": "25496012b484617b869f6bafeea6d8f9d2f12b16a393e3aefeac1f82e76bb592",
+        "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dnsmasq-rs": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+        "client.latencies.bin": "dff81100fd82bff7c152582bab62f245287c2a5216e8754182390328f89b5283",
+        "upstream.ready": "fc1f73e75e0ce852341ea7f36870c933c13779b4d438eb41122a3e69d7022520",
+        "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf-stat.command.json": "351da95f21c61c7e7058d49a4c9c352959dc3558a5f268f9edae2c808e2f5e6e",
+        "perf-record.stderr": "81676021704eb5b0f75611ce2ee53ee5f22b0be5fb0df5d12d69e7e36281449b",
+        "perf-stat.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process-identity.json": "727e9f57745cf946714c45d239a1477dd47bf4a369dd5e1fcffe0510768786d3",
+        "profile.json": "2210f784407a221159b2dc0102e0bf5a8e0b1db5c63bdac66f09b1e2441f966f",
+        "client.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "profile-scope.json": "9c0d7df6e38562371d91b13973385f8ec573321d7b496e9f9bff3d29cdabd663",
+        "perf-stat.csv": "049e23ef30ac021d6b1cff2fa5d4c5255ce87416e1d96195ea0a7284d2a538da",
+        "perf-controls.json": "9ee3cf7c7e7d0903ab543ceccb2629568d284006e21089defe22d3f12e96825d",
+        "upstream.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.log": "f76d16c9e2134efda03d9a2bf1d03d0c310f6f7deae158e92eff901d00e26ba8",
+        "client.command.json": "5803ca497564449b259ff273cfb6454429121f8c9f08fc43daa955d2d7381be9",
+        "complete.json": "0f1a6daef5a443966bfbb37c839537d20bb9966ca8dad77df3c15cf0385865fc",
+        "upstream.command.json": "d5a6f99c20821e53a407b32bb31dca5ddaaea02c8226ff65970f577edb91f344",
+        "self.txt": "ad8d4544a81400499a35dc73be21d2e647dbd6b35f490dd05d762547e0adc974",
+        "daemon.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "perf.data": "b49a46fa90c90ff9933b412ab8ea8616fa30486613f55d505542287623a1406a",
+        "perf-stat.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+        "upstream.json": "bf0fffbf67ac890b34525335a3ee293ab1550158899cc4538fdc46c16c686d7a",
+        "client.wire-samples.jsonl": "35fa7db8db7c089b57f0d2c0c9fe6530c3fc8ed20ba554bf70aebda43cb91a7c",
+        "config": "d45a7d2433a623b0a8364328c7f14c76dec0f77dd170035e07236d58c1e79373",
+        "perf-record.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "daemon.command.json": "cbe67da9a3f64a23b7f8672064bf38971c44aeedbb6117df4e38c87806eca9fc",
+        "samples.txt": "229e2b7674c4e9fef9b7a83a6177d9a8679c08ec603a3b839d206bd1e2f8e48f",
+        "client.json": "d6e867b04d00974942794058a489e02683a8dab80e23af4c885a6580d64accfe",
+        "link.map": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13"
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b6e48",
+            "0x1b72a0"
+          ],
+          "samples": 1906,
+          "period": 19060000,
+          "percent_all_period": 4.75418423087476
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::tcp_upstream::TcpUpstream>::step",
+          "elf_range": [
+            "0xf9ad0",
+            "0xfad14"
+          ],
+          "samples": 1693,
+          "period": 16930000,
+          "percent_all_period": 4.222892918610162
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::insert_reply_with_events",
+          "elf_range": [
+            "0xf6bf0",
+            "0xf81bc"
+          ],
+          "samples": 1529,
+          "period": 15290000,
+          "percent_all_period": 3.8138235514205183
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::routing::dotted_name",
+          "elf_range": [
+            "0xb0dfc",
+            "0xb106c"
+          ],
+          "samples": 1392,
+          "period": 13920000,
+          "percent_all_period": 3.4721009702925842
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b5e7c",
+            "0x1b61d8"
+          ],
+          "samples": 1023,
+          "period": 10230000,
+          "percent_all_period": 2.5516948941158866
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::eq_ignore_ascii_case",
+          "elf_range": [
+            "0xf8990",
+            "0xf89e4"
+          ],
+          "samples": 970,
+          "period": 9700000,
+          "percent_all_period": 2.4194956474021603
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::TcpDnsWork>::run_forward",
+          "elf_range": [
+            "0x4c098",
+            "0x4d000"
+          ],
+          "samples": 966,
+          "period": 9660000,
+          "percent_all_period": 2.4095183457633884
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::remove",
+          "elf_range": [
+            "0xdf24c",
+            "0xdf86c"
+          ],
+          "samples": 954,
+          "period": 9540000,
+          "percent_all_period": 2.379586440847073
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::commit_inner",
+          "elf_range": [
+            "0xf3768",
+            "0xf4788"
+          ],
+          "samples": 951,
+          "period": 9510000,
+          "percent_all_period": 2.372103464617994
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b6510",
+            "0x1b6e48"
+          ],
+          "samples": 928,
+          "period": 9280000,
+          "percent_all_period": 2.314733980195056
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::routing::RoutingTable>::select",
+          "elf_range": [
+            "0xb1260",
+            "0xb17a4"
+          ],
+          "samples": 799,
+          "period": 7990000,
+          "percent_all_period": 1.9929660023446658
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::decode_name",
+          "elf_range": [
+            "0xaf514",
+            "0xaf744"
+          ],
+          "samples": 458,
+          "period": 4580000,
+          "percent_all_period": 1.1424010376393705
+        },
+        {
+          "category": "user_attributed",
+          "label": "nontrivial_free",
+          "elf_range": [
+            "0x1b59cc",
+            "0x1b5e7c"
+          ],
+          "samples": 450,
+          "period": 4500000,
+          "percent_all_period": 1.1224464343618268
+        },
+        {
+          "category": "user_attributed",
+          "label": "sccp",
+          "elf_range": [
+            "0x1c0594",
+            "0x1c05b8"
+          ],
+          "samples": 433,
+          "period": 4330000,
+          "percent_all_period": 1.0800429023970468
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Question>::parse",
+          "elf_range": [
+            "0xb00d0",
+            "0xb021c"
+          ],
+          "samples": 356,
+          "period": 3560000,
+          "percent_all_period": 0.8879798458506897
+        }
+      ],
+      "unmapped": [
+        {
+          "category": "user_unmapped",
+          "dso": "[vdso]",
+          "label": "other_image",
+          "elf_range": null,
+          "samples": 675,
+          "period": 6750000,
+          "percent_all_period": 1.6836696515427403
+        }
+      ],
+      "selected_samples": {
+        "Cache>::insert_at_counted": {
+          "samples": 231,
+          "percent_all": 0.5761891696390711
+        },
+        "Cache>::names_for": {
+          "samples": 585,
+          "percent_all": 1.4591803646703747
+        },
+        "SinglePoll>::wait_for_files": {
+          "samples": 13,
+          "percent_all": 0.03242623032600833
+        },
+        "LocalAnswerer>::answer_parsed_with_query_events": {
+          "samples": 8,
+          "percent_all": 0.019954603277543587
+        },
+        "__libc_malloc_impl": {
+          "samples": 1906,
+          "percent_all": 4.75418423087476
+        },
+        "__libc_free": {
+          "samples": 1023,
+          "percent_all": 2.5516948941158866
+        }
+      },
+      "historical_C": {
+        "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+        "nice": 10,
+        "instructions": 936190419,
+        "instruction_total_change_percent": -27.389424180808675,
+        "note": "Separate unpaired diagnostic windows; no statistical timing acceptance."
+      }
+    }
+  },
+  "timing_eligible": false,
+  "transfer": {
+    "bytes": 54500,
+    "sha256": "7bdb88f2927e89fb5002e00e7e0e8689b812be1fd3a2d697d4dff6ed245aeb9d",
+    "raw_bulk_transferred": false
+  },
+  "capture_parameters": {
+    "daemon_cpu": 2,
+    "upstream_cpu": 1,
+    "client_cpu": 3,
+    "nice": 10,
+    "namespace": "fresh loopback-only per scene",
+    "warmup_queries": 1000,
+    "measurement_queries": 4000,
+    "rate_qps": 200,
+    "same_driver_sha256": "ab4924e7a953e9ed127fe29e166c295c0c0cd3c7a8f2a157bb624bd4d4171169",
+    "same_analyzer_sha256": "86e23e866b400d9fe328a3c3dc3b29abf4d8bb55a1c68e98b94f2aac1a4bb88d"
+  },
+  "interpretation": {
+    "confirmed": "All five scenes completed 5000 correct warmup/measurement queries, exact artifact/map/process/ACK mapping validated, zero lost samples, each sample inventory has one PID/TID matching the one-thread source owner.",
+    "residual": "Insertion section is now below 0.6% of all self samples in miss profiles; UDP name lookup and readiness remain concrete paths. TCP-hit userspace is sparse; high kernel samples are not proof of irreducibility.",
+    "limits": [
+      "No causal CPU share or statistical speedup from unpaired PMU/self samples.",
+      "Counter profiles can overlap independent correctness work; no quiet timing acceptance claimed.",
+      "Instrumented elapsed values excluded; raw remains on Oracle, only verified small summary copied.",
+      "Other-PID samples are rejected by analyzer, not silently dropped; this is daemon-context, not systemwide or generic multiprocess aggregation."
+    ]
+  }
+}
