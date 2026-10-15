@@ -481,3 +481,21 @@ healthy daemon lifecycles and all five negative controls passed, retaining only
 the two established C forward-pointer classifications. Existing F10/TCP tool
 checks passed **24 + 7**. TCP, source corpora and full 44-family completion remain
 pending; no D full correctness or device acceptance is claimed here.
+
+[D's TCP/corpus batch](d-tcp-corpus-gates.json) completed with the exact corrected
+SDK output. All three TCP groups passed **13 conditions/50 pairs (37 TCP,
+13 UDP)**, zero comparator differences, matching running binary identities and
+clean healthy teardown for all 26 processes. Each side retains exactly the
+expected short `v4-warm-drop` 2 s timeout; no other query failed.
+
+Fresh source corpora: cache-answer **764 commands/164 queries/382 metric
+snapshots**, zero differences; transfer **307/307**; stale **1,100/1,100**, no
+omissions or differences. Lease insertion again runs all **36 cases/269
+commands/95 queries/43 lookups**, with exactly the same two user-accepted C
+UID-reuse differences (case 26, steps 9/10), zero ordinary mismatches, and its
+original raw exit 1 preserved. No new or changed difference appeared.
+
+The fourth serial batch has exited. Loop was notified that the coordinator's
+one-slot count-only cardinality experiment may run there; the existing three
+full-family workers continue unchanged. Full 44-family completion remains the
+only pending D correctness requirement before device-comparison admission.
