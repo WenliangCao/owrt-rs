@@ -7,6 +7,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import os
+import re
+import shutil
 
 import pgo_sdk_smoke as smoke
 
@@ -73,6 +76,61 @@ class SmokeGates(unittest.TestCase):
         (self.root / 'generate/build.json').write_text(json.dumps(value))
         with self.assertRaises(AssertionError):
             self.check('generate')
+
+    def test_baseline_receipt_locks_prepared_source_and_control_target_paths(self):
+        baseline = {key: self.plan[key] for key in ('source', 'source_commit', 'source_date_epoch', 'source_digest')}
+        baseline.update(status='built-unqualified', source_unchanged=True,
+                        artifacts=[{'sha256': self.plan['expected_control_elf_sha256']}],
+                        commands=[['make', 'OWRT_DNSMASQ_BUILD_DIR=' + self.plan['build_slot']]],
+                        shared_cargo_target=self.plan['cargo_targets']['control'])
+        smoke.check_baseline_paths(self.plan, baseline)
+        for key in ('build_slot', 'source'):
+            wrong = copy.deepcopy(self.plan)
+            wrong[key] += '-moved'
+            with self.assertRaises(AssertionError):
+                smoke.check_baseline_paths(wrong, baseline)
+        wrong = copy.deepcopy(self.plan)
+        wrong['cargo_targets']['control'] += '-moved'
+        with self.assertRaises(AssertionError):
+            smoke.check_baseline_paths(wrong, baseline)
+
+    def test_real_path_dependency_metadata_requires_same_prepared_source_location(self):
+        cargo = shutil.which('cargo')
+        for side in ('a', 'b'):
+            root = self.root / side
+            for package in ('owner', 'helper'):
+                (root / package / 'src').mkdir(parents=True)
+            (root / 'owner/Cargo.toml').write_text(
+                '[package]\nname="owner"\nversion="0.1.0"\nedition="2021"\n'
+                '[dependencies]\nhelper={path="../helper"}\n'
+                '[profile.release]\nopt-level=3\nlto=true\ncodegen-units=1\npanic="abort"\nstrip=true\n')
+            (root / 'helper/Cargo.toml').write_text('[package]\nname="helper"\nversion="0.1.0"\nedition="2021"\n')
+            (root / 'owner/src/lib.rs').write_text('#[inline(never)] pub fn answer(x:u64)->u64 { helper::answer(x) }\n')
+            (root / 'helper/src/lib.rs').write_text('#[inline(never)] pub fn answer(x:u64)->u64 { x.wrapping_add(7) }\n')
+        rows = []
+        for index, side in enumerate(('a', 'a', 'b', 'a')):
+            root = self.root / side
+            env = {key: value for key, value in os.environ.items() if key not in
+                   ('RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'CARGO_BUILD_TARGET', 'CARGO_TARGET_DIR',
+                    'RUSTC', 'RUSTC_WRAPPER', 'RUSTC_WORKSPACE_WRAPPER') and not key.startswith('CARGO_PROFILE_')}
+            env.update(RUSTUP_TOOLCHAIN='1.98.1', RUSTFLAGS='--remap-path-prefix=' + str(root) + '=/build')
+            target = self.root / ('target-' + str(index))
+            result = subprocess.run([cargo, 'build', '--manifest-path', str(root / 'owner/Cargo.toml'),
+                                     '--release', '--lib', '--target-dir', str(target), '-j', '1', '-vv'],
+                                    env=env, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            metadata = {}
+            for line in result.stderr.splitlines():
+                if ' Running ' in line and '--crate-name' in line:
+                    metadata[re.search(r'--crate-name (\w+)', line)[1]] = re.search(r'-C metadata=([0-9a-f]+)', line)[1]
+            self.assertEqual(set(metadata), {'owner', 'helper'})
+            rows.append({'source': side, 'metadata': metadata, 'rlib_sha256': smoke.sha(target / 'release/libowner.rlib')})
+        self.assertEqual(rows[0], rows[1])
+        self.assertEqual(rows[0], rows[3])
+        for crate in ('helper', 'owner'):
+            self.assertNotEqual(rows[0]['metadata'][crate], rows[2]['metadata'][crate])
+        self.assertNotEqual(rows[0]['rlib_sha256'], rows[2]['rlib_sha256'])
+        print(json.dumps({'real_path_dependency_regression': rows}))
 
     def test_relro_coverage_and_stack_permissions_are_required(self):
         data = bytearray(64 + 2 * 56)
