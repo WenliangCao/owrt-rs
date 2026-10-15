@@ -1,0 +1,407 @@
+{
+  "schema": 1,
+  "status": "PASS_EXCLUDED_STAGE_EVIDENCE_AUDIT",
+  "scope": "Independent local audit of the completed fixed fifty-window A53 stage diagnostic. No router/Oracle access, build or workload by this audit; no candidate acceptance.",
+  "diagnostic_source_commit": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "diagnostic_artifact": {
+    "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+    "elf_bytes": 2140955,
+    "same_build_map_sha256": "8a1bbc4a288b3ee6c291dfa50dece17f583c424a5a969625211d4e6497cdfd9a",
+    "build_receipt_sha256": "181b4938a994a9102c9635cb510944d8166cc67af1c81031de83c89a296c96e2",
+    "source_files_verified_against_git": 180,
+    "within_size_budget": true,
+    "candidate_eligible": false
+  },
+  "all_artifact_identities": {
+    "exact-c": {
+      "name": "a53-stage-artifact-exact-c",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    },
+    "e": {
+      "name": "a53-stage-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "stage": {
+      "name": "a53-stage-artifact-stage",
+      "sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9"
+    },
+    "f": {
+      "name": "a53-stage-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    }
+  },
+  "evidence": {
+    "author_commit": "be1bb962",
+    "public_result": "../loop/A53_UDP_STAGE_DEVICE_RESULT.json",
+    "public_result_sha256": "10fc0803850ccb55d19cbc7726ddf70ace0c67b6559d53517416ced47d1ceab0",
+    "summary_sha256": "2df39ce06644b84d6991c83fdfb591ee957f3e965fb096c34278e375ea9fc329",
+    "progress_sha256": "24e003d2777b4b837002bb66a19895d5350c8e6fbadadd5acf05a36321a83775",
+    "identity_sha256": "5a4187eca613e718a3298339906e955f8114f95976f4f88ca1bdd127ec2da206",
+    "plan_sha256": "6b403edb27d555de7588504a68acc4bc6206c6c677baaeee792b5c1c191ed30c",
+    "driver_sha256": "59b21c0dc7841f9e62686c8ebc7da44334c4846c5c87c258f9a8806969992aeb",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "prefix30_audit_sha256": "98a9e1972e4e83820ec2bbadecfedb7800074b601acdfb78e3578099b0c2d702",
+    "prefix50_audit_sha256": "4e776a037e134cb5a9088f579201dec2740dc96839936c1aa34e405a45610de6",
+    "independent_final_result_sha256": "d0b47cc9061683f7aeffd1fd1275ac994f7914c1a7ac85c055f787690bdcad85",
+    "independent_prefix_script_sha256": "ede711a16345c80c03ea9da906df9d51b63ac5c35707078d3dd579b75a72a1fb",
+    "independent_final_script_sha256": "3583c97e6a8b14d6576ea05cbaad9c8cfefc8e6fa8a2ea726ff71ee97afb8215"
+  },
+  "inventory": {
+    "windows": 50,
+    "valid": 50,
+    "independent_groups": 5,
+    "original_pairs_per_group": 5,
+    "verified_archives": 50,
+    "verified_raw_files": 2185,
+    "original_prefix30_progress_and_archive_hashes_preserved": true,
+    "repeats_or_replacements": 0,
+    "failure_record_present": false,
+    "cleanup_errors": []
+  },
+  "checks": [
+    "All tar digests, safe unique regular-file/directory members, member manifests and extracted-file hashes match. Every original label/round/side/artifact/mode matches the frozen schedule.",
+    "Every file/live ELF, config and frozen measurement-tool digest matches its registered identity. The private original driver remains59b21c0d despite later independent experiment adapters.",
+    "Each window has6000 correct fixture replies:1000 prewarm,1000 warmup,4000 measurement; zero timeout/wrong/transport/skips. Binary latency records and send-lag membership independently match.",
+    "All35 stage windows match6000 eligible queries with threshold1000. Full has zero cuts; each selected nonfull mode has5000 cuts and all other counters zero. Original C/E windows have no stage sidecar.",
+    "Normal daemon exit0 follows the unchanged set-e final wait and COMPLETE contract.1578 before/resource/after process observations and final.stat identify a stable single-thread daemon per window.",
+    "CPU accounting independently recomputes100Hz ticks divided by5000 completed warmup/measurement operations. All15 primary comparisons retain frozen W, four-of-five direction, minimum10ticks and strict median delta>8ticks.",
+    "All35 resource comparisons and all published per-window resource/latency/CPU values match independent raw recomputation. PSS/USS are not inferred."
+  ],
+  "primary_comparisons": {
+    "exact-c-vs-e": {
+      "left": [
+        "exact-c",
+        null
+      ],
+      "right": [
+        "e",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left_median": 0.136803,
+          "right_median": 0.199742,
+          "relative_change_pct": 46.00703200953195,
+          "W_pct": 8.089435371629405,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95_ms": {
+          "left_median": 0.230442,
+          "right_median": 0.408332,
+          "relative_change_pct": 77.19512936009927,
+          "W_pct": 83.3806804267116,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 80.0,
+          "right_median": 140.0,
+          "relative_change_pct": 75.0,
+          "W_pct": 12.5,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 40,
+        "right": 70,
+        "absolute_delta": 30,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 39
+      }
+    },
+    "e-vs-stage-full": {
+      "left": [
+        "e",
+        null
+      ],
+      "right": [
+        "stage",
+        "full"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left_median": 0.20482,
+          "right_median": 0.193279,
+          "relative_change_pct": -5.634703642222437,
+          "W_pct": 11.4197832242945,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 0.394482,
+          "right_median": 0.350702,
+          "relative_change_pct": -11.098098265573585,
+          "W_pct": 212.81452639157172,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 140.0,
+          "right_median": 140.0,
+          "relative_change_pct": 0.0,
+          "W_pct": 7.142857142857142,
+          "same_direction_pairs": 0,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 70,
+        "right": 70,
+        "absolute_delta": 0,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 65
+      }
+    },
+    "stage-full-vs-receive": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "receive"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left_median": 0.194125,
+          "right_median": 0.116798,
+          "relative_change_pct": -39.83361236316806,
+          "W_pct": 5.665336735218067,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left_median": 0.399253,
+          "right_median": 0.209513,
+          "relative_change_pct": -47.52375060425344,
+          "W_pct": 56.848978345019155,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 136.0,
+          "right_median": 70.0,
+          "relative_change_pct": -48.529411764705884,
+          "W_pct": 8.571428571428571,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 68,
+        "right": 35,
+        "absolute_delta": 33,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 34
+      }
+    },
+    "stage-full-vs-before-answer": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "before-answer"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left_median": 0.192048,
+          "right_median": 0.152038,
+          "relative_change_pct": -20.83333333333333,
+          "W_pct": 9.767295018350676,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left_median": 0.299382,
+          "right_median": 0.351087,
+          "relative_change_pct": 17.27057738942221,
+          "W_pct": 94.37140509449465,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 136.0,
+          "right_median": 98.0,
+          "relative_change_pct": -27.941176470588236,
+          "W_pct": 10.204081632653061,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 68,
+        "right": 49,
+        "absolute_delta": 19,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 48
+      }
+    },
+    "stage-full-vs-skip-local": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "skip-local"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left_median": 0.196356,
+          "right_median": 0.179736,
+          "relative_change_pct": -8.464218052924279,
+          "W_pct": 4.662959115076696,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left_median": 0.283147,
+          "right_median": 0.275529,
+          "relative_change_pct": -2.6904752654981188,
+          "W_pct": 64.48381935884895,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 138.0,
+          "right_median": 120.0,
+          "relative_change_pct": -13.043478260869565,
+          "W_pct": 5.797101449275362,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 69,
+        "right": 60,
+        "absolute_delta": 9,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 59
+      }
+    }
+  },
+  "health": {
+    "fresh_baseline": {
+      "sha256": "3a8731efe989c45cb63def48506997095f74ef2947ada2bf6f53701c0e492889",
+      "samples": 126,
+      "dns_completed": 48,
+      "http_completed": 23,
+      "dns_p95_ms": 0.803,
+      "min_memory_kib": 93000,
+      "start_epoch": 1792097865,
+      "end_epoch": 1792097990,
+      "elapsed_seconds": 125.281,
+      "max_sample_gap_seconds": 1
+    },
+    "runtime_guard": {
+      "sha256": "e4504bcb6d6c30bbc0d2e02901634fe1bf79ac4129defa14588cd60809f968db",
+      "samples": 2113,
+      "dns_completed": 826,
+      "http_completed": 381,
+      "dns_p95_ms": 0.618,
+      "min_memory_kib": 83148,
+      "start_epoch": 1792098169,
+      "end_epoch": 1792100282,
+      "elapsed_seconds": 2112.537,
+      "max_sample_gap_seconds": 1
+    },
+    "external_checks": [
+      {
+        "segment": "run",
+        "checks": 140,
+        "versions": {
+          "4": 70,
+          "6": 70
+        },
+        "sha256": "f4a07f7e1863f4a781fd5d44e88eb41d57e14e79977aab035349cdf224013047"
+      },
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "40121b315160c2b8656a7fed1892e0ad512ba030e4a94c6e0a4ca4461e156b17"
+      }
+    ],
+    "all_50_window_intervals_covered": true,
+    "all_completed_probes_passed": true,
+    "cancelled_probes_counted_as_pass": 0,
+    "guard_stop_events": 0,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained_in_all_samples": true
+  },
+  "local_verifier_recovery": {
+    "first_attempt_record_sha256": "b076eb8578ffcf8d7f0a605cee9f33e5ee650dda82b1bb1e6244f4f854cdac5f",
+    "original_verifier_sha256": "135ac81f12deafb121f22be09bc3ca7bb3c3f9e86ae1073255934c454a071be2",
+    "fixed_verifier_sha256": "d6e4a31d4bf107f6ec21ce9ce1a6b473ba73a97d3daf6f7ac678619e29ebd7d1",
+    "independent_diff": "Only stage.comparisons(rows) changed to json.loads(json.dumps(stage.comparisons(rows))) to normalize tuple/list labels. No statistics, controller, window or raw data changes.",
+    "evidence_limit": "The retained first-attempt JSON records the error explanation; no separate original traceback was present."
+  },
+  "postflight": {
+    "receipt_sha256": "dd05eb456956ebb312af10dfadc5bff7ccb48d25016f6c76006961f465d21162",
+    "restored_receipt_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_receipt_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "scope": "Local comparison of the author-captured stdout/stderr/exit and state fields; shell command text was not retained and no fresh device query was made.",
+    "recorded_exit": 0,
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "recorded_production_identity_unchanged": true,
+    "recorded_no_STOP_no_active_group_no_owned_live_executables": true,
+    "recorded_all50_verified_remote_window_copies_pruned": true,
+    "recorded_four_hash_verified_immutable_sources_pruned": true,
+    "recorded_available_memory_kib": 87020
+  },
+  "limits": [
+    "All stage results remain excluded cumulative-path diagnostics, not accepted product performance. Synthetic fixedTTL replies are not exact C wire equivalence.",
+    "Each stage contrast has its own contemporaneous full controls. The CPU median differences are66us for receive,38us for before-answer and18us for skip-local in their respective groups; they cannot be added or treated as isolated exact function costs.",
+    "E/full calibration has no discernible primary difference under the frozen rules; this does not prove equivalence or zero instrumentation overhead.",
+    "No IPC, allocation-cost, uninstrumented speedup, full44 qualification, candidate promotion or deployment conclusion follows from this audit.",
+    "Resource/thread records are samples, not continuous traces. Postflight statements describe the captured stage closeout, not current device state during later experiments."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
