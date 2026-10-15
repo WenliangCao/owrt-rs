@@ -422,3 +422,41 @@ the incremental CNAME micro caveats do not change the frozen final comparator.
 The existing two UID-reuse differences retain the explicit user decision and
 raw exit 1. No new framework or qualifier was introduced. No bulk raw data was
 downloaded during the coordinator's continuing C router test.
+
+## C device attempt: independent LOCAL-only audit
+
+[Local audit receipt](c-device-independent-audit.json) verifies all **110 archive
+hashes and 3,430 files twice**, as archive members and extracted copies, without
+Oracle/router/network access. All planned alternating pairs remain present.
+Counts match raw data: 60,000 warmup and 239,987 measured correct operations,
+1,560 DORA observations and 800 lifecycle observations. Independent recomputation
+also matches all 110 latency/CPU windows and all 32 ranked metrics in ten valid
+scenes; no analyzer discrepancy was found.
+
+**C has not passed complete performance acceptance:** 110 attempts, 109 valid,
+primary summary `complete=false`. `candidate-c-tcp-miss-r2-rust` retains 4,000
+scheduled, 3,987 sent/correct and 13 skipped operations; its original errors and
+all raw files remain. The entire TCP-miss scene is absent from comparisons.
+The attempt controller's `complete=true` only says the planned sequence ended.
+
+Diagnostic improvements are confined to valid scenes: DHCP-150 renewal p50
+−33.59%, combined CPU −33.58%, and DORA p50 −23.94%; config-small p50 −15.46%;
+large-HUP p50 −15.52%; home6 renewal p95 −5.33%. All six metrics have 5/5 paired
+direction and clear their existing spread/precision gates. No valid-scene
+regression is discernible; remaining metrics, including the four valid DNS
+scenes, are inconclusive. DHCP CPU includes warmup plus DORA/renewal, and home6
+DORA remains descriptive. These findings do not rescue whole-C acceptance.
+
+All 11 guard segments cover their raw windows: 3,868 samples, stable production
+PID/starttime and IPv4 default route, memory floor 67,828 KiB, 1,518 successful
+DNS probes (maximum 11.832 ms), and 701 HTTP403 checks (maximum 150.507 ms).
+External IPv4/IPv6 each has 128 HTTP200 checks. No terminal cancelled probe or
+new guard failure occurred.
+
+The separately recorded 9,489,587-byte transfer's local write interval overlaps
+`udp-miss-r1-rust`; its uncertainty remains attached to that scene. The invalid
+TCP window starts 1,265.5 seconds after the recorded transfer end, so there is
+no temporal overlap or evidence connecting the events. No transfer correction,
+selective replacement or altered zero-skips rule was applied. The coordinator
+was told every C archive is locally verified for its separately controlled
+remote-copy cleanup. D's exclusive Oracle screen was not touched.
