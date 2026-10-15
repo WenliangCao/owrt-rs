@@ -1,0 +1,156 @@
+{
+  "schema": "dnsmasq-retained-lease-fixture-repair-v1",
+  "scope": "Local test-fixture precondition repair; no product logic, exact C standard, corpus comparator, approved difference or timing source changed.",
+  "classification": "Existing process-dependent fixture assumption, reproduced on immutable F product code. The new cached-local-miss getter/cache/local changes are not the cause.",
+  "base_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+  "original_failure": {
+    "source_patch_sha256": "9c6668960497ac020dc3a4a78a46cb7dfb32e03b0db3060a637687f42b89098b",
+    "files": {
+      "failed-source.patch": {
+        "sha256": "9c6668960497ac020dc3a4a78a46cb7dfb32e03b0db3060a637687f42b89098b",
+        "bytes": 7348
+      },
+      "failed-lib-test-elf": {
+        "sha256": "63f7cf063cb74d8ac75b7565139ed810ed35d06e217b4570ec3a2898571ffc6a",
+        "bytes": 19522024
+      },
+      "lib.stdout": {
+        "sha256": "55190e2c656f23c07df2002cb9a206af1cde01308e9eaf9977998d8f965d4faf",
+        "bytes": 67445
+      },
+      "lib.stderr": {
+        "sha256": "aac7e626c980d8b29243485805d14e97405354155eb29b6780c3c9f9761ca931",
+        "bytes": 833
+      }
+    },
+    "summary": "716 passed;1failed;8ignored. immortal reverse192.0.2.1 expected[x.test,y.test], actual[x.test].",
+    "archive_directory": "/Users/USER/Developer/owrt-perf-retained-lease-fixture-20261016/private/retained-fixture-original-failure"
+  },
+  "fixed_failed_binary_reproduction": {
+    "no_rebuild": true,
+    "first_predeclared_20": {
+      "passed": 20,
+      "failed": 0
+    },
+    "second_predeclared_256": {
+      "passed": 250,
+      "failed": 6,
+      "failed_indices": [
+        94,
+        146,
+        161,
+        168,
+        187,
+        243
+      ]
+    },
+    "passing_reruns_do_not_erase_original_failure": true
+  },
+  "F_baseline_reproduction": {
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "source_sha256": "469f0969e19976262630479a3f79a44a97f4d310d80ea3040c0aa08f1aa7098a",
+    "diagnostic": "Only one eprintln added to original F test to print real buckets; no assertion or product logic changes.",
+    "runs": 256,
+    "passed": 255,
+    "failed": 1,
+    "failed_index": 13,
+    "failure_buckets": {
+      "old.test": 63,
+      "x.test": 32,
+      "a.test": 63,
+      "y.test": 40
+    },
+    "only_bucket_collision_in_these_256_runs": true,
+    "binary_sha256": "5140e4dff0d726b24ff3a7a1c2a06d702c59d7f9c19fe14746d69031a69df211"
+  },
+  "forced_topology_reproduction": {
+    "source": "Unchanged F product code, original six rows with only the old owner filler name selected from bounded10000-name pool.",
+    "same_process_selection": "Choose actual name_hash_bucket equality/inequality to a.test; do not override hashes, pointer seeds or outputs.",
+    "processes": 16,
+    "observations": 64,
+    "observed_counts": {
+      "collide=false,immortal=false,owners=[\"x.test\"]": 16,
+      "collide=false,immortal=true,owners=[\"x.test\", \"y.test\"]": 16,
+      "collide=true,immortal=false,owners=[\"x.test\"]": 16,
+      "collide=true,immortal=true,owners=[\"x.test\"]": 16
+    },
+    "binary_sha256": "17b103360fdbff0e78ab128f8b71d1b9b3cf334798573d4beab1e6d333ee064d",
+    "diagnostic_only_not_an_added_acceptance_rule": true
+  },
+  "matching_C_source": {
+    "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "cache_hash_lines": [
+      312,
+      341
+    ],
+    "cache_find_by_name_lines": [
+      1174,
+      1258
+    ],
+    "add_hosts_entry_lines": [
+      1322,
+      1385
+    ],
+    "fresh_C_execution": false
+  },
+  "cause": [
+    "The hash mixer includes relocated typestr pointer bytes; fixed old.test and a.test names can share a bucket in some processes.",
+    "cache_hash preserves only consecutive same-name same-flags entries. The old owner inserted ahead of the retained immortal lease separates it from the later a.test hosts record.",
+    "On the second a.test insertion, cache_find_by_name constructs the temporary next chain in current hash order before rotating hash_next. With the collision, a.test(.186)->retainedlease(.1) makes .1 visible to the subsequent y.test duplicate-address check; without it, lease(.1)->a.test(.186)->end removes that address from the relevant bulk chain.",
+    "The finite lease has distinct F_IMMORTAL flags and keeps x-only in both observed topologies. The immortal two-owner assertion therefore needs the noncolliding filler precondition."
+  ],
+  "repair": {
+    "test": "hosts::tests::retained_finite_and_immortal_lease_links_follow_exact_c_counterexample",
+    "change": "Select one oldN.test filler from bounded10000-name pool whose actual bucket differs from a.test; use the same six-row input for finite and immortal cases.",
+    "helper": "bulk_fixture accepts explicit input; other callers retain the original constant byte-for-byte.",
+    "original_owner_count_and_no_lease_leak_assertions_byte_identical": true,
+    "product_prefix_before_cfg_test_byte_identical": true,
+    "no_retry_or_skip": true
+  },
+  "verification": {
+    "source_commit_before_fix": "b343df112e430f16e21026645e56755f2d0fc391",
+    "source_sha256": "5d3d6a4ef0b45b88ebb88e401f55b680bcd58c5a1262cee8ab56b3b4c43d1e00",
+    "product_prefix_byte_identical": true,
+    "binary_sha256": "23d1396c7c79232f7bb5460bb2fcb34cb54319ecc9bc926ab50971f82d1e4246",
+    "command": [
+      "rustc",
+      "--edition=2024",
+      "--test",
+      "components/dnsmasq/src/hosts.rs",
+      "-o",
+      "private/retained-fixture-final-verification/hosts-fixture-tests"
+    ],
+    "all_hosts_summary": "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s",
+    "all_hosts_stdout_sha256": "437bc3c42e15ee277f7863aad09da0f471a8da9f0bc3f2c6b654d88642453a4e",
+    "fixed_before_execution": true,
+    "single_test_runs": 256,
+    "passed": 256,
+    "failed": 0
+  },
+  "raw_receipts": {
+    "retained-fixture-fixed-elf-repro": {
+      "path": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/private/cached-local-miss/retained-fixture-fixed-elf-repro/receipt.json",
+      "sha256": "83f6bbadfac9fe16d87e64e97c010f06d5994f5e923ae66da8ccf625be16d71c"
+    },
+    "retained-fixture-fixed-elf-repro256": {
+      "path": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/private/cached-local-miss/retained-fixture-fixed-elf-repro256/receipt.json",
+      "sha256": "053fa4bffe6466489b777ea5a63a969f8a6974ce67d77229d590eddc019720bd"
+    },
+    "retained-fixture-baseline-diagnostic": {
+      "path": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/private/cached-local-miss/retained-fixture-baseline-diagnostic/receipt.json",
+      "sha256": "0fccc20d131cf01ead6d3c7891152456910715557cea031cc19c608332abad9f"
+    },
+    "retained-fixture-forced-topology": {
+      "path": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/private/cached-local-miss/retained-fixture-forced-topology/receipt.json",
+      "sha256": "47d0fc36714d8fb4f4cffbd43c123b4219a4c0bf2752756b741b24c495796fb8"
+    }
+  },
+  "final_verification_receipt": {
+    "path": "/Users/USER/Developer/owrt-perf-retained-lease-fixture-20261016/private/retained-fixture-final-verification/receipt.json",
+    "sha256": "3307713731a89c258c8d13834690e4ff6344b450599fe3a8f7295f5076e87924"
+  },
+  "debugger_attempt": "A read-only LLDB attempt did not yield a breakpoint; its owned lldb/debugserver/child were terminated and verified absent. All reported reproduction results use ordinary standalone process launches.",
+  "Oracle_access_by_reviewer": false,
+  "router_access": false,
+  "full_candidate_gate_pass_claimed": false
+}
