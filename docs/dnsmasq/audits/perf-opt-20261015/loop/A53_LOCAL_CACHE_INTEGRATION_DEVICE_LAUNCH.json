@@ -1,0 +1,57 @@
+{
+  "scope": "Exploratory unqualified F/local-cache-integration A53 UDP-hit comparison; no full qualification or candidate selection.",
+  "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+  "source_files_verified": 179,
+  "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+  "elf_bytes": 2140955,
+  "map_sha256": "641f79fc1faadfacbec4c600db5a2c55426fd69a1eb38c5c5c46ef692c2998cf",
+  "build_receipt_sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6",
+  "entry_sha256": "a8d0ee1b59d2b537f6d052e5bc60bea5d96eac8a6f3da601810976cbc525e575",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "plan_commit": "855a1eb0",
+  "plan_sha256": "d85fe7df7897c644b7acd37f282cf7a61001fbb17750c35382d17ab24db6cdd5",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.652,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.733,
+    "dns_max_ms": 3.011,
+    "http_samples": 23,
+    "http_max_ms": 79.43,
+    "threshold_ms": 200,
+    "raw_sha256": "5fb64556d5110636d2874c13546828d826e7ef9d649b70e49663c7ab1242e602"
+  },
+  "health_summary_sha256": "a93035b1d842d4728b1e9b27b26437f3586e67fd74c1f152bfbcf3480809e0bc",
+  "preflight_sha256": "38e7b49ef7b9136a083e29b04d19afc04bda322e40cb73906e0c7ca21fe19d81",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "fixed_windows": 10,
+  "replacement": false,
+  "candidate_eligible": false,
+  "full44_qualification": false,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-a53-local-cache-integration/local_cache_integration_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_LOCAL_CACHE_INTEGRATION_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-local-cache-integration/summary.json",
+    "--experiment-hash",
+    "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-local-cache-integration-device"
+  ],
+  "setup_script_sha256": "9e94bc2aaecc4ec9162bf04614a4246c9d43fe0cb681a4ebbc1da6c5ed406156",
+  "pid": 24760,
+  "launch_epoch": 1792107626.531258,
+  "started_utc": "2026-10-15T23:40:26.531308+00:00"
+}
