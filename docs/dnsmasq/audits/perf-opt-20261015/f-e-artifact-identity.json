@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "status": "F artifact identity fixed and offline copies verified; qualification and live run gates pending",
+  "product_identity_frozen": true,
+  "launch_eligible": false,
+  "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "candidate": {
+    "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+    "bytes": 2136859,
+    "size_delta_from_E_bytes": 0
+  },
+  "baseline_E": {
+    "role": "accepted candidate E; incremental baseline",
+    "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "elf_bytes": 2136859
+  },
+  "selected_changes": {
+    "performance": [
+      "c1ea66f6",
+      "6f594d7b",
+      "5a03fffe"
+    ],
+    "behavior_fixes": []
+  },
+  "build_provenance": {
+    "public_receipt_commit": "f54ba968",
+    "public_receipt_path": "docs/dnsmasq/audits/perf-opt-20261015/candidate-f-build.json",
+    "public_receipt_sha256": "6e3a34ec1bb0e02d943c804d162f2fb6f34e608bc1aa329cb7fa4206a8c45dc7",
+    "full_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+    "link_map_sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+    "source_digest": "271d69d30406a4596e0faaf68f07be59d23e512ce0e0141053fef8c2952e716f",
+    "git_identity_sha256": "b10d9f581eb9f89698ff266375a33308d9d16684f86805e1de744654b4c06df1",
+    "source_inputs_verified_by_coordinator": 179,
+    "features": "",
+    "optimization_level": "3"
+  },
+  "offline_copy_verification": {
+    "private_sdk_copy": "private/perf-opt-20261015/sdk-f",
+    "private_input_copy": "private/perf-opt-20261015/inputs-fe/dnsmasq-f",
+    "files": {
+      "dnsmasq-rs": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "link.map": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+      "build.json": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40"
+    },
+    "copy_hashes_match_root_retained_artifacts": true,
+    "ELF_magic_checked": true
+  },
+  "tool_freeze": {
+    "preparation_sha256": "1250cc2b24bfd3a59cefa866d387f20a4691c38454eebd8374a7e68e5e3c7d3c",
+    "tool_source_commit": "91409ea3d3c4b15274e7f3377558480828b320b9",
+    "all_tool_source_and_artifact_hashes_reverified": true,
+    "controller_sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+    "loadgen_sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+  },
+  "pending_gates": {
+    "full_correctness_receipt_sha256": null,
+    "fresh_health_summary_sha256": null,
+    "live_preflight_sha256": null,
+    "stage_receipt_sha256": null
+  },
+  "runtime_activity": "None. No remote commands, router stage, guard probes or performance workload in this identity-copy step.",
+  "historical_preservation": "Earlier preparation still records then-unknown F identity. It was not edited; this separate receipt binds the newly produced F. E original/supplement/effective data remain unchanged."
+}
