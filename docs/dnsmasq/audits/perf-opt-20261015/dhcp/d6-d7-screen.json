@@ -1,0 +1,428 @@
+{
+  "scope": "Native AArch64 production-API mechanism counters; plain allocator, no daemon/device performance claim",
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01), LLVM 22.1.8, aarch64-unknown-linux-gnu",
+  "probe_flags": [
+    "-O",
+    "-C lto",
+    "-C codegen-units=1",
+    "-C panic=abort",
+    "--edition=2021",
+    "--cfg uninstrumented"
+  ],
+  "probe_source_sha256": "be2c999421af148f0624052d22b686743e9569928a48614059089e3961840f7e",
+  "source_commits": {
+    "d3d_d4": "7136b2612c279d29d9f0963b9f34697b16f022bf",
+    "d6": "6cb8aa22fd6ae12764d18258406173065c2f34fe",
+    "d7": "72d1cbb73f6c0694ea6bf9a74ea172ae974996c5"
+  },
+  "selected_product_commits": [
+    "cd9aff4b",
+    "de2a446f"
+  ],
+  "counters": [
+    {
+      "screen": "plain-d6-owner-screen",
+      "comparison": "D6 versus D3d/D4",
+      "raw_sha256": "03d9c21b3803fa80db779f0b218e9317493bc1c12fa8cf7b5c2f46188081c3e7",
+      "binary_sha256": {
+        "baseline": "37bc1300b5f9d1e5e332a3233920f8d2afde09306ceb053a5566a4479a210b8e",
+        "candidate": "67bb675ee1e5931f6f59559200ec7399c399757f995654ad1cf2284977c7fd1f"
+      },
+      "cases": [
+        {
+          "case": [
+            "publication-owner",
+            "150",
+            "3000"
+          ],
+          "instruction_relative_delta": -0.08587324917119765,
+          "instructions": {
+            "baseline": {
+              "mean": 4820547982,
+              "reported_variation": "0.12%"
+            },
+            "candidate": {
+              "mean": 4406591864,
+              "reported_variation": "0.01%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "publication-owner",
+            "6",
+            "30000"
+          ],
+          "instruction_relative_delta": -0.06274103870861458,
+          "instructions": {
+            "baseline": {
+              "mean": 1743581207,
+              "reported_variation": "0.60%"
+            },
+            "candidate": {
+              "mean": 1634187111,
+              "reported_variation": "0.50%"
+            }
+          },
+          "matched_item_count": true
+        }
+      ]
+    },
+    {
+      "screen": "plain-d7-owner-screen",
+      "comparison": "D7 versus D6",
+      "raw_sha256": "748f7d9a32e6f5801a254fd0e2efcf556bb001ae7cdea63b6b79f43cbef6fe1f",
+      "binary_sha256": {
+        "baseline": "67bb675ee1e5931f6f59559200ec7399c399757f995654ad1cf2284977c7fd1f",
+        "candidate": "ee1e9ca433cc77c0b1ea2b91bdf0c99d9db9d019e7cc4833e62bf9018846af92"
+      },
+      "cases": [
+        {
+          "case": [
+            "publication-owner",
+            "150",
+            "3000"
+          ],
+          "instruction_relative_delta": -0.17614418483227734,
+          "instructions": {
+            "baseline": {
+              "mean": 4407298701,
+              "reported_variation": "0.01%"
+            },
+            "candidate": {
+              "mean": 3630978664,
+              "reported_variation": "0.01%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "publication-owner",
+            "6",
+            "30000"
+          ],
+          "instruction_relative_delta": -0.11821850067491801,
+          "instructions": {
+            "baseline": {
+              "mean": 1651268007,
+              "reported_variation": "0.63%"
+            },
+            "candidate": {
+              "mean": 1456057579,
+              "reported_variation": "0.00%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "publication-paired",
+            "150",
+            "3000"
+          ],
+          "instruction_relative_delta": -0.20129474402649028,
+          "instructions": {
+            "baseline": {
+              "mean": 3549245647,
+              "reported_variation": "0.00%"
+            },
+            "candidate": {
+              "mean": 2834801153,
+              "reported_variation": "0.01%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "publication",
+            "150",
+            "3000",
+            "mixed"
+          ],
+          "instruction_relative_delta": -0.07089260877857795,
+          "instructions": {
+            "baseline": {
+              "mean": 2243584511,
+              "reported_variation": "0.01%"
+            },
+            "candidate": {
+              "mean": 2084530952,
+              "reported_variation": "0.01%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "publication",
+            "150",
+            "3000",
+            "triples"
+          ],
+          "instruction_relative_delta": -0.1296186008052581,
+          "instructions": {
+            "baseline": {
+              "mean": 2172826533,
+              "reported_variation": "0.01%"
+            },
+            "candidate": {
+              "mean": 1891187798,
+              "reported_variation": "0.07%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "publication",
+            "150",
+            "500",
+            "repeated"
+          ],
+          "instruction_relative_delta": -0.08949263904923321,
+          "instructions": {
+            "baseline": {
+              "mean": 543617615,
+              "reported_variation": "0.00%"
+            },
+            "candidate": {
+              "mean": 494967840,
+              "reported_variation": "0.00%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "lookup",
+            "150",
+            "10000"
+          ],
+          "instruction_relative_delta": 0.0013832102299913274,
+          "instructions": {
+            "baseline": {
+              "mean": 714666490,
+              "reported_variation": "0.03%"
+            },
+            "candidate": {
+              "mean": 715655024,
+              "reported_variation": "0.02%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "lookup",
+            "150",
+            "5000",
+            "triples"
+          ],
+          "instruction_relative_delta": 0.0013460050051945505,
+          "instructions": {
+            "baseline": {
+              "mean": 394070600,
+              "reported_variation": "0.10%"
+            },
+            "candidate": {
+              "mean": 394601021,
+              "reported_variation": "0.08%"
+            }
+          },
+          "matched_item_count": true
+        },
+        {
+          "case": [
+            "lookup",
+            "150",
+            "500",
+            "repeated"
+          ],
+          "instruction_relative_delta": 7.084621112984912e-05,
+          "instructions": {
+            "baseline": {
+              "mean": 289359158,
+              "reported_variation": "0.00%"
+            },
+            "candidate": {
+              "mean": 289379658,
+              "reported_variation": "0.00%"
+            }
+          },
+          "matched_item_count": true
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "reservation": "micro-dhcp-20261015-1025",
+    "cpu": 3,
+    "pairs": 5,
+    "raw_sha256": "89b980f8d84824ce7a883c4c1f20869616062147759ad74062ffff75b3666f02",
+    "binary_sha256": {
+      "baseline": "37bc1300b5f9d1e5e332a3233920f8d2afde09306ceb053a5566a4479a210b8e",
+      "candidate": "ee1e9ca433cc77c0b1ea2b91bdf0c99d9db9d019e7cc4833e62bf9018846af92"
+    },
+    "summary": [
+      {
+        "case": [
+          "publication-owner",
+          "6",
+          "500000"
+        ],
+        "records": 6,
+        "median_seconds": {
+          "baseline": 3.777029507,
+          "candidate": 3.204772563
+        },
+        "ranges": {
+          "baseline": [
+            3.766723621,
+            3.812297319
+          ],
+          "candidate": [
+            3.202741107,
+            3.221987106
+          ]
+        },
+        "relative_delta": -0.15150978909204482,
+        "maximum_relative_range": 0.012066015877169493,
+        "candidate_faster_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": [
+          "publication-owner",
+          "150",
+          "15000"
+        ],
+        "records": 150,
+        "median_seconds": {
+          "baseline": 3.111357989,
+          "candidate": 2.545030535
+        },
+        "ranges": {
+          "baseline": [
+            3.105954225,
+            3.122187879
+          ],
+          "candidate": [
+            2.539921093,
+            2.722810248
+          ]
+        },
+        "relative_delta": -0.1820193806055791,
+        "maximum_relative_range": 0.07186128122427429,
+        "candidate_faster_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": [
+          "publication",
+          "150",
+          "10000",
+          "triples"
+        ],
+        "records": 150,
+        "median_seconds": {
+          "baseline": 0.911099672,
+          "candidate": 0.856256897
+        },
+        "ranges": {
+          "baseline": [
+            0.90963602,
+            0.913823974
+          ],
+          "candidate": [
+            0.855987455,
+            0.857669229
+          ]
+        },
+        "relative_delta": -0.06019404537772677,
+        "maximum_relative_range": 0.004596592588829347,
+        "candidate_faster_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": [
+          "lookup",
+          "150",
+          "100000"
+        ],
+        "records": 150,
+        "median_seconds": {
+          "baseline": 0.779599262,
+          "candidate": 0.769550819
+        },
+        "ranges": {
+          "baseline": [
+            0.7770024,
+            0.781072955
+          ],
+          "candidate": [
+            0.768643692,
+            0.773897854
+          ]
+        },
+        "relative_delta": -0.012889241293304265,
+        "maximum_relative_range": 0.006827569889182265,
+        "candidate_faster_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": [
+          "lookup",
+          "150",
+          "50000",
+          "triples"
+        ],
+        "records": 150,
+        "median_seconds": {
+          "baseline": 0.430450248,
+          "candidate": 0.431552378
+        },
+        "ranges": {
+          "baseline": [
+            0.426267494,
+            0.480483382
+          ],
+          "candidate": [
+            0.429617681,
+            0.437585147
+          ]
+        },
+        "relative_delta": 0.002560412045575111,
+        "maximum_relative_range": 0.12595157803231186,
+        "candidate_faster_pairs": 1,
+        "discernible": false
+      }
+    ],
+    "all_windows_retained": true
+  },
+  "independent_static_review": "No semantic blocker found by correctness agent; full Linux/C/ELF gates still required.",
+  "residual_profile": {
+    "scope": "instruction samples,150-lease owner publication; native AArch64 mechanism only",
+    "raw_report_sha256": "12ee2ea31e80f2c41f65520d601097ca10b3d6f448309401ada2d8df1cf7fced",
+    "sample_count": "14K",
+    "lost_samples": 0,
+    "self_sample_percent": {
+      "CachedPublisher::replace_inlined_generation_build": 25.29,
+      "Hosts::addresses": 9.41,
+      "Hosts::lookup": 9.15,
+      "Cache::names_for": 7.85,
+      "DefaultHasher::write": 7.43,
+      "forward_reserve_rehash": 4.74,
+      "name_slice_hash_one": 4.17,
+      "malloc_internal": 3.54,
+      "arc_key_hash_one": 2.91,
+      "arc_release_atomic_helper": 2.78,
+      "reverse_address_hash_one": 2.07,
+      "arc_relaxed_atomic_helper": 1.61,
+      "reverse_reserve_rehash": 1.37,
+      "persistence::update_dns": 0.7
+    }
+  }
+}
