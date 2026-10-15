@@ -1,0 +1,946 @@
+{
+  "status": "native-counter-screen-only",
+  "source_receipt": {
+    "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "candidate_product_source": "60c3bdf29905eb3ef4cbd1f18f6447b10b56826d",
+    "baseline_files_verified": 172,
+    "changed_files_verified": 2,
+    "source_e_unchanged": true,
+    "identity_sha256": "1c17aedb21aaacfe1697217567f79685ab08d29b8ced565104fbe6cc00410cee",
+    "patch_sha256": "8ca20626eb203258941e0d89ee0d99f0c2146c7f3058b13d947f14701c7dbd71",
+    "probe_sha256": "6f55057cd7248444262a19787e4cf136960fdb4d1f9bbdbd07b739929c1d9830"
+  },
+  "scope": "RealCacheAPI/wholelocalanswer nativePMU andSystemallocator; no timing eligibility. 3passes each;setupincludedinPMU,excludedfromallocation.",
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "linux_cache_tests": "42passed,0failed",
+  "counters": [
+    {
+      "group": "insert",
+      "scene": "replace",
+      "baseline-e": {
+        "instructions": [
+          240157252,
+          240135220,
+          240144069
+        ],
+        "median_instructions": 240144069,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          235422713,
+          235438045,
+          235397767
+        ],
+        "median_instructions": 235422713,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -1.9660514705445387
+    },
+    {
+      "group": "insert",
+      "scene": "pressure",
+      "baseline-e": {
+        "instructions": [
+          304608342,
+          304689120,
+          304626861
+        ],
+        "median_instructions": 304626861,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          300990764,
+          300833447,
+          300838241
+        ],
+        "median_instructions": 300838241,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -1.2436920327915546
+    },
+    {
+      "group": "insert",
+      "scene": "reverse",
+      "baseline-e": {
+        "instructions": [
+          4126600745,
+          4126588701,
+          4126552249
+        ],
+        "median_instructions": 4126588701,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          4111322692,
+          4111441674,
+          4111365124
+        ],
+        "median_instructions": 4111365124,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -0.3689143285908525
+    },
+    {
+      "group": "insert",
+      "scene": "long",
+      "baseline-e": {
+        "instructions": [
+          264317959,
+          264041429,
+          263879938
+        ],
+        "median_instructions": 264041429,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          270722265,
+          270889883,
+          270895358
+        ],
+        "median_instructions": 270889883,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": 2.5937043387233016
+    },
+    {
+      "group": "insert",
+      "scene": "short",
+      "baseline-e": {
+        "instructions": [
+          212959193,
+          213027978,
+          212999513
+        ],
+        "median_instructions": 212999513,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          208637155,
+          208572797,
+          208592593
+        ],
+        "median_instructions": 208592593,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -2.0689812563092547
+    },
+    {
+      "group": "insert",
+      "scene": "replace-upper",
+      "baseline-e": {
+        "instructions": [
+          240428536,
+          240356071,
+          240292721
+        ],
+        "median_instructions": 240356071,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          241524578,
+          241414060,
+          241418434
+        ],
+        "median_instructions": 241418434,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": 0.4419954925956482
+    },
+    {
+      "group": "insert",
+      "scene": "pressure-upper",
+      "baseline-e": {
+        "instructions": [
+          304993113,
+          305005153,
+          304983943
+        ],
+        "median_instructions": 304993113,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          307110846,
+          307332693,
+          307244239
+        ],
+        "median_instructions": 307244239,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": 0.738090764692112
+    },
+    {
+      "group": "insert",
+      "scene": "reverse-upper",
+      "baseline-e": {
+        "instructions": [
+          4126847289,
+          4126721084,
+          4126814492
+        ],
+        "median_instructions": 4126814492,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          4111515968,
+          4111521238,
+          4111558086
+        ],
+        "median_instructions": 4111521238,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -0.370582540834985
+    },
+    {
+      "group": "insert",
+      "scene": "short-upper",
+      "baseline-e": {
+        "instructions": [
+          213217984,
+          213245929,
+          213225953
+        ],
+        "median_instructions": 213225953,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "insert-key2": {
+        "instructions": [
+          214278645,
+          214221265,
+          214307136
+        ],
+        "median_instructions": 214278645,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": 0.49369787551143407
+    },
+    {
+      "group": "hot",
+      "scene": "hit",
+      "baseline-e": {
+        "instructions": [
+          2312988944,
+          2312954148,
+          2313028960
+        ],
+        "median_instructions": 2312988944,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "insert-key2": {
+        "instructions": [
+          2312985758,
+          2312976437,
+          2312970027
+        ],
+        "median_instructions": 2312976437,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "instruction_change_percent": -0.0005407289140890725
+    },
+    {
+      "group": "hot",
+      "scene": "miss",
+      "baseline-e": {
+        "instructions": [
+          1498583258,
+          1498583502,
+          1498583406
+        ],
+        "median_instructions": 1498583406,
+        "operations": 500000,
+        "checksum": 0
+      },
+      "insert-key2": {
+        "instructions": [
+          1498583289,
+          1498583433,
+          1498583477
+        ],
+        "median_instructions": 1498583433,
+        "operations": 500000,
+        "checksum": 0
+      },
+      "instruction_change_percent": 1.8017015213089849e-06
+    },
+    {
+      "group": "hot",
+      "scene": "rrset",
+      "baseline-e": {
+        "instructions": [
+          6355168719,
+          6355168342,
+          6355169534
+        ],
+        "median_instructions": 6355168719,
+        "operations": 500000,
+        "checksum": 97900000
+      },
+      "insert-key2": {
+        "instructions": [
+          6355099477,
+          6355099321,
+          6355098801
+        ],
+        "median_instructions": 6355099321,
+        "operations": 500000,
+        "checksum": 97900000
+      },
+      "instruction_change_percent": -0.0010919930385600018
+    },
+    {
+      "group": "hot",
+      "scene": "host",
+      "baseline-e": {
+        "instructions": [
+          3431043548,
+          3484126227,
+          3430644686
+        ],
+        "median_instructions": 3431043548,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "insert-key2": {
+        "instructions": [
+          3392436782,
+          3453076165,
+          3406701419
+        ],
+        "median_instructions": 3406701419,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "instruction_change_percent": -0.709467211927095
+    },
+    {
+      "group": "hot",
+      "scene": "cname",
+      "baseline-e": {
+        "instructions": [
+          4698595886,
+          4698512804,
+          4698668150
+        ],
+        "median_instructions": 4698595886,
+        "operations": 500000,
+        "checksum": 47800000
+      },
+      "insert-key2": {
+        "instructions": [
+          4698426703,
+          4698516640,
+          4698513618
+        ],
+        "median_instructions": 4698513618,
+        "operations": 500000,
+        "checksum": 47800000
+      },
+      "instruction_change_percent": -0.0017509060578069224
+    },
+    {
+      "group": "hot",
+      "scene": "cname-config",
+      "baseline-e": {
+        "instructions": [
+          2288787134,
+          2286876816,
+          2287951199
+        ],
+        "median_instructions": 2287951199,
+        "operations": 10000,
+        "checksum": 956000
+      },
+      "insert-key2": {
+        "instructions": [
+          2287955049,
+          2287015154,
+          2288173702
+        ],
+        "median_instructions": 2287955049,
+        "operations": 10000,
+        "checksum": 956000
+      },
+      "instruction_change_percent": 0.0001682728198781902
+    }
+  ],
+  "allocations": {
+    "baseline-e-insert": [
+      {
+        "scene": "replace",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1664000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "pressure",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "reverse",
+        "operations": 8000,
+        "allocations": 167990,
+        "reallocations": 0,
+        "requested_bytes": 4031790,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "long",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 2336000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "short",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1376000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "replace-upper",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1664000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "pressure-upper",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "reverse-upper",
+        "operations": 8000,
+        "allocations": 168000,
+        "reallocations": 0,
+        "requested_bytes": 4032000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "short-upper",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1376000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      }
+    ],
+    "insert-key2-insert": [
+      {
+        "scene": "replace",
+        "operations": 8000,
+        "allocations": 48000,
+        "reallocations": 0,
+        "requested_bytes": 1480000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "pressure",
+        "operations": 8000,
+        "allocations": 72000,
+        "reallocations": 0,
+        "requested_bytes": 1760000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "reverse",
+        "operations": 8000,
+        "allocations": 160000,
+        "reallocations": 0,
+        "requested_bytes": 3848000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "long",
+        "operations": 8000,
+        "allocations": 49500,
+        "reallocations": 0,
+        "requested_bytes": 2076000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "short",
+        "operations": 8000,
+        "allocations": 48000,
+        "reallocations": 0,
+        "requested_bytes": 1248000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "replace-upper",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1664000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "pressure-upper",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "reverse-upper",
+        "operations": 8000,
+        "allocations": 160000,
+        "reallocations": 0,
+        "requested_bytes": 3848000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "short-upper",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1376000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      }
+    ],
+    "baseline-e-hot": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ],
+    "insert-key2-hot": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ]
+  },
+  "artifact_sha256": {
+    "baseline-e-insert-probe": "94f5a7685047ebe01a3728344a9abc20bffe4bb5f7300f79f944fe82c98b546e",
+    "baseline-e-insert-probe-alloc": "d1cac7ee3a6809828d6a67bf7a4035a77313bc0a3bf40886ddd1081b42884f60",
+    "insert-key2-insert-probe": "1f7858b34af5d24f48126a5f70ec612ddb3577b3720fda56f198db87718f54bb",
+    "insert-key2-insert-probe-alloc": "358510ace3c54721bc687954585b1df6caeed8261a4b010c08d31526a18d2dad",
+    "baseline-e-hot-probe": "12cc8f97921d3352aafb75a603471ba365b20361832f49327b32e0f7188dce7f",
+    "baseline-e-hot-probe-alloc": "52e7f9a357ec28ad5562b3d975968df8caa7ca782fe86cc097a6a65fd937243e",
+    "insert-key2-hot-probe": "da0ee4e7fd7a6afcd24fe8f004afe9aab57cec14e5604cfe45426a49d09b9f33",
+    "insert-key2-hot-probe-alloc": "9b70618804c9834d29b7427472a0f71343a0f82a2eabf8fc5a2085a3b6a06f0e"
+  },
+  "raw_sha256": {
+    "baseline-e-key2-insert-replace-1.perf": "91b357fc389e3784d490646492040e046f1e7614fc9e0faef4317a2f790dc95c",
+    "baseline-e-key2-insert-replace-1.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "baseline-e-key2-insert-replace-2.perf": "846a486362d5c6d9a72fd9da4dfc18501c5972164be8890c3c7f8d7db6a8ef99",
+    "baseline-e-key2-insert-replace-2.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "baseline-e-key2-insert-replace-3.perf": "850560ab85a239e7c26005a04da233ec6e7a7cce1e3551a80a71b9f34f7da49f",
+    "baseline-e-key2-insert-replace-3.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "insert-key2-key2-insert-replace-1.perf": "7d488ab791856a7ce3561e0b91d7a39a52215cb0935338f7d6189899a9e39dbe",
+    "insert-key2-key2-insert-replace-1.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "insert-key2-key2-insert-replace-2.perf": "e115a9c2ff9e5878c43f3ba9f5b8b6c31b8da9c8d0ca19e2f96a18f4581141cf",
+    "insert-key2-key2-insert-replace-2.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "insert-key2-key2-insert-replace-3.perf": "fb347e5cbb5d26c089fa91bb9cd2bcb4ba6ceece24a81ddebf219545f12db504",
+    "insert-key2-key2-insert-replace-3.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "baseline-e-key2-insert-pressure-1.perf": "e9b5bff7bbb85619fc63ac942296962b4219ecf172d63e8d467881cf5c644ba2",
+    "baseline-e-key2-insert-pressure-1.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "baseline-e-key2-insert-pressure-2.perf": "44f8a4a2b2b7a23c39e4af9371970fa400c0ae73648fe4988de64d57082d6057",
+    "baseline-e-key2-insert-pressure-2.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "baseline-e-key2-insert-pressure-3.perf": "a0fe612739f8f338a24201766b950a11a07f1aaaf6ad823fdc09df12a424960f",
+    "baseline-e-key2-insert-pressure-3.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "insert-key2-key2-insert-pressure-1.perf": "5c8a33da65a711c72ec25173bf8a4cb69cb4fe0517935d83d58b88183eb251d3",
+    "insert-key2-key2-insert-pressure-1.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "insert-key2-key2-insert-pressure-2.perf": "83fb853c96c9403da810c7cb4ab09ce40d8f92a39071ccb5bb4da4927cf9a28e",
+    "insert-key2-key2-insert-pressure-2.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "insert-key2-key2-insert-pressure-3.perf": "487ce47091f77d2f74a006488508973b9bb88fbc5fc395d95c44dd33c1718a5c",
+    "insert-key2-key2-insert-pressure-3.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "baseline-e-key2-insert-reverse-1.perf": "923be3e90df127001291d48fabb4dc831d82a3cb8678a69ee5ec398fd1a98c30",
+    "baseline-e-key2-insert-reverse-1.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "baseline-e-key2-insert-reverse-2.perf": "7dffb016d9c5542b97ea395b09965c7a9662b2daf2df4821b33230b8cfb5230d",
+    "baseline-e-key2-insert-reverse-2.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "baseline-e-key2-insert-reverse-3.perf": "744b9fac7eb322b962a2d4f711dc0ad562323a1aaea43d30ee0bc073e9d19e10",
+    "baseline-e-key2-insert-reverse-3.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "insert-key2-key2-insert-reverse-1.perf": "1c958dd92508486bf8c76472cb9d7ed36ad8489b85afc9f1b5e9f30f595b857a",
+    "insert-key2-key2-insert-reverse-1.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "insert-key2-key2-insert-reverse-2.perf": "65be80d02537a004fb173f20cbee05c85516d9a6d934b87820530ac1d52e31f8",
+    "insert-key2-key2-insert-reverse-2.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "insert-key2-key2-insert-reverse-3.perf": "7cc6954d2da0228a41604024aa5a2432e65be705655eafea627d1a48ee069e33",
+    "insert-key2-key2-insert-reverse-3.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "baseline-e-key2-insert-long-1.perf": "280e133b14007dbe55ccb130ac6581f6eecd025267ff6dd09916d4fbc5914eff",
+    "baseline-e-key2-insert-long-1.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "baseline-e-key2-insert-long-2.perf": "3facc60a283b2be9e6421633b797428fe5ff0b80bee1df9a20c51d04d301696e",
+    "baseline-e-key2-insert-long-2.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "baseline-e-key2-insert-long-3.perf": "36cd8627640850bdae80bd3549b63c65822bfdcf76a617d3359b98e4a15f41a2",
+    "baseline-e-key2-insert-long-3.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "insert-key2-key2-insert-long-1.perf": "9f3442d3b7d0fe751c7016c8a5dcb1e97dc3dc54b5a563b285134215dff8395c",
+    "insert-key2-key2-insert-long-1.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "insert-key2-key2-insert-long-2.perf": "94ab980b49d6b4f07ff590c44c358b549b616d8c40d5fd8203970537864c411e",
+    "insert-key2-key2-insert-long-2.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "insert-key2-key2-insert-long-3.perf": "b1ca5ba6d7c4e1be15867c5a6975917d6dfa50b79a8856218d76a059b142bb11",
+    "insert-key2-key2-insert-long-3.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "baseline-e-key2-insert-short-1.perf": "921a5585f2a0d087fcd1d9ff8ce10f2aedb3797b1b59537dcf0b5eb6c7a69bab",
+    "baseline-e-key2-insert-short-1.json": "c29718ab4d54b0248db9e099a13f552aff8e7bd1a2a17f65ec800cb28bd4ee32",
+    "baseline-e-key2-insert-short-2.perf": "6642942b1c526f4970e2c933d43f2ea3c19e5fba6429b3ff913eec8d05f3ac82",
+    "baseline-e-key2-insert-short-2.json": "c29718ab4d54b0248db9e099a13f552aff8e7bd1a2a17f65ec800cb28bd4ee32",
+    "baseline-e-key2-insert-short-3.perf": "5f4ce432ac4520c9bdda2fd4b379fe9db93867f7ee94ac3daf422c5ea40bdba1",
+    "baseline-e-key2-insert-short-3.json": "c29718ab4d54b0248db9e099a13f552aff8e7bd1a2a17f65ec800cb28bd4ee32",
+    "insert-key2-key2-insert-short-1.perf": "f672020a90f362f513760531da4b8951d53948a17e1482fea58b82342b1cf63f",
+    "insert-key2-key2-insert-short-1.json": "c29718ab4d54b0248db9e099a13f552aff8e7bd1a2a17f65ec800cb28bd4ee32",
+    "insert-key2-key2-insert-short-2.perf": "18402bae53338881017f1251c439e1ade327bebb304a6eac5c1b4c48784f3b2f",
+    "insert-key2-key2-insert-short-2.json": "c29718ab4d54b0248db9e099a13f552aff8e7bd1a2a17f65ec800cb28bd4ee32",
+    "insert-key2-key2-insert-short-3.perf": "92081778ce1b50aed08b2efdf0587e6a309efb60dc57f730598fceaab61bd42e",
+    "insert-key2-key2-insert-short-3.json": "c29718ab4d54b0248db9e099a13f552aff8e7bd1a2a17f65ec800cb28bd4ee32",
+    "baseline-e-key2-insert-replace-upper-1.perf": "54ee81a1733c9b71e0f1a3cb08368cb277317bdc224ce43a68c91b88a60cbabe",
+    "baseline-e-key2-insert-replace-upper-1.json": "a620b21ae673bd85b17b6e3f99f9f3b696ced398a22ba66c929faa2dbbbc7d5e",
+    "baseline-e-key2-insert-replace-upper-2.perf": "b9469aa282b868edd6e391e6d53b3ef5e69e6a059ce78ea7ed038e7628f016fd",
+    "baseline-e-key2-insert-replace-upper-2.json": "a620b21ae673bd85b17b6e3f99f9f3b696ced398a22ba66c929faa2dbbbc7d5e",
+    "baseline-e-key2-insert-replace-upper-3.perf": "b12ba7ca8300734f7d74434795b0c53ea92f1f02e59e4cb13278784ca84b0da6",
+    "baseline-e-key2-insert-replace-upper-3.json": "a620b21ae673bd85b17b6e3f99f9f3b696ced398a22ba66c929faa2dbbbc7d5e",
+    "insert-key2-key2-insert-replace-upper-1.perf": "fdc35e81ea23dc9334370504b2796598b9f3fae0928dd7cb0a7d1c7c0c5d2255",
+    "insert-key2-key2-insert-replace-upper-1.json": "a620b21ae673bd85b17b6e3f99f9f3b696ced398a22ba66c929faa2dbbbc7d5e",
+    "insert-key2-key2-insert-replace-upper-2.perf": "ff87f9a9ccd9e795f53f5717cb6a88ac34167d6fd8a18c3bfe48b9c29070d7dd",
+    "insert-key2-key2-insert-replace-upper-2.json": "a620b21ae673bd85b17b6e3f99f9f3b696ced398a22ba66c929faa2dbbbc7d5e",
+    "insert-key2-key2-insert-replace-upper-3.perf": "7e3435044be12335efc79f773c0ccc8d53f54312d7306624eadfdad30fb79f43",
+    "insert-key2-key2-insert-replace-upper-3.json": "a620b21ae673bd85b17b6e3f99f9f3b696ced398a22ba66c929faa2dbbbc7d5e",
+    "baseline-e-key2-insert-pressure-upper-1.perf": "32195e04eed0a83004aab7c6ab0bf42c5662ea2a9877b649a2ab226a42cfb12b",
+    "baseline-e-key2-insert-pressure-upper-1.json": "de0b60a6148b0a488787b8e69d8a6139389faf4e3a7cb24776a0f04cd1c5a501",
+    "baseline-e-key2-insert-pressure-upper-2.perf": "975cb42bfa0909fb2b074113702dbc9fae69cc249874dd9c841784d273bf8abf",
+    "baseline-e-key2-insert-pressure-upper-2.json": "de0b60a6148b0a488787b8e69d8a6139389faf4e3a7cb24776a0f04cd1c5a501",
+    "baseline-e-key2-insert-pressure-upper-3.perf": "7edebbd9d7cd1915a7c9f9a4e7cee96365d580bbe454b0ca3b116067205e6166",
+    "baseline-e-key2-insert-pressure-upper-3.json": "de0b60a6148b0a488787b8e69d8a6139389faf4e3a7cb24776a0f04cd1c5a501",
+    "insert-key2-key2-insert-pressure-upper-1.perf": "eef76367c0907a407e6c4b43cec8cb9e4c0030aeb9bf8ab7da7e82d21071d47e",
+    "insert-key2-key2-insert-pressure-upper-1.json": "de0b60a6148b0a488787b8e69d8a6139389faf4e3a7cb24776a0f04cd1c5a501",
+    "insert-key2-key2-insert-pressure-upper-2.perf": "40389d14ee204715277c292b24d2da3d78695c2b308fcbf5b73fe5da36b659ee",
+    "insert-key2-key2-insert-pressure-upper-2.json": "de0b60a6148b0a488787b8e69d8a6139389faf4e3a7cb24776a0f04cd1c5a501",
+    "insert-key2-key2-insert-pressure-upper-3.perf": "e0b598b1b9f2fad7bcbcbd93d39d80b16f845492cee9dd66aa1fdf7f58eb540a",
+    "insert-key2-key2-insert-pressure-upper-3.json": "de0b60a6148b0a488787b8e69d8a6139389faf4e3a7cb24776a0f04cd1c5a501",
+    "baseline-e-key2-insert-reverse-upper-1.perf": "e1700216bfdaa589d28737a324be48d2bd4e6267fd205ae778fe345d6c25497f",
+    "baseline-e-key2-insert-reverse-upper-1.json": "cb678bb68eaa941f3fca8055085cf10a45063162102c0ae90e3100a9f3c71a05",
+    "baseline-e-key2-insert-reverse-upper-2.perf": "16bba967a6b3cd95193c96f0bdc8f0ee3a16e4decc8e11412dc9b90637066be9",
+    "baseline-e-key2-insert-reverse-upper-2.json": "cb678bb68eaa941f3fca8055085cf10a45063162102c0ae90e3100a9f3c71a05",
+    "baseline-e-key2-insert-reverse-upper-3.perf": "64d1bad3e23702d950af4cd26a5ec459cd20a8a79c6253e8618160970bb9fe06",
+    "baseline-e-key2-insert-reverse-upper-3.json": "cb678bb68eaa941f3fca8055085cf10a45063162102c0ae90e3100a9f3c71a05",
+    "insert-key2-key2-insert-reverse-upper-1.perf": "ffe991c18af6b92b135723213f1197cc7c30851035ae6cfaa4c4199c77887dd4",
+    "insert-key2-key2-insert-reverse-upper-1.json": "cb678bb68eaa941f3fca8055085cf10a45063162102c0ae90e3100a9f3c71a05",
+    "insert-key2-key2-insert-reverse-upper-2.perf": "d00e83d17ee25aa89d1fea0a045f4981d38f6c13344eb49463d2b2be8b7bbaa1",
+    "insert-key2-key2-insert-reverse-upper-2.json": "cb678bb68eaa941f3fca8055085cf10a45063162102c0ae90e3100a9f3c71a05",
+    "insert-key2-key2-insert-reverse-upper-3.perf": "6d4d676434b4ee036246c66f0e6be909290922651ab7f2f3e58b7d2c98b156e9",
+    "insert-key2-key2-insert-reverse-upper-3.json": "cb678bb68eaa941f3fca8055085cf10a45063162102c0ae90e3100a9f3c71a05",
+    "baseline-e-key2-insert-short-upper-1.perf": "de12ab9c80b4bb0c99d611bc5b825982f1da0078d9a0eb6a8dd385f7f9dc9c32",
+    "baseline-e-key2-insert-short-upper-1.json": "dee817dab33ec55b2b1618eb479a61ca793f52dc31cb2b1b6b9ff53eaef14d18",
+    "baseline-e-key2-insert-short-upper-2.perf": "d00811db62d9ad4ffc3ea36bb91743874584bfccce089a674e58ad60d2f5d899",
+    "baseline-e-key2-insert-short-upper-2.json": "dee817dab33ec55b2b1618eb479a61ca793f52dc31cb2b1b6b9ff53eaef14d18",
+    "baseline-e-key2-insert-short-upper-3.perf": "6b874ca78af33b4accdf8cec6e9ba1ab9657f3d29240ad741df0b5312820b4e5",
+    "baseline-e-key2-insert-short-upper-3.json": "dee817dab33ec55b2b1618eb479a61ca793f52dc31cb2b1b6b9ff53eaef14d18",
+    "insert-key2-key2-insert-short-upper-1.perf": "796799353f294cf27b3ac911a433e3e44a7d7a9a20216b09a94650f94dde35bb",
+    "insert-key2-key2-insert-short-upper-1.json": "dee817dab33ec55b2b1618eb479a61ca793f52dc31cb2b1b6b9ff53eaef14d18",
+    "insert-key2-key2-insert-short-upper-2.perf": "138ff624e4cb0f8e4cd625b217afd9e2dcaac11d7f40276104b3b4378460140b",
+    "insert-key2-key2-insert-short-upper-2.json": "dee817dab33ec55b2b1618eb479a61ca793f52dc31cb2b1b6b9ff53eaef14d18",
+    "insert-key2-key2-insert-short-upper-3.perf": "41c72169fec39d29f3813abf196d4906b522c9f8fc532e8f1ad90e87ed02312e",
+    "insert-key2-key2-insert-short-upper-3.json": "dee817dab33ec55b2b1618eb479a61ca793f52dc31cb2b1b6b9ff53eaef14d18",
+    "baseline-e-key2-insert-alloc.jsonl": "391cabef600072d07e12d8ffff4f061b6368c362f74b46c0704803e16a34d646",
+    "insert-key2-key2-insert-alloc.jsonl": "828bd92f3585b414d4912fc4616e17af9afeca364f793affea082e4ab7600729",
+    "baseline-e-key2-hot-hit-1.perf": "12909d3da5f00119a07a9de02cd6c0b438b5daa19d0f0829e716f7eab5caa86b",
+    "baseline-e-key2-hot-hit-1.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-e-key2-hot-hit-2.perf": "457a8540cf924a2e326f031f4a3c96c5b5f5136ba0632b611693c437038414f3",
+    "baseline-e-key2-hot-hit-2.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-e-key2-hot-hit-3.perf": "5f46b890f44a04807bb104d1cbb275d5d2fd0855f4a514b8a02ef15e9af9f864",
+    "baseline-e-key2-hot-hit-3.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "insert-key2-key2-hot-hit-1.perf": "7dd6480d3f1e8530f3c00c00ffb374e0e31f56261b1154a4767d3da7690e51cd",
+    "insert-key2-key2-hot-hit-1.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "insert-key2-key2-hot-hit-2.perf": "16eab9581a08cc2d59fa4b42832627dfeb1f831f82e91dd53a5ce948eaf1c02e",
+    "insert-key2-key2-hot-hit-2.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "insert-key2-key2-hot-hit-3.perf": "a9c2c16737dd5334653e2242195c05a32c26b168ec2dabe2505f2a7557c86a87",
+    "insert-key2-key2-hot-hit-3.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-e-key2-hot-miss-1.perf": "64cee5d5682da15a924214dc2a196083784a087f51c3f216c0444590e7263ed2",
+    "baseline-e-key2-hot-miss-1.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-e-key2-hot-miss-2.perf": "958a57fa209fda59c27eb0e676378a1676654f820336cdd52f24ba2b2eb81035",
+    "baseline-e-key2-hot-miss-2.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-e-key2-hot-miss-3.perf": "99839b44f39fabe9ba88fa47b19dd2aad8a09d1b596da52266968b831e15d9de",
+    "baseline-e-key2-hot-miss-3.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "insert-key2-key2-hot-miss-1.perf": "f2e8cb9978ce98763b7e33d1f95d6ade23f8fc467217a124c2f68295d9589192",
+    "insert-key2-key2-hot-miss-1.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "insert-key2-key2-hot-miss-2.perf": "f62c0c3b6d4e052b6ade5fad2281db48ecd72da08c95564f13bf5e176930a69d",
+    "insert-key2-key2-hot-miss-2.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "insert-key2-key2-hot-miss-3.perf": "65bbe986f2cdcffc9f0db52890bc40db5583f5b805b5a4f94a86604a60fbb68a",
+    "insert-key2-key2-hot-miss-3.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-e-key2-hot-rrset-1.perf": "4b2b6c1358959b0b5042d1e8fcccf559e195db8cda1976588c3379df730ae510",
+    "baseline-e-key2-hot-rrset-1.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-e-key2-hot-rrset-2.perf": "1491f5b4f68fae6f0cc977b35b4d6248adce51119e47d5df96afa6c31dd5291e",
+    "baseline-e-key2-hot-rrset-2.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-e-key2-hot-rrset-3.perf": "b67d324079510e7e005bb3932cad315d26d8f7776e0ca0cbc342e75dd18bbef0",
+    "baseline-e-key2-hot-rrset-3.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "insert-key2-key2-hot-rrset-1.perf": "e217be1301650f46c000f58ba0baa74ebe11cc003b6d8e132ff271482f40f8eb",
+    "insert-key2-key2-hot-rrset-1.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "insert-key2-key2-hot-rrset-2.perf": "c00cb00e6445ce745f23758ac4016817a516e1445b49572c211f23d759056296",
+    "insert-key2-key2-hot-rrset-2.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "insert-key2-key2-hot-rrset-3.perf": "b0c0b57e42b30e835e33644ad1c24238f6f8b38a7ea114b5ced423d71f9b0afb",
+    "insert-key2-key2-hot-rrset-3.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-e-key2-hot-host-1.perf": "8daa49a41ecae0536ce45d735f67064bb761901b485f7e408bfaeb727f4e1764",
+    "baseline-e-key2-hot-host-1.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-e-key2-hot-host-2.perf": "db84bbc1842afb4956b303148dc25f4c392da5181800e0177137381f57b84312",
+    "baseline-e-key2-hot-host-2.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-e-key2-hot-host-3.perf": "1b2e65ca1f7ca72457f5b43191e6547a011a66e2c392ac4c7ab07e07838a2633",
+    "baseline-e-key2-hot-host-3.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "insert-key2-key2-hot-host-1.perf": "8ff6d7a6e872515d1c1c2341c34f9072930c565c3c09be53eb7d6d32bd2faa46",
+    "insert-key2-key2-hot-host-1.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "insert-key2-key2-hot-host-2.perf": "9c7fa12d889343ebee0a707181ed9e608a4594b22ff09cc62a749fe4a5ddf287",
+    "insert-key2-key2-hot-host-2.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "insert-key2-key2-hot-host-3.perf": "263a074d61843e2edd82e66686cccdd4d502aef786a9cc1c4a961c881151787f",
+    "insert-key2-key2-hot-host-3.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-e-key2-hot-cname-1.perf": "1a10c80e7af6feaaa3df1f76a9e2bfa1868bc506e6934720e14d5fabedac38d6",
+    "baseline-e-key2-hot-cname-1.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-e-key2-hot-cname-2.perf": "301200e9d1a4360ae853be2095001a136d9e2e4e58a1d67b0530e37590c9bac7",
+    "baseline-e-key2-hot-cname-2.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-e-key2-hot-cname-3.perf": "44eed3c8808a1b0e0061210a98635b5796fc4ad5b5437ac9c7322890afc7213c",
+    "baseline-e-key2-hot-cname-3.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "insert-key2-key2-hot-cname-1.perf": "e27e806808704fe5ddda3da70569f6b8fb3f1fe1ecd51852650406d7ae92fa7e",
+    "insert-key2-key2-hot-cname-1.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "insert-key2-key2-hot-cname-2.perf": "d6ff0359f8834967ca5e6cb51dede3b169a509622ff35931cbcbcf5c32bd5c62",
+    "insert-key2-key2-hot-cname-2.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "insert-key2-key2-hot-cname-3.perf": "10d713e6d106dcaf3b23a7fd706e5d98a4f717a1e14a070ff882decf6e0a299d",
+    "insert-key2-key2-hot-cname-3.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-e-key2-hot-cname-config-1.perf": "d4cfa03bf820a88a8a27830ebbe522d1ff54c148533d443a698f52807127da0f",
+    "baseline-e-key2-hot-cname-config-1.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-e-key2-hot-cname-config-2.perf": "fb3995f4f06f4adbb2912ba4a3e2e65d4351936313e4545009842cea27d3001c",
+    "baseline-e-key2-hot-cname-config-2.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-e-key2-hot-cname-config-3.perf": "484c99f904e29319423829f09264d96674f7e2122abbc2158ff393ac5662e57e",
+    "baseline-e-key2-hot-cname-config-3.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "insert-key2-key2-hot-cname-config-1.perf": "c5adbe4229fbe1092ab43009bc5ab349c91648135fedb0827ef22d9a5e250e12",
+    "insert-key2-key2-hot-cname-config-1.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "insert-key2-key2-hot-cname-config-2.perf": "7f6ebf318f02deec1cc4786afee64fe1c69ae626548452fd8a487b2d62af5d40",
+    "insert-key2-key2-hot-cname-config-2.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "insert-key2-key2-hot-cname-config-3.perf": "80e54a9e42c56d4a124396223e83294846fdd13c3ce731d24cc2768f4e18a360",
+    "insert-key2-key2-hot-cname-config-3.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-e-key2-hot-alloc.jsonl": "e010f7117d1b55829999a11b966742c0a00d896805c7b339490c0cf8cf9c7a61",
+    "insert-key2-key2-hot-alloc.jsonl": "e010f7117d1b55829999a11b966742c0a00d896805c7b339490c0cf8cf9c7a61",
+    "insert-key2-linux-cache-tests.stdout": "d446977b82d91ab270976d5221c64f3800f1dd8665ecca174a45cda419083c65",
+    "insert-key2-linux-cache-tests.stderr": "65a68c65a988c3a196a5607e11f86b624c5a12c566fe25c74388307e560bc353",
+    "cache_insert_key_probe.rs": "6f55057cd7248444262a19787e4cf136960fdb4d1f9bbdbd07b739929c1d9830",
+    "hotpath-probe-v2.rs": "48782d3b4532761b02b453bba65df59d1f8ddc42e84a1dcfc71a34a54da6bdd0",
+    "insert-key2-identity.json": "1c17aedb21aaacfe1697217567f79685ab08d29b8ced565104fbe6cc00410cee"
+  }
+}

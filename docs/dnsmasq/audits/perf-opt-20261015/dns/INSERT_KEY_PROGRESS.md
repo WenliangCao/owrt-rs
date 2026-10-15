@@ -89,3 +89,39 @@ requested bytes per operation. Every checksum/live-byte balance matches E.
 `insert-key2-local-screen.json` records the new artifacts and raw hashes.
 CPU remains unmeasured; the forward-uppercase detection overhead still needs
 the deferred Oracle controls. No remote work was run.
+
+## Native Oracle counter screen after E timing completed
+
+Root released the exclusive E timing reservation before this work. Oracle's
+existing source E was copied locally into separate DNS baseline/candidate
+directories; 172 source files were checked against Git, and exactly the two
+cache/test files changed to `60c3bdf2`. E was rechecked unchanged. Only 28,853
+bytes of patch/identity/probe input were uploaded. Builds used one job on CPU3
+at nice10; no bulk source or artifact transfer occurred. Native Linux cache
+tests pass 42/42.
+
+The allocation results match the local screen. Three-pass native instruction
+changes against E show the limits of the allocation saving:
+
+| Insert scene | Instruction change |
+| --- | ---: |
+| Replacement | −1.966% |
+| Full pressure | −1.244% |
+| 16-byte name | −2.069% |
+| Reverse / uppercase reverse | −0.369% / −0.371% |
+| Uppercase replacement / pressure / short | +0.442% / +0.738% / +0.494% |
+| Binary long names | +2.594% |
+
+The uppercase detection scan has a real instruction cost, and the binary-long
+control regresses despite fewer allocations. Six whole-answer instruction
+controls are effectively unchanged, except hosts at −0.709%, which cannot be
+accepted as a timing gain from counters. All ten whole-answer allocation
+controls remain exactly equal. These results do not justify automatic
+integration or a universal improvement claim.
+
+`insert-key2-oracle-screen.json` preserves every counter sample, source/artifact
+identity and raw hash. Only its 40,698-byte derived result was retrieved; raw
+logs and binaries remain on Oracle. No plain timing has run: root must decide
+whether this small local gain merits a complete focused timing attempt once
+other work is quiet, or reject it with the current cost evidence. D/E remain
+unchanged and no router access occurred.
