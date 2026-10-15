@@ -100,6 +100,16 @@ on success/fallback and a direct remaining-budget wait after empty extraction.
 A ninth module control covers those two boundaries. The updated version needs
 a new Linux artifact/run; the ten earlier passes do not transfer to it.
 
+That fresh native run is now recorded in
+`hybrid-native-validation.json`: commit `9ceab58d`, ELF `a77fe1d5…`, all source
+inputs verified before and after the one-job build. Nine module controls,
+two independent caller controls and 82 existing binary tests passed in the
+existing isolated wrapper; the three ignored TFTP admission tests were then
+run explicitly in that wrapper and passed. Total: 96 distinct tests, zero
+failures. This is native functional evidence, not an SDK artifact, allocation
+fault gate, full C-family result or performance acceptance. All raw logs stay
+on Oracle; the verified derived summary copied locally is 20,914 bytes.
+
 Before candidate eligibility, count actual initialization/teardown, memory
 layout, optional fd/watch cost, registration/mask churn, all-ready and large
 direct-fallback cases as well as steady waits. Startup/lifecycle can regress

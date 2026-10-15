@@ -1,0 +1,356 @@
+{
+  "scope": "NativeLinux same-source hybridcontrols, not SDK/fullcandidatequalification. Everyattempt retained; firstf404passes nottransferred.",
+  "attempts": [
+    {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-20261015",
+      "build": {
+        "candidate_commit": "f404337f8ac7d015616a5d0040dedbae211b5db1",
+        "base_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "patch_sha256": "b7f93ed97c6f96f1cabdf959fbd8d31a2eb30bbc82a675b1c0fb21968748e400",
+        "identity_sha256": "937ea8c3db099580e8b5dbb3138bdb83aa95c4c614532e80f631149c8f0b5136",
+        "source_verified_before_and_after": true,
+        "target": "aarch64-unknown-linux-gnu",
+        "command": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--target",
+          "aarch64-unknown-linux-gnu",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-20261015/source/components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+        "elf_sha256": "a216151de108b67af49b550d740cc5a8868ef68d134c7d1055d2b0f45ab84a33",
+        "elf_bytes": 51421736,
+        "timing_eligible": false
+      },
+      "results": [
+        {
+          "label": "module",
+          "tests": [
+            "owner_readiness::tests::a_replaced_numeric_fd_requires_a_new_generation",
+            "owner_readiness::tests::all_ready_members_fit_one_extraction_and_large_sets_remain_direct",
+            "owner_readiness::tests::direct_regular_file_and_grouped_socket_keep_original_ready_count",
+            "owner_readiness::tests::duplicate_masks_expand_and_subset_excludes_other_ready_owner",
+            "owner_readiness::tests::event_layout_matches_supported_sdk_abi",
+            "owner_readiness::tests::initial_invalid_fd_falls_back_to_per_slot_nval",
+            "owner_readiness::tests::internal_extraction_failure_keeps_the_remaining_idle_budget",
+            "owner_readiness::tests::stale_only_group_wake_cannot_shorten_the_caller_idle_interval"
+          ],
+          "exit": 0,
+          "result_lines": [
+            "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 87 filtered out; finished in 0.07s"
+          ]
+        },
+        {
+          "label": "callers",
+          "tests": [
+            "readiness_hybrid_tests::expired_ready_tcp_client_does_not_wake_its_new_owner_slot",
+            "readiness_hybrid_tests::normal_signal_registration_does_not_shorten_a_later_probe_idle_interval"
+          ],
+          "exit": 0,
+          "result_lines": [
+            "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 93 filtered out; finished in 0.06s"
+          ]
+        }
+      ],
+      "raw_hashes": {
+        "build/build.json": "9a845e7b89fb1e64ba2abf871c05aa6f610368c4c228f4049799d78457eefc4a",
+        "build/build.stderr": "150d7cec9797ed325fe12caf976a640dd1b82eb4d3b039530f2cf7134f6739b3",
+        "build/clean.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "build/clean.stderr": "0bdaeb2aa6a92a0fdfec2d2cc4d0ab71946de5d0654e08c526e4629130ae0f28",
+        "build/build.stdout": "0a122b3eb5498eca09c4dc77f09c0950fab76dc387cfdc34c5272588757e56ee",
+        "tests/module.stdout": "e8768d825cb2a0dd71bfc65394159cd6c05aa92f5fa4d314bd4237631d78c95c",
+        "tests/callers.stdout": "1752d340d8fa76ea37fd79836f1b4748c1254ff9b6dba1da80d30ce2470b2501",
+        "tests/module.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests/module.command.json": "bba4265c9a4ba982ad88c441fc0937174fd8374d976b732bc2509a09bed55267",
+        "tests/test-list.txt": "6a825655a9285a5a5368e97b64c2df17a41c8a36df11483aa44bd5ecfb2d92ec",
+        "tests/callers.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests/results.json": "c1a924a1bae99b8789bc71d7819ba5653862a876d1701c8ed62d7c5010da1b6d",
+        "tests/callers.command.json": "17ebabb3c6d8ad555e06c0c0c828c1008fd0e8c22470af9ad7d932ac619d83aa"
+      }
+    },
+    {
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015",
+      "build": {
+        "candidate_commit": "9ceab58def3d9c6f8f357e71978393b08ed0f707",
+        "base_commit": "f404337f8ac7d015616a5d0040dedbae211b5db1",
+        "patch_sha256": "9b947e53abeaf88dd62e793eb47f0502019260218972e8b06b57e973ab073d35",
+        "identity_sha256": "4c4a2daea4560f317d12744a0b970eee598bbef64cc558d19cc55f88a2862818",
+        "source_verified_before_and_after": true,
+        "target": "aarch64-unknown-linux-gnu",
+        "command": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--target",
+          "aarch64-unknown-linux-gnu",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/source/components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "elf_sha256": "a77fe1d55a3628f68aa237b3b40e466afeb40b7d1f8a9a3d35a08a5cb4f302fa",
+        "elf_bytes": 51484376,
+        "timing_eligible": false
+      },
+      "results": [
+        {
+          "label": "module",
+          "tests": [
+            "owner_readiness::tests::a_replaced_numeric_fd_requires_a_new_generation",
+            "owner_readiness::tests::all_ready_members_fit_one_extraction_and_large_sets_remain_direct",
+            "owner_readiness::tests::direct_regular_file_and_grouped_socket_keep_original_ready_count",
+            "owner_readiness::tests::duplicate_masks_expand_and_subset_excludes_other_ready_owner",
+            "owner_readiness::tests::event_layout_matches_supported_sdk_abi",
+            "owner_readiness::tests::initial_invalid_fd_falls_back_to_per_slot_nval",
+            "owner_readiness::tests::internal_extraction_failure_keeps_the_remaining_idle_budget",
+            "owner_readiness::tests::preparation_time_and_empty_extraction_preserve_the_original_wait_budget",
+            "owner_readiness::tests::stale_only_group_wake_cannot_shorten_the_caller_idle_interval"
+          ],
+          "exit": 0,
+          "result_lines": [
+            "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 87 filtered out; finished in 0.10s"
+          ],
+          "stdout_sha256": "256d49e1f421d33ab2707316e61aec417796baaf119cdd434b08178836c62bb9",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "command": [
+            "sudo",
+            "-n",
+            "env",
+            "TMPDIR=/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/tests/module-tmp",
+            "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+            "taskset",
+            "-c",
+            "2",
+            "sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/source/tools/dnsmasq/run_isolated.sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/build/dnsmasq-tests",
+            "owner_readiness::tests::",
+            "--nocapture",
+            "--test-threads=1"
+          ]
+        },
+        {
+          "label": "callers",
+          "tests": [
+            "readiness_hybrid_tests::expired_ready_tcp_client_does_not_wake_its_new_owner_slot",
+            "readiness_hybrid_tests::normal_signal_registration_does_not_shorten_a_later_probe_idle_interval"
+          ],
+          "exit": 0,
+          "result_lines": [
+            "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 94 filtered out; finished in 0.06s"
+          ],
+          "stdout_sha256": "035fd78aefe24a907907b8395e5a2a827f31a496a9987e86372e7efdbf53716d",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "command": [
+            "sudo",
+            "-n",
+            "env",
+            "TMPDIR=/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/tests/callers-tmp",
+            "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+            "taskset",
+            "-c",
+            "2",
+            "sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/source/tools/dnsmasq/run_isolated.sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/build/dnsmasq-tests",
+            "readiness_hybrid_tests::",
+            "--nocapture",
+            "--test-threads=1"
+          ]
+        },
+        {
+          "label": "existing-owner",
+          "tests": [
+            "hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed",
+            "hostsdir_init_tests::failed_bulk_preparation_does_not_consume_an_existing_incremental_event",
+            "hostsdir_init_tests::held_hosts_fifo_keeps_init_finish_blocked_without_spinning_or_losing_dns",
+            "hostsdir_init_tests::hostsdir_init_finishes_without_another_event_and_releases_queued_dns",
+            "hostsdir_init_tests::hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names",
+            "hostsdir_init_tests::hup_hosts_fifo_keeps_the_previous_generation_until_complete_publication",
+            "hostsdir_init_tests::initial_hosts_rename_precedes_lease_retention_in_both_mixed_chain_orders",
+            "hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication",
+            "neighbor_tail_tests::captured_buffered_mac_query_is_runnable_and_does_not_lookup_again",
+            "neighbor_tail_tests::tail_dump_completion_captures_accept_mac_then_registers_real_downstream",
+            "neighbor_tail_tests::tail_dump_completion_resumes_tftp_mac_waiter_without_socket_ready_hint",
+            "neighbor_tail_tests::tail_dump_completion_resumes_udp_and_interface_held_accept",
+            "newaddress_tests::dynamic_net_and_unfinished_dad_address_events_keep_their_real_wake",
+            "newaddress_tests::ordinary_accept_before_first_query_still_refreshes_the_parent_snapshot",
+            "newaddress_tests::ordinary_host_and_acl_address_events_leave_published_generation_and_collector_idle",
+            "newaddress_tests::ordinary_udp_forward_query_still_starts_and_resumes_its_own_enumeration",
+            "route_resend_tests::route_resend_owner_clears_on_local_cached_invalid_oversize_and_rejected_udp",
+            "route_resend_tests::route_resend_owner_debug_shared_partial_frame_clears_before_validation",
+            "route_resend_tests::route_resend_owner_full_reload_clears_without_releasing_its_pending_query",
+            "route_resend_tests::route_resend_owner_keeps_the_actual_forward_across_a_batch_empty_read",
+            "route_resend_tests::route_resend_owner_preserves_bound_private_tcp_and_clears_wildcard_accept",
+            "stale_refresh_log_tests::stale_udp_refresh_late_reply_keeps_one_forward_log_and_no_second_answer",
+            "stale_refresh_log_tests::stale_udp_refresh_logs_submission_without_an_upstream_reply",
+            "tcp_import_local_tests::lease_import_discards_same_address_without_forwarded_cache_entry",
+            "tcp_import_local_tests::lease_import_observes_current_hosts_from_the_same_parent",
+            "tcp_import_local_tests::lease_import_uses_current_publication_and_preserves_old_child",
+            "tcp_import_local_tests::lease_import_uses_release_instead_of_the_previous_generation",
+            "tests::accepted_mac_wait_does_not_busy_poll_queued_dns_before_snapshot_ready",
+            "tests::addn_hosts_directory_uses_sorted_files_and_ignores_backups",
+            "tests::address_actor_is_independent_of_held_hosts_publication",
+            "tests::delivered_signal_counters_wake_even_without_a_pipe_byte",
+            "tests::dns_snapshots_add_background_local_answers_once_and_wrap",
+            "tests::dump_backpressure_resumes_on_writable_fd_without_another_packet",
+            "tests::duplicate_fd_masks_merge_without_authorizing_read_from_write",
+            "tests::edns_budget_tail_is_logical_work_without_another_neighbor_event",
+            "tests::edns_mixed_pending_queue_drains_ready_tail_then_stops_spinning",
+            "tests::finished_tcp_log_fifo_retries_without_network_events_and_releases_slot",
+            "tests::frozen_dhcp_callbacks_resume_after_pipe_capacity_returns",
+            "tests::global_interface_generation_keeps_queued_dhcp_until_its_publication",
+            "tests::held_dhcp_bank_fifo_does_not_spin_on_queued_packet_and_dns_still_replies",
+            "tests::held_hosts_fifo_blocks_dns_runnable_without_losing_its_request",
+            "tests::helper_init_keeps_queued_dhcp_and_due_maintenance_off_the_wait_set",
+            "tests::hosts_receive_the_final_local_ttl",
+            "tests::hup_large_regular_input_yields_before_dns_health_service",
+            "tests::hup_publishes_small_resolver_and_server_inputs_before_tcp_accept",
+            "tests::hup_same_wake_refreshes_hosts_before_udp_and_new_tcp_snapshot",
+            "tests::idle_snapshot_includes_restored_dhcp_leases_with_dns_disabled",
+            "tests::interface_collector_send_and_completion_progress_without_network_input",
+            "tests::interface_dad_deadline_is_one_second_and_removed_when_done",
+            "tests::last_tftp_completion_wakes_helper_without_another_packet",
+            "tests::lease_alarm_without_network_traffic_expires_and_rewrites_the_lease_file",
+            "tests::multicast_enobufs_continues_without_fabricating_any_event",
+            "tests::neighbor_deadline_keeps_fractional_epoch_and_expired_dump_immediate",
+            "tests::no_hosts_keeps_explicit_addn_hosts",
+            "tests::ordinary_hosts_diagnostics_include_the_source_and_complete_after_errors",
+            "tests::owner_runnable_overrides_a_future_timer_and_preserves_timer_rounding",
+            "tests::packet_snapshot_controls_dhcp_wait_until_publication",
+            "tests::pending_listener_retry_requires_unfinished_initial_address",
+            "tests::port_zero_address_actor_does_not_need_a_dns_file_owner",
+            "tests::probe_poll_dispatches_new_udp_using_its_own_readiness",
+            "tests::probe_requires_explicit_loopback_and_no_resolv",
+            "tests::queued_server_file_reload_publishes_without_another_network_event",
+            "tests::real_tcp_read_budget_tail_resumes_through_normal_and_probe_owner",
+            "tests::real_tcp_transport_budget_tail_resumes_through_normal_and_probe_owner",
+            "tests::resolver_file_reads_nameserver_addresses_only",
+            "tests::runtime_gate_accepts_positive_and_nxdomain_cache_policy",
+            "tests::signal_wake_drains_a_full_buffer_without_another_write",
+            "tests::signal_wake_preserves_interrupted_errno_with_or_without_backpressure",
+            "tests::startup_fifo_keeps_blocked_dns_off_both_wait_sets_without_dropping_it",
+            "tests::startup_status_retains_config_loader_exit_codes",
+            "tests::tcp_buffered_frame_runs_without_socket_readiness_and_sends_new_answer",
+            "tests::tcp_closed_downstream_keeps_pending_stale_work_until_refresh_completes",
+            "tests::tcp_idle_deadline_and_completed_client_run_without_fd_readiness",
+            "tests::tcp_parsed_lookup_keeps_original_invalid_questions_refused",
+            "tests::tcp_polled_write_does_not_consume_unpolled_read",
+            "tests::test_mode_runs_cname_cross_option_validation",
+            "tests::udp_turn_budget_is_bounded_for_service_fairness",
+            "tests::upstream_timeout_wake_advances_without_ready_network_fd",
+            "tftp_admission_tests::tftp_label_exception_resumes_the_original_rrq_without_another_packet",
+            "tftp_admission_tests::tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector",
+            "tftp_admission_tests::tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name",
+            "udp_acl_tests::udp_alias_admission_collects_without_publication_rules_and_resumes_the_original_packet",
+            "udp_acl_tests::udp_live_ingress_accepts_a_real_received_index_absent_from_the_old_snapshot",
+            "udp_acl_tests::udp_production_admission_preserves_loopback_exclusion_and_literal_precedence",
+            "udp_acl_tests::udp_restricted_interface_implicitly_accepts_unlisted_loopback_through_step_udp"
+          ],
+          "exit": 0,
+          "result_lines": [
+            "test result: ok. 82 passed; 0 failed; 3 ignored; 0 measured; 11 filtered out; finished in 4.25s"
+          ],
+          "stdout_sha256": "d3cc11841fedcab2777a50c1d564cf0d37a0caf9c5c73059b8b30e25eaa9d48c",
+          "stderr_sha256": "1b9d68653ec704c2099d403a2ce4be3deb7d9a68c8e25a7ac106656420667c2f",
+          "command": [
+            "sudo",
+            "-n",
+            "env",
+            "TMPDIR=/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/tests/existing-owner-tmp",
+            "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+            "taskset",
+            "-c",
+            "2",
+            "sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/source/tools/dnsmasq/run_isolated.sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/build/dnsmasq-tests",
+            "--skip",
+            "owner_readiness::tests::",
+            "--skip",
+            "readiness_hybrid_tests::",
+            "--nocapture",
+            "--test-threads=1"
+          ]
+        },
+        {
+          "label": "ignored-tftp",
+          "exit": 0,
+          "result_lines": [
+            "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 93 filtered out; finished in 0.11s"
+          ],
+          "command": [
+            "sudo",
+            "-n",
+            "env",
+            "TMPDIR=/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/tests/ignored-tmp",
+            "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/nice10",
+            "taskset",
+            "-c",
+            "2",
+            "sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/source/tools/dnsmasq/run_isolated.sh",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-linux-r2-20261015/build/dnsmasq-tests",
+            "tftp_admission_tests::",
+            "--ignored",
+            "--nocapture",
+            "--test-threads=1"
+          ]
+        }
+      ],
+      "raw_hashes": {
+        "build/build.json": "3ee1e19ded08d9cb4f4de7809aa0e20efb7c3e4118cf1f5a2fde941b909b8bee",
+        "build/build.stderr": "f2f81cb14eb5228282651d42386c2c411af419814fba2c4c15d20369fcb403de",
+        "build/clean.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "build/clean.stderr": "1c56f28ff013b836cb1c98d22f3355e8dd66a170c180a560a095ff8d455f9e99",
+        "build/build.stdout": "b574f814c0ebc5b74adb28db7a7083bfc0ac94a162895f3d2b2b852af2bbf4bf",
+        "tests/existing-owner.command.json": "db8218692c96bd58350ae2b0ba980c5785e5d5b3a38342b9be064c6ee10c2046",
+        "tests/module.stdout": "256d49e1f421d33ab2707316e61aec417796baaf119cdd434b08178836c62bb9",
+        "tests/existing-owner.stdout": "d3cc11841fedcab2777a50c1d564cf0d37a0caf9c5c73059b8b30e25eaa9d48c",
+        "tests/ignored.command.json": "bf09714587c94f89dc90eb8767d159d0ef2069ce867f10809331f9675831ef58",
+        "tests/callers.stdout": "035fd78aefe24a907907b8395e5a2a827f31a496a9987e86372e7efdbf53716d",
+        "tests/ignored.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests/module.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests/module.command.json": "18705e7aaf20e27aeb7d2596bbf7f54c10b8664727ed87c2d8ed797802a3d82e",
+        "tests/test-list.txt": "0a1dab6a629ccc2007f471cde5556c6f24e4d617ac9f9824b9f640bf8a1acdf8",
+        "tests/callers.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests/results.json": "8f8e4153a60b297e74c813bb9b187f24eb8b373c4efd7df550f0374e17c888bc",
+        "tests/ignored.stdout": "3904615b7ff2dc5e2d75fba740562ae8c6b1cf28bacd33d568dd74b8e21f14ac",
+        "tests/callers.command.json": "aa2ccce027755195610db2d0e3f17a8e7e0e17ceb1a71863ee8b35bb24098c05",
+        "tests/existing-owner.stderr": "1b9d68653ec704c2099d403a2ce4be3deb7d9a68c8e25a7ac106656420667c2f"
+      }
+    }
+  ],
+  "transfer": {
+    "bytes": 20914,
+    "sha256": "c54011c771e9df242974733d2dee73621cd2d07263196c7cd63fcaaa3bbc5643",
+    "raw_bulk_transferred": false
+  },
+  "current_result": {
+    "commit": "9ceab58def3d9c6f8f357e71978393b08ed0f707",
+    "native_elf_sha256": "a77fe1d55a3628f68aa237b3b40e466afeb40b7d1f8a9a3d35a08a5cb4f302fa",
+    "module": 9,
+    "caller": 2,
+    "existing_bin": 82,
+    "explicit_ignored_tftp": 3,
+    "passed": 96,
+    "failed": 0,
+    "remaining_ignored_in_selected_bin": 0,
+    "full_correctness_passed": false,
+    "SDK_artifact_tested": false
+  }
+}
