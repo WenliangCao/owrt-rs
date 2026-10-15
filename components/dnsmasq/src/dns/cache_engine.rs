@@ -403,7 +403,7 @@ impl CacheContext<'_> {
         // An old NXDOMAIN can mark a newer typed answer stale, or the caller
         // can observe staleness even though no answer can ultimately be sent.
         let mut direct_negative = None;
-        for id in &ids {
+        for id in ids.iter() {
             if let Some(entry) = cache.get(*id) {
                 if entry.record.kind == Kind::NxDomain && entry.record.negative {
                     direct_negative.get_or_insert(*id);
@@ -513,7 +513,7 @@ impl CacheContext<'_> {
             // processing clears it for other qtypes.
             let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8480, limit)?;
             writer.question(&question.name, question.rrtype, question.class)?;
-            for id in ids {
+            for &id in ids.iter() {
                 if let Some(entry) = cache
                     .get(id)
                     .filter(|entry| entry.record.kind == Kind::Cname)
@@ -571,7 +571,7 @@ impl CacheContext<'_> {
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
         let mut forward_name = None;
-        for id in ids {
+        for &id in ids.iter() {
             // answer_request follows the first CNAME before looking for the
             // requested type, even if the same batch also cached an owner A.
             if direct_cname.is_some_and(|cname| cname != id) {

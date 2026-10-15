@@ -124,6 +124,28 @@ pub struct EntryId {
     generation: u64,
 }
 
+/// A synchronous hinted lookup already knows whether there is one result.
+/// Keep that handle inline; ordinary multi-slot lookups retain their Vec.
+/// These are copied generation-checked IDs, not references into cache storage.
+#[derive(Debug)]
+pub(super) enum LookupEntries {
+    Empty,
+    One(EntryId),
+    Many(Vec<EntryId>),
+}
+
+impl std::ops::Deref for LookupEntries {
+    type Target = [EntryId];
+
+    fn deref(&self) -> &[EntryId] {
+        match self {
+            Self::Empty => &[],
+            Self::One(id) => std::slice::from_ref(id),
+            Self::Many(ids) => ids,
+        }
+    }
+}
+
 /// A local CNAME terminal owns its name rather than borrowing a lease's
 /// storage. DHCP identity changes on an actual new publication; static hosts
 /// remain valid until the containing cache is cleared on reload.
@@ -556,7 +578,7 @@ impl Cache {
         now: i64,
         round_robin: bool,
         hint: Option<&NameLookup<'_>>,
-    ) -> Vec<EntryId> {
+    ) -> LookupEntries {
         let usable = hint.filter(|hint| {
             std::ptr::eq(name, hint.name)
                 && hint.owner == self as *const Self as usize
@@ -565,21 +587,22 @@ impl Cache {
                 && self.name_revision != u64::MAX
         });
         match usable.map(|hint| hint.selection) {
-            Some(NameSelection::Missing) => Vec::new(),
+            Some(NameSelection::Missing) => LookupEntries::Empty,
             Some(NameSelection::One(id)) if self.get(id).is_some() => {
-                let mut found = Vec::new();
                 // Same single-slot step as lookup; leave its multi-slot loop
                 // intact so it has no extra per-record dispatch or calls.
                 if self.invalid(id.slot, now) {
                     self.remove(id.slot);
+                    LookupEntries::Empty
                 } else if kinds.iter().any(|kind| self.entry(id.slot).unwrap().record.kind.matches(*kind)) {
                     self.unlink(id.slot);
                     self.link_head(id.slot);
-                    found.push(self.id(id.slot));
+                    LookupEntries::One(self.id(id.slot))
+                } else {
+                    LookupEntries::Empty
                 }
-                found
             }
-            _ => self.lookup(name, kinds, now, round_robin),
+            _ => LookupEntries::Many(self.lookup(name, kinds, now, round_robin)),
         }
     }
 

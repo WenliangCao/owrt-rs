@@ -1,6 +1,39 @@
 use super::*;
 
 #[test]
+fn hinted_results_match_plain_lookup_order_expiry_and_snapshot_effects() {
+    for records in [0, 1, 3] {
+        for now in [100, 160] {
+            for round_robin in [false, true] {
+                for requested in [Kind::Ipv4, Kind::Ipv6] {
+                    let mut original = Cache::new(8, Policy::default());
+                    original.start_insert();
+                    for value in 0..records {
+                        original.insert(record("hint.test", Kind::Ipv4, value), 100, 60).unwrap();
+                    }
+                    original.insert(record("other.test", Kind::Ipv4, 9), 100, 120).unwrap();
+                    assert!(original.commit());
+                    let name = Name::from_ascii("HiNt.TeSt").unwrap();
+                    let mut plain = original.snapshot();
+                    let mut hinted = original.snapshot();
+                    let before = (original.head, original.tail, original.name_revision);
+                    let (_, hint) = hinted.inspect_name(&name, now);
+                    let actual = hinted.lookup_with_hint(&name, &[requested], now, round_robin, hint.as_ref());
+                    let expected = plain.lookup(&name, &[requested], now, round_robin);
+                    assert_eq!(&*actual, expected.as_slice());
+                    assert_eq!((hinted.head, hinted.tail, hinted.name_revision),
+                               (plain.head, plain.tail, plain.name_revision));
+                    assert_eq!(hinted.lookup(&name, &[Kind::Ipv4], now, false),
+                               plain.lookup(&name, &[Kind::Ipv4], now, false));
+                    assert_eq!((original.head, original.tail, original.name_revision), before,
+                               "a query must leave the inherited snapshot untouched");
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
     let mut cache = Cache::new(8, Policy::default());
     cache.start_insert();
@@ -12,7 +45,7 @@ fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
     let (cname, hint) = cache.inspect_name(&name, 100);
     assert!(!cname);
     assert_eq!((cache.head, cache.tail, cache.name_revision), before);
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, hint.as_ref()), [id]);
+    assert_eq!(&*cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, hint.as_ref()), &[id]);
     assert_eq!(cache.head, Some(id.slot));
     let (_, hint) = cache.inspect_name(&name, 100);
     assert!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 160, true, hint.as_ref()).is_empty());
@@ -27,7 +60,7 @@ fn name_hint_rejects_new_members_and_a_different_question() {
     cache.start_insert();
     let first = cache.insert(record("hint.test", Kind::Ipv4, 1), 100, 60).unwrap();
     assert!(cache.commit());
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, absent.as_ref()), [first]);
+    assert_eq!(&*cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, absent.as_ref()), &[first]);
     let (_, single) = cache.inspect_name(&name, 100);
     let other = Name::from_ascii("other.test").unwrap();
     assert!(cache.lookup_with_hint(&other, &[Kind::Ipv4], 100, false, single.as_ref()).is_empty());
@@ -69,7 +102,7 @@ fn name_hint_rejects_cache_replacement_and_saturated_revisions() {
     let id = cache.insert(record("hint.test", Kind::Ipv4, 55), 100, 60).unwrap();
     assert!(cache.commit());
     assert_eq!(cache.name_revision, u64::MAX);
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref()), [id]);
+    assert_eq!(&*cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref()), &[id]);
 }
 
 #[test]
