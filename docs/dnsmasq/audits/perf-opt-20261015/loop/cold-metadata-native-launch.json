@@ -1,0 +1,42 @@
+{
+  "scope": "Independent fixed native240 after exact related gates, SDK build, smoke2 stopped and SDK transfer completed; no qualification claim",
+  "candidate": "cold-metadata",
+  "launched_utc": "2026-10-15T23:04:09.509651+00:00",
+  "pid": 574939,
+  "starttime_ticks": 183006672,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cold-metadata-native-screen1/run-native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cold-metadata-native-screen1"
+  ],
+  "plan_commit": "7ea56827",
+  "plan_sha256": "99423ef51eac597f9eb21c29e0db73c72f4ab89867a8b6b3c254c59262bd8ab0",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "gate_receipt_sha256": "5e024edd370116758ac9f184347b55a194efaf28f935a872fbb4cd60a748e663",
+  "related_test_passes": 934,
+  "all_three_related_test_passes": 2803,
+  "sdk_elf_sha256": "ed91f32912144f1a25f7ab388047dea8b2ee07f83af3138fce63d763082949b7",
+  "sdk_build_receipt_sha256": "2c3a181ff65e2385a13c143f5233d00b8f12e81507785fd6be7c0773ac34fedd",
+  "all_three_sdk_builds_complete": true,
+  "smoke2_state_sha256": "d164ca2e424114e3404a2eb1823c3c1827d5bf889c756f56ab361d8d20b45633",
+  "smoke2_terminal": "failed exact-E gate; no pending generate/runtime; DNS explicitly released all Oracle work",
+  "dhcp_gate": "Root reports all nine SDK bundle files downloaded and 537 source inputs verified before timing",
+  "locks_available_before_launch": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+  ],
+  "root_readable_research_process_inventory": [],
+  "sources_reverified": {
+    "F": 162,
+    "cold-metadata": 162
+  },
+  "previous_round": null,
+  "windows": 240,
+  "planned_build_commands": 4,
+  "planned_commands": 244,
+  "SDK32_not_authorized": true
+}
