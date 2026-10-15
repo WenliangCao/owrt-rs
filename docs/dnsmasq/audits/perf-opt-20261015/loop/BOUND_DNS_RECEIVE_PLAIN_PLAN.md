@@ -1,7 +1,7 @@
 # Fixed quiet actual-API CPU screen
 
-Status: prepared locally; do not launch until the coordinator grants the next
-exclusive Oracle quiet slot. This is a standalone DNS socket API experiment,
+Status: completed after the coordinator-authorized DNS quiet-slot handoff;
+the fixed result is recorded below. This is a standalone DNS socket API experiment,
 not full DNS service or device acceptance. No router work is authorized here.
 
 Reuse the two existing release artifacts without the counting allocator:
@@ -55,3 +55,27 @@ summary may transfer. The earlier instruction screen suggests roughly 330
 total instructions saved per bound packet in this transport fixture, while
 the generic branch adds 3–8 user instructions. This motivates a small screen,
 not a prediction of full-DNS benefit or an explanation of the C/E elapsed gap.
+
+## Fixed result
+
+All forty windows completed successfully, with all original results retained
+and no reruns. ELF and private instrumented source hashes matched before and
+after. The transferred 73,192-byte raw-derived summary has SHA256
+`b73bd06cd002674d18550653622673eb4bd489df685942e336070f1e408d1a5b`;
+`bound-dns-receive-plain.json` includes that receipt and every process result.
+
+| Mode / burst | E CPU µs/packet median [min, max] | Candidate median [min, max] | Change | W | Same-direction pairs |
+| --- | --- | --- | ---: | ---: | ---: |
+| Bound / 1 | 4.8146 [4.7989, 4.8699] | 4.7034 [4.6889, 4.7436] | -2.310% | 1.475% | 5/5 |
+| Bound / 16 | 4.05366 [4.04556, 4.07059] | 3.96401 [3.95029, 3.97317] | -2.212% | 0.617% | 5/5 |
+| Generic / 1 | 4.8091 [4.7785, 4.8229] | 4.8172 [4.7738, 4.8281] | +0.168% | 1.127% | 3/5 |
+| Generic / 16 | 4.05717 [4.05368, 4.05977] | 4.04326 [4.03454, 4.05028] | -0.343% | 0.389% | 5/5 |
+
+The bound-path CPU reduction exceeds this screen's observed spread, with all
+five pairs agreeing in both burst cases. Both generic-path changes remain
+within observed spread. The earlier generic instruction increase of 3–8 user
+instructions per packet is retained; an inconclusive CPU result does not erase
+it. These results support considering the small change in a future complete
+candidate, not declaring a full-DNS or A53 device gain. No per-query elapsed
+gap is attributed to it. The Oracle slot was released immediately afterward
+for the coordinator's next build.
