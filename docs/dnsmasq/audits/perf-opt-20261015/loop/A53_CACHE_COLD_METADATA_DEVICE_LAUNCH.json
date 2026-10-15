@@ -1,0 +1,57 @@
+{
+  "scope": "Exploratory unqualified F/cache-cold-metadata A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "source_commit": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
+  "source_files_verified": 179,
+  "elf_sha256": "ed91f32912144f1a25f7ab388047dea8b2ee07f83af3138fce63d763082949b7",
+  "elf_bytes": 2136859,
+  "map_sha256": "84a9ab9f031d36aac41b6db3d40c2ddbcf63d6913599b3aa8b835ea9b25252a5",
+  "build_receipt_sha256": "2c3a181ff65e2385a13c143f5233d00b8f12e81507785fd6be7c0773ac34fedd",
+  "entry_sha256": "431cf2a440ee8704c45115069d0470ea03d6812b4f02b81a48db81a06d14c3e6",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "plan_commit": "4060f669",
+  "plan_sha256": "3208d56f9b1924cac592898d8a657edeb41c219027107f7b2d6102c1935e63b7",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.619,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.51,
+    "dns_max_ms": 0.767,
+    "http_samples": 23,
+    "http_max_ms": 63.024,
+    "threshold_ms": 200,
+    "raw_sha256": "b5a7ac7d4e94747d3ffb097c118eeffcd774ea35f5ca2b7aaabc6acf90e49e42"
+  },
+  "health_summary_sha256": "f6623b11779c26c9dcd16d8e89a92adc377d1c34ee5049043cd9c3a338fbfe18",
+  "preflight_sha256": "672a20400448bf76a26ed0ba6bd527ff08c2e82541881a3545f3e983f4474d5f",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "fixed_windows": 10,
+  "replacement": false,
+  "candidate_eligible": false,
+  "full44_qualification": false,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-a53-cache-cold-metadata/cache_cold_metadata_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_CACHE_COLD_METADATA_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-cache-cold-metadata/summary.json",
+    "--experiment-hash",
+    "ed91f32912144f1a25f7ab388047dea8b2ee07f83af3138fce63d763082949b7",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-cache-cold-metadata-device"
+  ],
+  "setup_script_sha256": "1a5380381e750cc97475425c4130733de26d83744ca4009b152f4eb6645aab99",
+  "pid": 52701,
+  "launch_epoch": 1792105271.0754619,
+  "started_utc": "2026-10-15T23:01:11.075515+00:00"
+}
