@@ -1,0 +1,103 @@
+{
+  "scope": "Independent Oracle runner compatibility review; two explicitly authorized baseline-only smoke windows, not timing acceptance. No router access.",
+  "fix_commit": "ce87b715",
+  "reviewed_files": {
+    "tools/dnsmasq/perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+    "tools/dnsmasq/perf_opt_device_run.py": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+    "tools/dnsmasq/perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "tools/dnsmasq/perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "tools/dnsmasq/device_perf_lifecycle.c": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4"
+  },
+  "environment": {
+    "kernel": "Linux 6.17.0-1020-oracle aarch64",
+    "shell": "/bin/sh -> dash",
+    "busybox": "/bin/busybox exists; frozen case uses ordinary PATH utilities, not BusyBox-only options",
+    "gnu_time": "/usr/bin/time exists",
+    "clock_ticks_per_second": 100,
+    "tools_present": [
+      "awk",
+      "taskset",
+      "sha256sum",
+      "readlink",
+      "setsid",
+      "nice"
+    ],
+    "artifacts_static_aarch64": true
+  },
+  "measurement_input_manifest_sha256": "901d25e8a244bcf22ccea2d88c504157995683e33ae6822670cf24ca5b7a5bac",
+  "copied_tool_sha256": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "baseline_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "smoke_output": "root/private/oracle-loop-smoke-20261015",
+  "smoke_complete": {
+    "complete": false,
+    "smoke_only": true,
+    "windows": 2,
+    "valid": 2
+  },
+  "cases": {
+    "udp-hit-r1-c": {
+      "valid": true,
+      "errors": [],
+      "archive_sha256": "6a1bd31d6112800c86fe181b572dc2281161f7de5835c7d543410b5aa587c9f2",
+      "verified_raw_files": 43,
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "parameters": "c udp hit 200 5 20 dhcp_clients=150",
+      "counts": {
+        "warmup": {
+          "scheduled": 1000,
+          "sent": 1000,
+          "correct": 1000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 4000,
+          "sent": 4000,
+          "correct": 4000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      },
+      "live_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7"
+    },
+    "startup-small-r1-c": {
+      "valid": true,
+      "errors": [],
+      "archive_sha256": "cf1d7b7714046965bd6d3c48d4addb916365d04cd9119462ad2d57ac86f6fb16",
+      "verified_raw_files": 15,
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "parameters": "c life-startup 7 6 20 1000 dhcp_clients=150",
+      "iterations": 20,
+      "all_ok": true,
+      "hosts": [
+        8
+      ],
+      "leases": [
+        6
+      ],
+      "runtime_realpath_accepted_by_unchanged_helper": true
+    }
+  },
+  "local_failure_archive_controls": [
+    "empty incomplete window archived successfully",
+    "partial stderr-only window archived successfully",
+    "retained raw-file hashes and tar members verified before scratch removal"
+  ],
+  "cleanup": {
+    "owned_artifact_processes": [],
+    "runtime_directory_exists": false,
+    "controller_pid_still_present": false
+  },
+  "copy_note": "Root-owned daemon/stderr logs retain mode0600; non-root recursive SCP was incomplete. Both readable .tar.gz archives were copied, validated for safe member types/names, extracted only after archive hash checks, and all58 raw files rehashed."
+}
