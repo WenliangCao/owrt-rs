@@ -1,0 +1,65 @@
+{
+  "scope": "Read-only timing suitability and counter-accounting review; no probe/product edits, no compilation, no Oracle access or workload execution",
+  "reviewed_plan_commit": "93381a062779484c8be35900bc2ca6ca6b8548f4",
+  "decision": "No blocking counting or timing-accounting issue found in the finalized fixed plan/runner",
+  "inputs_sha256": {
+    "hotpath_probe_v2.rs": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+    "udp_admission_probe.rs": "f1c1bdb3f6b1d4b6c6fb66c9a18055fc7ca877ae20f75b26921386d30360afc5",
+    "layout-screen-plan.json": "31876bbfb36d3c5164cd7b633464adfa3dd8fded2beb634cfd830c686eae7a84",
+    "run_layout_native_screen.py": "9d5bc3abecde5060b080c67360d7a1c5b08fa2b229ffe222265700119f627091"
+  },
+  "matrix": {
+    "unique_windows": 480,
+    "stat_windows": 180,
+    "plain_windows": 300,
+    "stat_operations": 200000,
+    "plain_operations": {
+      "hit": 2000000,
+      "hit-upper": 2000000,
+      "hit-leases": 2000000,
+      "hit-typed": 2000000,
+      "miss": 2000000,
+      "miss-leases": 2000000,
+      "host": 2000000,
+      "host-localise": 2000000,
+      "raw-address": 200000,
+      "synth-address": 2000000,
+      "lease-address": 2000000,
+      "rrset": 2000000,
+      "cname": 2000000,
+      "cname-leases": 2000000,
+      "cname-config": 200000
+    },
+    "all_operation_counts_cover_complete_query_populations": true,
+    "expected_checksums_match_retained_F_controls_scaled_from_8000": true,
+    "checksum_scaling_has_no_rounding": true
+  },
+  "probe_findings": [
+    "hot15 black-boxes query input, the returned answer enum and the consumed packet length. Each declared iteration calls the real public local/cache answer path and changes/observes its real state; no timer, logging output or allocation-counter read occurs inside the loop.",
+    "Each query is primed and validates answer count, rcode and ID. Timed unexpected None or result variants still fail. The aggregate checksum is answer length, so it is a workload/coarse-regression sentinel, not full DNS byte equivalence.",
+    "The 800-name, 400-CNAME and 100-RRset populations all divide both fixed operation counts. Time passed to the answerer remains 101, so real elapsed time cannot expire the fixture mid-run.",
+    "Positive local/host, localisation, raw A/AAAA plus hosts, synthesis, leases, RRsets and cached/configured CNAME cover the important adverse paths for these two layout changes.",
+    "hit-typed still asks A/AAAA; hot15 has no dedicated ANY/PTR/MX/SRV/TXT timing scene. Existing functional gates remain the authority for those semantics; no fixture expansion is required for this limited screen.",
+    "The admission probe also black-boxes input and consumes every answer byte, with 800 warm iterations excluded from its allocation delta. It has different per-query validation/checksum overhead and is intentionally omitted from this nonduplicative timing plan."
+  ],
+  "runner_findings": [
+    "Both PMU events must be user-only and inherited; perf verbose event-open records must show the same PID and a leader/member group_fd relationship.",
+    "The parser requires positive raw counts, one CSV/raw row per event, running==enabled>0 and 100 percent running. The final version also checks equal enabled/running values across events, so same-run user IPC does not mix independent windows or scaled values.",
+    "Each plain window launches a single taskset/nice/probe exec chain, waits for it, then differences RUSAGE_CHILDREN user+system CPU. No simultaneous child/build is running in this sequential runner, and perf wrappers exist only in stat windows.",
+    "All three native builds occur before measurement; source/probe hashes, per-window executable hashes, end-of-run hashes, fixed output checksums and zero instrumentation markers are checked.",
+    "PMU normalization uses the effective operations for that window, including the 200k stat windows and the two shorter plain controls.",
+    "The final operation counts and checksum constants were frozen before any layout measurement; all fifteen scenes and pair counts remain intact."
+  ],
+  "limitations": [
+    "The probe header comment about setup/priming/output outside scope is true only for its allocation interval. The plan and runner correctly measure whole processes including those costs.",
+    "Plain CPU is the primary elapsed-cost measure. Recorded wall time also includes parent launch/wait/file handling latency and is not an isolated inner-loop timer.",
+    "Native repeated hot-loop measurements can keep code/data warmer than the low-rate whole-daemon owner workload. Planned separate exact-SDK owner windows are necessary; the native probe is not the shipping daemon ELF.",
+    "Host-localisation hash buckets depend on relocated pointer bytes. Keep every fixed pair and all adverse results; do not force seeds or selectively repeat.",
+    "Checksum equality does not prove record content/order/TTL equivalence or absence of every memory defect. The existing source reviews and Linux correctness gates supply that separate evidence."
+  ],
+  "minimum_changes_adopted": [
+    "Predeclared known checksum table instead of first F sample setting the expected result.",
+    "Equal enabled/running time assertion across the grouped events."
+  ],
+  "additional_required_probe_or_framework_changes": []
+}
