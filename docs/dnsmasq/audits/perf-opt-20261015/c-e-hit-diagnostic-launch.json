@@ -1,0 +1,57 @@
+{
+  "pid": 40801,
+  "epoch": 1792080328.357426,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "private/perf-opt-20261015/c-e-hit-diagnostic-run.py",
+    "--out",
+    "private/perf-opt-20261015/c-e-hit-diagnostic",
+    "--prefix",
+    "c-e-hit-diagnostic",
+    "--c-hash",
+    "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "--rust-hash",
+    "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "--health-baseline",
+    "private/perf-opt-20261015/health/summary.json",
+    "--scenes",
+    "udp-hit",
+    "tcp-hit"
+  ],
+  "scope": "Fresh physical router exact image C versus exact E hit diagnostic;20windows,two scenes,five alternating pairs each. Not candidate qualification and no historical pooling.",
+  "windows_expected": 20,
+  "comparators": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "frozen_controller_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+  "frozen_analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "frozen_source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "measurement_tool_hashes": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+  },
+  "image_library_hashes": {
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+  },
+  "preflight_sha256": "5d120d5a77d220aae6522340976ed089ba2402b19190c7a3ffbf82c439f91ba7",
+  "live_preflight_sha256": "8d9f8a564ec7f2383ad2acf1e30011bf0f531170684d9194ee02c3551adc3a22",
+  "supplement_rule": "7691e8aa applies symmetrically after the complete20-window diagnostic, at most one entire pair supplement per tool-invalid pair; product wrong answers/response timeouts/crashes excluded.",
+  "cpu_scope": "Unchanged analyzer includes parent user/system and waited-child user/system ticks over warmup+measurement, denominator5000 operations; live process tree resources retained.",
+  "local_receipt_sha256": "4be604c356af6a644000ef958862497e03b8995107c7c06eb702a78cc28fe48c"
+}

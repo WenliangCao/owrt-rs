@@ -1,0 +1,31 @@
+{
+  "epoch": 1792080219.1152132,
+  "exact_c_live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "live_pid_start": [
+    13607,
+    6729198
+  ],
+  "mapped_image_libraries": [
+    "/lib/libc.so",
+    "/lib/libgcc_s.so.1",
+    "/lib/libubox.so.20260213",
+    "/lib/libubus.so.20251202"
+  ],
+  "namespace": "net:[4026532198]",
+  "exit": 0,
+  "files_sha256": {
+    "netns.txt": "6f5ef610ccc1791dcfa7760657cae17d7ee06e0f2e0562e220886acf7c4fdfe1",
+    "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "COMPLETE": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1",
+    "stderr": "14fafa2d8089e88e15fdbc5e45006257224b7c25f64594970bc9c82a100d25d1",
+    "live.sha256": "1ca4621263ec9866c4d3dbacaa359b6293d8616a649cec212b307e38e5020e76",
+    "live.maps": "2723d444fb0ca00c071e3fea1037261ee07f1771a46d177127463fa065173deb",
+    "identity.txt": "c270fd833c85fd7f0d83fbd20135745f9fa4f1b6dd9b2b81d203cbc9240f6dac"
+  },
+  "scope": "One no-query isolated startup/clean shutdown before timed diagnostic; library files are unchanged image files, not copied/replaced.",
+  "production_pid_start_after": [
+    3086,
+    2115
+  ],
+  "local_receipt_sha256": "8d9f8a564ec7f2383ad2acf1e30011bf0f531170684d9194ee02c3551adc3a22"
+}
