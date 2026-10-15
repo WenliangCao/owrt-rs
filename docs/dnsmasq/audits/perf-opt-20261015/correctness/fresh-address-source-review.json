@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
+  "candidate_commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "scope": "Source review plus separately authorized exact-source native Linux related gates for the independent F-based prototype. No combination with name-buffer, idle batching, singleton or stage changes.",
+  "source_sha256": {
+    "cache.rs": "4d787005be4dc7e4cf07e960c2485649cbb90ea5413351c2a23244e44a7ddab7",
+    "cache_engine.rs": "c581f30121b8da354c9a818806fcbff5de3be6ade7e8417bebc96a7d8f3a5c4f",
+    "cache_tests.rs": "5f85d683d81e1a8d10b854da8e6fc10725e069494b6552184a2380918d5b3cfb"
+  },
+  "general_body_byte_identical_to_F": true,
+  "general_body_sha256": "c1ad35b21bbd5636b99b357efe0eaac92f0698d6462e7ad111e1ad3bd1d807c7",
+  "review": [
+    "The fast helper requires an existing single-entry hint with unchanged name identity, cache owner, root pointer and revision, then verifies generation, matching A/AAAA kind, positive data length4/16, non-stale state and actual policy validity.",
+    "Every rejected helper path is read-only. It does not expire, remove, promote or rotate entries; the original general lookup performs those effects on fallback.",
+    "Only a selected valid single address performs the same unlink/link_head promotion as the original hinted single-slot lookup. Multi-record/RRset, CNAME, negative, stale, expired, wrong-kind/length and invalid-hint paths retain the original general owner.",
+    "The fast wrapper requires IN, ordinary query header, RD, no DO and no type filtering. Existing outer local/interface/EDNS processing remains before/after this wrapper as originally defined.",
+    "The direct reply uses the original PacketWriter flags/question, owner offset12, classIN, Entry.reply_ttl and record_cached ordering. Full follows the same finish_cached_answer TC path, which clears partial response sections.",
+    "Entry.is_stale remains strict now>expires; is_valid separately applies the existing retention/expiry policy. No new TTL or equality-boundary rule was introduced.",
+    "The general body is byte-identical and only moves behind inline(never). This source refactoring alone does not establish a timing benefit."
+  ],
+  "test_evidence": {
+    "fast_general_matrix_cases": 576,
+    "matrix_scope": "A/AAAA, three times, three RD/CD flag settings, DO/type-filter gates, eight writer limits; compares reply/error outcomes and logging.",
+    "hint_fixture": "Wrong kind/name identity, successful promotion, expiry rejection without removal, subsequent ordinary expiry removal, old revision and multi-record fallback.",
+    "initial_compile_failure": {
+      "reason": "E0369: QueryEvent has no PartialEq; direct Vec<QueryEvent> equality in the new fixture failed to compile.",
+      "fix": "Compare the complete Debug event snapshots in the fixture; no production equality trait added.",
+      "stderr_sha256": "67264ddfc451d007728a39331e9bc56b3b11e033a7311b86965624b0af70ec77",
+      "musl_stderr_sha256": "2315d8eed9841fc06ebe76be04c0404058491cf320fa216a3a53ea4f2ca9dabb"
+    },
+    "initial_fixture_failure": {
+      "reason": "The fixture expected a many-entry hint after separate same-name/same-kind insert transactions, but insertion correctly replaced the old committed entry.",
+      "fix": "Construct both A records in the same insertion batch; retain old-hint invalidation and normal fallback assertions.",
+      "stdout_sha256": "b6a0380d46d13edba8b803a2f66279482c5d912be9cdc36140e7c896d7644837",
+      "stderr_sha256": "fcd987ac979f162f1a2ba18160d843f26bb48c839f3f78815e33ce00adeea280"
+    },
+    "final_local_mac_lib": {
+      "passed": 716,
+      "failed": 0,
+      "ignored": 8,
+      "stdout_sha256": "bbbb6bed13502877048f6753be9caf698d527b6bb7f2398fb8e66003cf192a01"
+    },
+    "final_local_linux_musl_all_target_check": {
+      "coordinator_report": "passed",
+      "stderr_has_successful_finish": true,
+      "stderr_sha256": "cc55a7319ff3f5662fb6e0a0371a37f5f818f4ac0260a46aa9fb1e81dc2e521b"
+    },
+    "reviewer_local_rerun": false,
+    "related_linux_gates": {
+      "file": "fresh-address-linux-gates.json",
+      "sha256": "8f938d42c2abc61b9dbdb4bf57d8bda67cb4c96849b7bb9543d6b777d29c53fb",
+      "total_passed": 935
+    }
+  },
+  "remaining_blocking_findings": [],
+  "limitations": [
+    "The earlier failures were retained fixture/compiler failures before the final commit; the product helper/general-state semantics were not relaxed to satisfy them.",
+    "Related Linux gates omit four complete oracle drivers and do not replace full compatibility/44-family qualification.",
+    "No performance gain, exact function cost, candidate acceptance or deployment is established by source review and functional tests."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
