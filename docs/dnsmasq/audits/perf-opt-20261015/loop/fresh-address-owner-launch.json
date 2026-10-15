@@ -1,0 +1,24 @@
+{
+  "scope": "Fixed independent F/fresh-address original-SDK owner32; not qualification or deployment",
+  "launched_utc": "2026-10-15T22:26:04.553648+00:00",
+  "pid": 545097,
+  "starttime_ticks": 182778176,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/fresh-address-inputs/run-owner-screen.py"
+  ],
+  "controller_sha256": "3068cffd07467ae4a20eacee62c72b5437a042d1d67452e087a39ec311feb073",
+  "declared_plan_commit": "9e1856a6",
+  "native480_result_sha256": "d219e70324d169d428fff04853dcc8f84162a89fc3d2377b2fe30150bdbb53a6",
+  "native480_complete": true,
+  "linux_gate_receipt_sha256": "d63e14d8024798fa94d1486b68698e44696a2dbcfc5ad6e0df8bddea1b5fe384",
+  "baseline_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "candidate_elf_sha256": "b52432a274ab9dda36d60e568e4b618e755d34e69ffce72bc5343df485fcce7f",
+  "device_transfer_gate": "DHCP explicitly confirmed both SDK ELF/map/build bundles (6 files) fully downloaded and identities verified; no remaining Oracle activity",
+  "prior_root_readable_research_process_inventory": [],
+  "windows": 32,
+  "reservation": "exclusive Oracle through owner32 and analysis; router independent; no bulk raw transfers"
+}
