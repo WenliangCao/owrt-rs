@@ -5088,7 +5088,7 @@
             "reference.kind": "image-aarch64-musl",
             "reference.elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
             "identities.rust": "{elf_sha}",
-            "paired_observations": 350,
+            "paired_observations": 346,
             "identities.c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
             "reference.runner_sha256": "{ubus_image_runner_sha}",
             "reference.identity_sha256": "{ubus_image_identity_sha}"
@@ -5440,7 +5440,7 @@
     "interface_closeout_rust_only_syntax": 3,
     "interface_closeout_paired_service": 8,
     "endpoint_required_rows": 191,
-    "ubus_paired_observations": 350,
+    "ubus_paired_observations": 346,
     "archive_gate": "Real local full-metadata verification and SHA-tied prune receipts; no placeholder completion."
   }
 }

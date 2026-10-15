@@ -80,3 +80,12 @@ and immutable correctness gates, then device eligibility.
 A full44 completed; independent review found original UBus checker registry
 expects350 paired observations but suite hardcodes346. Investigating unchanged
 inputs/history, no C expectation modified, no qualification claimed.
+
+## Authorized UBus metadata correction
+
+User explicitly approved the reviewed two-number registry repair350→346 during
+this continuation. Applied exactly the proposed patch; C fixtures/comparators/
+assertions/negative controls unchanged. Original freeze manifests remain intact;
+`correctness/ubus-inventory-amendment.json` binds both hashes, patch and consent.
+The fresh finalist still requires all44families; this is not a gate waiver or
+retroactive A/B pass.

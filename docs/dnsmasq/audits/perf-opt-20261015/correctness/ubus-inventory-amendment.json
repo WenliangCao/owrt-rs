@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "scope": "User-authorized metadata-only amendment to original freeze; original freeze manifests remain intact",
+  "authorized_at_utc": "2026-10-15T08:18:43.274127+00:00",
+  "user_authorization": "允许修正这两处计数，继续完整验收（推荐）",
+  "path": "tools/dnsmasq/m5_final_families.draft.json",
+  "before_sha256": "2289c79a327fd2703ad7fbe696f7b0cdd20a850dd442822fc55f1a3421c0d23a",
+  "after_sha256": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+  "changes": {
+    "ubus ordinary paired_observations": [
+      350,
+      346
+    ],
+    "ubus_paired_observations": [
+      350,
+      346
+    ]
+  },
+  "explanation": "Pre-freeze72e843ed combined three recovery observations into one composite in each collision order, retained behavior checks and added16negative controls; registry count was stale.",
+  "unchanged_comparators": {
+    "tools/dnsmasq/ubus_daemon_diff.py": "858adf692f28317479d7b0b425f86114df2b0479bf0cc1608c25111cb9cc50ab",
+    "tools/dnsmasq/m5_final_validation.py": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+    "tools/dnsmasq/audit_20261011_families.py": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860"
+  },
+  "patch_sha256": "f3fbcacfbf070738bc4cfa96a7671117593313e02cbafc4ed38d7303452a1c59",
+  "qualification": "not a gate pass; complete fresh candidate gates remain required"
+}
