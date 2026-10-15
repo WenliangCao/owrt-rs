@@ -1,0 +1,47 @@
+{
+  "scope": "Independent fixed native240 after exact related gates, SDK build, smoke2 stopped and SDK transfer completed; no qualification claim",
+  "candidate": "fresh-frame",
+  "launched_utc": "2026-10-15T23:11:07.702647+00:00",
+  "pid": 578413,
+  "starttime_ticks": 183048491,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/fresh-frame-native-screen1/run-native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/fresh-frame-native-screen1"
+  ],
+  "plan_commit": "7ea56827",
+  "plan_sha256": "7e1b32034eef89a841393098bced52c0e9680011d41b10d8501b25697eeb746e",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "gate_receipt_sha256": "5e024edd370116758ac9f184347b55a194efaf28f935a872fbb4cd60a748e663",
+  "related_test_passes": 935,
+  "all_three_related_test_passes": 2803,
+  "sdk_elf_sha256": "02b500e55acc65d7099612801d89ea8e19a20ae9884e0a86edfdd051a3b057ad",
+  "sdk_build_receipt_sha256": "243027630a044b865b7c76fe50c1943f602e06f38a66828b1cba0c5af1e48cb9",
+  "all_three_sdk_builds_complete": true,
+  "smoke2_state_sha256": "d164ca2e424114e3404a2eb1823c3c1827d5bf889c756f56ab361d8d20b45633",
+  "smoke2_terminal": "failed exact-E gate; no pending generate/runtime; DNS explicitly released all Oracle work",
+  "dhcp_gate": "Root reports all nine SDK bundle files downloaded and 537 source inputs verified before timing",
+  "locks_available_before_launch": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+  ],
+  "root_readable_research_process_inventory": [],
+  "sources_reverified": {
+    "F": 162,
+    "fresh-frame": 162
+  },
+  "previous_round": {
+    "candidate": "cold-metadata",
+    "status": "complete",
+    "rows": 240,
+    "result_sha256": "b9721b60b51231a63d0fd5d507f4d92449610a942825e65acc3cc35e60dae2dd"
+  },
+  "windows": 240,
+  "planned_build_commands": 4,
+  "planned_commands": 244,
+  "SDK32_not_authorized": true
+}
