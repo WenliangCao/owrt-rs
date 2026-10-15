@@ -1,0 +1,114 @@
+{
+  "status": "measurement complete; F not promoted; E remains accepted",
+  "summary_sha256": "f85be97cb0bf3b987796a0552a80d9095776d664997d06b0b7992a528e68919a",
+  "full_private_summary_sha256": "3ce4283d1eb6508c53ee3f69b23eab4cc0cdbb01b78b07f32b382de153cbee99",
+  "comparison": {
+    "c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "source_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "qualification_sha256": "84ca19157d7f40710715fc000d1491e8c9918961ce9600a67abcc92185b8a821",
+  "windows": 110,
+  "valid": 110,
+  "verified_archives": 110,
+  "verified_raw_files": 3430,
+  "prefix_preserved": 58,
+  "new_windows_after_recovery": 52,
+  "valid_retests": 0,
+  "supplements": 0,
+  "primary_goal_met": false,
+  "primary_improvements": [],
+  "primary_regressions": [],
+  "udp_hit_cpu": {
+    "left": {
+      "median": 150.0,
+      "min": 138.0,
+      "max": 152.0,
+      "rounds": [
+        138.0,
+        144.0,
+        150.0,
+        150.0,
+        152.0
+      ]
+    },
+    "right": {
+      "median": 146.0,
+      "min": 134.0,
+      "max": 148.0,
+      "rounds": [
+        134.0,
+        138.0,
+        146.0,
+        146.0,
+        148.0
+      ]
+    },
+    "relative_change_pct": -2.666666666666667,
+    "W_pct": 9.58904109589041,
+    "same_direction_pairs": 5,
+    "precision_ok": false,
+    "discernible": false,
+    "direction": "within_variation_or_resolution"
+  },
+  "tcp_hit_cpu": {
+    "left": {
+      "median": 170.0,
+      "min": 162.0,
+      "max": 170.0,
+      "rounds": [
+        164.0,
+        170.0,
+        170.0,
+        170.0,
+        162.0
+      ]
+    },
+    "right": {
+      "median": 164.0,
+      "min": 162.0,
+      "max": 164.0,
+      "rounds": [
+        164.0,
+        164.0,
+        162.0,
+        164.0,
+        162.0
+      ]
+    },
+    "relative_change_pct": -3.5294117647058822,
+    "W_pct": 4.705882352941177,
+    "same_direction_pairs": 3,
+    "precision_ok": false,
+    "discernible": false,
+    "direction": "within_variation_or_resolution"
+  },
+  "health_sample_count": 3874,
+  "DNS_actual_checks": 1512,
+  "HTTP_actual_checks": 701,
+  "external_HTTPS_checks": 260,
+  "DNS_HTTP_HTTPS_failures": 0,
+  "memory_guard_stops": 1,
+  "owned_groups_killed": 0,
+  "interruption_records": [
+    "candidate-f-vs-e-memory-stop.json",
+    "candidate-f-vs-e-58-prune-receipt.json",
+    "candidate-f-vs-e-resume1-launch.json"
+  ],
+  "maintenance_change": "Original validation, loadgen, case/group helpers and analyzer remained fixed. Controller7c93 removes only verified valid raw device copies after progress, and preserves completed tar archives if later cleanup fails.",
+  "archive_verification_receipt_sha256": "2eb7db6188c36fc626676c1ce6d470c5df9c9390843793a57de98e4eb50e4b0c",
+  "health_receipt_sha256": "adca3dd866c456a9ee2faa342e750373e1ff4ae62f33d56b9863ac1655eaee34",
+  "postflight": {
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_file_live_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "active_STOP": false,
+    "active_group": false,
+    "owned_live_executables": 0,
+    "available_memory_kib": 95300,
+    "all_110_verified_remote_window_copies_pruned": true,
+    "capture_sha256": "ae0bb96a9fa73565157a2658543d2451fa1460457afbf480d51d14650b037a79"
+  }
+}
