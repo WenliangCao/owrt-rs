@@ -316,3 +316,24 @@ and all five negative controls rejected. Existing checker/tool tests passed
 **24 + 7**. The receipt also binds the authoritative 941-test raw log hashes.
 TCP and all-family/source-corpus final results are still pending; no C full pass
 is claimed from this first batch.
+
+[C's TCP/corpus batch](c-tcp-corpus-gates.json) is complete. The three original
+TCP groups passed **13 conditions/50 pairs (37 TCP + 13 UDP)** with zero
+comparator differences, exact C/Rust process hashes, healthy parents and clean
+cleanup. Each implementation has precisely the original expected 2 s timeout
+for short `v4-warm-drop`; no other query failed.
+
+The four fresh source-bound corpora ran in full: cache-answer **764 commands,
+164 queries, 382 metric snapshots, zero differences**; cache transfer **307/307**;
+stale metadata **1,100/1,100**, zero omissions or differences. Lease insertion
+ran **36 cases/269 commands/95 queries/43 dynamic lookups**. It retains exactly
+the historical two differences in case 26 (`fqdn-short-republication-same`),
+steps 9 and 10: C invents `alias -> example` and counts a hit, while Rust misses.
+The full difference objects match A and original source's fresh replay exactly;
+ordinary-insertion mismatches remain zero. **Raw comparator exit 1 is retained**
+and these two differences are nonblocking only under the user's explicit
+instruction. No new qualifier or changed C expectation was introduced.
+
+All remaining-gate batch processes completed. The three original full-family
+workers continue unchanged; full 44-family completion is the last pending
+correctness requirement before the coordinator can admit a device comparison.

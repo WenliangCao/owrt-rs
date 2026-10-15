@@ -1,0 +1,1436 @@
+{
+  "scope": "Fresh C TCP and four source-bound corpus diagnostics; full44 remains pending",
+  "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "shipping_elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+  "tcp_conditions": 13,
+  "tcp_query_pairs": 50,
+  "tcp_pairs": 37,
+  "udp_pairs": 13,
+  "tcp_groups": [
+    {
+      "group": "long",
+      "summary_sha256": "4e023fa043020c0eae79b6e3d6179ad7d35ced71f95ccff7aaa6be54821787cd",
+      "settings": {
+        "case": null,
+        "client_timeout": 25.0,
+        "udp_timeout": 5.0,
+        "recover_after": 2.0,
+        "cache_size": 0,
+        "resolver_order": [
+          "v4a",
+          "v4b",
+          "v6a",
+          "v6b"
+        ]
+      },
+      "status": "equal-within-observation",
+      "difference_count": 0,
+      "driver_sha256": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf",
+      "cases": [
+        {
+          "case": "cold-rst",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "ceea0057ec868b98f94985fafbc15d2d60e6950c04b6c519fe5f6e1c0a38b89c",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "7690e2d7ee7b2af0a269a95ffe701ba8471736b666ceffa937e226ee770a38ce",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v4-warm-rst",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "9f979a5e6bbeebed2a3c81175c9678a4e79f25976d5de92e00eeb51378b7023f",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "e9a4909ca5e34db95962e3d04b89bbf191ffe3f3c3b2957abe7c104b840f2943",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v6-warm-rst",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "d574ddc59331c012268bcd15d07d0d8c66378fa00c12da90f27c96d80a9f4f60",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "f10b3f299f7e7fed68fc627aa8b37a1bf027f5aa455ada7c05aa5045051d41b9",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v4-warm-reselect-rst",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "14061e581173cf00a8e6eba2619195e5a8879934e91e320b25e92f5c6cca1c82",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "reselect",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "after-reselect-same",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "after-reselect-fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "94bb83e0dbb5e9f016f45d46e2671bbaff976f5cf5d4ca166a764b5204a81af9",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "reselect",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "after-reselect-same",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "after-reselect-fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v4-warm-drop",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "f9b1d2e43770842f57630b6984201f445985deb2316bc99c24e6d3b8aaeda408",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "6df4823a15dd9ed5b1e741aa81e36c54613824fe39186a75e9c4ffe6c607dec8",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v6-warm-drop",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "d302900c8b54a2081cfa9e29807be5ba75a739fcc819d1a06fd415e36877a462",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "28465aab92b0cd24ff8342dec32a42a7ca102cbd664e12fdc40e77d2a2187573",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v4-warm-drop-session",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "83e96f31953120bf1bc14e0b11311fefb35f5a6f5dce427c72c884e0326f90ea",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "13f14d35e94b5799b5c3ca318865b45baef1c817c61633bd4b235dbbe1b22b54",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v4-warm-drop-restore",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "db8c9991151490a817010f9ccbe3121273340460400d2d5ead0788ee42cb4dc6",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "f2a6699d4cad59611a54a924062f1a04577a33d2c38aa5a06081ab2fb17d639c",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v4-warm-drop-recover",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "968f7fcb71950046bd9727e82fa86a9010fa2602d0c56f26e119161525eac1a4",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "after-recovery-same",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "after-recovery-fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "13b3f8f3055a35e43784a1608f1f28c6181e8b4e90c5d041dfedd26e52fdc5db",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "after-recovery-same",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "after-recovery-fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "group": "short",
+      "summary_sha256": "93a66caa75f88f777bde4683af7eafcf8b30f3da4295a0e8e28a9d41927fc48f",
+      "settings": {
+        "case": [
+          "v4-warm-drop",
+          "v6-warm-drop"
+        ],
+        "client_timeout": 2.0,
+        "udp_timeout": 5.0,
+        "recover_after": 10.0,
+        "cache_size": 0,
+        "resolver_order": [
+          "v4a",
+          "v4b",
+          "v6a",
+          "v6b"
+        ]
+      },
+      "status": "equal-within-observation",
+      "difference_count": 0,
+      "driver_sha256": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf",
+      "cases": [
+        {
+          "case": "v4-warm-drop",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "9091966acbd3c5263a6a1c3f1f368082ae70c2ed894bffdb5ab4fdbe7bb69b8e",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "error",
+                  "error": "TimeoutError",
+                  "timeout_seconds": 2.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "29478d043fc36985c746f91c0bbfa65ce8473d10899a7615f59dc0e22f0b8fac",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "error",
+                  "error": "TimeoutError",
+                  "timeout_seconds": 2.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v6-warm-drop",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "4ff2009a2b0bfc2c8face2d135137bb98f408fae2c6a87eec9b21b0573a696b3",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 2.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 2.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 2.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "19a3e93c630f01cdacb69154c77f7bdbc286e1a21d0249af76808cdabfbf503d",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 2.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 2.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 2.0
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "group": "cache1000",
+      "summary_sha256": "9b24939be06c960321ed7f8856736033378cb29a415bacbbe4c7f4587865f404",
+      "settings": {
+        "case": [
+          "v4-warm-drop",
+          "v6-warm-drop"
+        ],
+        "client_timeout": 25.0,
+        "udp_timeout": 5.0,
+        "recover_after": 10.0,
+        "cache_size": 1000,
+        "resolver_order": [
+          "v4a",
+          "v4b",
+          "v6a",
+          "v6b"
+        ]
+      },
+      "status": "equal-within-observation",
+      "difference_count": 0,
+      "driver_sha256": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf",
+      "cases": [
+        {
+          "case": "v4-warm-drop",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "4beecc1333ffe172ca5034f8c9d229ab25531efedd26b93e07bb3184b33d3d7d",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "0bb0d99e80016824eaa452dda35b8d71bc6ce71e395d4d0a5781dff1fe6dadd9",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "case": "v6-warm-drop",
+          "differences": [],
+          "sides": {
+            "reference": {
+              "result_sha256": "a4d504e45d59cb830daaded0c538f336ff198e682c2f4ef35304dcc51f6173d8",
+              "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "live_identity_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            },
+            "rust": {
+              "result_sha256": "8a3290176e048aba66a5ae6dcb8e9c1b1c34e383928b70629a55116d54e46e4d",
+              "binary_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "live_identity_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+              "daemon_alive_after_queries": true,
+              "parent_exit": 0,
+              "cleanup_group_members": [],
+              "cleanup_non_zombie_survivors": [],
+              "queries": [
+                {
+                  "label": "warm",
+                  "transport": "udp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 5.0
+                },
+                {
+                  "label": "first",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "same-session",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                },
+                {
+                  "label": "fresh",
+                  "transport": "tcp",
+                  "status": "reply",
+                  "error": null,
+                  "timeout_seconds": 25.0
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "corpora": {
+    "cache-answer": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/private/correctness-c-cache-answer/summary.json",
+      "result_sha256": "6ec5bb081ae56b80cf0dd7ad4e056a982fbc4d8dd759c13f7a7486c28de43566",
+      "queries": 164,
+      "metric_snapshots": 382,
+      "mismatches": 0,
+      "calibration": "reset/miss/insert/NXDOMAIN/expiry and RCODE mutation passed",
+      "commands": 764,
+      "results": {
+        "c": {
+          "hits": 95,
+          "misses": 69,
+          "insert_events": 188,
+          "reset_events": 30
+        },
+        "rust": {
+          "hits": 95,
+          "misses": 69,
+          "insert_events": 188,
+          "reset_events": 30
+        }
+      }
+    },
+    "transfer": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-corpus-transfer/result.json",
+      "result_sha256": "25fc12d086f3c893b6c7c32a0a3c5f9f85509bc2b17d1904f8b5eaa687a023f7",
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "failures": [],
+      "calibration": {
+        "equal": 1,
+        "counter_mutation_detected": 1,
+        "short_count_rejected": 1
+      },
+      "probe_sha256": "34e13aaf373a3c236ff1cb6ab72350f33af6d390411b1d19be1f410e19839144",
+      "cases": 36
+    },
+    "stale": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-corpus-stale/result.json",
+      "result_sha256": "597240baeaf57f99f23ceb9eaa09f7d680709cf62384830453527c76f6506a30",
+      "compared": 1100,
+      "planned": 1100,
+      "not_compared": 0,
+      "passed": 1100,
+      "mismatches": 0,
+      "rust_driver_sha256": "646977d3b88700d3dfaa974242e98d222ee59b6855123a65e8cd0ddf2a5c53cc"
+    },
+    "lease": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/private/correctness-c-lease-insert/result.json",
+      "result_sha256": "dd8097f009e5c455e0f5f8de03d96ec979d63b63079e70f03fd554762094c407",
+      "queries": 95,
+      "mismatches": [
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 9,
+          "command": "Q 102 29300100000100000000000005616c6961730000050001",
+          "c": {
+            "id": 10544,
+            "flags": 34176,
+            "questions": [
+              [
+                "alias",
+                5,
+                1
+              ]
+            ],
+            "sections": [
+              [
+                "answer",
+                [
+                  [
+                    "alias",
+                    5,
+                    1,
+                    58,
+                    [
+                      "example"
+                    ]
+                  ]
+                ]
+              ],
+              [
+                "authority",
+                []
+              ],
+              [
+                "additional",
+                []
+              ]
+            ]
+          },
+          "rust": null
+        },
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 10,
+          "command": "N 102 29300100000100000000000005616c6961730000050001",
+          "c": "N 1",
+          "rust": "N 0"
+        }
+      ],
+      "calibration": {
+        "ttl_mutation_detected": 1,
+        "short_count_rejected": 1,
+        "c_miss_hit_expiry": 1,
+        "invalid_c_config_rejected": 1
+      },
+      "cohorts": {
+        "ordinary_insertion_mismatches": 0,
+        "layout_reuse_mismatches": 2
+      },
+      "c_hits": 59,
+      "c_misses": 36,
+      "rust_hits": 58,
+      "rust_misses": 37,
+      "dynamic_lookups": 43,
+      "commands": 269,
+      "rust_driver_sha256": "646977d3b88700d3dfaa974242e98d222ee59b6855123a65e8cd0ddf2a5c53cc",
+      "c_oracle_sha256": "3e761509d37426bc852f1c1620a54b1295625d772bb6c07528ddc935f17abb14",
+      "cases": 36
+    }
+  },
+  "corpus_commands": [
+    {
+      "gate": "cache-answer",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/run_isolated.sh",
+        "runuser",
+        "-u",
+        "ubuntu",
+        "--",
+        "env",
+        "PATH=/home/ubuntu/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CARGO_HOME=/home/ubuntu/.cargo",
+        "RUSTUP_HOME=/home/ubuntu/.rustup",
+        "CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target",
+        "CARGO_BUILD_TARGET=aarch64-unknown-linux-musl",
+        "CARGO_INCREMENTAL=0",
+        "CARGO_BUILD_JOBS=1",
+        "STAGING_DIR=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl",
+        "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+        "RUSTFLAGS=--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-c=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/cache_answer_diff.py",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/private/correctness-c-cache-answer",
+        "--oracle-command",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/source/private/cache-answer-c/local-answer-oracle -C /home/ubuntu/dnsmasq-perf-20261015/correctness/source/private/cache-answer-c/cache.conf",
+        "--oracle-identity",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/source/private/cache-answer-c/identity.json",
+        "--with-metrics",
+        "--rust-test-binary",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-probe-tests/lib-dnsmasq_rs",
+        "--rust-source-root",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c",
+        "--rust-build-receipt",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-probe-tests/build.json"
+      ],
+      "exit": 0
+    },
+    {
+      "gate": "transfer",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/run_isolated.sh",
+        "runuser",
+        "-u",
+        "ubuntu",
+        "--",
+        "env",
+        "PATH=/home/ubuntu/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CARGO_HOME=/home/ubuntu/.cargo",
+        "RUSTUP_HOME=/home/ubuntu/.rustup",
+        "CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target",
+        "CARGO_BUILD_TARGET=aarch64-unknown-linux-musl",
+        "CARGO_INCREMENTAL=0",
+        "CARGO_BUILD_JOBS=1",
+        "STAGING_DIR=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl",
+        "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+        "RUSTFLAGS=--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-c=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/cache_transfer_rust_diff.py",
+        "--baseline",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/transfer-c-recovered",
+        "--fresh-c-receipt",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/transfer-c-recovered/fresh-c-receipt.json",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-corpus-transfer",
+        "--rust-test-binary",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-probe-tests/lib-dnsmasq_rs",
+        "--rust-source-root",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c",
+        "--rust-build-receipt",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-probe-tests/build.json"
+      ],
+      "exit": 0
+    },
+    {
+      "gate": "stale",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/run_isolated.sh",
+        "runuser",
+        "-u",
+        "ubuntu",
+        "--",
+        "env",
+        "PATH=/home/ubuntu/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CARGO_HOME=/home/ubuntu/.cargo",
+        "RUSTUP_HOME=/home/ubuntu/.rustup",
+        "CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target",
+        "CARGO_BUILD_TARGET=aarch64-unknown-linux-musl",
+        "CARGO_INCREMENTAL=0",
+        "CARGO_BUILD_JOBS=1",
+        "STAGING_DIR=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl",
+        "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+        "RUSTFLAGS=--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-c=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/stale_metadata_diff.py",
+        "--baseline",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/stale-metadata-c",
+        "--rust-source-root",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c",
+        "--rust-driver",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-tests/lib-dnsmasq_rs",
+        "--cargo",
+        "/home/ubuntu/.cargo/bin/cargo",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-corpus-stale"
+      ],
+      "exit": 0
+    },
+    {
+      "gate": "lease",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/run_isolated.sh",
+        "runuser",
+        "-u",
+        "ubuntu",
+        "--",
+        "env",
+        "PATH=/home/ubuntu/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CARGO_HOME=/home/ubuntu/.cargo",
+        "RUSTUP_HOME=/home/ubuntu/.rustup",
+        "CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target",
+        "CARGO_BUILD_TARGET=aarch64-unknown-linux-musl",
+        "CARGO_INCREMENTAL=0",
+        "CARGO_BUILD_JOBS=1",
+        "STAGING_DIR=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl",
+        "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+        "RUSTFLAGS=--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-c=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/tools/dnsmasq/lease_insert_diff.py",
+        "--compare-baseline",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/source/private/lease-insert-c",
+        "--cargo",
+        "/home/ubuntu/.cargo/bin/cargo",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-c/private/correctness-c-lease-insert"
+      ],
+      "exit": 1
+    }
+  ],
+  "corpus_command_receipt_sha256": "b837b2324db03ceb7f880ded9d84c0124636bac68ed726dca4956201155170d8",
+  "remaining_batch_state": {
+    "state": "complete",
+    "epoch": 1792057230.7698433,
+    "known_UID_raw_comparator_exit": 1
+  },
+  "remaining_batch_commands_sha256": "2188aba1a34c1a7825966308c46e77e4d7a10d0073d346140a7137461ec2997b",
+  "lease_raw_comparator_exit": 1,
+  "lease_existing_UID_differences": 2,
+  "lease_user_explicitly_nonblocking": true,
+  "lease_new_or_changed_differences": false,
+  "all_original_observations_retained": true
+}
