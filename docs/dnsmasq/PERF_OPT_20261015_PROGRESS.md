@@ -58,3 +58,25 @@ Root drafted independent compatibility fix `b1136023050853e918a3671704d27c868792
 Git-boundB SDK completed: `root/private/sdk-b-git-bound/dnsmasq-rs`, SHAa6ad4f1c0091d4656a2d52af855eaafac9daf6356aedc0011a00fabb37d6ef0a,2128667B, same-build map/receipt. Earlier mislabeledB build producedsamebytes; onlyGit-boundreceipt may beused. It is unqualified because inheritingstale gate.
 
 A928 shorttests plusF10/368/TCPpassed; full44 stillrunning. Correctness hasnew`run_family_gates.py` originalrunner-per-family scheduler, independentlyreviewed byroot with duplicatejobcount/Cidentity strengthening requested; PAUSE onlybeforefamilies. C additionaldirections: names_for safeephemeral lookuphint (Bfork, initialwholeAPI−10.31%hit/−18.45%miss but8RR+1.87%mustaddress); UDP source sockets create atomicNONBLOCK/CLOEXEC (actualAmiss5000each ioctl+fcntl proven, potentially2syscalls/query); LeaseNames inline-one index andimmutable sharing prototypes. No C candidatequalified yet.
+
+## Resume, 2026-10-15 10:03 CEST
+
+User explicitly authorized independent `b1136023` C compatibility fix and
+continuing full qualification. The pending-boundary section above is superseded;
+frozen C expectations remain unchanged.
+
+Recovered detached base2 completion: all 110 windows completed at 01:20 CEST,
+110 valid, all raw file hashes reverified, no parse failures. Complete derived
+results in `audits/perf-opt-20261015/baseline-summary.json` and report table.
+All 11 guard segments stopped normally; 252 external HTTPS checks passed. One
+terminal HTTP probe was cancelled at requested guard shutdown, never a pass.
+Original deployed PID3086/start2115/SHA8472 remains live. No active measurement
+process on either host at resume. Oracle135GiB root free/12GiB shm free. No cleanup.
+
+Four resumed agents own correctness, DNS cursor2, atomic socket/residual loop,
+and lease D6/D7 publication. Root next: combine refinements after quiet micro
+timing, freeze C with approved fix, Git-bound SDK build, full Oracle workloads
+and immutable correctness gates, then device eligibility.
+A full44 completed; independent review found original UBus checker registry
+expects350 paired observations but suite hardcodes346. Investigating unchanged
+inputs/history, no C expectation modified, no qualification claimed.
