@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "status": "PASS_FOR_DIAGNOSTIC_EXECUTION",
+  "scope": "Independent read-only review of the exact-image C/E capture driver and frozen16-window plan. No new workload or physical-device operation by reviewer; not a performance result.",
+  "driver": {
+    "commit": "93489990",
+    "sha256": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325"
+  },
+  "driver_final_commit": "93489990",
+  "plan_commit": "94bdedad",
+  "plan_sha256": "5b3f91a8d523ee93a3ec31db39b4d98a74f3c9b9fb25443c82e8b15eda23efff",
+  "artifacts": {
+    "C": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "E": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "C_symbols": "79cb9590a6113bca41034155ec45569eac58a2dccde80819c9863ef316f740da",
+    "C_symbol_receipt": "02ed4b8321ffacd1ddec6c061ea4375f8f4220ba06f8ee22d4b2f8b764596b94"
+  },
+  "verified_boundaries": [
+    "C runs the exact image ELF through image libc plus precisely four original image library hashes; live mappings and before/after file identities are checked.",
+    "The mapped process executable may be the explicit image libc loader; exact C identity is separately bound to the executable mapped artifact.",
+    "Non-executable data mappings, including the read-only TZif mapping, are recorded with permissions/offset/hash independently from the strict ELF set. Unexpected executable anonymous/file mappings are rejected except vDSO.",
+    "Original frozen loadgen/upstream hashes and normalized hit configuration, seeds, rates, client counts,1000UDPprewarm+1000warmup+4000measurement are retained.",
+    "No preexisting C children after UDP prewarm; inherited fork/clone work is part of observation. Capture must end with no remaining service children after a fixed1second drain.",
+    "Strace follows every descendant and records all syscall categories; parent-only filtering is not allowed for C TCP.",
+    "Stat and sampling run separately. Stat records grouped instructions:u/instructions:k/cycles:u/cycles:k; sampling records only instructions:u with period10000.",
+    "Control ACKs bound enabled PMU windows. Observation ends at fixed grace before post-window map/hash checks.",
+    "Twelve stat windows use three alternating pairs per scene. Four sample windows use one per side/scene. This is not the frozen five-pair acceptance.",
+    "Unknown/gap/zero-size/overlapping symbol attribution remains explicit; sample share times a separately measured user-instruction total is a cross-run estimate."
+  ],
+  "resolved_review_findings": [
+    {
+      "issue": "Initial shared C strace path omitted descendant tracing",
+      "resolution_commit": "1888747b",
+      "change": "-f,-v,trace=all"
+    },
+    {
+      "issue": "First C startup was rejected because musl mapped a non-ELF TZif data file",
+      "resolution_commits": [
+        "6728d9a9",
+        "da2aa10f"
+      ],
+      "change": "Strict expected ELF set retained; non-executable data mappings separately identified. Raw startup identity and original failure remain retained."
+    },
+    {
+      "issue": "Post-window file verification could prolong observer scope differently between artifacts",
+      "resolution_commit": "93489990",
+      "change": "Stop observing before post-window hashing/maps."
+    }
+  ],
+  "result_review_requirements": [
+    "Verify actual perf inheritance flag and all recorded descendant sample lineage; an E-only analyzer rejecting every non-root PID is unsuitable.",
+    "Verify raw totals and event running ratios; unsupported/not-counted events invalidate that attempt and any scaling must remain explicit.",
+    "Bind C symbol companion to the actual exact stripped image, including allocated section layout and bytes; no native reference substitute.",
+    "Match actual namespace launch argv and observed identities to the recorded plan.",
+    "Do not silently retry, pool historical data, or call sampled function estimates exact per-function event totals."
+  ],
+  "no_additional_approval_required": true,
+  "next_step": "Proceed after loop handoff; audit the planned raw outputs without expanding the capture matrix."
+}
