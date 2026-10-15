@@ -14,7 +14,7 @@ The original200queries/s,5-second warmup,20-second measurement,1000-query prewar
 
 Exact prototype source `26aefa79` matched all179 SDK receipt source files. ELF `77dca9fe…e1dc40` is2,136,859bytes; map `95e7995b…680071`, build receipt `affcacb9…da6fa6`. F is ELF `b7926bcf…781fc`. Prior local/Linux screens and the1408-byte reduction in named ordinary-path frame reservation do not establish A53 CPU or dynamic stack-peak benefit. Full44 qualification was not completed.
 
-Author verification checked10 archives and430 members against manifests and extracted bytes, then independently reran the unchanged traffic/statistics functions. All314 resource observations and final endpoints had one daemon thread; all cases and daemons exited0. During the round,414 guard samples,162 DNS,74 HTTP and28 external dual-stack HTTPS checks passed; minimum available memory was82,884KiB.
+Author verification checked10 archives and430 members against manifests and extracted bytes, then recomputed using the unchanged traffic/statistics functions. All314 resource observations and final endpoints had one daemon thread; all cases and daemons exited0. During the round,414 guard samples,162 DNS,74 HTTP and28 external dual-stack HTTPS checks passed; minimum available memory was82,884KiB.
 
 Postflight confirmed production SHA `8472be5a…aade7` and PID/start `[3086,2115]` unchanged, exact original E/F temporary slots restored, and no STOP/active group/owned executable. Verified completed remote window copies and the three newly staged immutable sources were reclaimed; local artifacts and all evidence remain. The postflight shell and captured result are both retained. Final independent artifact audit is tracked separately.
 
