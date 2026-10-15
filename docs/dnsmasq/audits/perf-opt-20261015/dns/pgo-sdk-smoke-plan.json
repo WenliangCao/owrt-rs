@@ -167,5 +167,13 @@
       ],
       "after": "source unchanged, SDK audit_elf/layout passed, effective flags receipt bound; instrumented artifact remains diagnostic; size/overhead recorded, not accepted performance"
     }
+  ],
+  "controller_sha256": "8df299151f4b3669e734de3d781e0a0e17c68af625501220b940f33950b9eb78",
+  "controller_remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/pgo_sdk_smoke.py",
+  "map_cc_sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5",
+  "controller_argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/pgo_sdk_smoke.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/plan.json"
   ]
 }
