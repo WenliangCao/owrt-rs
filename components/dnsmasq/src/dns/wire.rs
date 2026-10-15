@@ -97,6 +97,8 @@ impl Header {
 pub struct Name(Vec<u8>);
 
 impl Name {
+    pub(super) fn into_wire_buffer(self) -> Vec<u8> { self.0 }
+
     pub fn root() -> Self {
         Self(vec![0])
     }
@@ -187,6 +189,17 @@ pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, u
     let mut wire = Vec::with_capacity(32);
     let next = walk_name(packet, start, extra, |label| wire.extend_from_slice(label))?;
     Ok((Name(wire), next))
+}
+
+/// Reuse a normal UDP owner's name allocation. On failure the caller keeps
+/// the partial scratch; only a successful walk creates a valid owned Name.
+pub(super) fn decode_name_reusing(
+    packet: &[u8], start: usize, extra: usize, scratch: &mut Vec<u8>,
+) -> Result<(Name, usize), WireError> {
+    scratch.clear();
+    if scratch.capacity() < 32 { scratch.reserve(32); }
+    let next = walk_name(packet, start, extra, |label| scratch.extend_from_slice(label))?;
+    Ok((Name(std::mem::take(scratch)), next))
 }
 
 /// Check the same expanded name and cursor as `decode_name` without keeping

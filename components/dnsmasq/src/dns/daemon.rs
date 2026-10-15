@@ -247,6 +247,7 @@ pub struct DnsDaemon<R = OsRandom> {
     server_notices: Vec<crate::logging::LogEvent>,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
+    udp_name_buffer: Vec<u8>,
     cache_counters: CacheCounters,
     negative_ttl: u64,
     negative_cache: bool,
@@ -360,6 +361,7 @@ impl<R: Random> DnsDaemon<R> {
             server_notices: Vec::new(),
             upstream,
             cache: None,
+            udp_name_buffer: Vec::new(),
             cache_counters: CacheCounters::default(),
             negative_ttl: 0,
             negative_cache: false,
@@ -963,31 +965,44 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<QueryResult, DaemonError> {
         self.invalidate_udp_resend();
         let header = Header::parse(original)?;
-        let question = super::forward::Question::parse_with_header(original, header)?;
-        if let Some(answer) = Self::answer_local_or_cached(
-            self.cache.as_mut(),
-            original,
-            header,
-            &question,
-            local,
-            unix_seconds(),
-            !metadata.flags.no_cache,
-            false,
-        )?.answer {
-            return Ok(answer);
-        }
-        if let Some(packet) = self.policy_reply(original, Some(local))? {
-            return Ok(QueryResult::Local(packet));
-        }
-        self.submit_upstream_with_metadata(
-            decorated,
-            original,
-            &question,
-            client,
-            listener,
-            true,
-            Some(metadata),
-        )
+        let mut scratch = std::mem::take(&mut self.udp_name_buffer);
+        let question = match super::forward::Question::parse_with_header_reusing(original, header, &mut scratch) {
+            Ok(question) => question,
+            Err(error) => {
+                self.udp_name_buffer = scratch;
+                return Err(error.into());
+            }
+        };
+        // Forwarding retains its own owned question; no result can borrow
+        // this synchronous decode. Recover the buffer on every result path.
+        let result = (|| {
+            if let Some(answer) = Self::answer_local_or_cached(
+                self.cache.as_mut(),
+                original,
+                header,
+                &question,
+                local,
+                unix_seconds(),
+                !metadata.flags.no_cache,
+                false,
+            )?.answer {
+                return Ok(answer);
+            }
+            if let Some(packet) = self.policy_reply(original, Some(local))? {
+                return Ok(QueryResult::Local(packet));
+            }
+            self.submit_upstream_with_metadata(
+                decorated,
+                original,
+                &question,
+                client,
+                listener,
+                true,
+                Some(metadata),
+            )
+        })();
+        self.udp_name_buffer = question.name.into_wire_buffer();
+        result
     }
 
     pub fn refresh_udp_prepared_on_listener(
