@@ -1,0 +1,500 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only frozen F/UDP-name-buffer exploratory audit. No driver import, device/Oracle query, build or new load.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "udp-name-buffer",
+    "source_commit": "f404ed754a26f9385c733e7474f28e4595520957",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+        "bytes": 2136859
+      },
+      "link.map": {
+        "sha256": "915e7a6abdb6593c08e373d5b176529acbc334825a3dc7d9cf0ff9cfe8fe8f15",
+        "bytes": 3021534
+      },
+      "build.json": {
+        "sha256": "bc6cc1ff4e0afebb92cc229f751f158f19501a9f777afa8f44b9c189f976aeeb",
+        "bytes": 43961
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "dd69f54e",
+    "author_public_result": "../loop/A53_UDP_NAME_BUFFER_DEVICE_RESULT.json",
+    "author_public_result_sha256": "1aa7e5dfce45656b51ce3d8a45ee4bc623af2c2c52b4e06234c4b330b8d7da39",
+    "summary_sha256": "138ea8644b504215f19f5a6b719b91280ef9b65a88b06abf6dcf1bc7d2d80df5",
+    "progress_sha256": "36afa650e6641783ca94729051eed19b98c9aa53f4920144f7df847998735be3",
+    "identity_sha256": "c5abf6317026906236b79161ebee5f3366e10746fa317af967eb0e62ed863fb5",
+    "plan_sha256": "e5268209e0503608ddc09db4e87eb008d51f7d8f9d42ad50af43cb7291521bb9",
+    "launch_sha256": "5ce30f3f3ecda451dd33227da62a13901970ea4f0e9bd8257bea6680fee18278",
+    "independent_audit_sha256": "11b340ca67414dcb398c271493a96c09c3273c6b8577dd5556cad00e340f662e",
+    "statistical_script_sha256": "9b7933eee0e0153b96f806b6ded344a31b7b2024024d2d1465355cfee6c54ca1",
+    "health_script_sha256": "b3ba963f6b285b9b7ce5490e1d59b49721fc1dbe088cda37d7ec4d2017fcdcb8",
+    "subreceipts": {
+      "statistics_sha256": "8e71cf292d639ea59f9f3a6abdad21be7bffd3dbf9f5ba0c6e93b854a8b8287e",
+      "health_sha256": "8add7ed8cfb8cb0ab116aada1ddb09d3f2879873dd176c284a621e504d5b88e8"
+    },
+    "statistical_audit_reuse": "Same independently audited ten-window formulas and raw checks as address-dispatch, with only paths/roles/public result identity adapted."
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 314,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_members_all_manifest_and_extracted_hashes_match": true,
+    "all_local_files_regular_not_symlinks": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-udp-name-buffer": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "udp-name-buffer",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.184508,
+            "min": 0.177197,
+            "max": 0.193278,
+            "rounds": [
+              0.193278,
+              0.184508,
+              0.185046,
+              0.177197,
+              0.179506
+            ]
+          },
+          "right": {
+            "median": 0.186431,
+            "min": 0.175428,
+            "max": 0.197049,
+            "rounds": [
+              0.197049,
+              0.186431,
+              0.195895,
+              0.175428,
+              0.184661
+            ]
+          },
+          "relative_change_pct": 1.0422312311661326,
+          "W_pct": 11.597320188166131,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.345932,
+            "min": 0.272914,
+            "max": 0.406562,
+            "rounds": [
+              0.406562,
+              0.402407,
+              0.345932,
+              0.274915,
+              0.272914
+            ]
+          },
+          "right": {
+            "median": 0.35655,
+            "min": 0.264374,
+            "max": 0.449881,
+            "rounds": [
+              0.449881,
+              0.35655,
+              0.393175,
+              0.264374,
+              0.277068
+            ]
+          },
+          "relative_change_pct": 3.0693893597585538,
+          "W_pct": 52.028327022857944,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 130.0,
+            "min": 124.0,
+            "max": 138.0,
+            "rounds": [
+              138.0,
+              134.0,
+              130.0,
+              124.0,
+              126.0
+            ]
+          },
+          "right": {
+            "median": 132.0,
+            "min": 124.0,
+            "max": 134.0,
+            "rounds": [
+              134.0,
+              130.0,
+              134.0,
+              124.0,
+              132.0
+            ]
+          },
+          "relative_change_pct": 1.5384615384615385,
+          "W_pct": 10.76923076923077,
+          "same_direction_pairs": 2,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2408.0,
+            "min": 2352.0,
+            "max": 2440.0,
+            "rounds": [
+              2408.0,
+              2372.0,
+              2440.0,
+              2352.0,
+              2436.0
+            ]
+          },
+          "right": {
+            "median": 2364.0,
+            "min": 2356.0,
+            "max": 2408.0,
+            "rounds": [
+              2356.0,
+              2356.0,
+              2408.0,
+              2364.0,
+              2384.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2408,
+            "min": 2352,
+            "max": 2440,
+            "rounds": [
+              2408,
+              2372,
+              2440,
+              2352,
+              2436
+            ]
+          },
+          "right": {
+            "median": 2364,
+            "min": 2356,
+            "max": 2408,
+            "rounds": [
+              2356,
+              2356,
+              2408,
+              2364,
+              2384
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 524,
+            "rounds": [
+              520,
+              524,
+              520,
+              516,
+              520
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              516,
+              516,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1884,
+            "min": 1832,
+            "max": 1916,
+            "rounds": [
+              1884,
+              1844,
+              1916,
+              1832,
+              1912
+            ]
+          },
+          "right": {
+            "median": 1844,
+            "min": 1832,
+            "max": 1888,
+            "rounds": [
+              1832,
+              1832,
+              1888,
+              1844,
+              1864
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 65,
+        "right": 66,
+        "absolute_delta": 1,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          69,
+          67,
+          65,
+          62,
+          63
+        ],
+        "rust": [
+          67,
+          65,
+          67,
+          62,
+          66
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "median_ticks_F": 65,
+    "median_ticks_candidate": 66,
+    "absolute_median_tick_difference": 1,
+    "required_difference_exclusive": 8,
+    "same_direction_pairs": 2,
+    "discernible": false
+  },
+  "health": {
+    "fresh_baseline": {
+      "sha256": "85c9f9f6afc4896a5f6e04dafb77ca87ba79eda77a23766209d8120a212f900e",
+      "samples": 126,
+      "dns_completed": 50,
+      "http_completed": 23,
+      "dns_p95_ms": 0.608,
+      "dns_max_ms": 0.663,
+      "http_max_ms": 62.79,
+      "min_memory_kib": 91948,
+      "start_epoch": 1792101698,
+      "last_sample_epoch": 1792101823,
+      "stop_epoch": 1792101823,
+      "elapsed_seconds": 125.25,
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "runtime_guard": {
+      "sha256": "c843ce8bdb06b690e22d28c7f48c5673f5231e3eebea765ad888b850869b7893",
+      "samples": 423,
+      "dns_completed": 165,
+      "http_completed": 77,
+      "dns_p95_ms": 0.761,
+      "dns_max_ms": 4.704,
+      "http_max_ms": 93.966,
+      "min_memory_kib": 85064,
+      "start_epoch": 1792101912,
+      "last_sample_epoch": 1792102334,
+      "stop_epoch": 1792102334,
+      "elapsed_seconds": 422.421,
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "external_checks": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "24c5727daa07c573b616955ec99c5afdb1f2fb5a35297f4e2b3607a1b2f17217"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "8b60ec80fd5f2120ac16b2f2befcf9243408d01847255a19ac22a0ec09b63454"
+      }
+    ],
+    "all_ten_window_intervals_covered": true,
+    "all_completed_probes_passed": true,
+    "failed_or_cancelled_probes": 0,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained": true
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "f7f5f6e587e1186a2be605682609c501e8f326d150cc321e86547db6f1a0f44f",
+    "postflight_script_sha256": "7c79c438768fb56083f10284df23dbf909a527448c515c8ee8241901138f50b7",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 88908,
+    "local_controller_pid_absent": 79079,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "conclusion": "All three primary metrics are indistinguishable. CPU130 to132us/op is +1.53846%, below W10.76923%, with only two same-direction pairs and one median tick of difference. No demonstrated gain/regression or candidate promotion.",
+  "limits": [
+    "This is F versus UDP-name-buffer only. Historical E/C/device/native observations are not pooled into this experiment.",
+    "The retained bounded name buffer and functional tests do not themselves prove a runtime allocation or performance benefit.",
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "Postflight is a captured script/record audit, not a fresh device observation. The script reads init namespace; production final identity is established by the frozen runner restoration check."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
