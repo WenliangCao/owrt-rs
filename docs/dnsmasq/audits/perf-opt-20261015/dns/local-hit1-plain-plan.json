@@ -1,0 +1,47 @@
+{
+  "scope": "Native whole-answer diagnostic screen only; not SDK/device acceptance",
+  "candidate_source": "6f594d7b",
+  "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "probe_source_commit": "699e4085",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "runner_sha256": "81545ddf0abc28a12e9625dacd992a9044816c4c799f364e58b7e22ca01a12f7",
+  "artifact_sha256": {
+    "E": "6c5a7ace964acc7e6e8f1c98109c32c2990f8e59186ff299d445902f38f8f811",
+    "local-hit1": "3d41ef30fd5afdf8909a66401166bdfadd4fedc40f68cfd2e44515e221ca7e5f"
+  },
+  "operations_per_window": 200000,
+  "scenes": [
+    "hit",
+    "hit-upper",
+    "hit-leases",
+    "hit-typed",
+    "miss",
+    "miss-leases",
+    "host",
+    "host-localise",
+    "raw-address",
+    "synth-address",
+    "lease-address",
+    "rrset",
+    "cname",
+    "cname-leases",
+    "cname-config"
+  ],
+  "pairs_per_scene": 5,
+  "order": [
+    "E/local-hit1",
+    "local-hit1/E",
+    "E/local-hit1",
+    "local-hit1/E",
+    "E/local-hit1"
+  ],
+  "cpu": 2,
+  "observer": "none; uninstrumented System allocator, no perf/strace in timing windows",
+  "root_quiet_reservation_required": true,
+  "aggregation": "retain all 150 windows; per-scene median and full range of CPU and wall time, E-relative ratios; no silent retries/replacement or automatic acceptance",
+  "limitations": [
+    "Whole process includes fixture setup and 800 priming answers. It is not a daemon/network load or physical router measurement.",
+    "host-localise uses the unchanged process-address-dependent name hash mixer; preserve variability, do not force a favorable seed.",
+    "Raw configured address records and synthetic/localised/lease cases are compatibility and regression controls; they do not justify bypassing those paths."
+  ]
+}
