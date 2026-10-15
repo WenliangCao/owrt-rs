@@ -289,3 +289,23 @@ PID13199 (--jobs3) and serial boundary/corpus batch PID13200. F10/protocol/TCP
 and all four original corpora completed without new failures; known UID2 raw
 exit1 retained. Full44 remains active. Fourth slot released to the existing
 narrow readiness-count screen. No D device launch until complete qualification.
+
+## Readiness count screen retains a concrete next direction
+
+The existing bounded screen completed all 21 predeclared Oracle cases after
+D timing ended, using only the fourth research slot. Deferred 14-fd versus
+1-fd controls add 9,424–9,758 instructions/iteration; all three observed 1,000
+not-ready prechecks and voluntary context switches, with coalescing retained.
+An optimistic all-increment projection against separate C TCP-hit counts is
+18.1–18.7% of instructions, not a CPU saving or rigorous bound. It is too large
+to dismiss as below noise. No product backend is selected. Commit 930f5140
+retains the complete counts and interpretation. Original-tool exact D profiles
+are now running in that one fourth slot, while full44 keeps three workers.
+No bulk artifact transfers during future D device timing. The next mechanism
+must preserve file/descriptor kinds, duplicate masks, fd reuse, runnable work,
+error handling and all existing owner boundaries. D remains immutable.
+
+The frozen most-scenes improvement goal is still unestablished: D Oracle has
+three discernible primary metrics in only two scenes; C's failed device attempt
+cannot supplement D. Updated experiments ledger retains every prior decision,
+C failure, D CNAME micro caveats, pending device qualification and open research.
