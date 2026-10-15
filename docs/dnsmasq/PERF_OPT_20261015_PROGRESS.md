@@ -309,3 +309,31 @@ The frozen most-scenes improvement goal is still unestablished: D Oracle has
 three discernible primary metrics in only two scenes; C's failed device attempt
 cannot supplement D. Updated experiments ledger retains every prior decision,
 C failure, D CNAME micro caveats, pending device qualification and open research.
+
+## D full correctness failure, device blocked, 14:46 CEST
+
+Full44 attempt1 ended with 38 families attempted/37 passed, 54 jobs/53 passed.
+One original service case failed: m5_interface_records-service,
+hostsdir-dhcp-name-effects / initial-helper:helper. Exact C callback names were
+original→empty→fromhosts; D emitted original→original. Later updated-name helper
+events and all DNS replies match. Both artifact identities, startup, exit0 and
+cleanup pass. This is new, not the documented UID2 difference; D cannot reach
+the device. Scheduler stopped dispatch and let active families drain normally.
+No attempt/window is replaced. Commit27a86caa records original failure evidence.
+
+The original reused test root does not retain a separate final helper.log after
+later cases; original phase rows remain intact. Correctness will run exactly
+nine diagnostic single-case observations (deployed/C/D, three each, rotating
+order), with original fixture/runner and independent retained output, to
+separate an existing race from D changes. Diagnostics do not qualify failed D.
+DHCP owner reviews helper/hosts publication source locally; no product change
+yet and no root-cause claim. Any actual fix receives its own reproducer, commit
+and relevant gates, then a new immutable candidate and fresh full timing.
+
+Exact D five-scene profiling is complete and verified (root7d8eca98): insertion
+self-instruction samples fall to about0.57% in both miss scenes, without implying
+paired CPU gains. The next narrow TCP aggregation primitive completed16 controls;
+its total deferred instruction saving projects only7.16–7.89% against D TCP-hit,
+below current CPUprecision before productbookkeeping. Do not implement that
+productfork based on the ideal14-to-1 projection; all new primitive evidence
+will be retained. This does not establish allreadiness costsirreducible.
