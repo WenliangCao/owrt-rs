@@ -3247,7 +3247,12 @@ impl SinglePoll {
                 .map_err(|_| io::Error::other("DNS state already borrowed"))?;
             let previous_capacity = parent.provider_hosts().name_hash_capacity()
                 .max(parent.local.hosts.name_hash_capacity());
-            let retained_leases = Arc::clone(&parent.local.leases);
+            // C first publishes DHCP DNS names after EVENT_INIT's hosts scan
+            // and lease reconciliation. The provider can initialize earlier
+            // here, but its provisional names must not suppress that first
+            // reverse-host rename. The latch also covers HUP during init.
+            let retained_leases = (!parent.hosts_initializing)
+                .then(|| Arc::clone(&parent.local.leases));
             parent.pending_hosts = None;
             let Some(daemon) = parent.daemon.as_mut() else { return Ok(()); };
             daemon.begin_hosts_reload();
@@ -3282,8 +3287,16 @@ impl SinglePoll {
         // The same bulk reverse hash continues through config, ordinary files
         // and the initial/HUP hostsdir scan. Keep the published owners intact
         // while asynchronous files finish; allocation failure needs no restore.
+        let empty_leases;
+        let retained_leases = match retained_leases.as_deref() {
+            Some(leases) => leases,
+            None => {
+                empty_leases = dnsmasq_rs::dns::lease_names::LeaseNames::default();
+                &empty_leases
+            }
+        };
         match read_hosts_with_notices(&self.config, local_ttl, self.packet_limit,
-            cache_size, name_hash_capacity, &retained_leases, |notice| {
+            cache_size, name_hash_capacity, retained_leases, |notice| {
             #[cfg(target_os = "linux")]
             if let Some(logger) = self.logger.as_mut() {
                 logger.emit(notice.into_log_event());

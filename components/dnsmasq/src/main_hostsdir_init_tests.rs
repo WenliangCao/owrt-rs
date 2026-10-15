@@ -30,6 +30,119 @@ pub(super) fn owner(config: DnsConfig) -> SinglePoll {
     owner
 }
 
+#[cfg(target_pointer_width = "64")]
+#[test]
+fn initial_hosts_rename_precedes_lease_retention_in_both_mixed_chain_orders() {
+    use dnsmasq_rs::dhcp::lease::ScriptAction;
+
+    let address = "127.0.0.40".parse::<std::net::Ipv4Addr>().unwrap();
+    // Select both real mixed-chain outcomes using this process's existing
+    // pointer-seeded hash. No fixed bucket seed or ASLR-dependent expectation.
+    let mut names = None;
+    for lease_index in 0..64 {
+        let original = format!("original{lease_index}");
+        let fqdn = format!("{original}.records.test");
+        let mut orders: [Option<String>; 2] = [None, None];
+        for host_index in 0..256 {
+            let hostname = format!("fromhosts{host_index}.records.test");
+            let mut hosts = Hosts::new();
+            // test_owner's initial hosts generation keeps this capacity.
+            hosts.begin_bulk(1497, 0, 1000).unwrap();
+            hosts.add_bulk_lease(fqdn.as_bytes(), address.into(), true, false).unwrap();
+            hosts.insert_checked(hostname.as_bytes().to_vec(), address.into(), 37, 2).unwrap();
+            hosts.seal_bulk();
+            let static_first = hosts.provider_reverse(address.into()).is_some();
+            orders[usize::from(static_first)].get_or_insert(hostname);
+            if orders.iter().all(Option::is_some) { break; }
+        }
+        if let [Some(blocked), Some(allowed)] = orders {
+            names = Some((original, fqdn, [blocked, allowed]));
+            break;
+        }
+    }
+    let (original, fqdn, hostnames) = names.expect("both mixed reverse-chain orders exist");
+    let mut observations = Vec::new();
+    for (static_first, hostname) in hostnames.iter().enumerate() {
+        for phase in ["initial", "initial-hup", "runtime-hup"] {
+            let root = std::env::temp_dir().join(format!(
+                "initial-lease-retention-{}-{static_first}-{phase}", std::process::id(),
+            ));
+            let directory = root.join("hosts");
+            std::fs::create_dir_all(&directory).unwrap();
+            let leases = root.join("leases");
+            std::fs::write(&leases, format!(
+                "{} 02:00:00:00:00:01 {address} {original} *\n", now_seconds() + 3600,
+            )).unwrap();
+            std::fs::write(directory.join("one"), format!("{address} {hostname}\n")).unwrap();
+            let mut config = config();
+            config.apply(&dnsmasq_rs::config::lex_line(b"domain=records.test").unwrap().unwrap()).unwrap();
+            config.hosts_dirs = vec![Some(directory)];
+            let mut owner = owner(config.clone());
+            owner.packet_limit = 1497;
+            let mut provider = DhcpProvider::new(DhcpConfig {
+                no_ping: true, script: Some(b"/bin/true".to_vec()),
+                lease_file: Some(leases.as_os_str().as_encoded_bytes().to_vec()),
+                ..Default::default()
+            }, Vec::new(), 53, || false).unwrap();
+            provider.set_dns_config(&config).unwrap();
+            let parent = Rc::clone(&owner.service);
+            provider.set_reverse_host_lookup(move |address| {
+                let parent = parent.borrow();
+                Ok(parent.provider_hosts().provider_reverse(IpAddr::V4(address))
+                    .map(|host| host.name.clone()))
+            });
+            provider.set_dns_publisher(Box::new(LeasePublisher {
+                parent: Rc::clone(&owner.service), policy: LeasePolicy::default(),
+            }));
+            provider.initialize(now_seconds());
+            assert!(provider.has_frozen_script_delivery());
+            assert_eq!(owner.service.borrow().local.leases.lookup(fqdn.as_bytes(), now_seconds()).count(), 1);
+            super::tests::attach_test_dhcp(&mut owner, provider);
+            if phase == "runtime-hup" {
+                // Model a completed first publication; this HUP must retain
+                // the existing mixed-chain contract, including suppressed rename.
+                owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+                owner.reload_data(37).unwrap();
+            } else {
+                owner.step_dns_files();
+                assert!(owner.service.borrow().hosts_initializing);
+                owner.step_hosts_files(); // Open the first source before EOF.
+                if phase == "initial-hup" {
+                    owner.reload_data(37).unwrap();
+                    assert!(owner.service.borrow().hosts_initializing);
+                }
+            }
+            for _ in 0..16 {
+                owner.step_hosts_files();
+                owner.step_dns_files();
+                if !owner.hosts_work_pending() && !owner.files_initializing() { break; }
+            }
+            assert!(!owner.hosts_work_pending() && !owner.files_initializing());
+            let provider = owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap();
+            let mut events = Vec::new();
+            while let Some(delivery) = provider.borrow_mut().take_script_delivery() {
+                events.push((delivery.event.action, delivery.event.name));
+            }
+            let renamed = phase != "runtime-hup" || static_first != 0;
+            let expected = if renamed {
+                vec![(ScriptAction::Old, Some(fqdn.as_bytes().to_vec())),
+                     (ScriptAction::OldHostname, Some(fqdn.as_bytes().to_vec())),
+                     (ScriptAction::Old, Some(hostname.as_bytes().to_vec()))]
+            } else {
+                vec![(ScriptAction::Old, Some(fqdn.as_bytes().to_vec())); 2]
+            };
+            let persisted = std::fs::read_to_string(&leases).unwrap();
+            let expected_name = if renamed { hostname.split('.').next().unwrap() } else { &original };
+            let persisted_name = persisted.split_whitespace().nth(3).unwrap();
+            observations.push((phase, static_first, events == expected && persisted_name == expected_name));
+            eprintln!("{phase} static-first={static_first} events={events:?} persisted={persisted_name}");
+            drop(owner);
+            std::fs::remove_dir_all(root).unwrap();
+        }
+    }
+    assert!(observations.iter().all(|(_, _, matched)| *matched), "{observations:?}");
+}
+
 pub(super) fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
     let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
