@@ -1,0 +1,42 @@
+{
+  "scope": "Independent fixed native240 after exact related gates, SDK build, smoke3 completed and SDK transfer completed; no qualification claim",
+  "candidate": "local-cache-integration",
+  "launched_utc": "2026-10-15T23:37:18.498654+00:00",
+  "pid": 607453,
+  "starttime_ticks": 183205571,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/local-cache-integration-native-screen1/run-native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/local-cache-integration-native-screen1"
+  ],
+  "plan_commit": "39deb82af140357a64e9beebbeba110170508f30",
+  "plan_sha256": "70c4bf543850bea421372e60c442dac4009d9e76bc247861fc3940aa996c9993",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "gate_receipt_sha256": "050fe64b167ad1c449449e074ff62df876ab132285317a18fa38813a25f43c53",
+  "related_test_passes": 938,
+  "all_three_related_test_passes": 2809,
+  "sdk_elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+  "sdk_build_receipt_sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6",
+  "all_three_sdk_builds_complete": true,
+  "smoke3_state_sha256": "7e73692045412cdbe3f1fab3aae4e65be4ea8094e8189cbe7d546e121f9557b4",
+  "smoke3_terminal": "complete exact-E control, generate and normal-exit profile smoke; no pending runtime; DNS explicitly released all Oracle work",
+  "dhcp_gate": "DHCP directly confirmed all nine SDK bundle files downloaded, hashes checked and 537 source inputs verified before timing",
+  "locks_available_before_launch": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+  ],
+  "root_readable_research_process_inventory": [],
+  "sources_reverified": {
+    "F": 162,
+    "local-cache-integration": 162
+  },
+  "previous_round": null,
+  "windows": 240,
+  "planned_build_commands": 4,
+  "planned_commands": 244,
+  "SDK32_not_authorized": true
+}

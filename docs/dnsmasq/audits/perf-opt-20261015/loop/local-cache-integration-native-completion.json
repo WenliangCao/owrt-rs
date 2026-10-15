@@ -1,0 +1,16 @@
+{
+  "status": "INTEGRATION_NATIVE_COMPLETE_AWAITING_COORDINATOR_DECISION",
+  "checked_at_utc": "2026-10-15T23:44:47.870989+00:00",
+  "controller_pid": 607453,
+  "controller_exited": true,
+  "windows": 240,
+  "commands": 244,
+  "research_processes": [],
+  "locks_available": [
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock"
+  ],
+  "following_native_started": false,
+  "owner32_started": false,
+  "raw_measurements_unchanged": true
+}
