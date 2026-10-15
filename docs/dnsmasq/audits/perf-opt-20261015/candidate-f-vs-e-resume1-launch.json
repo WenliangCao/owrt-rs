@@ -1,0 +1,102 @@
+{
+  "scope": "Resume the same full round after an archived low-memory tool-resource interruption; zero valid windows repeated.",
+  "registered_before_launch_epoch": 1792091407.306394,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-fe-recovery1/perf_opt_device_run.py",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/candidate-f-vs-e",
+    "--prefix",
+    "candidate-f-vs-e",
+    "--c-hash",
+    "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "--rust-hash",
+    "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-fe/summary.json",
+    "--resume"
+  ],
+  "completed_valid_windows_preserved": 58,
+  "remaining_first_attempt_windows": 52,
+  "next_window": "candidate-f-vs-e-dhcp-home6-r5-c",
+  "original_controller_sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+  "new_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "repair_commits": [
+    "723b4d50",
+    "43f7fc58"
+  ],
+  "maintenance_policy": "Only after verified archive, successful validation and progress write, remove that valid remote window outside timing; retain invalid windows. On later cleanup failure reuse the completed archive instead of overwriting it.",
+  "validator_unchanged": true,
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "comparison": {
+    "c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "qualification_sha256": "84ca19157d7f40710715fc000d1491e8c9918961ce9600a67abcc92185b8a821",
+  "original_health_summary_sha256_used_by_resume": "49e2cecb4d002bc928b1be9dd389e75c2741ebf6759b52358e72a6004be61222",
+  "threshold_ms": 200,
+  "fresh_recovery_health": {
+    "valid": true,
+    "elapsed_seconds": 125.553,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.724,
+    "dns_max_ms": 1.049,
+    "http_samples": 22,
+    "http_max_ms": 64.842,
+    "threshold_ms": 200,
+    "raw_sha256": "d5abac72daaee7c9dedf58ebc7e6191d86c5bd51cceba57aaab2835d5e954afd"
+  },
+  "recovery_health_receipt_sha256": "a01b9d63525d26bc3501799cfba5fbfa743d17a5c9946b5de10c216869e283aa",
+  "interruption_segment_manifest_sha256": "5c5b3f7957e7caec0ef1cba6ba53233f35913207ff3666bf7144683fefad4df4",
+  "original_progress_sha256": "67d6bdbd3d92b9296de7e3a2b26aeaca9999328835128c46521a62c812335757",
+  "prune_receipt_sha256": "2c30b82c962031fc8abef4e9dc8d524f7a00fd12052d6316b20ada3e7120d5fd",
+  "recovery_preflight_sha256": "9e57fe3b9a4b65ad0368060cb85444a09dd8f874b7b5c67931cd7356df54aa92",
+  "all_staged_hashes_reverified": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "launch_script_sha256": "c8d5d847a9def5084322f01de712a9723c0b8f1701fe44ed88a40a04742389a9",
+  "pid": 6560,
+  "launch_epoch": 1792091407.313916,
+  "preregistered_plan_sha256": "f3ee7809f66fe443dc764921f8eb6c34188ff86fa2c183bac9aa001b6ab019d4",
+  "started_utc": "2026-10-15T19:10:07.313916+00:00",
+  "resume_launch_receipt_sha256": "cc9a9ff2edb93ddcc98cbbb7519a53992ea283ab73a53af612afc1c70eb899e1",
+  "fresh_health_receipt": {
+    "production_pid_start_before": [
+      3086,
+      2115
+    ],
+    "production_pid_start_after": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "guard_label": "candidate-f-vs-e-health-1792091255720291000",
+    "external_checks": 10,
+    "all_external_passed": true,
+    "minimum_available_memory_kib": 93040,
+    "guard_end": "explicit SIGTERM; monitor_stopped; no STOP or active group",
+    "files": {
+      "summary.json": "1782675ce19638527c0e19034139bf838a7bc6103ceb06dbdaf0cc272575a215",
+      "health-baseline.jsonl": "d5abac72daaee7c9dedf58ebc7e6191d86c5bd51cceba57aaab2835d5e954afd",
+      "health-baseline.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "external-health.jsonl": "aa19fbd3526fea1e06a8c8b2382011f15e5a72299ae3380a80a4a97053145aa0",
+      "start.json": "0bbd0f5842779f31517ab0f4c6b4231f078719e1f2f67803d1304e90fefcc373",
+      "collect.py": "733f63c68c3624397a145bc7831cc78b75adeb8306621977c452b80e77394d7e"
+    }
+  }
+}
