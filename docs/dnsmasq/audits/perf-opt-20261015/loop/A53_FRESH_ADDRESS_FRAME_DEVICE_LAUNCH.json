@@ -1,0 +1,57 @@
+{
+  "scope": "Exploratory unqualified F/fresh-address-frame A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "source_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+  "source_files_verified": 179,
+  "elf_sha256": "02b500e55acc65d7099612801d89ea8e19a20ae9884e0a86edfdd051a3b057ad",
+  "elf_bytes": 2136859,
+  "map_sha256": "6852c4c04099ac8b936df587f50fcfe3333fce4bb0edb1e136cc7830aaaa89a2",
+  "build_receipt_sha256": "243027630a044b865b7c76fe50c1943f602e06f38a66828b1cba0c5af1e48cb9",
+  "entry_sha256": "80d478f29a111b4370906c978e6258b8ed64de4df3d0c93e3a0f41179717f888",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "plan_commit": "4060f669",
+  "plan_sha256": "f5db2bbe58433aef852e7a32671c124d5c73dc43a2996f05f399ad16af848c94",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.353,
+    "dns_samples": 50,
+    "dns_p95_ms": 0.64,
+    "dns_max_ms": 1.002,
+    "http_samples": 23,
+    "http_max_ms": 58.415,
+    "threshold_ms": 200,
+    "raw_sha256": "51228040b95b0e1b5bb7d822fb1387df2f3708dc886dd30599794be10673f8f9"
+  },
+  "health_summary_sha256": "8c885b3e5431dfd5e438faf2398c10fec711b474588f5b7632608febd9feb9ce",
+  "preflight_sha256": "0e21d77baba2423398f0299cbfe01b607f876e9cd4f64059be146830b19bde6f",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "fixed_windows": 10,
+  "replacement": false,
+  "candidate_eligible": false,
+  "full44_qualification": false,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-a53-fresh-address-frame/fresh_address_frame_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_FRESH_ADDRESS_FRAME_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-fresh-address-frame/summary.json",
+    "--experiment-hash",
+    "02b500e55acc65d7099612801d89ea8e19a20ae9884e0a86edfdd051a3b057ad",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-fresh-address-frame-device"
+  ],
+  "setup_script_sha256": "a73388d32bb6844efd9f856913eea430f3e048378388db7a4703042f0d14deaa",
+  "pid": 73632,
+  "launch_epoch": 1792105880.7928371,
+  "started_utc": "2026-10-15T23:11:20.792894+00:00"
+}
