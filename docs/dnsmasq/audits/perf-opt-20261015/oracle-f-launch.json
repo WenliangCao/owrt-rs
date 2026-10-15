@@ -1,0 +1,35 @@
+{
+  "scope": "Authorized full F/E Oracle110 timing; exact qualification handoff received, exclusive Oracle reservation, router independent.",
+  "started_at_utc": "2026-10-15T17:53:31.828121+00:00",
+  "pid": 416211,
+  "starttime_ticks": "181142900",
+  "command": [
+    "sudo",
+    "-n",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/tools-fe/tools/dnsmasq/perf_opt_oracle_run.py",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-f-vs-e",
+    "--baseline",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e/dnsmasq-rs",
+    "--candidate",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-f/dnsmasq-rs",
+    "--inputs",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs-fe",
+    "--cpu",
+    "2"
+  ],
+  "staging_receipt_sha256": "b5f9a776ee6d6f4c529acbb41b1db83deb01c53f68884303caa522dc117fcbb3",
+  "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "comparison": {
+    "c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+  "qualification_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-correctness-qualification.json",
+  "qualification_sha256": "84ca19157d7f40710715fc000d1491e8c9918961ce9600a67abcc92185b8a821",
+  "qualification_owner_handoff": "correctness: full original gates pass, source/SDK identities reverified, research jobs idle",
+  "goal_clarification_commit": "75584e73",
+  "goal": "Discernible UDP-hit CPU/query decrease against E, not latency alone; original W/pair/tick/no-regression/resource rules remain.",
+  "launcher_sha256": "4e28fc2c067c61fcbf713c2158d712e920151583c98003eaaa895e179033ee95"
+}
