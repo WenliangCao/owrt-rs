@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "scope": "Excluded Oracle diagnostic, exact image C versus candidate E; not the frozen five-pair performance acceptance",
+  "driver": {
+    "commit": "93489990",
+    "sha256": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325"
+  },
+  "artifacts": {
+    "C": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "E": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "C_symbols": "79cb9590a6113bca41034155ec45569eac58a2dccde80819c9863ef316f740da",
+    "C_symbol_receipt": "02ed4b8321ffacd1ddec6c061ea4375f8f4220ba06f8ee22d4b2f8b764596b94"
+  },
+  "workload": {
+    "profile": "hit",
+    "qps": 200,
+    "names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "udp_clients": 32,
+    "tcp_connections": 8,
+    "tcp_close_replies": 100,
+    "prewarm": {
+      "mode": "udp",
+      "operations": 1000,
+      "excluded": true
+    },
+    "warmup_operations": 1000,
+    "measurement_operations": 4000,
+    "normalization_operations": 5000,
+    "cache": 1000,
+    "upstream_delay_us": 1000,
+    "upstream_ttl": 120,
+    "fixed_grace_seconds": 1
+  },
+  "placement": {
+    "daemon_cpu": 2,
+    "daemon_nice": 10,
+    "client_cpu": 3,
+    "upstream_cpu": 1,
+    "namespace": "fresh loopback-only netns with host PID visibility"
+  },
+  "stat": {
+    "event_group": "{instructions:u,instructions:k,cycles:u,cycles:k}",
+    "separate_from_sampling": true,
+    "inheritance": "default inherit; no --no-inherit",
+    "retain": [
+      "raw perf -vv stderr",
+      "count",
+      "running time",
+      "running percentage",
+      "scaled status"
+    ],
+    "unsupported_or_not_counted": "invalid diagnostic; retained, no silent retry",
+    "multiplexed": "retain and label scaled; never call exact",
+    "aggregation": "median and full range for each side/scene over three pairs, divided by 5000"
+  },
+  "sample": {
+    "event": "instructions:u",
+    "period": 10000,
+    "inheritance": "all descendants; validate fork lineage and no exec from task/MMAP records",
+    "symbolization": "C copied exact stripped ELF plus matching full-symbol ALLOC proof; exact library dynamic sized FUNC/IFUNC; E same-build linker input sections",
+    "function_instruction_estimate": "sample share times independent stat median user instructions per 5000 operations; cross-run estimate only",
+    "unknowns": "retain zero-size, gaps, overlaps, unknown DSOs and unassigned samples explicitly"
+  },
+  "validity": [
+    "run only after loop four-strace handoff; exclusive observation slot",
+    "each warmup and measurement scheduled/sent/correct count equals plan, zero loss/error/skipped",
+    "fixed grace must end with no live children; never extend to improve results",
+    "pre/post exact executable and all mapped ELF identities agree; non-executable data maps separate",
+    "all attempts retained; no deletion, silent retry or favorable substitution",
+    "sampling cannot contribute to kernel instruction totals",
+    "observer ends before post-window hashing/maps checks"
+  ],
+  "windows": [
+    {
+      "id": "udp-stat-p1-c",
+      "mode": "udp",
+      "observer": "stat",
+      "pair": 1,
+      "side": "C"
+    },
+    {
+      "id": "udp-stat-p1-e",
+      "mode": "udp",
+      "observer": "stat",
+      "pair": 1,
+      "side": "E"
+    },
+    {
+      "id": "udp-stat-p2-e",
+      "mode": "udp",
+      "observer": "stat",
+      "pair": 2,
+      "side": "E"
+    },
+    {
+      "id": "udp-stat-p2-c",
+      "mode": "udp",
+      "observer": "stat",
+      "pair": 2,
+      "side": "C"
+    },
+    {
+      "id": "udp-stat-p3-c",
+      "mode": "udp",
+      "observer": "stat",
+      "pair": 3,
+      "side": "C"
+    },
+    {
+      "id": "udp-stat-p3-e",
+      "mode": "udp",
+      "observer": "stat",
+      "pair": 3,
+      "side": "E"
+    },
+    {
+      "id": "tcp-stat-p1-c",
+      "mode": "tcp",
+      "observer": "stat",
+      "pair": 1,
+      "side": "C"
+    },
+    {
+      "id": "tcp-stat-p1-e",
+      "mode": "tcp",
+      "observer": "stat",
+      "pair": 1,
+      "side": "E"
+    },
+    {
+      "id": "tcp-stat-p2-e",
+      "mode": "tcp",
+      "observer": "stat",
+      "pair": 2,
+      "side": "E"
+    },
+    {
+      "id": "tcp-stat-p2-c",
+      "mode": "tcp",
+      "observer": "stat",
+      "pair": 2,
+      "side": "C"
+    },
+    {
+      "id": "tcp-stat-p3-c",
+      "mode": "tcp",
+      "observer": "stat",
+      "pair": 3,
+      "side": "C"
+    },
+    {
+      "id": "tcp-stat-p3-e",
+      "mode": "tcp",
+      "observer": "stat",
+      "pair": 3,
+      "side": "E"
+    },
+    {
+      "id": "udp-sample-c",
+      "mode": "udp",
+      "observer": "sample",
+      "side": "C"
+    },
+    {
+      "id": "udp-sample-e",
+      "mode": "udp",
+      "observer": "sample",
+      "side": "E"
+    },
+    {
+      "id": "tcp-sample-c",
+      "mode": "tcp",
+      "observer": "sample",
+      "side": "C"
+    },
+    {
+      "id": "tcp-sample-e",
+      "mode": "tcp",
+      "observer": "sample",
+      "side": "E"
+    }
+  ]
+}
