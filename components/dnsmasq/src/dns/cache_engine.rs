@@ -3,7 +3,7 @@
 //! Insertion and answer selection retain the exact C contracts of the daemon
 //! wrappers; ownership and synchronization remain with the containing caller.
 
-use super::cache::{Cache, CacheCounters, CnameTarget, Kind, Record};
+use super::cache::{Cache, CacheCounters, CnameTarget, EntryId, Kind, Record};
 use super::cache_reply::{append_cname_record, append_negative_authority, append_positive_record};
 use super::local::AnswerError;
 use super::service::LocalDnsService;
@@ -295,7 +295,8 @@ impl CacheContext<'_> {
         } else {
             &ordinary_kinds
         };
-        let ids = cache.lookup_with_hint(&question.name, kinds, now, round_robin, name_lookup);
+        let ids_owner = cache.lookup_with_hint(&question.name, kinds, now, round_robin, name_lookup);
+        let ids: &[EntryId] = &ids_owner;
         if question.rrtype == 12
             && !ids.iter().any(|id| {
                 cache
@@ -912,7 +913,7 @@ impl CacheContext<'_> {
         }
         // The old consuming iterator released its Vec at this point. Keep
         // the fallback's lifetime unchanged before any later name lookup.
-        drop(ids);
+        drop(ids_owner);
         if written {
             return Ok(finish_cached_answer(writer, stale)?);
         }
