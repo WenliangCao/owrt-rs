@@ -32,7 +32,7 @@ def load(path):
     return json.loads(raw), hashlib.sha256(raw).hexdigest()
 
 
-def validate(data, role):
+def validate(data, role, candidate_baseline=DEPLOYED):
     require(data.get('schema') == 1, 'unsupported analyzer schema')
     require(data.get('complete') is True and data.get('window_count') == 110
             and data.get('valid_windows') == 110 and data.get('parse_failures') == [],
@@ -48,7 +48,7 @@ def validate(data, role):
         require('Oracle' not in identity.get('environment', '')
                 and identity.get('production_sha256') == DEPLOYED, 'not the frozen device environment')
         require([x[0] for x in identity['scenes']] == list(SCENES), 'wrong device scene matrix')
-        require(hashes['c'] == (EXACT_C if role == 'baseline' else DEPLOYED), 'wrong left comparator')
+        require(hashes['c'] == (EXACT_C if role == 'baseline' else candidate_baseline), 'wrong left comparator')
         require(hashes['rust'] == DEPLOYED if role == 'baseline' else hashes['rust'] != EXACT_C,
                 'wrong right comparator')
     windows = data['windows']
@@ -150,7 +150,9 @@ def render(lines, path, data, digest, title, labels, elf_sizes):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', required=True, type=Path)
-    parser.add_argument('--candidate', type=Path, help='fresh device pairs: c=deployed, rust=candidate')
+    parser.add_argument('--candidate', type=Path, help='fresh device pairs: c=comparison baseline, rust=candidate')
+    parser.add_argument('--candidate-baseline-sha256', help='explicit left comparator; defaults to deployed v0.2.0')
+    parser.add_argument('--candidate-baseline-label', help='required with an explicit comparator SHA256')
     parser.add_argument('--oracle', type=Path, help='complete Oracle analyzer summary; never device evidence')
     parser.add_argument('--failed', action='append', default=[], type=Path, help='excluded attempt, shown separately')
     parser.add_argument('--elf', action='append', default=[], type=Path, help='local ELF to measure bytes and match SHA256')
@@ -158,12 +160,21 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
     try:
+        explicit_baseline = args.candidate_baseline_sha256 is not None
+        require(explicit_baseline == (args.candidate_baseline_label is not None),
+                'explicit candidate baseline requires both SHA256 and label')
+        if explicit_baseline:
+            require(args.candidate is not None
+                    and re.fullmatch('[0-9a-f]{64}', args.candidate_baseline_sha256)
+                    and args.candidate_baseline_label.strip(), 'invalid explicit candidate baseline')
+        candidate_baseline = args.candidate_baseline_sha256 or DEPLOYED
+        candidate_baseline_label = args.candidate_baseline_label or 'Deployed v0.2.0'
         inputs = {}
         for role in ('baseline', 'candidate', 'oracle'):
             path = getattr(args, role)
             if path:
                 data, digest = load(path)
-                validate(data, role)
+                validate(data, role, candidate_baseline)
                 inputs[role] = path, data, digest
         require(args.output.resolve() not in {p.resolve() for p, _, _ in inputs.values()}
                 | {p.resolve() for p in args.failed + args.elf}, 'output would overwrite an input')
@@ -183,7 +194,7 @@ def main():
                           'It is not classified as a performance optimization; whole-artifact timing cannot attribute its individual effect.'])
         if 'candidate' in inputs:
             render(lines, *inputs['candidate'], 'Primary — fresh paired DEVICE comparison',
-                   ('Deployed v0.2.0', 'Candidate'), elf_sizes)
+                   (candidate_baseline_label, 'Candidate'), elf_sizes)
         else:
             lines.extend(['', '**Baseline-only: no fresh deployed/candidate device comparison is supplied; candidate acceptance is unavailable.**'])
         render(lines, *inputs['baseline'], 'Context only — earlier exact-C / deployed DEVICE baseline',
