@@ -270,3 +270,29 @@ preserve original exit 1 and all observations, reject any new/unclassified
 change, require exact baseline Rust behavior for all 269 commands, and enforce
 that no layout-reuse answer invents an upstream CNAME target. This is distinct
 from a zero-difference C comparison; no such pass is claimed.
+
+## Candidate C short gates and explicit acceptance decision
+
+Frozen C is `f7f7a2edd9f2ecfac72953e43cfc873a354b468b`; the coordinator's exact
+SDK ELF is `b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1`,
+2,136,859 bytes, with its same-build map. Fresh source-bound musl tests passed
+**824 lib + 81 bin + 17 allocation + 16 ignored lib namespace/config + 3 ignored
+bin namespace = 941**, with no failure. Each gate ran serially in fresh
+network/mount/PID namespaces with private tmpfs `/tmp`. Ordinary tests still
+show 23 ignored: 19 were subsequently exercised, four corpus drivers remain.
+[Receipt](c-short-gates.json) records artifact hashes and exact raw paths.
+
+The user subsequently explicitly directed: the existing two UID-reuse C
+observations **do not block acceptance**; retain them and the original raw
+comparator exit 1, while any new/unclassified failure blocks. The user requested
+no new qualifier framework and prioritized full Oracle timing, full 44 families,
+then router comparison. The uncommitted qualifier draft was immediately retired
+to ignored private storage, never run; it is not an acceptance requirement.
+The earlier diagnostic baseline/C-repeat evidence remains factual and unchanged.
+
+Correctness is idle for the coordinator's exclusive full 110-window Oracle run
+started at 10:40 CEST. After release, launch fresh C 44-family scheduler with
+three workers, then exact SDK F10/protocol/TCP and the four source corpus probes.
+Original output paths and all failed attempts stay intact. No candidate C full
+correctness pass has yet been claimed, and no router operation was performed
+by this reviewer.
