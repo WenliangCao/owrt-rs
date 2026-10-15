@@ -1,6 +1,6 @@
 # Bypass local reply machinery only after proving an address miss
 
-Independent F child `9617d93e` puts a conservative read-only check before the
+Independent F child `9617d93e` (test-only final source `1676fbb6`) puts a conservative read-only check before the
 normal local-answer call. Only a well-formed ordinary IN A/AAAA question can
 qualify. Any configured CNAME, raw record of that type, interface declaration
 or published interface, synthetic domain, local-only/literal-address rule,
@@ -37,3 +37,19 @@ Exact Linux related gates and the original SDK recipe precede screening.
 Current Oracle work must finish first. A supported variant can then use the
 original32-window low/high SDK owner screen and independent A53 comparison;
 native gains alone do not qualify or select a combined next candidate.
+
+The [local30 allocation controls](local-address-miss-local-allocation.json)
+complete with all15 output checksums equal and zero live-byte deltas. Four hit
+scenes, both misses and RRset retain their allocation counts. Host, host-localise,
+lease-address and dynamic CNAME each add one allocation; other counts remain
+unchanged. These are adverse costs to keep in the next timing results, not
+evidence of a safe-to-ignore fallback penalty. The measured source is9617;
+1676 changes tests only and is the source frozen for subsequent runtime gates.
+
+A review hypothesis about filterwin2k plus a truncated Additional RR was
+disproved by an actual reproducer: `find_pseudoheader` explicitly treats that
+truncation as no OPT, so both original and shortcut return no local answer.
+The incorrect reference-error assertion and its failed log remain private.
+No product guard was retained. The corrected A/AAAA UDP/TCP regression passes,
+along with the600-combination test. This is an evidence correction, not a
+behavior fix; C expectations and original comparison code remain unchanged.

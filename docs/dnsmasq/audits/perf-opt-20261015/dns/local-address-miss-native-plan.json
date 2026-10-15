@@ -170,7 +170,7 @@
       }
     },
     "local-address-miss": {
-      "commit": "9617d93e9425aabfb83a85893d71e9cf393854fa",
+      "commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
       "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-address-miss",
       "files": {
         "components/dnsmasq/Cargo.lock": "f414678b0ec026bcd72b2dbd8ac3aaeff887451d66de4e042cbe0b73785e7f52",
@@ -271,7 +271,7 @@
         "components/dnsmasq/src/dns/query_policy.rs": "98f45166e678c2b09c2bb9c9d128947867ce1afb2b19ff85a775f1ac65b1e180",
         "components/dnsmasq/src/dns/reply.rs": "da3e159aa6ca781c6451ad0e42a65148577b6779098985775464e53e147bc898",
         "components/dnsmasq/src/dns/routing.rs": "621535122d1571c31671c1a57c9658ca9b059ba88d3a73c59c55f9a9e8a816eb",
-        "components/dnsmasq/src/dns/service.rs": "817ed173b4bc6e57844f01f60e8ea417722d9b2c75dca995655718799edcd9a1",
+        "components/dnsmasq/src/dns/service.rs": "284eb1145f01d5b3ec33dcff10474b76efd5c9adf514cf81ea4131fe6ccd455a",
         "components/dnsmasq/src/dns/source_sockets.rs": "dfefa1100fcea9bcce82b6646002e695ebf47731125df24ee649d8265cc1c9e7",
         "components/dnsmasq/src/dns/tcp_connect.rs": "d91499e1c2ce6fbc0b6038bfebe302fde98f3ebb7dc0739f2bb7f577191b5308",
         "components/dnsmasq/src/dns/tcp_exchange.rs": "732c3c8c234011416de2a46df4127da69eada4171e54e9422aba0e5ca1da0c23",
