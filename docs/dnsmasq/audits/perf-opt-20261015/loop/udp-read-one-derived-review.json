@@ -1,0 +1,87 @@
+{
+  "scope": "Independent local review of derived numbers and parser source only; no raw trace/stat/latency re-derivation, Oracle access, compilation or target execution",
+  "inputs_sha256": {
+    "derived_json": "c52702d9ce33fb56059039bff88dfc381dd144be6013e889dd7ef666900847a3",
+    "analyzer": "2ca11adac3e0ed9287321c112e8babb02559ce0363282b0377533ddcbf4a1823",
+    "comparison_source": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "syscall_parser_source": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+    "load_validator_source": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620"
+  },
+  "decision": "Published numeric conclusions match the derived rows; document parameter coverage and sender-utilization scopes were clarified",
+  "checked": {
+    "unique_windows": 36,
+    "strace_windows": 4,
+    "stat_windows": 12,
+    "plain_windows": 20,
+    "all_operations_equal_warmup_plus_measurement_correct": true,
+    "all_phase_counts_nonempty_scheduled_sent_correct_equal_and_error_free": true,
+    "all_per_operation_cpu_syscall_pmu_math_recomputed_from_derived_rows": true,
+    "all_pmu_events_unscaled_and_three_per_side_load": true,
+    "pmu_summaries_are_medians_of_per_window_per_query_values": true,
+    "ipc_summary_is_median_of_per_window_instruction_cycle_ratios": true,
+    "five_plain_pairs_have_exact_pair_ids": true,
+    "cpu_throughput_W_and_direction_recomputed": true,
+    "latency_and_send_lag_comparisons_recomputed": 8,
+    "latency_quantile_values_not_recomputed_from_raw": true
+  },
+  "low_cpu_precision": {
+    "operations_per_window": 5000,
+    "ticks_F": [
+      14,
+      14,
+      14,
+      13,
+      14
+    ],
+    "ticks_read_one": [
+      13,
+      12,
+      12,
+      11,
+      12
+    ],
+    "tick_quantum_us_per_query": 2,
+    "median_difference_ticks": 2,
+    "strict_required_difference_ticks": ">8",
+    "all_windows_have_at_least_10_ticks": true,
+    "accepted_improvement": false
+  },
+  "high_scope": {
+    "normalization": "actual variable warmup plus measurement N for CPU/PMU/syscalls; measurement N divided by 20 for throughput",
+    "fixed_N_tick_acceptance_applied": false,
+    "cpu_precision_ok_field": null,
+    "interpretation": "descriptive closed-loop pipeline changes, not isolated server capacity or formal fixed-cohort acceptance",
+    "sender_cpu_percent_ranges": {
+      "strace": [
+        9.003848023881233,
+        13.640144493716287
+      ],
+      "stat": [
+        99.55555999840068,
+        99.63024987236774
+      ],
+      "none": [
+        99.597012111098,
+        99.88934833312683
+      ]
+    }
+  },
+  "syscall_parameter_scope": [
+    "All observed syscall kinds and entered/completed/error/return counts are represented in the four derived trace rows.",
+    "Selected parameter counts are aggregates over completed calls: fd roles/flags/iovec/control lengths and poll nfds/timeout class/interests. They do not preserve full per-call arguments or correlations between every field and result.",
+    "The one pending ppoll per window is preserved as a PID-to-call-name entry; its argument body is not copied into JSON.",
+    "The F receive iovec/control counts equal successful receives, not every completed receive including EAGAIN. Full failed-receive argument coverage cannot be established from these aggregates.",
+    "Raw full traces remain private; no raw reparse or parameter reconstruction was performed in this review."
+  ],
+  "document_fixes": [
+    "State the per-query and throughput/latency denominators explicitly.",
+    "Qualify 99.60\u201399.89 percent sender CPU as high plain only; list the different PMU and strace ranges.",
+    "Replace broad parameter-retention wording with selected completed-call aggregates and pending names, reserving full arguments to private traces."
+  ],
+  "unchanged": [
+    "derived JSON numeric values",
+    "parser logic",
+    "timing windows",
+    "product code"
+  ]
+}
