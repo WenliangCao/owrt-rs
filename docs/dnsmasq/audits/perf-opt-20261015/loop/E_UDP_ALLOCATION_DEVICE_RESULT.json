@@ -1,0 +1,614 @@
+{
+  "schema": 1,
+  "status": "three fixed diagnostic windows complete and valid; counts only, never timing/candidate acceptance",
+  "source_commit": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "diagnostic_ELF_sha256": "3ade51ea60df79824c6c646b9bd035d52720af9ae7c00abca4cc4e1db0cfe108",
+  "diagnostic_ELF_bytes": 2358043,
+  "map_sha256": "bff1af4bc826940a594204a5c2fecde1f6ef1478df203d9f7fd8a6c81a13d011",
+  "build_receipt_sha256": "0400e753eab60e495f061af91cc506da9c066414786d725462a1c948b6bca595",
+  "release_budget": {
+    "ELF_limit_bytes": 2200000,
+    "within_existing_budget": false,
+    "gate_unchanged": true,
+    "artifact_never_promoted": true
+  },
+  "plan_sha256": "65d715f66b28f434a3eb4a6f0d0661b615b515d0550ebf5fab748e1c1c1cc64d",
+  "driver_sha256": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1",
+  "validator_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "fixed_windows": 3,
+  "valid_windows": 3,
+  "all_correct_queries_including_prewarm": 18000,
+  "cached_query_denominator_total": 15600,
+  "cached_step_result_every_window": {
+    "alloc": 5.0,
+    "dealloc": 5.0,
+    "realloc": 0.0,
+    "requested_bytes": 270.0,
+    "released_bytes": 270.0
+  },
+  "cached_only_turn_conditional_result_every_window": {
+    "alloc": 5.0,
+    "dealloc": 5.0,
+    "realloc": 0.0,
+    "requested_bytes": 270.0,
+    "released_bytes": 270.0
+  },
+  "all_owner_turn_totals_across_windows": {
+    "turns": 20313,
+    "cached_queries": 15600,
+    "alloc": 181945,
+    "dealloc": 172105,
+    "realloc": 2407,
+    "requested_bytes": 10377696,
+    "released_bytes": 9933103
+  },
+  "cases": [
+    {
+      "label": "e-udp-allocation-r1-rust",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "prewarm": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 105001739,
+        "send_lag_max_ns": 1087131
+      },
+      "client_warmup": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 0,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 963480063,
+        "send_lag_max_ns": 45102870
+      },
+      "client_measurement": {
+        "scheduled": 4000,
+        "sent": 4000,
+        "correct": 4000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 4000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 4000,
+        "correct_after_window": 0,
+        "send_lag_count": 4000,
+        "send_lag_sum_ns": 569567152,
+        "send_lag_max_ns": 8217660
+      },
+      "upstream_requests": 800,
+      "upstream_replies": 800,
+      "consumed_packet_steps": 6000,
+      "thread_samples": 31,
+      "observed_daemon_threads": 1,
+      "step_queries": {
+        "no_packet_or_error": 13420,
+        "other_packet": 800,
+        "local": 0,
+        "cached": 5200,
+        "stale": 0
+      },
+      "step_totals": {
+        "no_packet_or_error": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        },
+        "other_packet": {
+          "alloc": 16010,
+          "dealloc": 8000,
+          "realloc": 802,
+          "requested_bytes": 575683,
+          "released_bytes": 233616
+        },
+        "local": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        },
+        "cached": {
+          "alloc": 26000,
+          "dealloc": 26000,
+          "realloc": 0,
+          "requested_bytes": 1404000,
+          "released_bytes": 1404000
+        },
+        "stale": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        }
+      },
+      "cached_allocation_histogram_nonzero": {
+        "5": 5200
+      },
+      "histogram_64_means_overflow": true,
+      "nested_steps": 0,
+      "unscoped_classifications": 0,
+      "cached_step_per_query": {
+        "alloc": 5.0,
+        "dealloc": 5.0,
+        "realloc": 0.0,
+        "requested_bytes": 270.0,
+        "released_bytes": 270.0
+      },
+      "whole_owner_turns": {
+        "no_packet": {
+          "turns": 801,
+          "cached_queries": 0,
+          "alloc": 18637,
+          "dealloc": 23367,
+          "realloc": 1,
+          "requested_bytes": 1478941,
+          "released_bytes": 1672805
+        },
+        "cached_only": {
+          "turns": 5112,
+          "cached_queries": 5200,
+          "alloc": 26000,
+          "dealloc": 26000,
+          "realloc": 0,
+          "requested_bytes": 1404000,
+          "released_bytes": 1404000
+        },
+        "mixed_or_other": {
+          "turns": 798,
+          "cached_queries": 0,
+          "alloc": 16010,
+          "dealloc": 8000,
+          "realloc": 802,
+          "requested_bytes": 575683,
+          "released_bytes": 233616
+        }
+      },
+      "conditional_cached_only_turn_per_query": {
+        "alloc": 5.0,
+        "dealloc": 5.0,
+        "realloc": 0.0,
+        "requested_bytes": 270.0,
+        "released_bytes": 270.0
+      },
+      "all_owner_turn_totals": {
+        "turns": 6711,
+        "cached_queries": 5200,
+        "alloc": 60647,
+        "dealloc": 57367,
+        "realloc": 803,
+        "requested_bytes": 3458624,
+        "released_bytes": 3310421
+      },
+      "raw_meter_sha256": "9c85958645dd56a13eec68d24a2d6e60c7a4206510b5600c60e135f708ee06da",
+      "raw_archive_sha256": "5aabdae5302c8d7536c667af0d5a40aad70d4a456b2c30f8281fe713385a8b4e"
+    },
+    {
+      "label": "e-udp-allocation-r2-rust",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "prewarm": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 108439876,
+        "send_lag_max_ns": 2240903
+      },
+      "client_warmup": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 0,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 105636532,
+        "send_lag_max_ns": 2005144
+      },
+      "client_measurement": {
+        "scheduled": 4000,
+        "sent": 4000,
+        "correct": 4000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 4000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 4000,
+        "correct_after_window": 0,
+        "send_lag_count": 4000,
+        "send_lag_sum_ns": 411679961,
+        "send_lag_max_ns": 2672429
+      },
+      "upstream_requests": 800,
+      "upstream_replies": 800,
+      "consumed_packet_steps": 6000,
+      "thread_samples": 32,
+      "observed_daemon_threads": 1,
+      "step_queries": {
+        "no_packet_or_error": 13604,
+        "other_packet": 800,
+        "local": 0,
+        "cached": 5200,
+        "stale": 0
+      },
+      "step_totals": {
+        "no_packet_or_error": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        },
+        "other_packet": {
+          "alloc": 16010,
+          "dealloc": 8000,
+          "realloc": 800,
+          "requested_bytes": 575651,
+          "released_bytes": 233600
+        },
+        "local": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        },
+        "cached": {
+          "alloc": 26000,
+          "dealloc": 26000,
+          "realloc": 0,
+          "requested_bytes": 1404000,
+          "released_bytes": 1404000
+        },
+        "stale": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        }
+      },
+      "cached_allocation_histogram_nonzero": {
+        "5": 5200
+      },
+      "histogram_64_means_overflow": true,
+      "nested_steps": 0,
+      "unscoped_classifications": 0,
+      "cached_step_per_query": {
+        "alloc": 5.0,
+        "dealloc": 5.0,
+        "realloc": 0.0,
+        "requested_bytes": 270.0,
+        "released_bytes": 270.0
+      },
+      "whole_owner_turns": {
+        "no_packet": {
+          "turns": 802,
+          "cached_queries": 0,
+          "alloc": 18639,
+          "dealloc": 23369,
+          "realloc": 1,
+          "requested_bytes": 1479869,
+          "released_bytes": 1673733
+        },
+        "cached_only": {
+          "turns": 5200,
+          "cached_queries": 5200,
+          "alloc": 26000,
+          "dealloc": 26000,
+          "realloc": 0,
+          "requested_bytes": 1404000,
+          "released_bytes": 1404000
+        },
+        "mixed_or_other": {
+          "turns": 800,
+          "cached_queries": 0,
+          "alloc": 16010,
+          "dealloc": 8000,
+          "realloc": 800,
+          "requested_bytes": 575651,
+          "released_bytes": 233600
+        }
+      },
+      "conditional_cached_only_turn_per_query": {
+        "alloc": 5.0,
+        "dealloc": 5.0,
+        "realloc": 0.0,
+        "requested_bytes": 270.0,
+        "released_bytes": 270.0
+      },
+      "all_owner_turn_totals": {
+        "turns": 6802,
+        "cached_queries": 5200,
+        "alloc": 60649,
+        "dealloc": 57369,
+        "realloc": 801,
+        "requested_bytes": 3459520,
+        "released_bytes": 3311333
+      },
+      "raw_meter_sha256": "f3988be82dae9c2bdd3f665fad259bd69ad6703306fb20744d22f70e63acfa93",
+      "raw_archive_sha256": "84f92be40ccec3315c4c4355253c788941fbb069004ef5ba17e5f99b7ec8189e"
+    },
+    {
+      "label": "e-udp-allocation-r3-rust",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "prewarm": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 99800032,
+        "send_lag_max_ns": 215849
+      },
+      "client_warmup": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 0,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 100717473,
+        "send_lag_max_ns": 618834
+      },
+      "client_measurement": {
+        "scheduled": 4000,
+        "sent": 4000,
+        "correct": 4000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 4000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 4000,
+        "correct_after_window": 0,
+        "send_lag_count": 4000,
+        "send_lag_sum_ns": 418685690,
+        "send_lag_max_ns": 1408750
+      },
+      "upstream_requests": 800,
+      "upstream_replies": 800,
+      "consumed_packet_steps": 6000,
+      "thread_samples": 32,
+      "observed_daemon_threads": 1,
+      "step_queries": {
+        "no_packet_or_error": 13600,
+        "other_packet": 800,
+        "local": 0,
+        "cached": 5200,
+        "stale": 0
+      },
+      "step_totals": {
+        "no_packet_or_error": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        },
+        "other_packet": {
+          "alloc": 16010,
+          "dealloc": 8000,
+          "realloc": 802,
+          "requested_bytes": 575683,
+          "released_bytes": 233616
+        },
+        "local": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        },
+        "cached": {
+          "alloc": 26000,
+          "dealloc": 26000,
+          "realloc": 0,
+          "requested_bytes": 1404000,
+          "released_bytes": 1404000
+        },
+        "stale": {
+          "alloc": 0,
+          "dealloc": 0,
+          "realloc": 0,
+          "requested_bytes": 0,
+          "released_bytes": 0
+        }
+      },
+      "cached_allocation_histogram_nonzero": {
+        "5": 5200
+      },
+      "histogram_64_means_overflow": true,
+      "nested_steps": 0,
+      "unscoped_classifications": 0,
+      "cached_step_per_query": {
+        "alloc": 5.0,
+        "dealloc": 5.0,
+        "realloc": 0.0,
+        "requested_bytes": 270.0,
+        "released_bytes": 270.0
+      },
+      "whole_owner_turns": {
+        "no_packet": {
+          "turns": 802,
+          "cached_queries": 0,
+          "alloc": 18639,
+          "dealloc": 23369,
+          "realloc": 1,
+          "requested_bytes": 1479869,
+          "released_bytes": 1673733
+        },
+        "cached_only": {
+          "turns": 5198,
+          "cached_queries": 5200,
+          "alloc": 26000,
+          "dealloc": 26000,
+          "realloc": 0,
+          "requested_bytes": 1404000,
+          "released_bytes": 1404000
+        },
+        "mixed_or_other": {
+          "turns": 800,
+          "cached_queries": 0,
+          "alloc": 16010,
+          "dealloc": 8000,
+          "realloc": 802,
+          "requested_bytes": 575683,
+          "released_bytes": 233616
+        }
+      },
+      "conditional_cached_only_turn_per_query": {
+        "alloc": 5.0,
+        "dealloc": 5.0,
+        "realloc": 0.0,
+        "requested_bytes": 270.0,
+        "released_bytes": 270.0
+      },
+      "all_owner_turn_totals": {
+        "turns": 6800,
+        "cached_queries": 5200,
+        "alloc": 60649,
+        "dealloc": 57369,
+        "realloc": 803,
+        "requested_bytes": 3459552,
+        "released_bytes": 3311349
+      },
+      "raw_meter_sha256": "6451f253c8b28d1b03f2463b31054ce91a5163745e039bb3ff58f06969899f68",
+      "raw_archive_sha256": "e4c1813e22ca8a5937061287ad5082c5d38862986725cb7d6f754137153b8db7"
+    }
+  ],
+  "archive_verification": {
+    "windows": 3,
+    "valid": 3,
+    "files": 132,
+    "archives": {
+      "e-udp-allocation-r1-rust": "5aabdae5302c8d7536c667af0d5a40aad70d4a456b2c30f8281fe713385a8b4e",
+      "e-udp-allocation-r2-rust": "84f92be40ccec3315c4c4355253c788941fbb069004ef5ba17e5f99b7ec8189e",
+      "e-udp-allocation-r3-rust": "e4c1813e22ca8a5937061287ad5082c5d38862986725cb7d6f754137153b8db7"
+    },
+    "all_tar_member_raw_hashes_verified": true,
+    "guard_samples": 125,
+    "DNS_samples": 50,
+    "HTTP_samples": 23,
+    "external_checks": 10,
+    "health_failures": 0,
+    "minimum_available_memory_kib": 89408,
+    "guard_sha256": "c76817bb2de1d58ec99daa12dc2e366a505eaf34d19d548463f447ad8eaeda8a",
+    "progress_sha256": "2beae745aff9c154735242b493d1aa6d74de8cac0ffbbca57dcdfbad07411437",
+    "complete_sha256": "1c6d360e59f31fdc52ca92fdcc9b2f5b083d999c754028148c15dbb4e0b30dc7"
+  },
+  "postflight": {
+    "epoch": 1792096845.4417548,
+    "scope": "Restore only owned staged rust slot to exact prior F after3 complete archived diagnostic windows; production unchanged",
+    "restored_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+    "diagnostic_elf_retained_locally": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-udp-allocation-e/dnsmasq-rs",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "no_active_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all3_verified_remote_window_copies_pruned": true,
+    "stdout": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\nf7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e  /tmp/dnsmasq-perf-20261015/m6a_loadgen\n97752\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "scope_limits": [
+    "E plus global allocator meter is an independent instrumented diagnostic ELF; all its CPU/latency observations are EXCLUDED.",
+    "Cached-step accounting includes receive/admission/process_udp/send and owned drops; actual cached classification counts include real cache hits during prewarm. No hardcoded5000 denominator.",
+    "Whole-owner-turn categories include normal wait/control and upstream completion work. no_packet means no classified incoming UDP request in that turn, not necessarily idle work or an EAGAIN syscall.",
+    "Cached-only turn averages are conditional on that class. All-turn totals also include cache fill, upstream completions and other work; they are reported separately.",
+    "Owner-loop counts exclude initialization before the loop, report formatting and later teardown. All-turn totals are not whole-process-lifetime allocation/leak accounting.",
+    "Allocation bytes are successful allocator requests/releases, not physical allocator footprint/RSS/USS. Realloc counts are separate.",
+    "Observed totals match the earlier local API-subset count numerically, but this alone does not attribute each allocation site or prove uninstrumented artifact cost. No C allocation comparison or speedup is inferred."
+  ]
+}
