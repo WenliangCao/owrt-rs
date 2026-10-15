@@ -1,0 +1,61 @@
+{
+  "status": "prepared_locally_not_uploaded_or_executed",
+  "manifest_sha256": "8fdced04fdc2d20cf259e179234713c9651a7722a5802e9f9ce5df583e4d23b6",
+  "input_archive_sha256": "74d5076121c62c44bfa068ea4f49ed916ea3cd8aaba324956a34d9c5694f181b",
+  "runner_sha256": "8e4be617cf52ff26571e89ead56a90fa8c803666369e2b7ca61731aa9fbc6809",
+  "candidates": {
+    "host-miss-index": {
+      "commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+      "parent_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-host-miss-index",
+      "identity_sha256": "3fedd26f2f27aa8864fcc6afcfe48adcb3a2138beb474e03b3765767f97a51ce",
+      "verified_inputs": 179
+    },
+    "cache-cold-metadata": {
+      "commit": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
+      "parent_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cache-cold-metadata",
+      "identity_sha256": "66719ab713920ac88a74ebbe4a983d42e248c8422e4f49b81ff39050085f6b71",
+      "verified_inputs": 179
+    },
+    "fresh-address-frame": {
+      "commit": "b343df112e430f16e21026645e56755f2d0fc391",
+      "parent_commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-fresh-address-frame",
+      "identity_sha256": "3996220bc4d234dd85bd2d69608b257527e58148d631b60dad0af5ca1cf6763f",
+      "verified_inputs": 179
+    }
+  },
+  "source_files_total": 537,
+  "changed_files_total": 6,
+  "remote_release_required": "Explicit root release after current loop owner32; elapsed time is not authorization.",
+  "scope": "Fixed local preparation only; all three exact-source related Linux gate runs await explicit coordinator release after owner32.",
+  "local_input_directory": "private/post-f-next-linux-inputs",
+  "local_runner": "private/post-f-next-linux-gates/run.py",
+  "gates": [
+    "normal lib",
+    "original lib --ignored live excluding four complete exact-C oracle drivers",
+    "normal bin",
+    "all original bin --ignored"
+  ],
+  "fixtures": {
+    "host-miss-index": [
+      "hosts::tests::indexed_misses_preserve_lookup_rotation_and_generation_updates"
+    ],
+    "cache-cold-metadata": [
+      "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
+    ],
+    "fresh-address-frame": [
+      "dns::cache::tests::fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback",
+      "dns::cache_engine::tests::fresh_address_reply_matches_general_flags_ttl_limits_and_logging"
+    ]
+  },
+  "affinity": [
+    2
+  ],
+  "nice": 10,
+  "build_jobs": 1,
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "no_remote_actions_performed": true,
+  "performance_acceptance": false
+}
