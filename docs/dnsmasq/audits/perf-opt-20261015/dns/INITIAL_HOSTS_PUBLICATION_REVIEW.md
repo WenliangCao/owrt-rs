@@ -53,3 +53,30 @@ These findings and the initial-HUP caveat were sent to the DHCP fix owner.
 No product edits, remote reproductions, changed C expectations or test waivers
 were made by this review. The actual repair still requires a separate diff
 review; this document approves neither an unseen patch nor its qualification.
+
+## Actual minimal patch review
+
+The subsequent fix-worktree diff was read independently. `reload_hosts_data`
+now snapshots `local.leases` only when `hosts_initializing` is false, before
+clearing any pending hosts. The initial path already sets that latch before
+calling this function, and the existing initial-HUP path retains it. Genuine
+runtime HUP therefore preserves its prior retention behavior. No new state,
+public interface, Arc allocation or reorder of persistence/helper initialization
+was introduced. Existing allocation-failure abandonment paths are unchanged.
+
+The first draft used `unwrap_or(&LeaseNames::default())`. Its temporary borrow
+was valid through the synchronous call and did not allocate heap storage, but
+it eagerly constructed three empty HashMaps even for runtime HUP. Following
+review, the patch uses a local late-initialized empty value and an explicit
+match, so only the cold branch constructs it. The borrowed empty value remains
+alive through the complete hosts build.
+
+The new test selects both actual mixed reverse-chain orders using the current
+process hash, then exercises initial, initial-HUP and runtime-HUP for each.
+It checks exact helper event sequence and persisted lease name. The runtime
+branch deliberately creates `DnsFiles` without requesting Init, so it does not
+accidentally turn that control into another initial scan. Initial-HUP cancels
+an opened, unfinished first source; the existing held-FIFO test remains the
+additional admission/queue control. Static review found no concrete blocker.
+Linux baseline-fail/fix-pass and full qualification are owned by the DHCP and
+correctness agents and are not claimed by this read-only review.
