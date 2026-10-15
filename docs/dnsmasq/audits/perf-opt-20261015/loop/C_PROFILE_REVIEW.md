@@ -6,6 +6,8 @@ to its own map `9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a
 and source `f7f7a2edd9f2ecfac72953e43cfc873a354b468b`.
 [The receipt](owner-profile-c.json) records all identities, samples, counts,
 historical A comparisons and transfer provenance. No product or tool changed.
+The later [TCP-hit capture](C_TCP_HIT_PROFILE.md) completes all five DNS scenes
+and explicitly verifies the single-process TCP owner's sampling scope.
 
 UDP hit/miss/mixed and TCP miss each completed 1000 warmup plus 4000 measured
 queries, with no wrong replies, timeouts, transport errors or skipped work.

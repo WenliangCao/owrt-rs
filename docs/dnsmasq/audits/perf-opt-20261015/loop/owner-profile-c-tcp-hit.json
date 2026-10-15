@@ -1,0 +1,606 @@
+{
+  "scope": "Exact candidateC TCP-hit self-instruction profile, fifth DNS scene. Instrumented timings excluded; all raw remains on Oracle.",
+  "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-tcp-hit-20261015",
+  "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+  "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+  "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+  "raw_file_sha256": {
+    "maps-after": "01d7d9dceea5fe375e8d3a07dd88662f9adbed7739539fe9cdad7b051ea53e95",
+    "perf-record.command.json": "4be08e7044ca46588df51f56584b94432ed0f341d0492971e8b50beb6eebd375",
+    "build.json": "cd2d2cdb4ac19820c16b764c4a5771063fe096ee1379a36bf6e68a4c593ca5ce",
+    "client.send-lag.bin": "13d51928a7a775d390120e72bec09d66305efa738014e56d426b713cc6985cee",
+    "prewarm.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "client.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dnsmasq-rs": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+    "prewarm.command.json": "5c2c68a3bbd3a27f21ac46b1fa715241f91ee74e2d7479469a58e623c25eb170",
+    "client.latencies.bin": "527693ce4ee9c1ce048f5eff57e589f73dc5f8c5ba47bf1e1d78e3acc553c0e6",
+    "upstream.ready": "93f9e114cfad30d6dbbb8e6cf678d3bc30936f03b94c1b8d8d71e0416d7115d0",
+    "daemon.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-stat.command.json": "140cac310d9bfaabedc6242c5d33c901da83840165ae2c2c3957cc7e91147bd0",
+    "perf-record.stderr": "df7b1914a1b6905f4378bb08c68985e0d6f1cdbc253c630af166c2b0d013e8b7",
+    "perf-stat.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "upstream.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prewarm.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "process-identity.json": "7a46defeb7a994d6f19ef4dd08edb2993bb76d2735ae83bd4df49b09094e8723",
+    "profile.json": "b224d814be5660857f2bc30adc36cebb944285fe635b7d670c91e3a172f8b4a0",
+    "client.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "profile-scope.json": "761bc3e6d92a8856520c94a9a285d20a61e42cf0052d3be6c351161db2fa471b",
+    "perf-stat.csv": "08af4d86b49525564e8d43281f37d3732c7ef996b12d75e559271c4adb970a42",
+    "perf-controls.json": "563e0a646ac53f8d3d447b4e536c41371e6ba0cce6decd5e2c7aa590711732ef",
+    "prewarm.wire-samples.jsonl": "409ee4c801100f0bca35fd9f77af74125d8ad6d7d3c7a05e69cdb51df896741b",
+    "prewarm.json": "89607861d4b238c1c83d6c1485bf18cf5cf198432f485e9245988cd33938a695",
+    "upstream.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "daemon.log": "e6b2e36f0092006e3cdb00108115c283dcfd0cc687fffc021fe827a893db9e8f",
+    "client.command.json": "00c53b547414af55fd93d8a255593fb47eea4b864ed453e41ba032752b5c7a7e",
+    "complete.json": "40908d19bc9b1b70a42a08bb45a41da0b27460bcfbc358981fcb284b442ce7f8",
+    "upstream.command.json": "6355fa562aeda1cdf108ac733e156035627d91a4662ec4ad1a872325c6402980",
+    "self.txt": "bd3196c874f846eda5ad8a7436bd46002a903af495d325f5c5a1c6b2c338749a",
+    "daemon.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf.data": "ea44d1eca1b6d0662569095002960fe0cbef137a771c524d13a64aeb9915e064",
+    "prewarm.send-lag.bin": "4033c3a4ea6b46bc48e27ded10137aa100cbfd0d9c488bb1a7f56b9fb4f20de2",
+    "prewarm.latencies.bin": "dd501f8583cc9d9eeb5fcdec98ff53b14a8f13ee4d0db5d9b00a451df905eca0",
+    "perf-stat.stderr": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+    "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+    "client.wire-samples.jsonl": "cfe543a95733ce584402062471234e2cda40a7df1f9a8e5bd846673cf6b0310f",
+    "config": "928c2722caa55d099c5cb1c3c67076a9801eee00e52d2f9a0d6869cccbcdf628",
+    "perf-record.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "daemon.command.json": "d73e26ede49e94e53167ee7fbaa06bbc6e381bb6ce79b3fd0e20ec90941f0d67",
+    "samples.txt": "d8571c152ccff1dc0f13dd915bd689f60945ec1fa19d7a2bc55f435ed4ec5395",
+    "client.json": "787564c447dc17e3711ab06784ac9343099289738c52ceb162bdaa26793f4e5f",
+    "link.map": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a"
+  },
+  "totals": {
+    "samples": 20006,
+    "period": 200060000,
+    "lost_samples": 0
+  },
+  "categories": {
+    "kernel": 19311,
+    "user_attributed": 659,
+    "user_unmapped": 36
+  },
+  "pmu_during_recording": {
+    "instructions": 263529427,
+    "cycles": 590806111
+  },
+  "process_scope": {
+    "recorded_pid": 4170432,
+    "sample_pids": [
+      4170432
+    ],
+    "sample_tids": [
+      4170432
+    ],
+    "threads_at_identity_capture": 1,
+    "nice": 10,
+    "daemon_cpu": 2,
+    "upstream_cpu": 1,
+    "client_cpu": 3,
+    "sampling_command": [
+      "perf",
+      "record",
+      "-e",
+      "instructions",
+      "-c",
+      "10000",
+      "-p",
+      "4170432",
+      "-o",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-tcp-hit-20261015/perf.data",
+      "--delay=-1",
+      "--control",
+      "fifo:/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-tcp-hit-20261015/perf-record.control,/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-c-tcp-hit-20261015/perf-record.ack"
+    ],
+    "limit": "A separate live task/children read arrived after daemon exit and failedENOENT; no live children census is claimed. Perf/sample scope and captured stat establish the observed single PID/TID, not a general process-tree profile.",
+    "recorded_event_attributes": {
+      "instructions_inherit": true,
+      "metadata_inherit": true,
+      "metadata_task_events": true,
+      "metadata_mmap": true,
+      "metadata_mmap2": true,
+      "remote_receipt": "event-attributes.txt"
+    },
+    "analyzer_behavior": "perf_link_map_profile.analyze rejects any sample PID different from the recorded daemon; it does not silently discard child userspace. This is not a multiprocess tree aggregator.",
+    "source_model": "At frozenf7f7a2e, --keep-in-foreground bypasses startup::daemonize forks; finish_tcp_accept creates TcpDnsWork inside SinglePoll.clients, and step_tcp_clients runs it in the daemon thread. Hosts/lease/cache snapshots are in-process objects, not OS worker processes.",
+    "coverage": "Observed C daemon PID/TID only, including kernel execution charged to that context. Client/upstream processes and systemwide kernel work are excluded. Generic fork-worker completeness is not claimed."
+  },
+  "perf_ack_bracket_valid": true,
+  "prewarm": {
+    "mode": "udp",
+    "profile": "hit",
+    "correct": 1000
+  },
+  "counts": {
+    "warmup": {
+      "scheduled": 1000,
+      "sent": 1000,
+      "correct": 1000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "measurement": {
+      "scheduled": 4000,
+      "sent": 4000,
+      "correct": 4000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    }
+  },
+  "upstream": {
+    "schema": 1,
+    "epoch_ns": 0,
+    "disabled": false,
+    "total": {
+      "requests": 800,
+      "replies": 800,
+      "generated_replies": 800,
+      "disabled_requests": 0,
+      "dropped_requests": 0,
+      "invalid_queries": 0,
+      "udp_requests": 800,
+      "tcp_requests": 0
+    },
+    "delay_us": 1000,
+    "ttl": 120,
+    "delay_queue_dropped": 0,
+    "requests": 800,
+    "disabled_requests": 0,
+    "invalid_queries": 0,
+    "phases": {
+      "setup_warmup": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "steady": {
+        "requests": 0,
+        "replies": 0,
+        "generated_replies": 0,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 0
+      },
+      "saturation": {
+        "requests": 0,
+        "replies": 0,
+        "generated_replies": 0,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 0
+      },
+      "fault": {
+        "requests": 0,
+        "replies": 0,
+        "generated_replies": 0,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 0
+      },
+      "recovery": {
+        "requests": 0,
+        "replies": 0,
+        "generated_replies": 0,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 0
+      }
+    }
+  },
+  "complete": {
+    "valid_count_profile": true,
+    "measurement": {
+      "scheduled": 4000,
+      "sent": 4000,
+      "correct": 4000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0,
+      "stale_reply": 0,
+      "datagrams_sent": 0,
+      "release_sent": 0,
+      "dora_correct": 0,
+      "renew_correct": 0,
+      "correct_in_window": 4000,
+      "correct_after_window": 0,
+      "send_lag_count": 4000,
+      "send_lag_sum_ns": 290904067,
+      "send_lag_max_ns": 1525362
+    },
+    "perf_statuses": [
+      -2,
+      -2
+    ],
+    "timing_eligible": false
+  },
+  "demangler": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-tool-bin/llvm-cxxfilt",
+    "version": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/profile-tool-bin/llvm-cxxfilt\nUbuntu LLVM version 18.1.3\n  Optimized build."
+  },
+  "top_user": [
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+      "elf_range": [
+        "0x50d5c",
+        "0x529dc"
+      ],
+      "samples": 139,
+      "period": 1390000,
+      "percent_all_period": 0.6947915625312406
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::answer_records_filtered",
+      "elf_range": [
+        "0xdab40",
+        "0xde014"
+      ],
+      "samples": 53,
+      "period": 530000,
+      "percent_all_period": 0.26492052384284714
+    },
+    {
+      "category": "user_attributed",
+      "label": "<std::sys::pal::unix::time::Timespec>::sub_timespec",
+      "elf_range": [
+        "0x19f204",
+        "0x19f2f4"
+      ],
+      "samples": 39,
+      "period": 390000,
+      "percent_all_period": 0.19494151754473657
+    },
+    {
+      "category": "user_attributed",
+      "label": "[unnamed input section]",
+      "elf_range": [
+        "0x1bf8b0",
+        "0x1bfa3c"
+      ],
+      "samples": 36,
+      "period": 360000,
+      "percent_all_period": 0.17994601619514144
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::SinglePoll>::step_udp",
+      "elf_range": [
+        "0x6a9c0",
+        "0x6b0a0"
+      ],
+      "samples": 34,
+      "period": 340000,
+      "percent_all_period": 0.16994901529541137
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::SinglePoll>::step_tcp_accept",
+      "elf_range": [
+        "0x5586c",
+        "0x56010"
+      ],
+      "samples": 31,
+      "period": 310000,
+      "percent_all_period": 0.15495351394581625
+    },
+    {
+      "category": "user_attributed",
+      "label": "dnsmasq_rs::dns::cache_engine::finish_cached_answer_flags",
+      "elf_range": [
+        "0xe261c",
+        "0xe2828"
+      ],
+      "samples": 25,
+      "period": 250000,
+      "percent_all_period": 0.12496251124662601
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::TcpDnsWork>::answer_query",
+      "elf_range": [
+        "0x4cffc",
+        "0x4d888"
+      ],
+      "samples": 24,
+      "period": 240000,
+      "percent_all_period": 0.11996401079676097
+    },
+    {
+      "category": "user_attributed",
+      "label": "[unnamed input section]",
+      "elf_range": [
+        "0x1c7e90",
+        "0x1c7ebc"
+      ],
+      "samples": 24,
+      "period": 240000,
+      "percent_all_period": 0.11996401079676097
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::answer_local_or_cached",
+      "elf_range": [
+        "0x80f1c",
+        "0x81cf0"
+      ],
+      "samples": 22,
+      "period": 220000,
+      "percent_all_period": 0.10996700989703088
+    },
+    {
+      "category": "user_attributed",
+      "label": "dnsmasq_rs::dns::cache_reply::append_positive_record",
+      "elf_range": [
+        "0xe5bc0",
+        "0xe5f48"
+      ],
+      "samples": 19,
+      "period": 190000,
+      "percent_all_period": 0.09497150854743577
+    },
+    {
+      "category": "user_attributed",
+      "label": "__libc_free",
+      "elf_range": [
+        "0x1b5f0c",
+        "0x1b6268"
+      ],
+      "samples": 18,
+      "period": 180000,
+      "percent_all_period": 0.08997300809757072
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::SinglePoll>::step",
+      "elf_range": [
+        "0x66298",
+        "0x6a758"
+      ],
+      "samples": 16,
+      "period": 160000,
+      "percent_all_period": 0.07997600719784065
+    },
+    {
+      "category": "user_attributed",
+      "label": "compiler_builtins::int::specialized_div_rem::u128_div_rem",
+      "elf_range": [
+        "0x1c89d8",
+        "0x1c8ce4"
+      ],
+      "samples": 15,
+      "period": 150000,
+      "percent_all_period": 0.07497750674797561
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::SinglePoll>::step_tcp_clients",
+      "elf_range": [
+        "0x58214",
+        "0x59fbc"
+      ],
+      "samples": 13,
+      "period": 130000,
+      "percent_all_period": 0.06498050584824552
+    },
+    {
+      "category": "user_attributed",
+      "label": "[unnamed input section]",
+      "elf_range": [
+        "0x1c7ec0",
+        "0x1c7eec"
+      ],
+      "samples": 13,
+      "period": 130000,
+      "percent_all_period": 0.06498050584824552
+    },
+    {
+      "category": "user_attributed",
+      "label": "__libc_malloc_impl",
+      "elf_range": [
+        "0x1b6ed8",
+        "0x1b7330"
+      ],
+      "samples": 13,
+      "period": 130000,
+      "percent_all_period": 0.06498050584824552
+    },
+    {
+      "category": "user_attributed",
+      "label": "dnsmasq_rs::dns::cache_engine::record_cached",
+      "elf_range": [
+        "0xe2828",
+        "0xe2c5c"
+      ],
+      "samples": 12,
+      "period": 120000,
+      "percent_all_period": 0.059982005398380486
+    },
+    {
+      "category": "user_attributed",
+      "label": "<dnsmasq_rs::dns::wire::PacketWriter>::append_record",
+      "elf_range": [
+        "0xe2c5c",
+        "0xe2f9c"
+      ],
+      "samples": 11,
+      "period": 110000,
+      "percent_all_period": 0.05498350494851544
+    },
+    {
+      "category": "user_attributed",
+      "label": "poll",
+      "elf_range": [
+        "0x1bc3e4",
+        "0x1bc458"
+      ],
+      "samples": 11,
+      "period": 110000,
+      "percent_all_period": 0.05498350494851544
+    }
+  ],
+  "allocation_clone_labels": [
+    {
+      "category": "user_attributed",
+      "label": "__libc_free",
+      "elf_range": [
+        "0x1b5f0c",
+        "0x1b6268"
+      ],
+      "samples": 18,
+      "period": 180000,
+      "percent_all_period": 0.08997300809757072
+    },
+    {
+      "category": "user_attributed",
+      "label": "__libc_malloc_impl",
+      "elf_range": [
+        "0x1b6ed8",
+        "0x1b7330"
+      ],
+      "samples": 13,
+      "period": 130000,
+      "percent_all_period": 0.06498050584824552
+    },
+    {
+      "category": "user_attributed",
+      "label": "alloc_slot",
+      "elf_range": [
+        "0x1b65a0",
+        "0x1b6ed8"
+      ],
+      "samples": 4,
+      "period": 40000,
+      "percent_all_period": 0.019994001799460162
+    },
+    {
+      "category": "user_attributed",
+      "label": "<alloc::raw_vec::RawVecInner>::finish_grow",
+      "elf_range": [
+        "0x124d0",
+        "0x12628"
+      ],
+      "samples": 1,
+      "period": 10000,
+      "percent_all_period": 0.0049985004498650405
+    },
+    {
+      "category": "user_attributed",
+      "label": "__rustc::__rust_alloc",
+      "elf_range": [
+        "0x173730",
+        "0x173780"
+      ],
+      "samples": 1,
+      "period": 10000,
+      "percent_all_period": 0.0049985004498650405
+    },
+    {
+      "category": "user_attributed",
+      "label": "core::ptr::drop_glue::<alloc::vec::Vec<(dnsmasq_rs::query_logging::QueryContext, dnsmasq_rs::query_logging::QueryEvent)>>",
+      "elf_range": [
+        "0x2c558",
+        "0x2c5f8"
+      ],
+      "samples": 1,
+      "period": 10000,
+      "percent_all_period": 0.0049985004498650405
+    },
+    {
+      "category": "user_attributed",
+      "label": "default_malloc",
+      "elf_range": [
+        "0x1b5a58",
+        "0x1b5a5c"
+      ],
+      "samples": 1,
+      "period": 10000,
+      "percent_all_period": 0.0049985004498650405
+    }
+  ],
+  "unmapped": [
+    {
+      "category": "user_unmapped",
+      "dso": "[vdso]",
+      "label": "other_image",
+      "elf_range": null,
+      "samples": 36,
+      "period": 360000,
+      "percent_all_period": 0.17994601619514144
+    }
+  ],
+  "analysis_attempts": [
+    "Existing analyzer initially could not locate unversioned llvm-cxxfilt; no result was written.",
+    "Private PATH symlink to installed /usr/bin/llvm-cxxfilt-18 allowed unchanged analyzer to finish; no workload rerun."
+  ],
+  "timing_eligible": false,
+  "small_transfer": {
+    "file_bytes": 16708,
+    "sha256": "f7758998e9d8d0d72ddec12cadb3d1ce124b2f0a08b321c3808b692b66f0b960",
+    "raw_bulk_downloaded": false
+  },
+  "hit_behavior": {
+    "prewarm_udp_correct": 1000,
+    "expected_unique_hot_names": 800,
+    "total_upstream_udp_requests": 800,
+    "total_upstream_tcp_requests": 0,
+    "conclusion": "Exactly800 upstreamUDP requests/replies match the800 distinct prewarm names; no extra requests remain for5000 correct subsequentTCP warmup/measurement queries."
+  },
+  "allocation_clone_interpretation": {
+    "explicit_allocator_drop_samples": 39,
+    "percent_all_samples": 0.19494151754473657,
+    "source_snapshot_locations": [
+      "main.rs:5594 finish_tcp_accept",
+      "main.rs:5612 hosts.tcp_snapshot",
+      "main.rs:5627 daemon.tcp_cache_view",
+      "main.rs:5635 daemon.tcp_snapshot"
+    ],
+    "conclusion": "Accept-time snapshots and answer allocations exist in source, but namedallocator/drop labels are sparse and clone operations may be inlined. No allocation count, byte count, or clone-lifecycle dominance is established by this profile."
+  },
+  "historical_a": {
+    "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+    "totals": {
+      "samples": 20029,
+      "period": 200290000,
+      "lost_samples": 0
+    },
+    "samples_by_mode": {
+      "kernel": 18791,
+      "user": 1238
+    },
+    "pmu_during_recording": {
+      "instructions": 277771676,
+      "cycles": 674469287
+    },
+    "instruction_total_change_percent": -5.127322268811884,
+    "interpretation": "HistoricalA nice0 versus currentC nice10; separate single diagnostic windows, not paired timing or acceptance."
+  },
+  "limitations": [
+    "Only695 user-mode samples; individual few-sample labels are noisy and inlining obscures ownership.",
+    "96.53% kernel-mode sample proportion is not an exact CPU share, full-system cost, or proof of irreducibility.",
+    "No additional workload window was run after capture; analyzer alias recovery and lateprocess metadata failure did not replace any sample."
+  ],
+  "source_scope_hashes": {
+    "components/dnsmasq/src/main.rs": "18d170499a393ada3e2c4af7fdf00b49a92794dee982761a476a8f6745729283",
+    "components/dnsmasq/src/startup/daemonize.rs": "e96be759daecc2d365d2f979dc937179f93e1c1336b7ea733a55496819886ddd",
+    "tools/dnsmasq/perf_link_map_profile.py": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d"
+  }
+}
