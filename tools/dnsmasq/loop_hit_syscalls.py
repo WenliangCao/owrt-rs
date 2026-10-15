@@ -224,6 +224,7 @@ def main():
     root_pid = identity['pid']
     trace = parse((p / 'syscalls.txt').open(), root_pid)
     assert not trace['unparsed_lines'], trace['unparsed_lines'][:3]
+    assert not trace['execs'], 'child exec requires a separate image-mapping identity audit'
     queries = client['warmup']['correct'] + client['measurement']['correct']
     pids = set(trace['calls'])
     report = {'scope': 'Entered/completed calls for the captured owned process tree; 5000 client queries plus fixed grace, not pure steady per-query cost.',
@@ -241,6 +242,7 @@ def main():
               'raw_trace': {'bytes': (p / 'syscalls.txt').stat().st_size, 'sha256': sha(p / 'syscalls.txt')},
               'limitations': ['strace elapsed time is not compared.',
                               'vDSO clock calls are invisible to syscall tracing.',
+                              'Ancillary flags and buffers are observed; user-space cmsg parsing instructions are not.',
                               'Parameters are counted on completed calls; in-flight boundary calls are listed separately.']}
     args.out.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'bytes': args.out.stat().st_size, 'sha256': sha(args.out), 'pids': sorted(pids)}))
