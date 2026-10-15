@@ -915,6 +915,42 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
     None
 }
 
+/// Query-scoped counterpart of wire_to_dotted. A valid 255-byte wire name
+/// needs at most 253 dotted bytes; no escaped-name expansion belongs here.
+pub(super) fn query_dotted_name(name: &Name, out: &mut [u8; 253]) -> Option<usize> {
+    let wire = name.as_wire();
+    let mut pos = 0;
+    let mut written = 0;
+    while pos < wire.len() {
+        let len = usize::from(wire[pos]);
+        pos += 1;
+        if len == 0 {
+            return Some(written);
+        }
+        if len > 63 || pos.checked_add(len)? > wire.len() {
+            return None;
+        }
+        let label = &wire[pos..pos + len];
+        if label.contains(&b'.') {
+            return None;
+        }
+        let separator = usize::from(written != 0);
+        let end = written + separator + len;
+        if end > out.len() {
+            return None;
+        }
+        if separator != 0 {
+            out[written] = b'.';
+        }
+        for (target, source) in out[written + separator..end].iter_mut().zip(label) {
+            *target = source.to_ascii_lowercase();
+        }
+        written = end;
+        pos += len;
+    }
+    None
+}
+
 fn wire_name(name: &[u8]) -> Option<Vec<u8>> {
     if name.is_empty() {
         return Some(vec![0]);
@@ -1764,6 +1800,28 @@ fn labels(wire: &[u8]) -> Vec<&[u8]> {
 mod tests {
     use super::*;
     use crate::config::{lex_line, validate_directive};
+
+    #[test]
+    fn query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names() {
+        let mut names = vec![Name::root(), Name::from_ascii("MiXeD.Example.").unwrap()];
+        for byte in 0..=255 {
+            for length in [1, 63] {
+                let mut wire = vec![length as u8];
+                wire.extend(std::iter::repeat_n(byte, length));
+                wire.extend_from_slice(&[1, b'A', 0]);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        assert_eq!(longest.len(), 253);
+        names.push(Name::from_ascii(&longest).unwrap());
+        let mut buffer = [0x7f; 253];
+        for name in names {
+            let expected = wire_to_dotted(&name);
+            let actual = query_dotted_name(&name, &mut buffer).map(|length| &buffer[..length]);
+            assert_eq!(actual, expected.as_deref(), "{:?}", name.as_wire());
+        }
+    }
 
     #[test]
     fn cname_alias_comparison_matches_allocated_keys() {
