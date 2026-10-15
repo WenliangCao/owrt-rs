@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "status": "SOURCE_REVIEW_COMPLETE_LOCAL_CHECK_PASSED_RUNTIME_PENDING",
+  "status": "SOURCE_REVIEW_COMPLETE_LOCAL_CHECK_AND_RELATED_LINUX_GATES_PASSED",
   "candidate_commit": "1b934951750559c08807db93bb5c4196745cd25c",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
   "product_file": "components/dnsmasq/src/main.rs",
   "product_file_sha256": "a0d4278971872e93a9fe8937ab2a36865bdb049aaff5cacc5fe4c7dffdd446d7",
-  "scope": "Local read-only source, test-design and retained compiler-log review of the independent F-based prototype. Reviewer did not run builds or tests, access Oracle/router, or alter product code.",
+  "scope": "Initial source, test-design and local-compiler-log review was read-only. Later coordinator-authorized isolated Linux bin gates are bound separately below. No router access or product-code changes by reviewer.",
   "implementation": {
     "selection": "Reuse the existing elapsed poll duration: at least 1 ms selects a per-listener limit of 1 true return; a shorter wait selects the existing limit of 16.",
     "total_budget": "The original shared budget of 16 step_udp true returns remains outside the listener loop in both modes.",
@@ -44,7 +44,7 @@
       "exit_code": 0,
       "fixed_log_hashes_match_receipt": true
     },
-    "receipt_limit": "Command and exit status are bound through the coordinator's tool-result transcription; stderr independently corroborates the successful compiler completion. No independent rerun or Linux runtime execution was performed.",
+    "receipt_limit": "Command and exit status are bound through the coordinator's tool-result transcription; stderr independently corroborates the successful compiler completion. This local check was not independently rerun; later native Linux gates are separately bound below.",
     "private_log_directory": "private/idle-batch-20261015 in the prototype worktree",
     "logs": {
       "linux-check.stderr": {
@@ -76,15 +76,20 @@
       "Injected receive errors, Ok(None), and the terminal WouldBlock diagnostic counter."
     ],
     "existing_source_contracts": "The direct resend preservation/invalidation fixtures and step_udp implementation remain unchanged.",
-    "execution": "Pending. The local cargo check compiles test targets but does not execute the new or existing Linux tests."
+    "execution": "Passed on native Linux musl: 83 ordinary bin tests and the four original ignored-live tests, including the new queue-preservation test. See udp-idle-batch-linux-gates.json; this is not full candidate or SDK performance qualification."
   },
   "remaining_source_blockers": [],
-  "runtime_qualification": "PENDING",
+  "runtime_qualification": "Related Linux bin gates passed; full candidate qualification not performed.",
   "performance_acceptance": "NOT_EVALUATED",
   "deployment": "NOT_AUTHORIZED_OR_PERFORMED_BY_THIS_REVIEW",
   "limitations": [
-    "No runtime pass, SDK qualification or performance improvement is established by this source review and local cargo check.",
+    "This source review, local cargo check and related native Linux bin gates do not establish full candidate qualification, SDK qualification or performance improvement.",
     "Actual mode selection and the low-load/high-load tradeoff require separate measurement; the fixed read-one prototype's results do not transfer to this prototype.",
     "F remains immutable, and this prototype does not change the accepted E baseline."
-  ]
+  ],
+  "related_linux_gate_receipt": {
+    "file": "udp-idle-batch-linux-gates.json",
+    "sha256": "4fad2d645e1273607b5bef97773f290cc74f9a9d4840cdaa66f5398f26c0a688",
+    "verified_private_receipt_sha256": "b1f9f159318e4f988b55f7cbeeb3ea212ca360ff65dc7027685944416c60ed0a"
+  }
 }
