@@ -1214,7 +1214,7 @@ fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
         assert_eq!(message.records(Section::Answer).next().unwrap().rdata, &[192,0,2,7]);
     }
     // A compressed question and the longest valid question use the same
-    // decoder/cursor contract; retained capacity stays bounded at256 bytes.
+    // decoder/cursor contract; capacity growth remains bounded for DNS names.
     let mut compressed = first[..12].to_vec();
     compressed.extend_from_slice(&[0xc0,18,0,1,0,1]);
     compressed.extend_from_slice(Name::from_ascii("one.test").unwrap().as_wire());
@@ -1239,4 +1239,15 @@ fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
     assert!(matches!(daemon.answer_udp_prepared_with_local(&first, &first, metadata,
         client, None, &mut local), Ok(QueryResult::Cached(_))));
     assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+    // Irregular label sizes can make amortized growth exceed256 even when
+    // the complete name is shorter. Retention is bounded, not rounded down.
+    let mut irregular_daemon = self::daemon();
+    let irregular_name = ["a".repeat(30), "b".repeat(63), "c".repeat(63), "d".repeat(63)].join(".");
+    let irregular = packet(&irregular_name, 1, 0x100).finish();
+    let _ = irregular_daemon.answer_udp_prepared_with_local(&irregular, &irregular, metadata,
+        ClientRequest { source: "127.0.0.1:53001".parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(), interface: 0 }, None, &mut local);
+    assert_eq!(irregular_daemon.udp_name_buffer.len(), 224);
+    assert!(irregular_daemon.udp_name_buffer.capacity() > 256);
+    assert!(irregular_daemon.udp_name_buffer.capacity() <= 512);
 }
