@@ -1,0 +1,462 @@
+{
+  "scope": "Read-only local diagnosis of an invalid retained candidateC device window. No rerun, replacement, product fix or gate change. Diagnostic timings below cannot qualify performance.",
+  "label": "candidate-c-tcp-miss-r2-rust",
+  "invalid": true,
+  "performance_eligible": false,
+  "raw_archive_manifest_sha256": "48ea77b907a1ddb5d31bd0860c3d3cf1f955b4505cb07a3e4c9f01e5be4c3e4e",
+  "raw_archive_sha256": "f20de80b83635134191b3f3d479adb32b2873dfd5bd44dd8d1a21902dbcb02e5",
+  "raw_file_membership_and_hashes_verified": 37,
+  "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+  "loadgen_source_sha256": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4",
+  "measurement_counts": {
+    "scheduled": 4000,
+    "sent": 3987,
+    "correct": 3987,
+    "timeout": 0,
+    "wrong": 0,
+    "transport_error": 0,
+    "scheduled_skipped": 13,
+    "stale_reply": 0,
+    "datagrams_sent": 0,
+    "release_sent": 0,
+    "dora_correct": 0,
+    "renew_correct": 0,
+    "correct_in_window": 3987,
+    "correct_after_window": 0,
+    "send_lag_count": 3987,
+    "send_lag_sum_ns": 601222242,
+    "send_lag_max_ns": 22329788
+  },
+  "warmup_counts": {
+    "scheduled": 1000,
+    "sent": 1000,
+    "correct": 1000,
+    "timeout": 0,
+    "wrong": 0,
+    "transport_error": 0,
+    "scheduled_skipped": 0,
+    "stale_reply": 0,
+    "datagrams_sent": 0,
+    "release_sent": 0,
+    "dora_correct": 0,
+    "renew_correct": 0,
+    "correct_in_window": 0,
+    "correct_after_window": 0,
+    "send_lag_count": 1000,
+    "send_lag_sum_ns": 91249619,
+    "send_lag_max_ns": 675579
+  },
+  "upstream_totals": {
+    "requests": 4987,
+    "replies": 4987,
+    "generated_replies": 4987,
+    "disabled_requests": 0,
+    "dropped_requests": 0,
+    "invalid_queries": 0,
+    "udp_requests": 0,
+    "tcp_requests": 4987
+  },
+  "raw_diagnostic_sha256": {
+    "client.json": "0e4848f9cee24ec12996a8354b12a027c9cfe062096746affc36cf1f4f7cea75",
+    "client.latencies.bin": "dbe4d2c37ddc2b85a6210a46416fc0e53536b69f0c04bce89b1bcef85b7d1319",
+    "client.send-lag.bin": "823b0a18f45ed1e814e1675392ecb4de934f5c84129ef85e4ee9a2071adfae10",
+    "resources.jsonl": "74a959677ba065c08ff3085ca7b106ffa1414bade77195bb8428f6ac7c240063",
+    "epoch.json": "21874f6c5221d75a5055dd9ea49326f53907fe53b87920726af6e8a987680a5b",
+    "daemon.log": "f5f257ce33e0e738cc938768cc3fefe844e53488383d35ff8e8768a5f789254f",
+    "upstream.json": "4cd9049dd4a3f70b25a7483ce198b5e740f0781e9a436ca23dbf04eb5b2126ec"
+  },
+  "reconstructed_schedule": {
+    "method": "For every recorded completion, scheduled_ns=actual_sent_ns-send_lag_ns. All3987 scheduled times lie on one5msgrid; missing slots among0..3999 exactly equal13counter skips. Client assignment=(1000warmup scheduled+slot)%8. Every missing slot overlaps the preceding accepted request on that client by its recorded completion time.",
+    "interval_ns": 5000000,
+    "client_reuse_interval_ms": 40,
+    "first_grid_offset_from_measurement_ns": 65565,
+    "skips": [
+      {
+        "scheduled_slot_zero_based": 2301,
+        "client": 5,
+        "scheduled_offset_s": 11.505065565,
+        "preceding_accepted_sequence": 11593254898240734,
+        "preceding_latency_ms": 48.216727,
+        "preceding_send_lag_ms": 8.170531,
+        "preceding_completed_offset_s": 11.521452823
+      },
+      {
+        "scheduled_slot_zero_based": 2302,
+        "client": 6,
+        "scheduled_offset_s": 11.510065565,
+        "preceding_accepted_sequence": 11593254898240735,
+        "preceding_latency_ms": 48.612133,
+        "preceding_send_lag_ms": 3.193229,
+        "preceding_completed_offset_s": 11.521870927
+      },
+      {
+        "scheduled_slot_zero_based": 2303,
+        "client": 7,
+        "scheduled_offset_s": 11.515065565,
+        "preceding_accepted_sequence": 11593254898240736,
+        "preceding_latency_ms": 47.101758,
+        "preceding_send_lag_ms": 0.135172,
+        "preceding_completed_offset_s": 11.522302495
+      },
+      {
+        "scheduled_slot_zero_based": 2307,
+        "client": 3,
+        "scheduled_offset_s": 11.535065565,
+        "preceding_accepted_sequence": 11593254898240740,
+        "preceding_latency_ms": 79.562809,
+        "preceding_send_lag_ms": 1.006964,
+        "preceding_completed_offset_s": 11.575635338
+      },
+      {
+        "scheduled_slot_zero_based": 2308,
+        "client": 4,
+        "scheduled_offset_s": 11.540065565,
+        "preceding_accepted_sequence": 11593254898240741,
+        "preceding_latency_ms": 78.977049,
+        "preceding_send_lag_ms": 0.173766,
+        "preceding_completed_offset_s": 11.57921638
+      },
+      {
+        "scheduled_slot_zero_based": 2312,
+        "client": 0,
+        "scheduled_offset_s": 11.560065565,
+        "preceding_accepted_sequence": 11593254898240742,
+        "preceding_latency_ms": 45.618313,
+        "preceding_send_lag_ms": 0.950458,
+        "preceding_completed_offset_s": 11.566634336
+      },
+      {
+        "scheduled_slot_zero_based": 2313,
+        "client": 1,
+        "scheduled_offset_s": 11.565065565,
+        "preceding_accepted_sequence": 11593254898240743,
+        "preceding_latency_ms": 42.100364,
+        "preceding_send_lag_ms": 0.152961,
+        "preceding_completed_offset_s": 11.56731889
+      },
+      {
+        "scheduled_slot_zero_based": 2314,
+        "client": 2,
+        "scheduled_offset_s": 11.570065565,
+        "preceding_accepted_sequence": 11593254898240744,
+        "preceding_latency_ms": 35.437558,
+        "preceding_send_lag_ms": 5.160443,
+        "preceding_completed_offset_s": 11.570663566
+      },
+      {
+        "scheduled_slot_zero_based": 2315,
+        "client": 3,
+        "scheduled_offset_s": 11.575065565,
+        "preceding_accepted_sequence": 11593254898240740,
+        "preceding_latency_ms": 79.562809,
+        "preceding_send_lag_ms": 1.006964,
+        "preceding_completed_offset_s": 11.575635338
+      },
+      {
+        "scheduled_slot_zero_based": 2317,
+        "client": 5,
+        "scheduled_offset_s": 11.585065565,
+        "preceding_accepted_sequence": 11593254898240745,
+        "preceding_latency_ms": 21.122393,
+        "preceding_send_lag_ms": 19.829724,
+        "preceding_completed_offset_s": 11.586017682
+      },
+      {
+        "scheduled_slot_zero_based": 2318,
+        "client": 6,
+        "scheduled_offset_s": 11.590065565,
+        "preceding_accepted_sequence": 11593254898240746,
+        "preceding_latency_ms": 31.094019,
+        "preceding_send_lag_ms": 14.951909,
+        "preceding_completed_offset_s": 11.596111493
+      },
+      {
+        "scheduled_slot_zero_based": 2334,
+        "client": 6,
+        "scheduled_offset_s": 11.670065565,
+        "preceding_accepted_sequence": 11593254898240756,
+        "preceding_latency_ms": 48.901513,
+        "preceding_send_lag_ms": 3.48829,
+        "preceding_completed_offset_s": 11.682455368
+      },
+      {
+        "scheduled_slot_zero_based": 2335,
+        "client": 7,
+        "scheduled_offset_s": 11.675065565,
+        "preceding_accepted_sequence": 11593254898240757,
+        "preceding_latency_ms": 41.155207,
+        "preceding_send_lag_ms": 6.241367,
+        "preceding_completed_offset_s": 11.682462139
+      }
+    ],
+    "maximum_latency_ms": 79.562809,
+    "latencies_over_40ms": 9,
+    "maximum_send_lag_ms": 22.329788
+  },
+  "resource_observation": {
+    "samples": 28,
+    "daemon_identities": [
+      [
+        8552,
+        4784907,
+        1
+      ]
+    ],
+    "tree_sizes": [
+      1
+    ],
+    "tree_truncated": false,
+    "minimum_memory_available_kib": 90688,
+    "intervals_near_burst": [
+      {
+        "start_offset_s": 9.011410941,
+        "end_offset_s": 10.01140348,
+        "aggregate_host_cpu_delta_ticks": [
+          3,
+          5,
+          12,
+          174,
+          0,
+          1,
+          4,
+          0,
+          0,
+          0
+        ],
+        "aggregate_host_busy_percent": 12.56281407035176,
+        "daemon_cpu_delta_ticks": 9,
+        "memory_available_kib": 90688,
+        "sample_duration_ms": 5.437964
+      },
+      {
+        "start_offset_s": 10.01140348,
+        "end_offset_s": 11.011948003,
+        "aggregate_host_cpu_delta_ticks": [
+          2,
+          2,
+          16,
+          175,
+          0,
+          2,
+          3,
+          0,
+          0,
+          0
+        ],
+        "aggregate_host_busy_percent": 12.5,
+        "daemon_cpu_delta_ticks": 11,
+        "memory_available_kib": 90688,
+        "sample_duration_ms": 5.952938
+      },
+      {
+        "start_offset_s": 11.011948003,
+        "end_offset_s": 12.01135886,
+        "aggregate_host_cpu_delta_ticks": [
+          32,
+          7,
+          46,
+          109,
+          0,
+          1,
+          4,
+          0,
+          0,
+          0
+        ],
+        "aggregate_host_busy_percent": 45.22613065326633,
+        "daemon_cpu_delta_ticks": 11,
+        "memory_available_kib": 92344,
+        "sample_duration_ms": 5.373409
+      },
+      {
+        "start_offset_s": 12.01135886,
+        "end_offset_s": 13.011950625,
+        "aggregate_host_cpu_delta_ticks": [
+          11,
+          21,
+          43,
+          135,
+          0,
+          2,
+          4,
+          0,
+          0,
+          0
+        ],
+        "aggregate_host_busy_percent": 37.5,
+        "daemon_cpu_delta_ticks": 11,
+        "memory_available_kib": 92288,
+        "sample_duration_ms": 6.514461
+      }
+    ]
+  },
+  "guard": {
+    "path": "candidate-c-tcp-miss-guard-1792060697198783000.jsonl",
+    "sha256": "1753c36f536a9d395fccbf78c875dc51f714cea53b2cf156d7ecd0f9fdf92f52",
+    "window_wall_start_utc": "2026-10-15T10:39:33Z",
+    "window_wall_end_utc": "2026-10-15T10:40:02Z",
+    "samples": 30,
+    "actual_dns_probes": 12,
+    "dns_all_ok": true,
+    "dns_max_ms": 0.65,
+    "actual_http_probes": 6,
+    "http_statuses": [
+      403
+    ],
+    "http_max_ms": 58.902,
+    "minimum_memory_available_kib": 90688,
+    "production_identities": [
+      [
+        3086,
+        2115
+      ]
+    ],
+    "ipv4_default_all_present": true,
+    "failure_events": [],
+    "sentinel_note": "dns_ok=-1/http_status=-1 means not probed on that sample; not counted as passes."
+  },
+  "other_tcp_miss_windows": [
+    {
+      "label": "candidate-c-tcp-miss-r1-c",
+      "archive_manifest_sha256": "e9f191b690464eb42940f30b2c5e159e92efd19dd7304c570b326ac641329249",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 18.004388,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 7.2945
+    },
+    {
+      "label": "candidate-c-tcp-miss-r1-rust",
+      "archive_manifest_sha256": "7d4192390a99acbe17f2079e4cb74f58f33ea9d6d910f212ad777f186cbf71a6",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 17.074388,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 10.506614
+    },
+    {
+      "label": "candidate-c-tcp-miss-r2-c",
+      "archive_manifest_sha256": "7d628ec58ddbe4af2674e3f05f0ec23e57d9e2d8d9f65638a632595849807138",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 6.823308,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 2.636952
+    },
+    {
+      "label": "candidate-c-tcp-miss-r2-rust",
+      "archive_manifest_sha256": "48ea77b907a1ddb5d31bd0860c3d3cf1f955b4505cb07a3e4c9f01e5be4c3e4e",
+      "skipped": 13,
+      "sent": 3987,
+      "correct": 3987,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 79.562809,
+      "latencies_over_40ms": 9,
+      "maximum_send_lag_ms": 22.329788
+    },
+    {
+      "label": "candidate-c-tcp-miss-r3-c",
+      "archive_manifest_sha256": "535c25fe17c8e566daad94acf52841b12b7f8d0ba542f2f09315c1fa68648fab",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 35.153488,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 11.735516
+    },
+    {
+      "label": "candidate-c-tcp-miss-r3-rust",
+      "archive_manifest_sha256": "47fc32c3a681d6b4a2a0afcbf6020439524f66699fb92fa051980ca49954b1f9",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 10.788983,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 4.682411
+    },
+    {
+      "label": "candidate-c-tcp-miss-r4-c",
+      "archive_manifest_sha256": "709dd73a3f393267cd9080a51f32f7d7f1c9fe41c0b5641d23c1d7eebde31823",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 12.3446,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 2.812989
+    },
+    {
+      "label": "candidate-c-tcp-miss-r4-rust",
+      "archive_manifest_sha256": "f6b8db5ae78e350f3ceb328f34c8712bccaf366a469fdecd3905ffad023d2006",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 10.7629,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 5.384928
+    },
+    {
+      "label": "candidate-c-tcp-miss-r5-c",
+      "archive_manifest_sha256": "5b19566a5e80ecad62f0d6c7996853224ac6d652487406dbcaf2dce60dd6ae92",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 6.035343,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 0.498195
+    },
+    {
+      "label": "candidate-c-tcp-miss-r5-rust",
+      "archive_manifest_sha256": "1f4e690f3cb2f4f493b11168fd4cb8f721817bcec4399f5b550dea5ec9c3f00a",
+      "skipped": 0,
+      "sent": 4000,
+      "correct": 4000,
+      "tcp_connections": 56,
+      "tcp_reconnections": 48,
+      "maximum_latency_ms": 38.665359,
+      "latencies_over_40ms": 0,
+      "maximum_send_lag_ms": 9.210075
+    }
+  ],
+  "conclusion": {
+    "established": "Thirteen scheduled admissions encountered an occupied client slot; all accepted requests were completed correctly. The short busy-client burst coincides with increased aggregate hostCPU and delayed sends/observed replies.",
+    "not_established": [
+      "Root cause within daemon, load generator, upstream, kernel, competing hostwork or synchronousTCP reconnect.",
+      "That a reply was already queued in the kernel when the load generator marked a slot busy.",
+      "Per-core scheduler contention from1Hz aggregate CPU readings.",
+      "A reproducible product defect or a harmless harness-only issue."
+    ],
+    "gate": "Frozen zero-skips gate remainsfailed; all attempted data retained with no selective exclusion/replacement."
+  },
+  "separate_prior_transfer": {
+    "receipt": "owner-profile-c.json / transfer_during_device_sequence",
+    "bytes": 9489587,
+    "archive_sha256": "ff961409258ac7e428b0381a9393e87e0f87ba4fe69390c3d189f0af00c15430",
+    "local_file_write_utc": [
+      "2026-10-15T10:18:26.868264Z",
+      "2026-10-15T10:18:27.492215Z"
+    ],
+    "overlapped_window": "candidate-c-udp-miss-r1-rust",
+    "seconds_before_current_tcp_window_start": 1265.5077848434448,
+    "conclusion": "Different earlier UDP-miss window; no temporal overlap with thisTCP-miss event and no evidence attributing thisskip burst to that transfer."
+  }
+}
