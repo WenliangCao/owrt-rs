@@ -1,0 +1,239 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "scope": "Independent final parser/report review and separate streaming raw trace count verification. Read-only CPU0 nice19 audit, no additional captures and no router operation.",
+  "driver_commit": "93489990",
+  "driver_sha256": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325",
+  "parser_commit": "5d9f1885",
+  "parser_sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+  "reported_result_commit": "0205e596",
+  "reported_result_sha256": "3b65b1b99b14fec1e493863c6982a86b1a4d5d71cc27030b9d068721920e21e7",
+  "plan_sha256": "9b6a379563975a5330a67ddd89747012fdd3fbb41ed552f3e2c8c85c599c607a",
+  "evidence": {
+    "independent_scan_script_sha256": "43483184f1c55f5ce5067e19b786cc9bf71ae3091a8a12380bb3df90d5e17aa4",
+    "independent_scan_result_sha256": "074c2be052efa12613e22b50a49b157302d9567a18d25bdfcf3dd63420f1c4d1",
+    "raw_files_verified": 36,
+    "all_parent_child_whole_tree_counts_match": true,
+    "all_errno_counts_match": true,
+    "all_fork_lineage_and_exit_sets_match": true,
+    "all_trace_and_supporting_metadata_hashes_match": true,
+    "elapsed_audit_scope": "Raw existing files read remotely on CPU0 nice19; about0.84seconds command wall time, no timing used as evidence."
+  },
+  "cases": {
+    "c-udp": {
+      "root_pid": 285224,
+      "processes": 1,
+      "forks": 0,
+      "exited_children": 0,
+      "unparsed_lines": 0,
+      "new_exec_images": 0,
+      "remaining_children": [],
+      "incomplete_entered_calls": {
+        "285224": "ppoll"
+      },
+      "entered_calls": 15001,
+      "completed_calls": 15000,
+      "completed_calls_by_syscall": {
+        "ppoll": 5000,
+        "recvmsg": 5000,
+        "sendmsg": 5000
+      },
+      "relevant_role_counts": {
+        "udp_recv_return_32": 5000,
+        "udp_msg_controllen=0": 5000,
+        "udp_iov_len=1232": 5000
+      },
+      "errors": {},
+      "raw_sha256": {
+        "process-identity.json": "575f73a4a2575560c4f69adf28bd26592d431f2a32b0006fa6e3397c105d4c4e",
+        "maps-after": "568c76ba813a230d57369d9f6f6928bd5dad172d99be11bcd8f36212f454e83a",
+        "mapped-files-after.json": "bab8f54356ac3c8f3c186184ff5946d65f75b50933a17b345a3bc7617ec561ae",
+        "tree-tail.json": "d9204e921640a460a755fc02d93bbfa0cdb4964b2766b263c2b08772acb843e7",
+        "client.json": "f1a0efc4993f6f255fc412eae66e8b64a66b183a659355ac772815b9050d7e72",
+        "prewarm.json": "ec41766ab5c549fd2201e2302375d24e1da96cf0ee7680804bd8ab7a3cb26c09",
+        "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+        "complete.json": "1419ab388e94f360431490444431aa785ef5363ac744c23c50b51a40effcf5ac",
+        "syscalls.txt": "2a7fdc9ca955d4c0112717ac07c4f3b9ce7f8a066e87c3e807c573126800b3a4"
+      },
+      "summary_sha256": "63c73af328762d1d7952f83de74f32cacef370e359c0ba29fdfddee5d7d5d58f"
+    },
+    "e-udp": {
+      "root_pid": 285353,
+      "processes": 1,
+      "forks": 0,
+      "exited_children": 0,
+      "unparsed_lines": 0,
+      "new_exec_images": 0,
+      "remaining_children": [],
+      "incomplete_entered_calls": {
+        "285353": "ppoll"
+      },
+      "entered_calls": 20001,
+      "completed_calls": 20000,
+      "completed_calls_by_syscall": {
+        "ppoll": 5000,
+        "recvmsg": 10000,
+        "sendmsg": 5000
+      },
+      "relevant_role_counts": {
+        "udp_recv_return_32": 5000,
+        "udp_msg_controllen=32": 5000,
+        "udp_cmsg_type=IP_PKTINFO": 5000,
+        "udp_iov_len=65535": 5000,
+        "udp_recv_return_-1": 5000
+      },
+      "errors": {
+        "recvmsg/EAGAIN": 5000
+      },
+      "raw_sha256": {
+        "process-identity.json": "466a587655d47962f34ff3d2803f83079ebf28f11b877aa1783b4aad2a2367f9",
+        "maps-after": "6bc1f7177c0405651d94c6c23b819f81de49f17ec5b0f3c0b81bd2d01fed599d",
+        "mapped-files-after.json": "a4315ac7d11b984d8ed35fcf9a41ec100b207058a5ff8c6b7c4c6ea5d6309adb",
+        "tree-tail.json": "bddc234e4e1eeafbf5542ee6b42499b03a2f7c2496abfd5a20eb18d8db7cf596",
+        "client.json": "2aac6c7b2ec71e0f5e1e0dab72bb5e0813fde5d722ef4405b42c6eb7584f82d3",
+        "prewarm.json": "728b4f9884d54739285595cbca509c9a833673e48210da71f61264d3842c7937",
+        "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+        "complete.json": "7530105cec4d0b1b3b1631131a09e35d316fc5e37997c7f5f89a24ab3878356b",
+        "syscalls.txt": "26b117ed2cd8a43267469841ddcc0dbddd59bb9955cc3e7a3cfac1a608ce8a6b"
+      },
+      "summary_sha256": "f20f4ed8711f5f935f24743065009ed9df0de9272a5bbc68878df3d9c8af27cd"
+    },
+    "c-tcp": {
+      "root_pid": 285670,
+      "processes": 57,
+      "forks": 56,
+      "exited_children": 56,
+      "unparsed_lines": 0,
+      "new_exec_images": 0,
+      "remaining_children": [],
+      "incomplete_entered_calls": {
+        "285670": "ppoll"
+      },
+      "entered_calls": 17931,
+      "completed_calls": 17930,
+      "completed_calls_by_syscall": {
+        "ppoll": 202,
+        "accept": 56,
+        "getsockname": 56,
+        "socket": 56,
+        "sendto": 112,
+        "recvmsg": 336,
+        "ioctl": 224,
+        "close": 504,
+        "pipe2": 56,
+        "rt_sigprocmask": 336,
+        "clone": 56,
+        "set_tid_address": 56,
+        "writev": 5106,
+        "readv": 10170,
+        "setitimer": 56,
+        "fcntl": 112,
+        "getpeername": 56,
+        "mmap": 56,
+        "shutdown": 56,
+        "munmap": 56,
+        "exit_group": 56,
+        "rt_sigreturn": 50,
+        "wait4": 106
+      },
+      "relevant_role_counts": {
+        "downstream_getsockname": 56,
+        "pipe_pipe2": 56,
+        "pipe_close": 224,
+        "pipe_writev": 106,
+        "pipe_readv": 162,
+        "downstream_close": 112,
+        "downstream_fcntl": 112,
+        "downstream_getpeername": 56,
+        "downstream_readv": 10008,
+        "downstream_read_return_2": 5000,
+        "downstream_read_return_32": 5000,
+        "downstream_writev": 5000,
+        "downstream_write_return_50": 3500,
+        "downstream_write_return_62": 1500,
+        "downstream_shutdown": 56,
+        "downstream_read_return_0": 8
+      },
+      "errors": {
+        "rt_sigreturn/EINTR": 42,
+        "wait4/ECHILD": 8
+      },
+      "raw_sha256": {
+        "process-identity.json": "42eef4f5d95d64c4ac69f270c44068d2cb73e07749a4d2d6aae612b7f1c3e1b1",
+        "maps-after": "0d136ec30719d4959a064a8a8b6573f5d87edcbaef64712fb6b0feb0610b342b",
+        "mapped-files-after.json": "74f57bb3c403a647990637cc5c78bdb6e705e455615edde556cb551a0c2edb8d",
+        "tree-tail.json": "3bc742f971c5d1c87b29d26c7b475b4f4cbadd18b555e74be09ab1c609bf093c",
+        "client.json": "fc2212cf49b126783adc2beb301299e8fffa413d7859abb4cbf31a664e441526",
+        "prewarm.json": "858896457ded630aca47e00f591bafdd693e5295a13d902c1d76bf7669e32726",
+        "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+        "complete.json": "495eba3a80fd7601d953e93399ac999ee40e4a6437663c72db2a526d51deb496",
+        "syscalls.txt": "03ea38e0e982891ea3f20a9ba42a5c77045f044a5a345cbe20a29d5cb997c905"
+      },
+      "summary_sha256": "cf5084b2baf59aac3da5e40ac419b52416b57cdf3144ad870fa360f46c816bac"
+    },
+    "e-tcp": {
+      "root_pid": 285957,
+      "processes": 1,
+      "forks": 0,
+      "exited_children": 0,
+      "unparsed_lines": 0,
+      "new_exec_images": 0,
+      "remaining_children": [],
+      "incomplete_entered_calls": {
+        "285957": "ppoll"
+      },
+      "entered_calls": 15458,
+      "completed_calls": 15457,
+      "completed_calls_by_syscall": {
+        "ppoll": 5052,
+        "accept4": 56,
+        "getsockname": 56,
+        "ioctl": 56,
+        "mmap": 87,
+        "recvfrom": 5008,
+        "writev": 5000,
+        "munmap": 86,
+        "close": 56
+      },
+      "relevant_role_counts": {
+        "downstream_getsockname": 56,
+        "downstream_ioctl": 56,
+        "downstream_recvfrom": 5008,
+        "downstream_read_return_34": 5000,
+        "downstream_writev": 5000,
+        "downstream_write_return_50": 3500,
+        "downstream_write_return_62": 1500,
+        "downstream_close": 56,
+        "downstream_read_return_0": 8
+      },
+      "errors": {},
+      "raw_sha256": {
+        "process-identity.json": "a35bd2ea9502fe1fb01df04ba9c6a0555fbc1cb4013cd97b89b50524ea02ca78",
+        "maps-after": "b76c5fc012434a7ae6c54505f696295fa27bc283b30a65a79e4a07e6b159eae5",
+        "mapped-files-after.json": "01dfa78a4e44218c25899fe779024b3976aed6c144149989751b77a005ae5452",
+        "tree-tail.json": "0a8f3970639a0dcc8b30c1a39abb90a6d8ca09d4d38544ce6e4482147851adfd",
+        "client.json": "6f306587872a6e490aa1e9c3ffb63a13bcebe999e70b4b4028b65833feea8edb",
+        "prewarm.json": "08f89215f16215d872e2e4a61b55d09ac3495625496cdc6009c310363514a0c5",
+        "upstream.json": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb",
+        "complete.json": "1f7a7782b67d2d0dc6249ac1315f2d407fc68001a9cea12ff8ca21130e82af0d",
+        "syscalls.txt": "d6294f9fbbd57342187cd1b83a4ee9036ac2acfaaed117af6086f6c9e8c5bbd6"
+      },
+      "summary_sha256": "2274142bab95d84a36c52477dfbccbae26289cb85ad096c0ca4c9dee774dad8d"
+    }
+  },
+  "conclusions": [
+    "UDP exact C and E both complete5000polls and5000sends. C completes5000successful receives. E completes5000successful receives plus5000EAGAIN receives.",
+    "All5000 E successful UDP receives carry32control bytes and IP_PKTINFO; C carries0control bytes. Both actually receive32DNSbytes. A65535byte advertised buffer does not establish a65535byte copy.",
+    "C TCP trace contains57owned PIDs including56fork descendants; each descendant is linked to the root and has an exit event. No exec is observed. Parent-only accounting would be wrong.",
+    "TCP downstream C performs10008readv calls; E performs5008recvfrom calls. Both perform5000writev replies. C parent completes202ppolls; E completes5052. Other connection,netlink,pipe,allocation andclose calls remain in totals.",
+    "Each capture ends with exactly one detached parent ppoll entry, which is entered but incomplete. All reported completed counts exclude it.",
+    "The post-capture parser correction preserves initial derived summaries and raw traces; no workload rerun or favorable sample selection was used."
+  ],
+  "limitations": [
+    "One trace per side/scene; counts include1000warmup+4000measurement andfixed1secondgrace, with1000UDPprewarm excluded.",
+    "Strace timings are not performance evidence; syscall counts and ancillary metadata do not directly measure their CPU cost.",
+    "Startup socket options were set before attachment; recv control observations do not alone prove which startup option calls were issued.",
+    "vDSO time reads are invisible; function instruction estimates and whole-tree PMU totals remain separate evidence."
+  ],
+  "next_candidate_boundary": "A static-bound IPv4 packet-info change must preserve unspecified-address,wildcard,dynamic,IPv6 and DHCP/global-interface receive semantics; independently review the actual patch before any new candidate admission."
+}
