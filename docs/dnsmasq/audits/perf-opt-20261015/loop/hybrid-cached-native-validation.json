@@ -1,0 +1,53 @@
+{
+  "scope": "Partial native validation of cached-topology d83 revision; further owner allocation/PMU/SDK work stopped when coordinator redirected to exact image C versus E diagnosis.",
+  "build": {
+    "source_commit": "d83d09076d6caa7d0f7ee01741374f5a4750dae4",
+    "identity_sha256": "477b0bc69f780f94d64c116c2c1add45f07da0072855a54530c79bec6788fa47",
+    "source_verified_before_after": true,
+    "argv": [
+      "/home/ubuntu/.cargo/bin/cargo",
+      "+1.98.1",
+      "test",
+      "--frozen",
+      "--jobs",
+      "1",
+      "--manifest-path",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-cached-20261015/source/components/dnsmasq/Cargo.toml",
+      "--bin",
+      "dnsmasq-rs",
+      "--no-run",
+      "--message-format=json"
+    ],
+    "elf_sha256": "1f57ccc8f951949a0ba26d7ccdcec0344db709d0c0caa0d4a912ee51cff6b2c8",
+    "build_stderr_sha256": "2c0b71ea29d1944f5fddbd97be54219b217b1e51368c57afbef5b989b431f492"
+  },
+  "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-cached-20261015",
+  "attempts": [
+    {
+      "stdout_sha256": "86584d5f4fe1e28f6d074998322e83c417df2548b66add7855c932e1154edcdc",
+      "stderr_sha256": "c8689679b1a30aeaa285130af963a9bf77787af31bb35bae0c3a53b74cfae914",
+      "result": "test result: FAILED. 93 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.31s",
+      "module_controls_passed": 10,
+      "caller_controls_passed": 2,
+      "environment": "existing isolation wrapper, default /tmp",
+      "note": "existing FIFO /tmp/dnsmasq-ready-log-1 from Oct7 blocked mkfifo before owner work; artifact left untouched"
+    },
+    {
+      "stdout_sha256": "758cae4d6844c10945a79e973bf0061c4876ab871bf23792d9462eb4d87e3ca9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": "test result: ok. 94 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.37s",
+      "module_controls_passed": 10,
+      "caller_controls_passed": 2,
+      "environment": "same isolation wrapper, fresh private TMPDIR",
+      "note": "94 passed, zero failed; 3 ignored retained as ignored, no complete qualification claim"
+    }
+  ],
+  "not_run": [
+    "ignored TFTP controls",
+    "new allocation owner screen",
+    "new optimized 110-stage instruction screen",
+    "plain timing",
+    "SDK qualification"
+  ],
+  "preparation_note": "First source copy omitted fuzz inputs; strict pre-build identity check caught this. Original failure retained; exact baseline fuzz inputs restored and full source identity verified before successful build."
+}

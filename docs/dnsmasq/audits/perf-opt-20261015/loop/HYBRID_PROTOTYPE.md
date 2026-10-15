@@ -200,3 +200,22 @@ Any future revised candidate still needs independent owner/fd-limit and
 resource-cleanup review plus the unchanged complete unit, allocation, C-family
 and eleven-scene performance/resource gates. No fallback rule or threshold
 was changed to obtain a pass.
+
+A separate cached-topology revision, `d83d0907`, removes repeated stable-set
+reconciliation without adding a map or backing Vec. Ordered simple sets compare
+all current member keys, fds and masks linearly; changes retain the original
+reconciliation path. Eligible aliases and negative placeholders retain generic
+processing. The mixed aggregate slot is removed after every outer poll, including
+errors. Ordered event projection uses current tag slots, and all-eligible sets
+avoid the previous final per-fd registration scan. Token lookup still scans;
+the whole multi-ready operation is not claimed to be linear.
+
+Its partial native validation is recorded in `hybrid-cached-native-validation.json`.
+An independent static review and Linux cross-check passed. The fresh native ELF
+`1f57ccc8…` passed all ten module and two caller controls. The first full binary
+run retained a setup failure caused by an existing Oct7 FIFO in shared `/tmp`;
+the same artifact with a fresh private TMPDIR then passed 94 tests, with three
+ignored tests still explicitly unrun. The coordinator subsequently redirected
+work to exact-image C versus E hit-path diagnosis. No new owner-count, instruction,
+plain timing or SDK run was started for d83. It remains an unqualified prototype,
+and none of the old 9ce measurements are transferred to this revision.
