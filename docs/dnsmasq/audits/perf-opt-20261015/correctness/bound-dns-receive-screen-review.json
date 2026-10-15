@@ -48,5 +48,42 @@
     "TerminalEAGAIN and16packetbudget remain unchanged. The smallsaving does not explain the entire exactC/E device gap.",
     "Generic-path instructionincrease isretained; no claim ofuniform improvement."
   ],
-  "blockers": []
+  "blockers": [],
+  "plain_screen_review": {
+    "commit": "6090172d",
+    "summary_sha256": "e2ce5fdf88d304ddf4fc7a43df55fc32b57223297c925b7d7f87d95effc0daf3",
+    "windows": 40,
+    "all_wait4_user_system_sums_and_per_packet_normalization_recomputed": true,
+    "five_pair_statistics_recomputed": [
+      {
+        "case": "receive-bound4-burst1",
+        "change_percent": -2.309641507082627,
+        "W_percent": 1.4746811780833244,
+        "same_direction_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": "receive-bound4-burst16",
+        "change_percent": -2.211580268460922,
+        "W_percent": 0.617497139932111,
+        "same_direction_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": "receive-generic4-burst1",
+        "change_percent": 0.1684306834958793,
+        "W_percent": 1.1272108278668203,
+        "same_direction_pairs": 3,
+        "discernible": false
+      },
+      {
+        "case": "receive-generic4-burst16",
+        "change_percent": -0.34275749560575,
+        "W_percent": 0.3892277585242161,
+        "same_direction_pairs": 5,
+        "discernible": false
+      }
+    ],
+    "scope": "Whole native API test process includes sender/setup/teardown; no subtraction, no DNS-owner or physical-router claim."
+  }
 }
