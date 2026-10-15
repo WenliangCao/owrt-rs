@@ -157,10 +157,46 @@ waits use one ppoll and no controls. Returning to sixty-four adds sixty-four
 watches. Truncating fifty clients then attempts fifty tolerated DEL/EBADF
 operations. These transition costs remain part of any performance assessment.
 
-Before candidate eligibility, count actual initialization/teardown, memory
-layout, optional fd/watch cost, registration/mask churn, all-ready and large
-direct-fallback cases as well as steady waits. Startup/lifecycle can regress
-even if waits improve. Independently review real normal/probe owners, fd-limit
-failure/recovery and original resource cleanup; run the unchanged full unit,
-allocation, C-family and eleven-scene performance/resource gates. No fallback
-rule or threshold is changed to obtain a pass.
+The subsequent optimized native screen is recorded in
+`hybrid-owner-instructions.json`. It reuses the same owner fixture and the
+existing `perf stat -e instructions,cycles` measurement, with only an
+environment-selected stage repetition count. The counting allocator is
+removed from both private release-test artifacts: E `5bab8805…`, 9ce
+`4c594274…`. No SDK build flags or product sources were changed. Eleven stages
+ran on both artifacts five times (110/110 successful processes), with the
+selected loop repeated 10,000 times and all other stages once. Each complete
+process, including fixed setup and teardown, was counted. The setup control
+is retained and never subtracted. Both PMU events reported 100% running for
+every process; all source and executable identities were reverified afterward.
+
+Paired total-instruction changes, candidate relative to E, were:
+
+| Whole-process selected stage | Median change |
+| --- | ---: |
+| Fixed setup control | +5.17% |
+| Repeated construction and drop | +11.88% |
+| Six-interest ready normal waits | +24.73% |
+| Fourteen-interest ready normal waits | +47.79% |
+| Reading/writing mask transitions | +74.06% |
+| Full connection-fixture lifetime churn | +0.42% |
+| Normal/probe transitions | +89.25% |
+| Sixty-four-interest runnable normal waits | +310.37% |
+| Sixty-five-interest direct fallback | +9.35% |
+| Sixty-four/sixty-five transitions | +784.35% |
+| Fourteen interests, eight ready downstreams | +88.99% |
+
+The lifetime-churn range crosses zero (-0.47% to +0.96%); its large counterpart
+socket-fixture cost is included, so it does not establish a reconcile gain.
+The other regressions are consistent across all five fixed pairs. These
+results expose costs despite zero steady allocations and one wait syscall.
+They do not measure deferred blocking cost and must not be generalized to
+every possible readiness mechanism. The current prototype has no supporting
+full-cost result for promotion to SDK qualification or plain timing. No plain
+timing was run, no sample was replaced, and E remains unchanged. The 35,323-byte
+derived summary was transferred; all raw counts, command records and source
+copies remain private on Oracle.
+
+Any future revised candidate still needs independent owner/fd-limit and
+resource-cleanup review plus the unchanged complete unit, allocation, C-family
+and eleven-scene performance/resource gates. No fallback rule or threshold
+was changed to obtain a pass.

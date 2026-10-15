@@ -1,0 +1,1378 @@
+{
+  "scope": "Fixed whole-process native mechanism screen; no subtraction, no timing acceptance.",
+  "protocol": {
+    "iterations": 10000,
+    "repeats": 5,
+    "stages": [
+      "setup_control",
+      "init_drop",
+      "steady_normal_ready_six",
+      "steady_normal_ready_fourteen",
+      "mask_transitions",
+      "lifetime_churn",
+      "normal_probe_transitions",
+      "steady_normal_sixty_four",
+      "steady_oversized_sixty_five",
+      "oversized_transitions",
+      "all_downstream_ready_fourteen"
+    ],
+    "order": "E then candidate for even zero-based repeats; reversed for odd repeats.",
+    "scope": "Complete optimized test process including fixed fixture/setup/teardown. No subtraction.",
+    "runner_sha256": "7915a8f71e9817b7a2d9b7fbcfe163acdcf180b4aa64504addf2c17a70c09a0c",
+    "artifacts": {
+      "e": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "source_digest": "80cec020fe10fcfdd703e8a922443460d778f251bc732b3234fe75e14c218f61",
+        "instrumented_digest": "adc2917b57a882aa43d5345f613b2667e7d7a1c640d97615314ea7d702e57e8c",
+        "elf_sha256": "5bab88053d69166f4942e6f569b4652507b6391b72063ba16ececd9520906dfb",
+        "driver_sha256": "6266370d0ed2ecabe6ad3347f16586e5fd5959cfeed4b545823ee5f334dc51ba",
+        "harness_sha256": "fe96fc85375bae8685bb8abaa1eb51ea71927e49a2f5200d0a2d90540baf1c8e",
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-instructions-e-20261015/input/components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs",
+          "--no-run",
+          "--message-format=json",
+          "--release"
+        ],
+        "counting_allocator": false
+      },
+      "9ce": {
+        "source_commit": "9ceab58def3d9c6f8f357e71978393b08ed0f707",
+        "source_digest": "f70c8e5bcb1ff2836e5d17e52921c5dd62be28a6af8851353eebd1fa28b5dd2f",
+        "instrumented_digest": "7a6170d657fae20cd2f4b5bcd3957182da69bd694cf54aaf2f7487748888b2c1",
+        "elf_sha256": "4c594274a243d990de72c2c72e34ed4e4172af2d47df838d311c4b37d2e6158a",
+        "driver_sha256": "6266370d0ed2ecabe6ad3347f16586e5fd5959cfeed4b545823ee5f334dc51ba",
+        "harness_sha256": "fe96fc85375bae8685bb8abaa1eb51ea71927e49a2f5200d0a2d90540baf1c8e",
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-instructions-9ce-20261015/input/components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs",
+          "--no-run",
+          "--message-format=json",
+          "--release"
+        ],
+        "counting_allocator": false
+      }
+    }
+  },
+  "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-instruction-screen-20261015",
+  "completed": 110,
+  "identities_after": {
+    "e": {
+      "elf_verified": true,
+      "all_instrumented_source_files_verified": true,
+      "build_json_sha256": "3cf87a5c8480d2b399071eb372d6736acfc21d7f5d16d69927ab106b66f0e71c"
+    },
+    "9ce": {
+      "elf_verified": true,
+      "all_instrumented_source_files_verified": true,
+      "build_json_sha256": "5caff7fbbf0ddb295fc21a70a4bdcab93c92f1ce96ad9bee18354b224aedc8bc"
+    }
+  },
+  "raw_manifest_sha256": "0ebf994aa609b04a90aeab53934c51df6e2a08337eec4d8404f67a1ad537b740",
+  "attempts_sha256": "5b46d5a489b7265544801b31167186bf1d29bc9723d57648b78721d552817309",
+  "summary_tool_sha256": "09966241a5a8e191c33791b79e9bb596ee54026df2e8a1d58d14950c7a73db82",
+  "limitations": [
+    "Native release test ELF, not SDK product.",
+    "All unselected stages run once, including full fixture setup and teardown.",
+    "Setup control is retained and never subtracted.",
+    "Lifecycle churn includes counterpart/listener fixture system calls.",
+    "Normal waits are runnable or already ready; deferred blocking cost is not measured.",
+    "Cycles are contention-sensitive; only mechanism evidence, no CPU/latency acceptance."
+  ],
+  "stage_summary": {
+    "setup_control": {
+      "instructions": {
+        "e": {
+          "median": 13704717,
+          "min": 13606929,
+          "max": 13932719
+        },
+        "9ce": {
+          "median": 14420567,
+          "min": 14284866,
+          "max": 14725883
+        },
+        "paired_candidate_change_percent": {
+          "median": 5.174782383551957,
+          "min": 4.922482127356953,
+          "max": 5.692815594716283
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 14422719,
+          "min": 13821030,
+          "max": 32013611
+        },
+        "9ce": {
+          "median": 15035724,
+          "min": 14949635,
+          "max": 30328399
+        },
+        "paired_candidate_change_percent": {
+          "median": 4.964889075353951,
+          "min": -5.264048469883642,
+          "max": 8.788737163583328
+        }
+      }
+    },
+    "init_drop": {
+      "instructions": {
+        "e": {
+          "median": 534203276,
+          "min": 534127714,
+          "max": 534735591
+        },
+        "9ce": {
+          "median": 597973686,
+          "min": 596019656,
+          "max": 601744298
+        },
+        "paired_candidate_change_percent": {
+          "median": 11.88213317523057,
+          "min": 11.571696164588863,
+          "max": 12.59374981617225
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 289275049,
+          "min": 284109997,
+          "max": 297343810
+        },
+        "9ce": {
+          "median": 333458255,
+          "min": 327470504,
+          "max": 340358986
+        },
+        "paired_candidate_change_percent": {
+          "median": 16.668481709971505,
+          "min": 10.13193918514732,
+          "max": 17.659295945707363
+        }
+      }
+    },
+    "steady_normal_ready_six": {
+      "instructions": {
+        "e": {
+          "median": 50772686,
+          "min": 50712299,
+          "max": 50862781
+        },
+        "9ce": {
+          "median": 63300313,
+          "min": 63274394,
+          "max": 63466652
+        },
+        "paired_candidate_change_percent": {
+          "median": 24.726879724267505,
+          "min": 24.453110418795234,
+          "max": 24.926406256987743
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 31426409,
+          "min": 31086059,
+          "max": 32161629
+        },
+        "9ce": {
+          "median": 36445111,
+          "min": 35567483,
+          "max": 37860234
+        },
+        "paired_candidate_change_percent": {
+          "median": 15.969696060405747,
+          "min": 14.199128441981191,
+          "max": 17.718645408166367
+        }
+      }
+    },
+    "steady_normal_ready_fourteen": {
+      "instructions": {
+        "e": {
+          "median": 79223125,
+          "min": 79121549,
+          "max": 79303506
+        },
+        "9ce": {
+          "median": 117075511,
+          "min": 116962836,
+          "max": 117146325
+        },
+        "paired_candidate_change_percent": {
+          "median": 47.79132720223836,
+          "min": 47.71897348397183,
+          "max": 47.922660672242046
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 42104000,
+          "min": 41502560,
+          "max": 42759161
+        },
+        "9ce": {
+          "median": 52465407,
+          "min": 52107362,
+          "max": 53879247
+        },
+        "paired_candidate_change_percent": {
+          "median": 24.179068875570266,
+          "min": 23.75869751092532,
+          "max": 26.969606212243292
+        }
+      }
+    },
+    "mask_transitions": {
+      "instructions": {
+        "e": {
+          "median": 145322190,
+          "min": 145245287,
+          "max": 145395284
+        },
+        "9ce": {
+          "median": 252966740,
+          "min": 252837105,
+          "max": 252992539
+        },
+        "paired_candidate_change_percent": {
+          "median": 74.06466465966557,
+          "min": 74.00326340708547,
+          "max": 74.16519683698928
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 71013173,
+          "min": 69852197,
+          "max": 72522787
+        },
+        "9ce": {
+          "median": 109782896,
+          "min": 109690969,
+          "max": 111107723
+        },
+        "paired_candidate_change_percent": {
+          "median": 54.56433273302687,
+          "min": 53.203879216610915,
+          "max": 58.01805059903842
+        }
+      }
+    },
+    "lifetime_churn": {
+      "instructions": {
+        "e": {
+          "median": 12042103021,
+          "min": 12034018354,
+          "max": 12197379976
+        },
+        "9ce": {
+          "median": 12121214876,
+          "min": 12092675754,
+          "max": 12153916145
+        },
+        "paired_candidate_change_percent": {
+          "median": 0.4199659553801194,
+          "min": -0.4726955798167065,
+          "max": 0.9562037368269882
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 9285121139,
+          "min": 9088843548,
+          "max": 9606538140
+        },
+        "9ce": {
+          "median": 9417611049,
+          "min": 9288715874,
+          "max": 9460947312
+        },
+        "paired_candidate_change_percent": {
+          "median": 1.4269055623141735,
+          "min": -1.7348173043322812,
+          "max": 3.034983285993609
+        }
+      }
+    },
+    "normal_probe_transitions": {
+      "instructions": {
+        "e": {
+          "median": 178506499,
+          "min": 178491156,
+          "max": 178624169
+        },
+        "9ce": {
+          "median": 337848035,
+          "min": 337729422,
+          "max": 338101534
+        },
+        "paired_candidate_change_percent": {
+          "median": 89.24950236784026,
+          "min": 89.13903806600774,
+          "max": 89.42200923389167
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 87389095,
+          "min": 87054504,
+          "max": 88111440
+        },
+        "9ce": {
+          "median": 162074451,
+          "min": 161029613,
+          "max": 164629994
+        },
+        "paired_candidate_change_percent": {
+          "median": 86.17583646217777,
+          "min": 83.63917330144643,
+          "max": 87.85752924629064
+        }
+      }
+    },
+    "steady_normal_sixty_four": {
+      "instructions": {
+        "e": {
+          "median": 263143402,
+          "min": 263037635,
+          "max": 263290890
+        },
+        "9ce": {
+          "median": 1079851701,
+          "min": 1079575324,
+          "max": 1080015208
+        },
+        "paired_candidate_change_percent": {
+          "median": 310.3678008338565,
+          "min": 310.13637084063186,
+          "max": 310.4870939856192
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 126577264,
+          "min": 125841894,
+          "max": 127073187
+        },
+        "9ce": {
+          "median": 358160518,
+          "min": 356926420,
+          "max": 358996342
+        },
+        "paired_candidate_change_percent": {
+          "median": 182.51148056906766,
+          "min": 181.24891955476897,
+          "max": 184.61151260167776
+        }
+      }
+    },
+    "steady_oversized_sixty_five": {
+      "instructions": {
+        "e": {
+          "median": 266463693,
+          "min": 266331848,
+          "max": 266577953
+        },
+        "9ce": {
+          "median": 291375592,
+          "min": 291361878,
+          "max": 291489884
+        },
+        "paired_candidate_change_percent": {
+          "median": 9.354798131508858,
+          "min": 9.334540504930654,
+          "max": 9.398061173667816
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 128152265,
+          "min": 127806519,
+          "max": 128470606
+        },
+        "9ce": {
+          "median": 137456857,
+          "min": 136795964,
+          "max": 137526992
+        },
+        "paired_candidate_change_percent": {
+          "median": 7.087566475381446,
+          "min": 6.63495041036859,
+          "max": 7.467039039482115
+        }
+      }
+    },
+    "oversized_transitions": {
+      "instructions": {
+        "e": {
+          "median": 521634715,
+          "min": 521565659,
+          "max": 521729762
+        },
+        "9ce": {
+          "median": 4612579229,
+          "min": 4603080535,
+          "max": 4614203618
+        },
+        "paired_candidate_change_percent": {
+          "median": 784.3543123241902,
+          "min": 782.5505390491976,
+          "max": 784.5660546192751
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 246057107,
+          "min": 245673573,
+          "max": 246983099
+        },
+        "9ce": {
+          "median": 2279945086,
+          "min": 2263604525,
+          "max": 2289418123
+        },
+        "paired_candidate_change_percent": {
+          "median": 825.9253385434625,
+          "min": 820.4050109812849,
+          "max": 831.7208473212542
+        }
+      }
+    },
+    "all_downstream_ready_fourteen": {
+      "instructions": {
+        "e": {
+          "median": 80202275,
+          "min": 79699312,
+          "max": 80264831
+        },
+        "9ce": {
+          "median": 151542023,
+          "min": 151417619,
+          "max": 151608740
+        },
+        "paired_candidate_change_percent": {
+          "median": 88.98736853011118,
+          "min": 88.8025192503053,
+          "max": 89.9861055262309
+        }
+      },
+      "cycles": {
+        "e": {
+          "median": 43756165,
+          "min": 42707713,
+          "max": 43918567
+        },
+        "9ce": {
+          "median": 67140949,
+          "min": 66065207,
+          "max": 67872742
+        },
+        "paired_candidate_change_percent": {
+          "median": 54.61140180105231,
+          "min": 50.875341435320244,
+          "max": 55.72456666082775
+        }
+      }
+    }
+  },
+  "records": [
+    {
+      "repeat": 0,
+      "stage": "setup_control",
+      "side": "e",
+      "instructions": 13932719,
+      "cycles": 32013611,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "setup_control",
+      "side": "9ce",
+      "instructions": 14725883,
+      "cycles": 30328399,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "init_drop",
+      "side": "e",
+      "instructions": 534203276,
+      "cycles": 284109997,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "init_drop",
+      "side": "9ce",
+      "instructions": 596019656,
+      "cycles": 327521295,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_normal_ready_six",
+      "side": "e",
+      "instructions": 50767794,
+      "cycles": 31145144,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_normal_ready_six",
+      "side": "9ce",
+      "instructions": 63296553,
+      "cycles": 35567483,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "e",
+      "instructions": 79121549,
+      "cycles": 41502560,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "9ce",
+      "instructions": 116962836,
+      "cycles": 52695637,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "mask_transitions",
+      "side": "e",
+      "instructions": 145251451,
+      "cycles": 71013173,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "mask_transitions",
+      "side": "9ce",
+      "instructions": 252837105,
+      "cycles": 109761037,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "lifetime_churn",
+      "side": "e",
+      "instructions": 12034018354,
+      "cycles": 9182267042,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "lifetime_churn",
+      "side": "9ce",
+      "instructions": 12121214876,
+      "cycles": 9460947312,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "normal_probe_transitions",
+      "side": "e",
+      "instructions": 178491156,
+      "cycles": 88111440,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "normal_probe_transitions",
+      "side": "9ce",
+      "instructions": 338101534,
+      "cycles": 161807120,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_normal_sixty_four",
+      "side": "e",
+      "instructions": 263106046,
+      "cycles": 126577264,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_normal_sixty_four",
+      "side": "9ce",
+      "instructions": 1079575324,
+      "cycles": 356926420,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_oversized_sixty_five",
+      "side": "e",
+      "instructions": 266331848,
+      "cycles": 128152265,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "steady_oversized_sixty_five",
+      "side": "9ce",
+      "instructions": 291361878,
+      "cycles": 137456857,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "oversized_transitions",
+      "side": "e",
+      "instructions": 521634715,
+      "cycles": 245935702,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "oversized_transitions",
+      "side": "9ce",
+      "instructions": 4614203618,
+      "cycles": 2263604525,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "e",
+      "instructions": 79699312,
+      "cycles": 43918567,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 0,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "9ce",
+      "instructions": 151417619,
+      "cycles": 67872742,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "setup_control",
+      "side": "9ce",
+      "instructions": 14284866,
+      "cycles": 15138791,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "setup_control",
+      "side": "e",
+      "instructions": 13606929,
+      "cycles": 14422719,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "init_drop",
+      "side": "9ce",
+      "instructions": 601394422,
+      "cycles": 340358986,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "init_drop",
+      "side": "e",
+      "instructions": 534127714,
+      "cycles": 289275049,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_normal_ready_six",
+      "side": "9ce",
+      "instructions": 63466652,
+      "cycles": 36445111,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_normal_ready_six",
+      "side": "e",
+      "instructions": 50803232,
+      "cycles": 31426409,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "9ce",
+      "instructions": 117146325,
+      "cycles": 52155027,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "e",
+      "instructions": 79303506,
+      "cycles": 42018541,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "mask_transitions",
+      "side": "9ce",
+      "instructions": 252966740,
+      "cycles": 110379080,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "mask_transitions",
+      "side": "e",
+      "instructions": 145245287,
+      "cycles": 69852197,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "lifetime_churn",
+      "side": "9ce",
+      "instructions": 12115191264,
+      "cycles": 9439882254,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "lifetime_churn",
+      "side": "e",
+      "instructions": 12150876047,
+      "cycles": 9606538140,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "normal_probe_transitions",
+      "side": "9ce",
+      "instructions": 337729422,
+      "cycles": 162074451,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "normal_probe_transitions",
+      "side": "e",
+      "instructions": 178506499,
+      "cycles": 87054504,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_normal_sixty_four",
+      "side": "9ce",
+      "instructions": 1080015208,
+      "cycles": 356931561,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_normal_sixty_four",
+      "side": "e",
+      "instructions": 263143402,
+      "cycles": 126909487,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_oversized_sixty_five",
+      "side": "9ce",
+      "instructions": 291375592,
+      "cycles": 136994567,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "steady_oversized_sixty_five",
+      "side": "e",
+      "instructions": 266492956,
+      "cycles": 128470606,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "oversized_transitions",
+      "side": "9ce",
+      "instructions": 4610909387,
+      "cycles": 2279945086,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "oversized_transitions",
+      "side": "e",
+      "instructions": 521729762,
+      "cycles": 246504273,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "9ce",
+      "instructions": 151542023,
+      "cycles": 67140949,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 1,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "e",
+      "instructions": 80264831,
+      "cycles": 43425613,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "setup_control",
+      "side": "e",
+      "instructions": 13704717,
+      "cycles": 14081736,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "setup_control",
+      "side": "9ce",
+      "instructions": 14465440,
+      "cycles": 14956618,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "init_drop",
+      "side": "e",
+      "instructions": 534735591,
+      "cycles": 289763518,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "init_drop",
+      "side": "9ce",
+      "instructions": 601744298,
+      "cycles": 338062697,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_normal_ready_six",
+      "side": "e",
+      "instructions": 50712299,
+      "cycles": 31086059,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_normal_ready_six",
+      "side": "9ce",
+      "instructions": 63274394,
+      "cycles": 36287497,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "e",
+      "instructions": 79257077,
+      "cycles": 42104000,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "9ce",
+      "instructions": 117135086,
+      "cycles": 52107362,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "mask_transitions",
+      "side": "e",
+      "instructions": 145395284,
+      "cycles": 71451858,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "mask_transitions",
+      "side": "9ce",
+      "instructions": 252992539,
+      "cycles": 109690969,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "lifetime_churn",
+      "side": "e",
+      "instructions": 12197379976,
+      "cycles": 9393600149,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "lifetime_churn",
+      "side": "9ce",
+      "instructions": 12139723500,
+      "cycles": 9288715874,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "normal_probe_transitions",
+      "side": "e",
+      "instructions": 178494052,
+      "cycles": 87635558,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "normal_probe_transitions",
+      "side": "9ce",
+      "instructions": 337921058,
+      "cycles": 164629994,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_normal_sixty_four",
+      "side": "e",
+      "instructions": 263162318,
+      "cycles": 127073187,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_normal_sixty_four",
+      "side": "9ce",
+      "instructions": 1079933417,
+      "cycles": 358996342,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_oversized_sixty_five",
+      "side": "e",
+      "instructions": 266463693,
+      "cycles": 128424799,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "steady_oversized_sixty_five",
+      "side": "9ce",
+      "instructions": 291489884,
+      "cycles": 137526992,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "oversized_transitions",
+      "side": "e",
+      "instructions": 521575930,
+      "cycles": 245673573,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "oversized_transitions",
+      "side": "9ce",
+      "instructions": 4612579229,
+      "cycles": 2288991896,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "e",
+      "instructions": 79978671,
+      "cycles": 43756165,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 2,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "9ce",
+      "instructions": 151608740,
+      "cycles": 67825449,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "setup_control",
+      "side": "9ce",
+      "instructions": 14327550,
+      "cycles": 14949635,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "setup_control",
+      "side": "e",
+      "instructions": 13655367,
+      "cycles": 14684534,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "init_drop",
+      "side": "9ce",
+      "instructions": 596210683,
+      "cycles": 327470504,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "init_drop",
+      "side": "e",
+      "instructions": 534173751,
+      "cycles": 297343810,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_normal_ready_six",
+      "side": "9ce",
+      "instructions": 63327187,
+      "cycles": 37860234,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_normal_ready_six",
+      "side": "e",
+      "instructions": 50772686,
+      "cycles": 32161629,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "9ce",
+      "instructions": 117059775,
+      "cycles": 53879247,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "e",
+      "instructions": 79223125,
+      "cycles": 42759161,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "mask_transitions",
+      "side": "9ce",
+      "instructions": 252970950,
+      "cycles": 111107723,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "mask_transitions",
+      "side": "e",
+      "instructions": 145331593,
+      "cycles": 72522787,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "lifetime_churn",
+      "side": "9ce",
+      "instructions": 12092675754,
+      "cycles": 9417611049,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "lifetime_churn",
+      "side": "e",
+      "instructions": 12042103021,
+      "cycles": 9285121139,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "normal_probe_transitions",
+      "side": "9ce",
+      "instructions": 337842343,
+      "cycles": 163263198,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "normal_probe_transitions",
+      "side": "e",
+      "instructions": 178516899,
+      "cycles": 87174314,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_normal_sixty_four",
+      "side": "9ce",
+      "instructions": 1079735544,
+      "cycles": 358160518,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_normal_sixty_four",
+      "side": "e",
+      "instructions": 263037635,
+      "cycles": 125841894,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_oversized_sixty_five",
+      "side": "9ce",
+      "instructions": 291363999,
+      "cycles": 137487044,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "steady_oversized_sixty_five",
+      "side": "e",
+      "instructions": 266439154,
+      "cycles": 127934151,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "oversized_transitions",
+      "side": "9ce",
+      "instructions": 4613854182,
+      "cycles": 2278305101,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "oversized_transitions",
+      "side": "e",
+      "instructions": 521693321,
+      "cycles": 246057107,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "9ce",
+      "instructions": 151474716,
+      "cycles": 66506401,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 3,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "e",
+      "instructions": 80202275,
+      "cycles": 42707713,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "setup_control",
+      "side": "e",
+      "instructions": 13711050,
+      "cycles": 13821030,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "setup_control",
+      "side": "9ce",
+      "instructions": 14420567,
+      "cycles": 15035724,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "init_drop",
+      "side": "e",
+      "instructions": 534467541,
+      "cycles": 284935444,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "init_drop",
+      "side": "9ce",
+      "instructions": 597973686,
+      "cycles": 333458255,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_normal_ready_six",
+      "side": "e",
+      "instructions": 50862781,
+      "cycles": 31789826,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_normal_ready_six",
+      "side": "9ce",
+      "instructions": 63300313,
+      "cycles": 36802565,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "e",
+      "instructions": 79146434,
+      "cycles": 42249799,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_normal_ready_fourteen",
+      "side": "9ce",
+      "instructions": 117075511,
+      "cycles": 52465407,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "mask_transitions",
+      "side": "e",
+      "instructions": 145322190,
+      "cycles": 70850665,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "mask_transitions",
+      "side": "9ce",
+      "instructions": 252910713,
+      "cycles": 109782896,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "lifetime_churn",
+      "side": "e",
+      "instructions": 12038800683,
+      "cycles": 9088843548,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "lifetime_churn",
+      "side": "9ce",
+      "instructions": 12153916145,
+      "cycles": 9295564525,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "normal_probe_transitions",
+      "side": "e",
+      "instructions": 178624169,
+      "cycles": 87389095,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "normal_probe_transitions",
+      "side": "9ce",
+      "instructions": 337848035,
+      "cycles": 161029613,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_normal_sixty_four",
+      "side": "e",
+      "instructions": 263290890,
+      "cycles": 126399680,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_normal_sixty_four",
+      "side": "9ce",
+      "instructions": 1079851701,
+      "cycles": 358506906,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_oversized_sixty_five",
+      "side": "e",
+      "instructions": 266577953,
+      "cycles": 127806519,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "steady_oversized_sixty_five",
+      "side": "9ce",
+      "instructions": 291461780,
+      "cycles": 136795964,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "oversized_transitions",
+      "side": "e",
+      "instructions": 521565659,
+      "cycles": 246983099,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "oversized_transitions",
+      "side": "9ce",
+      "instructions": 4603080535,
+      "cycles": 2289418123,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "e",
+      "instructions": 80208005,
+      "cycles": 43787942,
+      "both_events_running_percent": 100.0
+    },
+    {
+      "repeat": 4,
+      "stage": "all_downstream_ready_fourteen",
+      "side": "9ce",
+      "instructions": 151582998,
+      "cycles": 66065207,
+      "both_events_running_percent": 100.0
+    }
+  ]
+}
