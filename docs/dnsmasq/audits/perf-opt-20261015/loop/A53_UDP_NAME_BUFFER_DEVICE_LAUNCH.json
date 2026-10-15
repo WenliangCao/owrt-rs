@@ -1,0 +1,56 @@
+{
+  "scope": "Exploratory unqualified F/UDP-name-buffer A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "plan_commit": "1cf76591",
+  "plan_sha256": "e5268209e0503608ddc09db4e87eb008d51f7d8f9d42ad50af43cb7291521bb9",
+  "source_commit": "f404ed754a26f9385c733e7474f28e4595520957",
+  "source_files_verified": 179,
+  "elf_sha256": "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+  "elf_bytes": 2136859,
+  "map_sha256": "915e7a6abdb6593c08e373d5b176529acbc334825a3dc7d9cf0ff9cfe8fe8f15",
+  "build_receipt_sha256": "bc6cc1ff4e0afebb92cc229f751f158f19501a9f777afa8f44b9c189f976aeeb",
+  "entry_sha256": "57d28e66c66316308441b4c1537069b8124c1a745678689aed77a72c5df18810",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.25,
+    "dns_samples": 50,
+    "dns_p95_ms": 0.608,
+    "dns_max_ms": 0.663,
+    "http_samples": 23,
+    "http_max_ms": 62.79,
+    "threshold_ms": 200,
+    "raw_sha256": "85c9f9f6afc4896a5f6e04dafb77ca87ba79eda77a23766209d8120a212f900e"
+  },
+  "health_summary_sha256": "d681f0f2d0ee5900d212c914bc53789eac77319209d8e92129623060e11993b0",
+  "preflight_sha256": "705591fbe7fda9c08a4a1a90ae06fd25204a8c46c166b45400124b3a7da11dab",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "fixed_windows": 10,
+  "replacement": false,
+  "candidate_eligible": false,
+  "full44_qualification": false,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-a53-udp-name-buffer/udp_name_buffer_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_UDP_NAME_BUFFER_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-udp-name-buffer/summary.json",
+    "--experiment-hash",
+    "47fe55e47f8185cad4dffadf66bdeaaffd18a984e3ec37c249920f5eb0afb54f",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-udp-name-buffer-device"
+  ],
+  "pid": 79079,
+  "launch_epoch": 1792101910.892477,
+  "started_utc": "2026-10-15T22:05:10.892483+00:00"
+}
