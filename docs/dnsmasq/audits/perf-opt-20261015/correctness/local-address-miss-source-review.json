@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "status": "PASS_LOCAL_SOURCE_REVIEW_EXACT_LINUX_GATES_PREPARED",
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
   "candidate_commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
   "product_implementation_commit": "9617d93e9425aabfb83a85893d71e9cf393854fa",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "scope": "Local read-only semantic and retained-evidence review. Exact-source Linux inputs are prepared locally only; no upload, remote access, reviewer test/build or timing.",
+  "scope": "Initial review and input preparation were local-only. Later explicitly authorized exact-source related Linux gates are separately bound here; no device changes or performance timing by reviewer.",
   "source_sha256": {
     "components/dnsmasq/src/dns/service.rs": "284eb1145f01d5b3ec33dcff10474b76efd5c9adf514cf81ea4131fe6ccd455a",
     "components/dnsmasq/src/hosts.rs": "fdac0442933c9dfa9c73eb7d7ffa936e5055c849c82f7f6f91d457c334259429"
@@ -138,7 +138,7 @@
     "interpretation": "Four hit cases, both misses, raw/synth addresses, RRset and configured/lease CNAME rows are allocation-neutral here. host,host-localise,lease-address and ordinary cname each add1 alloc/op. host-localise also differs by0.02 realloc/op and63.16 requested bytes/op; retain this measured difference without attributing it solely to one allocation site."
   },
   "prepared_linux_inputs": {
-    "status": "local-only; waiting explicit coordinator release",
+    "status": "Prepared exact source uploaded after explicit release; related Linux gates passed, original manifest unchanged.",
     "source_commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
     "inputs": 179,
     "identity_sha256": "d688cefb15f025d7f2d0e9207e06b95be4db3a716449145572b3aba99c607b41",
@@ -163,9 +163,15 @@
   "remaining_blocking_findings": [],
   "limitations": [
     "The conservative test can add an extra dotted-name allocation/check on a fallback. The observed cold-path costs remain part of the candidate tradeoff.",
-    "This review does not establish Linux runtime qualification, full44 coverage, SDK frame improvement, performance acceptance or deployment eligibility.",
+    "Related Linux gates passed but do not establish full44 coverage, SDK frame improvement, performance acceptance or deployment eligibility.",
     "The prototype remains an independent F-derived source and is not substituted into active native/device experiments."
   ],
   "performance_acceptance": false,
-  "deployment": false
+  "deployment": false,
+  "related_linux_gates": {
+    "file": "local-cache-linux-gates.json",
+    "sha256": "2fc7f3817ef1e8c76c82689d6a484d3bfd998b1f6a61b8f5057e6d41f9e3d444",
+    "candidate": "local-address-miss",
+    "total_test_passes": 935
+  }
 }

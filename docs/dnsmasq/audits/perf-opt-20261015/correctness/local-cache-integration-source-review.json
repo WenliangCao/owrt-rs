@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "status": "PASS_LOCAL_INTERACTION_REVIEW_ONLY",
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
   "integration_source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "scope": "Local read-only source interaction and existing local-log review. No remote preparation/qualification, builds, tests, timing or candidate selection by this review.",
+  "scope": "Initial review and input preparation were local-only. Later explicitly authorized exact-source related Linux gates are separately bound here; no device changes or performance timing by reviewer.",
   "file_composition": {
     "b343df112e430f16e21026645e56755f2d0fc391": {
       "components/dnsmasq/src/dns/cache.rs": "4d787005be4dc7e4cf07e960c2485649cbb90ea5413351c2a23244e44a7ddab7",
@@ -43,9 +43,15 @@
   "remaining_blocking_findings": [],
   "limits": [
     "This confirms source composition and the reviewed control-flow interaction, not that the two separate runtime effects add together.",
-    "No remote source was prepared and no exact-source Linux/SDK/device/native qualification for this integration was performed by this review.",
+    "The exact integration source was subsequently prepared and related Linux gates passed; no complete44-family, SDK/device/native qualification is established by this receipt.",
     "No G selection, full44 qualification, performance acceptance or deployment conclusion. Runtime candidate decisions remain separate from this local-only composition check."
   ],
   "performance_acceptance": false,
-  "deployment": false
+  "deployment": false,
+  "related_linux_gates": {
+    "file": "local-cache-linux-gates.json",
+    "sha256": "2fc7f3817ef1e8c76c82689d6a484d3bfd998b1f6a61b8f5057e6d41f9e3d444",
+    "candidate": "local-cache-integration",
+    "total_test_passes": 938
+  }
 }
