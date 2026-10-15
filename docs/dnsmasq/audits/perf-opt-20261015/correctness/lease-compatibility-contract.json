@@ -1,0 +1,617 @@
+{
+  "source_commit": "51b039597af13f9c9cf07c9f80e388e25cd8ae5d",
+  "driver_sha256": "227989d2164f3006e8f86ccb84b06ce821c976388d4ff185c224dabf34aaab52",
+  "build_receipt_sha256": "f195c89034b2df79fe1e2055151d8ac167c9acd3595298afd39a1f22ef5a63f3",
+  "c_baseline_sha256": "b5429758382d3f49bc703dbe2fd5ac5934283e2dc25d35703032a86727cc7a66",
+  "c_oracle_sha256": "3e761509d37426bc852f1c1620a54b1295625d772bb6c07528ddc935f17abb14",
+  "cases": [
+    {
+      "case": 0,
+      "label": "calibration-miss-hit-expiry",
+      "commands": 6,
+      "input_sha256": "40219ab5469529adfee38b3e46a2fb61cfe041bd96cc9d069421b3ce14406669",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "86e3ebea94e2a1500e54d7fcf687bf148bac6d097cf814716d4cfe7d985cd7fc",
+      "rust_stdout_sha256": "ff0f5dc55db80b74f976f649e8142998cb9a5a35955dfac2be16e37fb0874de7",
+      "c_semantics_sha256": "3281885a24de6133532e5afdc161fb1463242a254cda1205d201db4005ee2ac9",
+      "rust_semantics_sha256": "3281885a24de6133532e5afdc161fb1463242a254cda1205d201db4005ee2ac9"
+    },
+    {
+      "case": 1,
+      "label": "late-dhcp-same-address",
+      "commands": 8,
+      "input_sha256": "2d58d99117e55b746db23b97912991ca8134996ea70d3b7edcc09b5d67ea88a0",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "f7167985be9ce69a2d26c8c012fe5463c39da11ae26b520341901ddc277350c1",
+      "rust_stdout_sha256": "08660894244c706fb3e92e1a7a5f4f55a9c70883a7bb2fee06a00161ed3eed49",
+      "c_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7",
+      "rust_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7"
+    },
+    {
+      "case": 2,
+      "label": "late-hosts-same-address",
+      "commands": 6,
+      "input_sha256": "48d6ce5400f53a8cd1ce5d6c96fcad43eb933bdfc1c52484e0d61614f7bc4251",
+      "config_sha256": "000ca90041600bbc355eb560bffdb6c32389b78cd225666ffa162a925b6d9e71",
+      "c_stdout_sha256": "86114b0ffab606cb4fc40d65054d10d3952f8f413716428f88c2f8abf1c26eab",
+      "rust_stdout_sha256": "54b70166ba665efd8fb498d6fdd8ee87b8602b37218e63bf79674e7943fdfcb9",
+      "c_semantics_sha256": "3a3531151881303a38f11496d1416496c7623ed177038357291710bd74eb4e7e",
+      "rust_semantics_sha256": "3a3531151881303a38f11496d1416496c7623ed177038357291710bd74eb4e7e"
+    },
+    {
+      "case": 3,
+      "label": "late-dhcp-different-address",
+      "commands": 8,
+      "input_sha256": "f100eeccc549977fbfa001f3c934f41dc22f2ff27588791672254ed1565ff102",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "f7167985be9ce69a2d26c8c012fe5463c39da11ae26b520341901ddc277350c1",
+      "rust_stdout_sha256": "08660894244c706fb3e92e1a7a5f4f55a9c70883a7bb2fee06a00161ed3eed49",
+      "c_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7",
+      "rust_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7"
+    },
+    {
+      "case": 4,
+      "label": "late-hosts-different-address",
+      "commands": 6,
+      "input_sha256": "3f13260aaf4568aa0f61961bc545ee62224450edb4c55c9e1002934bc10694d1",
+      "config_sha256": "000ca90041600bbc355eb560bffdb6c32389b78cd225666ffa162a925b6d9e71",
+      "c_stdout_sha256": "86114b0ffab606cb4fc40d65054d10d3952f8f413716428f88c2f8abf1c26eab",
+      "rust_stdout_sha256": "54b70166ba665efd8fb498d6fdd8ee87b8602b37218e63bf79674e7943fdfcb9",
+      "c_semantics_sha256": "3a3531151881303a38f11496d1416496c7623ed177038357291710bd74eb4e7e",
+      "rust_semantics_sha256": "3a3531151881303a38f11496d1416496c7623ed177038357291710bd74eb4e7e"
+    },
+    {
+      "case": 5,
+      "label": "dhcp-multi-address-7-first",
+      "commands": 8,
+      "input_sha256": "eea65192bdf1d7da4730fecb28fc28e2ede9dbc6bf9310bef69f0c9a95a949f8",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "f7167985be9ce69a2d26c8c012fe5463c39da11ae26b520341901ddc277350c1",
+      "rust_stdout_sha256": "08660894244c706fb3e92e1a7a5f4f55a9c70883a7bb2fee06a00161ed3eed49",
+      "c_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7",
+      "rust_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7"
+    },
+    {
+      "case": 6,
+      "label": "dhcp-multi-address-99-first",
+      "commands": 8,
+      "input_sha256": "aa481c9208db8a859770cf9a970ec651ee390bd9f8df77ca5d55b2ab32ca8000",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "f7167985be9ce69a2d26c8c012fe5463c39da11ae26b520341901ddc277350c1",
+      "rust_stdout_sha256": "08660894244c706fb3e92e1a7a5f4f55a9c70883a7bb2fee06a00161ed3eed49",
+      "c_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7",
+      "rust_semantics_sha256": "3ecaf8f3c484673d491571e5bb5bd66c00a19eeb39d83592e8e586d950c589c7"
+    },
+    {
+      "case": 7,
+      "label": "other-family-coexists-after-release",
+      "commands": 7,
+      "input_sha256": "2d70442f461d6dddacf6668d43addc8a76880f8274e70055e5ad7d9491fc7351",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "8950f1e5de50ce51cd727621269575af586464af4ffefbbd6a19007bfc87724d",
+      "rust_stdout_sha256": "4a53e4423114fad6683e9e9b9d233aa506b60988f82f1e0c2ee87c3e2fff7fb8",
+      "c_semantics_sha256": "ad7c03ca2a865a9e0aae5009df8a08da167d5b6b183696ac943dd3d8a528154a",
+      "rust_semantics_sha256": "ad7c03ca2a865a9e0aae5009df8a08da167d5b6b183696ac943dd3d8a528154a"
+    },
+    {
+      "case": 8,
+      "label": "local-nonterminal-is-not-address-blocker",
+      "commands": 8,
+      "input_sha256": "563adeef8561ba84054cd64f9da1ccf32b66b67aee6acb0399d23188c5248823",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "3295bf1c1cd897354e2a509250446184227a9c34733e97f644dbfc3a9df3f956",
+      "rust_stdout_sha256": "0009e298647810f11bf78b10777580e2fe1134f0c29f7163d86b2f603fd991d4",
+      "c_semantics_sha256": "268589fdcb2d938770d4421dff11b638b9b3918068e493e3c4b9e5dc0191104f",
+      "rust_semantics_sha256": "268589fdcb2d938770d4421dff11b638b9b3918068e493e3c4b9e5dc0191104f"
+    },
+    {
+      "case": 9,
+      "label": "expired-untouched-local-blocks",
+      "commands": 6,
+      "input_sha256": "822d277052887c9385170a98272cce9d389b018bb0f0f7cb521ab9d67a4fc2c1",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "b264cb6eb8f4932057f380d8b27cdbd62a286115c69797fd7c6e6c673aee1eaa",
+      "rust_stdout_sha256": "f779014fd8df054d2a52d124b712957c203fc27200bfe60388d2933f44a66267",
+      "c_semantics_sha256": "bf278c1b78ca51a738f3e744773d659b1e2e2e181d876d510bb3be15a24aec39",
+      "rust_semantics_sha256": "bf278c1b78ca51a738f3e744773d659b1e2e2e181d876d510bb3be15a24aec39"
+    },
+    {
+      "case": 10,
+      "label": "expired-looked-up-local-no-longer-blocks",
+      "commands": 6,
+      "input_sha256": "c7cb827c8a62472d26101df89958adaa849e98c27af52011e542fddd92685643",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "3a7844ee4276adc5c54eef676fc9fcc0142bc043762ae1fcb0918e862711f148",
+      "rust_stdout_sha256": "9526f21f6c132c240fa9879904d43de161548228e38b4bff0be841aa935f2ad2",
+      "c_semantics_sha256": "f43f7348b50e6c3f4e41cbaeddd3b9c2ce33426b6922baa4bfcafbc10023d970",
+      "rust_semantics_sha256": "f43f7348b50e6c3f4e41cbaeddd3b9c2ce33426b6922baa4bfcafbc10023d970"
+    },
+    {
+      "case": 11,
+      "label": "alias-to-dhcp-same-address",
+      "commands": 7,
+      "input_sha256": "003e4f8d459816741de8b9b7dc00f0913865d62c0622ecb5fae28a917b96b978",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "b0b61b2c8eab66adde4c32d9e6cdee5975e1fa712a260f29244ec6df29a2bbda",
+      "rust_stdout_sha256": "80d008258113ecd67f379997c84b516dce67cc153013252fbbb6062b470eee59",
+      "c_semantics_sha256": "9791f05f9e3b1124a4818e1eb733044f7c5cd5465d48d7f9fed73de58246361e",
+      "rust_semantics_sha256": "9791f05f9e3b1124a4818e1eb733044f7c5cd5465d48d7f9fed73de58246361e"
+    },
+    {
+      "case": 12,
+      "label": "alias-to-dhcp-different-address",
+      "commands": 7,
+      "input_sha256": "4954cb5833a21597b2bc7c4d9fd69e53cca03fb9bd27cae6f70769a27882f588",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "8ade5b5abfc4127f04f7d88d89c4e7ca7dc16bf7a5433b87f2afed03552498ee",
+      "rust_stdout_sha256": "b5618a8bcc3d629714d04a632b2a7864a79a52d248e714256eea78ebc8b0f9af",
+      "c_semantics_sha256": "32fc52aaebb992eee25dbc243dd63cdac7e5a6a0152887aca18f346cc6bc035f",
+      "rust_semantics_sha256": "32fc52aaebb992eee25dbc243dd63cdac7e5a6a0152887aca18f346cc6bc035f"
+    },
+    {
+      "case": 13,
+      "label": "alias-to-hosts-same-address",
+      "commands": 5,
+      "input_sha256": "1056fe71b818ec95c31efe26d5a269beb0a8b03b3147568694bdaf98109d8177",
+      "config_sha256": "000ca90041600bbc355eb560bffdb6c32389b78cd225666ffa162a925b6d9e71",
+      "c_stdout_sha256": "7af882b3fd58292bb9fe23bc6aa86ee05ee12d9d9bd89b8e88771b05af907f78",
+      "rust_stdout_sha256": "7d26bc014f2468421e34c259f47004df8bef1930ac5088d3fe66b6a9fc59c3f4",
+      "c_semantics_sha256": "ec8ece40d9acd83679ee4e3117344d0a35276ce6a814c45af7a2e0618d211609",
+      "rust_semantics_sha256": "ec8ece40d9acd83679ee4e3117344d0a35276ce6a814c45af7a2e0618d211609"
+    },
+    {
+      "case": 14,
+      "label": "alias-to-hosts-different-address",
+      "commands": 5,
+      "input_sha256": "0339f395b8d149185da7051ae6bbce82a8f41ff037adc0bcc664e32b59c69edc",
+      "config_sha256": "000ca90041600bbc355eb560bffdb6c32389b78cd225666ffa162a925b6d9e71",
+      "c_stdout_sha256": "b9f458da5c5b1c821be0e9a3c63ed1f623ac4205437a0cdad2029e9ff0f1168e",
+      "rust_stdout_sha256": "3a36b57a186b90bae2ba1ebce3b94751f8db022c872559373ad25f08eb6f9c8a",
+      "c_semantics_sha256": "87d4705842d27aceb5509ff20a79261c59569844a890c8e6b3b211bdfd260ffe",
+      "rust_semantics_sha256": "87d4705842d27aceb5509ff20a79261c59569844a890c8e6b3b211bdfd260ffe"
+    },
+    {
+      "case": 15,
+      "label": "alias-to-lease-release",
+      "commands": 8,
+      "input_sha256": "a13ea21b8224d9d900e0309567e577a19234555ff7b16e8736f4413f66aab740",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "c6952efe51a47319de2d8752ac2c646b98b7047826ef0b66e3677cee53ad4307",
+      "rust_stdout_sha256": "0f6ed495cbaa99e389ad4755afba8014ad45669c11fa87282268e618c987d8dc",
+      "c_semantics_sha256": "2cb0b2c42b210764d750a305170e5cbb8941a7cf0fec11dbbf95002e8c4c1a4c",
+      "rust_semantics_sha256": "2cb0b2c42b210764d750a305170e5cbb8941a7cf0fec11dbbf95002e8c4c1a4c"
+    },
+    {
+      "case": 16,
+      "label": "alias-to-lease-expiry",
+      "commands": 7,
+      "input_sha256": "fbc92c057226acf350e1288ceeef8d8d15a575ff0d83a145ffe21924d0bbf1b4",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "7c9095354c77945e03d3b0201874a2bb04e2213475f7bec97d4c413a908f2e37",
+      "rust_stdout_sha256": "ab47981f812ebda508cc5c9e04e3f25f590796c99712b8bf4ef25524d92f4747",
+      "c_semantics_sha256": "c0f75122055e903097cea64ff46c4cec3fe73930235287f605ea4845bf59bd7f",
+      "rust_semantics_sha256": "c0f75122055e903097cea64ff46c4cec3fe73930235287f605ea4845bf59bd7f"
+    },
+    {
+      "case": 17,
+      "label": "alias-target-republished-as-lease",
+      "commands": 10,
+      "input_sha256": "2be4bd95521a9d06c979341244a6dd47a03d2a102a65953c6f07f5998fc93c3c",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "7259e76a65b8c01f5df65c25c7207769f9a7df7cb2bf4dfbe4b8450afb2b4ecf",
+      "rust_stdout_sha256": "f71de982a0d549c3c26544346a4c7fa99e4f110265323bdd3343dea74de8beba",
+      "c_semantics_sha256": "e040aaac60d1473829b72919a93c322123ada32b58fa125ba62260e0d3a10067",
+      "rust_semantics_sha256": "e040aaac60d1473829b72919a93c322123ada32b58fa125ba62260e0d3a10067"
+    },
+    {
+      "case": 18,
+      "label": "alias-target-republished-as-renamed",
+      "commands": 10,
+      "input_sha256": "e05223120ec92362e10b2e64267c0bfbf20775fcdcc128bf6367a0a47a8f7591",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "01d13dbd7314ca456b069890c105ecfbe934d59d254de335651e2cdfea816b5a",
+      "rust_stdout_sha256": "f4c9f7bcfb7b31183f913d145d8fa108c38e236085893fbcd5ca2fbc0662a979",
+      "c_semantics_sha256": "8772c96b8ea279f37333f0df0024ec70f7a0addc11939d7ffbab7257962242d2",
+      "rust_semantics_sha256": "8772c96b8ea279f37333f0df0024ec70f7a0addc11939d7ffbab7257962242d2"
+    },
+    {
+      "case": 19,
+      "label": "alias-target-republished-as-other",
+      "commands": 10,
+      "input_sha256": "6c68debfb64c5bc98cc09b1a011507172a35053419b039ca788ceff7625c509b",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "5f77512de5907688b87632bfec08211c0f21a2ca1112bfc49008f3dd073c5dfd",
+      "rust_stdout_sha256": "3df51ee43e65130eb0c5480e1ce53eebe5746c0de620348b9b380cdf027980c8",
+      "c_semantics_sha256": "fde3c67dcc5f8675dc0b63f904a0284fdbb96dacf529aa459ca25324ddf742db",
+      "rust_semantics_sha256": "fde3c67dcc5f8675dc0b63f904a0284fdbb96dacf529aa459ca25324ddf742db"
+    },
+    {
+      "case": 20,
+      "label": "alias-target-hosts-reload",
+      "commands": 6,
+      "input_sha256": "3537ba2c7207000bca376b0442dd763fe1fe9ec73da753e1f090cf8619c7f3dd",
+      "config_sha256": "000ca90041600bbc355eb560bffdb6c32389b78cd225666ffa162a925b6d9e71",
+      "c_stdout_sha256": "17a910c3378f453f0030ed4ddb17ecf5347aeabc2dc1a0f0236b533e3824fd41",
+      "rust_stdout_sha256": "574cd360d065365376525496ad8d628234a45c8504bcde02fbf35adf5a9d3dbc",
+      "c_semantics_sha256": "589e12d39fbd20d8b8277d3fac08248191c6771627eab865bfbcc42d00ebbcc7",
+      "rust_semantics_sha256": "589e12d39fbd20d8b8277d3fac08248191c6771627eab865bfbcc42d00ebbcc7"
+    },
+    {
+      "case": 21,
+      "label": "alias-target-dhcp-hup-republication",
+      "commands": 10,
+      "input_sha256": "67055c2dae6725f8c8bd5fe38e3a00340b0eff7b9e9e5ca2950133b88de84d09",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "7d836057596413da5397435b5c1df1530827a32c65f13ad8e71eac3c10ed7571",
+      "rust_stdout_sha256": "dec92e6522e157f39846c7f2b22b63fce8416344b0d3bba72514751bcffb4fc4",
+      "c_semantics_sha256": "d23b3fa5efa386649558d6d9811cc09eafb549410235596ff3e04e0dfe15d1d2",
+      "rust_semantics_sha256": "d23b3fa5efa386649558d6d9811cc09eafb549410235596ff3e04e0dfe15d1d2"
+    },
+    {
+      "case": 22,
+      "label": "local-config-cname-blocks-address",
+      "commands": 4,
+      "input_sha256": "4e6be75843ed1ab060980d8d2fb201803497bf8a62d0e9fca29e93517ddc0bc9",
+      "config_sha256": "a9f226117343da07f3f314a014d5a1aff99e8f49187798c13e70065f249e0fe3",
+      "c_stdout_sha256": "287b7c7b92dd25b9823bd4695fd49e3e6950686ccd84dc4972853124a6b73929",
+      "rust_stdout_sha256": "ec93d0fc05b1e80f0705dde0d8a819871b69625ef93441b0324180d00432e8d3",
+      "c_semantics_sha256": "9f6ab67a37c7bcb5a648cdff3cf448ddcdb875d0a8e87d6ee98bbf7e71c3f023",
+      "rust_semantics_sha256": "9f6ab67a37c7bcb5a648cdff3cf448ddcdb875d0a8e87d6ee98bbf7e71c3f023"
+    },
+    {
+      "case": 23,
+      "label": "two-cnames-to-local-target",
+      "commands": 8,
+      "input_sha256": "3c804c9f3b0de962f274918abd76294dc4848f00c4575305d5b1864945bdc9c1",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "f69eb11dcb9bc6fbc337096b40ae6d2f5306421b8d7ea09c901b02e95ca1f021",
+      "rust_stdout_sha256": "8cbd0e5b3fdcc02d0a75c66922d0bcd6d0c8609932a575cbc9fd948eaf3a9c9c",
+      "c_semantics_sha256": "5578796d44b1dc7671a99b3361cfe7dec1e6e5ab2dbc253740ba40a5ec150307",
+      "rust_semantics_sha256": "5578796d44b1dc7671a99b3361cfe7dec1e6e5ab2dbc253740ba40a5ec150307"
+    },
+    {
+      "case": 24,
+      "label": "prior-nxdomain-survives-publication",
+      "commands": 7,
+      "input_sha256": "1cbec728f767e1f83ff1057a2fdc1fffbe8fe79b73700d060083221cb391814c",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "9c30cb7631236df2b2769aaa19e75b59b02c9ef3f5fc189b7aff2e7273dc6bda",
+      "rust_stdout_sha256": "dd072763b02c86973f3561b7a25e0a454e79e84e1c97e7aaad4884c227d09d8e",
+      "c_semantics_sha256": "8f831e63d8416fc7ea44db4899b66330ac00dc2c0b21ecbe1b7474ea5d499a8b",
+      "rust_semantics_sha256": "8f831e63d8416fc7ea44db4899b66330ac00dc2c0b21ecbe1b7474ea5d499a8b"
+    },
+    {
+      "case": 25,
+      "label": "late-nxdomain-coexists-with-lease",
+      "commands": 7,
+      "input_sha256": "3be5dc79cf4f56ab9cb688fb879a45c0220ca2472eb998b54462c5c2cfa3350a",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "cb2369fc659e2b83eab67d65690fabfaf0ab42c5b3a4940cd27bf7498dda0636",
+      "rust_stdout_sha256": "db8bca46a2460086e6ac74eabeff21df664842a704caab991b05ff2125045b29",
+      "c_semantics_sha256": "4b614f018473aa5a34006dfd8be235318076199c02efda95e87e531e7fa0ec8e",
+      "rust_semantics_sha256": "4b614f018473aa5a34006dfd8be235318076199c02efda95e87e531e7fa0ec8e"
+    },
+    {
+      "case": 26,
+      "label": "fqdn-short-republication-same",
+      "commands": 11,
+      "input_sha256": "9dbe2bbdd6602d937d5b6b874044c691ad0ec40bbcff5aa0b839b31c98c084c1",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "8b2825d348cebf47e36d1ded5a505403f48052c84b49f4581b1205b2d2e6315e",
+      "rust_stdout_sha256": "1857962e0246bbbd994da9f0105a26c83d445dd2158f7ed1f28368bb0c6bd311",
+      "c_semantics_sha256": "dc71ecd1591e22ca1b9f091eef0e5f293c17e63c3483a4335e52c37abe9b8c1d",
+      "rust_semantics_sha256": "66e6da2ee9ca8830e5458d9b8f56abb85fb0b5d527658eea8011562948eadb5f"
+    },
+    {
+      "case": 27,
+      "label": "fqdn-short-republication-new-leaf",
+      "commands": 11,
+      "input_sha256": "b3bc18155c4a1bff9d9147a4406fb93d4d4ac2a5f4fc2369376f9c602b2b148e",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "8dbf4f0ea8bea2269d577aa08958403b85b9bddff4d139a06c7927b6a1e2e422",
+      "rust_stdout_sha256": "1857962e0246bbbd994da9f0105a26c83d445dd2158f7ed1f28368bb0c6bd311",
+      "c_semantics_sha256": "66e6da2ee9ca8830e5458d9b8f56abb85fb0b5d527658eea8011562948eadb5f",
+      "rust_semantics_sha256": "66e6da2ee9ca8830e5458d9b8f56abb85fb0b5d527658eea8011562948eadb5f"
+    },
+    {
+      "case": 28,
+      "label": "fqdn-short-republication-new-domain",
+      "commands": 11,
+      "input_sha256": "1bc40e460d0afa6a3a2e1db1f6765477d376419dbf404a21b688e75f6ff60e21",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "8dbf4f0ea8bea2269d577aa08958403b85b9bddff4d139a06c7927b6a1e2e422",
+      "rust_stdout_sha256": "1857962e0246bbbd994da9f0105a26c83d445dd2158f7ed1f28368bb0c6bd311",
+      "c_semantics_sha256": "66e6da2ee9ca8830e5458d9b8f56abb85fb0b5d527658eea8011562948eadb5f",
+      "rust_semantics_sha256": "66e6da2ee9ca8830e5458d9b8f56abb85fb0b5d527658eea8011562948eadb5f"
+    },
+    {
+      "case": 29,
+      "label": "fqdn-short-republication-newest-other-lease",
+      "commands": 13,
+      "input_sha256": "fad13f7d17d93c258b2245924f9057b6421d3061693290aa5820518593133504",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "e54ae77b70ff483a5d66f941648f88a346df515e486949db139b8a902d50af56",
+      "rust_stdout_sha256": "432d1ba9c9ed8b86d4b417c110d26650321eb5e9baeca3c04742578f4ba80588",
+      "c_semantics_sha256": "ab9c8970b897c6eade4ce7085bd8c4488eda727d6668e3d875eea9e870793a40",
+      "rust_semantics_sha256": "ab9c8970b897c6eade4ce7085bd8c4488eda727d6668e3d875eea9e870793a40"
+    },
+    {
+      "case": 30,
+      "label": "alias-local-cname-with-reverse-host",
+      "commands": 5,
+      "input_sha256": "71f577b9b5ffee514fae9e27c390d8041751b6da6d2ff3f3a3762b3706858946",
+      "config_sha256": "4af850d5ea527436e6a69341a654efb8fda8a3ff9c6bcf9d873cc7a9a2515c88",
+      "c_stdout_sha256": "d22e5763191688702eada13551ecd7f369bde08962061be159687754269afa9e",
+      "rust_stdout_sha256": "7662d809af4a9c0a9ccc2e93975f3cdbc6c731d7ee49098f9beedb3cca9b25c8",
+      "c_semantics_sha256": "cdcf5e3cbdf173fb462c0dd4f56d9e686b93b7c15bc136f3ce61ab156fd02c49",
+      "rust_semantics_sha256": "cdcf5e3cbdf173fb462c0dd4f56d9e686b93b7c15bc136f3ce61ab156fd02c49"
+    },
+    {
+      "case": 31,
+      "label": "alias-local-cname-with-nonreverse-host",
+      "commands": 5,
+      "input_sha256": "71f577b9b5ffee514fae9e27c390d8041751b6da6d2ff3f3a3762b3706858946",
+      "config_sha256": "af649567cd36de83c28b818d5ed5071b752d2a33f6fdcb0c3b9f7de747be98fe",
+      "c_stdout_sha256": "4d7a3ebbc97a9816dc01d72ac05e7cd08725de6d3c0538f6c4b6ba40d713b34e",
+      "rust_stdout_sha256": "78fa9a28e71b7d55e99575e4e3f38fdddfd8919589464e101ef418003bbabefe",
+      "c_semantics_sha256": "811725cab5fa018fe25282a8a77e8bb5b49cb70513ffeb8ccf2f1ebc36afc62c",
+      "rust_semantics_sha256": "811725cab5fa018fe25282a8a77e8bb5b49cb70513ffeb8ccf2f1ebc36afc62c"
+    },
+    {
+      "case": 32,
+      "label": "replacement-suppressed-by-static-does-not-reuse-target",
+      "commands": 9,
+      "input_sha256": "6a2fc6db469f645c7757a2d0e265f800caa723c3969353bd4297b078942a8f0e",
+      "config_sha256": "5ab74664952dba4bff4f2f62118477ddb8fa07fb4d1feb181b6b8f752be2f7d2",
+      "c_stdout_sha256": "9ed86daf0a778fcf6c5a8002fb7dbcae2dca27e4a09399c3057b2bfe1240f47e",
+      "rust_stdout_sha256": "505d42799a92839c14bae9caa9f18c52781b138ee03eec1e7f21562543a30b5f",
+      "c_semantics_sha256": "c7cd4044a33d3cc522dd8e6c38a89c3e3f0dfa000f8ef406d5839fde2f619baa",
+      "rust_semantics_sha256": "c7cd4044a33d3cc522dd8e6c38a89c3e3f0dfa000f8ef406d5839fde2f619baa"
+    },
+    {
+      "case": 33,
+      "label": "alias-local-other-family-any-and-unknown",
+      "commands": 6,
+      "input_sha256": "76bd588369b7e2a65c7ae097dfaffa4c6c9facccf05b4e60bc96c4ddd0795b18",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "e821457e8ac92fe042d2061d04ff1d78f28048d03d0bf4d5a2389881008d9b91",
+      "rust_stdout_sha256": "4f618c818b48ceced1040f47418980aa4fd8d58c23df0610dd0d92172248ba50",
+      "c_semantics_sha256": "c1baee1c168c9765b93bd7ce9e0ebd58a546d9e6dbfbbd56593cf9d1dc8e6298",
+      "rust_semantics_sha256": "c1baee1c168c9765b93bd7ce9e0ebd58a546d9e6dbfbbd56593cf9d1dc8e6298"
+    },
+    {
+      "case": 34,
+      "label": "alias-local-configured-cname-other-types",
+      "commands": 4,
+      "input_sha256": "e53cdf57a21598b4316f9ef7d4fba746ef5d3d4c66a1d74d5f252163c4d2f300",
+      "config_sha256": "4af850d5ea527436e6a69341a654efb8fda8a3ff9c6bcf9d873cc7a9a2515c88",
+      "c_stdout_sha256": "b633df547f57ce958c8ead8fc2bb6c88c746c04b7eaf94d742dd0f54a2602984",
+      "rust_stdout_sha256": "24a8ec7a3db5bc7fd7844b1e208913ab0ece61ae0821a9b3dc8abf201e35509a",
+      "c_semantics_sha256": "03ccc955c29286335e0efffefb2be54e8124c0e82e16dab07e2642bbbb0e358a",
+      "rust_semantics_sha256": "03ccc955c29286335e0efffefb2be54e8124c0e82e16dab07e2642bbbb0e358a"
+    },
+    {
+      "case": 35,
+      "label": "restored-byte-name-invalidates-prior-address",
+      "commands": 6,
+      "input_sha256": "01ddbea84ccef2304c05ce8d76b7a20e03048cb35db9a06bfdf25092369b4cdb",
+      "config_sha256": "57509d02d374f035d8d89cd95353395e4f60543a7fc4d0327cceb33a7a91b7b6",
+      "c_stdout_sha256": "39d83c82797455e89b18c605b7af9ab5dc592d6b1e15c6012fa05bb433ebab07",
+      "rust_stdout_sha256": "9f75c9ebfdda80d51e55f703ee438f2ce5790c2014d74e97e383a3ff274a03e3",
+      "c_semantics_sha256": "7b2cd5067b49002deca5820005283eeb8a82aadf81397fa85bd47a2ca2d42dd6",
+      "rust_semantics_sha256": "7b2cd5067b49002deca5820005283eeb8a82aadf81397fa85bd47a2ca2d42dd6"
+    }
+  ],
+  "commands": 269,
+  "mismatches": [
+    {
+      "case": 26,
+      "label": "fqdn-short-republication-same",
+      "step": 9,
+      "command": "Q 102 29300100000100000000000005616c6961730000050001",
+      "c": {
+        "id": 10544,
+        "flags": 34176,
+        "questions": [
+          [
+            "alias",
+            5,
+            1
+          ]
+        ],
+        "sections": [
+          [
+            "answer",
+            [
+              [
+                "alias",
+                5,
+                1,
+                58,
+                [
+                  "example"
+                ]
+              ]
+            ]
+          ],
+          [
+            "authority",
+            []
+          ],
+          [
+            "additional",
+            []
+          ]
+        ]
+      },
+      "rust": null
+    },
+    {
+      "case": 26,
+      "label": "fqdn-short-republication-same",
+      "step": 10,
+      "command": "N 102 29300100000100000000000005616c6961730000050001",
+      "c": "N 1",
+      "rust": "N 0"
+    }
+  ],
+  "raw_comparison_passed": false,
+  "scope": "Explicit supplementary qualification contract for pre-existing C UID-reuse defect; original comparator and raw failure remain unchanged",
+  "baseline_replay_sha256": "228839293c012b9e90fd920d1f2564959c373e7c118bd48907430a3fb2985885",
+  "source_files_sha256": "38265889260ffad5e7df5b6832675008260e5b1875ae076ff45b2de207ddf920",
+  "tools": {
+    "lease_insert_diff.py": "66f30aaa7a2b64b343a5e53694a684129064e4f34f0a13f9871ef5a351ad705d",
+    "lease_names_diff.py": "89826cb67aa777272bca0569d242a9732ae715eacdc748467a77c5fefeb27d68",
+    "local_answer_diff.py": "6a96baaedf535ad0d84c08c1752f06729b5dfda16d75a66dcfd786ac8c9986bc",
+    "rust_lib_probe.py": "87fe2a6f3ab0573870f3abe5780ac77aff894276505e0b71e387ca08273b8a6b"
+  },
+  "historical_contract": {
+    "path": "docs/dnsmasq/LEASE_CACHE_INSERTION_PHASE.md",
+    "sha256": "9818541191f55c55f77be70a1b4f075fd03d6f6a3f455e3e15866d233bc5e9e2"
+  },
+  "repeat_reference": {
+    "result_sha256": "7d2a114506e1be67fc8c8ef222f7034925a8f12be6c0c357a5207a0402890190",
+    "plan_sha256": "36cadde111343d788fc7cb07ee0f7c4f0d5f8b9aae6637adea57d59988301017",
+    "runs": 32,
+    "cases_with_drift": 4,
+    "changed_target_answers": 12,
+    "failures": [],
+    "cases": [
+      {
+        "case": 26,
+        "label": "fqdn-short-republication-same",
+        "distinct_outputs": 2,
+        "changed_targets": [
+          {
+            "round": 1,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 2,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 3,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 6,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 7,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          }
+        ]
+      },
+      {
+        "case": 27,
+        "label": "fqdn-short-republication-new-leaf",
+        "distinct_outputs": 2,
+        "changed_targets": [
+          {
+            "round": 2,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 3,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 4,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 6,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          },
+          {
+            "round": 7,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          }
+        ]
+      },
+      {
+        "case": 28,
+        "label": "fqdn-short-republication-new-domain",
+        "distinct_outputs": 2,
+        "changed_targets": [
+          {
+            "round": 7,
+            "step": 9,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "other"
+          }
+        ]
+      },
+      {
+        "case": 29,
+        "label": "fqdn-short-republication-newest-other-lease",
+        "distinct_outputs": 2,
+        "changed_targets": [
+          {
+            "round": 7,
+            "step": 11,
+            "owner": "alias",
+            "target_from_upstream_input": "lease.example",
+            "observed_target": "example"
+          }
+        ]
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "kind": "baseline-replay",
+      "attempt": 1,
+      "out": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/baseline-lease-replay-1",
+      "outcome": "Harness failed to remove exact serial-libtest prefix on first output. Preserved raw files; no product failure."
+    },
+    {
+      "kind": "C-repeat",
+      "attempt": 1,
+      "outcome": "Existing tool rejected output outside its source/private root before execution; no case ran."
+    },
+    {
+      "kind": "baseline-replay",
+      "attempt": 2,
+      "outcome": "All36 originalRust cases replayed; same2 differences,269commands."
+    },
+    {
+      "kind": "C-repeat",
+      "attempt": 2,
+      "outcome": "All32 C executions successful;4cases drift,12invented-target answers."
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+  "scope": "Recovered original source-bound A corpus results; never transfer to successor candidates",
+  "gates": {
+    "cache-answer": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-a/private/correctness-a-cache-answer/summary.json",
+      "result_sha256": "fa48f10d69cf222cdcb3ff5c8fc5b0f4dc46e705a8f17031ee909de38f3e8947",
+      "queries": 164,
+      "metric_snapshots": 382,
+      "mismatches": 0,
+      "calibration": "reset/miss/insert/NXDOMAIN/expiry and RCODE mutation passed",
+      "results": {
+        "c": {
+          "hits": 95,
+          "misses": 69,
+          "insert_events": 188,
+          "reset_events": 30
+        },
+        "rust": {
+          "hits": 95,
+          "misses": 69,
+          "insert_events": 188,
+          "reset_events": 30
+        }
+      },
+      "commands": 764
+    },
+    "transfer": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/a-corpus-transfer/result.json",
+      "result_sha256": "2178643c0b709f56ab639b6db10eb7a0a1b5b7735b63c9461a61421cce1c7d34",
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "failures": [],
+      "calibration": {
+        "equal": 1,
+        "counter_mutation_detected": 1,
+        "short_count_rejected": 1
+      },
+      "cases": 36
+    },
+    "stale": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/a-corpus-stale/result.json",
+      "result_sha256": "68d3aef8b8164121446710e6a4b37d5b9e1546d138530a81922780e213f6145c",
+      "compared": 1100,
+      "planned": 1100,
+      "not_compared": 0,
+      "passed": 1098,
+      "mismatches": 2
+    },
+    "lease": {
+      "result_path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-a/private/correctness-a-lease-insert/result.json",
+      "result_sha256": "0b96ac8c859f834a99fbc5ef7e519612c562fd3e3cefdb7bff21835bcd0d02b9",
+      "queries": 95,
+      "mismatches": [
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 9,
+          "command": "Q 102 29300100000100000000000005616c6961730000050001",
+          "c": {
+            "id": 10544,
+            "flags": 34176,
+            "questions": [
+              [
+                "alias",
+                5,
+                1
+              ]
+            ],
+            "sections": [
+              [
+                "answer",
+                [
+                  [
+                    "alias",
+                    5,
+                    1,
+                    58,
+                    [
+                      "example"
+                    ]
+                  ]
+                ]
+              ],
+              [
+                "authority",
+                []
+              ],
+              [
+                "additional",
+                []
+              ]
+            ]
+          },
+          "rust": null
+        },
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 10,
+          "command": "N 102 29300100000100000000000005616c6961730000050001",
+          "c": "N 1",
+          "rust": "N 0"
+        }
+      ],
+      "calibration": {
+        "ttl_mutation_detected": 1,
+        "short_count_rejected": 1,
+        "c_miss_hit_expiry": 1,
+        "invalid_c_config_rejected": 1
+      },
+      "cohorts": {
+        "ordinary_insertion_mismatches": 0,
+        "layout_reuse_mismatches": 2
+      },
+      "c_hits": 59,
+      "c_misses": 36,
+      "rust_hits": 58,
+      "rust_misses": 37,
+      "dynamic_lookups": 43,
+      "cases": 36,
+      "commands": 269
+    }
+  },
+  "lease_classification": {
+    "expected_observation": "Two retained differences in fqdn-short-republication-same; C corrupted target alias to example plus hit count, Rust miss",
+    "ordinary_insertion_mismatches": 0,
+    "historical_contract": "docs/dnsmasq/LEASE_CACHE_INSERTION_PHASE.md: historical C UID reuse defect, comparator still returns failure; no invented wrong-target emulation",
+    "new_exemption_or_checker_change": false
+  }
+}

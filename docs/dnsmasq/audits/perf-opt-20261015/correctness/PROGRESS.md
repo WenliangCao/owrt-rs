@@ -241,3 +241,32 @@ New full candidate gates must consume that amended snapshot; the old freeze and
 A failure stay unchanged. The user also authorized necessary research/tool bug
 corrections during continuation; no deployment or router modification follows
 from this permission. Correctness remains Oracle-idle pending finalist freeze.
+
+## Lease insertion diagnostic contract recovery
+
+[A's four recovered corpus results](a-corpus-recovery.json) are now explicit:
+cache-answer 164 queries + 382 metric snapshots without differences; transfer
+307/307; stale 1,098/1,100; lease insertion 36 cases/269 commands/95 queries/43
+dynamic lookups with two differences and original comparator exit 1.
+
+The lease comparator has no existing executable qualifier. Its historical
+[contract](../../../LEASE_CACHE_INSERTION_PHASE.md) expressly retains every
+C difference and says cohort labels do not turn failure into pass. Exact
+original source `51b03959` was replayed freshly using its hash-bound test ELF:
+all 36 cases ran, and it has the **same two** `fqdn-short-republication-same`
+Q/N differences as A. C supplies `alias -> example`, absent any input supplying
+that target, while Rust misses; original counts remain C 59/36 versus Rust
+58/37. An independent unchanged `--repeat-reference --rounds 8` reran all four
+layout cases 32 times: all four had multiple outputs; 12 answers invented a
+CNAME target. Neither C corpus nor comparator changed. The first replay attempt
+had a serial-libtest-prefix parsing issue, and the first C repeat invocation
+was rejected by its output-root guard; both attempts are recorded and retained.
+
+[Source/fixture/baseline-bound contract evidence](lease-compatibility-contract.json)
+records every concrete input/config, original C stdout and original Rust semantic
+hash, plus the fresh C/C diagnosis. The coordinator authorized a separate narrow
+qualification audit under the user's research-tool repair permission. It must
+preserve original exit 1 and all observations, reject any new/unclassified
+change, require exact baseline Rust behavior for all 269 commands, and enforce
+that no layout-reuse answer invents an upstream CNAME target. This is distinct
+from a zero-difference C comparison; no such pass is claimed.
