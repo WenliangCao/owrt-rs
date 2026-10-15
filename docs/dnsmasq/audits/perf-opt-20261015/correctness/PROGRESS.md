@@ -296,3 +296,23 @@ three workers, then exact SDK F10/protocol/TCP and the four source corpus probes
 Original output paths and all failed attempts stay intact. No candidate C full
 correctness pass has yet been claimed, and no router operation was performed
 by this reviewer.
+
+## C complete gate run launched after Oracle timing
+
+Oracle performance `complete.json` and all progress rows confirmed **110/110
+valid**, with no failure file, before correctness launch. The unchanged family
+scheduler started as PID 4064310, output `correctness/private/c-families-attempt1`,
+with three workers; a fourth serial batch (PID 4068233) owns release-probe build,
+F10/protocol/TCP and the four original source corpora. Both use immutable source
+`f7f7a2ed`; daemon checks use the actual SDK `b4c4a8e4…` and same-build map.
+
+[First boundary batch](c-boundary-gates.json) passed: F10 **13 cases/704 DNS
+observations**, complete healthy processes with exact SHA, zero unqualified
+failures. Raw `matches_c=false` and all **16 PTR-order differences** remain
+visible under the unchanged approved manifest; 72 PTR sequence checks and four
+source-bound contract checks ran. Protocol passed **368 pairs/366 exact wires**,
+only the two existing C forward-pointer defects, eight healthy daemon lifecycles,
+and all five negative controls rejected. Existing checker/tool tests passed
+**24 + 7**. The receipt also binds the authoritative 941-test raw log hashes.
+TCP and all-family/source-corpus final results are still pending; no C full pass
+is claimed from this first batch.
