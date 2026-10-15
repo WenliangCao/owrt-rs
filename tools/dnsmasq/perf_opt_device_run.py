@@ -273,6 +273,10 @@ def main():
                     print(json.dumps(row), flush=True)
                     if exit_code or failed.is_set():
                         raise RuntimeError('case or health failure')
+                    if row['valid']:
+                        # archive_run verified every local copy before progress
+                        # was committed. Retain failed windows on the device.
+                        ssh('rm -rf -- ' + shlex.quote(ROOT + '/runs/' + label))
             guard_stop(guard); guard = None
             for suffix in ('jsonl', 'stderr'):
                 (args.out / (guard_label + '.' + suffix)).write_bytes(ssh(f'cat {ROOT}/{guard_label}.{suffix}').stdout)
