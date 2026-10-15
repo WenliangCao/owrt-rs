@@ -1,0 +1,351 @@
+{
+  "scope": "Independent LOCAL-only C device archive, health and valid-scene statistical audit; no Oracle/router/network actions",
+  "audit_integrity_verified": true,
+  "candidate_acceptance_passed": false,
+  "attempted_windows": 110,
+  "valid_windows": 109,
+  "invalid_windows": [
+    {
+      "label": "candidate-c-tcp-miss-r2-rust",
+      "scene": "tcp-miss",
+      "round": 2,
+      "side": "rust",
+      "valid": false,
+      "errors": [
+        "measurement error counters",
+        "measurement completion count",
+        "upstream hit/miss count"
+      ],
+      "epoch": 1792060805.150264
+    }
+  ],
+  "archive_files_verified_twice": 3430,
+  "counts": {
+    "warmup_correct": 60000,
+    "measurement_correct": 239987,
+    "dora_observations": 1560,
+    "lifecycle_observations": 800
+  },
+  "guards": [
+    {
+      "scene": "config-small",
+      "sha256": "751d9219f2ea98253911672bc3e34e4be408b2340b37c460bccf4c24a22f573c",
+      "samples": 272,
+      "start_epoch": 1792062085,
+      "stop_epoch": 1792062357,
+      "dns_samples": 108,
+      "dns_max_ms": 11.832,
+      "http_samples": 49,
+      "http_max_ms": 112.983,
+      "memory_min_kib": 70284
+    },
+    {
+      "scene": "dhcp",
+      "sha256": "4fc1aed04384b964a7fe6c48eb1cd8fe9624f45c0da11997550e1e54e6099788",
+      "samples": 373,
+      "start_epoch": 1792061440,
+      "stop_epoch": 1792061812,
+      "dns_samples": 145,
+      "dns_max_ms": 9.033,
+      "http_samples": 69,
+      "http_max_ms": 108.507,
+      "memory_min_kib": 75372
+    },
+    {
+      "scene": "dhcp-home6",
+      "sha256": "f97eae6c9e60eea88b95b1c11285dd1cad70d21412b38817424316e39fe34d26",
+      "samples": 377,
+      "start_epoch": 1792061063,
+      "stop_epoch": 1792061440,
+      "dns_samples": 147,
+      "dns_max_ms": 1.297,
+      "http_samples": 68,
+      "http_max_ms": 67.456,
+      "memory_min_kib": 83204
+    },
+    {
+      "scene": "hup-large",
+      "sha256": "81b24377f659577b60e894d4794afda588f12c9b44307da6bbd618f6feb00ff1",
+      "samples": 272,
+      "start_epoch": 1792062629,
+      "stop_epoch": 1792062900,
+      "dns_samples": 105,
+      "dns_max_ms": 3.557,
+      "http_samples": 49,
+      "http_max_ms": 136.486,
+      "memory_min_kib": 67828
+    },
+    {
+      "scene": "hup-small",
+      "sha256": "68ddb6f726927e195e2b0ab6fde559ec48a469bf7a22b4615d0c1ce681780a50",
+      "samples": 272,
+      "start_epoch": 1792062357,
+      "stop_epoch": 1792062628,
+      "dns_samples": 105,
+      "dns_max_ms": 3.898,
+      "http_samples": 49,
+      "http_max_ms": 150.507,
+      "memory_min_kib": 68728
+    },
+    {
+      "scene": "startup-small",
+      "sha256": "0dd204220713b1597782dbda274039e80ab7bf3f799b0cd6c49eb535928c4aaa",
+      "samples": 272,
+      "start_epoch": 1792061813,
+      "stop_epoch": 1792062085,
+      "dns_samples": 107,
+      "dns_max_ms": 9.878,
+      "http_samples": 49,
+      "http_max_ms": 132.513,
+      "memory_min_kib": 71864
+    },
+    {
+      "scene": "tcp-hit",
+      "sha256": "3ce462bc70baf9317106ed93db16e46e88cdbae06835acb95df3256180fcf8ff",
+      "samples": 429,
+      "start_epoch": 1792060267,
+      "stop_epoch": 1792060696,
+      "dns_samples": 168,
+      "dns_max_ms": 1.507,
+      "http_samples": 78,
+      "http_max_ms": 87.931,
+      "memory_min_kib": 95028
+    },
+    {
+      "scene": "tcp-miss",
+      "sha256": "1753c36f536a9d395fccbf78c875dc51f714cea53b2cf156d7ecd0f9fdf92f52",
+      "samples": 366,
+      "start_epoch": 1792060697,
+      "stop_epoch": 1792061063,
+      "dns_samples": 146,
+      "dns_max_ms": 1.255,
+      "http_samples": 67,
+      "http_max_ms": 70.619,
+      "memory_min_kib": 88416
+    },
+    {
+      "scene": "udp-hit",
+      "sha256": "496a13bd4847b7f975183540ca81e5d224c0615db156c1b0ac3296be0c164aa2",
+      "samples": 429,
+      "start_epoch": 1792059031,
+      "stop_epoch": 1792059460,
+      "dns_samples": 171,
+      "dns_max_ms": 2.167,
+      "http_samples": 78,
+      "http_max_ms": 100.568,
+      "memory_min_kib": 106964
+    },
+    {
+      "scene": "udp-miss",
+      "sha256": "4cf8b5558f9e4043dd78cd796723ce76a6dcce5d4cf2d0e61770e1ab6bcdc752",
+      "samples": 377,
+      "start_epoch": 1792059461,
+      "stop_epoch": 1792059837,
+      "dns_samples": 151,
+      "dns_max_ms": 1.705,
+      "http_samples": 68,
+      "http_max_ms": 72.613,
+      "memory_min_kib": 100924
+    },
+    {
+      "scene": "udp-mixed",
+      "sha256": "e55766e1399b4679f5a607371712c1df62311fd89a1237bd11d7856f5042eae0",
+      "samples": 429,
+      "start_epoch": 1792059838,
+      "stop_epoch": 1792060267,
+      "dns_samples": 165,
+      "dns_max_ms": 1.341,
+      "http_samples": 77,
+      "http_max_ms": 62.028,
+      "memory_min_kib": 96636
+    }
+  ],
+  "external_health": {
+    "4": {
+      "samples": 128,
+      "max_ms": 513.738
+    },
+    "6": {
+      "samples": 128,
+      "max_ms": 344.644
+    }
+  },
+  "cancelled_http_probes": [],
+  "summary_sha256": "6cfcf047f3c7550e28780944e4431beae4aaf3909e0d84f0ab2ba60c0587a052",
+  "identity_sha256": "7a58a2fdac710eb066230cb7876da353a32a2ac8698062a85580d4d6ed65ede7",
+  "progress_sha256": "8823c198aa686849e460a770f2ad7b81e2600b38a72cded1c77119a0b554019f",
+  "external_health_sha256": "000f08324a4c89b3d6ce2fc875d352d64c9641abf84550913fa19ed921955d9c",
+  "method": "Existing audit_device_baseline.py archive/count/health checks reused locally with explicit observed109valid/1invalid inventory; candidate acceptance remains false. No frozen performance rule changed.",
+  "limitations": [
+    "No production router state was sampled during this offline audit.",
+    "Guard CPU is record-only by the approved frozen policy.",
+    "The whole C candidate fails acceptance; valid-scene statistics are diagnostic only."
+  ],
+  "comparison_roles": {
+    "c_deployed_v020": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "rust_candidate_C": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1"
+  },
+  "attempt_sequence_complete": true,
+  "performance_acceptance_complete": false,
+  "primary_analyzer_complete": false,
+  "primary_parse_failures": [],
+  "whole_tcp_miss_scene_excluded": true,
+  "invalid_window_details": [
+    {
+      "label": "candidate-c-tcp-miss-r2-rust",
+      "scene": "tcp-miss",
+      "round": 2,
+      "side": "rust",
+      "valid": false,
+      "errors": [
+        "measurement error counters",
+        "measurement completion count",
+        "upstream hit/miss count"
+      ],
+      "counts": {
+        "warmup": {
+          "scheduled": 1000,
+          "sent": 1000,
+          "correct": 1000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 0,
+          "release_sent": 0,
+          "dora_correct": 0,
+          "renew_correct": 0,
+          "correct_in_window": 0,
+          "correct_after_window": 0,
+          "send_lag_count": 1000,
+          "send_lag_sum_ns": 91249619,
+          "send_lag_max_ns": 675579
+        },
+        "measurement": {
+          "scheduled": 4000,
+          "sent": 3987,
+          "correct": 3987,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 13,
+          "stale_reply": 0,
+          "datagrams_sent": 0,
+          "release_sent": 0,
+          "dora_correct": 0,
+          "renew_correct": 0,
+          "correct_in_window": 3987,
+          "correct_after_window": 0,
+          "send_lag_count": 3987,
+          "send_lag_sum_ns": 601222242,
+          "send_lag_max_ns": 22329788
+        }
+      }
+    }
+  ],
+  "statistical_cross_check": {
+    "independent_ranked_metrics_recomputed": 32,
+    "valid_scenes": 10,
+    "window_latency_CPU_values_recomputed": 110,
+    "discrepancies": 0,
+    "analyzer_sha256_matches": true,
+    "rules": "nearest-rank within-window quantiles; five-pair medians/ranges; abs(delta)>W, >=4/5 paired direction, CPU >=10 ticks/window and >8 median-tick difference, lifecycle >=1ms floor"
+  },
+  "diagnostic_gains_only": [
+    {
+      "scene": "config-small",
+      "metric": "p50_ms",
+      "baseline_median": 7.128609,
+      "candidate_median": 6.026265,
+      "relative_change_pct": -15.463661985108168,
+      "W_pct": 8.822562565701976,
+      "same_direction_pairs": 5,
+      "direction": "faster"
+    },
+    {
+      "scene": "dhcp",
+      "metric": "p50_ms",
+      "baseline_median": 3.881579,
+      "candidate_median": 2.577794,
+      "relative_change_pct": -33.58903683269103,
+      "W_pct": 2.9693843665168225,
+      "same_direction_pairs": 5,
+      "direction": "faster"
+    },
+    {
+      "scene": "dhcp",
+      "metric": "cpu_us",
+      "baseline_median": 3860.0,
+      "candidate_median": 2564.0,
+      "relative_change_pct": -33.575129533678755,
+      "W_pct": 1.5544041450777202,
+      "same_direction_pairs": 5,
+      "direction": "faster"
+    },
+    {
+      "scene": "dhcp",
+      "metric": "dora_p50_ms",
+      "baseline_median": 2.868327,
+      "candidate_median": 2.181772,
+      "relative_change_pct": -23.93572978255268,
+      "W_pct": 11.401466331037337,
+      "same_direction_pairs": 5,
+      "direction": "faster"
+    },
+    {
+      "scene": "dhcp-home6",
+      "metric": "p95_ms",
+      "baseline_median": 0.638466,
+      "candidate_median": 0.604458,
+      "relative_change_pct": -5.326516995423394,
+      "W_pct": 3.895059706381586,
+      "same_direction_pairs": 5,
+      "direction": "faster"
+    },
+    {
+      "scene": "hup-large",
+      "metric": "p50_ms",
+      "baseline_median": 17.686375,
+      "candidate_median": 14.94185,
+      "relative_change_pct": -15.517736110423991,
+      "W_pct": 6.16696058386344,
+      "same_direction_pairs": 5,
+      "direction": "faster"
+    }
+  ],
+  "discernible_regressions_among_valid_scenes_only": [],
+  "diagnostic_scope_limits": [
+    "These six metrics belong to four valid scenes; they do not qualify the entire candidate or imply most scenes improved.",
+    "All other ranked metrics are inconclusive under existing gates; four valid DNS scenes show no discernible improvement.",
+    "DHCP CPU includes warmup and combines initial DORA with renewal; lifecycle CPU includes startup, idle and shutdown.",
+    "Home6 DORA remains descriptive with six samples per round.",
+    "No invalid window was replaced, excluded from raw inventory or relabelled valid; TCP-miss is absent from comparisons."
+  ],
+  "separate_transfer_caveat": {
+    "source_receipt_sha256": "7d69a3d6cff412d9ccc0dcad43c3bba8579ea7dc691b5e437893b90a83f19c5b",
+    "archive_sha256": "ff961409258ac7e428b0381a9393e87e0f87ba4fe69390c3d189f0af00c15430",
+    "archive_bytes": 9489587,
+    "recorded_local_birthtime_epoch": 1792059506.8682644,
+    "recorded_local_last_write_epoch": 1792059507.4922152,
+    "timestamp_limit": "File creation/last-write observations bound the local data write, not full SSH handshake or exact network interval; no preserved packet-level transfer timestamps.",
+    "raw_window_interval_cross_check": {
+      "candidate-c-udp-miss-r1-rust": {
+        "start_epoch": 1792059499.0,
+        "end_epoch": 1792059529.0,
+        "recorded_local_transfer_writes_within_window": true,
+        "start_minus_transfer_last_write_seconds": -8.492215156555176
+      },
+      "candidate-c-tcp-miss-r2-rust": {
+        "start_epoch": 1792060773.0,
+        "end_epoch": 1792060802.0,
+        "recorded_local_transfer_writes_within_window": false,
+        "start_minus_transfer_last_write_seconds": 1265.5077848434448
+      }
+    },
+    "conclusion": "Retain UDP-miss-r1-rust transfer-overlap caveat without estimating or subtracting its effect. TCP-miss-r2-rust begins1265.5seconds after recorded transfer end; no temporal overlap or evidence connecting them. Whole attempted series stays intact."
+  },
+  "existing_audit_method_sha256": "34ac356af7977d604c0aac2f8278a6cc1b0ac73cd5d51b1b89b29459c2a8a7ab",
+  "local_private_invocation_sha256": "58c0762236a815130a68019c24d19bb4e36ca333f818d93aef6fb0e7b5e1d4d4",
+  "all_window_archives_locally_verified": true
+}
