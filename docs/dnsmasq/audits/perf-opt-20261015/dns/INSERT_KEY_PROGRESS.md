@@ -125,3 +125,32 @@ logs and binaries remain on Oracle. No plain timing has run: root must decide
 whether this small local gain merits a complete focused timing attempt once
 other work is quiet, or reject it with the current cost evidence. D/E remain
 unchanged and no router access occurred.
+
+## One fixed plain final screen complete
+
+Root reservation `insert-key-final-20261015` ran the committed plan exactly:
+nine insertion scenes at 50,000 operations, five ordinary answer controls at
+500,000, and configured CNAME at 10,000; five alternating pairs each. All
+150 windows completed, with fixed binary hashes and no repeats/replacements.
+The full CPU samples and raw identities are in `insert-key2-plain-summary.json`;
+only its 10,663-byte derived summary was retrieved.
+
+Replacement improves −2.368% (W 1.616%, 5/5), 16-byte names −2.157%
+(W 1.187%, 5/5), reverse −1.840% (W 0.225%, 5/5), and uppercase reverse
+−1.579% (W 0.427%, 5/5). Full pressure is inconclusive at −0.753%
+(W 1.834%). Two controls regress in all five pairs: **uppercase pressure
++1.518%, W 1.452%**, and **dynamic CNAME +0.475%, W 0.466%**. The latter
+is close to the measured range boundary and remains recorded as a regression.
+
+Most ordinary answer controls are within variation. Eight-record answers are
+−0.633% (W 0.496%) and configured CNAME −6.290% (W 0.233%), despite no changes
+to those read paths. These accompanying layout-sensitive results are not
+credited as proof of the insertion-key mechanism. The added uppercase scan's
+instruction cost has now manifested in the plain pressure control.
+
+Recommendation: do not automatically advance the combined `60c3bdf2` candidate
+to full gates. Its benefit is inconsistent and the predeclared complete control
+series has adverse cases. Preserve the exact source and every result for root's
+decision; no alternate variant, selective rerun or product integration follows
+from this screen. Oracle workload ownership was released immediately after
+the final window. E remains unchanged.
