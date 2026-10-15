@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "SOURCE_REVIEW_PASSED_RELATED_LINUX_GATES_PENDING",
+  "candidate_commit": "f404ed754a26f9385c733e7474f28e4595520957",
+  "product_implementation_commit": "f0a96480b42060e8624b73b719c72a5ac9d2091a",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "review_scope": "Local read-only final-source and retained local-log review. No product edits or reviewer local build/test. Separately authorized native Linux gates are pending and do not establish a performance claim.",
+  "source_sha256": {
+    "components/dnsmasq/src/dns/daemon.rs": "4be13c9bc5be8a08545f1642de402cfe7567a195b24459eaf98e8b0c3a2ab652",
+    "components/dnsmasq/src/dns/forward.rs": "4a4237e1aefbd3f16238d1b1c7d2bbd792816364a27b96232218bafe8116dd19",
+    "components/dnsmasq/src/dns/wire.rs": "6575d520d6a900a2cf95e6d43797b472e1703ee3c75ace4c064a90c2cb535153",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": "4d63f079903645b468ee885be8e85d50286de0f1c3401ca18cc18fb934a9f406"
+  },
+  "implementation": "One private lazy Vec on DnsDaemon is taken by the normal UDP prepared-answer path, used by internal owned-Name parsing, and reclaimed after synchronous answer/forward submission. Existing walk_name validation is reused unchanged.",
+  "lifetime_and_error_review": [
+    "Header errors occur before taking the stored buffer. Question-count/decode errors return the same scratch, including partial labels; the next decode clears its length before appending.",
+    "Only successful walk_name creates an owned Name. The original cursor and extra=4 footer bounds remain unchanged, so rrtype/class reads retain their previous safety contract.",
+    "The closure contains all local/cache/stale/policy/upstream Result returns. Both success and error results reach the final Name-to-buffer reclamation.",
+    "QueryResult contains owned reply Vecs or an ID, never a borrowed Name. Retained cache replies cannot be overwritten by later scratch reuse.",
+    "Forwarding still reparses the packet in the existing transaction table and stores independent owned upstream Question, recipient Name, packet and key. No pending forwarding object aliases this scratch.",
+    "The change is confined to answer_udp_prepared_with_local; other parsing APIs, stale refresh and asynchronous forwarding ownership remain unchanged."
+  ],
+  "resource_review": {
+    "retained_buffers_per_daemon": 1,
+    "maximum_valid_name_wire_bytes": 255,
+    "initial_short_name_capacity_bytes": 32,
+    "fixed_256_capacity_claim_withdrawn": true,
+    "irregular_fixture": {
+      "label_lengths": [
+        30,
+        63,
+        63,
+        63
+      ],
+      "decoded_wire_bytes": 224,
+      "pinned_growth_capacities": [
+        32,
+        95,
+        190,
+        380
+      ],
+      "fixture_capacity_assertion": "greater than256 and at most512"
+    },
+    "bound_basis": "walk_name rejects an overlong label before appending it. Only this private scratch path owns the retained Vec; the pinned Rust1.98.1 amortized growth is max(2*capacity, required), so retention is bounded. No per-name pool, shrinking or extra reserve policy was introduced.",
+    "tradeoff": "A lazily allocated name buffer and its amortized spare capacity remain until daemon destruction; this is retained bounded state, not a zero-memory change."
+  },
+  "resolved_review_points": [
+    "The original pointer-loop fixture failed before producing partial scratch. Added truncation and invalid-label cases now verify partial bytes and unchanged pointer before subsequent valid reuse.",
+    "Added NameTooLong recovery and a valid follow-up query. The new overlong fixture is257 wire bytes; the existing wire tests separately retain the exact256-byte boundary.",
+    "The original general capacity256 claim was false for irregular labels. The final comment and fresh-daemon irregular fixture correctly retain the380-byte example without changing allocation policy."
+  ],
+  "local_evidence": {
+    "original_implementation_mac_lib": {
+      "passed": 715,
+      "failed": 0,
+      "ignored": 8,
+      "stdout_sha256": "19f7b887a3eb9fea9cb189d5fc2e668d79a6ebe91e64aa470b21386f7119aa05"
+    },
+    "original_implementation_linux_musl_all_target_check": {
+      "coordinator_report": "passed",
+      "retained_stderr_has_finished_and_no_errors": true,
+      "stderr_sha256": "bcf045347e56fc15bd441eaf9d55fddea989bf598da461f2c4db2e11d976b600"
+    },
+    "partial_error_fixture": {
+      "passed": 1,
+      "failed": 0,
+      "stdout_sha256": "9a72cc606e3a1d90b1a1c8f375ef9faac25c7707c22892277da4effe0ecf5253",
+      "stderr_sha256": "1c7767fcf715e012eae2a59593292f481d482ec7e01347b9ea70de8c9fafc7d3"
+    },
+    "final_irregular_fixture": {
+      "passed": 1,
+      "failed": 0,
+      "stdout_sha256": "9a72cc606e3a1d90b1a1c8f375ef9faac25c7707c22892277da4effe0ecf5253",
+      "stderr_sha256": "abf6dcde2775106532c7fb1afd5a75b36d7beb974be0dbed14c4dfe0e4347b65"
+    },
+    "scope": "Existing author logs were inspected, not independently rerun. Final changes after f0a96480 are fixture coverage and a capacity comment; related Linux execution is bound separately when complete."
+  },
+  "remaining_blocking_findings": [],
+  "related_linux_gates": "pending",
+  "performance_acceptance": false,
+  "deployment": false,
+  "limitations": [
+    "Successful source review and local checks are not full candidate compatibility/44-family qualification or SDK performance acceptance.",
+    "No allocation-count, CPU, throughput or latency improvement is measured by this review. The independent F-based prototype is not combined with stage diagnostics or other prototypes."
+  ]
+}
