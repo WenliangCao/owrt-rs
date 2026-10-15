@@ -1500,6 +1500,17 @@ impl Hosts {
     /// Return current static bucket order, then apply C's first matching
     /// flags-group rotation, including retained lease nodes before publication.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
+        // Published generations already index every hosts owner. A lowercase
+        // miss cannot rotate any matching node, so avoid computing C's bucket
+        // hash and walking unrelated records. Bulk loads may retain lease
+        // nodes outside this index and must keep the original lookup.
+        if self.bulk.is_none()
+            && (self.records.forward.is_empty()
+                || (!name.iter().any(u8::is_ascii_uppercase)
+                    && !self.records.forward.contains_key(name)))
+        {
+            return Vec::new();
+        }
         let bucket = name_hash_bucket(name, self.records.name_hash_capacity);
         self.lookup_in_bucket(name, ipv6, no_round_robin, bucket)
     }
@@ -1792,6 +1803,46 @@ pub fn visit_hosts(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn indexed_misses_preserve_lookup_rotation_and_generation_updates() {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(1497, 1000, 1000).unwrap();
+        for value in [1, 2] {
+            hosts.add_bulk_lease(b"lease.test", format!("192.0.2.{value}").parse().unwrap(), true, true).unwrap();
+        }
+        for value in [1, 2] {
+            hosts.insert(b"owner.test".to_vec(), format!("192.0.3.{value}").parse().unwrap(), 60, value);
+        }
+        hosts.insert(b"owner.test".to_vec(), "2001:db8::1".parse().unwrap(), 60, 3);
+        let collision = colliding_name(b"owner.test", 1000);
+        let compare = |hosts: &mut Hosts| {
+            let mut reference = hosts.clone();
+            for _ in 0..3 {
+                for name in [b"owner.test".as_slice(), b"OWNER.test", b"test", b"lease.test", &collision] {
+                    for family in [None, Some(false), Some(true)] {
+                        for no_rotation in [false, true] {
+                            let bucket = name_hash_bucket(name, reference.records.name_hash_capacity);
+                            let expected: Vec<_> = reference.lookup_in_bucket(name, family, no_rotation, bucket).into_iter().cloned().collect();
+                            let actual: Vec<_> = hosts.lookup(name, family, no_rotation).into_iter().cloned().collect();
+                            assert_eq!(actual, expected);
+                        }
+                    }
+                }
+            }
+        };
+        compare(&mut hosts);
+        hosts.seal_bulk();
+        compare(&mut hosts);
+        hosts.finish_bulk();
+        compare(&mut hosts);
+        compare(&mut hosts.tcp_snapshot());
+        let mut updated = hosts.try_clone().unwrap();
+        updated.remove_uid(1);
+        updated.insert(collision.clone(), "192.0.4.1".parse().unwrap(), 60, 4);
+        compare(&mut updated);
+        compare(&mut Hosts::new());
+    }
 
     fn colliding_name(name: &[u8], capacity: usize) -> Vec<u8> {
         (0..10000)
