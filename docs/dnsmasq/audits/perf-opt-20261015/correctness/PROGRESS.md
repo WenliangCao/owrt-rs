@@ -337,3 +337,33 @@ instruction. No new qualifier or changed C expectation was introduced.
 All remaining-gate batch processes completed. The three original full-family
 workers continue unchanged; full 44-family completion is the last pending
 correctness requirement before the coordinator can admit a device comparison.
+
+## C correctness complete
+
+[Full 44-family receipt](c-full44-gates.json): **44/44 families and 67/67 unique
+jobs passed**, with zero new or unclassified failure. The reviewer independently
+rehashed all 44 family result files, all 67 original job result files, and every
+supervisor-bound input after completion. The exact SDK ELF remains `b4c4a8e4…`,
+2,136,859 bytes; its same-build map is
+`9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a`.
+The full run completed in 2,063.77 wall seconds (34 min 24 s), with no scheduling
+pause, replacement run or retry. This elapsed time is a harness scheduling
+observation, not a product performance claim.
+
+UBus now passes the explicitly amended bookkeeping expectation: **346/346 paired
+observations**, zero assertion failures, and all 26 negative controls rejected.
+The actual comparator and all original C behavior observations are unchanged.
+The complete family raw-result SHA is
+`5adec1f15a5097db92668135d86197a2112ad168c310a1a19251984d42ec76ff`.
+
+C has completed every required correctness execution: 941 tests, F10 13/704,
+protocol 368 pairs, TCP 13 conditions/50 pairs, all four source corpora and all
+44 functional families. Existing approved PTR-order and C forward-pointer
+classifications remain explicit; the two historical lease UID-reuse differences
+retain their original raw comparator exit 1 and are nonblocking under the user's
+explicit instruction. No all-C-zero-difference claim is made. No new failure was
+found, and no product or expectation was modified during these runs.
+
+The coordinator was notified that correctness admission for its separately
+controlled device comparison is clear. This reviewer made no router connection,
+staging, production change or deployment.
