@@ -1,0 +1,2251 @@
+{
+  "plan": {
+    "scope": "Fixed excluded syscall diagnostic; four attempts, no best-run selection or timing comparison.",
+    "reference_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "candidate_e_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "shared_driver_commit": "93489990",
+    "driver_sha256": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325",
+    "driver_delta": "Exact shared committed driver, including non-executable data identity classification and detach immediately after fixed grace before post-window file verification.",
+    "parser_sha256": "9a22c82c5d8471c7fa03386766c402a91516926d0606c02d3af47089a70d3c53",
+    "helper_sha256": "fd9c6be5c48104115103c4f0a0311e091c59e88916e7c93258f58dacca7ef901",
+    "loadgen_sha256": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "upstream_sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "capture_window": "Attach after 1000-request UDP prewarm; 1000 warmup+4000 measured client completions then fixed1s grace. Same boundary for both implementations.",
+    "tree_scope": "Trace parent and every fork with -f; bind all PID ancestry and original image mappings; nonempty children at fixed grace invalidates completeness.",
+    "priority_affinity": "driver enters loopback-only network namespace; daemon nice10 CPU2; upstream CPU1; loadgen CPU3.",
+    "commands": [
+      {
+        "side": "c",
+        "mode": "udp",
+        "argv": [
+          "sudo",
+          "-n",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-hit-tools-r2-20261015/loop_owner_profile.py",
+          "--tools",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-udp",
+          "--mode",
+          "udp",
+          "--profile",
+          "hit",
+          "--strace",
+          "--stock-image-root",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+          "--c-symbol-receipt",
+          "/home/ubuntu/dnsmasq-perf-20261015/dns/private/image-c-symbols-20261015/symbol-receipt.json"
+        ]
+      },
+      {
+        "side": "e",
+        "mode": "udp",
+        "argv": [
+          "sudo",
+          "-n",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-hit-tools-r2-20261015/loop_owner_profile.py",
+          "--tools",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-udp",
+          "--mode",
+          "udp",
+          "--profile",
+          "hit",
+          "--strace",
+          "--build",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e"
+        ]
+      },
+      {
+        "side": "c",
+        "mode": "tcp",
+        "argv": [
+          "sudo",
+          "-n",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-hit-tools-r2-20261015/loop_owner_profile.py",
+          "--tools",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-tcp",
+          "--mode",
+          "tcp",
+          "--profile",
+          "hit",
+          "--strace",
+          "--stock-image-root",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+          "--c-symbol-receipt",
+          "/home/ubuntu/dnsmasq-perf-20261015/dns/private/image-c-symbols-20261015/symbol-receipt.json"
+        ]
+      },
+      {
+        "side": "e",
+        "mode": "tcp",
+        "argv": [
+          "sudo",
+          "-n",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-hit-tools-r2-20261015/loop_owner_profile.py",
+          "--tools",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-tcp",
+          "--mode",
+          "tcp",
+          "--profile",
+          "hit",
+          "--strace",
+          "--build",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e"
+        ]
+      }
+    ],
+    "previous_pre_capture_failure": {
+      "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-20261015/c-udp",
+      "reason": "strict file mapping set treated read-only TZif data as a DSO; no prewarm, tracer, or load launched",
+      "previous_plan_sha256": "445d30eabf17eb53e5e702d41c70295f9463b1b85f70c7fa8586d577437aed54"
+    }
+  },
+  "plan_sha256": "9b6a379563975a5330a67ddd89747012fdd3fbb41ed552f3e2c8c85c599c607a",
+  "capture_attempts_sha256": "759e20227f44a86d599983138ec7d13ae078e4a0df808db94e0efcf09bb2f0ab",
+  "driver_after_sha256": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325",
+  "parser_after_sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+  "scope": "One fixed exact-image C/E UDP-hit and TCP-hit syscall matrix; no timing acceptance.",
+  "raw_receipt_sha256": "0a2719397a783d11f696fefa9eae6ed4862016f9dfd2b1bcf0c9206643434b1a",
+  "cases": {
+    "c-udp": {
+      "scope": {
+        "scope": "Oracle-only excluded perf diagnostic of exact SDK ELF owner hot paths.\n\nRuns inside a fresh loopback-only netns. It preserves frozen DNS workloads,\nbut perf-instrumented elapsed time is never an acceptance measurement.\n",
+        "mode": "udp",
+        "profile": "hit",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "observer": "strace",
+        "source_commit": null,
+        "artifact_file": "dnsmasq-c",
+        "mapped_images": {
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-udp/dnsmasq-c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+        },
+        "process_tree": "root and every inherited fork; no --no-inherit",
+        "counter_window": "1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded",
+        "sample_event": "instructions:u",
+        "sample_period": 10000,
+        "deployed_baseline": false
+      },
+      "process_identity": {
+        "pid": 285224,
+        "exe": "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so",
+        "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "mapped_file_identity": {
+          "elf_files": {
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-udp/dnsmasq-c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063"
+          },
+          "non_executable_data_files": {
+            "/usr/share/zoneinfo/Etc/UTC": {
+              "sha256": "8b85846791ab2c8a5463c83a5be3c043e2570d7448434d41398969ed47e3e6f2",
+              "bytes": 114,
+              "mappings": [
+                {
+                  "permissions": "r--s",
+                  "offset": "00000000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "source_receipt": {
+        "symbol_receipt_sha256": "02ed4b8321ffacd1ddec6c061ea4375f8f4220ba06f8ee22d4b2f8b764596b94"
+      },
+      "complete": {
+        "valid_count_profile": true,
+        "measurement": {
+          "scheduled": 4000,
+          "sent": 4000,
+          "correct": 4000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 4000,
+          "release_sent": 0,
+          "dora_correct": 0,
+          "renew_correct": 0,
+          "correct_in_window": 4000,
+          "correct_after_window": 0,
+          "send_lag_count": 4000,
+          "send_lag_sum_ns": 307280149,
+          "send_lag_max_ns": 1675681
+        },
+        "completed_operations": 5000,
+        "tree_tail_complete": true,
+        "perf_statuses": [
+          -2
+        ],
+        "timing_eligible": false
+      },
+      "tree_tail": {
+        "root_pid": 285224,
+        "root_starttime_ticks": "180607471",
+        "drain_started_ns": 1806104857890164,
+        "drain_ended_ns": 1806105857994196,
+        "remaining_children": [],
+        "complete": true
+      },
+      "upstream_total": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "prewarm_counts": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 72395708,
+        "send_lag_max_ns": 699945
+      },
+      "raw_receipts": {
+        "process-identity.json": {
+          "bytes": 6249,
+          "sha256": "575f73a4a2575560c4f69adf28bd26592d431f2a32b0006fa6e3397c105d4c4e"
+        },
+        "maps-after": {
+          "bytes": 3403,
+          "sha256": "568c76ba813a230d57369d9f6f6928bd5dad172d99be11bcd8f36212f454e83a"
+        },
+        "mapped-files-after.json": {
+          "bytes": 1261,
+          "sha256": "bab8f54356ac3c8f3c186184ff5946d65f75b50933a17b345a3bc7617ec561ae"
+        },
+        "tree-tail.json": {
+          "bytes": 190,
+          "sha256": "d9204e921640a460a755fc02d93bbfa0cdb4964b2766b263c2b08772acb843e7"
+        },
+        "client.json": {
+          "bytes": 2020,
+          "sha256": "f1a0efc4993f6f255fc412eae66e8b64a66b183a659355ac772815b9050d7e72"
+        },
+        "prewarm.json": {
+          "bytes": 1988,
+          "sha256": "ec41766ab5c549fd2201e2302375d24e1da96cf0ee7680804bd8ab7a3cb26c09"
+        },
+        "upstream.json": {
+          "bytes": 1117,
+          "sha256": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb"
+        },
+        "complete.json": {
+          "bytes": 606,
+          "sha256": "1419ab388e94f360431490444431aa785ef5363ac744c23c50b51a40effcf5ac"
+        },
+        "syscalls.txt": {
+          "bytes": 4350333,
+          "sha256": "2a7fdc9ca955d4c0112717ac07c4f3b9ce7f8a066e87c3e807c573126800b3a4"
+        }
+      },
+      "summary_sha256": "63c73af328762d1d7952f83de74f32cacef370e359c0ba29fdfddee5d7d5d58f",
+      "accounting": {
+        "scope": "Entered/completed calls for the captured owned process tree; 5000 client queries plus fixed grace, not pure steady per-query cost.",
+        "parser_sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+        "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-udp",
+        "root_pid": 285224,
+        "processes": [
+          285224
+        ],
+        "fork_parent_by_pid": {},
+        "observed_exited_pids": [],
+        "incomplete_entered_calls": {
+          "285224": "ppoll"
+        },
+        "exec_calls": [],
+        "queries": 5000,
+        "tree_tail": {
+          "root_pid": 285224,
+          "root_starttime_ticks": "180607471",
+          "drain_started_ns": 1806104857890164,
+          "drain_ended_ns": 1806105857994196,
+          "remaining_children": [],
+          "complete": true
+        },
+        "client_counts": {
+          "warmup": {
+            "scheduled": 1000,
+            "sent": 1000,
+            "correct": 1000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 1000,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 1000,
+            "send_lag_sum_ns": 73439315,
+            "send_lag_max_ns": 612300
+          },
+          "measurement": {
+            "scheduled": 4000,
+            "sent": 4000,
+            "correct": 4000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 4000,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 4000,
+            "correct_after_window": 0,
+            "send_lag_count": 4000,
+            "send_lag_sum_ns": 307280149,
+            "send_lag_max_ns": 1675681
+          }
+        },
+        "whole_tree": {
+          "ppoll": {
+            "entered": 5001,
+            "completed": 5000,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "1": 5000
+            },
+            "parameters": {
+              "nfds=6": 5000,
+              "timeout=infinite": 5000,
+              "interest=POLLIN": 30000
+            },
+            "entered_per_completed_client_query": 1.0002
+          },
+          "recvmsg": {
+            "entered": 5000,
+            "completed": 5000,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "32": 5000
+            },
+            "parameters": {
+              "fd_role=dns-udp": 5000,
+              "flags=0": 5000,
+              "iov_len=1232": 5000,
+              "controllen=0": 5000
+            },
+            "entered_per_completed_client_query": 1.0
+          },
+          "sendmsg": {
+            "entered": 5000,
+            "completed": 5000,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "48": 3500,
+              "60": 1500
+            },
+            "parameters": {
+              "fd_role=dns-udp": 5000,
+              "flags=0": 5000,
+              "iov_len=48": 3500,
+              "controllen=0": 5000,
+              "iov_len=60": 1500
+            },
+            "entered_per_completed_client_query": 1.0
+          }
+        },
+        "parent_only": {
+          "ppoll": {
+            "entered": 5001,
+            "completed": 5000,
+            "errors": {}
+          },
+          "recvmsg": {
+            "entered": 5000,
+            "completed": 5000,
+            "errors": {}
+          },
+          "sendmsg": {
+            "entered": 5000,
+            "completed": 5000,
+            "errors": {}
+          }
+        },
+        "children_only": {},
+        "raw_trace": {
+          "bytes": 4350333,
+          "sha256": "2a7fdc9ca955d4c0112717ac07c4f3b9ce7f8a066e87c3e807c573126800b3a4"
+        },
+        "limitations": [
+          "strace elapsed time is not compared.",
+          "vDSO clock calls are invisible to syscall tracing.",
+          "Ancillary flags and buffers are observed; user-space cmsg parsing instructions are not.",
+          "Parameters are counted on completed calls; in-flight boundary calls are listed separately."
+        ]
+      },
+      "count_totals": {
+        "entered": 15001,
+        "completed": 15000
+      }
+    },
+    "e-udp": {
+      "scope": {
+        "scope": "Oracle-only excluded perf diagnostic of exact SDK ELF owner hot paths.\n\nRuns inside a fresh loopback-only netns. It preserves frozen DNS workloads,\nbut perf-instrumented elapsed time is never an acceptance measurement.\n",
+        "mode": "udp",
+        "profile": "hit",
+        "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "observer": "strace",
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "artifact_file": "dnsmasq-rs",
+        "mapped_images": {
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-udp/dnsmasq-rs": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+        },
+        "process_tree": "root and every inherited fork; no --no-inherit",
+        "counter_window": "1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded",
+        "sample_event": "instructions:u",
+        "sample_period": 10000,
+        "deployed_baseline": false
+      },
+      "process_identity": {
+        "pid": 285353,
+        "exe": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-udp/dnsmasq-rs",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "mapped_file_identity": {
+          "elf_files": {
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-udp/dnsmasq-rs": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+          },
+          "non_executable_data_files": {
+            "/usr/share/zoneinfo/Etc/UTC": {
+              "sha256": "8b85846791ab2c8a5463c83a5be3c043e2570d7448434d41398969ed47e3e6f2",
+              "bytes": 114,
+              "mappings": [
+                {
+                  "permissions": "r--s",
+                  "offset": "00000000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "source_receipt": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea"
+      },
+      "complete": {
+        "valid_count_profile": true,
+        "measurement": {
+          "scheduled": 4000,
+          "sent": 4000,
+          "correct": 4000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 4000,
+          "release_sent": 0,
+          "dora_correct": 0,
+          "renew_correct": 0,
+          "correct_in_window": 4000,
+          "correct_after_window": 0,
+          "send_lag_count": 4000,
+          "send_lag_sum_ns": 302635800,
+          "send_lag_max_ns": 1405424
+        },
+        "completed_operations": 5000,
+        "tree_tail_complete": true,
+        "perf_statuses": [
+          -2
+        ],
+        "timing_eligible": false
+      },
+      "tree_tail": {
+        "root_pid": 285353,
+        "root_starttime_ticks": "180610597",
+        "drain_started_ns": 1806136129813609,
+        "drain_ended_ns": 1806137129894236,
+        "remaining_children": [],
+        "complete": true
+      },
+      "upstream_total": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "prewarm_counts": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 78247778,
+        "send_lag_max_ns": 5049373
+      },
+      "raw_receipts": {
+        "process-identity.json": {
+          "bytes": 2581,
+          "sha256": "466a587655d47962f34ff3d2803f83079ebf28f11b877aa1783b4aad2a2367f9"
+        },
+        "maps-after": {
+          "bytes": 1254,
+          "sha256": "6bc1f7177c0405651d94c6c23b819f81de49f17ec5b0f3c0b81bd2d01fed599d"
+        },
+        "mapped-files-after.json": {
+          "bytes": 492,
+          "sha256": "a4315ac7d11b984d8ed35fcf9a41ec100b207058a5ff8c6b7c4c6ea5d6309adb"
+        },
+        "tree-tail.json": {
+          "bytes": 190,
+          "sha256": "bddc234e4e1eeafbf5542ee6b42499b03a2f7c2496abfd5a20eb18d8db7cf596"
+        },
+        "client.json": {
+          "bytes": 2021,
+          "sha256": "2aac6c7b2ec71e0f5e1e0dab72bb5e0813fde5d722ef4405b42c6eb7584f82d3"
+        },
+        "prewarm.json": {
+          "bytes": 1990,
+          "sha256": "728b4f9884d54739285595cbca509c9a833673e48210da71f61264d3842c7937"
+        },
+        "upstream.json": {
+          "bytes": 1117,
+          "sha256": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb"
+        },
+        "complete.json": {
+          "bytes": 606,
+          "sha256": "7530105cec4d0b1b3b1631131a09e35d316fc5e37997c7f5f89a24ab3878356b"
+        },
+        "syscalls.txt": {
+          "bytes": 5930334,
+          "sha256": "26b117ed2cd8a43267469841ddcc0dbddd59bb9955cc3e7a3cfac1a608ce8a6b"
+        }
+      },
+      "summary_sha256": "f20f4ed8711f5f935f24743065009ed9df0de9272a5bbc68878df3d9c8af27cd",
+      "accounting": {
+        "scope": "Entered/completed calls for the captured owned process tree; 5000 client queries plus fixed grace, not pure steady per-query cost.",
+        "parser_sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+        "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-udp",
+        "root_pid": 285353,
+        "processes": [
+          285353
+        ],
+        "fork_parent_by_pid": {},
+        "observed_exited_pids": [],
+        "incomplete_entered_calls": {
+          "285353": "ppoll"
+        },
+        "exec_calls": [],
+        "queries": 5000,
+        "tree_tail": {
+          "root_pid": 285353,
+          "root_starttime_ticks": "180610597",
+          "drain_started_ns": 1806136129813609,
+          "drain_ended_ns": 1806137129894236,
+          "remaining_children": [],
+          "complete": true
+        },
+        "client_counts": {
+          "warmup": {
+            "scheduled": 1000,
+            "sent": 1000,
+            "correct": 1000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 1000,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 1000,
+            "send_lag_sum_ns": 80574138,
+            "send_lag_max_ns": 1462097
+          },
+          "measurement": {
+            "scheduled": 4000,
+            "sent": 4000,
+            "correct": 4000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 4000,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 4000,
+            "correct_after_window": 0,
+            "send_lag_count": 4000,
+            "send_lag_sum_ns": 302635800,
+            "send_lag_max_ns": 1405424
+          }
+        },
+        "whole_tree": {
+          "ppoll": {
+            "entered": 5001,
+            "completed": 5000,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "1": 5000
+            },
+            "parameters": {
+              "nfds=6": 5000,
+              "timeout=infinite": 5000,
+              "interest=POLLIN": 30000
+            },
+            "entered_per_completed_client_query": 1.0002
+          },
+          "recvmsg": {
+            "entered": 10000,
+            "completed": 10000,
+            "boundary_completions": 0,
+            "errors": {
+              "EAGAIN": 5000
+            },
+            "return_values": {
+              "32": 5000,
+              "-1": 5000
+            },
+            "parameters": {
+              "fd_role=dns-udp": 10000,
+              "flags=0": 10000,
+              "iov_len=65535": 5000,
+              "cmsg_type=IP_PKTINFO": 5000,
+              "controllen=32": 5000
+            },
+            "entered_per_completed_client_query": 2.0
+          },
+          "sendmsg": {
+            "entered": 5000,
+            "completed": 5000,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "48": 3500,
+              "60": 1500
+            },
+            "parameters": {
+              "fd_role=dns-udp": 5000,
+              "flags=0": 5000,
+              "iov_len=48": 3500,
+              "controllen=0": 5000,
+              "iov_len=60": 1500
+            },
+            "entered_per_completed_client_query": 1.0
+          }
+        },
+        "parent_only": {
+          "ppoll": {
+            "entered": 5001,
+            "completed": 5000,
+            "errors": {}
+          },
+          "recvmsg": {
+            "entered": 10000,
+            "completed": 10000,
+            "errors": {
+              "EAGAIN": 5000
+            }
+          },
+          "sendmsg": {
+            "entered": 5000,
+            "completed": 5000,
+            "errors": {}
+          }
+        },
+        "children_only": {},
+        "raw_trace": {
+          "bytes": 5930334,
+          "sha256": "26b117ed2cd8a43267469841ddcc0dbddd59bb9955cc3e7a3cfac1a608ce8a6b"
+        },
+        "limitations": [
+          "strace elapsed time is not compared.",
+          "vDSO clock calls are invisible to syscall tracing.",
+          "Ancillary flags and buffers are observed; user-space cmsg parsing instructions are not.",
+          "Parameters are counted on completed calls; in-flight boundary calls are listed separately."
+        ]
+      },
+      "count_totals": {
+        "entered": 20001,
+        "completed": 20000
+      }
+    },
+    "c-tcp": {
+      "scope": {
+        "scope": "Oracle-only excluded perf diagnostic of exact SDK ELF owner hot paths.\n\nRuns inside a fresh loopback-only netns. It preserves frozen DNS workloads,\nbut perf-instrumented elapsed time is never an acceptance measurement.\n",
+        "mode": "tcp",
+        "profile": "hit",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "observer": "strace",
+        "source_commit": null,
+        "artifact_file": "dnsmasq-c",
+        "mapped_images": {
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-tcp/dnsmasq-c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+        },
+        "process_tree": "root and every inherited fork; no --no-inherit",
+        "counter_window": "1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded",
+        "sample_event": "instructions:u",
+        "sample_period": 10000,
+        "deployed_baseline": false
+      },
+      "process_identity": {
+        "pid": 285670,
+        "exe": "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so",
+        "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "mapped_file_identity": {
+          "elf_files": {
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-tcp/dnsmasq-c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+            "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+          },
+          "non_executable_data_files": {
+            "/usr/share/zoneinfo/Etc/UTC": {
+              "sha256": "8b85846791ab2c8a5463c83a5be3c043e2570d7448434d41398969ed47e3e6f2",
+              "bytes": 114,
+              "mappings": [
+                {
+                  "permissions": "r--s",
+                  "offset": "00000000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "source_receipt": {
+        "symbol_receipt_sha256": "02ed4b8321ffacd1ddec6c061ea4375f8f4220ba06f8ee22d4b2f8b764596b94"
+      },
+      "complete": {
+        "valid_count_profile": true,
+        "measurement": {
+          "scheduled": 4000,
+          "sent": 4000,
+          "correct": 4000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 0,
+          "release_sent": 0,
+          "dora_correct": 0,
+          "renew_correct": 0,
+          "correct_in_window": 4000,
+          "correct_after_window": 0,
+          "send_lag_count": 4000,
+          "send_lag_sum_ns": 296142199,
+          "send_lag_max_ns": 1328912
+        },
+        "completed_operations": 5000,
+        "tree_tail_complete": true,
+        "perf_statuses": [
+          -2
+        ],
+        "timing_eligible": false
+      },
+      "tree_tail": {
+        "root_pid": 285670,
+        "root_starttime_ticks": "180613724",
+        "drain_started_ns": 1806167393366883,
+        "drain_ended_ns": 1806168393472827,
+        "remaining_children": [],
+        "complete": true
+      },
+      "upstream_total": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "prewarm_counts": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 72346600,
+        "send_lag_max_ns": 1211538
+      },
+      "raw_receipts": {
+        "process-identity.json": {
+          "bytes": 6249,
+          "sha256": "42eef4f5d95d64c4ac69f270c44068d2cb73e07749a4d2d6aae612b7f1c3e1b1"
+        },
+        "maps-after": {
+          "bytes": 3354,
+          "sha256": "0d136ec30719d4959a064a8a8b6573f5d87edcbaef64712fb6b0feb0610b342b"
+        },
+        "mapped-files-after.json": {
+          "bytes": 1261,
+          "sha256": "74f57bb3c403a647990637cc5c78bdb6e705e455615edde556cb551a0c2edb8d"
+        },
+        "tree-tail.json": {
+          "bytes": 190,
+          "sha256": "3bc742f971c5d1c87b29d26c7b475b4f4cbadd18b555e74be09ab1c609bf093c"
+        },
+        "client.json": {
+          "bytes": 2012,
+          "sha256": "fc2212cf49b126783adc2beb301299e8fffa413d7859abb4cbf31a664e441526"
+        },
+        "prewarm.json": {
+          "bytes": 1990,
+          "sha256": "858896457ded630aca47e00f591bafdd693e5295a13d902c1d76bf7669e32726"
+        },
+        "upstream.json": {
+          "bytes": 1117,
+          "sha256": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb"
+        },
+        "complete.json": {
+          "bytes": 603,
+          "sha256": "495eba3a80fd7601d953e93399ac999ee40e4a6437663c72db2a526d51deb496"
+        },
+        "syscalls.txt": {
+          "bytes": 2859593,
+          "sha256": "03ea38e0e982891ea3f20a9ba42a5c77045f044a5a345cbe20a29d5cb997c905"
+        }
+      },
+      "summary_sha256": "cf5084b2baf59aac3da5e40ac419b52416b57cdf3144ad870fa360f46c816bac",
+      "accounting": {
+        "scope": "Entered/completed calls for the captured owned process tree; 5000 client queries plus fixed grace, not pure steady per-query cost.",
+        "parser_sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+        "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/c-tcp",
+        "root_pid": 285670,
+        "processes": [
+          285670,
+          285699,
+          285700,
+          285701,
+          285702,
+          285703,
+          285704,
+          285705,
+          285706,
+          285707,
+          285708,
+          285709,
+          285710,
+          285711,
+          285712,
+          285713,
+          285714,
+          285715,
+          285716,
+          285717,
+          285718,
+          285719,
+          285720,
+          285721,
+          285722,
+          285785,
+          285786,
+          285787,
+          285788,
+          285790,
+          285805,
+          285812,
+          285813,
+          285814,
+          285815,
+          285816,
+          285817,
+          285818,
+          285819,
+          285820,
+          285821,
+          285866,
+          285867,
+          285868,
+          285869,
+          285870,
+          285871,
+          285872,
+          285873,
+          285925,
+          285926,
+          285927,
+          285928,
+          285929,
+          285930,
+          285931,
+          285932
+        ],
+        "fork_parent_by_pid": {
+          "285699": 285670,
+          "285700": 285670,
+          "285701": 285670,
+          "285702": 285670,
+          "285703": 285670,
+          "285704": 285670,
+          "285705": 285670,
+          "285706": 285670,
+          "285707": 285670,
+          "285708": 285670,
+          "285709": 285670,
+          "285710": 285670,
+          "285711": 285670,
+          "285712": 285670,
+          "285713": 285670,
+          "285714": 285670,
+          "285715": 285670,
+          "285716": 285670,
+          "285717": 285670,
+          "285718": 285670,
+          "285719": 285670,
+          "285720": 285670,
+          "285721": 285670,
+          "285722": 285670,
+          "285785": 285670,
+          "285786": 285670,
+          "285787": 285670,
+          "285788": 285670,
+          "285790": 285670,
+          "285805": 285670,
+          "285812": 285670,
+          "285813": 285670,
+          "285814": 285670,
+          "285815": 285670,
+          "285816": 285670,
+          "285817": 285670,
+          "285818": 285670,
+          "285819": 285670,
+          "285820": 285670,
+          "285821": 285670,
+          "285866": 285670,
+          "285867": 285670,
+          "285868": 285670,
+          "285869": 285670,
+          "285870": 285670,
+          "285871": 285670,
+          "285872": 285670,
+          "285873": 285670,
+          "285925": 285670,
+          "285926": 285670,
+          "285927": 285670,
+          "285928": 285670,
+          "285929": 285670,
+          "285930": 285670,
+          "285931": 285670,
+          "285932": 285670
+        },
+        "observed_exited_pids": [
+          285699,
+          285700,
+          285701,
+          285702,
+          285703,
+          285704,
+          285705,
+          285706,
+          285707,
+          285708,
+          285709,
+          285710,
+          285711,
+          285712,
+          285713,
+          285714,
+          285715,
+          285716,
+          285717,
+          285718,
+          285719,
+          285720,
+          285721,
+          285722,
+          285785,
+          285786,
+          285787,
+          285788,
+          285790,
+          285805,
+          285812,
+          285813,
+          285814,
+          285815,
+          285816,
+          285817,
+          285818,
+          285819,
+          285820,
+          285821,
+          285866,
+          285867,
+          285868,
+          285869,
+          285870,
+          285871,
+          285872,
+          285873,
+          285925,
+          285926,
+          285927,
+          285928,
+          285929,
+          285930,
+          285931,
+          285932
+        ],
+        "incomplete_entered_calls": {
+          "285670": "ppoll"
+        },
+        "exec_calls": [],
+        "queries": 5000,
+        "tree_tail": {
+          "root_pid": 285670,
+          "root_starttime_ticks": "180613724",
+          "drain_started_ns": 1806167393366883,
+          "drain_ended_ns": 1806168393472827,
+          "remaining_children": [],
+          "complete": true
+        },
+        "client_counts": {
+          "warmup": {
+            "scheduled": 1000,
+            "sent": 1000,
+            "correct": 1000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 1000,
+            "send_lag_sum_ns": 74034420,
+            "send_lag_max_ns": 163450
+          },
+          "measurement": {
+            "scheduled": 4000,
+            "sent": 4000,
+            "correct": 4000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 4000,
+            "correct_after_window": 0,
+            "send_lag_count": 4000,
+            "send_lag_sum_ns": 296142199,
+            "send_lag_max_ns": 1328912
+          }
+        },
+        "whole_tree": {
+          "accept": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "11": 56
+            },
+            "parameters": {
+              "fd_role=tcp-listener": 56
+            },
+            "entered_per_completed_client_query": 0.0112
+          },
+          "clone": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "285699": 1,
+              "285700": 1,
+              "285701": 1,
+              "285702": 1,
+              "285703": 1,
+              "285704": 1,
+              "285705": 1,
+              "285706": 1,
+              "285707": 1,
+              "285708": 1,
+              "285709": 1,
+              "285710": 1,
+              "285711": 1,
+              "285712": 1,
+              "285713": 1,
+              "285714": 1,
+              "285715": 1,
+              "285716": 1,
+              "285717": 1,
+              "285718": 1,
+              "285719": 1,
+              "285720": 1,
+              "285721": 1,
+              "285722": 1,
+              "285785": 1,
+              "285786": 1,
+              "285787": 1,
+              "285788": 1,
+              "285790": 1,
+              "285805": 1,
+              "285812": 1,
+              "285813": 1,
+              "285814": 1,
+              "285815": 1,
+              "285816": 1,
+              "285817": 1,
+              "285818": 1,
+              "285819": 1,
+              "285820": 1,
+              "285821": 1,
+              "285866": 1,
+              "285867": 1,
+              "285868": 1,
+              "285869": 1,
+              "285870": 1,
+              "285871": 1,
+              "285872": 1,
+              "285873": 1,
+              "285925": 1,
+              "285926": 1,
+              "285927": 1,
+              "285928": 1,
+              "285929": 1,
+              "285930": 1,
+              "285931": 1,
+              "285932": 1
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "close": {
+            "entered": 504,
+            "completed": 504,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 504
+            },
+            "parameters": {
+              "fd_role=netlink": 56,
+              "fd_role=pipe": 224,
+              "fd_role=downstream-tcp": 112,
+              "fd_role=daemon-log": 56,
+              "fd_role=other-udp": 56
+            },
+            "entered_per_completed_client_query": 0.1008
+          },
+          "exit_group": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "?": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "fcntl": {
+            "entered": 112,
+            "completed": 112,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0x2": 56,
+              "0": 56
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 112,
+              "command=F_GETFL": 56,
+              "return_flags=O_RDWR": 56,
+              "command=F_SETFL": 56,
+              "argument=O_RDWR|O_LARGEFILE": 56
+            },
+            "entered_per_completed_client_query": 0.0224
+          },
+          "getpeername": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "getsockname": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "ioctl": {
+            "entered": 224,
+            "completed": 224,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 224
+            },
+            "parameters": {
+              "fd_role=other-udp": 224,
+              "command=SIOCGIFNAME": 112,
+              "command=SIOCGIFFLAGS": 112
+            },
+            "entered_per_completed_client_query": 0.0448
+          },
+          "mmap": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0xea6c3d896000": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "munmap": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "pipe2": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "ppoll": {
+            "entered": 203,
+            "completed": 202,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "1": 154,
+              "?": 42,
+              "8": 1,
+              "7": 1,
+              "5": 1,
+              "4": 1,
+              "3": 1,
+              "2": 1
+            },
+            "parameters": {
+              "nfds=6": 19,
+              "timeout=infinite": 202,
+              "interest=POLLIN": 1958,
+              "nfds=7": 26,
+              "nfds=8": 26,
+              "nfds=9": 26,
+              "nfds=10": 26,
+              "nfds=11": 24,
+              "nfds=12": 26,
+              "nfds=13": 22,
+              "nfds=14": 7
+            },
+            "entered_per_completed_client_query": 0.0406
+          },
+          "readv": {
+            "entered": 10170,
+            "completed": 10170,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "2": 5000,
+              "32": 5000,
+              "0": 64,
+              "1": 56,
+              "12": 50
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 10008,
+              "iovcnt=1": 10170,
+              "iov_len=2": 5008,
+              "iov_len=32": 5000,
+              "fd_role=pipe": 162,
+              "iov_len=1": 112,
+              "iov_len=12": 50
+            },
+            "entered_per_completed_client_query": 2.034
+          },
+          "recvmsg": {
+            "entered": 336,
+            "completed": 336,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "100": 112,
+              "76": 112,
+              "20": 112
+            },
+            "parameters": {
+              "fd_role=netlink": 336,
+              "flags=MSG_PEEK|MSG_TRUNC": 168,
+              "iov_len=100": 336,
+              "controllen=0": 336,
+              "flags=0": 168
+            },
+            "entered_per_completed_client_query": 0.0672
+          },
+          "rt_sigprocmask": {
+            "entered": 336,
+            "completed": 336,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 336
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0672
+          },
+          "rt_sigreturn": {
+            "entered": 50,
+            "completed": 50,
+            "boundary_completions": 0,
+            "errors": {
+              "EINTR": 42
+            },
+            "return_values": {
+              "-1": 42,
+              "0": 8
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.01
+          },
+          "sendto": {
+            "entered": 112,
+            "completed": 112,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "20": 112
+            },
+            "parameters": {
+              "fd_role=netlink": 112,
+              "flags=0": 112,
+              "requested_bytes=20": 112
+            },
+            "entered_per_completed_client_query": 0.0224
+          },
+          "set_tid_address": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "285699": 1,
+              "285700": 1,
+              "285701": 1,
+              "285702": 1,
+              "285703": 1,
+              "285704": 1,
+              "285705": 1,
+              "285706": 1,
+              "285707": 1,
+              "285708": 1,
+              "285709": 1,
+              "285710": 1,
+              "285711": 1,
+              "285712": 1,
+              "285713": 1,
+              "285714": 1,
+              "285715": 1,
+              "285716": 1,
+              "285717": 1,
+              "285718": 1,
+              "285719": 1,
+              "285720": 1,
+              "285721": 1,
+              "285722": 1,
+              "285866": 1,
+              "285867": 1,
+              "285868": 1,
+              "285869": 1,
+              "285870": 1,
+              "285871": 1,
+              "285872": 1,
+              "285873": 1,
+              "285785": 1,
+              "285786": 1,
+              "285787": 1,
+              "285788": 1,
+              "285790": 1,
+              "285925": 1,
+              "285926": 1,
+              "285927": 1,
+              "285928": 1,
+              "285929": 1,
+              "285930": 1,
+              "285931": 1,
+              "285805": 1,
+              "285932": 1,
+              "285812": 1,
+              "285813": 1,
+              "285814": 1,
+              "285815": 1,
+              "285816": 1,
+              "285817": 1,
+              "285818": 1,
+              "285819": 1,
+              "285820": 1,
+              "285821": 1
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "setitimer": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "shutdown": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 56
+            },
+            "entered_per_completed_client_query": 0.0112
+          },
+          "socket": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "12": 7,
+              "13": 7,
+              "14": 7,
+              "15": 7,
+              "16": 7,
+              "17": 7,
+              "18": 7,
+              "19": 7
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "wait4": {
+            "entered": 106,
+            "completed": 106,
+            "boundary_completions": 0,
+            "errors": {
+              "ECHILD": 8
+            },
+            "return_values": {
+              "285699": 1,
+              "0": 42,
+              "285700": 1,
+              "285701": 1,
+              "285702": 1,
+              "285703": 1,
+              "285704": 1,
+              "285705": 1,
+              "285706": 1,
+              "-1": 8,
+              "285707": 1,
+              "285708": 1,
+              "285709": 1,
+              "285710": 1,
+              "285711": 1,
+              "285712": 1,
+              "285713": 1,
+              "285714": 1,
+              "285715": 1,
+              "285716": 1,
+              "285717": 1,
+              "285718": 1,
+              "285719": 1,
+              "285720": 1,
+              "285721": 1,
+              "285722": 1,
+              "285785": 1,
+              "285786": 1,
+              "285787": 1,
+              "285788": 1,
+              "285790": 1,
+              "285805": 1,
+              "285812": 1,
+              "285813": 1,
+              "285814": 1,
+              "285815": 1,
+              "285816": 1,
+              "285817": 1,
+              "285818": 1,
+              "285819": 1,
+              "285820": 1,
+              "285821": 1,
+              "285866": 1,
+              "285867": 1,
+              "285868": 1,
+              "285869": 1,
+              "285870": 1,
+              "285871": 1,
+              "285872": 1,
+              "285873": 1,
+              "285925": 1,
+              "285926": 1,
+              "285927": 1,
+              "285928": 1,
+              "285929": 1,
+              "285930": 1,
+              "285931": 1,
+              "285932": 1
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0212
+          },
+          "writev": {
+            "entered": 5106,
+            "completed": 5106,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "1": 56,
+              "50": 3500,
+              "62": 1500,
+              "12": 50
+            },
+            "parameters": {
+              "fd_role=pipe": 106,
+              "iovcnt=1": 106,
+              "iov_len=1": 56,
+              "fd_role=downstream-tcp": 5000,
+              "iovcnt=2": 5000,
+              "iov_len=2": 5000,
+              "iov_len=48": 3500,
+              "iov_len=60": 1500,
+              "iov_len=12": 50
+            },
+            "entered_per_completed_client_query": 1.0212
+          }
+        },
+        "parent_only": {
+          "accept": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "clone": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "close": {
+            "entered": 224,
+            "completed": 224,
+            "errors": {}
+          },
+          "getsockname": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "ioctl": {
+            "entered": 224,
+            "completed": 224,
+            "errors": {}
+          },
+          "pipe2": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "ppoll": {
+            "entered": 203,
+            "completed": 202,
+            "errors": {}
+          },
+          "readv": {
+            "entered": 162,
+            "completed": 162,
+            "errors": {}
+          },
+          "recvmsg": {
+            "entered": 336,
+            "completed": 336,
+            "errors": {}
+          },
+          "rt_sigprocmask": {
+            "entered": 224,
+            "completed": 224,
+            "errors": {}
+          },
+          "rt_sigreturn": {
+            "entered": 50,
+            "completed": 50,
+            "errors": {
+              "EINTR": 42
+            }
+          },
+          "sendto": {
+            "entered": 112,
+            "completed": 112,
+            "errors": {}
+          },
+          "socket": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "wait4": {
+            "entered": 106,
+            "completed": 106,
+            "errors": {
+              "ECHILD": 8
+            }
+          },
+          "writev": {
+            "entered": 50,
+            "completed": 50,
+            "errors": {}
+          }
+        },
+        "children_only": {
+          "close": {
+            "entered": 280,
+            "completed": 280,
+            "errors": {}
+          },
+          "exit_group": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "fcntl": {
+            "entered": 112,
+            "completed": 112,
+            "errors": {}
+          },
+          "getpeername": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "mmap": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "munmap": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "readv": {
+            "entered": 10008,
+            "completed": 10008,
+            "errors": {}
+          },
+          "rt_sigprocmask": {
+            "entered": 112,
+            "completed": 112,
+            "errors": {}
+          },
+          "set_tid_address": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "setitimer": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "shutdown": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "writev": {
+            "entered": 5056,
+            "completed": 5056,
+            "errors": {}
+          }
+        },
+        "raw_trace": {
+          "bytes": 2859593,
+          "sha256": "03ea38e0e982891ea3f20a9ba42a5c77045f044a5a345cbe20a29d5cb997c905"
+        },
+        "limitations": [
+          "strace elapsed time is not compared.",
+          "vDSO clock calls are invisible to syscall tracing.",
+          "Ancillary flags and buffers are observed; user-space cmsg parsing instructions are not.",
+          "Parameters are counted on completed calls; in-flight boundary calls are listed separately."
+        ]
+      },
+      "count_totals": {
+        "entered": 17931,
+        "completed": 17930
+      }
+    },
+    "e-tcp": {
+      "scope": {
+        "scope": "Oracle-only excluded perf diagnostic of exact SDK ELF owner hot paths.\n\nRuns inside a fresh loopback-only netns. It preserves frozen DNS workloads,\nbut perf-instrumented elapsed time is never an acceptance measurement.\n",
+        "mode": "tcp",
+        "profile": "hit",
+        "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "observer": "strace",
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "artifact_file": "dnsmasq-rs",
+        "mapped_images": {
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-tcp/dnsmasq-rs": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+        },
+        "process_tree": "root and every inherited fork; no --no-inherit",
+        "counter_window": "1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded",
+        "sample_event": "instructions:u",
+        "sample_period": 10000,
+        "deployed_baseline": false
+      },
+      "process_identity": {
+        "pid": 285957,
+        "exe": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-tcp/dnsmasq-rs",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "mapped_file_identity": {
+          "elf_files": {
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-tcp/dnsmasq-rs": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+          },
+          "non_executable_data_files": {
+            "/usr/share/zoneinfo/Etc/UTC": {
+              "sha256": "8b85846791ab2c8a5463c83a5be3c043e2570d7448434d41398969ed47e3e6f2",
+              "bytes": 114,
+              "mappings": [
+                {
+                  "permissions": "r--s",
+                  "offset": "00000000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "source_receipt": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea"
+      },
+      "complete": {
+        "valid_count_profile": true,
+        "measurement": {
+          "scheduled": 4000,
+          "sent": 4000,
+          "correct": 4000,
+          "timeout": 0,
+          "wrong": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0,
+          "stale_reply": 0,
+          "datagrams_sent": 0,
+          "release_sent": 0,
+          "dora_correct": 0,
+          "renew_correct": 0,
+          "correct_in_window": 4000,
+          "correct_after_window": 0,
+          "send_lag_count": 4000,
+          "send_lag_sum_ns": 307338615,
+          "send_lag_max_ns": 3226249
+        },
+        "completed_operations": 5000,
+        "tree_tail_complete": true,
+        "perf_statuses": [
+          -2
+        ],
+        "timing_eligible": false
+      },
+      "tree_tail": {
+        "root_pid": 285957,
+        "root_starttime_ticks": "180616851",
+        "drain_started_ns": 1806198667872833,
+        "drain_ended_ns": 1806199667949774,
+        "remaining_children": [],
+        "complete": true
+      },
+      "upstream_total": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      },
+      "prewarm_counts": {
+        "scheduled": 1000,
+        "sent": 1000,
+        "correct": 1000,
+        "timeout": 0,
+        "wrong": 0,
+        "transport_error": 0,
+        "scheduled_skipped": 0,
+        "stale_reply": 0,
+        "datagrams_sent": 1000,
+        "release_sent": 0,
+        "dora_correct": 0,
+        "renew_correct": 0,
+        "correct_in_window": 1000,
+        "correct_after_window": 0,
+        "send_lag_count": 1000,
+        "send_lag_sum_ns": 72202779,
+        "send_lag_max_ns": 1188555
+      },
+      "raw_receipts": {
+        "process-identity.json": {
+          "bytes": 2581,
+          "sha256": "a35bd2ea9502fe1fb01df04ba9c6a0555fbc1cb4013cd97b89b50524ea02ca78"
+        },
+        "maps-after": {
+          "bytes": 1352,
+          "sha256": "b76c5fc012434a7ae6c54505f696295fa27bc283b30a65a79e4a07e6b159eae5"
+        },
+        "mapped-files-after.json": {
+          "bytes": 492,
+          "sha256": "01dfa78a4e44218c25899fe779024b3976aed6c144149989751b77a005ae5452"
+        },
+        "tree-tail.json": {
+          "bytes": 190,
+          "sha256": "0a8f3970639a0dcc8b30c1a39abb90a6d8ca09d4d38544ce6e4482147851adfd"
+        },
+        "client.json": {
+          "bytes": 2013,
+          "sha256": "6f306587872a6e490aa1e9c3ffb63a13bcebe999e70b4b4028b65833feea8edb"
+        },
+        "prewarm.json": {
+          "bytes": 1990,
+          "sha256": "08f89215f16215d872e2e4a61b55d09ac3495625496cdc6009c310363514a0c5"
+        },
+        "upstream.json": {
+          "bytes": 1117,
+          "sha256": "0a94d7a4fe5a670de0cb11b709270ee62d2913de7bdbdf35b03a666cf0f66ebb"
+        },
+        "complete.json": {
+          "bytes": 603,
+          "sha256": "1f7a7782b67d2d0dc6249ac1315f2d407fc68001a9cea12ff8ca21130e82af0d"
+        },
+        "syscalls.txt": {
+          "bytes": 5986553,
+          "sha256": "d6294f9fbbd57342187cd1b83a4ee9036ac2acfaaed117af6086f6c9e8c5bbd6"
+        }
+      },
+      "summary_sha256": "2274142bab95d84a36c52477dfbccbae26289cb85ad096c0ca4c9dee774dad8d",
+      "accounting": {
+        "scope": "Entered/completed calls for the captured owned process tree; 5000 client queries plus fixed grace, not pure steady per-query cost.",
+        "parser_sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+        "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/image-c-e-syscalls-r2-20261015/e-tcp",
+        "root_pid": 285957,
+        "processes": [
+          285957
+        ],
+        "fork_parent_by_pid": {},
+        "observed_exited_pids": [],
+        "incomplete_entered_calls": {
+          "285957": "ppoll"
+        },
+        "exec_calls": [],
+        "queries": 5000,
+        "tree_tail": {
+          "root_pid": 285957,
+          "root_starttime_ticks": "180616851",
+          "drain_started_ns": 1806198667872833,
+          "drain_ended_ns": 1806199667949774,
+          "remaining_children": [],
+          "complete": true
+        },
+        "client_counts": {
+          "warmup": {
+            "scheduled": 1000,
+            "sent": 1000,
+            "correct": 1000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 1000,
+            "send_lag_sum_ns": 86718488,
+            "send_lag_max_ns": 3086976
+          },
+          "measurement": {
+            "scheduled": 4000,
+            "sent": 4000,
+            "correct": 4000,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 4000,
+            "correct_after_window": 0,
+            "send_lag_count": 4000,
+            "send_lag_sum_ns": 307338615,
+            "send_lag_max_ns": 3226249
+          }
+        },
+        "whole_tree": {
+          "accept4": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "12": 7,
+              "13": 7,
+              "14": 7,
+              "15": 7,
+              "16": 7,
+              "17": 7,
+              "18": 7,
+              "19": 7
+            },
+            "parameters": {
+              "fd_role=tcp-listener": 56
+            },
+            "entered_per_completed_client_query": 0.0112
+          },
+          "close": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 56
+            },
+            "entered_per_completed_client_query": 0.0112
+          },
+          "getsockname": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0112
+          },
+          "ioctl": {
+            "entered": 56,
+            "completed": 56,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 56
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 56,
+              "command=FIONBIO": 56
+            },
+            "entered_per_completed_client_query": 0.0112
+          },
+          "mmap": {
+            "entered": 87,
+            "completed": 87,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0xf996161e6000": 7,
+              "0xf996161e2000": 7,
+              "0xf996161e1000": 1,
+              "0xf996161dd000": 1,
+              "0xf996161db000": 2,
+              "0xf996161d7000": 1,
+              "0xf996161d1000": 1,
+              "0xf996161cd000": 1,
+              "0xf996161cb000": 1,
+              "0xf996161c7000": 1,
+              "0xf996161c3000": 7,
+              "0xf996161bb000": 7,
+              "0xf996161b7000": 7,
+              "0xf996161b5000": 7,
+              "0xf996161de000": 6,
+              "0xf996161d8000": 6,
+              "0xf996161d4000": 6,
+              "0xf996161d0000": 6,
+              "0xf996161ce000": 6,
+              "0xf996161cc000": 6
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0174
+          },
+          "munmap": {
+            "entered": 86,
+            "completed": 86,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "0": 86
+            },
+            "parameters": {},
+            "entered_per_completed_client_query": 0.0172
+          },
+          "ppoll": {
+            "entered": 5053,
+            "completed": 5052,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "1": 5045,
+              "2": 6,
+              "7": 1
+            },
+            "parameters": {
+              "nfds=6": 7,
+              "timeout=infinite": 7,
+              "interest=POLLIN": 70139,
+              "nfds=7": 19,
+              "timeout=positive": 5045,
+              "nfds=8": 19,
+              "nfds=9": 19,
+              "nfds=10": 19,
+              "nfds=11": 19,
+              "nfds=12": 19,
+              "nfds=13": 20,
+              "nfds=14": 4911
+            },
+            "entered_per_completed_client_query": 1.0106
+          },
+          "recvfrom": {
+            "entered": 5008,
+            "completed": 5008,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "34": 5000,
+              "0": 8
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 5008,
+              "flags=0": 5008,
+              "requested_bytes=4096": 5008
+            },
+            "entered_per_completed_client_query": 1.0016
+          },
+          "writev": {
+            "entered": 5000,
+            "completed": 5000,
+            "boundary_completions": 0,
+            "errors": {},
+            "return_values": {
+              "50": 3500,
+              "62": 1500
+            },
+            "parameters": {
+              "fd_role=downstream-tcp": 5000,
+              "iovcnt=2": 5000,
+              "iov_len=2": 5000,
+              "iov_len=48": 3500,
+              "iov_len=60": 1500
+            },
+            "entered_per_completed_client_query": 1.0
+          }
+        },
+        "parent_only": {
+          "accept4": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "close": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "getsockname": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "ioctl": {
+            "entered": 56,
+            "completed": 56,
+            "errors": {}
+          },
+          "mmap": {
+            "entered": 87,
+            "completed": 87,
+            "errors": {}
+          },
+          "munmap": {
+            "entered": 86,
+            "completed": 86,
+            "errors": {}
+          },
+          "ppoll": {
+            "entered": 5053,
+            "completed": 5052,
+            "errors": {}
+          },
+          "recvfrom": {
+            "entered": 5008,
+            "completed": 5008,
+            "errors": {}
+          },
+          "writev": {
+            "entered": 5000,
+            "completed": 5000,
+            "errors": {}
+          }
+        },
+        "children_only": {},
+        "raw_trace": {
+          "bytes": 5986553,
+          "sha256": "d6294f9fbbd57342187cd1b83a4ee9036ac2acfaaed117af6086f6c9e8c5bbd6"
+        },
+        "limitations": [
+          "strace elapsed time is not compared.",
+          "vDSO clock calls are invisible to syscall tracing.",
+          "Ancillary flags and buffers are observed; user-space cmsg parsing instructions are not.",
+          "Parameters are counted on completed calls; in-flight boundary calls are listed separately."
+        ]
+      },
+      "count_totals": {
+        "entered": 15458,
+        "completed": 15457
+      }
+    }
+  },
+  "exact_c_symbol_binding": {
+    "scope": "Existing matching OpenWrt build symbol companion; re-sstrip -z output byte-identical to exact image, plus all ALLOC section bytes/layout checked against image LOAD mappings. No native rebuilt C substitute.",
+    "stripped_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "stripped_bytes": 269305,
+    "companion_path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/dnsmasq-nodhcpv6/dnsmasq-2.93/src/dnsmasq",
+    "companion_sha256": "79cb9590a6113bca41034155ec45569eac58a2dccde80819c9863ef316f740da",
+    "companion_bytes": 303848,
+    "strip_tool": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/staging_dir/host/bin/sstrip",
+    "strip_tool_sha256": "075cfbd820f6ab37adab771a65a2560a55339abaca69bdf39f791504b26025da",
+    "strip_reproduces_exact_image": true,
+    "strip_argv": [
+      "sstrip",
+      "-z",
+      "private-copy"
+    ],
+    "ordinary_strip_attempt": {
+      "sha256": "cf4181c326175b77391f7957cdd0f10521d7478d891d247fc78c2e8b89213718",
+      "bytes": 269312,
+      "not_exact": "default sstrip retained7trailingzeros;attemptretained"
+    },
+    "defined_sized_functions": 332,
+    "zero_size_functions_unattributed": 3,
+    "source_files_sha256": {
+      "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+      "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+      "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+      "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+    }
+  }
+}
