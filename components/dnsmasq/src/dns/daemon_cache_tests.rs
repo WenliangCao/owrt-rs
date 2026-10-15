@@ -84,6 +84,80 @@ fn shared_answer(daemon: &mut DnsDaemon, query: &[u8], now: i64, tcp: bool) -> O
 }
 
 #[test]
+fn cached_local_shortcut_keeps_same_name_hosts_raw_and_rule_precedence() {
+    use std::sync::Arc;
+    use super::super::cache::{Kind, Record};
+    for rrtype in [1, 28] {
+        for tcp in [false, true] {
+            for mode in ["none", "host", "raw", "literal", "local-only", "configured-cname"] {
+                let mut daemon = daemon();
+                let address = if rrtype == 1 { "192.0.2.9" } else { "2001:db8::9" };
+                let directives = match mode {
+                    "host" => vec![format!("host-record=coexist.test,{address}")],
+                    "raw" => vec![format!("dns-rr=coexist.test,{rrtype},{}", if rrtype == 1 { "c0000209" } else { "20010db8000000000000000000000009" })],
+                    "literal" => vec![format!("address=/coexist.test/{address}")],
+                    "local-only" => vec!["local=/coexist.test/".to_owned()],
+                    "configured-cname" => vec!["cname=coexist.test,target.test".to_owned(), format!("host-record=target.test,{address}")],
+                    _ => Vec::new(),
+                };
+                for line in directives {
+                    Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+                }
+                daemon.local.hosts = super::super::local::configured_hosts(&daemon.local.config, 60);
+                daemon.local.query_logging = true;
+                let data = if rrtype == 1 { vec![192,0,2,7] } else { "2001:db8::7".parse::<std::net::Ipv6Addr>().unwrap().octets().to_vec() };
+                let kind = if rrtype == 1 { Kind::Ipv4 } else { Kind::Ipv6 };
+                let cache = daemon.cache.as_mut().unwrap();
+                cache.start_insert();
+                cache.insert(Record { name: Name::from_ascii("coexist.test").unwrap(), kind, negative: false, data: data.clone() },100,300).unwrap();
+                assert!(cache.commit());
+                let query = packet("coexist.test",rrtype,0x100).finish();
+                let header = Header::parse(&query).unwrap();
+                let question = super::super::forward::Question::parse_with_header(&query,header).unwrap();
+                let (_,hint) = cache.inspect_name(&question.name,100);
+                assert!(cache.single_fresh_address_id_with_hint(&question.name,kind,100,hint.as_ref()).is_some());
+                let answer = DnsDaemon::<OsRandom>::answer_local_or_cached(daemon.cache.as_mut(), &query,
+                    header, &question, &mut daemon.local,100,true,tcp).unwrap().answer.unwrap();
+                let local = matches!(mode,"host"|"raw"|"configured-cname");
+                assert_eq!(matches!(&answer,QueryResult::Local(_)),local,"{mode}/{rrtype}/{tcp}");
+                let response = match answer { QueryResult::Local(p)|QueryResult::Cached(p)=>p,_=>panic!("unexpected answer") };
+                let message = Message::parse(&response).unwrap();
+                let address_record = message.records(Section::Answer).find(|rr|rr.rrtype==rrtype).unwrap();
+                let expected = if local {
+                    if rrtype==1 { vec![192,0,2,9] } else { "2001:db8::9".parse::<std::net::Ipv6Addr>().unwrap().octets().to_vec() }
+                } else { data };
+                assert_eq!(address_record.rdata,expected);
+                assert!(!daemon.local.take_query_events().is_empty(),"logging remains in the selected original answer owner");
+            }
+        }
+    }
+}
+
+#[test]
+fn cached_local_shortcut_expires_live_lease_before_cache_and_clock_rollback() {
+    use std::sync::Arc;
+    use super::super::cache::{Kind, Record};
+    use crate::dhcp::persistence::DnsLeaseRecord;
+    use super::super::lease_names::{LeaseNames, LeasePolicy};
+    for tcp in [false,true] {
+        let mut daemon=daemon();
+        daemon.local.leases=Arc::new(LeaseNames::build(&[DnsLeaseRecord { name:b"coexist.test", address:"192.0.2.9".parse().unwrap(), expires:Some(150) }],
+            &mut daemon.local.hosts,&[],LeasePolicy::default(),&mut ()));
+        let cache=daemon.cache.as_mut().unwrap();
+        cache.start_insert();
+        cache.insert(Record { name:Name::from_ascii("coexist.test").unwrap(),kind:Kind::Ipv4,negative:false,data:vec![192,0,2,7] },100,300).unwrap();
+        assert!(cache.commit());
+        let query=packet("coexist.test",1,0x100).finish();
+        for (now,last) in [(100,9),(160,7),(100,7)] {
+            let response=shared_answer(&mut daemon,&query,now,tcp).unwrap();
+            let message=Message::parse(&response).unwrap();
+            assert_eq!(message.records(Section::Answer).find(|rr|rr.rrtype==1).unwrap().rdata,[192,0,2,last]);
+        }
+        assert!(daemon.local.leases.lookup(b"coexist.test",100).next().is_none());
+    }
+}
+
+#[test]
 fn shared_lookup_checks_cached_terminal_before_local_forward_rules() {
     for directive in ["local=/test/", "address=/test/203.0.113.9"] {
         let mut daemon = daemon();

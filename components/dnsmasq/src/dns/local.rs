@@ -347,6 +347,14 @@ impl<'a> LocalAnswerer<'a> {
             // published DHCP A can coexist with an older negative marker.
             return Ok(None);
         } else if class_in {
+            let address_kind = match question.rrtype {
+                TYPE_A => Some(Kind::Ipv4), TYPE_AAAA => Some(Kind::Ipv6), _ => None,
+            };
+            if address_kind.is_some_and(|kind| cache.as_deref().is_some_and(|cache| {
+                cache.single_fresh_address_id_with_hint(&question.name, kind, now, name_lookup.as_ref()).is_some()
+            })) && self.cached_address_is_unclaimed(question, dotted_name.as_deref(), leases) {
+                return Ok(None);
+            }
             if let Some(name) = dotted_name.or_else(|| wire_to_dotted(&question.name)) {
                 let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
@@ -576,6 +584,33 @@ impl<'a> LocalAnswerer<'a> {
             forward_rule: false,
             query_events: notices.events,
         }))
+    }
+
+    // Only an existing fresh address reaches this check. Paths without such
+    // an entry keep the original lookup; local/cache coexistence falls back.
+    // Lease expiry has already run, and its converted name can be reused.
+    #[inline(never)]
+    fn cached_address_is_unclaimed(
+        &self, question: &super::forward::Question, dotted_name: Option<&[u8]>, leases: LeaseView<'_>,
+    ) -> bool {
+        if !self.config.records.cnames.is_empty()
+            || self.config.records.has_raw_type(question.rrtype)
+            || !leases.interfaces.is_empty()
+            || !self.config.interface_records.rules.is_empty()
+            || !self.config.synth_domains.domains.is_empty()
+            || !self.hosts.is_published()
+            || self.config.rules.iter().any(|rule| matches!(rule.target,
+                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
+        { return false; }
+        let mut scratch = [0; 253];
+        let name = match dotted_name {
+            Some(name) => name,
+            None => {
+                let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
+                &scratch[..length]
+            }
+        };
+        !self.hosts.name_exists(name) && leases.names.lookup(name, leases.now).next().is_none()
     }
 
     /// domain-match.c::is_local_answer/make_local_answer. Select by the
@@ -910,6 +945,42 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
             out.push(b'.');
         }
         out.extend(wire[pos..pos + len].iter().map(u8::to_ascii_lowercase));
+        pos += len;
+    }
+    None
+}
+
+/// Query-scoped counterpart of wire_to_dotted. A valid 255-byte wire name
+/// needs at most 253 dotted bytes; no escaped-name expansion belongs here.
+fn query_dotted_name(name: &Name, out: &mut [u8; 253]) -> Option<usize> {
+    let wire = name.as_wire();
+    let mut pos = 0;
+    let mut written = 0;
+    while pos < wire.len() {
+        let len = usize::from(wire[pos]);
+        pos += 1;
+        if len == 0 {
+            return Some(written);
+        }
+        if len > 63 || pos.checked_add(len)? > wire.len() {
+            return None;
+        }
+        let label = &wire[pos..pos + len];
+        if label.contains(&b'.') {
+            return None;
+        }
+        let separator = usize::from(written != 0);
+        let end = written + separator + len;
+        if end > out.len() {
+            return None;
+        }
+        if separator != 0 {
+            out[written] = b'.';
+        }
+        for (target, source) in out[written + separator..end].iter_mut().zip(label) {
+            *target = source.to_ascii_lowercase();
+        }
+        written = end;
         pos += len;
     }
     None
@@ -1764,6 +1835,28 @@ fn labels(wire: &[u8]) -> Vec<&[u8]> {
 mod tests {
     use super::*;
     use crate::config::{lex_line, validate_directive};
+
+    #[test]
+    fn query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names() {
+        let mut names = vec![Name::root(), Name::from_ascii("MiXeD.Example.").unwrap()];
+        for byte in 0..=255 {
+            for length in [1, 63] {
+                let mut wire = vec![length as u8];
+                wire.extend(std::iter::repeat_n(byte, length));
+                wire.extend_from_slice(&[1, b'A', 0]);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        assert_eq!(longest.len(), 253);
+        names.push(Name::from_ascii(&longest).unwrap());
+        let mut buffer = [0x7f; 253];
+        for name in names {
+            let expected = wire_to_dotted(&name);
+            let actual = query_dotted_name(&name, &mut buffer).map(|length| &buffer[..length]);
+            assert_eq!(actual, expected.as_deref(), "{:?}", name.as_wire());
+        }
+    }
 
     #[test]
     fn cname_alias_comparison_matches_allocated_keys() {

@@ -16,6 +16,8 @@ fn fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback() 
     let other_question = name.clone();
     assert_eq!(cache.single_fresh_address_with_hint(&other_question,Kind::Ipv4,100,hint.as_ref()),None);
     assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert_eq!(cache.single_fresh_address_id_with_hint(&name,Kind::Ipv4,100,hint.as_ref()),Some(id));
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before,"read-only selection cannot promote before local ownership");
     assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,100,hint.as_ref()),Some(id));
     assert_eq!(cache.head,Some(id.slot));
     let (_, hint) = cache.inspect_name(&name,100);
