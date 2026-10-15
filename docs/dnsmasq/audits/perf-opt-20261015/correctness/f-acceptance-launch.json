@@ -1,0 +1,50 @@
+{
+  "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+  "shipping_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "shipping_elf_bytes": 2136859,
+  "same_build_map_sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+  "same_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+  "source_files_verified": 179,
+  "script_sha256": {
+    "run_f_short.py": "e693092f548c46a3e972a9cf1b6dceaa03e85203b68e9c5401ea894223cdefd9",
+    "build_f_allocations.py": "d2abf472a24d6a5ad23e5e0cdf97772e3e2b20934d8680c9389197592d909c97",
+    "run_f_tcp.py": "cbb1229a60dee9421a4e03f90efd126ebdcfcbacb0a2affa330d79f4624544d3",
+    "run_f_corpus.py": "fdef9a044665a5b27eec5a8754b16939a82b4dee7b2d8fd887aa3e3a15a2430e",
+    "run_f_remaining.py": "329872f989ed9e08ddd46aae0402a63242db3a6106e97121674673aa17a6195d"
+  },
+  "short_argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_f_short.py"
+  ],
+  "short_pid": 310233,
+  "short_process_start_ticks": "180877710",
+  "start_epoch": 1792084159.8909287,
+  "preflight_sha256": "4030984c3b78a35e903e9bd2afe6893d7db1f5841ec3d224e68fd00989967a01",
+  "status": "short-gates-running-not-qualified",
+  "source_tag": "perf/dnsmasq-candidate-f-20261015",
+  "scope": "Three independently screened performance changes combined in F; E remains unchanged. Fresh F musl test/probe builds use the same frozen functional gates and classifications.",
+  "source_changes": [
+    "c1ea66f6: remove discarded UDP admission name allocation",
+    "6f594d7b: isolate ordinary address record collection",
+    "5a03fffe: packet-info policy for known static IPv4 DNS bindings"
+  ],
+  "schedule": {
+    "short": "Fresh tests, hosts allocations, original five unit groups, fresh release probes",
+    "after_short": "Original run_family_gates --jobs 3 plus one serial F10/protocol/TCP/source corpus worker",
+    "families": 44,
+    "jobs": 67,
+    "no_performance_overlap": true
+  },
+  "preserved_comparisons": {
+    "F10": "13 cases / 704 observations; original PTR manifest",
+    "protocol": "368 pairs; only the original two forward-pointer C defects",
+    "TCP": "13 conditions / 50 pairs",
+    "source_corpora": "Cache answer: 764 commands / 164 queries / 382 metrics; transfer: 307; stale: 1100; lease: only the exact two historical UID differences, raw exit 1 retained"
+  },
+  "not_claimed": [
+    "Short/full44/boundary gate pass",
+    "F performance qualification",
+    "Router deployment"
+  ]
+}
