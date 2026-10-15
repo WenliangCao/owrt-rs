@@ -366,6 +366,15 @@ impl LocalDnsService {
         tcp: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
+        if self.unclaimed_address(question, header, now) {
+            // The original local engine's sole remaining effect on this
+            // path is its read-only CNAME/name inspection for the cache.
+            if let Some(cache) = cache.as_ref() {
+                let (_, lookup) = cache.inspect_name(&question.name, now);
+                *name_lookup = lookup;
+            }
+            return Ok(None);
+        }
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
         let opt = if tcp {
@@ -420,6 +429,31 @@ impl LocalDnsService {
             )?;
         }
         Ok(Some(answer))
+    }
+
+    // A conservative, read-only miss avoids the general local reply frame.
+    // Anything that could answer, expire a lease, rotate an address or apply
+    // a local rule keeps the original engine as its only owner.
+    #[inline(never)]
+    fn unclaimed_address(&self, question: &super::forward::Question, header: Header, now: i64) -> bool {
+        use crate::config::dns::RuleTarget;
+        if question.class != 1 || !matches!(question.rrtype, 1 | 28)
+            || header.opcode() != 0 || header.flags & 0x8000 != 0
+            || header.questions != 1 || header.answers != 0 || header.authorities != 0
+            || !self.config.records.cnames.is_empty()
+            || self.config.records.has_raw_type(question.rrtype)
+            || !self.interfaces.is_empty()
+            || !self.config.interface_records.rules.is_empty()
+            || !self.config.synth_domains.domains.is_empty()
+            || self.config.rules.iter().any(|rule| matches!(rule.target,
+                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
+        {
+            return false;
+        }
+        let Some(name) = super::local::wire_to_dotted(&question.name) else { return false };
+        self.hosts.is_published() && !self.hosts.name_exists(&name)
+            && !self.leases.has_expired_name(&name, now)
+            && self.leases.lookup(&name, now).next().is_none()
     }
 
     /// Forwarding rules select by the CNAME cursor, but make_local_answer
@@ -702,6 +736,64 @@ mod tests {
             1497,
             maximum,
         )
+    }
+
+    #[test]
+    fn unclaimed_address_matches_original_local_engine_and_lease_expiry() {
+        use crate::dns::wire::{Name, PacketWriter};
+        use crate::dns::lease_names::LeasePolicy;
+        use crate::dhcp::persistence::DnsLeaseRecord;
+        let configurations: &[&[&str]] = &[
+            &[], &["host-record=present.test,192.0.2.1"],
+            &["txt-record=absent.test,text"], &["cname=alias.test,present.test"],
+            &["dns-rr=absent.test,1,c0000202"], &["address=/test/192.0.2.3"],
+            &["local=/test/"], &["synth-domain=test,192.0.2.0,192.0.2.255"],
+            &["interface-name=absent.test,nonexistent0"], &["filterwin2k"],
+        ];
+        for config in configurations {
+            for name in ["absent.test", "ABSENT.test", "present.test", "alias.test", "192-0-2-7.test"] {
+                for rrtype in [1, 28] {
+                    for tcp in [false, true] {
+                        for now in [100, 160, 100] {
+                            let make = || {
+                                let lines = config.iter().map(|s| s.as_bytes().to_vec()).collect::<Vec<_>>();
+                                let mut service = configured(&lines, 1232);
+                                let leases = [DnsLeaseRecord { name: b"lease.test", address: "192.0.2.9".parse().unwrap(), expires: Some(150) }];
+                                service.leases = Arc::new(LeaseNames::build(&leases, &mut service.hosts, &[], LeasePolicy::default(), &mut ()));
+                                service.query_logging = true;
+                                service
+                            };
+                            let mut reference = make();
+                            let mut candidate = make();
+                            let mut writer = PacketWriter::new(7, 0x110, 512).unwrap();
+                            writer.question(&Name::from_ascii(name).unwrap(), rrtype, 1).unwrap();
+                            let query = writer.finish();
+                            let header = Header::parse(&query).unwrap();
+                            let question = super::super::forward::Question::parse_with_header(&query, header).unwrap();
+                            let mut answerer = LocalAnswerer { config: &reference.config, hosts: &mut reference.hosts,
+                                local_ttl: reference.local_ttl, max_packet: if tcp { 65535 } else { 512 } };
+                            let a = answerer.answer_parsed_with_query_events(&query, header, &question,
+                                &mut reference.leases, now, None, None, &reference.interfaces, true, &mut None).unwrap();
+                            let b = candidate.lookup_local_parsed(&query, header, &question, now, None, tcp, &mut None).unwrap();
+                            let shape = |a: Option<super::super::local::LocalAnswer>| a.map(|a| (a.packet, a.forward_rule, format!("{:?}", a.query_events)));
+                            assert_eq!(shape(a), shape(b), "{config:?} {name} {rrtype} {tcp} {now}");
+                        }
+                    }
+                }
+            }
+        }
+        let mut service = configured(&[], 1232);
+        let leases = [DnsLeaseRecord { name: b"expiry.test", address: "192.0.2.9".parse().unwrap(), expires: Some(150) }];
+        service.leases = Arc::new(LeaseNames::build(&leases, &mut service.hosts, &[], LeasePolicy::default(), &mut ()));
+        let mut writer = PacketWriter::new(7, 0x100, 512).unwrap();
+        writer.question(&Name::from_ascii("expiry.test").unwrap(), 28, 1).unwrap();
+        let query = writer.finish();
+        assert!(service.handle_udp_with_cache(&query, 160, None).unwrap().is_none());
+        assert!(service.leases.lookup(b"expiry.test", 100).next().is_none(), "expired lease cannot revive on clock rollback");
+        let question = super::super::forward::Question::parse(&query).unwrap();
+        assert!(service.unclaimed_address(&question, Header::parse(&query).unwrap(), 100));
+        service.hosts.begin_bulk(1497, 1000, 1000).unwrap();
+        assert!(!service.unclaimed_address(&question, Header::parse(&query).unwrap(), 100), "retained bulk lease rotations keep the original engine");
     }
 
     #[test]
