@@ -611,3 +611,24 @@ already pass. The repaired build passes all seven hostsdir owner tests, one
 initial-HUP test and four TCP import tests. Before and after binaries/logs remain
 separate. No test was rerun by this reviewer. The coordinator may freeze E and
 build its exact SDK; fresh complete gates remain mandatory, and D stays failed.
+
+## Frozen E full correctness running
+
+E is immutable source `4f869c885b47dcf60d56c872e5b0b3c62237beea` at Oracle
+`root/source-e`; exact SDK `root/private/sdk-e/dnsmasq-rs` SHA256
+`8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27`,
+2,136,859 bytes. The unchanged full44 scheduler runs three workers once under
+`correctness/private/e-families-attempt1` (PID125922), retaining original order,
+inputs and thresholds. Fourth serial batch PID127963 builds allocation/probe
+artifacts and runs fresh short/daemon/corpus gates. Timing waits until the
+coordinator reserves the host after correctness completion.
+
+[Fresh E short execution](e-short-gates.json) passed **826 lib + 82 bin + 17
+allocation + 16 ignored lib namespace/config + 3 ignored bin namespace = 944**,
+zero failures. Rather than recompile the already-tested debug binaries, the
+reviewer compared every one of 172 DNS/UBus component/test inputs against the
+DHCP owner's repaired source and verified copied ELF identities. Original build
+receipt paths remain unchanged; a separate reuse binding records this evidence.
+All short groups were freshly run in isolated namespaces/private tmpfs with
+serial execution. Allocation executable was freshly built. No D pass transfers
+and no E full correctness result is yet claimed.
