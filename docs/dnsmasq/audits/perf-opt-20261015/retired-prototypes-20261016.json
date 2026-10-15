@@ -1,0 +1,29 @@
+{
+  "scope": "Retired clean branches only; all unmerged source/evidence reachable through annotated tags; active work unchanged",
+  "retired": [
+    {
+      "former_branch": "perf/dnsmasq-udp-read-one-20261015",
+      "preserved_tag": "archive/perf-20261016/udp-read-one",
+      "commit": "0618a3dfb42a827559874032d0abfca0af89e744",
+      "worktree": "/Users/USER/Developer/owrt-perf-udp-read-one-20261015",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "High-load pipeline CPU and throughput regression; see UDP_READ_ONE_RESULT.md"
+    },
+    {
+      "former_branch": "perf/dnsmasq-local-reply-layout-20261015",
+      "preserved_tag": "archive/perf-20261016/local-reply-layout",
+      "commit": "ae2858ef2a67d4371a99e3d40da050826f0b4fff",
+      "worktree": "/Users/USER/Developer/owrt-perf-local-reply-layout-20261015",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "Nine native regressions and no gains; see LAYOUT_NATIVE_RESULT.md"
+    },
+    {
+      "former_branch": "perf/dnsmasq-address-dispatch-20261015",
+      "preserved_tag": "archive/perf-20261016/address-dispatch",
+      "commit": "8147c6467ef76e767702867f8c9c86bf2337ed4a",
+      "worktree": "/Users/USER/Developer/owrt-perf-address-dispatch-20261015",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "No discernible exact-SDK or A53 gain; see A53_ADDRESS_DISPATCH_DEVICE_RESULT.md"
+    }
+  ]
+}
