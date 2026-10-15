@@ -74,3 +74,17 @@ build selection failed before compilation because the host's default rustc
 was 1.98.0; the retained retry explicitly selects the existing 1.98.1 toolchain.
 No fixture expectations were changed. Full frozen Linux/exact-C gates and
 same-build SDK/device acceptance remain mandatory.
+
+## Quiet timing rejection
+
+Reservation `micro-20261015-1020` completed all 60 native windows, comparing
+B plus the approved fix with cursor2 plus the same fix. Whole-API CPU improves
+for hit (−13.12%, W 0.96%, 5/5 pairs), miss (−21.92%, W 0.61%, 5/5), and dynamic
+CNAME (−6.70%, W 1.29%, 5/5). Eight-record answers and hosts are within their
+measured variation. The 400 configured-CNAME scene regresses **+8.54%, W 0.17%,
+5/5 pairs**. Therefore cursor2 is rejected for integration despite its ordinary
+gains and static correctness review. `cursor2-timing.json` retains every window
+and artifact/runner/raw identities. No window was replaced and no repeat of
+the unchanged variant is planned. The earlier instruction-only screen was
+insufficient to detect this regression. Investigate fixed-build instructions
+and cycles before considering a mechanistically different hint design.
