@@ -119,6 +119,11 @@ fn all_ready_members_fit_one_extraction_and_large_sets_remain_direct() {
     assert!(owner.oversized);
     assert_eq!(owner.wait(&mut fds, 0).unwrap(), MAX_TAGS + 1);
     assert!(owner.epoll.is_some());
+    assert!(owner.registered.is_empty(), "large waits cannot retain optional kernel callbacks");
+    owner.begin();
+    owner.watch(0, Key::Tcp(0));
+    assert_eq!(owner.wait(&mut fds[..1], 0).unwrap(), 1);
+    assert_eq!(owner.registered.len(), 1);
 }
 
 #[test]

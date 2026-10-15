@@ -94,6 +94,14 @@ impl OwnerReadiness {
         } else { Ok(()) }
     }
 
+    fn remove(&self, row: Registration) -> io::Result<()> {
+        match self.ctl(2, row) {
+            Ok(()) => Ok(()),
+            Err(error) if matches!(error.raw_os_error(), Some(2 | 9)) => Ok(()),
+            Err(error) => Err(error),
+        }
+    }
+
     fn prepare(&mut self, fds: &[PollFd]) -> io::Result<()> {
         let allocation = |_| io::Error::from(io::ErrorKind::OutOfMemory);
         self.desired.clear();
@@ -128,11 +136,7 @@ impl OwnerReadiness {
         while at < self.registered.len() {
             let old = self.registered[at];
             if self.desired.iter().any(|new| new.key == old.key && new.fd == old.fd) { at += 1; continue; }
-            match self.ctl(2, old) {
-                Ok(()) => {}
-                Err(error) if matches!(error.raw_os_error(), Some(2 | 9)) => {}
-                Err(error) => return Err(error),
-            }
+            self.remove(old)?;
             self.registered.swap_remove(at);
         }
         for index in 0..self.desired.len() {
@@ -166,8 +170,18 @@ impl OwnerReadiness {
     }
 
     pub(super) fn wait(&mut self, fds: &mut [PollFd], timeout_ms: i32) -> io::Result<usize> {
-        if self.epoll.is_none() || self.oversized { return sys::poll_fds(fds, timeout_ms); }
+        if self.epoll.is_none() { return sys::poll_fds(fds, timeout_ms); }
         let started = Instant::now();
+        if self.oversized {
+            // Do not keep kernel callbacks on a former small set while the
+            // owner uses direct poll for a large one. Transition cost is at
+            // most MAX_TAGS deletions; subsequent large waits have none.
+            while let Some(old) = self.registered.last().copied() {
+                if self.remove(old).is_err() { self.disable(); break; }
+                self.registered.pop();
+            }
+            return fallback_wait(fds, timeout_ms, started);
+        }
         if self.prepare(fds).is_err() {
             self.disable();
             return fallback_wait(fds, timeout_ms, started);

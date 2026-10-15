@@ -61,6 +61,10 @@ fd until owner Drop, so its cost belongs in the process's initial fd set.
 Reconciliation/expansion currently uses bounded linear searches. More than
 64 tagged slots selects direct poll for that call, without changing the
 product's connection limit or permanently disabling later small-set use.
+The transition removes at most 64 preceding registrations so direct large
+waits do not keep paying optional kernel callbacks. Later large waits have
+none; returning to a small set can register again. Both transition costs must
+be counted alongside steady fallback.
 
 Eight Linux tests cover SDK event layout, duplicate masks and subset removal,
 mixed direct regular-file readiness and unsupported registration fallback,
