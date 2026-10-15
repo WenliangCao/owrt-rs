@@ -4,7 +4,33 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from loop_owner_profile import verify_mapped_files
+from loop_owner_profile import validate_load_counts, verify_mapped_files
+
+
+class LoadCountTests(unittest.TestCase):
+    def fixture(self, warm, measured):
+        def counts(n):
+            return dict(scheduled=n, sent=n, correct=n, timeout=0, wrong=0,
+                        transport_error=0, scheduled_skipped=0)
+        return dict(interrupted=False, output_failed=False,
+                    warmup=counts(warm), measurement=counts(measured))
+
+    def test_original_fixed_cohorts_remain_exact(self):
+        validate_load_counts(self.fixture(1000, 4000), 5, 20, 200)
+        for warm, measured in [(999, 4000), (1000, 3999)]:
+            with self.assertRaises(AssertionError):
+                validate_load_counts(self.fixture(warm, measured), 5, 20, 200)
+
+    def test_unpaced_diagnostic_requires_complete_nonempty_cohorts(self):
+        validate_load_counts(self.fixture(8100, 32400), 5, 20, 0)
+        for field in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'):
+            data = self.fixture(8100, 32400)
+            data['measurement'][field] = 1
+            with self.assertRaises(AssertionError):
+                validate_load_counts(data, 5, 20, 0)
+        for data in [self.fixture(0, 32400), self.fixture(8100, 0)]:
+            with self.assertRaises(AssertionError):
+                validate_load_counts(data, 5, 20, 0)
 
 
 class MappingIdentityTests(unittest.TestCase):

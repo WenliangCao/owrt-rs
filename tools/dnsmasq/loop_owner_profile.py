@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Oracle-only excluded perf diagnostic of exact SDK ELF owner hot paths.
 
-Runs inside a fresh loopback-only netns. It preserves frozen DNS workloads,
-but perf-instrumented elapsed time is never an acceptance measurement.
+Runs inside a fresh loopback-only netns. Defaults preserve the original DNS
+workload. Explicit rate=0 is a separate saturation diagnostic. Instrumented
+elapsed time is never an acceptance measurement.
 """
 import argparse
 import hashlib
@@ -25,6 +26,18 @@ def sha(path):
 
 def save(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n')
+
+
+def validate_load_counts(full, warm, duration, rate):
+    assert not full['interrupted'] and not full['output_failed']
+    for phase, seconds in (('warmup', warm), ('measurement', duration)):
+        part = full[phase]
+        assert part['scheduled'] == part['sent'] == part['correct']
+        if rate or seconds == 0:
+            assert part['correct'] == seconds * rate
+        else:
+            assert part['correct'] > 0, 'unpaced workload completed no queries'
+        assert not any(part[key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
 
 
 def verify_mapped_files(mapping, expected_images):
@@ -57,11 +70,16 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--mode', choices=('udp', 'tcp'), required=True)
     parser.add_argument('--profile', choices=('hit', 'miss', 'mixed'), required=True)
-    parser.add_argument('--observer', choices=('stat', 'sample'), default='sample',
+    parser.add_argument('--observer', choices=('stat', 'sample', 'none'), default='sample',
                         help='stat-only totals or separate self-sampling; never concurrent')
+    parser.add_argument('--rate', type=int, default=200,
+                        help='queries/second; zero is a separately planned unpaced UDP diagnostic')
+    parser.add_argument('--loadgen-sha256', default='b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd')
     parser.add_argument('--sample-event', choices=('instructions:u', 'cycles:u'), default='instructions:u')
     parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
+    assert args.rate >= 0 and (args.rate != 0 or args.mode == 'udp')
+    assert re.fullmatch('[0-9a-f]{64}', args.loadgen_sha256)
     observer = 'strace' if args.strace else args.observer
     assert bool(args.build) != bool(args.stock_image_root), 'select one exact implementation'
     assert os.readlink('/proc/self/ns/net') != os.readlink('/proc/1/ns/net')
@@ -106,16 +124,17 @@ def main():
     artifact.chmod(0o755)
     assert sha(artifact) == expected
     image_files[str(artifact)] = expected
-    # This diagnostic retains the original frozen workload executables.
-    assert sha(args.tools / 'm6a_loadgen') == 'b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd'
+    # Alternative diagnostic tools must be explicitly bound before a run.
+    assert sha(args.tools / 'm6a_loadgen') == args.loadgen_sha256
     assert sha(args.tools / 'm6a_upstream') == '01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68'
     save(out / 'profile-scope.json', {'scope': __doc__, 'mode': args.mode,
          'profile': args.profile, 'elf_sha256': expected,
-         'observer': observer,
+         'observer': observer, 'rate': args.rate, 'loadgen_sha256': args.loadgen_sha256,
+         'clock_ticks_per_second': os.sysconf('SC_CLK_TCK'),
          'source_commit': build.get('source_commit'),
          'artifact_file': artifact.name, 'mapped_images': image_files,
          'process_tree': 'root and every inherited fork; no --no-inherit',
-         'counter_window': '1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded',
+         'counter_window': '5s warmup + 20s measurement at the recorded rate, then fixed 1s drain; prewarm excluded',
          'sample_event': args.sample_event, 'sample_period': 10000,
          'deployed_baseline': expected == '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'})
     (out / 'config').write_text(
@@ -167,10 +186,10 @@ def main():
                          'sent_ns': sent, 'acknowledged_ns': time.monotonic_ns(),
                          'ack_hex': ack.hex()})
 
-    def load(mode, profile, duration, warm, label):
+    def load(mode, profile, duration, warm, label, rate=200):
         child = start(['taskset', '-c', '3', args.tools / 'm6a_loadgen', '--mode', mode,
             '--host', '127.0.0.1', '--port', '15353', '--clients', '8' if mode == 'tcp' else '32',
-            '--duration-seconds', duration, '--warmup-seconds', warm, '--rate', '200',
+            '--duration-seconds', duration, '--warmup-seconds', warm, '--rate', rate,
             '--seed', '0x293001', '--name-prefix', 'm6a.test', '--profile', profile,
             '--qtype', 'aaaa30', '--cache-names', '800', '--timeout-ms', '1000',
             '--output', out / label], label)
@@ -178,15 +197,8 @@ def main():
         children.remove(child)
         assert status == 0
         full = json.loads((out / f'{label}.json').read_text())
-        assert not full['interrupted'] and not full['output_failed']
-        for phase, seconds in (('warmup', warm), ('measurement', duration)):
-            part = full[phase]
-            assert all(part[key] == seconds * 200 for key in ('scheduled', 'sent', 'correct'))
-            assert not any(part[key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
-        counts = full['measurement']
-        assert counts['correct'] == duration * 200 and counts['sent'] == duration * 200
-        assert not any(counts[key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
-        return counts
+        validate_load_counts(full, warm, duration, rate)
+        return full
 
     try:
         upstream = start(['taskset', '-c', '1', args.tools / 'm6a_upstream', '--port', '15354',
@@ -232,7 +244,7 @@ def main():
             while not re.search(r'TracerPid:\s+[1-9]', (proc / 'status').read_text()):
                 assert tracer.poll() is None and time.monotonic() < deadline
                 time.sleep(.01)
-        else:
+        elif observer != 'none':
             if observer == 'sample':
                 instruments.append(instrument(['perf', 'record', '-e', args.sample_event, '-c', '10000', '-p', daemon.pid,
                                    '-o', out / 'perf.data'], 'perf-record'))
@@ -242,12 +254,14 @@ def main():
                                    '-o', out / 'perf-stat.csv'], 'perf-stat'))
             for channel in instruments:
                 control(channel, 'enable')
+        (out / 'cpu-before.stat').write_text((proc / 'stat').read_text())
         load_start = time.monotonic_ns()
-        counts = load(args.mode, args.profile, 20, 5, 'client')
+        full_counts = load(args.mode, args.profile, 20, 5, 'client', args.rate)
         load_end = time.monotonic_ns()
         drain_started = time.monotonic_ns()
         time.sleep(1)
         drain_ended = time.monotonic_ns()
+        (out / 'cpu-after.stat').write_text((proc / 'stat').read_text())
         remaining_children = child_path.read_text().strip().split()
         save(out / 'tree-tail.json', {'root_pid': daemon.pid,
              'root_starttime_ticks': identity['stat'].rsplit(')', 1)[1].split()[19],
@@ -286,8 +300,9 @@ def main():
         for argv, name in exports:
             with (out / name).open('wb') as stdout:
                 subprocess.run(list(map(str, argv)), stdout=stdout, check=True)
-        save(out / 'complete.json', {'valid_count_profile': True, 'measurement': counts,
-             'completed_operations': 5000, 'tree_tail_complete': True,
+        save(out / 'complete.json', {'valid_count_profile': True, 'measurement': full_counts['measurement'],
+             'completed_operations': full_counts['warmup']['correct'] + full_counts['measurement']['correct'],
+             'rate': args.rate, 'observer': observer, 'tree_tail_complete': True,
              'perf_statuses': statuses, 'timing_eligible': False})
     finally:
         for child in reversed(children):
