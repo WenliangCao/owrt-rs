@@ -1,0 +1,46 @@
+{
+  "scope": "Independent local static interaction review of integrated product diff. No new runtime gate pass is claimed; no router or remote workload was used.",
+  "baseline_commit": "51b039597af13f9c9cf07c9f80e388e25cd8ae5d",
+  "reviewed_commit": "a929d9757dac4065103a53fc7903659c7b3f8d23",
+  "product_diff_sha256": "20a4a7992b6d2da6b556e9670a83a21bf2e703647ab0f625fd94d8f75be4560a",
+  "changed_files_sha256": {
+    "components/dnsmasq/src/dhcp/lease.rs": "cf710952c3ad0b33e2dab7a2e9e9c76984b28d26d0dc6428040860fc480cacb4",
+    "components/dnsmasq/src/dns/cache.rs": "88ea56d460aae30bf1acd323f91994660e30329e0287d877e08e5d9c3c3d60b4",
+    "components/dnsmasq/src/dns/cache_engine.rs": "d5a6071cfc9110b3d9ca579065a8b1e955b82ac3d006208650795920222d559e",
+    "components/dnsmasq/src/dns/cache_reply.rs": "f77a58ce7ad27e43ff71ac59f3c2d2f156c19f1810b4250cb5553c087ce5e94d",
+    "components/dnsmasq/src/dns/cache_tests.rs": "4e21b0553100adda718854f8f662304b1535f9cf141e18d17d124b755d3d3277",
+    "components/dnsmasq/src/dns/daemon.rs": "f227e3ea86c520fddae6c2c5fd5a9f7586b36b2faf1a33c14f85db07f08decd9",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": "f893b64ebbeedd4843d06bf8201f6f0ee6143e29a016009e2c4bcbe0d6f3846c",
+    "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs": "ef727982c1c997760067ddc41b2dc01e11aeea2f53a386c5aab3196ea9a58f1b",
+    "components/dnsmasq/src/dns/forward.rs": "d99e2f6b975e345ad6c6756f7c84125fb08b7df776adcdf239af8841f32e78e9",
+    "components/dnsmasq/src/dns/lease_names.rs": "3bcce1576451bf54c88750f2c9afc885d2069f5535625533b41f98cd83292ad3",
+    "components/dnsmasq/src/dns/local.rs": "8e9193720260393559ea584aa9203cb9339f9cd4d5b0449f3e85239cbdc5d76a",
+    "components/dnsmasq/src/dns/process.rs": "ed2b5fee5d81caf2f0dfdcec854b61760b1c66eefaac41b0ebc7edf64537fbac",
+    "components/dnsmasq/src/dns/service.rs": "2926443cf97b6f8163133d641ac660700ab7d85e3c76a63dfa6f0475e0b93867",
+    "components/dnsmasq/src/dns/source_sockets.rs": "dfefa1100fcea9bcce82b6646002e695ebf47731125df24ee649d8265cc1c9e7",
+    "components/dnsmasq/src/dns/upstream.rs": "00c6e0a884345514ec1b4956e89a86d18e5c2b364e4c33818960a45ab6afd943",
+    "components/dnsmasq/src/dns/wire.rs": "a54fc016d2fef97ae697140f009880e4ca0883977b37840a83a3122409ae0c2c",
+    "components/dnsmasq/src/dns/wire_tests.rs": "814abd212693c4f3e845cd0ed065ec323139148f108abd9c39dd221db4047d20",
+    "components/dnsmasq/src/hosts.rs": "469f0969e19976262630479a3f79a44a97f4d310d80ea3040c0aa08f1aa7098a",
+    "components/dnsmasq/src/main.rs": "18d170499a393ada3e2c4af7fdf00b49a92794dee982761a476a8f6745729283",
+    "components/dnsmasq/tests/hosts_allocations.rs": "903ab4aee3e250ed1d877522e8bee4ad935a7c44b78f50f7f3a8d84b4b9ab814"
+  },
+  "new_confirmed_blockers": [],
+  "reviewed_interactions": [
+    "UDP borrowed scratch to deferred MAC/interface admission and stale upstream refresh",
+    "TCP framing partial writes/completed input to private lease/cache snapshot lifetime",
+    "Retained upstream scratch after EINTR/timer/socket deletion/reload",
+    "Successful terminal cache retirement after helper/logger/PID cleanup and ordinary IO Drop",
+    "Shared lease-name byte storage with cloned active flags/expiry/order and retained hosts publication",
+    "Cache insertion escaped-name length and conditional reverse-name clone",
+    "Within-call hosts bucket reuse before publication mutation"
+  ],
+  "explicit_compatibility_change": "Approved independent b1136023 stale-negative-CNAME fix changes existing wrong stale/upstream behavior to exact-C semantics; not classified as a transparent performance optimization.",
+  "resource_limits": [
+    "TCP answer framing retains original Vec capacity; blocked-client memory must pass complete candidate resource gates.",
+    "Upstream poll scratch retains observed socket high-water capacity until resolver drop, approximately16bytes per slot plus48 inline bytes on measured64bit ABI.",
+    "Cache retirement intentionally leaks pure memory only at final successful executable exit; it is not an API for an ongoing process."
+  ],
+  "validation_basis": "Source audit and already committed targeted mechanism evidence. This review does not transfer candidateA, native, or macOS passes to final candidateC.",
+  "next_requirement": "Recheck any product commits after this snapshot, then exact integrated Linux allocation/unit/C families, blocked-client/resource controls and full serialized performance acceptance."
+}
