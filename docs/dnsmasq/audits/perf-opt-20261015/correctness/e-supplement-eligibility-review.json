@@ -1,0 +1,325 @@
+{
+  "scope": "Independent final eligibility review under explicit user paired supplement policy; no original raw validity rewritten",
+  "rule_commit": "7691e8aa",
+  "rule_sha256": "cfb2b0c30f5aec3781f63e1850c5936558908bb3827276669503218ff79ca470",
+  "plan_sha256": "622f12996852aa8653939dcc829562f0d81799491eb601dc990ddb1c9c152224",
+  "previous_plan_sha256": "ba7e65ce3b37490ff6be785b089c3d2c31a864157983413dc7d6f6a916bd0439",
+  "only_plan_change_after_valid_copy_prune": "preflight_sha256",
+  "preflight_sha256": "fc16bdd1f5a6446fbd87f08bdb0db315678f2a0e55bc1d8a423e580e1bb9a4a7",
+  "runner_sha256": "d7df658c7ec5d306249726a352f95d4a71cc6f190f1bdd1e951218ce3e0f2f76",
+  "eligibility_passed": true,
+  "original_full_audit": {
+    "original_complete": {
+      "complete": true,
+      "windows": 110,
+      "valid": 107
+    },
+    "original_progress_sha256": "9b6adb26145dfd0bb6b994f1030a9e0826f157b75568c285e1ff1f615afd4a34",
+    "original_identity_sha256": "c08e92bab1be18a8cfd96191bc600dcc2a00fdd20c092d2dee2965207f952395",
+    "original_complete_sha256": "5d2f2b99933a92cdfcb8419c546bcfea43790a04bf0a0db4732e46618d683481",
+    "verified_archives": 110,
+    "verified_files": 3430,
+    "archive_index_sha256": "d3c8875ab45ccffab80571dd9c61aa02eff5021c4cf7d1e0eff8f5ab7e145c2d",
+    "invalid": [
+      {
+        "label": "candidate-e-udp-miss-r4-c",
+        "scene": "udp-miss",
+        "round": 4,
+        "side": "c",
+        "valid": false,
+        "errors": [
+          "upstream hit/miss count"
+        ],
+        "epoch": 1792074305.9755452
+      },
+      {
+        "label": "candidate-e-tcp-miss-r3-c",
+        "scene": "tcp-miss",
+        "round": 3,
+        "side": "c",
+        "valid": false,
+        "errors": [
+          "measurement error counters",
+          "measurement completion count",
+          "upstream hit/miss count"
+        ],
+        "epoch": 1792075323.0925922
+      },
+      {
+        "label": "candidate-e-dhcp-home6-r2-c",
+        "scene": "dhcp-home6",
+        "round": 2,
+        "side": "c",
+        "valid": false,
+        "errors": [
+          "measurement error counters",
+          "measurement completion count",
+          "DORA/renew boundary"
+        ],
+        "epoch": 1792075658.638442
+      }
+    ],
+    "scope": "localoriginal110inventory/hashverification;originalvalidity107unchanged;no supplement launchedbyreviewer"
+  },
+  "original_guard_coverage": [
+    {
+      "scene": "config-small",
+      "sha256": "84cd583eb14a341ea69b5faf800ca2051654d0771c40835f4680716c4740d440",
+      "samples": 273,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "dhcp",
+      "sha256": "bacefd724113bf6d7a3f3b165b1118484f6d36a4de0434956b50b70686c6c72b",
+      "samples": 368,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "dhcp-home6",
+      "sha256": "259796a7ad8792df3736d10d16d90c602320a56a51e3f3d7f25e6530910d3913",
+      "samples": 368,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "hup-large",
+      "sha256": "38ed10cc793ee92b728e63d81233b34391d0fee41dc47f55e553af710cc45544",
+      "samples": 273,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "hup-small",
+      "sha256": "0887c60347146ce16580359aa3c31bf964bc7deb2515b914c80c2e905abb176e",
+      "samples": 273,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "startup-small",
+      "sha256": "3bb3efe0912b3c0873a1d047f7ebe78cbe86db5658437e03f0deb27ab5fd982f",
+      "samples": 273,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "tcp-hit",
+      "sha256": "b12c268d28af1dc7b8ab44a6aa24fc562d1d740927dc9f094755bd1278e470fc",
+      "samples": 378,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "tcp-miss",
+      "sha256": "780b1fc5f819b732efa5440b2b1f41936ca035f4745e9044fa0a68d7a691ab77",
+      "samples": 368,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "udp-hit",
+      "sha256": "b08ff3d60498282eb7d106e208b1003d7cedf5254b77fd1391e3a13bfb84d03a",
+      "samples": 393,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "udp-miss",
+      "sha256": "81e0183d073c77c323522dd8c37b3a70b79ff2df8d3a790b92f94f7040430f93",
+      "samples": 363,
+      "cancelled_terminal_http_not_passed": 0,
+      "all_window_intervals_covered": true
+    },
+    {
+      "scene": "udp-mixed",
+      "sha256": "a515e2ee143f25869b4d7c7c1f750d277779caeae61e5ed19c4f132c0841e4c9",
+      "samples": 379,
+      "cancelled_terminal_http_not_passed": 1,
+      "all_window_intervals_covered": true
+    }
+  ],
+  "external_health_observations": 246,
+  "external_health_all_HTTP200": true,
+  "pairs": [
+    {
+      "scene": "udp-miss",
+      "round": 4,
+      "order": [
+        "rust",
+        "c"
+      ],
+      "eligible": true,
+      "sides": [
+        {
+          "label": "candidate-e-udp-miss-r4-rust",
+          "side": "rust",
+          "original_valid": true,
+          "original_errors": [],
+          "classification": "original-valid-partner",
+          "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+          "archive_sha256": "7be4606f9fff8dc0f1861f91440ffcd46d099164325b62bcb9badd089fca1b18",
+          "measurement_scheduled": 4000,
+          "measurement_sent": 4000,
+          "measurement_correct": 4000,
+          "measurement_skipped": 0,
+          "product_wrong_timeout_transport_zero": true,
+          "stable_endpoint_identity_and_final_state_S": true
+        },
+        {
+          "label": "candidate-e-udp-miss-r4-c",
+          "side": "c",
+          "original_valid": false,
+          "original_errors": [
+            "upstream hit/miss count"
+          ],
+          "classification": "upstream-time-phase-count-boundary",
+          "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+          "archive_sha256": "6064d9d514267855d1d8de0979cf1c8f743f02e77ca9772bafc8b81f6bcb8411",
+          "measurement_scheduled": 4000,
+          "measurement_sent": 4000,
+          "measurement_correct": 4000,
+          "measurement_skipped": 0,
+          "product_wrong_timeout_transport_zero": true,
+          "stable_endpoint_identity_and_final_state_S": true
+        }
+      ]
+    },
+    {
+      "scene": "tcp-miss",
+      "round": 3,
+      "order": [
+        "c",
+        "rust"
+      ],
+      "eligible": true,
+      "sides": [
+        {
+          "label": "candidate-e-tcp-miss-r3-c",
+          "side": "c",
+          "original_valid": false,
+          "original_errors": [
+            "measurement error counters",
+            "measurement completion count",
+            "upstream hit/miss count"
+          ],
+          "classification": "loadgen-busy-client-scheduling-skip",
+          "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+          "archive_sha256": "2ae52f7720fa582ac97fb2244fca851ccc2e2f4d5e24672ed244794b14bb3e97",
+          "measurement_scheduled": 4000,
+          "measurement_sent": 3975,
+          "measurement_correct": 3975,
+          "measurement_skipped": 25,
+          "product_wrong_timeout_transport_zero": true,
+          "stable_endpoint_identity_and_final_state_S": true
+        },
+        {
+          "label": "candidate-e-tcp-miss-r3-rust",
+          "side": "rust",
+          "original_valid": true,
+          "original_errors": [],
+          "classification": "original-valid-partner",
+          "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+          "archive_sha256": "d0a4c9d824b58b1b52cd8a9b303f441cbb7112c728c7eeaac48ea5710a07d12e",
+          "measurement_scheduled": 4000,
+          "measurement_sent": 4000,
+          "measurement_correct": 4000,
+          "measurement_skipped": 0,
+          "product_wrong_timeout_transport_zero": true,
+          "stable_endpoint_identity_and_final_state_S": true
+        }
+      ]
+    },
+    {
+      "scene": "dhcp-home6",
+      "round": 2,
+      "order": [
+        "rust",
+        "c"
+      ],
+      "eligible": true,
+      "sides": [
+        {
+          "label": "candidate-e-dhcp-home6-r2-rust",
+          "side": "rust",
+          "original_valid": true,
+          "original_errors": [],
+          "classification": "original-valid-partner",
+          "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+          "archive_sha256": "dbe27eb12caa9b66cbb7af8bb83533dc2ed7ab7ee1dccfe2e8f2304e2117ccb5",
+          "measurement_scheduled": 2000,
+          "measurement_sent": 2000,
+          "measurement_correct": 2000,
+          "measurement_skipped": 0,
+          "product_wrong_timeout_transport_zero": true,
+          "stable_endpoint_identity_and_final_state_S": true
+        },
+        {
+          "label": "candidate-e-dhcp-home6-r2-c",
+          "side": "c",
+          "original_valid": false,
+          "original_errors": [
+            "measurement error counters",
+            "measurement completion count",
+            "DORA/renew boundary"
+          ],
+          "classification": "loadgen-busy-client-scheduling-skip",
+          "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+          "archive_sha256": "76de9fbeb57717ef16db75e5d63f59bfc6b3dc61f88ed2f7971be851e035ff5c",
+          "measurement_scheduled": 2000,
+          "measurement_sent": 1999,
+          "measurement_correct": 1999,
+          "measurement_skipped": 1,
+          "product_wrong_timeout_transport_zero": true,
+          "stable_endpoint_identity_and_final_state_S": true
+        }
+      ]
+    }
+  ],
+  "selected_pair_dual_side_verified_files": 228,
+  "preflight": {
+    "epoch": 1792077752.977504,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "frozen_tool_hashes": {
+      "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+      "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+    },
+    "comparison": {
+      "c": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "available_memory_kib": 114016,
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "original_controller_exited": true,
+    "original_archives_verified": 110,
+    "original_files_verified": 3430,
+    "valid_window_prune_receipt_sha256": "c2b8e1ed5d992f445941da51bbe933d9984f5c9a7b96b85de4723685b5d34a62"
+  },
+  "guard_cancelled_probe_note": "One udp-mixed terminalHTTP0 occurred at monitor_stopped afterallscene windows; retained/notcountedpass, no failureevent andnotin supplementedpairs.",
+  "reviewer_router_actions": false,
+  "reviewer_created_supplement_claim": false,
+  "supplement_outcome_pending": true,
+  "current_original_all_windows_valid": false,
+  "constraints": [
+    "Only completepair once in originalorder, no single-side replacement.",
+    "Any supplemental invalidity remains finalfailure withno newattempt.",
+    "Finalderived view must remain11scenes\u00d75pairs\u00d72sides and retainoriginal110 plusall supplementresults.",
+    "Eligibility based onrawfailuretype notperformance magnitude/direction.",
+    "Counts.timeout isproductresponse timeout, never tooltimeout; no such failurepresent in eligiblepairs.",
+    "OriginalEtools/validator unchanged; prospectivecohortfix notapplied toE."
+  ]
+}
