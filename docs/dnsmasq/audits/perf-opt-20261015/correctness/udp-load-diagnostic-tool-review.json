@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "status": "PASS_DIAGNOSTIC_TOOL_REVIEW",
+  "feature_commit": "bec57a226c187f537bf5c5b856a6af447be095d4",
+  "endpoint_fix_commit": "039de9874077ab31fb772a303413102ef4ded787",
+  "driver_sha256": "8c5e9cfc9c89f40b0f3838532e9ffb90c70081e7a30a5089456df2cf8ed851ca",
+  "scope": "Local static review of an independently versioned low-rate/high-load diagnostic. No capture or test run by reviewer; formal F 110-window tools remain frozen and unchanged.",
+  "verified": [
+    "Default rate 200, sample observer and original loadgen SHA remain defaults. An alternative loadgen must be explicitly supplied and hash matched.",
+    "Cache prewarm remains a separate 1000-request UDP run at 200 queries/second, regardless of the main diagnostic rate.",
+    "Rate 0 is allowed only for UDP. Each nonzero-duration unpaced phase must be nonempty, scheduled=sent=correct, and have zero skips/wrong/timeout/transport errors.",
+    "Observer none creates no perf/strace instrument. It records parent stat endpoints and the actual successful warmup+measurement cohort count.",
+    "039de987 checks the fixed-grace child list is empty before reading cpu-after.stat, so waited-child ticks are incorporated before that endpoint.",
+    "Exact artifact/mapping identity checks, fixed 1 second grace and no-leftover-child rule remain in place."
+  ],
+  "interpretation_requirements": [
+    "CPU delta must include parent user/system plus waited-child user/system and use the recorded SC_CLK_TCK. Keep raw endpoint ticks and their quantization explicit.",
+    "For rate0, normalize CPU/event counts by actual warmup+measurement successful operations; measurement throughput uses the 20-second measurement cohort separately.",
+    "The old analysis entry point pins C/E identities and 5000 operations and only supports stat/sample. It must not be silently reused for F/read-one rate-0/none outputs.",
+    "Defaults preserve workload parameters, not byte-identical historical instrumentation: the new driver adds CPU stat reads and has a new identity. Do not pool historical diagnostics.",
+    "The diagnostic is not deployment acceptance or evidence of physical-router gains."
+  ],
+  "resolved_issue": {
+    "issue": "Original feature commit read cpu-after before checking children, allowing a TCP reap between the two observations to undercount child CPU.",
+    "resolution": "039de987 moves the no-child assertion before the final CPU read. Planned UDP has no service children, but the general endpoint now has the correct ordering."
+  },
+  "blockers": []
+}

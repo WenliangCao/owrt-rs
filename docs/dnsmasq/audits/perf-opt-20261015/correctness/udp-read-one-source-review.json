@@ -4,8 +4,8 @@
   "candidate_commit": "4bd3c9a4c9abcdfad9ce638dfc16a38c29fa4c0f",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
   "product_file_sha256": "f1daeddd3f0de9165caa4402f75fe04bd006fd50ba7c1a3e0d90941917e0d5cf",
-  "scope": "Local read-only review of the separate read-one UDP scheduling prototype. Immutable F and its active110-window tests are unchanged. No Oracle workload by reviewer.",
-  "authorized_change": "The user explicitly reopened one-read scheduling; the former16packet/EAGAIN preservation condition is not a prohibition. This prototype chooses to retain the existing cross-listener budget and service ordering.",
+  "scope": "Local read-only review of the separate read-one UDP scheduling prototype. Immutable F and its active 110-window tests are unchanged. No Oracle workload by reviewer.",
+  "authorized_change": "The user explicitly reopened one-read scheduling; the former 16-packet/EAGAIN preservation condition is not a prohibition. This prototype chooses to retain the existing cross-listener budget and service ordering.",
   "implementation": "One step_udp call per listener per owner turn instead of repeatedly calling that listener until false or budget exhaustion. TCP admission and later upstream/control/DHCP/TFTP calls remain in their original positions.",
   "step_udp_body_unchanged_sha256": "cc597d41737c670813399f911b2ca05a98e7132f406fcc12d0ee10342e3a7437",
   "return_path_review": [
@@ -46,9 +46,9 @@
     }
   ],
   "fairness_limits": [
-    "With at most16ready listeners returning true, each receives at most one attempt before the next poll; a single busy listener can no longer consume the whole true-return budget.",
+    "With at most 16 ready listeners returning true, each receives at most one attempt before the next poll; a single busy listener can no longer consume the whole true-return budget.",
     "The budget counts step_udp true returns, not all actual recvmsg attempts. Consumed oversize/Ok(None) and hard-error false paths did not decrement it before and still do not.",
-    "With more than16continuously busy listeners, fixed iteration order can still starve later listeners. No round-robin policy was added.",
+    "With more than 16 continuously busy listeners, fixed iteration order can still starve later listeners. No round-robin policy was added.",
     "Exact C check_dns_listeners returns after the first ready DNS event. This prototype is not identical whole-owner scheduling; its single-ready-UDP path follows the one-read idea."
   ],
   "test_review": {
