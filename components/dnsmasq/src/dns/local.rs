@@ -277,14 +277,15 @@ impl<'a> LocalAnswerer<'a> {
         // Lease expiry and the subsequent local lookup use the same original
         // name. Retain that conversion; a configured CNAME still changes only
         // the expiry traversal cursor, not the caller's question.
-        let dotted_name = if class_in {
-            expire_lease_lookups(
-                self.config,
-                lease_names,
-                &question.name,
-                question.rrtype,
-                now,
-            )
+        let mut dotted_name = [0; 253];
+        let dotted_length = if class_in && !lease_names.entries().is_empty() {
+            let length = query_dotted_name(&question.name, &mut dotted_name);
+            if let Some(length) = length {
+                expire_lease_lookups(
+                    self.config, lease_names, &dotted_name[..length], question.rrtype, now,
+                );
+            }
+            length
         } else {
             None
         };
@@ -347,11 +348,13 @@ impl<'a> LocalAnswerer<'a> {
             // published DHCP A can coexist with an older negative marker.
             return Ok(None);
         } else if class_in {
-            if let Some(name) = dotted_name.or_else(|| wire_to_dotted(&question.name)) {
+            if let Some(length) = dotted_length
+                .or_else(|| query_dotted_name(&question.name, &mut dotted_name))
+            {
                 let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
                     self.hosts,
-                    &name,
+                    &dotted_name[..length],
                     question.rrtype,
                     self.local_ttl,
                     leases,
@@ -812,21 +815,17 @@ fn append_mail_addresses(
 fn expire_lease_lookups(
     config: &DnsConfig,
     leases: &mut Arc<LeaseNames>,
-    query: &Name,
+    query_name: &[u8],
     qtype: u16,
     now: i64,
-) -> Option<Vec<u8>> {
-    if leases.entries().is_empty() {
-        return None;
-    }
-    let query_name = wire_to_dotted(query)?;
-    let mut name = query_name.as_slice();
+) {
+    let mut name = query_name;
     for _ in 0..100 {
         if leases.has_expired_name(&name, now) {
             Arc::make_mut(leases).expire_name(&name, now);
         }
         if qtype == TYPE_CNAME {
-            return Some(query_name);
+            return;
         }
         let Some(cname) = config
             .records
@@ -849,7 +848,6 @@ fn expire_lease_lookups(
     {
         Arc::make_mut(leases).expire_reverse(now);
     }
-    Some(query_name)
 }
 
 fn dotted_key(name: &[u8]) -> Vec<u8> {
@@ -910,6 +908,42 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
             out.push(b'.');
         }
         out.extend(wire[pos..pos + len].iter().map(u8::to_ascii_lowercase));
+        pos += len;
+    }
+    None
+}
+
+/// Query-scoped counterpart of wire_to_dotted. A valid 255-byte wire name
+/// needs at most 253 dotted bytes; no escaped-name expansion belongs here.
+fn query_dotted_name(name: &Name, out: &mut [u8; 253]) -> Option<usize> {
+    let wire = name.as_wire();
+    let mut pos = 0;
+    let mut written = 0;
+    while pos < wire.len() {
+        let len = usize::from(wire[pos]);
+        pos += 1;
+        if len == 0 {
+            return Some(written);
+        }
+        if len > 63 || pos.checked_add(len)? > wire.len() {
+            return None;
+        }
+        let label = &wire[pos..pos + len];
+        if label.contains(&b'.') {
+            return None;
+        }
+        let separator = usize::from(written != 0);
+        let end = written + separator + len;
+        if end > out.len() {
+            return None;
+        }
+        if separator != 0 {
+            out[written] = b'.';
+        }
+        for (target, source) in out[written + separator..end].iter_mut().zip(label) {
+            *target = source.to_ascii_lowercase();
+        }
+        written = end;
         pos += len;
     }
     None
@@ -1816,6 +1850,28 @@ mod tests {
         packet.extend(qtype.to_be_bytes());
         packet.extend(class.to_be_bytes());
         packet
+    }
+
+    #[test]
+    fn query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names() {
+        let mut names = vec![Name::root(), Name::from_ascii("MiXeD.Example.").unwrap()];
+        for byte in 0..=255 {
+            for length in [1, 63] {
+                let mut wire = vec![length as u8];
+                wire.extend(std::iter::repeat_n(byte, length));
+                wire.extend_from_slice(&[1, b'A', 0]);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        assert_eq!(longest.len(), 253);
+        names.push(Name::from_ascii(&longest).unwrap());
+        let mut buffer = [0x7f; 253];
+        for name in names {
+            let expected = wire_to_dotted(&name);
+            let actual = query_dotted_name(&name, &mut buffer).map(|length| &buffer[..length]);
+            assert_eq!(actual, expected.as_deref(), "{:?}", name.as_wire());
+        }
     }
 
     #[test]
