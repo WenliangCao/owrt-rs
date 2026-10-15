@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "scope": "Separate follow-up diagnostic: locate user-cycle costs after the fixed instruction matrix; no replacement or retry of any original window",
+  "driver": {
+    "base_commit": "735ecf6a",
+    "change": "optional sample event, default instructions:u preserved",
+    "sha256": "2c1bb2ec7531b403c1d0a3ea19489e726adb1540e6fca84cbd5f33b6d14dac37"
+  },
+  "artifacts": {
+    "C": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "E": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "C_symbols": "79cb9590a6113bca41034155ec45569eac58a2dccde80819c9863ef316f740da",
+    "C_symbol_receipt": "02ed4b8321ffacd1ddec6c061ea4375f8f4220ba06f8ee22d4b2f8b764596b94"
+  },
+  "workload": {
+    "profile": "hit",
+    "qps": 200,
+    "names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "udp_clients": 32,
+    "tcp_connections": 8,
+    "tcp_close_replies": 100,
+    "prewarm": {
+      "mode": "udp",
+      "operations": 1000,
+      "excluded": true
+    },
+    "warmup_operations": 1000,
+    "measurement_operations": 4000,
+    "normalization_operations": 5000,
+    "cache": 1000,
+    "upstream_delay_us": 1000,
+    "upstream_ttl": 120,
+    "fixed_grace_seconds": 1
+  },
+  "placement": {
+    "daemon_cpu": 2,
+    "daemon_nice": 10,
+    "client_cpu": 3,
+    "upstream_cpu": 1,
+    "namespace": "fresh loopback-only netns with host PID visibility"
+  },
+  "stat": {
+    "capture": "none; no concurrent perf stat",
+    "normalization": "original three unscaled stat pairs only"
+  },
+  "sample": {
+    "event": "cycles:u",
+    "period": 10000,
+    "inheritance": "all descendants; validate fork lineage and no exec from task/MMAP records",
+    "symbolization": "C copied exact stripped ELF plus matching full-symbol ALLOC proof; exact library dynamic sized FUNC/IFUNC; E same-build linker input sections",
+    "function_instruction_estimate": "not used; retain instruction estimates from original independent plan",
+    "unknowns": "retain zero-size, gaps, overlaps, unknown DSOs and unassigned samples explicitly",
+    "function_cycle_estimate": "sample share times original separate stat median user cycles per 5000 operations; cross-run estimate only"
+  },
+  "validity": [
+    "run after all original 16 instruction/stat windows pass capture and raw checks; exclusive observation slot",
+    "each warmup and measurement scheduled/sent/correct count equals plan, zero loss/error/skipped",
+    "fixed grace must end with no live children; never extend to improve results",
+    "pre/post exact executable and all mapped ELF identities agree; non-executable data maps separate",
+    "all attempts retained; no deletion, silent retry or favorable substitution",
+    "sampling cannot contribute to kernel instruction totals",
+    "observer ends before post-window hashing/maps checks"
+  ],
+  "windows": [
+    {
+      "id": "udp-cycles-c",
+      "mode": "udp",
+      "observer": "sample",
+      "side": "C",
+      "sample_event": "cycles:u"
+    },
+    {
+      "id": "udp-cycles-e",
+      "mode": "udp",
+      "observer": "sample",
+      "side": "E",
+      "sample_event": "cycles:u"
+    },
+    {
+      "id": "tcp-cycles-c",
+      "mode": "tcp",
+      "observer": "sample",
+      "side": "C",
+      "sample_event": "cycles:u"
+    },
+    {
+      "id": "tcp-cycles-e",
+      "mode": "tcp",
+      "observer": "sample",
+      "side": "E",
+      "sample_event": "cycles:u"
+    }
+  ],
+  "reason": "UDP E/C median user instructions +6.86 percent but user cycles +55.44 percent in three unscaled stat pairs; instruction self shares alone cannot explain cycle cost",
+  "parent_plan_sha256": "5b3f91a8d523ee93a3ec31db39b4d98a74f3c9b9fb25443c82e8b15eda23efff"
+}
