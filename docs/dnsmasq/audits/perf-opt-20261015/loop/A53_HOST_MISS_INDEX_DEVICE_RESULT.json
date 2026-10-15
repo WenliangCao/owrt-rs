@@ -1,0 +1,1071 @@
+{
+  "schema": 1,
+  "status": "complete fixed10 exploratory device comparison; final independent audit tracked separately",
+  "scope": "Exploratory unqualified F/host-miss-index A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "candidate_eligible": false,
+  "full44_qualification_completed": false,
+  "source_commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+  "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_files_verified": 179,
+  "plan_commit": "4060f669",
+  "artifact": {
+    "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+    "elf_bytes": 2136859,
+    "map_sha256": "261cb11b3f4a7d5cd452902a17e1cee7924ee78a327949ae5d079d69a82dd411",
+    "build_receipt_sha256": "636a95819e750704b98bd24a0de792eb292f8d3a0221d7088d007979f24df88c"
+  },
+  "identities": {
+    "entry_sha256": "4554ebb15391ffa7499318ed5a01c2f124a39f0ae518d00f8f1297468f6b1558",
+    "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "plan_sha256": "a4752a16794e5e9516f04654b69ef34aae863b279b51c1a9c69388f221a585c0",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7"
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 314,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "comparison": {
+    "left": [
+      "f",
+      null
+    ],
+    "right": [
+      "host-miss-index",
+      null
+    ],
+    "metrics": {
+      "p50_ms": {
+        "left": {
+          "median": 0.185816,
+          "min": 0.181815,
+          "max": 0.188047,
+          "rounds": [
+            0.181815,
+            0.185046,
+            0.185816,
+            0.185816,
+            0.188047
+          ]
+        },
+        "right": {
+          "median": 0.191432,
+          "min": 0.182276,
+          "max": 0.193894,
+          "rounds": [
+            0.182276,
+            0.189201,
+            0.191432,
+            0.193894,
+            0.191817
+          ]
+        },
+        "relative_change_pct": 3.0223446850647857,
+        "W_pct": 6.068995779180083,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.381172,
+          "min": 0.341316,
+          "max": 0.399868,
+          "rounds": [
+            0.381172,
+            0.393867,
+            0.341316,
+            0.399868,
+            0.351856
+          ]
+        },
+        "right": {
+          "median": 0.39302,
+          "min": 0.307615,
+          "max": 0.415718,
+          "rounds": [
+            0.342316,
+            0.39302,
+            0.415718,
+            0.307615,
+            0.394867
+          ]
+        },
+        "relative_change_pct": 3.1083080604031696,
+        "W_pct": 27.505724899496197,
+        "same_direction_pairs": 2,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 132.0,
+          "min": 128.0,
+          "max": 134.0,
+          "rounds": [
+            128.0,
+            134.0,
+            130.0,
+            132.0,
+            132.0
+          ]
+        },
+        "right": {
+          "median": 136.0,
+          "min": 132.0,
+          "max": 138.0,
+          "rounds": [
+            132.0,
+            134.0,
+            138.0,
+            138.0,
+            136.0
+          ]
+        },
+        "relative_change_pct": 3.0303030303030303,
+        "W_pct": 4.545454545454546,
+        "same_direction_pairs": 4,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 2388.0,
+          "min": 2368.0,
+          "max": 2412.0,
+          "rounds": [
+            2412.0,
+            2388.0,
+            2400.0,
+            2376.0,
+            2368.0
+          ]
+        },
+        "right": {
+          "median": 2388.0,
+          "min": 2284.0,
+          "max": 2488.0,
+          "rounds": [
+            2388.0,
+            2388.0,
+            2376.0,
+            2488.0,
+            2284.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 2388,
+          "min": 2368,
+          "max": 2412,
+          "rounds": [
+            2412,
+            2388,
+            2400,
+            2376,
+            2368
+          ]
+        },
+        "right": {
+          "median": 2388,
+          "min": 2284,
+          "max": 2488,
+          "rounds": [
+            2388,
+            2388,
+            2376,
+            2488,
+            2284
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 520,
+          "min": 516,
+          "max": 520,
+          "rounds": [
+            520,
+            516,
+            520,
+            516,
+            520
+          ]
+        },
+        "right": {
+          "median": 520,
+          "min": 516,
+          "max": 568,
+          "rounds": [
+            516,
+            520,
+            540,
+            568,
+            516
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 1868,
+          "min": 1844,
+          "max": 1888,
+          "rounds": [
+            1888,
+            1868,
+            1876,
+            1856,
+            1844
+          ]
+        },
+        "right": {
+          "median": 1864,
+          "min": 1764,
+          "max": 1916,
+          "rounds": [
+            1868,
+            1864,
+            1832,
+            1916,
+            1764
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    "cpu_median_ticks": {
+      "left": 66,
+      "right": 68,
+      "absolute_delta": 2,
+      "required_delta_exclusive": 8
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r1-c",
+      "group": "f-vs-host-miss-index",
+      "round": 1,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 64,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 128.0,
+      "cpu_endpoint_seconds": 27.015859351,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.095485,
+        "p50": 0.181815,
+        "p95": 0.381172,
+        "p99": null,
+        "max": 5.455358
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.174226,
+        "p50": 0.278374,
+        "p95": 0.555173,
+        "p99": null,
+        "max": 5.66041
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065491,
+        "p50": 0.095696,
+        "p95": 0.17225,
+        "p99": null,
+        "max": 4.40182
+      },
+      "rss_median_kib": 2412.0,
+      "rss_peak_kib": 2412,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "dbb18cfcb7302b609b9f51fd63f2e59b4ed069d5f7247d1a78a6789d812943e3"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r1-rust",
+      "group": "f-vs-host-miss-index",
+      "round": 1,
+      "side": "rust",
+      "artifact": "host-miss-index",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 66,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 132.0,
+      "cpu_endpoint_seconds": 27.028024891,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.097101,
+        "p50": 0.182276,
+        "p95": 0.342316,
+        "p99": null,
+        "max": 9.955708
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.177061,
+        "p50": 0.279398,
+        "p95": 0.505294,
+        "p99": null,
+        "max": 10.683791
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.061107,
+        "p50": 0.096391,
+        "p95": 0.158795,
+        "p99": null,
+        "max": 6.295026
+      },
+      "rss_median_kib": 2388.0,
+      "rss_peak_kib": 2388,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1868,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "b72f509669249471d47e749a64db2ae2dc386b7b0426392557bd2010439e03ab"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r2-rust",
+      "group": "f-vs-host-miss-index",
+      "round": 2,
+      "side": "rust",
+      "artifact": "host-miss-index",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.01536345,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.100102,
+        "p50": 0.189201,
+        "p95": 0.39302,
+        "p99": null,
+        "max": 11.659593
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.179654,
+        "p50": 0.287608,
+        "p95": 0.569539,
+        "p99": null,
+        "max": 11.841731
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.037225,
+        "p50": 0.097766,
+        "p95": 0.174537,
+        "p99": null,
+        "max": 7.318866
+      },
+      "rss_median_kib": 2388.0,
+      "rss_peak_kib": 2388,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1864,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "65b02b37db13ca0fda6dcdd40c91d68c55ba33f70609f9f950e2af10612423bc"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r2-c",
+      "group": "f-vs-host-miss-index",
+      "round": 2,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.016713846,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.098409,
+        "p50": 0.185046,
+        "p95": 0.393867,
+        "p99": null,
+        "max": 13.560451
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.176688,
+        "p50": 0.283365,
+        "p95": 0.574638,
+        "p99": null,
+        "max": 17.220256
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058466,
+        "p50": 0.097607,
+        "p95": 0.163249,
+        "p99": null,
+        "max": 10.577142
+      },
+      "rss_median_kib": 2388.0,
+      "rss_peak_kib": 2388,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1868,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "8f9a2b3533d9eb8a695268e8eb2860c2d1e3f9672666d0b23ce1d46fb0d903e7"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r3-c",
+      "group": "f-vs-host-miss-index",
+      "round": 3,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.015456326,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.093946,
+        "p50": 0.185816,
+        "p95": 0.341316,
+        "p99": null,
+        "max": 13.913846
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.172174,
+        "p50": 0.284706,
+        "p95": 0.50551,
+        "p99": null,
+        "max": 17.139042
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.053289,
+        "p50": 0.097815,
+        "p95": 0.156767,
+        "p99": null,
+        "max": 12.169588
+      },
+      "rss_median_kib": 2400.0,
+      "rss_peak_kib": 2400,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "65030ff71b43ff24e8d557624a695144dd3f7fdf7b2bded6bb0ce27625f322c7"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r3-rust",
+      "group": "f-vs-host-miss-index",
+      "round": 3,
+      "side": "rust",
+      "artifact": "host-miss-index",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.015285695,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102564,
+        "p50": 0.191432,
+        "p95": 0.415718,
+        "p99": null,
+        "max": 12.292981
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.182157,
+        "p50": 0.291094,
+        "p95": 0.600203,
+        "p99": null,
+        "max": 16.865691
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.066869,
+        "p50": 0.099458,
+        "p95": 0.17892,
+        "p99": null,
+        "max": 11.899854
+      },
+      "rss_median_kib": 2376.0,
+      "rss_peak_kib": 2376,
+      "anon_peak_kib": 540,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "3871fea04de931e0c1c3db4160dd180b17ee90eeb8e251a830a29a116fa4a137"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r4-rust",
+      "group": "f-vs-host-miss-index",
+      "round": 4,
+      "side": "rust",
+      "artifact": "host-miss-index",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 30,
+        "raw": null
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.016216342,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104642,
+        "p50": 0.193894,
+        "p95": 0.307615,
+        "p99": null,
+        "max": 3.839647
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.184892,
+        "p50": 0.294036,
+        "p95": 0.456245,
+        "p99": null,
+        "max": 4.774202
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.063375,
+        "p50": 0.099084,
+        "p95": 0.150672,
+        "p99": null,
+        "max": 4.153586
+      },
+      "rss_median_kib": 2488.0,
+      "rss_peak_kib": 2488,
+      "anon_peak_kib": 568,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1916,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "1cdd0e6dfc90f1d880aacaa8657136b39037d44181c39757153d9d155d3c0fc5"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r4-c",
+      "group": "f-vs-host-miss-index",
+      "round": 4,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 66,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 132.0,
+      "cpu_endpoint_seconds": 27.015832013,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.0931,
+        "p50": 0.185816,
+        "p95": 0.399868,
+        "p99": null,
+        "max": 40.674272
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171657,
+        "p50": 0.285127,
+        "p95": 0.580394,
+        "p99": null,
+        "max": 52.545325
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.061464,
+        "p50": 0.098155,
+        "p95": 0.174105,
+        "p99": null,
+        "max": 35.28757
+      },
+      "rss_median_kib": 2376.0,
+      "rss_peak_kib": 2376,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1856,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "1ea2157e0a652b3c7a5365e0fe695347248895e6dad168b07dd36a410f6fd48a"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r5-c",
+      "group": "f-vs-host-miss-index",
+      "round": 5,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 66,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 132.0,
+      "cpu_endpoint_seconds": 27.015814507,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.095255,
+        "p50": 0.188047,
+        "p95": 0.351856,
+        "p99": null,
+        "max": 9.279847
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.174027,
+        "p50": 0.286462,
+        "p95": 0.52051,
+        "p99": null,
+        "max": 10.639109
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058266,
+        "p50": 0.098178,
+        "p95": 0.163709,
+        "p99": null,
+        "max": 5.675887
+      },
+      "rss_median_kib": 2368.0,
+      "rss_peak_kib": 2368,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "3c214ec5eb3a1446a119a9eb7a640e88c63345a2f27de7abb2a88a4ee6b49ed1"
+      }
+    },
+    {
+      "label": "a53-host-miss-index-f-vs-host-miss-index-r5-rust",
+      "group": "f-vs-host-miss-index",
+      "round": 5,
+      "side": "rust",
+      "artifact": "host-miss-index",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.015291957,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102718,
+        "p50": 0.191817,
+        "p95": 0.394867,
+        "p99": null,
+        "max": 10.330416
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.182402,
+        "p50": 0.290726,
+        "p95": 0.573591,
+        "p99": null,
+        "max": 29.764955
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.070407,
+        "p50": 0.098197,
+        "p95": 0.169607,
+        "p99": null,
+        "max": 29.184887
+      },
+      "rss_median_kib": 2284.0,
+      "rss_peak_kib": 2284,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1764,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "a343ae95c2213dd6c254bd6b307c1a3187f08c9d006f294c5280097d6950d948"
+      }
+    }
+  ],
+  "health": {
+    "guard_samples": 419,
+    "external_checks": 28,
+    "dns_samples": 165,
+    "http_samples": 76,
+    "minimum_available_memory_kib": 81584,
+    "guard_sha256": "2c7df1b02221295611e8d1e42f5a63051bcdf500495a0e23f4d30d9d50d7c4cd"
+  },
+  "preflight_health": {
+    "valid": true,
+    "elapsed_seconds": 125.622,
+    "dns_samples": 51,
+    "dns_p95_ms": 0.622,
+    "dns_max_ms": 0.682,
+    "http_samples": 23,
+    "http_max_ms": 71.731,
+    "threshold_ms": 200,
+    "raw_sha256": "e643250ccb09cfd25d6074c182867dc7443420a04dd154575bb03414f51d32b9"
+  },
+  "postflight": {
+    "epoch": 1792106909.4686809,
+    "scope": "10/10exploratory windows archived/verified; restore exactE/F and reclaim only three new hash-verified immutable source copies. No production changes.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all10_verified_remote_window_copies_pruned": true,
+    "immutable_sources_pruned": {
+      "e": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-host-miss-index-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      },
+      "f": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-host-miss-index-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "host-miss-index": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-host-miss-index-artifact-host-miss-index",
+        "sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066"
+      }
+    },
+    "available_memory_kib": 84844,
+    "production_namespace": "net:[4026531840]",
+    "postflight_script_sha256": "9559b3bf7fcccfbad8724cef25971fffd533f607e073c38cee3a89b4543d0e29",
+    "stdout": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n84844\nnet:[4026531840]\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "evidence": {
+    "summary_sha256": "700c3d248f1665ac5a13c8aa950a0b55720f434fbe96977d04c01b83bfd53dcc",
+    "progress_sha256": "379cf01b14253be56e952468c17df29dedf34ed0e4ec49b8d711899e6d9ab086",
+    "verifier_sha256": "9c446b80f9920cd390bd0cc4e33b2c17abf72a8847f6f8e685a86ff484ef6c2e",
+    "private_root": "private/perf-opt-20261015/a53-host-miss-index-device",
+    "local_verification_sha256": "9925ad5940438432c8757cec62e7e61a81f867b23b1cec88a512e87759a189d4",
+    "postflight_sha256": "081a4d9c7ca805a70ac126d8d607591c3362e72d277b211c6fc6926d0cb09545",
+    "setup_attempt_before_health_summary": {
+      "sha256": "a2149a063839374b2f23f43bc006fa79201bc9ea7f188119dc357bfc3adf307f",
+      "scope": "One local setup read failed while original baseline still running, before SSH/upload/controller creation; zero workload windows. Same unchanged script launched after baseline PASS."
+    }
+  },
+  "interpretation": [
+    "The unchanged compare() decisions below are the authority; descriptive median changes alone do not establish gains or regressions.",
+    "Only contemporaneous F controls are used. No pooling with earlier E/C, other product prototypes or synthetic-stage controls.",
+    "All valid windows including high-latency observations remain; no selective replacement, longer windows, adjusted precision or thresholds.",
+    "This exact source was not combined with any other separately tested prototype. Full44 remains incomplete and no product promotion follows from this exploratory screen.",
+    "No syscall tracing, PMU, per-query clock or logging was added; source frame/allocation/layout hypotheses do not establish causal cost."
+  ]
+}
