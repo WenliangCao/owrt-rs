@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "status": "PASS_COUNT_ONLY_EVIDENCE_AUDIT",
+  "scope": "Independent local audit of the three completed A53 E-plus-meter windows. No router/Oracle access, build, workload, staging, deployment or flash by this audit.",
+  "diagnostic_source_commit": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "diagnostic_elf_sha256": "3ade51ea60df79824c6c646b9bd035d52720af9ae7c00abca4cc4e1db0cfe108",
+  "diagnostic_elf_bytes": 2358043,
+  "same_build_map_sha256": "bff1af4bc826940a594204a5c2fecde1f6ef1478df203d9f7fd8a6c81a13d011",
+  "build_receipt_sha256": "0400e753eab60e495f061af91cc506da9c066414786d725462a1c948b6bca595",
+  "sdk_source_files_independently_matched": 180,
+  "release_budget": {
+    "elf_limit_bytes": 2200000,
+    "within_existing_budget": false,
+    "gate_unchanged": true,
+    "timing_and_candidate_acceptance_excluded": true
+  },
+  "evidence": {
+    "frozen_plan_commit": "00ae8bbc",
+    "frozen_plan_sha256": "65d715f66b28f434a3eb4a6f0d0661b615b515d0550ebf5fab748e1c1c1cc64d",
+    "driver_commit": "60a8d2e0",
+    "driver_sha256": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1",
+    "validator_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "plan_and_driver_committed_before_launch": true,
+    "launch_sha256": "08971b17bf81625b95ce98776855223d1d65dfa84f2c9a46ecd3050d08c8bf7a",
+    "identity_sha256": "a59c23f4c5660acba2e3cd2d46f177b744a01e645514642082282efbc807dced",
+    "progress_sha256": "2beae745aff9c154735242b493d1aa6d74de8cac0ffbbca57dcdfbad07411437",
+    "complete_sha256": "1c6d360e59f31fdc52ca92fdcc9b2f5b083d999c754028148c15dbb4e0b30dc7",
+    "author_result_commit": "44842290",
+    "author_public_result": "../loop/E_UDP_ALLOCATION_DEVICE_RESULT.json",
+    "author_public_result_sha256": "2316acf23e1409c7b01a68c5d530f305ed8a7a44f7e88110a46fbb530d3428af",
+    "independent_script_sha256": "15613b9177f1e7cfca1df376623fb7701042795a9f878af3a2ed209448a912e5",
+    "independent_result_sha256": "d66ed975e9325c85490f1b4e294af3816df1718caaeabb3cc02642883d81d191",
+    "published_result_crosscheck_sha256": "bc072c8a3c0562e99ba428c0634059692e10f6b48be9ac29d04241d8af979f33"
+  },
+  "inventory": {
+    "fixed_windows": 3,
+    "valid_windows": 3,
+    "repeats_or_replacements": 0,
+    "verified_archives": 3,
+    "verified_raw_files": 132,
+    "archives": {
+      "e-udp-allocation-r1-rust": "5aabdae5302c8d7536c667af0d5a40aad70d4a456b2c30f8281fe713385a8b4e",
+      "e-udp-allocation-r2-rust": "84f92be40ccec3315c4c4355253c788941fbb069004ef5ba17e5f99b7ec8189e",
+      "e-udp-allocation-r3-rust": "e4c1813e22ca8a5937061287ad5082c5d38862986725cb7d6f754137153b8db7"
+    }
+  },
+  "checks": [
+    "Every archive digest, safe unique regular-file/directory member, manifest and retained extracted-file hash matched: 44 files per window.",
+    "Exact diagnostic file/live ELF, staged measurement-tool identities, isolated daemon netns and config digests matched every window.",
+    "The reused validator is byte-identical to frozen 7c93cfb1. Relocating only the existing case root path reconstructs exact case SHA79f4d3e9; its set-e final daemon wait precedes COMPLETE.",
+    "All three case exits and daemon exits are zero with COMPLETE. No stderr errors; controller output is the expected isolated-loopback namespace receipt.",
+    "Prewarm, warmup and measurement scheduled/sent/correct counts are 1000/1000/4000 per window, with zero timeout, wrong, transport error or skips. Binary record counts/status/IDs and send-lag membership independently match.",
+    "Exactly 800 upstream requests/replies per window occur in setup/warmup, with zero measurement upstream requests and no upstream error/drop. TTL120 and delay1000us match the frozen hit workload.",
+    "All raw matrices, query counts, histogram sums and weighted sums, actual cached denominators, whole-turn sums and published derived values match independent calculations."
+  ],
+  "counts": {
+    "correct_queries_including_prewarm": 18000,
+    "consumed_packet_steps_per_window": 6000,
+    "other_packet_steps_per_window": 800,
+    "actual_cached_queries_per_window": 5200,
+    "actual_cached_queries_total": 15600,
+    "cached_denominator_rule": "Read the actual Cached step count, including cache hits during prewarm. Neither 5000 queries nor the cached-only turn count is the denominator.",
+    "cached_step_per_query_every_window": {
+      "alloc": 5.0,
+      "dealloc": 5.0,
+      "realloc": 0.0,
+      "requested_bytes": 270.0,
+      "released_bytes": 270.0
+    },
+    "cached_allocation_histogram_every_window": {
+      "5": 5200
+    },
+    "cached_only_turns_per_window": [
+      5112,
+      5200,
+      5198
+    ],
+    "conditional_cached_only_turn_per_cached_query_every_window": {
+      "alloc": 5.0,
+      "dealloc": 5.0,
+      "realloc": 0.0,
+      "requested_bytes": 270.0,
+      "released_bytes": 270.0
+    },
+    "all_owner_turn_totals_across_windows": {
+      "turns": 20313,
+      "cached_queries": 15600,
+      "alloc": 181945,
+      "dealloc": 172105,
+      "realloc": 2407,
+      "requested_bytes": 10377696,
+      "released_bytes": 9933103
+    },
+    "local_and_stale_packet_steps": 0,
+    "nested_steps": 0,
+    "unscoped_classifications": 0,
+    "thread_samples_per_window": [
+      31,
+      32,
+      32
+    ],
+    "observed_daemon_threads_in_every_sample": 1,
+    "whole_turn_categories_retained": "no_packet, cached_only, mixed_or_other; all three matrices independently matched the raw report and author result."
+  },
+  "health": {
+    "fresh_baseline": {
+      "sha256": "6d601dc54ab3bdeb6f6693873d27395d8ccb5ac8cc74768c70acc5f1d63c82be",
+      "samples": 126,
+      "dns_checks": 49,
+      "http_checks": 23,
+      "min_memory_kib": 93212,
+      "start_epoch": 1792096208,
+      "end_epoch": 1792096333,
+      "elapsed_seconds": 125.428,
+      "dns_p95_ms": 0.677
+    },
+    "runtime_guard": {
+      "sha256": "c76817bb2de1d58ec99daa12dc2e366a505eaf34d19d548463f447ad8eaeda8a",
+      "samples": 125,
+      "dns_checks": 50,
+      "http_checks": 23,
+      "min_memory_kib": 89408,
+      "start_epoch": 1792096586,
+      "end_epoch": 1792096710,
+      "elapsed_seconds": 124.536,
+      "dns_p95_ms": 0.763
+    },
+    "external_checks": [
+      {
+        "segment": "run",
+        "checks": 10,
+        "sha256": "82e2f5e9f8d5b5513175c6d8dba01e08e80a2d8e49019ec2db750cbea9074545"
+      },
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "sha256": "fdbe77cd3b293809e919239ec620896aa8b5c82bbd669a28b476b843ca793d5b"
+      }
+    ],
+    "completed_probes_passed": true,
+    "cancelled_probes_counted_as_pass": 0,
+    "guard_stops": 0,
+    "maximum_sample_gap_seconds": 1,
+    "all_three_window_intervals_covered": true,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained_in_samples": true
+  },
+  "postflight": {
+    "receipt_sha256": "94850ce69503e44ca683082cf78c2a3cd4fe0aa6ef984d5f31e2bb73c78e3521",
+    "scope": "Local audit of captured postflight fields/stdout, not a fresh device query.",
+    "recorded_exit_code": 0,
+    "restored_staged_F_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+    "recorded_production_identity_unchanged": true,
+    "recorded_no_STOP_no_active_group_no_owned_live_executables": true,
+    "recorded_all_three_verified_remote_copies_pruned": true,
+    "recorded_available_memory_kib": 97752
+  },
+  "limits": [
+    "The ELF exceeds the unchanged release size gate and is strictly excluded diagnostic evidence. Its CPU/latency values cannot support performance, candidate acceptance or deployment.",
+    "Cached-only turn averages are conditional, not all-turn averages. no_packet turns can handle upstream completions or control work; no-packet/error steps are not an EAGAIN syscall count.",
+    "Whole-turn totals cover the normal owner loop, excluding preceding initialization, report formatting and later teardown. Requested-minus-released bytes do not establish a leak.",
+    "Allocator byte counts are request/release traffic, not physical malloc footprint, RSS or USS. Separate realloc counts remain visible.",
+    "The 95 retained process observations each show one thread. These samples are not continuous thread tracing.",
+    "Numerical agreement with an earlier API-subset count does not identify each dynamic allocation site, compare C allocation cost or prove uninstrumented speed."
+  ],
+  "performance_eligible": false
+}
