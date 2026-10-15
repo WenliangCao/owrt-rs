@@ -1,0 +1,108 @@
+{
+  "scope": "Independent behavioral correction for initial hosts/DHCP name reconciliation; not a performance optimization or candidate acceptance receipt",
+  "base_source": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "fix_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "matching_c_contract": "dnsmasq.c EVENT_INIT calls clear_cache_and_reload: cache_reload, lease_update_from_configs, then first lease_update_dns. lease_init restores/prunes/marks DNS dirty without publishing. The pre-EVENT_INIT helper snapshot remains original.",
+  "defect": "Rust initializes DHCP before the asynchronous initial DNS hosts scan, publishing provisional original lease names. Retaining those names in the initial hosts bulk incorrectly lets a DHCP-first reverse chain suppress the initial static-host rename. The existing runtime-HUP mixed-chain contract does not permit this startup difference.",
+  "fix": "Use existing hosts_initializing latch to omit provisional retained leases from cold initial bulk and HUP during that cold phase. Normal runtime HUP still retains the existing publication. Create empty LeaseNames on the stack only in the cold branch; no new heap allocation or helper/persistence/prune scheduling change.",
+  "source_sha256": {
+    "components/dnsmasq/src/main.rs": "33c613a4391b2b401f6ea22adce9e15122eb2a9c37198aa1b90232a7f200255c",
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": "bb55aad7ba02e35a79b6b65cf4966dd2f414107f2022ae373c2b603ee22cca2d"
+  },
+  "regression": {
+    "name": "hostsdir_init_tests::initial_hosts_rename_precedes_lease_retention_in_both_mixed_chain_orders",
+    "selection": "Use real Hosts mixed-chain behavior under the process hash to choose static-first and DHCP-first names, without forcing ASLR, searching process seeds or using fixed name expectations. Test-owner hash capacity is retained.",
+    "scenarios": 6,
+    "assertions": [
+      "initial and initial-HUP both retain the first frozen original OLD callback then emit OldHostname and new static name",
+      "persisted initial lease uses the static hostname in both chain orders",
+      "runtime-HUP retains the existing chain-dependent rename/suppression outcomes"
+    ],
+    "baseline": "Exact D product source plus only the new regression test, before applying the product fix",
+    "baseline_exit": 101,
+    "baseline_outcomes": {
+      "initial_DHCP_first": "failed: original OLD twice, persisted original",
+      "initial_HUP_DHCP_first": "failed: original OLD twice, persisted original",
+      "initial_static_first": "passed",
+      "initial_HUP_static_first": "passed",
+      "runtime_HUP_DHCP_first": "passed",
+      "runtime_HUP_static_first": "passed"
+    },
+    "after": "All six scenarios pass in the same test, as part of the seven existing/new hostsdir init tests. No repeated process seed selection."
+  },
+  "linux_tests": {
+    "hostsdir_init_tests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "hosts_initial_hup_tests": {
+      "passed": 1,
+      "failed": 0
+    },
+    "tcp_import_local_tests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "environment": "Matching SDK musl test build, cargo1.98.1, one build job, shared target lock includes build+artifact copy; existing isolated network/mount/PID wrapper with private tmpfs /tmp, test-threads1"
+  },
+  "build_receipts": {
+    "before": {
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/dhcp/initial-startup-before",
+      "kind": "tests",
+      "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/dhcp/initial-startup-before=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+      "artifacts": [
+        {
+          "path": "bin-dnsmasq-rs",
+          "bytes": 50902056,
+          "sha256": "03f8d32eefe9085ed88158770128dca048e0aa15b48e1daf0cf9f44c03477598"
+        },
+        {
+          "path": "lib-dnsmasq_rs",
+          "bytes": 71751744,
+          "sha256": "9a138527e5fa174e0a8e7647796b1fbbf5de16e48f7d9e71cbd46f84f49caf1f"
+        }
+      ]
+    },
+    "after": {
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/dhcp/initial-startup-before",
+      "kind": "tests",
+      "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/dhcp/initial-startup-before=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+      "artifacts": [
+        {
+          "path": "bin-dnsmasq-rs",
+          "bytes": 50902864,
+          "sha256": "6c5c41aa5aebdf42c556779d6369022b836ea338bb6417b366d70cb8f4221f0e"
+        },
+        {
+          "path": "lib-dnsmasq_rs",
+          "bytes": 71751744,
+          "sha256": "9a138527e5fa174e0a8e7647796b1fbbf5de16e48f7d9e71cbd46f84f49caf1f"
+        }
+      ]
+    }
+  },
+  "raw_sha256": {
+    "after-build.json": "3f58d4499253de96ab0d6510f22e88fbd6b68a0d39387f4a6cd25a12cbc77434",
+    "before-build.json": "3d274f825b53acf5358b57c49aa579fe91ed55cfe70aad9f12a3ead7fbea0e5a",
+    "dnsmasq-initial-hosts-fix-20261015.patch": "d978faee29eaa3181999f4d320d130155c75df2c30a2162cbb470951b45db877",
+    "dnsmasq-initial-hosts-local-check-20261015.log": "00cf7cd78785dbe654a361c8bf3bf5bc4ec4b31484a1e8353cca477716136df2",
+    "dnsmasq-initial-hosts-regression-20261015.patch": "60a3c34767d2eb0c800c1a7e51dc25318f35bf4b511f955715687b6631a2f8bd",
+    "initial-startup-after-hosts_initial_hup_tests.log": "7c14a1d5d72811db97e75bab8b78276224d444043fce89c87efe6f4338a3ee61",
+    "initial-startup-after-hostsdir_init_tests.log": "41683be52715fa44ffb01686d8c083f96c18a4ab1a253cca60d7fd76d9b19a88",
+    "initial-startup-after-tcp_import_local_tests.log": "72529b656c79dd7abc47b6eadd8e487f314c7f98858b567934f57d12cd2d3505",
+    "initial-startup-before-test.exit": "39b8dc3fc8b44765c8e6f1adee04c5b465e555ab791cc42d0d9e810d5b64297c",
+    "initial-startup-before-test.log": "8357b2e339648acca9b4baefea472d84605e1fb77fd3f1c4355d4d4eac98a2b4"
+  },
+  "independent_review": "DNS and correctness agents reviewed the final lazy-empty diff and six-case regression with no static blocker. Their review and full E qualification are separate receipts.",
+  "limits": [
+    "Diagnostic test binaries are not shipping artifacts. Exact E SDK build and original interface/helper/DHCP/full correctness gates remain required.",
+    "Original D failure and raw exit1 remain unchanged. This fix does not qualify D retroactively.",
+    "No performance improvement is attributed to the behavioral repair; a fresh combined candidate needs its own timing and device comparison."
+  ]
+}
