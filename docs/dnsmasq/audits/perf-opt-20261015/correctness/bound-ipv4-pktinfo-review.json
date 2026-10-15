@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "status": "PASS_SOURCE_AND_RETAINED_TEST_REVIEW",
+  "product_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+  "base_E": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "test_evidence_commit": "2884ab07",
+  "test_receipt_sha256": "fd464735c8d51f1e2b3f7fa95450c1b6d2bdc35a97fd10cc1c3538d03afa9b6d",
+  "scope": "Independent read-only compatibility/error/lifetime review and local retained test archive/hash verification. No reviewer rerun, no SDK or device admission claim.",
+  "source_sha256": {
+    "components/dnsmasq/src/net.rs": "b0ebaba5a387523ae4ce577cd2e9b38609d143d375d9eaff0f0141949a99d390",
+    "components/dnsmasq/src/listeners.rs": "e5dce8d9c6b73eea63148ab67d73040a11cb4dbeb5a5320a644d868bc4b74901",
+    "components/dnsmasq/src/main.rs": "39d4c45f300c51c9dd971098dff33969bd298ecf811a82fb067d8389ff7ad4c3"
+  },
+  "eligibility": "Only static bind_interfaces and not bind_dynamic, concrete IPv4 excluding multicast/global broadcast, with address matching a non-tentative published DnsInterface.address. Unknown aliases, directed-broadcast targets, wildcard, IPv6 and generic protocol constructors retain packet-info behavior.",
+  "verified_behavior_boundaries": [
+    "The socket caches its proven local IPv4 address once; unrelated later interface snapshots cannot mutate it. Initial and late listener factories both apply policy using their creation snapshot.",
+    "The generic, exclusive and DHCP constructors explicitly retain no cached DNS capability; TFTP and DHCP callers continue the original receiver.",
+    "Existing recvmsg errno/EAGAIN, MSG_TRUNC/MSG_CTRUNC, returned-length, peer decode and zero-source-port checks precede the new metadata branch unchanged.",
+    "Known static IPv4 admission does not require ingress; source filtering and configured local-service checks retain their original ordering. Static query logging/auth paths and send source=None do not require a receive interface index.",
+    "Reply sending, control allocation, packet buffer capacity, owner16-packet budget and terminal EAGAIN are unchanged.",
+    "Eligibility was deliberately narrowed after review found that explicit broadcast/multicast/unowned bindings may have ipi_spec_dst different from the bound address. No optimization was forced onto that ambiguity."
+  ],
+  "retained_validation": {
+    "native_archive_sha256": "e4f0f3e61d6acc0092382208275b1eb7d3224458133e89391d909c260ae43311",
+    "archive_members_verified": 9,
+    "native_tests_passed": 22,
+    "counts": {
+      "net": 6,
+      "listeners": 11,
+      "factory-rebind": 1,
+      "udp-acl": 4
+    },
+    "included_new_ignored_network_gates": true,
+    "all_product_files_match_commit_and_receipt": true,
+    "test_logs_read_and_hash_verified": true,
+    "author_compile_checks": [
+      {
+        "command": "cargo check --manifest-path components/dnsmasq/Cargo.toml --target aarch64-unknown-linux-musl --all-targets -j1",
+        "exit_code": 0,
+        "log_sha256": "07a8f396b8027650b69551d3f39527ce3123d3a820ab5fabe4ca5487883d3747"
+      },
+      {
+        "command": "cargo check --manifest-path components/dnsmasq/Cargo.toml --all-targets -j1",
+        "platform": "aarch64-apple-darwin",
+        "exit_code": 0,
+        "log_sha256": "d00c23deca835f5a4c2981de741fcc5123f2112fd5d76bbc5615cb84e8773f14"
+      }
+    ]
+  },
+  "tests_reviewed": [
+    "10 real metadata/receive modes plus multicast/global-broadcast option controls preserve destination, peer, replies, EAGAIN, truncation and recovery.",
+    "Raw IPv4 UDP source-port-zero rejection followed by a valid datagram is checked for both generic and optimized receivers.",
+    "Initial socket policy persists when snapshot is cleared; new same-address late sockets derive fallback/fast policy from their own snapshot; dynamic rebind uses packet info.",
+    "Existing net ABI/cmsg/TCP ingress and UDP ACL tests remain in the22test retained run."
+  ],
+  "limitations": [
+    "Native debug tests validate behavior, not performance or the exact SDK ELF.",
+    "No full acceptance rerun or device deployment was performed for this candidate.",
+    "Independent mechanism cost screen remains separate."
+  ],
+  "blockers": []
+}
