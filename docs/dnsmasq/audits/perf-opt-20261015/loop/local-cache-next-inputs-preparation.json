@@ -1,0 +1,236 @@
+{
+  "status": "LOCAL_PREPARATION_ONLY_NOT_UPLOADED_OR_EXECUTED",
+  "base_commit": "2da737cb3e37cd97f4cc33ff89763dc42920bff1",
+  "priority_order": [
+    "local-cache-integration",
+    "local-miss-stack",
+    "local-address-miss"
+  ],
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "plans": [
+    {
+      "candidate": "local-cache-integration",
+      "file": "dns/local-cache-integration-native-plan.json",
+      "plan_sha256": "70c4bf543850bea421372e60c442dac4009d9e76bc247861fc3940aa996c9993",
+      "plan_last_commit": "39deb82af140357a64e9beebbeba110170508f30",
+      "sources": {
+        "F": {
+          "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+          "git_blob_sha256_matches": 162
+        },
+        "local-cache-integration": {
+          "commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-cache-integration",
+          "git_blob_sha256_matches": 162
+        }
+      },
+      "scenes": 15,
+      "windows": 240,
+      "stat_windows": 90,
+      "plain_windows": 150,
+      "build_commands_before_measurement": 4,
+      "total_commands": 244,
+      "unique_labels": 240,
+      "unchanged_fixed_fields": [
+        "probe",
+        "scenes",
+        "stat_pairs",
+        "plain_pairs",
+        "stat_event",
+        "stat_scope",
+        "plain_scope",
+        "plain_decision",
+        "cpu",
+        "nice",
+        "build_cpu",
+        "native_target",
+        "build_lock",
+        "retry_policy",
+        "stat_operations",
+        "plain_operations",
+        "duration_rationale",
+        "expected_checksum_per_2000000_operations"
+      ],
+      "analyzer_sha256": "7009594153b452dbf980523e42affdad0a671637c06317a99b0c31e963ac0f74",
+      "analyzer_changes_only": [
+        "local input/output directory",
+        "plan path",
+        "scope text",
+        "fixed cardinalities240/244"
+      ],
+      "local_staging": "private/perf-opt-20261015/local-cache-native-inputs/local-cache-integration",
+      "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/local-cache-integration-native-screen1",
+      "descriptive_note": "Inherited builds prose mentions three probes; exact plan has F plus one candidate, so two libraries and two probes. Frozen bytes preserved."
+    },
+    {
+      "candidate": "local-miss-stack",
+      "file": "dns/local-miss-stack-native-plan.json",
+      "plan_sha256": "b88b5b714e7d64c7c38f9242641fe440dacc6dd844658025f725b436d2e493af",
+      "plan_last_commit": "03fba86b3d2705137edf72091ce1d6f5b50e2c4e",
+      "sources": {
+        "F": {
+          "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+          "git_blob_sha256_matches": 162
+        },
+        "local-miss-stack": {
+          "commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-address-miss-stack",
+          "git_blob_sha256_matches": 162
+        }
+      },
+      "scenes": 15,
+      "windows": 240,
+      "stat_windows": 90,
+      "plain_windows": 150,
+      "build_commands_before_measurement": 4,
+      "total_commands": 244,
+      "unique_labels": 240,
+      "unchanged_fixed_fields": [
+        "probe",
+        "scenes",
+        "stat_pairs",
+        "plain_pairs",
+        "stat_event",
+        "stat_scope",
+        "plain_scope",
+        "plain_decision",
+        "cpu",
+        "nice",
+        "build_cpu",
+        "native_target",
+        "build_lock",
+        "retry_policy",
+        "stat_operations",
+        "plain_operations",
+        "duration_rationale",
+        "expected_checksum_per_2000000_operations"
+      ],
+      "analyzer_sha256": "ae91966a6113047c204ba2be00c601f2eef6072bdf54fb9a8887d4e22a9da6b7",
+      "analyzer_changes_only": [
+        "local input/output directory",
+        "plan path",
+        "scope text",
+        "fixed cardinalities240/244"
+      ],
+      "local_staging": "private/perf-opt-20261015/local-cache-native-inputs/local-miss-stack",
+      "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/local-miss-stack-native-screen1",
+      "descriptive_note": "Inherited builds prose mentions three probes; exact plan has F plus one candidate, so two libraries and two probes. Frozen bytes preserved."
+    },
+    {
+      "candidate": "local-address-miss",
+      "file": "dns/local-address-miss-native-plan.json",
+      "plan_sha256": "592a8291ea27d2ce96954967f2576efab064dc52af2b948f9c0b991c0bdfcb89",
+      "plan_last_commit": "36320714c9ccb0e5149076be2ddbba3143d7675e",
+      "sources": {
+        "F": {
+          "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+          "git_blob_sha256_matches": 162
+        },
+        "local-address-miss": {
+          "commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+          "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-address-miss",
+          "git_blob_sha256_matches": 162
+        }
+      },
+      "scenes": 15,
+      "windows": 240,
+      "stat_windows": 90,
+      "plain_windows": 150,
+      "build_commands_before_measurement": 4,
+      "total_commands": 244,
+      "unique_labels": 240,
+      "unchanged_fixed_fields": [
+        "probe",
+        "scenes",
+        "stat_pairs",
+        "plain_pairs",
+        "stat_event",
+        "stat_scope",
+        "plain_scope",
+        "plain_decision",
+        "cpu",
+        "nice",
+        "build_cpu",
+        "native_target",
+        "build_lock",
+        "retry_policy",
+        "stat_operations",
+        "plain_operations",
+        "duration_rationale",
+        "expected_checksum_per_2000000_operations"
+      ],
+      "analyzer_sha256": "18534c8283b122c979de4a6c62c7faa87e123e422c311b1a83491388222c5834",
+      "analyzer_changes_only": [
+        "local input/output directory",
+        "plan path",
+        "scope text",
+        "fixed cardinalities240/244"
+      ],
+      "local_staging": "private/perf-opt-20261015/local-cache-native-inputs/local-address-miss",
+      "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/local-address-miss-native-screen1",
+      "descriptive_note": "Inherited builds prose mentions three probes; exact plan has F plus one candidate, so two libraries and two probes. Frozen bytes preserved."
+    }
+  ],
+  "owner32_templates": [
+    {
+      "candidate": "local-cache-integration",
+      "file": "loop/run_local_cache_integration_owner_screen.py.in",
+      "sha256": "f567d0bea99f5739b123281df59b6957c27f31f488504a73c53f37c68eed9519",
+      "original_runner_sha256": "3068cffd07467ae4a20eacee62c72b5437a042d1d67452e087a39ec311feb073",
+      "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+      "sdk_directory": "root/private/sdk-local-cache-integration",
+      "output_directory": "root/private/local-cache-integration-owner-screen1",
+      "fixed_windows": 32,
+      "stat_windows": 12,
+      "plain_windows": 20,
+      "measurement_loop_unchanged_after_candidate_scope_plan_mapping": true,
+      "requires_before_enable": [
+        "exact ELF SHA256",
+        "exact build receipt SHA256",
+        "verified qualification receipt absolute path and SHA256",
+        "actual receipt schema reviewed and status/candidate/original gates/source/log/artifact/exited checks inserted"
+      ],
+      "disabled_before_filesystem_or_process_action": true,
+      "qualification_block_explicitly_disabled": true,
+      "AST_parse_only_not_executed": true
+    },
+    {
+      "candidate": "local-miss-stack",
+      "file": "loop/run_local_miss_stack_owner_screen.py.in",
+      "sha256": "e75b506490d54abafeff17c37d2b23ca1712995bdd584c400bda0c9f188746c6",
+      "original_runner_sha256": "3068cffd07467ae4a20eacee62c72b5437a042d1d67452e087a39ec311feb073",
+      "source_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+      "sdk_directory": "root/private/sdk-local-address-miss-stack",
+      "output_directory": "root/private/local-miss-stack-owner-screen1",
+      "fixed_windows": 32,
+      "stat_windows": 12,
+      "plain_windows": 20,
+      "measurement_loop_unchanged_after_candidate_scope_plan_mapping": true,
+      "requires_before_enable": [
+        "exact ELF SHA256",
+        "exact build receipt SHA256",
+        "verified qualification receipt absolute path and SHA256",
+        "actual receipt schema reviewed and status/candidate/original gates/source/log/artifact/exited checks inserted"
+      ],
+      "disabled_before_filesystem_or_process_action": true,
+      "qualification_block_explicitly_disabled": true,
+      "AST_parse_only_not_executed": true
+    }
+  ],
+  "required_before_any_execution": [
+    "All three exact related Linux gates and SDK builds complete",
+    "PGO smoke3 fully exited and reservations/locks released",
+    "DHCP downloads and verifies every needed SDK bundle before timing",
+    "Root explicitly releases new native reservation",
+    "Fresh root-readable Oracle workload inventory is idle"
+  ],
+  "upload_performed": false,
+  "remote_access_performed": false,
+  "product_changed": false,
+  "native_started": false,
+  "owner32_started": false
+}
