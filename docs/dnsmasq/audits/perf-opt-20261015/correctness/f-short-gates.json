@@ -1,0 +1,154 @@
+{
+  "scope": "Fresh F musl short gates; no E debug artifact reuse. F full family and boundary gates remain in progress.",
+  "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "shipping_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "shipping_elf_bytes": 2136859,
+  "sdk_same_build_map_sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+  "sdk_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+  "source_files_verified_at_launch": 179,
+  "fresh_test_build_receipt_sha256": "e2d20a44f4fd8c6564cc6ee1936c256c8771c42d335cf50ca836b3c08644ac60",
+  "test_artifacts": [
+    {
+      "path": "bin-dnsmasq-rs",
+      "bytes": 50971456,
+      "sha256": "66176c66ed225b271bd95d23486a6209f096cacebeb436d9dbe0e955543ea4dc"
+    },
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 71956840,
+      "sha256": "eda450c13def07d87ede986f0bd5703f9f35df4ac22724a0b6616da565a11f67"
+    }
+  ],
+  "test_source_path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+  "test_rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-f=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+  "allocation_build_receipt_sha256": "a640943e34674a28763fd3c23ea225b8d00c454dcce99c11794a485bef319845",
+  "allocation_build": {
+    "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+    "kind": "hosts-allocations-musl",
+    "command": [
+      "/home/ubuntu/.cargo/bin/cargo",
+      "+1.98.1",
+      "test",
+      "--frozen",
+      "--target",
+      "aarch64-unknown-linux-musl",
+      "--manifest-path",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-f/components/dnsmasq/Cargo.toml",
+      "--test",
+      "hosts_allocations",
+      "--no-run",
+      "--message-format=json"
+    ],
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-f=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "sha256": "1011f51942deb75df80f3856a6e3ab496cccad23c1fd89ab5b457233461bb8d4",
+    "bytes": 34494456
+  },
+  "gates": [
+    {
+      "gate": "lib",
+      "exit": 0,
+      "elapsed_seconds": 8.047832727432251,
+      "summary": [
+        "test result: ok. 829 passed; 0 failed; 22 ignored; 0 measured; 0 filtered out; finished in 8.01s"
+      ],
+      "log_sha256": "0f29c7175faec1cbc19d2d05e44f67d4b48d8c0440afb7a48c3ff9dbcc2beabc",
+      "binary_sha256": "eda450c13def07d87ede986f0bd5703f9f35df4ac22724a0b6616da565a11f67",
+      "passed": 829,
+      "failed": 0,
+      "ignored": 22
+    },
+    {
+      "gate": "bin",
+      "exit": 0,
+      "elapsed_seconds": 4.315674304962158,
+      "summary": [
+        "test result: ok. 82 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 4.27s"
+      ],
+      "log_sha256": "880f3238ad8f2c8aa39a143e18685404da9d434df6ed1d7935ac0307fbc51f68",
+      "binary_sha256": "66176c66ed225b271bd95d23486a6209f096cacebeb436d9dbe0e955543ea4dc",
+      "passed": 82,
+      "failed": 0,
+      "ignored": 4
+    },
+    {
+      "gate": "allocations",
+      "exit": 0,
+      "elapsed_seconds": 1.479264736175537,
+      "summary": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.44s"
+      ],
+      "log_sha256": "60f1ad783a289ce996272a5af122cbb776ec5a687eeee387e07981c2e4030645",
+      "binary_sha256": "1011f51942deb75df80f3856a6e3ab496cccad23c1fd89ab5b457233461bb8d4",
+      "passed": 17,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "gate": "lib-ignored-live",
+      "exit": 0,
+      "elapsed_seconds": 0.35360145568847656,
+      "summary": [
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 833 filtered out; finished in 0.31s"
+      ],
+      "log_sha256": "7fab4cef89f1f8922dd49ef8ee2980b097c2568ded08018ef045cee346b95ede",
+      "binary_sha256": "eda450c13def07d87ede986f0bd5703f9f35df4ac22724a0b6616da565a11f67",
+      "passed": 18,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "gate": "bin-ignored-live",
+      "exit": 0,
+      "elapsed_seconds": 0.1554112434387207,
+      "summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.11s"
+      ],
+      "log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "binary_sha256": "66176c66ed225b271bd95d23486a6209f096cacebeb436d9dbe0e955543ea4dc",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    }
+  ],
+  "total_passed": 950,
+  "total_failed": 0,
+  "raw_unit_receipt_sha256": "6c03bca13b5fc752f9be09fb8de8c6f02180aba54bf64df47668fd8e3a796e71",
+  "namespace_and_tmpfs_isolation": true,
+  "serial_short_execution": true,
+  "original_ignored_selection_retained": true,
+  "four_corpus_drivers_not_double_run_in_ignored_group": true,
+  "full44_launch": {
+    "sha256": "40d8d6a3d4ffc1dd99016d442e6293c474af63fd62f9bd23b54d25b1d181c004",
+    "value": {
+      "pid": 313413,
+      "start_ticks": "180895480",
+      "start_epoch": 1792084337.5926526,
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-f/docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+        "--elf",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-f/dnsmasq-rs",
+        "--link-map",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-f/link.map",
+        "--commit",
+        "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+        "--base-identity",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-families-attempt1",
+        "--jobs",
+        "3"
+      ],
+      "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "short_passed": 950,
+      "short_result_sha256": "6c03bca13b5fc752f9be09fb8de8c6f02180aba54bf64df47668fd8e3a796e71",
+      "scheduling": "Three family workers after950short passes; existing fourth worker finishes fresh release probe build, then serial boundary/corpora."
+    }
+  },
+  "full44_status": "running, not qualified",
+  "performance_qualified": false,
+  "device_deployed": false
+}
