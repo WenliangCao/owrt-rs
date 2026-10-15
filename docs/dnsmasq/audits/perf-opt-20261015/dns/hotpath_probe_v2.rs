@@ -75,7 +75,8 @@ struct Fixture {
 
 impl Fixture {
     fn new(scene: &str) -> Self {
-        let known = ["hit", "hit-upper", "hit-leases", "miss", "miss-leases", "host", "rrset",
+        let known = ["hit", "hit-upper", "hit-leases", "hit-typed", "miss", "miss-leases",
+                     "host", "host-localise", "raw-address", "synth-address", "lease-address", "rrset",
                      "cname", "cname-leases", "cname-config"];
         assert!(known.contains(&scene), "unknown diagnostic scene");
         let rrset = scene == "rrset";
@@ -85,10 +86,23 @@ impl Fixture {
         let mut config = DnsConfig::default();
         let mut hosts = Hosts::new();
         let mut queries = Vec::new();
+        let apply = |config: &mut DnsConfig, line: &str| {
+            config.apply(&dnsmasq_rs::config::lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+        };
+        if scene == "hit-typed" {
+            apply(&mut config, "txt-record=unrelated.perf.invalid,hello");
+            apply(&mut config, "mx-host=unrelated.perf.invalid,mail.perf.invalid,10");
+        }
+        if scene == "synth-address" {
+            apply(&mut config, "synth-domain=perf.invalid,192.0.2.0,192.0.5.31");
+        }
+        config.localise_queries = scene == "host-localise";
         for i in 0..population {
-            let dotted = format!("name{i:04}.perf.invalid");
+            let dotted = if scene == "synth-address" {
+                format!("192-0-{}-{}.perf.invalid", 2 + i / 256, i % 256)
+            } else { format!("name{i:04}.perf.invalid") };
             let name = Name::from_ascii(&dotted).unwrap();
-            let rrtype = if i % 10 < 7 { 1 } else { 28 };
+            let rrtype = if matches!(scene, "synth-address" | "lease-address") || i % 10 < 7 { 1 } else { 28 };
             let ipv6 = rrtype == 28;
             if chain {
                 let target_dotted = format!("target{i:04}.perf.invalid");
@@ -119,10 +133,17 @@ impl Fixture {
                 }
                 assert!(cache.commit());
             }
-            if scene == "host" {
+            if scene.starts_with("host") || scene == "raw-address" {
                 hosts.insert(dotted.as_bytes().to_vec(), if ipv6 {
                     IpAddr::V6("2001:db8::1".parse().unwrap())
                 } else { IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)) }, 120, 2);
+                if scene == "host-localise" && !ipv6 {
+                    hosts.insert(dotted.as_bytes().to_vec(), IpAddr::V4(Ipv4Addr::new(198, 51, 100, 1)), 120, 2);
+                }
+            }
+            if scene == "raw-address" {
+                let data = if ipv6 { "20010db8000000000000000000000063" } else { "c0000263" };
+                apply(&mut config, &format!("dns-rr={dotted},{rrtype},{data}"));
             }
             let question_name = if scene.ends_with("upper") {
                 Name::from_ascii(&dotted.to_ascii_uppercase()).unwrap()
@@ -132,14 +153,21 @@ impl Fixture {
             queries.push(writer.finish());
         }
         let mut local = LocalDnsService::new(config, hosts, 120, 1232);
-        if scene.ends_with("leases") {
-            let names: Vec<_> = (0..6).map(|i| format!("lease{i}.perf.invalid").into_bytes()).collect();
+        if scene == "host-localise" {
+            local.local_network = Some((Ipv4Addr::new(192, 0, 2, 254), Ipv4Addr::new(255, 255, 255, 0)));
+        }
+        if scene.ends_with("leases") || scene == "lease-address" {
+            let names: Vec<_> = if scene == "lease-address" {
+                (0..population).map(|i| format!("name{i:04}.perf.invalid").into_bytes()).collect()
+            } else { (0..6).map(|i| format!("lease{i}.perf.invalid").into_bytes()).collect() };
             let leases: Vec<_> = names.iter().enumerate().map(|(i, name)| DnsLeaseRecord {
-                name, address: Ipv4Addr::new(192, 0, 2, i as u8 + 1), expires: Some(600),
+                name, address: if scene == "lease-address" {
+                    Ipv4Addr::new(192, 0, 2 + (i / 256) as u8, (i % 256) as u8)
+                } else { Ipv4Addr::new(192, 0, 2, i as u8 + 1) }, expires: Some(600),
             }).collect();
             local.leases = Arc::new(LeaseNames::build(&leases, &mut local.hosts, &[], LeasePolicy::default(), &mut ()));
         }
-        Self { cache, local, queries, expected_answers: if scene.starts_with("miss") { 0 } else if rrset { 8 } else if chain { 2 } else { 1 } }
+        Self { cache, local, queries, expected_answers: if scene.starts_with("miss") { 0 } else if rrset { 8 } else if chain || scene == "raw-address" { 2 } else { 1 } }
     }
 
     fn query(&mut self, index: usize, validate: bool) -> u64 {
