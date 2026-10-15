@@ -248,6 +248,16 @@ impl<'a> LocalAnswerer<'a> {
         logging: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
+        if super::udp_stage_diagnostic::selected(super::udp_stage_diagnostic::Mode::SkipLocal, query) {
+            // Preserve the name hint shared with the following cache lookup;
+            // the fixed fixture has no CNAME/lease/local ownership at these names.
+            if let Some(cache) = cache.as_deref() {
+                let (_, lookup) = cache.inspect_name(&question.name, now);
+                *name_lookup = lookup;
+            }
+            super::udp_stage_diagnostic::record_cut(super::udp_stage_diagnostic::Mode::SkipLocal);
+            return Ok(None);
+        }
         let mut notices = QueryEvents::new(logging);
         if header.opcode() != 0
             || header.flags & 0x8000 != 0

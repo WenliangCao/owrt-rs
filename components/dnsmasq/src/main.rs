@@ -1743,6 +1743,7 @@ fn run_inner(
         })
         .map(|(address, _)| *address)
         .collect();
+    dnsmasq_rs::dns::udp_stage_diagnostic::initialize()?;
     while !STOP_REQUESTED.load(Ordering::Acquire) {
         poll.interfaces_enumerated = false;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1974,6 +1975,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     SIGNAL_WAKE_WRITE.store(-1, Ordering::Release);
     poll.m6b.write()?;
+    dnsmasq_rs::dns::udp_stage_diagnostic::write_report()?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(neighbors) = &mut poll.neighbors {
         neighbors.discard_script_changes();
@@ -4981,6 +4983,16 @@ impl SinglePoll {
                 return false;
             }
         };
+        use dnsmasq_rs::dns::udp_stage_diagnostic as stage;
+        stage::entered(&self.udp_buffer[..incoming.len]);
+        if stage::selected(stage::Mode::Receive, &self.udp_buffer[..incoming.len]) {
+            stage::record_cut(stage::Mode::Receive);
+            let length = stage::answer_in_place(&mut self.udp_buffer, incoming.len).unwrap();
+            let _ = udp.send(&self.udp_buffer[..length], incoming.peer,
+                (!self.config.bind_interfaces && !self.config.bind_dynamic)
+                    .then_some((incoming.destination, incoming.interface)));
+            return true;
+        }
         if incoming.len < 12 || self.udp_buffer[2] & 0x80 != 0 {
             return true;
         }
@@ -5269,7 +5281,11 @@ impl SinglePoll {
                     return;
                 }
 
-                match daemon.answer_udp_prepared_with_local(
+                use dnsmasq_rs::dns::udp_stage_diagnostic as stage;
+                if stage::selected(stage::Mode::BeforeAnswer, packet) {
+                    stage::record_cut(stage::Mode::BeforeAnswer);
+                    Some((stage::owned_answer(packet), false))
+                } else { match daemon.answer_udp_prepared_with_local(
                     packet,
                     decorated.as_deref().unwrap_or(packet),
                     prepared_metadata,
@@ -5286,7 +5302,7 @@ impl SinglePoll {
                     }
                     Ok(QueryResult::Stale(answer)) => Some((answer, true)),
                     _ => None,
-                }
+                } }
             }
         };
         let responses = if event
