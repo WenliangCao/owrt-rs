@@ -1,0 +1,1068 @@
+{
+  "schema": 1,
+  "status": "complete fixed10 exploratory device comparison; final independent audit tracked separately",
+  "scope": "Exploratory unqualified F/local-cache-integration A53 UDP-hit comparison; no full qualification or candidate selection.",
+  "candidate_eligible": false,
+  "full44_qualification_completed": false,
+  "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+  "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_files_verified": 179,
+  "plan_commit": "855a1eb0",
+  "artifact": {
+    "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+    "elf_bytes": 2140955,
+    "map_sha256": "641f79fc1faadfacbec4c600db5a2c55426fd69a1eb38c5c5c46ef692c2998cf",
+    "build_receipt_sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6"
+  },
+  "identities": {
+    "entry_sha256": "a8d0ee1b59d2b537f6d052e5bc60bea5d96eac8a6f3da601810976cbc525e575",
+    "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "plan_sha256": "d85fe7df7897c644b7acd37f282cf7a61001fbb17750c35382d17ab24db6cdd5",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7"
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 319,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "comparison": {
+    "left": [
+      "f",
+      null
+    ],
+    "right": [
+      "local-cache-integration",
+      null
+    ],
+    "metrics": {
+      "p50_ms": {
+        "left": {
+          "median": 0.191663,
+          "min": 0.186815,
+          "max": 0.198896,
+          "rounds": [
+            0.196818,
+            0.191663,
+            0.190817,
+            0.198896,
+            0.186815
+          ]
+        },
+        "right": {
+          "median": 0.175582,
+          "min": 0.172581,
+          "max": 0.1862,
+          "rounds": [
+            0.174812,
+            0.172581,
+            0.178198,
+            0.1862,
+            0.175582
+          ]
+        },
+        "relative_change_pct": -8.390247465603696,
+        "W_pct": 7.756489845200528,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.394021,
+          "min": 0.260757,
+          "max": 0.409871,
+          "rounds": [
+            0.397099,
+            0.409871,
+            0.394021,
+            0.340008,
+            0.260757
+          ]
+        },
+        "right": {
+          "median": 0.336314,
+          "min": 0.250831,
+          "max": 0.441956,
+          "rounds": [
+            0.336314,
+            0.250831,
+            0.402408,
+            0.441956,
+            0.267682
+          ]
+        },
+        "relative_change_pct": -14.645666093939159,
+        "W_pct": 56.82933211225224,
+        "same_direction_pairs": 2,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 138.0,
+          "min": 128.0,
+          "max": 140.0,
+          "rounds": [
+            138.0,
+            138.0,
+            132.0,
+            140.0,
+            128.0
+          ]
+        },
+        "right": {
+          "median": 126.0,
+          "min": 114.0,
+          "max": 130.0,
+          "rounds": [
+            126.0,
+            114.0,
+            126.0,
+            130.0,
+            120.0
+          ]
+        },
+        "relative_change_pct": -8.695652173913043,
+        "W_pct": 12.698412698412698,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 2432.0,
+          "min": 2364.0,
+          "max": 2436.0,
+          "rounds": [
+            2364.0,
+            2436.0,
+            2436.0,
+            2380.0,
+            2432.0
+          ]
+        },
+        "right": {
+          "median": 2408.0,
+          "min": 2356.0,
+          "max": 2420.0,
+          "rounds": [
+            2408.0,
+            2420.0,
+            2404.0,
+            2408.0,
+            2356.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 2432,
+          "min": 2364,
+          "max": 2436,
+          "rounds": [
+            2364,
+            2436,
+            2436,
+            2380,
+            2432
+          ]
+        },
+        "right": {
+          "median": 2408,
+          "min": 2356,
+          "max": 2420,
+          "rounds": [
+            2408,
+            2420,
+            2404,
+            2408,
+            2356
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 516,
+          "min": 512,
+          "max": 520,
+          "rounds": [
+            516,
+            520,
+            520,
+            512,
+            516
+          ]
+        },
+        "right": {
+          "median": 516,
+          "min": 512,
+          "max": 524,
+          "rounds": [
+            520,
+            524,
+            516,
+            516,
+            512
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 1912,
+          "min": 1844,
+          "max": 1912,
+          "rounds": [
+            1844,
+            1912,
+            1912,
+            1864,
+            1912
+          ]
+        },
+        "right": {
+          "median": 1884,
+          "min": 1840,
+          "max": 1892,
+          "rounds": [
+            1884,
+            1892,
+            1884,
+            1888,
+            1840
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    "cpu_median_ticks": {
+      "left": 69,
+      "right": 63,
+      "absolute_delta": 6,
+      "required_delta_exclusive": 8
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r1-c",
+      "group": "f-vs-local-cache-integration",
+      "round": 1,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.016007964,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.10141,
+        "p50": 0.196818,
+        "p95": 0.397099,
+        "p99": null,
+        "max": 9.997177
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.17985,
+        "p50": 0.298212,
+        "p95": 0.574105,
+        "p99": null,
+        "max": 11.724542
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.076292,
+        "p50": 0.100155,
+        "p95": 0.172232,
+        "p99": null,
+        "max": 9.823986
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "6f6cf30f23895ef4cbe5d290e4032f071be3991053fccf3901bd78ae67ded5ca"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r1-rust",
+      "group": "f-vs-local-cache-integration",
+      "round": 1,
+      "side": "rust",
+      "artifact": "local-cache-integration",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.015791016,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092099,
+        "p50": 0.174812,
+        "p95": 0.336314,
+        "p99": null,
+        "max": 5.342019
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171098,
+        "p50": 0.274627,
+        "p95": 0.499331,
+        "p99": null,
+        "max": 5.616898
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.056055,
+        "p50": 0.099228,
+        "p95": 0.159523,
+        "p99": null,
+        "max": 3.313934
+      },
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "7d132efa39e504d55772356f250a0d35134be32bcca86f3fe1290d8bf466908d"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r2-rust",
+      "group": "f-vs-local-cache-integration",
+      "round": 2,
+      "side": "rust",
+      "artifact": "local-cache-integration",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 57,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 114.0,
+      "cpu_endpoint_seconds": 27.016362188,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089099,
+        "p50": 0.172581,
+        "p95": 0.250831,
+        "p99": null,
+        "max": 2.213781
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.167205,
+        "p50": 0.271537,
+        "p95": 0.384855,
+        "p99": null,
+        "max": 3.31889
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065769,
+        "p50": 0.098019,
+        "p95": 0.142024,
+        "p99": null,
+        "max": 1.582766
+      },
+      "rss_median_kib": 2420.0,
+      "rss_peak_kib": 2420,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1892,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "204750aa74a40f909291046d292d01bfec307cad361836dac22f854ca0214ae9"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r2-c",
+      "group": "f-vs-local-cache-integration",
+      "round": 2,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.025619137,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.098332,
+        "p50": 0.191663,
+        "p95": 0.409871,
+        "p99": null,
+        "max": 23.477373
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.177977,
+        "p50": 0.290927,
+        "p95": 0.601421,
+        "p99": null,
+        "max": 41.589076
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.049255,
+        "p50": 0.098116,
+        "p95": 0.179394,
+        "p99": null,
+        "max": 22.714205
+      },
+      "rss_median_kib": 2436.0,
+      "rss_peak_kib": 2436,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "17eb4489fdb3dfdcde1bd69983f5db980b49f48ab82df8602c8cb830740719cd"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r3-c",
+      "group": "f-vs-local-cache-integration",
+      "round": 3,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 66,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 132.0,
+      "cpu_endpoint_seconds": 27.015999435,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.098563,
+        "p50": 0.190817,
+        "p95": 0.394021,
+        "p99": null,
+        "max": 18.939322
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.178784,
+        "p50": 0.291995,
+        "p95": 0.587258,
+        "p99": null,
+        "max": 19.100192
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.053139,
+        "p50": 0.099471,
+        "p95": 0.173545,
+        "p99": null,
+        "max": 8.040868
+      },
+      "rss_median_kib": 2436.0,
+      "rss_peak_kib": 2436,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "06e89ede7664c232b2501ffd49d23ac2b020aed1ef278bf32821eeeeac6b864a"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r3-rust",
+      "group": "f-vs-local-cache-integration",
+      "round": 3,
+      "side": "rust",
+      "artifact": "local-cache-integration",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.016380595,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.091331,
+        "p50": 0.178198,
+        "p95": 0.402408,
+        "p99": null,
+        "max": 10.887474
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.170529,
+        "p50": 0.279856,
+        "p95": 0.597598,
+        "p99": null,
+        "max": 11.10578
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.06605,
+        "p50": 0.101005,
+        "p95": 0.183786,
+        "p99": null,
+        "max": 6.145405
+      },
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "27de0305dff1b8f74843d53ffd3fe03088d41a0ac9cfd7a1d5f98f9baa754473"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r4-rust",
+      "group": "f-vs-local-cache-integration",
+      "round": 4,
+      "side": "rust",
+      "artifact": "local-cache-integration",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.015264204,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.07625,
+        "p50": 0.1862,
+        "p95": 0.441956,
+        "p99": null,
+        "max": 12.459942
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.169765,
+        "p50": 0.29047,
+        "p95": 0.679031,
+        "p99": null,
+        "max": 12.634974
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.06727,
+        "p50": 0.103587,
+        "p95": 0.186161,
+        "p99": null,
+        "max": 7.663904
+      },
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "8c63042e1847ed9401e1e382ea14391e50140f8b321d8b2f354b184c3cff9f79"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r4-c",
+      "group": "f-vs-local-cache-integration",
+      "round": 4,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.020225711,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.108566,
+        "p50": 0.198896,
+        "p95": 0.340008,
+        "p99": null,
+        "max": 10.100278
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.188416,
+        "p50": 0.30791,
+        "p95": 0.515054,
+        "p99": null,
+        "max": 10.287484
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.066936,
+        "p50": 0.107758,
+        "p95": 0.172104,
+        "p99": null,
+        "max": 2.316305
+      },
+      "rss_median_kib": 2380.0,
+      "rss_peak_kib": 2380,
+      "anon_peak_kib": 512,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1864,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "8f00bfc722d998532c01ca7a86d8d07e2b46fe6e4f56e1fbd53b26c2eda1fbeb"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r5-c",
+      "group": "f-vs-local-cache-integration",
+      "round": 5,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 64,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 128.0,
+      "cpu_endpoint_seconds": 27.01537209,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.09687,
+        "p50": 0.186815,
+        "p95": 0.260757,
+        "p99": null,
+        "max": 1.775826
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.175812,
+        "p50": 0.285281,
+        "p95": 0.392821,
+        "p99": null,
+        "max": 2.153423
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050199,
+        "p50": 0.096929,
+        "p95": 0.138795,
+        "p99": null,
+        "max": 1.798335
+      },
+      "rss_median_kib": 2432.0,
+      "rss_peak_kib": 2432,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "5b965b1c493b0df109f1348d6807fff4e1d7175e34c492153a8473c1ed0a672a"
+      }
+    },
+    {
+      "label": "a53-local-cache-integration-f-vs-local-cache-integration-r5-rust",
+      "group": "f-vs-local-cache-integration",
+      "round": 5,
+      "side": "rust",
+      "artifact": "local-cache-integration",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.015659317,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088483,
+        "p50": 0.175582,
+        "p95": 0.267682,
+        "p99": null,
+        "max": 3.581736
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.16717,
+        "p50": 0.274392,
+        "p95": 0.403277,
+        "p99": null,
+        "max": 3.7597
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.069754,
+        "p50": 0.097932,
+        "p95": 0.143349,
+        "p99": null,
+        "max": 1.271326
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 512,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "9bd08d687cc2f100cc9784d098c6e1724bdb9e788bcc97492629be1355757bb9"
+      }
+    }
+  ],
+  "health": {
+    "guard_samples": 418,
+    "external_checks": 28,
+    "dns_samples": 165,
+    "http_samples": 76,
+    "minimum_available_memory_kib": 83436,
+    "guard_sha256": "030645e79b399f0c5d61c9dc68e2d7eb05664f8e43cf5b12718c4bd3d84c98c1"
+  },
+  "preflight_health": {
+    "valid": true,
+    "elapsed_seconds": 125.652,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.733,
+    "dns_max_ms": 3.011,
+    "http_samples": 23,
+    "http_max_ms": 79.43,
+    "threshold_ms": 200,
+    "raw_sha256": "5fb64556d5110636d2874c13546828d826e7ef9d649b70e49663c7ab1242e602"
+  },
+  "postflight": {
+    "epoch": 1792108077.470301,
+    "scope": "10/10exploratory windows archived/verified; restore exactE/F and reclaim only three new hash-verified immutable source copies. No production changes.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all10_verified_remote_window_copies_pruned": true,
+    "immutable_sources_pruned": {
+      "e": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-local-cache-integration-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      },
+      "f": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-local-cache-integration-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "local-cache-integration": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-local-cache-integration-artifact-local-cache-integration",
+        "sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83"
+      }
+    },
+    "available_memory_kib": 85196,
+    "production_namespace": "net:[4026531840]",
+    "postflight_script_sha256": "aa6ae391f5363d3c899016fab3253b3aaf1fe97f8d093314a3ca0c4974d3a881",
+    "stdout": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n85196\nnet:[4026531840]\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "evidence": {
+    "summary_sha256": "d19eb9eaeee706a72afaf66a3dbb34921a7472c4d9da92f41befa17333b11f3f",
+    "progress_sha256": "1f11013c83b72066c92553bc23ee27f899301e1b8fbbc2750245b6608dc536fe",
+    "verifier_sha256": "a9971dcb89d495acc3d4ac4e6e086e44b9886a55a0659225d845afdded73b85b",
+    "private_root": "private/perf-opt-20261015/a53-local-cache-integration-device",
+    "local_verification_sha256": "af11fa1a194ba0d23f4e0808a27aa482ef52db2dcfecdd266e6237ca304fa780",
+    "postflight_sha256": "7ad18bd17051aed7bb35dce36311e62065e65567a0f2852061e36c34fdec95de"
+  },
+  "interpretation": [
+    "Only p50 passes the frozen comparison rule:0.191663\u21920.175582ms,-8.390% versus W7.756%,5/5. CPU138\u2192126us/query remains below W12.698% and6ticks does not exceed8; no UDP-hit CPU acceptance or G selection.",
+    "The unchanged compare() decisions below are the authority; descriptive median changes alone do not establish gains or regressions.",
+    "Only contemporaneous F controls are used. No pooling with earlier E/C, other product prototypes or synthetic-stage controls.",
+    "All valid windows including high-latency observations remain; no selective replacement, longer windows, adjusted precision or thresholds.",
+    "This exact integration contains only the reviewed b343 fresh-address frame path plus c44 bounded local-miss stack path; no other prototype was combined. Full44 remains incomplete and no product promotion follows from this exploratory screen.",
+    "No syscall tracing, PMU, per-query clock or logging was added; source frame/allocation/layout hypotheses do not establish causal cost."
+  ]
+}
