@@ -1,0 +1,696 @@
+{
+  "scope": "Read-only exact SDK disassembly, existing sampled profiles and current source audit; no product edits, benchmarks, new dependency or hash/shard change.",
+  "artifacts": {
+    "c": {
+      "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+      "names_for_start": "0xe12a4",
+      "names_for_size": 380,
+      "disassembly_sha256": "82a043a8ef4a647acd99be3441fcca9b4e1dc5e518a58835e7fdc440e0e08e54"
+    },
+    "d": {
+      "elf_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+      "map_sha256": "00d5ba5b2d216dfad6984b239f25ebe5b7e0a423d74fdd51538ccadeeb212b13",
+      "names_for_start": "0xe12b8",
+      "names_for_size": 380,
+      "disassembly_sha256": "b2b930b40924893d6c4983191fb1ac4d07989c38f6c3079dc7aa6f546667e95a"
+    }
+  },
+  "actual_fnv_loop": {
+    "instructions_per_byte": 5,
+    "instructions": [
+      "ldrb w12,[x11],#1",
+      "subs x10,x10,#1",
+      "eor x8,x8,x12",
+      "mul x8,x8,x9",
+      "b.ne loop"
+    ],
+    "auto_unrolled": false,
+    "actual_hot_name_bytes": 16,
+    "fnv_loop_instructions_per_hot_lookup": 80,
+    "ideal_4byte_unroll_control_instruction_savings_upper": 24,
+    "limit": "The24 is only removal of six decrement/branch instructions per four-byte group versus scalar, before grouping/tail overhead. Multiplication dependency remains; not a measured performance bound."
+  },
+  "profiles": [
+    {
+      "scene": "udp-hit",
+      "profile_sha256": "c12426e4e719b4eeca97fab08cd6d8109bf73004bbb1e21a835496df14151918",
+      "total_samples": 10598,
+      "names_for_samples": 1975,
+      "segments": {
+        "fnv_loop": {
+          "start": "0xe12ec",
+          "end_exclusive": "0xe1300",
+          "samples": 18,
+          "percent_all_period": 0.16984336667295716
+        },
+        "fnv_setup_to_shard": {
+          "start": "0xe12c8",
+          "end_exclusive": "0xe1304",
+          "samples": 27,
+          "percent_all_period": 0.2547650500094357
+        },
+        "hashmap_root_and_hash_call": {
+          "start": "0xe1304",
+          "end_exclusive": "0xe1328",
+          "samples": 294,
+          "percent_all_period": 2.774108322324967
+        },
+        "hashmap_probe": {
+          "start": "0xe1328",
+          "end_exclusive": "0xe13d0",
+          "samples": 1616,
+          "percent_all_period": 15.248160030194377
+        },
+        "hashmap_repeat_group": {
+          "start": "0xe13ac",
+          "end_exclusive": "0xe13d0",
+          "samples": 0,
+          "percent_all_period": 0.0
+        }
+      },
+      "ips": [
+        {
+          "vma": "0xe12a4",
+          "samples": 10
+        },
+        {
+          "vma": "0xe12a8",
+          "samples": 10
+        },
+        {
+          "vma": "0xe12ac",
+          "samples": 1
+        },
+        {
+          "vma": "0xe12b4",
+          "samples": 1
+        },
+        {
+          "vma": "0xe12bc",
+          "samples": 1
+        },
+        {
+          "vma": "0xe12c0",
+          "samples": 1
+        },
+        {
+          "vma": "0xe12cc",
+          "samples": 3
+        },
+        {
+          "vma": "0xe12f0",
+          "samples": 18
+        },
+        {
+          "vma": "0xe1300",
+          "samples": 6
+        },
+        {
+          "vma": "0xe1304",
+          "samples": 1
+        },
+        {
+          "vma": "0xe130c",
+          "samples": 47
+        },
+        {
+          "vma": "0xe1310",
+          "samples": 178
+        },
+        {
+          "vma": "0xe1314",
+          "samples": 66
+        },
+        {
+          "vma": "0xe1318",
+          "samples": 1
+        },
+        {
+          "vma": "0xe131c",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1328",
+          "samples": 2
+        },
+        {
+          "vma": "0xe1338",
+          "samples": 274
+        },
+        {
+          "vma": "0xe1340",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1344",
+          "samples": 1151
+        },
+        {
+          "vma": "0xe1354",
+          "samples": 5
+        },
+        {
+          "vma": "0xe136c",
+          "samples": 183
+        },
+        {
+          "vma": "0xe13fc",
+          "samples": 2
+        },
+        {
+          "vma": "0xe1404",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1408",
+          "samples": 8
+        },
+        {
+          "vma": "0xe140c",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1418",
+          "samples": 1
+        },
+        {
+          "vma": "0xe141c",
+          "samples": 1
+        }
+      ]
+    },
+    {
+      "scene": "udp-mixed",
+      "profile_sha256": "22eb12b87a620cfc77fed56c5aabaef277aedeb918780a249f798cabcece00ff",
+      "total_samples": 18729,
+      "names_for_samples": 2007,
+      "segments": {
+        "fnv_loop": {
+          "start": "0xe12ec",
+          "end_exclusive": "0xe1300",
+          "samples": 174,
+          "percent_all_period": 0.9290405253884351
+        },
+        "fnv_setup_to_shard": {
+          "start": "0xe12c8",
+          "end_exclusive": "0xe1304",
+          "samples": 179,
+          "percent_all_period": 0.9557370922099419
+        },
+        "hashmap_root_and_hash_call": {
+          "start": "0xe1304",
+          "end_exclusive": "0xe1328",
+          "samples": 745,
+          "percent_all_period": 3.9777884564045065
+        },
+        "hashmap_probe": {
+          "start": "0xe1328",
+          "end_exclusive": "0xe13d0",
+          "samples": 1013,
+          "percent_all_period": 5.408724438037268
+        },
+        "hashmap_repeat_group": {
+          "start": "0xe13ac",
+          "end_exclusive": "0xe13d0",
+          "samples": 0,
+          "percent_all_period": 0.0
+        }
+      },
+      "ips": [
+        {
+          "vma": "0xe12a4",
+          "samples": 33
+        },
+        {
+          "vma": "0xe12a8",
+          "samples": 16
+        },
+        {
+          "vma": "0xe12ac",
+          "samples": 2
+        },
+        {
+          "vma": "0xe12bc",
+          "samples": 4
+        },
+        {
+          "vma": "0xe12c0",
+          "samples": 6
+        },
+        {
+          "vma": "0xe12cc",
+          "samples": 3
+        },
+        {
+          "vma": "0xe12ec",
+          "samples": 11
+        },
+        {
+          "vma": "0xe12f0",
+          "samples": 161
+        },
+        {
+          "vma": "0xe12f4",
+          "samples": 1
+        },
+        {
+          "vma": "0xe12fc",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1300",
+          "samples": 2
+        },
+        {
+          "vma": "0xe1304",
+          "samples": 8
+        },
+        {
+          "vma": "0xe130c",
+          "samples": 179
+        },
+        {
+          "vma": "0xe1310",
+          "samples": 371
+        },
+        {
+          "vma": "0xe1314",
+          "samples": 182
+        },
+        {
+          "vma": "0xe1318",
+          "samples": 1
+        },
+        {
+          "vma": "0xe131c",
+          "samples": 4
+        },
+        {
+          "vma": "0xe1328",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1338",
+          "samples": 248
+        },
+        {
+          "vma": "0xe1344",
+          "samples": 698
+        },
+        {
+          "vma": "0xe1354",
+          "samples": 3
+        },
+        {
+          "vma": "0xe136c",
+          "samples": 59
+        },
+        {
+          "vma": "0xe1388",
+          "samples": 1
+        },
+        {
+          "vma": "0xe139c",
+          "samples": 2
+        },
+        {
+          "vma": "0xe13a0",
+          "samples": 1
+        },
+        {
+          "vma": "0xe13f4",
+          "samples": 3
+        },
+        {
+          "vma": "0xe13f8",
+          "samples": 1
+        },
+        {
+          "vma": "0xe13fc",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1408",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1414",
+          "samples": 3
+        }
+      ]
+    },
+    {
+      "scene": "udp-miss",
+      "profile_sha256": "9e9bf782f8862c44001441cc2c9b12577ab47caf3c1dae980da4b23c6aaf120f",
+      "total_samples": 43738,
+      "names_for_samples": 1409,
+      "segments": {
+        "fnv_loop": {
+          "start": "0xe12ec",
+          "end_exclusive": "0xe1300",
+          "samples": 204,
+          "percent_all_period": 0.4664136448854543
+        },
+        "fnv_setup_to_shard": {
+          "start": "0xe12c8",
+          "end_exclusive": "0xe1304",
+          "samples": 220,
+          "percent_all_period": 0.5029951072294115
+        },
+        "hashmap_root_and_hash_call": {
+          "start": "0xe1304",
+          "end_exclusive": "0xe1328",
+          "samples": 911,
+          "percent_all_period": 2.0828570122090633
+        },
+        "hashmap_probe": {
+          "start": "0xe1328",
+          "end_exclusive": "0xe13d0",
+          "samples": 200,
+          "percent_all_period": 0.457268279299465
+        },
+        "hashmap_repeat_group": {
+          "start": "0xe13ac",
+          "end_exclusive": "0xe13d0",
+          "samples": 1,
+          "percent_all_period": 0.002286341396497325
+        }
+      },
+      "ips": [
+        {
+          "vma": "0xe12a4",
+          "samples": 31
+        },
+        {
+          "vma": "0xe12a8",
+          "samples": 27
+        },
+        {
+          "vma": "0xe12ac",
+          "samples": 2
+        },
+        {
+          "vma": "0xe12b4",
+          "samples": 2
+        },
+        {
+          "vma": "0xe12bc",
+          "samples": 2
+        },
+        {
+          "vma": "0xe12cc",
+          "samples": 8
+        },
+        {
+          "vma": "0xe12dc",
+          "samples": 2
+        },
+        {
+          "vma": "0xe12ec",
+          "samples": 9
+        },
+        {
+          "vma": "0xe12f0",
+          "samples": 195
+        },
+        {
+          "vma": "0xe1300",
+          "samples": 6
+        },
+        {
+          "vma": "0xe1304",
+          "samples": 1
+        },
+        {
+          "vma": "0xe130c",
+          "samples": 291
+        },
+        {
+          "vma": "0xe1310",
+          "samples": 581
+        },
+        {
+          "vma": "0xe1314",
+          "samples": 38
+        },
+        {
+          "vma": "0xe1328",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1338",
+          "samples": 31
+        },
+        {
+          "vma": "0xe1344",
+          "samples": 166
+        },
+        {
+          "vma": "0xe13a0",
+          "samples": 1
+        },
+        {
+          "vma": "0xe13cc",
+          "samples": 1
+        },
+        {
+          "vma": "0xe13f4",
+          "samples": 4
+        },
+        {
+          "vma": "0xe13f8",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1400",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1408",
+          "samples": 3
+        },
+        {
+          "vma": "0xe140c",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1414",
+          "samples": 4
+        }
+      ]
+    },
+    {
+      "scene": "tcp-miss",
+      "profile_sha256": "74512eadb5692076943a5bf2c347a5c94c1dab7664bf3258585ff93eaca96169",
+      "total_samples": 40801,
+      "names_for_samples": 146,
+      "segments": {
+        "fnv_loop": {
+          "start": "0xe12ec",
+          "end_exclusive": "0xe1300",
+          "samples": 16,
+          "percent_all_period": 0.039214725129286046
+        },
+        "fnv_setup_to_shard": {
+          "start": "0xe12c8",
+          "end_exclusive": "0xe1304",
+          "samples": 16,
+          "percent_all_period": 0.039214725129286046
+        },
+        "hashmap_root_and_hash_call": {
+          "start": "0xe1304",
+          "end_exclusive": "0xe1328",
+          "samples": 62,
+          "percent_all_period": 0.15195705987598343
+        },
+        "hashmap_probe": {
+          "start": "0xe1328",
+          "end_exclusive": "0xe13d0",
+          "samples": 58,
+          "percent_all_period": 0.14215337859366192
+        },
+        "hashmap_repeat_group": {
+          "start": "0xe13ac",
+          "end_exclusive": "0xe13d0",
+          "samples": 3,
+          "percent_all_period": 0.007352760961741134
+        }
+      },
+      "ips": [
+        {
+          "vma": "0xe12ec",
+          "samples": 3
+        },
+        {
+          "vma": "0xe12f0",
+          "samples": 13
+        },
+        {
+          "vma": "0xe130c",
+          "samples": 27
+        },
+        {
+          "vma": "0xe1310",
+          "samples": 34
+        },
+        {
+          "vma": "0xe1314",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1338",
+          "samples": 15
+        },
+        {
+          "vma": "0xe1344",
+          "samples": 35
+        },
+        {
+          "vma": "0xe139c",
+          "samples": 4
+        },
+        {
+          "vma": "0xe13a4",
+          "samples": 1
+        },
+        {
+          "vma": "0xe13ac",
+          "samples": 1
+        },
+        {
+          "vma": "0xe13bc",
+          "samples": 2
+        },
+        {
+          "vma": "0xe13f4",
+          "samples": 3
+        },
+        {
+          "vma": "0xe1404",
+          "samples": 1
+        },
+        {
+          "vma": "0xe1408",
+          "samples": 2
+        },
+        {
+          "vma": "0xe1414",
+          "samples": 2
+        },
+        {
+          "vma": "0xe1418",
+          "samples": 1
+        },
+        {
+          "vma": "0xe141c",
+          "samples": 1
+        }
+      ]
+    }
+  ],
+  "frozen_hot_shards": {
+    "names": 800,
+    "used_shards": 64,
+    "minimum": 4,
+    "maximum": 22,
+    "counts": [
+      10,
+      7,
+      8,
+      13,
+      11,
+      15,
+      14,
+      17,
+      11,
+      16,
+      11,
+      14,
+      22,
+      10,
+      9,
+      11,
+      8,
+      11,
+      12,
+      10,
+      13,
+      15,
+      16,
+      13,
+      10,
+      14,
+      8,
+      14,
+      17,
+      17,
+      19,
+      9,
+      14,
+      11,
+      12,
+      13,
+      12,
+      9,
+      12,
+      9,
+      14,
+      11,
+      12,
+      14,
+      11,
+      10,
+      17,
+      11,
+      17,
+      10,
+      9,
+      19,
+      14,
+      7,
+      9,
+      12,
+      21,
+      20,
+      18,
+      16,
+      11,
+      9,
+      4,
+      7
+    ],
+    "initial_growth_inferred_buckets": {
+      "16": 44,
+      "8": 4,
+      "32": 16
+    },
+    "initial_growth_inferred_total_buckets": 1248,
+    "inference_limit": "Counts are exact source-FNV distribution; capacities inferred from unchanged library growth with insertion-only hot population, not a dump of randomized runtime buckets or probe lengths."
+  },
+  "hashmap_probe": {
+    "sdk_group_width_bytes": 8,
+    "implementation": "AArch64 NEON control-byte comparison; group loads then high7bit tag match, candidate keylength check and memcmp; triangular next-group stride8",
+    "bucket_stride_bytes": 32,
+    "sdk_first_compare_address": "0xe1344",
+    "sdk_key_length_compare_address": "0xe136c",
+    "sdk_memcmp_call_address": "0xe1384",
+    "sdk_repeat_compare_address": "0xe13bc",
+    "hit_first_compare_samples": 1151,
+    "hit_repeat_group_samples": 0,
+    "caveat": "No sampled repeat-group IP is evidence against assuming a dominant long-probe cost, not proof every lookup isonegroup. Sparse instruction sampling/skid may concentrate on fewIPs."
+  },
+  "local_pinned_library_source_sha256": {
+    "raw.rs": "0c8ad353ba95817e72b0a8fea48fa2599099ea3def374f254ab6402a9c468d22",
+    "map.rs": "b79497ce537ffc5ed4f8f3399434b9216c01e7927fdc434fee190e9e9ce2abb0",
+    "control/group/mod.rs": "32150c3ac5bd4197ce122fea5b45ec1047c1e5227a4ba940aef6ceab2c00f54b",
+    "control/group/neon.rs": "bd8366684d86f456b9880940bbc72d7aabfb642d88a7bdd90de66ef7f643fae5"
+  },
+  "decisions": {
+    "Name_persistent_precompute": "Do not pursue: extra state/layout and hashing on all constructors/parser consumers; immutable Name makes coherence feasible but no reused existing digest exists. DerivedHash/Eq must keep metadata out of semantichash ifchanged.",
+    "decode_fusion": "Do not pursue: walker checks labels and copies chunks; adding FNV is additional bytework, requires carrying cachedshard or changingquestion API, and doesnotremove randomizedHashMaphash.",
+    "canonicalization_fusion": "No hot lowercase gain: inspect_name borrows wirebytes without canonical allocation. Uppercase could combinelowercase+FNV onlyvia API/plumbing changes; not evidence for ordinaryhit benefit.",
+    "four_byte_unroll": "Reject current priority by actual5instructionloop/16Bcontrolbudget, corroborated byFNVsegment samples; no nativefullscreen justified for<=24savedcontrolinstructions.",
+    "HashMap_probe": "No low-complexity product change selected: necessary initialrandomizedlookup alreadySIMD, all64shards populated4..22, no evidence of longprobe; reserves/shrinks/newlayout/customgrouping change memory/failure/COW or library/compiler contract. Preservepotential targetedcounts iffutureDdeviceevidencejustifies, do notinfergain fromfunctionshare."
+  }
+}
