@@ -766,13 +766,6 @@ impl Cache {
         if expires == now && self.policy.stale == StalePolicy::Disabled {
             return self.fail(InsertError::ZeroTtl);
         }
-        let canonical;
-        let key = if record.name.as_wire().iter().any(u8::is_ascii_uppercase) {
-            canonical = record.name.canonical_wire();
-            canonical.as_slice()
-        } else {
-            record.name.as_wire()
-        };
         let mut preserved = None;
         if record.kind.is_reverse() {
             // Reverse insertion scans all dynamic hash buckets and removes
@@ -787,16 +780,25 @@ impl Cache {
                     self.remove(slot);
                 }
             }
-        } else if let Some(indices) = self.names_for(key).cloned() {
-            for &slot in indices.iter() {
-                let entry = self.entry(slot).unwrap();
-                if record.kind.conflicts(entry.record.kind) {
-                    if entry.referenced {
-                        preserved = Some(self.id(slot));
+        } else {
+            let canonical;
+            let key = if record.name.as_wire().iter().any(u8::is_ascii_uppercase) {
+                canonical = record.name.canonical_wire();
+                canonical.as_slice()
+            } else {
+                record.name.as_wire()
+            };
+            if let Some(indices) = self.names_for(key).cloned() {
+                for &slot in indices.iter() {
+                    let entry = self.entry(slot).unwrap();
+                    if record.kind.conflicts(entry.record.kind) {
+                        if entry.referenced {
+                            preserved = Some(self.id(slot));
+                        }
+                        self.remove(slot);
+                    } else if self.invalid(slot, now) {
+                        self.remove(slot);
                     }
-                    self.remove(slot);
-                } else if self.invalid(slot, now) {
-                    self.remove(slot);
                 }
             }
         }
