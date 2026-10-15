@@ -648,3 +648,31 @@ built. The stale tool builds its fresh E debug driver, so it does not confuse
 same-source reused debug test paths with byte-identical newly linked artifacts.
 No comparator or fixture was altered. Full44 remains running and is the only
 pending E correctness requirement; the earlier D startup failure is not waived.
+
+## E complete correctness: original startup failure repaired
+
+[Final E full44 receipt](e-full44-gates.json) confirms **44/44 original families
+and 67/67 unique original jobs RAW PASS**, zero new or unclassified failure.
+The reviewer independently rehashed every family result, every original job
+result, exact SDK ELF, same-build map/receipt and all supervisor-bound inputs.
+The original single run completed in 2,065.11 wall seconds, with no pause,
+replacement or retry. Its raw-result SHA256 is
+`c132ab5c39517fbf72355eae9c97a64d781d66888e2208ece368458427d9f01a`.
+
+The repaired startup path passes its actual original gate: all **276 interface
+service cases** have zero failure; the unchanged qualifier returns qualified
+true for all **288 required rows**; all interface closeouts also pass. Exact C
+and E emit the same helper sequence `original -> empty -> fromhosts`, then
+`empty -> updated`, and no removal callback. Raw wire/event rows and actual
+ELF hashes are preserved. No mixed-chain exception, new qualifier or relaxed
+expectation was used. D's failed attempt and corrected diagnosis remain intact.
+
+Together with the **944 fresh short tests**, exact ELF F10/protocol/TCP, and all
+four source corpora, E has completed every correctness requirement. Existing
+PTR and forward-pointer classifications remain explicit; only the previously
+user-accepted two UID-reuse corpus differences retain raw exit1. This is not an
+all-C-zero-difference claim. Exact E remains source `4f869c88`, SDK `8b8082b9…`,
+2,136,859 bytes. All correctness processes have finished and no further workload
+is scheduled. The coordinator received READY/IDLE for exclusive E Oracle timing;
+device performance acceptance remains separate and no reviewer router operation
+occurred.
