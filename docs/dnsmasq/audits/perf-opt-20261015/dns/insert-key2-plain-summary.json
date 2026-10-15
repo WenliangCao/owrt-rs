@@ -1,0 +1,445 @@
+{
+  "status": "complete-focused-plain-screen-pending-decision",
+  "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "candidate_product_source": "60c3bdf29905eb3ef4cbd1f18f6447b10b56826d",
+  "reservation": "insert-key-final-20261015",
+  "scope": "NativeuninstrumentedSystemallocator APIprobesCPU2,wholeprocessCPUincludesfixture/priming;notSDKorDeviceacceptance. All150declaredwindows retained once, no reruns or replacement.",
+  "declared_windows": 150,
+  "completed_windows": 150,
+  "summaries": [
+    {
+      "scene": "replace",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          37454000,
+          37533000,
+          37178000,
+          37219000,
+          37770000
+        ],
+        "insert-key2": [
+          36567000,
+          36477000,
+          37068000,
+          36914000,
+          36493000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 37454000,
+        "insert-key2": 36567000
+      },
+      "change_percent": -2.368238372403486,
+      "W_percent": 1.616211338091722,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "pressure",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          45897000,
+          45699000,
+          45779000,
+          46315000,
+          45808000
+        ],
+        "insert-key2": [
+          46075000,
+          45375000,
+          45463000,
+          45907000,
+          45241000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 45808000,
+        "insert-key2": 45463000
+      },
+      "change_percent": -0.7531435557107891,
+      "W_percent": 1.8344587906649363,
+      "improving_pairs": 4,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "reverse",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          539723000,
+          539341000,
+          539234000,
+          540142000,
+          539405000
+        ],
+        "insert-key2": [
+          528509000,
+          529600000,
+          529698000,
+          529480000,
+          528715000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 539405000,
+        "insert-key2": 529480000
+      },
+      "change_percent": -1.8399903597482448,
+      "W_percent": 0.22455994560701067,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "long",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          42427000,
+          42280000,
+          42755000,
+          42763000,
+          42947000
+        ],
+        "insert-key2": [
+          42980000,
+          42930000,
+          42831000,
+          42717000,
+          42955000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 42755000,
+        "insert-key2": 42930000
+      },
+      "change_percent": 0.4093088527657551,
+      "W_percent": 1.560051455970062,
+      "improving_pairs": 1,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "short",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          32463000,
+          32403000,
+          32432000,
+          32563000,
+          32454000
+        ],
+        "insert-key2": [
+          31702000,
+          31758000,
+          31711000,
+          31754000,
+          32079000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 32454000,
+        "insert-key2": 31754000
+      },
+      "change_percent": -2.156898995501322,
+      "W_percent": 1.1872519997480633,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "replace-upper",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          37968000,
+          37708000,
+          37220000,
+          37791000,
+          37740000
+        ],
+        "insert-key2": [
+          37295000,
+          37252000,
+          37297000,
+          37666000,
+          37781000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 37740000,
+        "insert-key2": 37297000
+      },
+      "change_percent": -1.1738208797032357,
+      "W_percent": 1.981981981981982,
+      "improving_pairs": 3,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "pressure-upper",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          45950000,
+          45922000,
+          46007000,
+          45929000,
+          45884000
+        ],
+        "insert-key2": [
+          47069000,
+          46517000,
+          46392000,
+          46749000,
+          46626000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 45929000,
+        "insert-key2": 46626000
+      },
+      "change_percent": 1.5175597117289774,
+      "W_percent": 1.451979582207352,
+      "improving_pairs": 0,
+      "decision": "regression"
+    },
+    {
+      "scene": "reverse-upper",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          540419000,
+          538394000,
+          538267000,
+          538118000,
+          538459000
+        ],
+        "insert-key2": [
+          529891000,
+          529307000,
+          529612000,
+          530159000,
+          530155000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 538394000,
+        "insert-key2": 529891000
+      },
+      "change_percent": -1.5793266641158654,
+      "W_percent": 0.42738217736453227,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "short-upper",
+      "operations": 50000,
+      "cpu_ns": {
+        "baseline-e": [
+          32516000,
+          32428000,
+          32384000,
+          32491000,
+          32324000
+        ],
+        "insert-key2": [
+          32557000,
+          32547000,
+          32557000,
+          32494000,
+          32488000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 32428000,
+        "insert-key2": 32547000
+      },
+      "change_percent": 0.3669668187985753,
+      "W_percent": 0.5920809177254225,
+      "improving_pairs": 0,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "hit",
+      "operations": 500000,
+      "cpu_ns": {
+        "baseline-e": [
+          297349000,
+          297441000,
+          296373000,
+          297853000,
+          297334000
+        ],
+        "insert-key2": [
+          298054000,
+          297914000,
+          298693000,
+          298095000,
+          297507000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 297349000,
+        "insert-key2": 298054000
+      },
+      "change_percent": 0.23709513063774335,
+      "W_percent": 0.4977316217643241,
+      "improving_pairs": 0,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "miss",
+      "operations": 500000,
+      "cpu_ns": {
+        "baseline-e": [
+          192653000,
+          192603000,
+          193178000,
+          192486000,
+          194214000
+        ],
+        "insert-key2": [
+          194776000,
+          193498000,
+          193782000,
+          193538000,
+          194878000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 192653000,
+        "insert-key2": 193782000
+      },
+      "change_percent": 0.5860277286105164,
+      "W_percent": 0.8969494375898637,
+      "improving_pairs": 0,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "rrset",
+      "operations": 500000,
+      "cpu_ns": {
+        "baseline-e": [
+          758991000,
+          758511000,
+          757423000,
+          757461000,
+          761186000
+        ],
+        "insert-key2": [
+          753706000,
+          754128000,
+          754061000,
+          753153000,
+          752793000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 758511000,
+        "insert-key2": 753706000
+      },
+      "change_percent": -0.6334779587903183,
+      "W_percent": 0.49610355024515135,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "host",
+      "operations": 500000,
+      "cpu_ns": {
+        "baseline-e": [
+          444087000,
+          443028000,
+          453484000,
+          442383000,
+          448211000
+        ],
+        "insert-key2": [
+          438301000,
+          443455000,
+          442566000,
+          440656000,
+          439056000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 444087000,
+        "insert-key2": 440656000
+      },
+      "change_percent": -0.7725963606230346,
+      "W_percent": 2.499735412205266,
+      "improving_pairs": 4,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "cname",
+      "operations": 500000,
+      "cpu_ns": {
+        "baseline-e": [
+          605736000,
+          604973000,
+          604993000,
+          607163000,
+          606750000
+        ],
+        "insert-key2": [
+          607857000,
+          609639000,
+          610361000,
+          608615000,
+          607523000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 605736000,
+        "insert-key2": 608615000
+      },
+      "change_percent": 0.4752895650910638,
+      "W_percent": 0.4663046425079895,
+      "improving_pairs": 0,
+      "decision": "regression"
+    },
+    {
+      "scene": "cname-config",
+      "operations": 10000,
+      "cpu_ns": {
+        "baseline-e": [
+          249243000,
+          248885000,
+          249230000,
+          249420000,
+          249411000
+        ],
+        "insert-key2": [
+          233565000,
+          233346000,
+          233584000,
+          233891000,
+          233438000
+        ]
+      },
+      "median_cpu_ns": {
+        "baseline-e": 249243000,
+        "insert-key2": 233565000
+      },
+      "change_percent": -6.290246867514837,
+      "W_percent": 0.23333975552843964,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    }
+  ],
+  "artifact_sha256": {
+    "baseline-e-insert-probe": "94f5a7685047ebe01a3728344a9abc20bffe4bb5f7300f79f944fe82c98b546e",
+    "insert-key2-insert-probe": "1f7858b34af5d24f48126a5f70ec612ddb3577b3720fda56f198db87718f54bb",
+    "baseline-e-hot-probe": "12cc8f97921d3352aafb75a603471ba365b20361832f49327b32e0f7188dce7f",
+    "insert-key2-hot-probe": "da0ee4e7fd7a6afcd24fe8f004afe9aab57cec14e5604cfe45426a49d09b9f33"
+  },
+  "runner_sha256": "81545ddf0abc28a12e9625dacd992a9044816c4c799f364e58b7e22ca01a12f7",
+  "raw_sha256": {
+    "timing-insert-key2-final.json": "20f893e030bb81e491585d05e4b598e1578a7596fdc7fce252520f6b145b44f6",
+    "timing-insert-key2-final-hot.json": "00423a8a1c4f6c05d760fac7886c6d4520d8d4e78b0d25349cc9f2481d9e09e0",
+    "timing-insert-key2-final-config.json": "e4f4cd1d01fcf0a6ad83914e17accd7f0c27f89b6a147020f9e7e28295dfd2d4"
+  },
+  "raw_remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/dns/private",
+  "all_raw_retained": true
+}
