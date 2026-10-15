@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_SOURCE_REVIEW",
+  "candidate_commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_file": "components/dnsmasq/src/hosts.rs",
+  "source_sha256": "a40e22f9bde6371d0627b6b9c63982f39ca5d3d5a624101c1cc2c49b2cab1442",
+  "scope": "Local read-only review of the independent F-based published-hosts miss prototype and retained local test/check logs. No reviewer build, test execution or remote access.",
+  "implementation": "When bulk is None, an empty existing forward index or a lowercase name absent from that index returns an empty answer before computing the C name bucket. All other lookups retain the original lookup_in_bucket path.",
+  "invariant_review": [
+    "try_insert reserves mandatory index capacity before publishing entries, adds the lowercase forward count with each Host, and commits bucket links in the same synchronous mutation. The fast path adds no new index or ownership cache.",
+    "Source removal decrements counts for removed entries and removes zero counts. try_clone and TCP snapshots retain records and their matching forward index from the same generation.",
+    "Active and sealed bulk states both remain Some and bypass the shortcut. finish_bulk removes retained lease nodes from bucket order before setting bulk to None.",
+    "For a published lowercase query, absence of its canonical key proves there is no eq_ignore_ascii_case Host match. The original miss had matched=0 and could not rotate any group, including unrelated bucket collisions.",
+    "Non-terminal existence remains in name_exists and is not an address answer. An empty forward index can shortcut uppercase too; a nonempty index keeps uppercase queries on the original case-insensitive lookup.",
+    "Hits, address-family filtering, no-round-robin choices and repeated-query order continue through unchanged lookup_in_bucket. No hashing-capacity, lease, reverse-owner or publication behavior is changed."
+  ],
+  "test_review": {
+    "fixture": "hosts::tests::indexed_misses_preserve_lookup_rotation_and_generation_updates",
+    "coverage": "Repeated comparisons with the original lookup_in_bucket across bulk active/sealed/published, TCP snapshot, source removal/new insertion, uppercase/lowercase, non-terminal, collision, lease-only, family and rotation choices.",
+    "initial_compile_failure": {
+      "reason": "E0505: moving collision while the comparison closure borrowed it.",
+      "fix": "Clone the test name for insertion, retaining the closure reference.",
+      "stderr_sha256": "0484376d86a96883fc57a91cd1728da45da8bec57675448f898d35347d529093"
+    },
+    "initial_runtime_fixture_failure": {
+      "reason": "Retained leases were added after hosts entries, violating the existing add_bulk_lease construction precondition.",
+      "fix": "Begin bulk and add retained leases before inserting hosts records.",
+      "stdout_sha256": "01e1d70a8b22d4bda36c8a54c5f2a65f2f82cd570167ab2ba21b458a11935aac"
+    },
+    "final_local_lib": {
+      "passed": 715,
+      "failed": 0,
+      "ignored": 8,
+      "stdout_sha256": "a14ee02ee625cbafd7c3f3b9100797523fea4b76a6335efeaadbb42447176d5e"
+    },
+    "final_local_linux_musl_all_target_check": {
+      "coordinator_report": "passed",
+      "stderr_has_successful_finish": true,
+      "stderr_sha256": "f09b42b6566fe0c5b18c1a85bb866bf7332214997c7d9fa5cc14cbda7de73d17"
+    },
+    "reviewer_reran_tests": false
+  },
+  "remaining_blocking_findings": [],
+  "limits": [
+    "The retained failures were test borrow/construction issues, not evidence of relaxed product behavior.",
+    "This review and local checks do not establish exact-source Linux runtime qualification, full44 qualification, performance improvement or candidate acceptance.",
+    "The prototype is independent of name-buffer, fresh-address, idle-batch and singleton changes."
+  ],
+  "related_linux_gates": "not performed by this review",
+  "performance_acceptance": false,
+  "deployment": false
+}
