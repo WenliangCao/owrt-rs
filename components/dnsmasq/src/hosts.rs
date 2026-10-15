@@ -976,6 +976,16 @@ impl Hosts {
     /// Current static records in the actual global bucket order.
     pub fn addresses<'a>(&'a self, name: &'a [u8]) -> impl Iterator<Item = &'a Host> {
         let bucket = name_hash_bucket(name, self.records.name_hash_capacity);
+        self.addresses_in_bucket(name, bucket)
+    }
+
+    /// Reuse a bucket only for the same name and current name_hash_capacity.
+    /// Lease publication pairs this scan with lookup before any hosts update.
+    pub(crate) fn addresses_in_bucket<'a>(
+        &'a self,
+        name: &'a [u8],
+        bucket: usize,
+    ) -> impl Iterator<Item = &'a Host> {
         let offset = self.retained_leases().len();
         self.order.bucket(bucket).filter_map(move |node| {
             let host = self.records.entries.get(node.checked_sub(offset)?)?;
@@ -1490,12 +1500,24 @@ impl Hosts {
     /// Return current static bucket order, then apply C's first matching
     /// flags-group rotation, including retained lease nodes before publication.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
+        let bucket = name_hash_bucket(name, self.records.name_hash_capacity);
+        self.lookup_in_bucket(name, ipv6, no_round_robin, bucket)
+    }
+
+    /// Same-name companion to addresses_in_bucket. Neither operation changes
+    /// hash capacity; lookup retains its answer allocation and rotation order.
+    pub(crate) fn lookup_in_bucket(
+        &mut self,
+        name: &[u8],
+        ipv6: Option<bool>,
+        no_round_robin: bool,
+        bucket: usize,
+    ) -> Vec<&Host> {
         let records = &self.records;
         let leases = self
             .bulk
             .as_ref()
             .map_or(&[][..], |bulk| bulk.leases.as_slice());
-        let bucket = name_hash_bucket(name, records.name_hash_capacity);
         let mut matched = 0;
         let mut answer = Vec::new();
         for node in self.order.bucket(bucket) {

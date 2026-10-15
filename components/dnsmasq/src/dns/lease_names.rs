@@ -8,7 +8,7 @@
 use super::cache::StalePolicy;
 use crate::config::records::Cname;
 use crate::dhcp::persistence::DnsLeaseRecord;
-use crate::hosts::Hosts;
+use crate::hosts::{name_hash_bucket, Hosts};
 use std::borrow::Cow;
 use std::collections::{hash_map::Entry, HashMap};
 use std::net::{IpAddr, Ipv4Addr};
@@ -361,8 +361,11 @@ impl LeaseNames {
         cache: &mut impl PublicationCache,
     ) {
         let key = name_key(record.name);
+        // Hosts capacity cannot change between the blocker scan and lookup.
+        // Keep both scans and the lookup's IPv4-only rotation in their order.
+        let host_bucket = name_hash_bucket(record.name, hosts.name_hash_capacity());
         let mut blockers: Vec<_> = hosts
-            .addresses(record.name)
+            .addresses_in_bucket(record.name, host_bucket)
             .map(|host| PublicationBlocker {
                 kind: if host.address.is_ipv4() {
                     BlockerKind::Ipv4
@@ -394,7 +397,9 @@ impl LeaseNames {
                 immortal: self.entries[id].expires.is_none(),
             }));
         }
-        let static_addresses = hosts.lookup(record.name, Some(false), self.policy.no_round_robin);
+        let static_addresses = hosts.lookup_in_bucket(
+            record.name, Some(false), self.policy.no_round_robin, host_bucket,
+        );
         cache.prepare_name(ForwardPublication {
             name: record.name,
             no_round_robin: self.policy.no_round_robin,
