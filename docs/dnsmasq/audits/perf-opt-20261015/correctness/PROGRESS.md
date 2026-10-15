@@ -592,3 +592,22 @@ original helper event, with deterministic tests covering both relative bucket
 orders and the existing full qualification workflow. Frozen D and all failed
 observations remain unchanged. No new random sample, seed search or qualifier
 framework was introduced.
+
+## Independent E startup repair review
+
+Reviewed separate fix `4f869c885b47dcf60d56c872e5b0b3c62237beea` against D:
+17 lines in `main.rs` plus a deterministic six-scenario owner regression.
+[Review receipt](e-startup-fix-review.json) identifies source and observed test
+hashes. No concrete static blocker: only the initial hosts bulk scan omits
+provisional leases; the existing first-publication latch also covers HUP while
+initial work remains. Runtime HUP still retains its old mixed chain. The frozen
+original helper event, actual stored leases, fallible publication and cleanup
+boundaries are preserved. Empty lease state is constructed lazily only for the
+initial path, avoiding extra runtime-HUP initialization.
+
+Independently read the retained Linux logs: original D plus the new test fails
+exactly initial/initial-HUP with DHCP-first order; runtime HUP's two legal states
+already pass. The repaired build passes all seven hostsdir owner tests, one
+initial-HUP test and four TCP import tests. Before and after binaries/logs remain
+separate. No test was rerun by this reviewer. The coordinator may freeze E and
+build its exact SDK; fresh complete gates remain mandatory, and D stays failed.

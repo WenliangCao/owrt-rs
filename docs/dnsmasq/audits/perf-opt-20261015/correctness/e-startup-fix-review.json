@@ -1,0 +1,57 @@
+{
+  "scope": "Independent local code review plus read-only verification of retained Linux before/after logs; no repeated build or test",
+  "fix_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "base_commit": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "source_sha256": {
+    "components/dnsmasq/src/main.rs": "33c613a4391b2b401f6ea22adce9e15122eb2a9c37198aa1b90232a7f200255c",
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": "bb55aad7ba02e35a79b6b65cf4966dd2f414107f2022ae373c2b603ee22cca2d"
+  },
+  "review_result": "no concrete static blocker",
+  "boundaries": [
+    "Initial cache-reload sets hosts_initializing before reload_hosts_data and successful provider publication clears it.",
+    "Initial HUP while hosts publication is unfinished uses empty retained leases too; later runtime HUP retains its original mixed chain.",
+    "Only provisional lease input to first bulk-host reconciliation changes; frozen original helper delivery, actual lease storage, import behavior, fallible publication and error cleanup remain intact.",
+    "Empty LeaseNames is constructed only for cold initialization; normal HUP keeps its previous Arc clone path without eager default HashMap initialization."
+  ],
+  "deterministic_test": "hostsdir_init_tests::initial_hosts_rename_precedes_lease_retention_in_both_mixed_chain_orders",
+  "subcases": 6,
+  "baseline_observed_failure": [
+    "initial:DHCP-first",
+    "initial-HUP:DHCP-first"
+  ],
+  "baseline_observed_pass": [
+    "runtime-HUP:DHCP-first",
+    "initial:static-first",
+    "initial-HUP:static-first",
+    "runtime-HUP:static-first"
+  ],
+  "before_binary_sha256": "03f8d32eefe9085ed88158770128dca048e0aa15b48e1daf0cf9f44c03477598",
+  "after_binary_sha256": "6c5c41aa5aebdf42c556779d6369022b836ea338bb6417b366d70cb8f4221f0e",
+  "logs": {
+    "initial-startup-before-test.log": {
+      "sha256": "8357b2e339648acca9b4baefea472d84605e1fb77fd3f1c4355d4d4eac98a2b4",
+      "passed": 0,
+      "failed": 1
+    },
+    "initial-startup-after-hostsdir_init_tests.log": {
+      "sha256": "41683be52715fa44ffb01686d8c083f96c18a4ab1a253cca60d7fd76d9b19a88",
+      "passed": 7,
+      "failed": 0
+    },
+    "initial-startup-after-hosts_initial_hup_tests.log": {
+      "sha256": "7c14a1d5d72811db97e75bab8b78276224d444043fce89c87efe6f4338a3ee61",
+      "passed": 1,
+      "failed": 0
+    },
+    "initial-startup-after-tcp_import_local_tests.log": {
+      "sha256": "72529b656c79dd7abc47b6eadd8e487f314c7f98858b567934f57d12cd2d3505",
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "raw_root": "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private",
+  "limitations": [
+    "Regression owner used one private source path for before then after mutation under build lock; separate copied ELFs/receipts/logs remain.",
+    "A new immutable E snapshot and exact SDK ELF must receive fresh complete qualification; no D acceptance is implied."
+  ]
+}
