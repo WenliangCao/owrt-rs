@@ -1,0 +1,225 @@
+{
+  "status": "counter-screen-only-pending-quiet-timing-full-correctness",
+  "source": "de76526f = B + 93190195 insertion + approved b1136023",
+  "baseline": "B 9b91a192 + approved b1136023",
+  "probe": "cache_insert_probe.rs",
+  "probe_sha256": "3da9819fa0ad92160b30f0fa5afd53ad4c2674c6df314ccd1ea2b3d7d0884be5",
+  "scope": "Real Cache insert/remove/commit API; same caller clones and validation. Allocations exclude setup and four population priming passes; PMU includes them. Concurrent counters are not accepted timing. All cache capacities1000. Replace800names; pressure1200names; reverse800names; binary long80names.",
+  "counters": [
+    {
+      "scene": "replace",
+      "operations": 50000,
+      "baseline-b-fixed": {
+        "instructions": [
+          284549402,
+          284530055,
+          284515278
+        ],
+        "median_instructions": 284530055
+      },
+      "insert1": {
+        "instructions": [
+          239269942,
+          239269255,
+          239232727
+        ],
+        "median_instructions": 239269255
+      },
+      "instruction_change_percent": -15.907212332981835
+    },
+    {
+      "scene": "pressure",
+      "operations": 50000,
+      "baseline-b-fixed": {
+        "instructions": [
+          1974649685,
+          1974474637,
+          1974492136
+        ],
+        "median_instructions": 1974492136
+      },
+      "insert1": {
+        "instructions": [
+          1919093643,
+          1919100490,
+          1919126214
+        ],
+        "median_instructions": 1919100490
+      },
+      "instruction_change_percent": -2.805361692258468
+    },
+    {
+      "scene": "reverse",
+      "operations": 50000,
+      "baseline-b-fixed": {
+        "instructions": [
+          4119570648,
+          4119574580,
+          4119627569
+        ],
+        "median_instructions": 4119574580
+      },
+      "insert1": {
+        "instructions": [
+          4126144996,
+          4126265699,
+          4126218668
+        ],
+        "median_instructions": 4126218668
+      },
+      "instruction_change_percent": 0.16128092527456506
+    },
+    {
+      "scene": "long",
+      "operations": 50000,
+      "baseline-b-fixed": {
+        "instructions": [
+          370050334,
+          370248672,
+          370104604
+        ],
+        "median_instructions": 370104604
+      },
+      "insert1": {
+        "instructions": [
+          263211988,
+          263610421,
+          263679670
+        ],
+        "median_instructions": 263610421
+      },
+      "instruction_change_percent": -28.774076801271033
+    }
+  ],
+  "allocations": {
+    "baseline-b-fixed": [
+      {
+        "scene": "replace",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 2184000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "pressure",
+        "operations": 8000,
+        "allocations": 104000,
+        "reallocations": 0,
+        "requested_bytes": 2464000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "reverse",
+        "operations": 8000,
+        "allocations": 184000,
+        "reallocations": 0,
+        "requested_bytes": 4368000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "long",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 16000,
+        "requested_bytes": 4480000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      }
+    ],
+    "insert1": [
+      {
+        "scene": "replace",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1664000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "pressure",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "reverse",
+        "operations": 8000,
+        "allocations": 168000,
+        "reallocations": 0,
+        "requested_bytes": 4032000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      },
+      {
+        "scene": "long",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 2336000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000
+      }
+    ]
+  },
+  "raw_sha256": {
+    "baseline-b-fixed-insert-alloc.jsonl": "679791dbd8e0910e7c4897c8fae81d8fe74d089f5eb9d9d2366af74788141090",
+    "baseline-b-fixed-insert-long-1.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "baseline-b-fixed-insert-long-1.perf": "bbce2a1a30ce499255894ec6cd1ca194dc242cb0ae34f7d0513201c3b7451101",
+    "baseline-b-fixed-insert-long-2.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "baseline-b-fixed-insert-long-2.perf": "d7e81ff0c87b17857422a8e75251eeab5bc72c1669f5e3bf3124740d6b441ba8",
+    "baseline-b-fixed-insert-long-3.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "baseline-b-fixed-insert-long-3.perf": "22b044cd102e4a16e1216daa8f671c5d9c7f0e9702af7d83e4e6fcc667ba4667",
+    "baseline-b-fixed-insert-pressure-1.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "baseline-b-fixed-insert-pressure-1.perf": "2673f133415e796ecf81b95e26c9dd10f08ac5f014c6199a6b93b24ac2ce0a15",
+    "baseline-b-fixed-insert-pressure-2.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "baseline-b-fixed-insert-pressure-2.perf": "a5e7dd87d1a99bc68e45e62798fd559c9cb0c3dfe9fcc720e930a8b60a12e1ea",
+    "baseline-b-fixed-insert-pressure-3.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "baseline-b-fixed-insert-pressure-3.perf": "c5d36527fc32292f1f918a6063bf6665150cb52fd64ea57852173208ddb5d626",
+    "baseline-b-fixed-insert-replace-1.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "baseline-b-fixed-insert-replace-1.perf": "6ca24d87575d0ae28aa068ceff4a23238762ea9509da68ce6219d072254a3f55",
+    "baseline-b-fixed-insert-replace-2.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "baseline-b-fixed-insert-replace-2.perf": "533f2dc5ac0b6436f6538ffe16d2fcfc254ff3769aae7b963c9ceb1b9a9e1945",
+    "baseline-b-fixed-insert-replace-3.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "baseline-b-fixed-insert-replace-3.perf": "2812a5abf7ed1fa296a9ea72d17220ba6dce208938a1bbbc395af019b4ecd2d8",
+    "baseline-b-fixed-insert-reverse-1.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "baseline-b-fixed-insert-reverse-1.perf": "7771b9a12de174ff556520dcf02de718556faf8b6247925f80ba5ca52746066b",
+    "baseline-b-fixed-insert-reverse-2.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "baseline-b-fixed-insert-reverse-2.perf": "b556f5f46e9345ff22f5ab8e51916d267243bade746e19bf3abbac3d3643fd71",
+    "baseline-b-fixed-insert-reverse-3.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "baseline-b-fixed-insert-reverse-3.perf": "c8ed31910c4f66a0c4d0469085ce83be2de2466c41e641b06b44553471fe47df",
+    "insert1-insert-alloc.jsonl": "36d5099e34dff3f0a8a9d6d7a478239762dfd5a4217bb6e8a5569d7843727252",
+    "insert1-insert-long-1.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "insert1-insert-long-1.perf": "7c45c54d429f46d2be637ecb273866e4fdd832e167c22dbfdd108162bc15e5e2",
+    "insert1-insert-long-2.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "insert1-insert-long-2.perf": "70ecf8d520e3fd49580048408d2fe5210df7cc3f24e0c7c3d5b45fe1ae4ef601",
+    "insert1-insert-long-3.json": "fd1d7592f4087adf16463c01e923350e1f06983c35d45578299b224d984f781b",
+    "insert1-insert-long-3.perf": "76b64f77dd3faaed95dcce55cc3515689de1abb910a3967ff7db0ec6b4519d04",
+    "insert1-insert-pressure-1.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "insert1-insert-pressure-1.perf": "7a3f129934cdccaa29c5837d70f76ffa1966d6048617a792953a8ffeb1642fdd",
+    "insert1-insert-pressure-2.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "insert1-insert-pressure-2.perf": "50a990211c52a42340621409245b0b6637825b85d2cc05fc7c2d1f092562d092",
+    "insert1-insert-pressure-3.json": "12bf9adfa1ff600a37bcbd14c2f95161ea1a0e3707b0cb67541489188482bea8",
+    "insert1-insert-pressure-3.perf": "e58486e4b687e6631e68aba2bc32f56f0ea63b4cb7657ae2441a2a2c12d26880",
+    "insert1-insert-replace-1.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "insert1-insert-replace-1.perf": "8d24a12f55cebced80aad6f2c1069277406752fa0e42d5f3b28419b304e8d967",
+    "insert1-insert-replace-2.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "insert1-insert-replace-2.perf": "20e3eeb011d64db9c3ae25532c7d08ff724cac0844dcf46745d0a9f4d1fd5120",
+    "insert1-insert-replace-3.json": "745803d8a4108b6bf7d62e32f8861509009dc1e7b06ca57c5829330de175f551",
+    "insert1-insert-replace-3.perf": "d06f4f991b3f781187202ad72fbdeebc3c3993d82e5892fef49704c87d937cf7",
+    "insert1-insert-reverse-1.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "insert1-insert-reverse-1.perf": "cb6a52ec6b864c1c3a4ebb394088f9fe75b0aa073f09763ceb95bd84df84adff",
+    "insert1-insert-reverse-2.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "insert1-insert-reverse-2.perf": "b7cfd17074d4f4d7711c7a9366a25623e0e5b37361700d89db48af4f83123791",
+    "insert1-insert-reverse-3.json": "f3b2ea84946d4a39c7a526557dbea7371e20924070b72a20aab7a9be3e6efe96",
+    "insert1-insert-reverse-3.perf": "2a6b13519c7d2785e0671b60eaa32f8a9331dc097da486ed91076ed83cb41746"
+  },
+  "build": "cargo +1.98.1 build --release --lib -j1; standalone probe rustc +1.98.1 --edition2021 -O -C lto=fat -C codegen-units=1 -C panic=abort; allocation builds add --cfg allocation_tracking only"
+}
