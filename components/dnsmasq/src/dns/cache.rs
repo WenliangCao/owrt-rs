@@ -549,6 +549,32 @@ impl Cache {
         }))
     }
 
+    /// The common one-address hit can keep its ID on the stack. A rejected
+    /// hint changes nothing; the ordinary lookup still owns all fallback,
+    /// expiry, negative, CNAME and RRset behavior.
+    pub(super) fn single_fresh_address_with_hint(
+        &mut self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
+    ) -> Option<EntryId> {
+        let hint = hint?;
+        let NameSelection::One(id) = hint.selection else { return None };
+        if !std::ptr::eq(name, hint.name)
+            || hint.owner != self as *const Self as usize
+            || hint.roots != self.names.as_ptr() as usize
+            || hint.revision != self.name_revision
+            || self.name_revision == u64::MAX
+        { return None; }
+        let expected_length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return None };
+        let entry = self.get(id)?;
+        if entry.record.kind != kind || entry.record.negative
+            || entry.record.data.len() != expected_length || entry.is_stale(now)
+            || !self.is_valid(id, now)
+        { return None; }
+        // Exactly the existing single-slot lookup promotion, without a Vec.
+        self.unlink(id.slot);
+        self.link_head(id.slot);
+        Some(self.id(id.slot))
+    }
+
     pub(super) fn lookup_with_hint(
         &mut self,
         name: &Name,

@@ -272,6 +272,44 @@ impl CacheContext<'_> {
         filtered_type: bool,
         name_lookup: Option<&super::cache::NameLookup<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
+        let kind = match question.rrtype { 1 => Some(Kind::Ipv4), 28 => Some(Kind::Ipv6), _ => None };
+        if question.class == 1 && header.opcode() == 0 && header.flags & 0x8100 == 0x0100
+            && header.questions == 1 && header.answers == 0 && header.authorities == 0
+            && !dnssec_requested && !filtered_type
+        {
+            if let Some(id) = kind.and_then(|kind| cache.single_fresh_address_with_hint(
+                &question.name, kind, now, name_lookup,
+            )) {
+                let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+                writer.question(&question.name, question.rrtype, question.class)?;
+                record_cached(local, cache, id, now);
+                let entry = cache.get(id).expect("selected fresh address remains live");
+                match writer.record_at(Section::Answer, 12, question.rrtype, 1,
+                    entry.reply_ttl(now, cache.policy()), &entry.record.data)
+                {
+                    Ok(()) | Err(WireError::Full) => return Ok(finish_cached_answer(writer, false)?),
+                    Err(error) => return Err(error.into()),
+                }
+            }
+        }
+        Self::answer_records_general(cache, question, header, now, local, limit,
+            dnssec_requested, filtered_type, name_lookup)
+    }
+
+    // Keep the unchanged general state machine and its large frame off the
+    // ordinary fresh one-address path; this remains every fallback's owner.
+    #[inline(never)]
+    fn answer_records_general(
+        cache: &mut Cache,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        dnssec_requested: bool,
+        filtered_type: bool,
+        name_lookup: Option<&super::cache::NameLookup<'_>>,
+    ) -> Result<CachedAnswer, CacheError> {
         let mut stale = false;
         let round_robin = !local.config.no_round_robin;
         if question.class != 1 {
@@ -2018,6 +2056,51 @@ fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn fresh_address_reply_matches_general_flags_ttl_limits_and_logging() {
+        for rrtype in [1,28] {
+            for now in [100,159,160] {
+                for flags in [0,0x0100,0x0110] {
+                    for dnssec in [false,true] {
+                        for filtered in [false,true] {
+                            for limit in [12,25,26,41,42,53,54,512] {
+                                let name = Name::from_ascii("HiT.test").unwrap();
+                                let kind = if rrtype==1 { Kind::Ipv4 } else { Kind::Ipv6 };
+                                let question = super::super::forward::Question { name, rrtype, class: 1 };
+                                let header = Header { id: 7, flags, questions: 1, ..Header::default() };
+                                let make = || {
+                                    let mut cache = Cache::new(4,Default::default());
+                                    cache.start_insert();
+                                    cache.insert(Record { name: Name::from_ascii("hit.test").unwrap(),
+                                        kind, negative: false, data: if rrtype==1 { vec![192,0,2,7] } else { vec![7;16] } },100,60).unwrap();
+                                    assert!(cache.commit());
+                                    cache
+                                };
+                                let mut reference = make(); let mut candidate = make();
+                                let (_, left_hint) = reference.inspect_name(&question.name,now);
+                                let (_, right_hint) = candidate.inspect_name(&question.name,now);
+                                let mut left = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
+                                let mut right = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
+                                left.query_logging=true;right.query_logging=true;
+                                let a = CacheContext::answer_records_general(&mut reference,&question,header,now,
+                                    &mut left,limit,dnssec,filtered,left_hint.as_ref());
+                                let b = CacheContext::answer_records_filtered(&mut candidate,&question,header,now,
+                                    &mut right,limit,dnssec,filtered,right_hint.as_ref());
+                                match (a,b) {
+                                    (Ok(a),Ok(b)) => assert_eq!((a.packet,a.stale,a.filtered,a.forward_name),
+                                                               (b.packet,b.stale,b.filtered,b.forward_name)),
+                                    (Err(a),Err(b)) => assert_eq!(format!("{a:?}"),format!("{b:?}")),
+                                    _ => panic!("fresh/general success boundary differs"),
+                                }
+                                assert_eq!(format!("{:?}",left.take_query_events()), format!("{:?}",right.take_query_events()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     use super::*;
     use crate::config::dns::DnsConfig;
     use crate::config::interface_records::InterfaceRule;
