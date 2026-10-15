@@ -46,6 +46,7 @@ class SmokeGates(unittest.TestCase):
         extra = '' if mode == 'control' else '-Cprofile-generate=' + self.plan['default_profile_directory']
         invocation = {'mode': mode, 'plan_sha256': self.plan_sha, 'wrapper_sha256': self.plan['wrapper_sha256'],
                       'cargo_sha256': self.tools['cargo'], 'rustc_sha256': self.tools['rustc'],
+                      'rustc_environment': self.plan['rustc'],
                       'recipe_rustflags': self.plan['recipe_rustflags'], 'added_rustflags': extra,
                       'effective_rustflags': self.plan['recipe_rustflags'] + (' ' + extra if extra else '')}
         Path(self.plan['invocation_receipts'][mode]).write_text(json.dumps(invocation))

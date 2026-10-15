@@ -71,17 +71,21 @@ def main():
     argv = sys.argv[1:]
     receipt = prepare(plan, mode, argv, os.environ)
     cargo = plan['cargo']
-    if not Path(cargo).is_absolute():
-        raise ValueError('absolute pinned Cargo path required')
+    if not Path(cargo).is_absolute() or not Path(plan['rustc']).is_absolute():
+        raise ValueError('absolute Cargo and pinned rustc paths required')
     if receipt is not None:
         receipt.update(scope='SDK PGO smoke only; not training or performance',
                        plan_sha256=sha(plan_path), wrapper_sha256=sha(__file__),
-                       cargo_sha256=sha(cargo), rustc_sha256=sha(plan['rustc']))
+                       cargo_sha256=sha(cargo), rustc_sha256=sha(plan['rustc']),
+                       rustc_environment=plan['rustc'])
         # One recipe build invocation per fresh output. Never replace evidence.
         with Path(plan['invocation_receipts'][mode]).open('x') as stream:
             json.dump(receipt, stream, indent=2)
             stream.write('\n')
         os.environ['RUSTFLAGS'] = receipt['effective_rustflags']
+    # Cargo clean also probes rustc. Pin discovery independently of SSH PATH
+    # and rustup installation layout, without changing any codegen option.
+    os.environ['RUSTC'] = plan['rustc']
     os.execv(cargo, [cargo, *argv])
 
 

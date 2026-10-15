@@ -85,6 +85,7 @@ def check_build(plan, mode, plan_sha, tools):
     assert invocation['mode'] == mode and invocation['plan_sha256'] == plan_sha
     assert invocation['wrapper_sha256'] == plan['wrapper_sha256']
     assert invocation['cargo_sha256'] == tools['cargo'] and invocation['rustc_sha256'] == tools['rustc']
+    assert invocation['rustc_environment'] == plan['rustc']
     assert invocation['recipe_rustflags'] == plan['recipe_rustflags']
     assert invocation['added_rustflags'] == extra
     assert invocation['effective_rustflags'] == plan['recipe_rustflags'] + (' ' + extra if extra else '')
@@ -298,14 +299,15 @@ def execute(plan_path):
         fixed[str(wrapper)] = plan['wrapper_sha256']
         wrapper.with_name('rustc').symlink_to(plan['rustc'])
         Path(plan['default_profile_directory']).mkdir()
-        tools = {key: sha(plan[key]) for key in ('cargo', 'rustc')}
+        tools = {key: sha(plan[key]) for key in ('cargo', 'pinned_cargo', 'rustc')}
         runtime_libraries = list((Path(plan['rustc']).parent.parent / 'lib/rustlib/aarch64-unknown-linux-musl/lib').glob('libprofiler_builtins-*.rlib'))
         assert len(runtime_libraries) == 1
         fixed[str(runtime_libraries[0])] = sha(runtime_libraries[0])
         rustc = command('rustc-version', [plan['rustc'], '-vV'])
         assert rustc.startswith('rustc 1.98.1 ') and 'LLVM version: 22.1.8\n' in rustc
         assert 'host: aarch64-unknown-linux-gnu\n' in rustc
-        assert command('cargo-version', [plan['cargo'], '--version']).startswith('cargo 1.98.1 ')
+        assert command('cargo-version', [plan['cargo'], '--version'],
+                       {'RUSTUP_TOOLCHAIN': '1.98.1'}).startswith('cargo 1.98.1 ')
         assert '22.1.8' in command('profdata-version', [plan['profdata']['path'], '--version'])
         state.update(tools_sha256=tools, fixed_inputs_sha256=fixed)
         for stage in plan['stages']:

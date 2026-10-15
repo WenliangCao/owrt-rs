@@ -1,16 +1,29 @@
-# Fixed E SDK PGO smoke gate; prepared, not executed
+# Fixed E SDK PGO smoke2 gate
 
 The [concrete plan](pgo-sdk-smoke-plan.json) freezes accepted E
 `4f869c885b47dcf60d56c872e5b0b3c62237beea`, the unchanged SDK recipe/linker,
 the corrected external SDK builder, fresh private paths, exact Cargo argv,
 and the static-answer startup/profile check. Root must explicitly release
-Oracle after the fresh-address/singleton `9e1856a6` timing reservation before
-any build or runtime command starts. No PGO Oracle operation has run here.
+Oracle after the three queued SDK builds before smoke2 starts. Smoke1 stopped
+before compilation on a compiler-discovery setup error; its immutable
+[failure receipt](PGO_SDK_SMOKE1_FAILURE.md) remains separate.
 
 This gate ends after an instrumented daemon exits normally and its profile
 merges and displays successfully. It does not train, build with profile-use,
 time workloads, select a candidate, or access a router. The small smoke
 profile must never be reused as training data.
+
+Smoke2 restores the existing rustup Cargo proxy and pins `RUSTC` to the exact
+same 1.98.1 compiler inside the wrapper. Caller-supplied compiler overrides
+remain rejected. The invocation receipt records that compiler path and hash;
+the controller also hashes the proxy and real pinned Cargo backend. Codegen
+flags, recipe, linker and hardening do not change. The real local regression
+uses a temporary dependency-free manifest and an empty PATH: direct Cargo
+fails `clean` with the same missing `rustc -vV` error/status 101; the corrected
+wrapper succeeds with `Removed 0 files`. No product compile or link occurs.
+The proxy alone also failed under the tested Homebrew/empty-CARGO_HOME layout,
+so smoke2 explicitly binds compiler discovery instead of relying on proxy
+layout. All eight wrapper/controller tests passed after this correction.
 
 The [execution controller](../../../../../tools/dnsmasq/pgo_sdk_smoke.py) is now
 prepared locally. After explicit host release, place the plan, wrapper and
