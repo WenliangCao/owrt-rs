@@ -528,3 +528,27 @@ rows. Local product-path inspection has been delegated to the DHCP owner.
 Neither a product regression nor a harness defect is yet established. The
 successful 943 short tests and daemon/corpus batches remain useful evidence but
 do not override this new failure.
+
+A separately planned [fixed nine-run diagnostic](d-helper-fixed-diagnostic.json)
+used the unchanged single-case runner/fixture and 0.25 s collector, rotating
+original v0.2.0, candidate C and candidate D through three rounds each. This
+is not a replacement gate. Exact C renamed in all nine current-case executions;
+v0.2.0 renamed in 3/3; candidate C renamed in 2/3 and retained `original` in 1/3;
+D retained in 3/3. Thus one unchanged C-candidate ELF exhibits both helper states
+across processes. The original D full-family failure remains unwaived.
+
+The first diagnostic launch was rejected before executing a case because the
+original runner forbids `--ordinary-scope all` with `--case`; that attempt and
+logs were preserved, then a fresh explicit partial diagnostic output used only
+`--case`. The outer collector could not retrieve final helper/lease files after
+the isolated namespace's temporary overlay vanished. Null captures are recorded;
+no final-log completeness is claimed. All original per-phase observations are
+retained. The missing initial `fromhosts` event does not appear in later slices.
+
+The coordinator located earlier source-bound C/C mixed-reverse-chain variation
+in the existing F10 DHCP report, and the DHCP owner identified the corresponding
+`provider_reverse` first-DHCP-node suppression path. That is a causal hypothesis
+supported by existing code; exact C did not show retention in these nine current
+case runs. No product change, new qualifier, case waiver or inferred acceptance
+was introduced by this reviewer. Further minimal diagnosis, if needed, must
+capture the lease/helper state before its namespace exits.
