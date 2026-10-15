@@ -399,3 +399,21 @@ boundary/corpusbatches. Avoidduplicatinginterfacefamilyoutsidefull44. Afterall
 correctnesscompletes, rootreservesOracleexclusivelyforfresh110-windowEtiming,
 thenqualifiedEgoesdirectlytofreshexactdeployed/Edevicepairs. D/tmpstageisnotE
 andneverran; restage exactEhashonlyaftertheseprerequisites.
+
+## E artifact and short/boundary gates complete, full44 active
+
+E SDK complete SHA8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27,
+2136859B (equalD/C); mapcbf8655450a025a51be7a3c8630fa84ff48aba5ca5c641a9a3f53fd0bf4637fd.
+Localprivate/sdk-e retainsELF/map/fullbuildreceipt. All179receiptinputSHA256s
+matchedGit4f869c88; publiccandidate-e-build.json committed. Buildflags unchanged.
+944freshshorttestspass (826lib+82bin+17alloc+16ignoredlib+3ignoredbin), receipts
+1aed7843. Source-boundreuseddebugbinsverified; allocationfreshbuild. Eboundary
+batchbe11bb2e:F10 13/704,protocol368/366,8lifecycles,5negativecontrols,TCP13/50,
+cache764/164/382,transfer307,stale1100,leaseonlyknownUID2; nonewfailure.
+
+Full44once-onlyschedulerPID125922, outputcorrectness/private/e-families-attempt1,
+--jobs3, exactsource-e/sdk-e, startedabout15:17CEST. FourthslotbatchPID127963
+finished; Oraclehasnootherresearchload. Latest5/44families,6/67jobs,no failures.
+Afterall44/67 pass, rootmustverifynewreceiptandthenlaunchfull110exclusiveOracle
+comparisonoriginal8472/E8b8082b9 atroot/private/oracle-e. NoE timingyet. Localand
+router DstageisnotE; noDtestwaslaunched. Edevice followsfulltiming+qualification.
