@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import select
 import re
+import resource
 import shutil
 import signal
 import socket
@@ -187,6 +188,8 @@ def main():
                          'ack_hex': ack.hex()})
 
     def load(mode, profile, duration, warm, label, rate=200):
+        usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
+        started = time.monotonic_ns()
         child = start(['taskset', '-c', '3', args.tools / 'm6a_loadgen', '--mode', mode,
             '--host', '127.0.0.1', '--port', '15353', '--clients', '8' if mode == 'tcp' else '32',
             '--duration-seconds', duration, '--warmup-seconds', warm, '--rate', rate,
@@ -195,6 +198,16 @@ def main():
             '--output', out / label], label)
         status = child.wait(timeout=duration + warm + 10)
         children.remove(child)
+        # This synchronous wait is the only child reaped during load(). Other
+        # owned processes remain alive. Retain sender cost to expose a client
+        # CPU ceiling in an unpaced throughput comparison.
+        usage_after = resource.getrusage(resource.RUSAGE_CHILDREN)
+        save(out / f'{label}-cpu.json', {
+            'scope': 'whole loadgen process including startup/warmup/drain',
+            'elapsed_ns': time.monotonic_ns() - started,
+            'user_seconds': usage_after.ru_utime - usage_before.ru_utime,
+            'system_seconds': usage_after.ru_stime - usage_before.ru_stime,
+            'returncode': status})
         assert status == 0
         full = json.loads((out / f'{label}.json').read_text())
         validate_load_counts(full, warm, duration, rate)
