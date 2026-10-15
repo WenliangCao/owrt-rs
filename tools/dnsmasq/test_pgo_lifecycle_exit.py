@@ -20,11 +20,25 @@ class ExitStatus(unittest.TestCase):
 int main(int argc, char **argv) {
     (void)argc;
     int mode = atoi(argv[1]);
+    int ready[2];
+    if (pipe(ready)) return 89;
     child = fork();
     if (child < 0) return 90;
     if (!child) {
+        if (mode == 6) {
+            signal(SIGTERM, SIG_IGN);
+            if (write(ready[1], "1", 1) != 1) _exit(93);
+            for (;;) pause();
+        }
         if (mode == 2) raise(SIGKILL);
+        if (mode == 4) _exit(127);
+        if (mode == 5) raise(SIGTERM);
         _exit(mode == 1 ? 7 : 0);
+    }
+    if (mode == 6) {
+        char byte;
+        if (read(ready[0], &byte, 1) != 1) return 94;
+        return end_child() ? 0 : 1;
     }
     /* Observe exit without reaping, so end_child receives the real status. */
     siginfo_t info;
@@ -44,20 +58,20 @@ int main(int argc, char **argv) {
             compiled = subprocess.run(['cc', '-O2', '-Wall', '-Wextra', '-Werror', *host_flags, str(source), '-o', str(binary)],
                                       text=True, capture_output=True)
             self.assertEqual(compiled.returncode, 0, compiled.stderr)
-            for mode, exit_status in ((0, 0), (1, 1), (2, 1), (3, 1)):
+            for mode, exit_status in ((0, 0), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1)):
                 result = subprocess.run([str(binary), str(mode)], text=True, capture_output=True)
                 self.assertEqual(result.returncode, exit_status)
                 lines = [line for line in result.stderr.splitlines() if line.startswith('pgo_child_exit ')]
                 self.assertEqual(len(lines), 1)
                 row = json.loads(lines[0].split(' ', 1)[1])
-                self.assertFalse(row['forced'])
+                self.assertEqual(row['forced'], mode == 6)
                 if mode == 0:
                     self.assertTrue(row['exited'])
                     self.assertEqual((row['exit_code'], row['signal'], row['wait_errno']), (0, 0, 0))
-                elif mode == 1:
+                elif mode in (1, 4):
                     self.assertTrue(row['exited'])
-                    self.assertEqual(row['exit_code'], 7)
-                elif mode == 2:
+                    self.assertEqual(row['exit_code'], 7 if mode == 1 else 127)
+                elif mode in (2, 5, 6):
                     self.assertFalse(row['exited'])
                     self.assertGreater(row['signal'], 0)
                 else:
