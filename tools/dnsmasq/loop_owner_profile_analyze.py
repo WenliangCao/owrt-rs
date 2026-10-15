@@ -363,7 +363,8 @@ def main():
             images[path] = (elf, ranges, names)
             symbols[path] = proof
         samples = samples_from_text((root / 'samples.txt').read_text())
-        if any(row.event != 'instructions:u' or row.period != 10000 for row in samples):
+        if (scope['sample_event'] not in ('instructions:u', 'cycles:u')
+                or any(row.event != scope['sample_event'] or row.period != scope['sample_period'] for row in samples)):
             raise ValueError('unexpected sampling event or period')
         totals = check_report((root / 'self.txt').read_text(), samples)
         lineage = task_tree((root / 'task-events.txt').read_text(), identity['pid'], before, samples)
@@ -371,8 +372,8 @@ def main():
         output.update(totals=totals, process_tree=lineage, symbols=symbols, demangler=demangler, **result)
         output['source_files'].update({name: sha(root / name) for name in ('samples.txt', 'self.txt', 'task-events.txt')})
         output['limitations'] = [
-            'Self user instruction samples, not inclusive caller stacks, elapsed time or kernel cost.',
-            'Non-user PCs from instructions:u remain unattributed in the full denominator; they do not measure kernel instructions.',
+            'Self user event samples, not inclusive caller stacks, elapsed time or kernel cost.',
+            'Non-user PCs from a user event remain unattributed in the full denominator; they do not measure kernel cost.',
             'Function estimates require separate stat medians; multiplying sample share is a cross-run estimate.',
             'Input sections can contain inlined callees; symbol overlaps and aliases remain explicit.',
             'Zero-size functions, gaps and unknown images remain unattributed; no nearest-symbol guesses.']

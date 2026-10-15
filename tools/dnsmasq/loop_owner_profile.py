@@ -59,6 +59,7 @@ def main():
     parser.add_argument('--profile', choices=('hit', 'miss', 'mixed'), required=True)
     parser.add_argument('--observer', choices=('stat', 'sample'), default='sample',
                         help='stat-only totals or separate self-sampling; never concurrent')
+    parser.add_argument('--sample-event', choices=('instructions:u', 'cycles:u'), default='instructions:u')
     parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
     observer = 'strace' if args.strace else args.observer
@@ -115,7 +116,7 @@ def main():
          'artifact_file': artifact.name, 'mapped_images': image_files,
          'process_tree': 'root and every inherited fork; no --no-inherit',
          'counter_window': '1000 warmup + 4000 measurement completions, then fixed 1s drain; prewarm excluded',
-         'sample_event': 'instructions:u', 'sample_period': 10000,
+         'sample_event': args.sample_event, 'sample_period': 10000,
          'deployed_baseline': expected == '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'})
     (out / 'config').write_text(
         'no-hosts\nno-resolv\nno-poll\nuser=root\ngroup=root\ninterface=lo\n'
@@ -233,7 +234,7 @@ def main():
                 time.sleep(.01)
         else:
             if observer == 'sample':
-                instruments.append(instrument(['perf', 'record', '-e', 'instructions:u', '-c', '10000', '-p', daemon.pid,
+                instruments.append(instrument(['perf', 'record', '-e', args.sample_event, '-c', '10000', '-p', daemon.pid,
                                    '-o', out / 'perf.data'], 'perf-record'))
             else:
                 instruments.append(instrument(['perf', 'stat', '-vv', '-x,', '-e',
