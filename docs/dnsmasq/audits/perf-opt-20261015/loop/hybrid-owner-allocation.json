@@ -1,0 +1,1174 @@
+{
+  "scope": "Native allocation and syscall diagnostic, not SDK qualification or timing.",
+  "summary_tool_sha256": "39892feacf667d717d0e87d7da96cce61532265f76880c26b9e5f1df07b596eb",
+  "allocation_fields": [
+    "alloc_calls",
+    "realloc_calls",
+    "requested_bytes",
+    "dealloc_calls",
+    "freed_bytes",
+    "realloc_old_bytes"
+  ],
+  "resource_fields": [
+    "backend_size",
+    "key_size",
+    "registration_size",
+    "event_size",
+    "tags_capacity_bytes",
+    "desired_capacity_bytes",
+    "registered_capacity_bytes",
+    "direct_capacity_bytes",
+    "events_capacity_bytes"
+  ],
+  "limitations": [
+    "Single deterministic fixture per artifact, no statistical inference.",
+    "Normal waits use queued UDP or zero runnable timeout; no blocking cost claim.",
+    "Probe counts include existing probe Vec and caller dispatch.",
+    "Initial syscall trace omitted native epoll_pwait; retained, not used for totals.",
+    "Global allocator instrumentation is unsuitable for instruction/timing comparisons.",
+    "Capacity excludes allocator metadata and kernel epoll memory."
+  ],
+  "baseline": {
+    "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-alloc-e-20261015",
+    "build": {
+      "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "source_digest": "80cec020fe10fcfdd703e8a922443460d778f251bc732b3234fe75e14c218f61",
+      "instrumented_digest": "ff8153367e28da9b158986cec319e40c63fb69dfa69c150a6fe949ae60e46a9d",
+      "driver_sha256": "519ca958fe5c4e803553d17b2c9362dfba86963dd84ca655d13d48ae85441af8",
+      "harness_sha256": "da22a824ca22935ef18b9152d18c7ec8fc5f64a099f2c420405375f731204cac",
+      "elf_sha256": "81412b4a14024dbfa17ef0dbc192efa4f11b88906718c8ad57c5dd868570686d",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/cargo",
+        "+1.98.1",
+        "test",
+        "--frozen",
+        "--jobs",
+        "1",
+        "--manifest-path",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-alloc-e-20261015/input/components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "owner_readiness": false
+    },
+    "layout": {
+      "single_poll_size_align": [
+        7360,
+        16
+      ],
+      "tcp_client_size_align": [
+        1960,
+        8
+      ],
+      "tcp_work_size_align": [
+        1856,
+        8
+      ],
+      "optional_generation_size_align": [
+        16,
+        8
+      ]
+    },
+    "allocations": [
+      {
+        "stage": "owner_init_prepared_inputs",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          1,
+          0,
+          65535,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_normal_six",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          2,
+          1,
+          128,
+          0,
+          0,
+          32
+        ]
+      },
+      {
+        "stage": "steady_normal_ready_six",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_normal_fourteen",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          1,
+          128,
+          0,
+          0,
+          64
+        ]
+      },
+      {
+        "stage": "steady_normal_ready_fourteen",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "reading_to_writing",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "writing_to_reading",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "client_retirement",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          2,
+          72,
+          0
+        ]
+      },
+      {
+        "stage": "client_accept",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          4,
+          0,
+          392,
+          2,
+          320,
+          0
+        ]
+      },
+      {
+        "stage": "lifetime_reconcile",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_probe_subset",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          1,
+          3,
+          232,
+          1,
+          128,
+          104
+        ]
+      },
+      {
+        "stage": "normal_probe_transitions",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          1000,
+          3000,
+          232000,
+          1000,
+          128000,
+          104000
+        ]
+      },
+      {
+        "stage": "first_normal_sixty_four",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          2,
+          768,
+          0,
+          0,
+          384
+        ]
+      },
+      {
+        "stage": "steady_normal_sixty_four",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_oversized_sixty_five",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          1,
+          1024,
+          0,
+          0,
+          512
+        ]
+      },
+      {
+        "stage": "steady_oversized_sixty_five",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "return_to_sixty_four",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "return_to_fourteen",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "all_downstream_ready_fourteen",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          1,
+          64,
+          0,
+          0,
+          32
+        ]
+      },
+      {
+        "stage": "owner_drop_with_inputs",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          77,
+          207374,
+          0
+        ]
+      }
+    ],
+    "syscalls": {
+      "owner_init_prepared_inputs": {},
+      "first_normal_six": {
+        "ppoll": 1
+      },
+      "steady_normal_ready_six": {
+        "ppoll": 1000
+      },
+      "first_normal_fourteen": {
+        "ppoll": 1
+      },
+      "steady_normal_ready_fourteen": {
+        "ppoll": 1000
+      },
+      "reading_to_writing": {
+        "ppoll": 1
+      },
+      "writing_to_reading": {
+        "ppoll": 1
+      },
+      "client_retirement": {
+        "close": 1
+      },
+      "client_accept": {},
+      "lifetime_reconcile": {
+        "ppoll": 1
+      },
+      "first_probe_subset": {
+        "ppoll": 1
+      },
+      "normal_probe_transitions": {
+        "ppoll": 2000
+      },
+      "first_normal_sixty_four": {
+        "ppoll": 1
+      },
+      "steady_normal_sixty_four": {
+        "ppoll": 1000
+      },
+      "first_oversized_sixty_five": {
+        "ppoll": 1
+      },
+      "steady_oversized_sixty_five": {
+        "ppoll": 1000
+      },
+      "return_to_sixty_four": {
+        "ppoll": 1
+      },
+      "return_to_fourteen": {
+        "ppoll": 1
+      },
+      "all_downstream_ready_fourteen": {
+        "ppoll": 1000
+      },
+      "owner_drop_with_inputs": {
+        "close": 16
+      }
+    },
+    "resources": [
+      {
+        "stage": "owner_init",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 0,
+        "ready_capacity": 0,
+        "client_capacity": 0,
+        "fds": 5
+      },
+      {
+        "stage": "first_normal_six",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 8,
+        "ready_capacity": 4,
+        "client_capacity": 0,
+        "fds": 13
+      },
+      {
+        "stage": "first_normal_fourteen",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 16,
+        "ready_capacity": 4,
+        "client_capacity": 8,
+        "fds": 29
+      },
+      {
+        "stage": "first_probe_subset",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 16,
+        "ready_capacity": 4,
+        "client_capacity": 8,
+        "fds": 29
+      },
+      {
+        "stage": "first_normal_sixty_four",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 64,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 129
+      },
+      {
+        "stage": "first_oversized_sixty_five",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 128,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 131
+      },
+      {
+        "stage": "return_to_sixty_four",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 128,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 129
+      },
+      {
+        "stage": "return_to_fourteen",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          0,
+          0,
+          0
+        ],
+        "poll_capacity": 128,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 29
+      }
+    ],
+    "fd_cleanup": {
+      "initial": 4,
+      "final": 4
+    },
+    "raw_artifacts": {
+      "build.json": {
+        "bytes": 39345,
+        "sha256": "fad5e8f283908e83ddffb237a9bfaac52e58f1498bc9b471f31166b688369dcd"
+      },
+      "run.stdout": {
+        "bytes": 5131,
+        "sha256": "83d73253769f1ac569823593130d4e4dcad90abc96ff76439378bf3883c417eb"
+      },
+      "run.stderr": {
+        "bytes": 1578,
+        "sha256": "60d5099111a4ad025a3b6372bffc1b86fb5f523b849af4b28f1f66687ca4563e"
+      },
+      "syscalls.txt": {
+        "bytes": 5330108,
+        "sha256": "40b8e94e22e453e35342cf6f1485df18a35478c8de6a52a031794e010c255dbb"
+      },
+      "syscalls-complete.txt": {
+        "bytes": 5330108,
+        "sha256": "40b8e94e22e453e35342cf6f1485df18a35478c8de6a52a031794e010c255dbb"
+      },
+      "trace-r2.stdout": {
+        "bytes": 5131,
+        "sha256": "c3a515e5f9f02130d20d98b94228e5e0423bbe463fc88c3b9d87ecafb0bf5e65"
+      },
+      "trace-r2.stderr": {
+        "bytes": 1578,
+        "sha256": "60d5099111a4ad025a3b6372bffc1b86fb5f523b849af4b28f1f66687ca4563e"
+      }
+    }
+  },
+  "candidate": {
+    "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-alloc-9ce-20261015",
+    "build": {
+      "source_commit": "9ceab58def3d9c6f8f357e71978393b08ed0f707",
+      "source_digest": "f70c8e5bcb1ff2836e5d17e52921c5dd62be28a6af8851353eebd1fa28b5dd2f",
+      "instrumented_digest": "75219dcf99d0652e6dbc291203bd98b25b86e2cbdd21a1b2258f81fd8d72e80e",
+      "driver_sha256": "519ca958fe5c4e803553d17b2c9362dfba86963dd84ca655d13d48ae85441af8",
+      "harness_sha256": "da22a824ca22935ef18b9152d18c7ec8fc5f64a099f2c420405375f731204cac",
+      "elf_sha256": "fc7d10a133dcec8b650b4a10c8da75dee159be04e8c33d09dc720500cd3370a3",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/cargo",
+        "+1.98.1",
+        "test",
+        "--frozen",
+        "--jobs",
+        "1",
+        "--manifest-path",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/hybrid-owner-alloc-9ce-20261015/input/components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "owner_readiness": true
+    },
+    "layout": {
+      "single_poll_size_align": [
+        7504,
+        16
+      ],
+      "tcp_client_size_align": [
+        1976,
+        8
+      ],
+      "tcp_work_size_align": [
+        1856,
+        8
+      ],
+      "optional_generation_size_align": [
+        16,
+        8
+      ]
+    },
+    "allocations": [
+      {
+        "stage": "owner_init_prepared_inputs",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          1,
+          0,
+          65535,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_normal_six",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          7,
+          2,
+          952,
+          0,
+          0,
+          128
+        ]
+      },
+      {
+        "stage": "steady_normal_ready_six",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_normal_fourteen",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          6,
+          1752,
+          0,
+          0,
+          792
+        ]
+      },
+      {
+        "stage": "steady_normal_ready_fourteen",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "reading_to_writing",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "writing_to_reading",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "client_retirement",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          2,
+          72,
+          0
+        ]
+      },
+      {
+        "stage": "client_accept",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          4,
+          0,
+          392,
+          2,
+          320,
+          0
+        ]
+      },
+      {
+        "stage": "lifetime_reconcile",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_probe_subset",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          1,
+          3,
+          232,
+          1,
+          128,
+          104
+        ]
+      },
+      {
+        "stage": "normal_probe_transitions",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          1000,
+          3000,
+          232000,
+          1000,
+          128000,
+          104000
+        ]
+      },
+      {
+        "stage": "first_normal_sixty_four",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          8,
+          8712,
+          0,
+          0,
+          2776
+        ]
+      },
+      {
+        "stage": "steady_normal_sixty_four",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "first_oversized_sixty_five",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          1,
+          1024,
+          0,
+          0,
+          512
+        ]
+      },
+      {
+        "stage": "steady_oversized_sixty_five",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "return_to_sixty_four",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "return_to_fourteen",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "stage": "all_downstream_ready_fourteen",
+        "iterations": 1000,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          1,
+          64,
+          0,
+          0,
+          32
+        ]
+      },
+      {
+        "stage": "owner_drop_with_inputs",
+        "iterations": 1,
+        "alloc_realloc_bytes_dealloc_freed_realloc_old_bytes": [
+          0,
+          0,
+          0,
+          82,
+          215574,
+          0
+        ]
+      }
+    ],
+    "syscalls": {
+      "owner_init_prepared_inputs": {
+        "epoll_create1": 1
+      },
+      "first_normal_six": {
+        "epoll_ctl:EPOLL_CTL_ADD": 6,
+        "epoll_pwait": 1
+      },
+      "steady_normal_ready_six": {
+        "epoll_pwait": 1000
+      },
+      "first_normal_fourteen": {
+        "epoll_ctl:EPOLL_CTL_ADD": 8,
+        "epoll_pwait": 1
+      },
+      "steady_normal_ready_fourteen": {
+        "epoll_pwait": 1000
+      },
+      "reading_to_writing": {
+        "epoll_ctl:EPOLL_CTL_MOD": 1,
+        "epoll_pwait": 1
+      },
+      "writing_to_reading": {
+        "epoll_ctl:EPOLL_CTL_MOD": 1,
+        "epoll_pwait": 1
+      },
+      "client_retirement": {
+        "close": 1
+      },
+      "client_accept": {},
+      "lifetime_reconcile": {
+        "epoll_ctl:EPOLL_CTL_DEL:EBADF": 1,
+        "epoll_ctl:EPOLL_CTL_ADD": 1,
+        "epoll_pwait": 1
+      },
+      "first_probe_subset": {
+        "epoll_ctl:EPOLL_CTL_DEL": 2,
+        "epoll_pwait": 1
+      },
+      "normal_probe_transitions": {
+        "epoll_ctl:EPOLL_CTL_ADD": 2000,
+        "epoll_pwait": 2000,
+        "epoll_ctl:EPOLL_CTL_DEL": 2000
+      },
+      "first_normal_sixty_four": {
+        "epoll_ctl:EPOLL_CTL_ADD": 52,
+        "epoll_pwait": 1
+      },
+      "steady_normal_sixty_four": {
+        "epoll_pwait": 1000
+      },
+      "first_oversized_sixty_five": {
+        "epoll_ctl:EPOLL_CTL_DEL": 64,
+        "ppoll": 1
+      },
+      "steady_oversized_sixty_five": {
+        "ppoll": 1000
+      },
+      "return_to_sixty_four": {
+        "epoll_ctl:EPOLL_CTL_ADD": 64,
+        "epoll_pwait": 1
+      },
+      "return_to_fourteen": {
+        "epoll_ctl:EPOLL_CTL_DEL:EBADF": 50,
+        "epoll_pwait": 1
+      },
+      "all_downstream_ready_fourteen": {
+        "epoll_pwait": 1000
+      },
+      "owner_drop_with_inputs": {
+        "close": 16
+      }
+    },
+    "resources": [
+      {
+        "stage": "owner_init",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_registered_oversized": [
+          1,
+          0,
+          0
+        ],
+        "poll_capacity": 0,
+        "ready_capacity": 0,
+        "client_capacity": 0,
+        "fds": 6
+      },
+      {
+        "stage": "first_normal_six",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          192,
+          192,
+          192,
+          56,
+          96
+        ],
+        "active_registered_oversized": [
+          1,
+          6,
+          0
+        ],
+        "poll_capacity": 8,
+        "ready_capacity": 4,
+        "client_capacity": 0,
+        "fds": 14
+      },
+      {
+        "stage": "first_normal_fourteen",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          384,
+          448,
+          448,
+          120,
+          224
+        ],
+        "active_registered_oversized": [
+          1,
+          14,
+          0
+        ],
+        "poll_capacity": 16,
+        "ready_capacity": 4,
+        "client_capacity": 8,
+        "fds": 30
+      },
+      {
+        "stage": "first_probe_subset",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          384,
+          448,
+          448,
+          120,
+          224
+        ],
+        "active_registered_oversized": [
+          1,
+          12,
+          0
+        ],
+        "poll_capacity": 16,
+        "ready_capacity": 4,
+        "client_capacity": 8,
+        "fds": 30
+      },
+      {
+        "stage": "first_normal_sixty_four",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          1536,
+          2048,
+          2048,
+          520,
+          1024
+        ],
+        "active_registered_oversized": [
+          1,
+          64,
+          0
+        ],
+        "poll_capacity": 64,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 130
+      },
+      {
+        "stage": "first_oversized_sixty_five",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          1536,
+          2048,
+          2048,
+          520,
+          1024
+        ],
+        "active_registered_oversized": [
+          1,
+          0,
+          1
+        ],
+        "poll_capacity": 128,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 132
+      },
+      {
+        "stage": "return_to_sixty_four",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          1536,
+          2048,
+          2048,
+          520,
+          1024
+        ],
+        "active_registered_oversized": [
+          1,
+          64,
+          0
+        ],
+        "poll_capacity": 128,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 130
+      },
+      {
+        "stage": "return_to_fourteen",
+        "backend_key_registration_event_sizes_and_five_capacity_bytes": [
+          136,
+          16,
+          32,
+          16,
+          1536,
+          2048,
+          2048,
+          520,
+          1024
+        ],
+        "active_registered_oversized": [
+          1,
+          14,
+          0
+        ],
+        "poll_capacity": 128,
+        "ready_capacity": 4,
+        "client_capacity": 64,
+        "fds": 30
+      }
+    ],
+    "fd_cleanup": {
+      "initial": 4,
+      "final": 4
+    },
+    "raw_artifacts": {
+      "build.json": {
+        "bytes": 40084,
+        "sha256": "3849bfee793b3855995d5540504b71068b8a7bf59095d62de0354ad27b3dfac0"
+      },
+      "run.stdout": {
+        "bytes": 5265,
+        "sha256": "fc739c679bb944b80307cd8c2e9846f72d12671eb72133dc0d11e4d43f9d1a45"
+      },
+      "run.stderr": {
+        "bytes": 1578,
+        "sha256": "60d5099111a4ad025a3b6372bffc1b86fb5f523b849af4b28f1f66687ca4563e"
+      },
+      "syscalls.txt": {
+        "bytes": 1962979,
+        "sha256": "240fd5145af7e68283d647f8393fa838c7418af126ec9fd4ff02b249afe262f9"
+      },
+      "syscalls-complete.txt": {
+        "bytes": 2664654,
+        "sha256": "bfaaf6dbb1a3518a04569f22ea338286c0a2cbce83759a0bd5d278d5c5c6f5c0"
+      },
+      "trace-r2.stdout": {
+        "bytes": 5265,
+        "sha256": "cf78e1128dec4c9dc88e4c74453a0f9ea6d7c28ed05fb20f755febe41e30b29a"
+      },
+      "trace-r2.stderr": {
+        "bytes": 1578,
+        "sha256": "60d5099111a4ad025a3b6372bffc1b86fb5f523b849af4b28f1f66687ca4563e"
+      }
+    }
+  }
+}

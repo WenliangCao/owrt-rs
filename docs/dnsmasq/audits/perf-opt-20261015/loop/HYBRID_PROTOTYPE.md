@@ -121,6 +121,42 @@ of this scene's steady wait set has an eligible owner lifetime. The 5.17 MB
 raw trace remains private on Oracle; only a 5,624-byte derived role inventory
 was transferred. Instrumented elapsed time is not acceptance evidence.
 
+The paired actual-owner allocation/control diagnostic is recorded in
+`hybrid-owner-allocation.json`. Both private native artifacts use the same
+counting harness over exact E and 9ce sources, respectively. Source copies,
+instrumented inputs and executables were hashed; builds used Rust 1.98.1,
+one job and the shared build lock. Each isolated test passed, then a separate
+syscall trace reproduced its allocation/layout records. An initial trace
+omitted the native libc's `epoll_pwait` syscall and is retained but excluded
+from totals; the complete trace explicitly includes that syscall.
+
+Actual aarch64 layout adds 144 bytes to SinglePoll (7,360 to 7,504) and
+16 bytes to each allocated PollTcpClient slot (1,960 to 1,976); TcpDnsWork
+is unchanged. Construction adds one epoll fd but no heap allocation beyond
+the existing 65,535-byte owner buffer. Optional backing capacities total
+728 bytes at six interests, 1,624 at fourteen, and 7,176 at sixty-four.
+These buffers retain their high-water capacity after oversized fallback and
+return to fourteen. They exclude allocator metadata and kernel watch memory.
+Both complete fixtures return from four initial fds to four final fds.
+
+The first six-interest wait adds five allocations and one reallocation over
+E. Warmed six/fourteen/sixty-four waits, steady sixty-five direct fallback,
+mask changes and lifetime reconciliation add no allocations or reallocations.
+The actual normal/probe pair still incurs the existing probe Vec cost on
+both sides: one allocation and three reallocations per pair. Eight newly
+ready downstream clients cause the same one-time ready_fds growth on both
+sides. All these are allocation observations, not elapsed-time comparisons.
+
+Steady eligible calls perform one `epoll_pwait` each, with no outer ppoll or
+registration operations. A mask transition costs one MOD; retiring an already
+closed client causes one tolerated DEL/EBADF followed by one ADD for the new
+lifetime. Normal-to-probe removes two watches (route and signal), and return
+to normal adds them again: four control calls per pair. The first sixty-five
+interest fallback removes all sixty-four old watches once; subsequent large
+waits use one ppoll and no controls. Returning to sixty-four adds sixty-four
+watches. Truncating fifty clients then attempts fifty tolerated DEL/EBADF
+operations. These transition costs remain part of any performance assessment.
+
 Before candidate eligibility, count actual initialization/teardown, memory
 layout, optional fd/watch cost, registration/mask churn, all-ready and large
 direct-fallback cases as well as steady waits. Startup/lifecycle can regress
