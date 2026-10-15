@@ -1,0 +1,424 @@
+{
+  "status": "counter-screen-only-not-correctness-or-timing-qualified",
+  "baseline_source": "9b91a192583282fa546811977ee124d5873dd2db",
+  "candidate_source": "71e7178d (product source exactly matches pre-interruption cursor2; final added assertion affects only tests)",
+  "note": "Both counter builds precede approved stale compatibility fix; ordinary fixture scenes do not exercise expired negative CNAME targets. Fixed-control and fixed-candidate timing builds are separate. PMU scope includes setup/priming; allocation counts exclude setup/priming. Cycles are intentionally not used for timing acceptance.",
+  "probe_sha256": "48782d3b4532761b02b453bba65df59d1f8ddc42e84a1dcfc71a34a54da6bdd0",
+  "native_compiler": "rustc 1.98.1 aarch64-unknown-linux-gnu; release opt-level 3/lto/codegen-units 1/panic abort",
+  "artifact_sha256": {
+    "baseline-b-hot-probe": "7b3c437c695d664388ec7107e1fd74d2d58eb9391f4819fcf30d4676838a290e",
+    "cursor2-hot-probe": "1ed39de76ebe19d0d849f9fae76b3e591cc2331ce6565a81560f720a743966a0",
+    "baseline-b-hot-probe-alloc": "a3562567506efc3785945f12881cacd83614e3fa48d3936efd26a7978624b6b7",
+    "cursor2-hot-probe-alloc": "4570857082b029892fc87bd0fbc5ed5ec58bbd2226e297ed208d5ae89f3a2efc"
+  },
+  "counters": [
+    {
+      "scene": "hit",
+      "baseline-b": {
+        "operations": 500000,
+        "checksum": 29300000,
+        "instructions": [
+          2580070496,
+          2579996475,
+          2580354126
+        ],
+        "median_instructions": 2580070496
+      },
+      "cursor2": {
+        "operations": 500000,
+        "checksum": 29300000,
+        "instructions": [
+          2303485080,
+          2303413787,
+          2303468653
+        ],
+        "median_instructions": 2303468653
+      },
+      "instruction_change_percent": -10.720708733688799
+    },
+    {
+      "scene": "miss",
+      "baseline-b": {
+        "operations": 500000,
+        "checksum": 0,
+        "instructions": [
+          1819146760,
+          1819147872,
+          1819146996
+        ],
+        "median_instructions": 1819146996
+      },
+      "cursor2": {
+        "operations": 500000,
+        "checksum": 0,
+        "instructions": [
+          1487616936,
+          1487617512,
+          1487617096
+        ],
+        "median_instructions": 1487617096
+      },
+      "instruction_change_percent": -18.22447008015179
+    },
+    {
+      "scene": "rrset",
+      "baseline-b": {
+        "operations": 500000,
+        "checksum": 97900000,
+        "instructions": [
+          6319624623,
+          6319624878,
+          6319625115
+        ],
+        "median_instructions": 6319624878
+      },
+      "cursor2": {
+        "operations": 500000,
+        "checksum": 97900000,
+        "instructions": [
+          6345635064,
+          6345634618,
+          6346220439
+        ],
+        "median_instructions": 6345635064
+      },
+      "instruction_change_percent": 0.41157800505766673
+    },
+    {
+      "scene": "host",
+      "baseline-b": {
+        "operations": 500000,
+        "checksum": 29300000,
+        "instructions": [
+          3376749218,
+          3394183303,
+          3370761104
+        ],
+        "median_instructions": 3376749218
+      },
+      "cursor2": {
+        "operations": 500000,
+        "checksum": 29300000,
+        "instructions": [
+          3403618405,
+          3400836587,
+          3400523199
+        ],
+        "median_instructions": 3400836587
+      },
+      "instruction_change_percent": 0.7133301126302394
+    },
+    {
+      "scene": "cname",
+      "baseline-b": {
+        "operations": 500000,
+        "checksum": 47800000,
+        "instructions": [
+          4947627310,
+          4947552387,
+          4947748515
+        ],
+        "median_instructions": 4947627310
+      },
+      "cursor2": {
+        "operations": 500000,
+        "checksum": 47800000,
+        "instructions": [
+          4686381436,
+          4686697887,
+          4686503281
+        ],
+        "median_instructions": 4686503281
+      },
+      "instruction_change_percent": -5.2777627060191845
+    },
+    {
+      "scene": "cname-config",
+      "baseline-b": {
+        "operations": 10000,
+        "checksum": 956000,
+        "instructions": [
+          4980069830,
+          4979229560,
+          4980531920
+        ],
+        "median_instructions": 4980069830
+      },
+      "cursor2": {
+        "operations": 10000,
+        "checksum": 956000,
+        "instructions": [
+          4979706907,
+          4979674079,
+          4980516224
+        ],
+        "median_instructions": 4979706907
+      },
+      "instruction_change_percent": -0.007287508255682251
+    }
+  ],
+  "allocations": {
+    "baseline-b": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 48000,
+        "reallocations": 0,
+        "requested_bytes": 2328000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 6552000,
+        "reallocations": 0,
+        "requested_bytes": 155492800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ],
+    "cursor2": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 6552000,
+        "reallocations": 0,
+        "requested_bytes": 155492800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ]
+  },
+  "raw_sha256": {
+    "baseline-b-name-alloc.jsonl": "f1c3ea5049fc7f2dbdf9fe41b5cf91086139b6e6cae3dcbe6ba7b4b7e3af14ec",
+    "baseline-b-v2name-cname-1.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-b-v2name-cname-1.perf": "efdb7063323fc1e9a54ec2714c66f860e5345975830b85e4b3f61ec2c5f6155d",
+    "baseline-b-v2name-cname-2.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-b-v2name-cname-2.perf": "97e0ce9c3c4c89726391ad1f6ef003a8de2f27c2e2a8d8c845675b66fc11381b",
+    "baseline-b-v2name-cname-3.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-b-v2name-cname-3.perf": "8944b567b57df7d0e42c5a8021362b973a34b269001ae36da9f37eeac3bcd1de",
+    "baseline-b-v2name-cname-config-1.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-b-v2name-cname-config-1.perf": "7e6bc81a6084f68bf7af9011a7a906d58506552f0df97e0e8c3952efb1ae3769",
+    "baseline-b-v2name-cname-config-2.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-b-v2name-cname-config-2.perf": "c25f7f3995ac2685aaf652ed9e72a02b23a7d499913adc774cd55498a71f8f2e",
+    "baseline-b-v2name-cname-config-3.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-b-v2name-cname-config-3.perf": "3d811fc98db4164a2fbf696b4bc99f790d01f238c448c8828f0ada7c7e8c5e6f",
+    "baseline-b-v2name-hit-1.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-b-v2name-hit-1.perf": "3079b3c7941b5f99513c53156f8d0255b000c9c5bd7be4e5660abb3f9f666e94",
+    "baseline-b-v2name-hit-2.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-b-v2name-hit-2.perf": "cb5e1b122e694af823a296ad9e7f0c47b117483feceecf1e1a9f733e4c3ffe99",
+    "baseline-b-v2name-hit-3.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-b-v2name-hit-3.perf": "b1f05660fd7c115bd5d2acbe22e3537811d04a75982e9fc314fda8620233a5b5",
+    "baseline-b-v2name-host-1.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-b-v2name-host-1.perf": "491d45679d189bbb75866648d4d6eb23afa85eafc3de375e1e23a484f9a6b037",
+    "baseline-b-v2name-host-2.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-b-v2name-host-2.perf": "7aa6a7f4dd32df70218ddd1e99e4e218e71d9145eb5e7068054a3958b6f68b6e",
+    "baseline-b-v2name-host-3.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-b-v2name-host-3.perf": "76b21c07238dad08d76626a80e375a4cc4c2e02e9b156afb1d4b92d26b6911a5",
+    "baseline-b-v2name-miss-1.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-b-v2name-miss-1.perf": "982056921273d5a2192a509ff3be0995148f5927a65487882d9a8eaf4d1eef6f",
+    "baseline-b-v2name-miss-2.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-b-v2name-miss-2.perf": "fe30805864fdc3de633686e126a3e4b841e72abc5dd317fba070efcdd8f8d530",
+    "baseline-b-v2name-miss-3.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-b-v2name-miss-3.perf": "6aaab9bdf8394615a86bdc2c3fac98242c94d50c27db7450f1fdccf080201679",
+    "baseline-b-v2name-rrset-1.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-b-v2name-rrset-1.perf": "9de730f336106fecbde78efd084e816e24860d50ff95729e35a46aa590c40fdb",
+    "baseline-b-v2name-rrset-2.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-b-v2name-rrset-2.perf": "39987ef96d45759d813f7d1eab88d5af79493acf22f3b61eb2c1645bb9c2b14c",
+    "baseline-b-v2name-rrset-3.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-b-v2name-rrset-3.perf": "18a7ee940bb1ca7a4da05253a27808c4934f96e24abd3c31037cbd26b2faa474",
+    "cursor1-name-alloc.jsonl": "4b1e9bd16d06445008f8dcb0e1272d606f70f0baeee1f81587b8fc74346d301c",
+    "cursor2-name-alloc.jsonl": "4b1e9bd16d06445008f8dcb0e1272d606f70f0baeee1f81587b8fc74346d301c",
+    "cursor2-v2name-cname-1.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "cursor2-v2name-cname-1.perf": "85a4b3f2b2061797437b99634796923a527aa555c58ec4e81a86d091d2b91a4a",
+    "cursor2-v2name-cname-2.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "cursor2-v2name-cname-2.perf": "e607cd46e77f7eff6ae6b277e145aefd53a771c09e991a73dc7dad499b513fd6",
+    "cursor2-v2name-cname-3.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "cursor2-v2name-cname-3.perf": "2918d4143ae66c52e82fe2347ef0ed8e6e7621f7ca44b379c60353851037af06",
+    "cursor2-v2name-cname-config-1.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "cursor2-v2name-cname-config-1.perf": "5db0b0e93eba1da53f5e8a640ac1088c06cf01a2cb33ac7b0703c7756feb0ad6",
+    "cursor2-v2name-cname-config-2.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "cursor2-v2name-cname-config-2.perf": "d15cdf34a2d25aaffcb60dced20de924a16789da40fb02fd65e41998ec26f9d9",
+    "cursor2-v2name-cname-config-3.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "cursor2-v2name-cname-config-3.perf": "3de600dbb84aaea15ef5d763590b47c623e6d98acaf5361e86e7fbe4d7fceb2b",
+    "cursor2-v2name-hit-1.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "cursor2-v2name-hit-1.perf": "ba2d42b133b440e603b9cd965a958dec141733fe7f59dc77f0f126cf20096bae",
+    "cursor2-v2name-hit-2.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "cursor2-v2name-hit-2.perf": "d5d398ecf7ac4b82ad24bf30a9bc1f164ce852301600e564fa911d31f30f8aac",
+    "cursor2-v2name-hit-3.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "cursor2-v2name-hit-3.perf": "996dfb47ba81ff90388ba40541b3176336f2a41226f7766166cb6e54ce01ea6d",
+    "cursor2-v2name-host-1.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "cursor2-v2name-host-1.perf": "f46450eb0d1a65d1fd6d40f254dbe6f25b77d30242ca01ed9553507a09deb726",
+    "cursor2-v2name-host-2.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "cursor2-v2name-host-2.perf": "a5ed8c4c03d66d215e1387e825463d333cc936d1d7de224babcb331b26c1e22d",
+    "cursor2-v2name-host-3.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "cursor2-v2name-host-3.perf": "5ad354d890e9c6bc6d329b82fc3e3dc01a512cab7e34b8a128e28a3e7cd98b05",
+    "cursor2-v2name-miss-1.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "cursor2-v2name-miss-1.perf": "b2015b34c81d22e6b446bf06f808a20377510c375e3cd1ea9fbbcc26ebacfcd0",
+    "cursor2-v2name-miss-2.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "cursor2-v2name-miss-2.perf": "d277cb61c14993d5ed434f4a1a56c40716740da7dbd8e78c35513f46724be965",
+    "cursor2-v2name-miss-3.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "cursor2-v2name-miss-3.perf": "9db451c852b7114b82a94815ca49890838d057ffd78a8560fea0d6035a465c39",
+    "cursor2-v2name-rrset-1.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "cursor2-v2name-rrset-1.perf": "29079c70f87d667a77f29c0e5c1dcc1b3bf01cbdfb670ea342bd16ba49e39cea",
+    "cursor2-v2name-rrset-2.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "cursor2-v2name-rrset-2.perf": "92f91af55e27c65e364de10175dfd502bfb081e1a08d743282b6faf3bdd1c4b4",
+    "cursor2-v2name-rrset-3.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "cursor2-v2name-rrset-3.perf": "dab91ac14ed134fcd3e1f52073fd1ccea95597944e3392fd5ad583bacf9d8517",
+    "hotpath-probe-v2.rs": "48782d3b4532761b02b453bba65df59d1f8ddc42e84a1dcfc71a34a54da6bdd0"
+  }
+}
