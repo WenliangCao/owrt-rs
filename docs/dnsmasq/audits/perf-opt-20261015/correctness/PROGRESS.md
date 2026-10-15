@@ -367,3 +367,37 @@ found, and no product or expectation was modified during these runs.
 The coordinator was notified that correctness admission for its separately
 controlled device comparison is clear. This reviewer made no router connection,
 staging, production change or deployment.
+
+## Independent D9f2 review after C's first device scenes
+
+Reviewed the actual `9f2a9052` expiry-bound product diff against frozen C
+`f7f7a2ed` in the expiry worktree, at HEAD `587fb82c`. Product hashes were stable:
+`cache.rs` SHA256 `ca58d8711daa4520ac4874f35c2994cf7591988230c8dda3f8c82788a6fa6a49`;
+`cache_tests.rs` SHA256 `39b5f1a72967e7925ba6d88f4b1433e2862701e3d698527c95de5ae6cdbec6f9`.
+No concrete behavior defect was identified. C was not modified.
+
+For every committed deadline E, bound B remains at most E. Commit is the sole
+transition to committed state and lowers B after rejecting outdated CNAMEs.
+Ordinary removal, reverse removal, lookup expiry, DHCP invalidation, failed
+insertion and pending abort can only leave an earlier conservative B. The
+necessary pressure scan retains original ascending-slot removal, LRU, spill
+and counter effects while rebuilding B from committed survivors. Referenced
+same-name replacements and imports use that same commit path, including import's
+already selected absolute deadline. Snapshot copies B by value; clear resets it.
+There is no current in-place deadline or retention-policy setter; the existing
+max-reply-TTL setter does not change expiry decisions.
+
+Independently checked predicate implication: expired(E, now) implies
+expired(B, now) for Disabled and finite Seconds, with exact i128 subtraction;
+Forever cannot expire anything. This holds at equality, at signed extremes and
+for backward clocks. Thus a skipped scan had no removals in frozen C. The old
+global pressure scan checked only TTL expiry, so unexpired invalid CNAMEs do
+not create a missed cleanup; their conflict, lookup and victim paths are intact.
+No additional allocation or fallible boundary was introduced. The scalar's
+layout/performance cost remains the screening owner's measurement obligation.
+
+The existing local log reports 41 cache tests passed, including forced-scan
+state/counter comparisons and snapshot/import coverage; this reviewer inspected
+it without rerunning tests. No Oracle workload or router access occurred. If
+screening qualifies D, existing complete gates must run freshly on its exact new
+SDK output. C's currently running device comparison is unchanged.
