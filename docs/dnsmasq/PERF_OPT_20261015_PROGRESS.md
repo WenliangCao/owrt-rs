@@ -185,3 +185,15 @@ D research paused until C device comparison completes. Exact preserved Dtip
 worktreeowrt-perf-expiry-20261015. Notintegrated;41localcachetests passed,
 noOracle/Cdiff/perfqualification. OldDNSbranches archived/detached with private
 evidence retained; cleanDworktree intact.
+
+## Clarified bug policy during C timing
+
+The user's latest clarification supersedes the narrower blocking-only wording:
+any genuine product defect (C behavior mismatch, crash, leak, unbounded resource
+use or incorrect error handling) should be fixed autonomously. Each fix needs
+its own commit, reproducer and relevant correctness gates, and enters the NEXT
+candidate for fresh timing. Never change frozen C during its run. Fixes and
+performance changes remain separate in reports. C's own errors/already recorded
+differences do not justify new audit rules/frameworks; testing tools stay limited
+to acceptance needs. C full Oracle+44families+device comparison remains first
+priority, then next optimization iteration resumes.
