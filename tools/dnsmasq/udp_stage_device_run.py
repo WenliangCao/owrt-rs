@@ -148,6 +148,7 @@ def main():
     guard = guard_label = label = current_group = None
     results = []
     archive_attempted = set()
+    cleanup_errors = []
     try:
         guard_label = 'a53-stage-guard-' + str(time.time_ns())
         guard = run.guard_start(identity[0], guard_label, health['threshold_ms'])
@@ -207,8 +208,11 @@ def main():
         guard = None
         run.write(args.out / 'summary.json', {'scope': plan['scope'], 'windows': results, 'comparisons': comparisons(results)})
     except BaseException as error:
-        run.stop_owned('a53_udp_stage_diagnostic_failed')
         recovery = {}
+        try:
+            run.stop_owned('a53_udp_stage_diagnostic_failed')
+        except Exception as stop_error:
+            recovery['stop_owned_error'] = repr(stop_error)
         if label in archive_attempted:
             recovery['archive_attempt_preserved'] = label
             recovery['archive_manifest_complete'] = (args.out / (label + '.archive.json')).exists()
@@ -226,11 +230,19 @@ def main():
         if monitor.is_alive():
             monitor.join(timeout=12)
         if guard is not None:
-            run.guard_stop(guard)
+            try:
+                run.guard_stop(guard)
+            except Exception as error:
+                cleanup_errors.append({'action': 'guard_stop', 'error': repr(error)})
         if guard_label is not None:
             for suffix in ('jsonl', 'stderr'):
-                result = run.ssh(f'cat {run.ROOT}/{guard_label}.{suffix}', check=False)
-                (args.out / (guard_label + '.' + suffix)).write_bytes(result.stdout)
+                try:
+                    result = run.ssh(f'cat {run.ROOT}/{guard_label}.{suffix}', check=False)
+                    (args.out / (guard_label + '.' + suffix)).write_bytes(result.stdout)
+                    if result.returncode:
+                        raise RuntimeError('guard evidence copy exit ' + str(result.returncode))
+                except Exception as error:
+                    cleanup_errors.append({'action': 'copy_guard_' + suffix, 'error': repr(error)})
         # Leave a failed active-group marker untouched; recovery then needs its
         # ownership evidence checked before retrying restoration manually.
         try:
@@ -240,7 +252,10 @@ def main():
             run.write(args.out / 'restored.json', {'slots': plan['original_slots'], 'production_pid_start': identity})
         except Exception as error:
             run.write(args.out / 'restore-failure.json', {'error': repr(error)})
-            raise
+            cleanup_errors.append({'action': 'restore_slots', 'error': repr(error)})
+        run.write(args.out / 'cleanup.json', {'errors': cleanup_errors})
+    if cleanup_errors:
+        raise RuntimeError('diagnostic cleanup incomplete; see cleanup.json')
     run.write(args.out / 'complete.json', {'complete': True, 'windows': 50, 'valid': 50, 'candidate_eligible': False})
 
 
