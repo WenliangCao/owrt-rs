@@ -1123,6 +1123,14 @@ fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
         assert!(matches!(daemon.answer_udp_prepared_with_local(&malformed, &malformed,
             metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(_))));
         assert_eq!(daemon.udp_name_buffer.as_ptr(), pointer);
+        for tail in [&[3,b'a',b'b',b'c',4,b'z'][..], &[3,b'a',b'b',b'c',0x40,0,1,0,1][..]] {
+            let mut partial = first[..12].to_vec();
+            partial.extend_from_slice(tail);
+            assert!(matches!(daemon.answer_udp_prepared_with_local(&partial, &partial,
+                metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(_))));
+            assert_eq!(daemon.udp_name_buffer.as_slice(), &[3,b'a',b'b',b'c']);
+            assert_eq!(daemon.udp_name_buffer.as_ptr(), pointer);
+        }
     }
     // Reusing and failing the following requests cannot overwrite retained replies.
     for (name, answer) in answers {
@@ -1143,6 +1151,16 @@ fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
     let _ = daemon.answer_udp_prepared_with_local(&long, &long, metadata,
         client.clone(), None, &mut local);
     assert_eq!(daemon.udp_name_buffer.len(), 255);
+    assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+    let mut overlong = first[..12].to_vec();
+    for _ in 0..4 {
+        overlong.push(63);
+        overlong.extend_from_slice(&[b'x'; 63]);
+    }
+    overlong.extend_from_slice(&[0,0,1,0,1]);
+    assert!(matches!(daemon.answer_udp_prepared_with_local(&overlong, &overlong,
+        metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(WireError::NameTooLong))));
+    assert_eq!(daemon.udp_name_buffer.len(), 192);
     assert_eq!(daemon.udp_name_buffer.capacity(), 256);
     assert!(matches!(daemon.answer_udp_prepared_with_local(&first, &first, metadata,
         client, None, &mut local), Ok(QueryResult::Cached(_))));
