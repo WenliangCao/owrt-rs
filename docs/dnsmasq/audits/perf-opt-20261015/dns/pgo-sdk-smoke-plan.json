@@ -1,0 +1,171 @@
+{
+  "scope": "E SDK control reproduction and PGO generate static-PIE normal-exit smoke only; no training, profile-use build, timing or router",
+  "execution_gate": "Prepared locally; Oracle build/runtime may start only after root explicitly releases the exclusive host following plan 9e1856a6",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-e",
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "source_date_epoch": "1792069943",
+  "source_digest": "336248646755d2fdcbcb427c2f04ad36b961ed6ab4fc3e88112fc4353abf44f2",
+  "expected_control_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "attempt": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1",
+  "sdk": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+  "builder": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+  "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "build_helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "recipe_sha256": "0438d7ad8dcf6f2b986cdffb9afdba4dee2857078e3b23a49f33fe1386f244ab",
+  "static_pie_linker_sha256": "9b04b7a13281414e4b79253a0a9ae8650abafa1645484dd6945e269d0335af58",
+  "wrapper_sha256": "fd9c874354ac51efd56d7df88314278993b5be1f267db19f24d79a0720bce58e",
+  "wrapper_remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/wrapper/cargo",
+  "rustc": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+  "cargo": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/cargo",
+  "wrapper_rustc_symlink_target": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+  "build_slot": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/package-build",
+  "map_cc": "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/tools/dnsmasq/perf_opt_map_cc.py",
+  "sdk_cc": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+  "outputs": {
+    "control": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/control",
+    "generate": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/generate"
+  },
+  "cargo_targets": {
+    "control": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/cargo-control",
+    "generate": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/cargo-generate"
+  },
+  "invocation_receipts": {
+    "control": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/control/pgo-invocation.json",
+    "generate": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/generate/pgo-invocation.json"
+  },
+  "default_profile_directory": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/profraw-default",
+  "recipe_rustflags": "-Cforce-unwind-tables=no --remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/package-build=/build --remap-path-prefix=/home/ubuntu/.cargo=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static",
+  "profdata": {
+    "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+    "version": "LLVM 22.1.8-rust-1.98.1-stable",
+    "sha256": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+    "observation": "Reported by loop and root; reverify on the reserved host before use"
+  },
+  "isolator": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/tools/dnsmasq/run_isolated.sh",
+    "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+  },
+  "runtime": {
+    "directory": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/runtime",
+    "config_lines": [
+      "no-hosts",
+      "no-resolv",
+      "no-poll",
+      "user=root",
+      "group=root",
+      "interface=lo",
+      "bind-interfaces",
+      "listen-address=127.0.0.1",
+      "port=15353",
+      "host-record=pgo-smoke.test,192.0.2.1,2001:db8::1",
+      "local-ttl=120",
+      "pid-file=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/runtime/daemon.pid",
+      "log-facility=-"
+    ],
+    "llvm_profile_file": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/runtime/%p.profraw",
+    "daemon_argv": [
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/generate/dnsmasq-rs",
+      "--keep-in-foreground",
+      "--conf-file=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/runtime/config"
+    ],
+    "queries": [
+      {
+        "name": "pgo-smoke.test",
+        "qtype": "A",
+        "expected_address": "192.0.2.1"
+      },
+      {
+        "name": "pgo-smoke.test",
+        "qtype": "AAAA",
+        "expected_address": "2001:db8::1"
+      }
+    ],
+    "readiness_timeout_seconds": 10,
+    "normal_exit_signal": "SIGTERM",
+    "normal_exit_timeout_seconds": 10,
+    "normal_exit_status": 0,
+    "checks": [
+      "isolated new network/mount/PID namespaces; only loopback enabled",
+      "live /proc/PID/exe hash equals generate build artifact",
+      "runtime PT_GNU_RELRO pages not writable; no writable-executable ELF map; stack not executable",
+      "all startup/query/exit failures retained; no alternate link/hardening mode",
+      "one nonempty profraw for the foreground daemon PID; no unexpected default-directory files",
+      "no helper child coverage claim; no manual runtime profile flush hook"
+    ],
+    "merged_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/smoke.profdata",
+    "show_argv": [
+      "show",
+      "--all-functions",
+      "--counts",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/smoke.profdata"
+    ],
+    "merge_argv_template": [
+      "merge",
+      "-o",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/smoke.profdata",
+      "EXACT_RECORDED_DAEMON_PROFRAW_PATH"
+    ],
+    "show_gate": "matched tool succeeds, reports positive function/counter activity; raw and merged identities retained"
+  },
+  "stop_policy": "Any baseline identity, link, protection, startup, profile-write, merge or show failure stops the attempt and preserves all outputs; no retry or workaround in the same attempt",
+  "stages": [
+    {
+      "mode": "control",
+      "environment": {
+        "PGO_SMOKE_PLAN": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/plan.json",
+        "PGO_SMOKE_MODE": "control"
+      },
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-e",
+        "--commit",
+        "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "--epoch",
+        "1792069943",
+        "--sdk",
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/control",
+        "--cargo",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/wrapper/cargo",
+        "--build-slot",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/package-build",
+        "--cargo-target",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/cargo-control",
+        "--expected-baseline-sha",
+        "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      ],
+      "after": "source unchanged, SDK audit_elf/layout passed, effective flags receipt bound; baseline_matches_expected must be true before generate"
+    },
+    {
+      "mode": "generate",
+      "environment": {
+        "PGO_SMOKE_PLAN": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/plan.json",
+        "PGO_SMOKE_MODE": "generate"
+      },
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-e",
+        "--commit",
+        "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "--epoch",
+        "1792069943",
+        "--sdk",
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/generate",
+        "--cargo",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/wrapper/cargo",
+        "--build-slot",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/package-build",
+        "--cargo-target",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/cargo-generate"
+      ],
+      "after": "source unchanged, SDK audit_elf/layout passed, effective flags receipt bound; instrumented artifact remains diagnostic; size/overhead recorded, not accepted performance"
+    }
+  ]
+}
