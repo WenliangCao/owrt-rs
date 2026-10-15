@@ -261,12 +261,14 @@ def main():
         drain_started = time.monotonic_ns()
         time.sleep(1)
         drain_ended = time.monotonic_ns()
-        (out / 'cpu-after.stat').write_text((proc / 'stat').read_text())
         remaining_children = child_path.read_text().strip().split()
         save(out / 'tree-tail.json', {'root_pid': daemon.pid,
              'root_starttime_ticks': identity['stat'].rsplit(')', 1)[1].split()[19],
              'drain_started_ns': drain_started, 'drain_ended_ns': drain_ended,
              'remaining_children': remaining_children, 'complete': not remaining_children})
+        assert not remaining_children, 'fixed post-load drain ended with live children; retain incomplete attempt'
+        # Waited-child ticks must already be incorporated in this endpoint.
+        (out / 'cpu-after.stat').write_text((proc / 'stat').read_text())
         if observer != 'strace':
             for channel in instruments:
                 control(channel, 'disable')
@@ -284,7 +286,6 @@ def main():
         assert mapped_after == identity['mapped_file_identity'], 'mapped file identities changed during capture'
         assert sha(proc / 'exe') == process_expected
         assert all(sha(path) == digest for path, digest in image_files.items())
-        assert not remaining_children, 'fixed post-load drain ended with live children; retain incomplete attempt'
         assert re.search(r'TracerPid:\s+0\b', (proc / 'status').read_text())
         assert finish(daemon, signal.SIGTERM) == 0
         assert finish(upstream, signal.SIGTERM) == 0
