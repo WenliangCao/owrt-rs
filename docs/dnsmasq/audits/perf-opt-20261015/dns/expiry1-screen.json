@@ -1,0 +1,819 @@
+{
+  "status": "counter-screen-only-pending-quiet-timing-and-final-gates",
+  "baseline_source": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "candidate_product_source": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "scope": "Native real Cache insertion/removal/commit and shared local/cache-answer APIs. PMU includes setup/priming, allocation scope excludes them. Concurrent counters are not timing acceptance. No router access or changed C source.",
+  "source_receipt": {
+    "baseline_source": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+    "candidate_product_source": "9f2a905289c6c009edd747abc590a1d013b114e5",
+    "baseline_files_verified": 172,
+    "changed_files_verified": 2,
+    "source_c_unchanged": true,
+    "identity_sha256": "91882a5af5bb79d745337e0577a9725773cf587e2f37ccd5926da42e40ccacfa",
+    "patch_sha256": "cd71f3bee11ff42603aef303cdb0ad4ec489cc0d69741265d1004e79f279e8d0",
+    "probe_sha256": "012a1b147cd2b40baae1b6f81eaf60104e7519ae894d6391936f7cc37ae5ea7a"
+  },
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "flags": "cargo release opt-level3,lto=true,codegen-units1,panic=abort; probes -O -C lto=fat -C codegen-units=1 -C panic=abort; allocation-only --cfg allocation_tracking",
+  "linux_cache_tests": "41passed/0failed/0ignored",
+  "counters": [
+    {
+      "group": "insert",
+      "scene": "replace",
+      "baseline-c": {
+        "instructions": [
+          240505917,
+          240518558,
+          240542679
+        ],
+        "median_instructions": 240518558,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "expiry1": {
+        "instructions": [
+          240724393,
+          240775059,
+          240766916
+        ],
+        "median_instructions": 240766916,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": 0.10325939173474463
+    },
+    {
+      "group": "insert",
+      "scene": "pressure",
+      "baseline-c": {
+        "instructions": [
+          1974061343,
+          1973995479,
+          1973991927
+        ],
+        "median_instructions": 1973995479,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "expiry1": {
+        "instructions": [
+          305156080,
+          305174511,
+          305173484
+        ],
+        "median_instructions": 305173484,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -84.54031494770207
+    },
+    {
+      "group": "insert",
+      "scene": "reverse",
+      "baseline-c": {
+        "instructions": [
+          4127269462,
+          4127286122,
+          4127163577
+        ],
+        "median_instructions": 4127269462,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "expiry1": {
+        "instructions": [
+          4127332534,
+          4127481461,
+          4127222672
+        ],
+        "median_instructions": 4127332534,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": 0.0015281774204733978
+    },
+    {
+      "group": "insert",
+      "scene": "long",
+      "baseline-c": {
+        "instructions": [
+          264645099,
+          264636141,
+          264103204
+        ],
+        "median_instructions": 264636141,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "expiry1": {
+        "instructions": [
+          264736437,
+          264398687,
+          264231907
+        ],
+        "median_instructions": 264398687,
+        "operations": 50000,
+        "checksum": 11000000
+      },
+      "instruction_change_percent": -0.08972848496909824
+    },
+    {
+      "group": "insert",
+      "scene": "expiry",
+      "baseline-c": {
+        "instructions": [
+          1286357554,
+          1286400900,
+          1286317688
+        ],
+        "median_instructions": 1286357554,
+        "operations": 50000,
+        "checksum": 8377500
+      },
+      "expiry1": {
+        "instructions": [
+          287575164,
+          287537300,
+          287533467
+        ],
+        "median_instructions": 287537300,
+        "operations": 50000,
+        "checksum": 8377500
+      },
+      "instruction_change_percent": -77.64717134004563
+    },
+    {
+      "group": "insert",
+      "scene": "expiry-stale",
+      "baseline-c": {
+        "instructions": [
+          2082253521,
+          2082356487,
+          2082263905
+        ],
+        "median_instructions": 2082263905,
+        "operations": 50000,
+        "checksum": 8377500
+      },
+      "expiry1": {
+        "instructions": [
+          306763978,
+          306671198,
+          306693552
+        ],
+        "median_instructions": 306693552,
+        "operations": 50000,
+        "checksum": 8377500
+      },
+      "instruction_change_percent": -85.27114880762437
+    },
+    {
+      "group": "hot",
+      "scene": "hit",
+      "baseline-c": {
+        "instructions": [
+          2313016135,
+          2313009106,
+          2313019327
+        ],
+        "median_instructions": 2313016135,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "expiry1": {
+        "instructions": [
+          2313046180,
+          2312978245,
+          2312973211
+        ],
+        "median_instructions": 2312978245,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "instruction_change_percent": -0.0016381208685301019
+    },
+    {
+      "group": "hot",
+      "scene": "miss",
+      "baseline-c": {
+        "instructions": [
+          1498583559,
+          1498583507,
+          1498583483
+        ],
+        "median_instructions": 1498583507,
+        "operations": 500000,
+        "checksum": 0
+      },
+      "expiry1": {
+        "instructions": [
+          1498583994,
+          1498583846,
+          1498583254
+        ],
+        "median_instructions": 1498583846,
+        "operations": 500000,
+        "checksum": 0
+      },
+      "instruction_change_percent": 2.262136200581466e-05
+    },
+    {
+      "group": "hot",
+      "scene": "rrset",
+      "baseline-c": {
+        "instructions": [
+          6355163904,
+          6355163525,
+          6355162929
+        ],
+        "median_instructions": 6355163525,
+        "operations": 500000,
+        "checksum": 97900000
+      },
+      "expiry1": {
+        "instructions": [
+          6355169407,
+          6355168929,
+          6355168545
+        ],
+        "median_instructions": 6355168929,
+        "operations": 500000,
+        "checksum": 97900000
+      },
+      "instruction_change_percent": 8.503321713426715e-05
+    },
+    {
+      "group": "hot",
+      "scene": "host",
+      "baseline-c": {
+        "instructions": [
+          3405909711,
+          3405957003,
+          3415885952
+        ],
+        "median_instructions": 3405957003,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "expiry1": {
+        "instructions": [
+          3439192234,
+          3423637399,
+          3404905571
+        ],
+        "median_instructions": 3423637399,
+        "operations": 500000,
+        "checksum": 29300000
+      },
+      "instruction_change_percent": 0.5191021491001591
+    },
+    {
+      "group": "hot",
+      "scene": "cname",
+      "baseline-c": {
+        "instructions": [
+          4698674863,
+          4698348212,
+          4698536197
+        ],
+        "median_instructions": 4698536197,
+        "operations": 500000,
+        "checksum": 47800000
+      },
+      "expiry1": {
+        "instructions": [
+          4698498898,
+          4698641313,
+          4698461190
+        ],
+        "median_instructions": 4698498898,
+        "operations": 500000,
+        "checksum": 47800000
+      },
+      "instruction_change_percent": -0.0007938429850473661
+    },
+    {
+      "group": "hot",
+      "scene": "cname-config",
+      "baseline-c": {
+        "instructions": [
+          2287217166,
+          2286411488,
+          2287787450
+        ],
+        "median_instructions": 2287217166,
+        "operations": 10000,
+        "checksum": 956000
+      },
+      "expiry1": {
+        "instructions": [
+          2287416991,
+          2287431899,
+          2287523226
+        ],
+        "median_instructions": 2287431899,
+        "operations": 10000,
+        "checksum": 956000
+      },
+      "instruction_change_percent": 0.009388395784704073
+    }
+  ],
+  "allocations": {
+    "baseline-c-insert": [
+      {
+        "scene": "replace",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1664000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 216,
+        "entry_layout": 72
+      },
+      {
+        "scene": "pressure",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 216,
+        "entry_layout": 72
+      },
+      {
+        "scene": "reverse",
+        "operations": 8000,
+        "allocations": 168000,
+        "reallocations": 0,
+        "requested_bytes": 4032000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 216,
+        "entry_layout": 72
+      },
+      {
+        "scene": "long",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 2336000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 216,
+        "entry_layout": 72
+      },
+      {
+        "scene": "expiry",
+        "operations": 8000,
+        "allocations": 70400,
+        "reallocations": 0,
+        "requested_bytes": 1832000,
+        "live_bytes_delta": 0,
+        "checksum": 1172400,
+        "cache_layout": 216,
+        "entry_layout": 72
+      },
+      {
+        "scene": "expiry-stale",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1172400,
+        "cache_layout": 216,
+        "entry_layout": 72
+      }
+    ],
+    "expiry1-insert": [
+      {
+        "scene": "replace",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 1664000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 224,
+        "entry_layout": 72
+      },
+      {
+        "scene": "pressure",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 224,
+        "entry_layout": 72
+      },
+      {
+        "scene": "reverse",
+        "operations": 8000,
+        "allocations": 168000,
+        "reallocations": 0,
+        "requested_bytes": 4032000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 224,
+        "entry_layout": 72
+      },
+      {
+        "scene": "long",
+        "operations": 8000,
+        "allocations": 56000,
+        "reallocations": 0,
+        "requested_bytes": 2336000,
+        "live_bytes_delta": 0,
+        "checksum": 1760000,
+        "cache_layout": 224,
+        "entry_layout": 72
+      },
+      {
+        "scene": "expiry",
+        "operations": 8000,
+        "allocations": 70400,
+        "reallocations": 0,
+        "requested_bytes": 1832000,
+        "live_bytes_delta": 0,
+        "checksum": 1172400,
+        "cache_layout": 224,
+        "entry_layout": 72
+      },
+      {
+        "scene": "expiry-stale",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 1944000,
+        "live_bytes_delta": 0,
+        "checksum": 1172400,
+        "cache_layout": 224,
+        "entry_layout": 72
+      }
+    ],
+    "baseline-c-hot": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ],
+    "expiry1-hot": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ]
+  },
+  "raw_sha256": {
+    "baseline-c-expiry-replace-1.perf": "75022406645c43ce9269338fd688fe6c9d3d4b37d04c5f173ade68034f71fdaf",
+    "baseline-c-expiry-replace-1.json": "7667084881fa60713089dd6fe9f0f759af38874adf105802ca81c9d8cffbd19b",
+    "baseline-c-expiry-replace-2.perf": "7b4278e6206613de6365cec0c8037c4abce8e9c2a40c2bcc630aab808678b7dd",
+    "baseline-c-expiry-replace-2.json": "7667084881fa60713089dd6fe9f0f759af38874adf105802ca81c9d8cffbd19b",
+    "baseline-c-expiry-replace-3.perf": "a138e2a2e7d956e7599a4b6b759eafd1ac103067b016d929f9c3b340b57769f6",
+    "baseline-c-expiry-replace-3.json": "7667084881fa60713089dd6fe9f0f759af38874adf105802ca81c9d8cffbd19b",
+    "expiry1-expiry-replace-1.perf": "d2589ee113c8a245e34cccf4db0c089aa4c7d0851fbeb3568fc4b77a08d8c12e",
+    "expiry1-expiry-replace-1.json": "cbb30f0ffb0dabe3606a6f46743844a5fb3d632f55450b2dc04717e98808fcaa",
+    "expiry1-expiry-replace-2.perf": "25afc922a7a2136f3328d1d8bc481c8b0a2c38c01cec0828fd7c0b86e7c29158",
+    "expiry1-expiry-replace-2.json": "cbb30f0ffb0dabe3606a6f46743844a5fb3d632f55450b2dc04717e98808fcaa",
+    "expiry1-expiry-replace-3.perf": "26a7010e8cd9da78b4a2e89290d5513f7b3fdc9d0893f73c58a2fa30025068ea",
+    "expiry1-expiry-replace-3.json": "cbb30f0ffb0dabe3606a6f46743844a5fb3d632f55450b2dc04717e98808fcaa",
+    "baseline-c-expiry-pressure-1.perf": "c4b55a924824780dc8227cb0698fe78b427bac6aa35ffe3f355ce685c5644320",
+    "baseline-c-expiry-pressure-1.json": "cff32e5f5f50c7e052677694b5faa9e273fa157773427bae0abec7580e5eb1aa",
+    "baseline-c-expiry-pressure-2.perf": "a4023cbbbb82e83156ba9018e6ae8265e6a282ebcbeeac2e0a6c574827e95b0d",
+    "baseline-c-expiry-pressure-2.json": "cff32e5f5f50c7e052677694b5faa9e273fa157773427bae0abec7580e5eb1aa",
+    "baseline-c-expiry-pressure-3.perf": "3bf6a044a2370b071f34879b36a4315411e588b624a535f983aaf3fc45df6777",
+    "baseline-c-expiry-pressure-3.json": "cff32e5f5f50c7e052677694b5faa9e273fa157773427bae0abec7580e5eb1aa",
+    "expiry1-expiry-pressure-1.perf": "89afec92fb9ca1485b1204b111fb53ed1e314902d67829038448b060d1d43130",
+    "expiry1-expiry-pressure-1.json": "9b11ffe27fd09ca399b2a4f538cf80f23e14ab04227954ba87363238d9b4d6d0",
+    "expiry1-expiry-pressure-2.perf": "6584f6309b35e046b4940a61f996c72f59c205a1c0728176e2abd348cda45e65",
+    "expiry1-expiry-pressure-2.json": "9b11ffe27fd09ca399b2a4f538cf80f23e14ab04227954ba87363238d9b4d6d0",
+    "expiry1-expiry-pressure-3.perf": "0f108be7f277341c4a5882a19065ea530c4e8c7e9c5625c618fbcbff2953b321",
+    "expiry1-expiry-pressure-3.json": "9b11ffe27fd09ca399b2a4f538cf80f23e14ab04227954ba87363238d9b4d6d0",
+    "baseline-c-expiry-reverse-1.perf": "08c0b0ddf34958ce240803baf48dd86c4d9e01f4a3c5e4d5a31966878330b246",
+    "baseline-c-expiry-reverse-1.json": "4164cdb5fee3d250983f567ab5851dee52effce1b090376e0c919a03c2f36a15",
+    "baseline-c-expiry-reverse-2.perf": "68bdf34a62d51004ce9a9b8d05d99cfe750a435069d23e4391282ffff5fab36d",
+    "baseline-c-expiry-reverse-2.json": "4164cdb5fee3d250983f567ab5851dee52effce1b090376e0c919a03c2f36a15",
+    "baseline-c-expiry-reverse-3.perf": "e86771a9d105d873b0709f56e7bc3b20de2ab2e7978dc6337bf36bafb585302a",
+    "baseline-c-expiry-reverse-3.json": "4164cdb5fee3d250983f567ab5851dee52effce1b090376e0c919a03c2f36a15",
+    "expiry1-expiry-reverse-1.perf": "e28ab30b771c1d370442e5c0e050b646937e159590d4375d47211a18804692b4",
+    "expiry1-expiry-reverse-1.json": "83b956cebc679b8c6f2d6ce522e8bc3fdc0b623bfbf88d990e29be9bf8066c8e",
+    "expiry1-expiry-reverse-2.perf": "5a04a8ea7d2fc36291626aef45ea7d7a83cbb868629ed12059cdf84267c788f6",
+    "expiry1-expiry-reverse-2.json": "83b956cebc679b8c6f2d6ce522e8bc3fdc0b623bfbf88d990e29be9bf8066c8e",
+    "expiry1-expiry-reverse-3.perf": "5b6e3ee5fa2aec024c918a21aaf19b0ed6d7a31a7ac6e474ecb7cc5ff91c703a",
+    "expiry1-expiry-reverse-3.json": "83b956cebc679b8c6f2d6ce522e8bc3fdc0b623bfbf88d990e29be9bf8066c8e",
+    "baseline-c-expiry-long-1.perf": "290485e650af5f49ae22bce3a60e29028c45fd409eefa664705f8ca4f48f1b48",
+    "baseline-c-expiry-long-1.json": "f2fe79ef9a5ae52f9928d624f77c63188d1d0fc1e7003eadabca307051dce736",
+    "baseline-c-expiry-long-2.perf": "5b935957497af90c833e460ace2723ed53ae90fb0e1f9be1210eb11f3a2b27a9",
+    "baseline-c-expiry-long-2.json": "f2fe79ef9a5ae52f9928d624f77c63188d1d0fc1e7003eadabca307051dce736",
+    "baseline-c-expiry-long-3.perf": "a05c783f3d663f6726327d734ecf818bf17bbe7e063cdeaedb7c8368c24193ed",
+    "baseline-c-expiry-long-3.json": "f2fe79ef9a5ae52f9928d624f77c63188d1d0fc1e7003eadabca307051dce736",
+    "expiry1-expiry-long-1.perf": "848a3a680513049c5b57396d2877290333aeb75887d8aec46759aa387e24094a",
+    "expiry1-expiry-long-1.json": "1956482d8675e28696e5b0dadc159850fc9300c0df53078cda8facf58773676f",
+    "expiry1-expiry-long-2.perf": "49c2068f7d93dc938341cab236db4d912423778d6b5844c23790e89c36c3e0fc",
+    "expiry1-expiry-long-2.json": "1956482d8675e28696e5b0dadc159850fc9300c0df53078cda8facf58773676f",
+    "expiry1-expiry-long-3.perf": "617eda228e49dbb9e87d3a72502f470e5e43bdb1c753490b104aca9b68abc7df",
+    "expiry1-expiry-long-3.json": "1956482d8675e28696e5b0dadc159850fc9300c0df53078cda8facf58773676f",
+    "baseline-c-expiry-expiry-1.perf": "052d4d015e214a359807f8bb21c3a9bb60b89de1d7d58513f9124954d66286d0",
+    "baseline-c-expiry-expiry-1.json": "c5ca8e4727b57d15b1966b3ccc8479d5193aebef415e2c59f7f90564d09b67d6",
+    "baseline-c-expiry-expiry-2.perf": "083ad9800c191c2c780836608b7c8da520dfb3a66dcd0cbb2d7719b598fa170f",
+    "baseline-c-expiry-expiry-2.json": "c5ca8e4727b57d15b1966b3ccc8479d5193aebef415e2c59f7f90564d09b67d6",
+    "baseline-c-expiry-expiry-3.perf": "f40a82bd842c92ca15ee18015ca4259ecd97056da89787c138c6e5848e025ea9",
+    "baseline-c-expiry-expiry-3.json": "c5ca8e4727b57d15b1966b3ccc8479d5193aebef415e2c59f7f90564d09b67d6",
+    "expiry1-expiry-expiry-1.perf": "20bf982e935e1bfa66bc3c4bcdb7241ff31b0c9a1ccfda295582ef90ab63ac16",
+    "expiry1-expiry-expiry-1.json": "fbe4e03a51ec16dcb0f026502ec3bca9c96ed70d53bf47ad6405ff2d94c63e08",
+    "expiry1-expiry-expiry-2.perf": "f27acbf8bedd0ef728e1ab20ab30c41932d270d5127e53727a05dba39f183832",
+    "expiry1-expiry-expiry-2.json": "fbe4e03a51ec16dcb0f026502ec3bca9c96ed70d53bf47ad6405ff2d94c63e08",
+    "expiry1-expiry-expiry-3.perf": "c6dc562bce777a48499de5b52ac81a550758950289b982c2f541a03d6258259f",
+    "expiry1-expiry-expiry-3.json": "fbe4e03a51ec16dcb0f026502ec3bca9c96ed70d53bf47ad6405ff2d94c63e08",
+    "baseline-c-expiry-expiry-stale-1.perf": "a4bea5fcbe780d2a6f27b4da8cf93eca75fdcb5c74d900e3cbeab56470469277",
+    "baseline-c-expiry-expiry-stale-1.json": "66389ade94329ff6de5a7359fbda35a5ccaf304b6c534ad0b3035865a3a9cbab",
+    "baseline-c-expiry-expiry-stale-2.perf": "4f3527d64c28cbd3d9f4e3191807b506b1e20eda31c6a456c45225955187b886",
+    "baseline-c-expiry-expiry-stale-2.json": "66389ade94329ff6de5a7359fbda35a5ccaf304b6c534ad0b3035865a3a9cbab",
+    "baseline-c-expiry-expiry-stale-3.perf": "1fc25bbdd8b0ae30c5f1f2b0bd59f428ed6166435840e056cc7387d3fd6b43ea",
+    "baseline-c-expiry-expiry-stale-3.json": "66389ade94329ff6de5a7359fbda35a5ccaf304b6c534ad0b3035865a3a9cbab",
+    "expiry1-expiry-expiry-stale-1.perf": "d8035ed92921391a166f27455926e976373121ea2ff7301b512967b0fecbe5cb",
+    "expiry1-expiry-expiry-stale-1.json": "87c6dd1a8f808bd292d462b3a87df18fd0b2dc5ce563d1d67a205614d6201108",
+    "expiry1-expiry-expiry-stale-2.perf": "09f1ad287b5fa8b43546f06ca9524fcc411fdee8d74471ce25c6fea8ed7e1f8a",
+    "expiry1-expiry-expiry-stale-2.json": "87c6dd1a8f808bd292d462b3a87df18fd0b2dc5ce563d1d67a205614d6201108",
+    "expiry1-expiry-expiry-stale-3.perf": "289b3398d91904192e9a78c2db34d57e9c35338fbf26adffda557fbf7eb9636f",
+    "expiry1-expiry-expiry-stale-3.json": "87c6dd1a8f808bd292d462b3a87df18fd0b2dc5ce563d1d67a205614d6201108",
+    "baseline-c-expiry-insert-alloc.jsonl": "fdfd8f4a59ee5c62ee2ac297cbdec1d512b48213eb9ec2472042cabf3864e9ec",
+    "expiry1-expiry-insert-alloc.jsonl": "05fd2abf23759a0f0149813b2b926a71cc2672b35e2d249c930c7077a217a064",
+    "baseline-c-expiry-hot-hit-1.perf": "69973a5c01b8950c467ab0145a415eb1d52bee958aa36f4841d6e5536df0e5b5",
+    "baseline-c-expiry-hot-hit-1.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-c-expiry-hot-hit-2.perf": "25997d954098bd345f91d42b1da3326b020e31c5c3825f5cc336a20eae59a3f7",
+    "baseline-c-expiry-hot-hit-2.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-c-expiry-hot-hit-3.perf": "325b1196f3c397680c9b32f3dab6aeccb93db6897b1197b58ac5381609bb3124",
+    "baseline-c-expiry-hot-hit-3.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "expiry1-expiry-hot-hit-1.perf": "04f244705753f8f130b6f16818aa1ec4ddf574f00a1f5069b9638bce079577ae",
+    "expiry1-expiry-hot-hit-1.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "expiry1-expiry-hot-hit-2.perf": "8b725a59c6e4b5b93affe516163e17e8e969d12ecb70ceb79019c71c305d072c",
+    "expiry1-expiry-hot-hit-2.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "expiry1-expiry-hot-hit-3.perf": "b056bf3fec88a830b2d3596a77ad94a80bbbecf50d700144aa284c7b7a728309",
+    "expiry1-expiry-hot-hit-3.json": "046d99c95b283ddde52173580fdc78bd12cc6b43895e8d754de09f45c3ba6d45",
+    "baseline-c-expiry-hot-miss-1.perf": "6459667f3a366d619dcd805a8a5d398f8398b7e3b26926d303b8d24b39e75561",
+    "baseline-c-expiry-hot-miss-1.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-c-expiry-hot-miss-2.perf": "04f71e3ef83308c16dc95a7b44a4ee8a600f6378293ef64bfaac57d6364f458b",
+    "baseline-c-expiry-hot-miss-2.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-c-expiry-hot-miss-3.perf": "05c328dfa76392b4e94d6659c0c7f3d09ce7191c4045ff8fcc5c587134593a8b",
+    "baseline-c-expiry-hot-miss-3.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "expiry1-expiry-hot-miss-1.perf": "8f5c1021afe3a2349b8a50bd996ea1879a143e2656ab81a87167b035d1c5d128",
+    "expiry1-expiry-hot-miss-1.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "expiry1-expiry-hot-miss-2.perf": "55ce95e8892b1020fb2ef06d9b7d1d9e8c528e9527763bc26c4110f5396345e9",
+    "expiry1-expiry-hot-miss-2.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "expiry1-expiry-hot-miss-3.perf": "3b0bca6503b0c4fc78de41cb3184c8b6dd0df2dd8148f978fef7e9e2ae71c07d",
+    "expiry1-expiry-hot-miss-3.json": "5d0d856702f41840a6bb5c3a08fea084b631dcb1d7dae4bbb094bd42bfa173fb",
+    "baseline-c-expiry-hot-rrset-1.perf": "0328f0d7f5fcf53715030a4723996e2e0357055f7fd0e65d6852cd4535cdd42d",
+    "baseline-c-expiry-hot-rrset-1.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-c-expiry-hot-rrset-2.perf": "5a4fc06f65358e7002961496588548bbcf15dbd0dc26f2bb8358906854418fe2",
+    "baseline-c-expiry-hot-rrset-2.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-c-expiry-hot-rrset-3.perf": "39310efac66ad1887c6b5b949b365f9d7cf1e936d10fc78324c6aa1503cb3a25",
+    "baseline-c-expiry-hot-rrset-3.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "expiry1-expiry-hot-rrset-1.perf": "7383fd34d611cad0be176f7d78658c516fca619a00eb475b9d350c32b34b75cf",
+    "expiry1-expiry-hot-rrset-1.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "expiry1-expiry-hot-rrset-2.perf": "be1f67965e2a3a3c86b4375f915ef56a4f3a2931309fc433dcbd6d161e3f2e77",
+    "expiry1-expiry-hot-rrset-2.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "expiry1-expiry-hot-rrset-3.perf": "6cd0e777d86d288ac6aeb3ea8842d1a239bf1617b4a5f9b0851c44f6bab7e944",
+    "expiry1-expiry-hot-rrset-3.json": "33d46ad939bee73273624257c9e28de2d0e86664b4d625b564a160c7e07f9b09",
+    "baseline-c-expiry-hot-host-1.perf": "0a836febeb56d5237461bd3aca8ce571f9f76fbc20cadbb160b69786a2fa4ccf",
+    "baseline-c-expiry-hot-host-1.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-c-expiry-hot-host-2.perf": "57bafc74756710f69628e1cfe27fe57a4f93cefec82bd7ec2c800e427b3a9016",
+    "baseline-c-expiry-hot-host-2.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-c-expiry-hot-host-3.perf": "8e4744a7b8c7f4539900f4cc32a8e59fef95f96132ca0749648f534af3e1bf34",
+    "baseline-c-expiry-hot-host-3.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "expiry1-expiry-hot-host-1.perf": "2369656022e0b1add016f6ac98dd31a58a07805f842a1106c82a120b5629a6db",
+    "expiry1-expiry-hot-host-1.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "expiry1-expiry-hot-host-2.perf": "147e270b2e580491a1541e1af3e94cfaf3fd9acd55a0b00042b5c4802765b4be",
+    "expiry1-expiry-hot-host-2.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "expiry1-expiry-hot-host-3.perf": "0947060141c1130716bb0ed44a75b7326e4536114ba02ce95349aa772d915ec3",
+    "expiry1-expiry-hot-host-3.json": "803db25e45490ecc15260e5b91455f87fa1ba5626575e3f7dfe6367d529036c7",
+    "baseline-c-expiry-hot-cname-1.perf": "6d2eae2a6ae5a300365902562dbff8def8d15a10ccde89b5eec8a4d4b0fb1e81",
+    "baseline-c-expiry-hot-cname-1.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-c-expiry-hot-cname-2.perf": "67793a952cd4057ecbe39519b5897eb0777c1522ffa362f70d17adf9a03b90c3",
+    "baseline-c-expiry-hot-cname-2.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-c-expiry-hot-cname-3.perf": "074c5695eed86e7046f365565c05c1a33b643db0c078555d5b4b5e2bb0c0368b",
+    "baseline-c-expiry-hot-cname-3.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "expiry1-expiry-hot-cname-1.perf": "4cbdf3fc62749fc09d0ccdea937a0e32a30ca53effccb5fba7b0089b195bec87",
+    "expiry1-expiry-hot-cname-1.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "expiry1-expiry-hot-cname-2.perf": "d1306bb65040d5595f5258ad66146bdf4f63e5e92e4b96404b3cc45b48808f14",
+    "expiry1-expiry-hot-cname-2.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "expiry1-expiry-hot-cname-3.perf": "154bb0d8ac4a9e527840b9c29baae7febcf699f0e597c8e4553dff77721709bb",
+    "expiry1-expiry-hot-cname-3.json": "d532f8b55a64b6f4c62991c573c88cfa86cb15626e0ea50379f6a968c995959a",
+    "baseline-c-expiry-hot-cname-config-1.perf": "da2ae986613562d8882cb00ec6e959fde8ba884b2f07279d7a8bc6f6105cb484",
+    "baseline-c-expiry-hot-cname-config-1.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-c-expiry-hot-cname-config-2.perf": "047696b86aa81c56c30fed7ddd1e8b81fd46241682f97a761e151e282dc235f2",
+    "baseline-c-expiry-hot-cname-config-2.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-c-expiry-hot-cname-config-3.perf": "bfedd70e85b9d2a5e73712ee8fd8bbf03fedb7570f2f45f94702b62cab0d0c4d",
+    "baseline-c-expiry-hot-cname-config-3.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "expiry1-expiry-hot-cname-config-1.perf": "7c55a7cd07a087666aa28f62839c88a7eb04b55a73d790c08293d866c387519b",
+    "expiry1-expiry-hot-cname-config-1.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "expiry1-expiry-hot-cname-config-2.perf": "d0ce561e167c6241f95ff22939f6d4752f0424dba050ced87a42fa183b141366",
+    "expiry1-expiry-hot-cname-config-2.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "expiry1-expiry-hot-cname-config-3.perf": "bfd6810c9105a0d23f9dc2dd885455750d8279a0bf35ce9b6a77ca6baaba0fb5",
+    "expiry1-expiry-hot-cname-config-3.json": "9f6f2b59618872176eb437a17c8b16c030c7e28ac89d5ad34b4c207719116179",
+    "baseline-c-expiry-hot-alloc.jsonl": "e010f7117d1b55829999a11b966742c0a00d896805c7b339490c0cf8cf9c7a61",
+    "expiry1-expiry-hot-alloc.jsonl": "e010f7117d1b55829999a11b966742c0a00d896805c7b339490c0cf8cf9c7a61",
+    "expiry1-linux-cache-tests.stdout": "34b2220d2776ec3ec5d33b3559e1b1a2625a45e45f4c966455ec88e3ce9a5def",
+    "expiry1-linux-cache-tests.stderr": "6b6b97254841c5db79d3e9fc693e4761da0fce8d2dc5cc3ba7b6ca5663b355b1",
+    "cache_insert_expiry_probe.rs": "012a1b147cd2b40baae1b6f81eaf60104e7519ae894d6391936f7cc37ae5ea7a",
+    "hotpath-probe-v2.rs": "48782d3b4532761b02b453bba65df59d1f8ddc42e84a1dcfc71a34a54da6bdd0",
+    "expiry1-identity.json": "91882a5af5bb79d745337e0577a9725773cf587e2f37ccd5926da42e40ccacfa"
+  },
+  "artifact_sha256": {
+    "baseline-c-insert-probe": "6abda540df91aeae47b15d43ff9a9c1c2e255b43de266d9ffe3f97c94db29552",
+    "baseline-c-insert-probe-alloc": "a1a9eb2780c31c85c904c75cb538ccca0876dfcc9a2fbedb205970f892aaf911",
+    "baseline-c-hot-probe": "b5877fb0d9206adaf411fb7e96cb6cb7ba462a7aa42f44f43d02b6d8fdcc052c",
+    "baseline-c-hot-probe-alloc": "04d655f5ab93e01aa6cc530d80183dd52e2b512d99e686f839d49ebf6e62e18f",
+    "expiry1-insert-probe": "8ff0c56defcaa72fe5ff89ea089d1716e5ce3aad3c75f045fd9579a3524dd923",
+    "expiry1-insert-probe-alloc": "10ceda360b1d9edb78a0d9309ba39ca1c3b627ea3d64a1cccb83ffaa06055c2f",
+    "expiry1-hot-probe": "060883e2e41b6fbdc338ed1a4907e2647cc351003ce6510a662310b389774065",
+    "expiry1-hot-probe-alloc": "0d8a68ca876155e7fa9a50e52238aac72eb2e6599d4a169133221f6d78460247"
+  },
+  "layout": {
+    "baseline-c": {
+      "cache_layout": 216,
+      "entry_layout": 72
+    },
+    "expiry1": {
+      "cache_layout": 224,
+      "entry_layout": 72
+    }
+  },
+  "all_scoped_allocation_requests_identical": true
+}
