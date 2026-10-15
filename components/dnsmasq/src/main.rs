@@ -4632,14 +4632,15 @@ impl SinglePoll {
         if self.interface_refresh.due_now() && !self.interface_work_pending() {
             return Ok(());
         }
-        // Bound work per turn.  This keeps a busy UDP socket from starving
-        // DHCP, TFTP, reload and TCP admission.
+        // Consume at most one datagram from each ready listener, then return
+        // to level-triggered poll rather than probing that socket for EAGAIN.
+        // Keep the existing cross-listener bound and TCP/service ordering.
         let listeners = self.listeners.len();
         let mut udp_budget = UDP_PACKETS_PER_TURN;
         for index in 0..listeners {
             if udp_budget != 0 {
                 let mut batch = 0;
-                while udp_budget != 0 && self.step_udp(index) {
+                if self.step_udp(index) {
                     udp_budget -= 1;
                     batch += 1;
                 }
@@ -8695,6 +8696,45 @@ mod tests {
     fn udp_turn_budget_is_bounded_for_service_fairness() {
         assert!(UDP_PACKETS_PER_TURN > 1);
         assert!(UDP_PACKETS_PER_TURN <= 64);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn udp_ready_turn_leaves_following_datagrams_for_the_next_poll() {
+        for first_length in [0, 2, 1233] {
+            let mut config = DnsConfig::default();
+            config.bind_interfaces = true;
+            config.no_hosts = true;
+            config.no_resolv = true;
+            config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+            let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+                DaemonOptions::default()).unwrap();
+            let mut owner = test_owner(config, Some(daemon));
+            let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+            let address = udp.local_addr().unwrap();
+            owner.add_listener(SocketToken(1), Some(udp), None);
+            let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+            client.set_nonblocking(true).unwrap();
+            let query = test_dns_query();
+            // Zero selects two valid queries; other cases first consume an
+            // invalid packet, including the existing false-return path.
+            let first = if first_length == 0 { query.clone() } else { vec![0; first_length] };
+            client.send_to(&first, address).unwrap();
+            client.send_to(&query, address).unwrap();
+            owner.wait_for_files().unwrap();
+            owner.step().unwrap();
+            let mut answer = [0; 1232];
+            if first_length == 0 {
+                let (length, _) = client.recv_from(&mut answer).unwrap();
+                assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
+            }
+            assert_eq!(client.recv_from(&mut answer).unwrap_err().kind(), io::ErrorKind::WouldBlock,
+                       "one owner turn must not consume the following datagram");
+            owner.wait_for_files().unwrap();
+            owner.step().unwrap();
+            let (length, _) = client.recv_from(&mut answer).unwrap();
+            assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
+        }
     }
 
     #[test]
