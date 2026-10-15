@@ -153,7 +153,7 @@ try:
                         save()
     verify_sources()
     assert all(sha(base / side) == row['elf_sha256'] for side, row in state['artifacts'].items())
-    assert len(state['rows']) == 480
+    assert len(state['rows']) == 2 * len(plan['phase_order']) * len(plan['scenes']) * (plan['stat_pairs'] + plan['plain_pairs'])
     state['status'] = 'complete'
 except BaseException as error:
     state.update(status='failed_or_stopped', error=repr(error))
