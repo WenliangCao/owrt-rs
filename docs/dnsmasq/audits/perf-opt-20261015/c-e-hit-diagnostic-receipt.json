@@ -1,0 +1,126 @@
+{
+  "scope": "Fresh physical router exact image C versus E: UDP-hit and TCP-hit,5 alternating pairs each,20/20 valid. Diagnostic only,not full candidate acceptance.",
+  "launch_sha256": "4be604c356af6a644000ef958862497e03b8995107c7c06eb702a78cc28fe48c",
+  "preflight_sha256": "5d120d5a77d220aae6522340976ed089ba2402b19190c7a3ffbf82c439f91ba7",
+  "live_preflight_sha256": "8d9f8a564ec7f2383ad2acf1e30011bf0f531170684d9194ee02c3551adc3a22",
+  "postflight_sha256": "cd778c12544ce8b1fc638c46b9d0c6761796f41f7c57bc8697cfc85c07786d80",
+  "production_identity": {
+    "pid_start": [
+      3086,
+      2115
+    ],
+    "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "unchanged": true
+  },
+  "comparison": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+  },
+  "exact_c_image_libraries": {
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+  },
+  "measurement_tools": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+  },
+  "frozen_controller_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+  "frozen_analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "raw_complete": {
+    "windows": 20,
+    "valid": 20,
+    "invalid": 0,
+    "parse_failures": 0,
+    "supplement_windows": 0,
+    "archives_verified": 20,
+    "files_verified": 860
+  },
+  "same_conditions": "Same frozen hit workload:200qps,5s warmup+20s measured,800hotnames,A/AAAA70/30,cache1000,EDNS1232,upstreamTTL120/1ms;UDP32clients,TCP8connections/100responses;original nice/affinity tools,health200ms. Each window prewarms1000UDP queries and observes800upstream requests,then0steadyupstreamrequests. Configurations differ only by their owned output paths; no historical observations pooled.",
+  "cpu_total_scope": "Fresh physical exact image C/E hit accounting; parent plus fully reaped child CPU, warmup+measurement5000 operations; no kernel/user causal attribution from tick splits",
+  "cpu_gap_us_per_operation": {
+    "udp_hit": 62,
+    "tcp_hit": 52
+  },
+  "cpu_child_completeness": {
+    "all_before_and_after_process_counts": 1,
+    "all_parent_pid_start_stable": true,
+    "C_TCP_max_observed_tree_processes": 9,
+    "E_max_observed_tree_processes": 1,
+    "truncated_samples": 0,
+    "children_disappeared_samples": 0,
+    "C_TCP_total_ticks": [
+      58,
+      59,
+      58,
+      59,
+      58
+    ],
+    "C_TCP_waited_child_ticks": [
+      54,
+      55,
+      54,
+      55,
+      54
+    ]
+  },
+  "health": {
+    "segments": 2,
+    "samples": 820,
+    "completed_dns_samples": 318,
+    "completed_dns_failures": 0,
+    "dns_max_ms": 1.216,
+    "completed_http_403": 147,
+    "cancelled_http": [],
+    "minimum_mem_available_kib": 95428,
+    "external_https_200": 56,
+    "external_https_failures": 0,
+    "segment_sha256": {
+      "c-e-hit-diagnostic-tcp-hit-guard-1792080738907671000.jsonl": "a9f9ec907a77e706ff85b06efbf6c75541bf2aa3f0d705200f829707778106ea",
+      "c-e-hit-diagnostic-udp-hit-guard-1792080328709442000.jsonl": "3441b0a05e84b1fff3f1bbd686dbfdc1310a3c0444c44ad5d2be40879f1ee8e8"
+    },
+    "external_sha256": "8971acb37ae3a4229d56749d99922675ca3df68ba202c7e84bc68022062efc4a"
+  },
+  "postflight": {
+    "epoch": 1792081231.940722,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "comparison": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "image_library_hashes": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "available_memory_kib": 103784,
+    "no_active_group": true,
+    "no_STOP": true,
+    "no_owned_live_executables": true,
+    "controller_exited": true,
+    "original_windows": 20,
+    "valid_windows": 20,
+    "supplements": 0,
+    "scope": "Fresh two-scene diagnostic complete; no candidate qualification and no production modification."
+  },
+  "limits": [
+    "This is a fresh diagnostic ofC/E hit gaps,not anF or E full-candidate acceptance run.",
+    "CPU total includes parent and reapedchildren over5000warmup+measured queries. User/system attribution changes sharply across rounds; it does not locate the gap in kernelversususerspace.",
+    "No systemwide hardware profile or per-function causal attribution was collected on the router; the paired gaps need separate mechanism evidence.",
+    "C dynamically links the unchanged image libraries while E is static; ELF/file size and shared memory are not interchangeable with private service cost.",
+    "All20rawwindows retained,no retries/supplements,no productionchanges or deployment."
+  ]
+}
