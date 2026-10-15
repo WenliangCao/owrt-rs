@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "status": "SOURCE_REVIEW_COMPLETE_LOCAL_CHECK_PASSED_RUNTIME_PENDING",
+  "candidate_commit": "1b934951750559c08807db93bb5c4196745cd25c",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "product_file": "components/dnsmasq/src/main.rs",
+  "product_file_sha256": "a0d4278971872e93a9fe8937ab2a36865bdb049aaff5cacc5fe4c7dffdd446d7",
+  "scope": "Local read-only source, test-design and retained compiler-log review of the independent F-based prototype. Reviewer did not run builds or tests, access Oracle/router, or alter product code.",
+  "implementation": {
+    "selection": "Reuse the existing elapsed poll duration: at least 1 ms selects a per-listener limit of 1 true return; a shorter wait selects the existing limit of 16.",
+    "total_budget": "The original shared budget of 16 step_udp true returns remains outside the listener loop in both modes.",
+    "new_clock_calls": 0,
+    "new_network_syscalls": 0,
+    "step_udp_unchanged_from_F": true,
+    "step_udp_body_sha256": "cc597d41737c670813399f911b2ca05a98e7132f406fcc12d0ee10342e3a7437",
+    "mode_is_hint": "Elapsed poll time includes scheduler suspension and EINTR retries. A queued or zero-timeout poll can still take at least 1 ms; high load is not guaranteed to select 16."
+  },
+  "scheduling_and_error_review": [
+    "The change limits repeated calls within a listener; existing fd readiness, initial-files and interface-admission gates remain intact.",
+    "When the limit ends a batch, unread kernel-queued datagrams remain eligible for the next level-triggered poll. No synthetic readiness or extra read was added.",
+    "False returns still end that listener's batch immediately. Oversize and Ok(None) invalidate resend state; WouldBlock/TimedOut preserve it; other receive errors including EINTR invalidate it, as before.",
+    "Short packets, QR packets, ACL rejection and accepted/deferred work still count as true returns. The budget does not count all receive attempts; consumed oversize and other false paths never decremented it and still do not.",
+    "TCP admission still runs once per listener even after UDP exhausts the shared budget. Upstream completions, TCP clients, DHCP, neighbors, deferred EDNS and TFTP retain their existing order afterward.",
+    "Shorter batches allow the existing service boundary to run earlier between queued DNS packets. No within-turn control/service ordering was moved.",
+    "The cooperative DHCP wait path still calls step_udp once per listener independently of this field.",
+    "No round-robin policy was introduced. Fixed listener order retains its existing fairness limits, including possible starvation beyond the shared budget."
+  ],
+  "resolved_finding": {
+    "location": "components/dnsmasq/src/main.rs:4659",
+    "first_check": "E0308: expected u64, found usize in counters.max_batch.max(batch). The new comparison with udp_batch_limit inferred batch as usize.",
+    "fix_in_candidate_commit": "Use counters.max_batch.max(batch as u64).",
+    "review": "The cast is safe for this counter because batch is bounded by the shared constant budget of 16. The correction does not change scheduling."
+  },
+  "local_check": {
+    "reported_by_coordinator": "Local aarch64-unknown-linux-musl cargo all-target check passed after the counter cast correction.",
+    "directly_reviewed_evidence": "The initial stderr contains E0308 and failed binary/binary-test compilation. The corrected stderr has no error diagnostic and ends with Finished dev profile [unoptimized + debuginfo] target(s) in 0.43s.",
+    "warnings": "Compiler warnings remain in the retained logs; this is not a warning-free check.",
+    "receipt": {
+      "file": "linux-check-receipt.json",
+      "sha256": "90c6c4c55182339ccc11b70dbaeb5537f6cfb1e8c65790a13dbac83855799ac5",
+      "provenance": "Coordinator transcription of root exec_command result ccd66a, not an independently generated compiler receipt.",
+      "command": "cargo check --manifest-path <prototype-worktree>/components/dnsmasq/Cargo.toml --target aarch64-unknown-linux-musl --all-targets",
+      "cwd": "Root project worktree",
+      "exit_code": 0,
+      "fixed_log_hashes_match_receipt": true
+    },
+    "receipt_limit": "Command and exit status are bound through the coordinator's tool-result transcription; stderr independently corroborates the successful compiler completion. No independent rerun or Linux runtime execution was performed.",
+    "private_log_directory": "private/idle-batch-20261015 in the prototype worktree",
+    "logs": {
+      "linux-check.stderr": {
+        "bytes": 21283,
+        "sha256": "55430a3588a14617cdf9720eef29ff7676bdc8fd7a3f303343a56c980570f52f"
+      },
+      "linux-check.stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "linux-check-fixed.stderr": {
+        "bytes": 19652,
+        "sha256": "9fb23a03da5c874e77541602b29f3fe546d5cbc42dd191c94756c5ea7ea82817"
+      },
+      "linux-check-fixed.stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "test_design_review": {
+    "name": "udp_idle_batch_preserves_queued_packets_and_busy_budget",
+    "coverage": "Real loopback sockets prequeue one first datagram plus 17 valid queries. Forced limits 1, 16, 1 verify retained work for a valid first packet, a two-byte invalid true-return packet and a 1233-byte oversize false-return packet.",
+    "determinism": "No sleep or concurrent sender is used; modes are selected explicitly so scheduling delays cannot change the expected packet counts.",
+    "valid_packet_sentinel": "first_length=0 selects a normal valid query; it is not a zero-length-datagram case.",
+    "uncovered_by_new_test": [
+      "Actual elapsed-time selection at the 1 ms boundary; each selected field value is overwritten by the fixture.",
+      "Multiple listeners sharing the total budget or TCP/service progress in the same turn.",
+      "Injected receive errors, Ok(None), and the terminal WouldBlock diagnostic counter."
+    ],
+    "existing_source_contracts": "The direct resend preservation/invalidation fixtures and step_udp implementation remain unchanged.",
+    "execution": "Pending. The local cargo check compiles test targets but does not execute the new or existing Linux tests."
+  },
+  "remaining_source_blockers": [],
+  "runtime_qualification": "PENDING",
+  "performance_acceptance": "NOT_EVALUATED",
+  "deployment": "NOT_AUTHORIZED_OR_PERFORMED_BY_THIS_REVIEW",
+  "limitations": [
+    "No runtime pass, SDK qualification or performance improvement is established by this source review and local cargo check.",
+    "Actual mode selection and the low-load/high-load tradeoff require separate measurement; the fixed read-one prototype's results do not transfer to this prototype.",
+    "F remains immutable, and this prototype does not change the accepted E baseline."
+  ]
+}
