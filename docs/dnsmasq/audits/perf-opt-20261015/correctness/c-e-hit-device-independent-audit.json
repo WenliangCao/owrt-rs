@@ -1,0 +1,1192 @@
+{
+  "schema": 1,
+  "audit_status": "PASS",
+  "scope": "Independent local archive, statistics, scope and health audit of the fresh exact-image C/E UDP-hit and TCP-hit diagnostic. Instrumentation-free device windows; no historical pooling; this is not full candidate qualification.",
+  "identities": {
+    "comparison_elf_sha256": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "candidate_E_source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "image_library_hashes": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "library_reference_receipt_sha256": "8d07ca0b3008da5141386398d4739ae871b4fbe7496516e8ed862b4d40b0fa00",
+    "exact_c_interpreter": "/lib/ld-musl-aarch64.so.1",
+    "interpreter_link": "libc.so",
+    "before_after_image_library_hashes_unchanged": true,
+    "every_C_window_live_maps_match_four_image_libraries": true
+  },
+  "inventory": {
+    "attempts": 20,
+    "valid": 20,
+    "supplements": 0,
+    "scenes": [
+      "udp-hit",
+      "tcp-hit"
+    ],
+    "pairs_per_scene": 5,
+    "order": "odd rounds C then E, even rounds E then C",
+    "verified_archives": 20,
+    "verified_files": 860,
+    "archive_index_sha256": "9b6f7f9ddc839c2d10e06a007444ab235c6112e560c9e3438197f8f01f6812b9",
+    "archive_index": [
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r1-c",
+        "archive_sha256": "5511e5b8f31030cb38deffaef07e700c5b58eeb7588e2551aaab11b2706e59d3",
+        "manifest_sha256": "a5d0912d9a51c07cd83c34ab5b3a0487e4b4c9e1aa934877aca07997576c49b9"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r1-rust",
+        "archive_sha256": "c76267548dc1c030d94570bd0df7bd1b57f3a7a69c79870c5ce0880cde0ccf15",
+        "manifest_sha256": "175478f8a814838752308c979ec9901f9ee5d388bc8b4c9b9291d3a7fb05199c"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r2-rust",
+        "archive_sha256": "c36209bfd71300f0563de33bbe916b0449fb9d7f9c9ccb6958e2308e25a0c097",
+        "manifest_sha256": "fc44247f38ceee44821a4d1b569c7da87b3451a674ec6df3a082a26b70cf3f92"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r2-c",
+        "archive_sha256": "0c9706e912cee1d4146848f778b59b97753e30972f04fed24ea761007b0737a4",
+        "manifest_sha256": "5f3f5826308e2a3ac4c1d624c5ded994ab1d6ed3056cd53ec280255ef5b417ec"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r3-c",
+        "archive_sha256": "1584a00cff6db672d613f8067e3e6e8f76829d866f4dbb0283ed647bf33f1a42",
+        "manifest_sha256": "224e663624bd33e8408cabb1ad3e49910051b720e0a14c9c3a73f5a8f1146ad8"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r3-rust",
+        "archive_sha256": "9d49b99ca62aa6657814f806e448d1bb31626533e88c1abf161246728477c27c",
+        "manifest_sha256": "15dc5ce8c2a2cc4974f026e3e5145b8544ca8345346d80f8eb2f0bdb03b28e99"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r4-rust",
+        "archive_sha256": "bc4818ed55408b2ef5dfeb6c27b3c5a6af878ec4c401faf4887cfc0c591d08b4",
+        "manifest_sha256": "8a1cb548ee4280dfdce5d16eedb2060f54f92c160571d93598e77efce4b1ecd5"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r4-c",
+        "archive_sha256": "e7525f0f61b79fe4069be200bd20d60846a3ebd80078c5fa30a9631756d4412b",
+        "manifest_sha256": "bf55c09631b8141c60112ca7491502fdea99771f88ef74adb2f217c62af47adb"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r5-c",
+        "archive_sha256": "70ad5ebec030b143ed003929deae2328a0b6f3279768c795a3622ca5c32401f5",
+        "manifest_sha256": "7725b55842c21da2675f0458c4fafd73539c4462ce6dfb09b14bd8d0227ffb58"
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r5-rust",
+        "archive_sha256": "aef6eef81e4a1c2258f1230ea86bf17550ced07ad7cc8afc8fc07e37dc0aa897",
+        "manifest_sha256": "aa22610f3114e30b7871fdf70c623658420da06740a2c8cda7f6e940ee0c1c39"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r1-c",
+        "archive_sha256": "14105eceb213c74acdac81b2eda2c9c886581bbdd5c3775606623082fdeb3faa",
+        "manifest_sha256": "d1a06894185d973c2a73bcf198b8d97b9b0a20adfff165a7aff7f7cd81d5a134"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r1-rust",
+        "archive_sha256": "c1d01ad553a73b24cdd02d6854feb0f9a0b84157e461c12b808c19efc32eb4e5",
+        "manifest_sha256": "aac00551160695fd9c77aa50c177f575ab0b076d205fbfb1c821f469326679c6"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r2-rust",
+        "archive_sha256": "43de30c6c698e0af29a81cb6ba6c4bc653e9763e551779fb7c15dfe6bf149ae6",
+        "manifest_sha256": "b4313995a4171d5bdb0aa07a4eb0490da437a51e99a9989f49054e6908fbbf3e"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r2-c",
+        "archive_sha256": "234e02b01a9de0834fe3f0c8813f54d0f806ad20298220c2d2ed6da206780cd2",
+        "manifest_sha256": "25a7ee54e383794a7acdbc7b495ccea4d7a2a25be7e30cb9317815dfcef5a5cf"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r3-c",
+        "archive_sha256": "70f82f98d0d43d8abfe7cac2be319b4dd0b74a70ffbfbbd6f7c638eb4727b102",
+        "manifest_sha256": "77a6739e3410eca1a45a43a6205af7eea22674bda250557a1b4f48d27ff6c5d1"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r3-rust",
+        "archive_sha256": "84bf8294134016bdf21e407fdf387cba45a89e8c29831d0a011a5fc4bba0f283",
+        "manifest_sha256": "3818bea64275b9d62cfdca7e3ead642793d0c0a254d7684793a7ed76fc03ef70"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r4-rust",
+        "archive_sha256": "3e09fb36695581aa253e7f6b458ba7c543d845a77525d4feceee97215a505c2d",
+        "manifest_sha256": "53101cc299fb791c1b0204ca915d60d0dab2cefb51e78905235b0fb3fe0983f0"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r4-c",
+        "archive_sha256": "cf8a7463ce76c3a2555f389fad5c09e55e7b4ca143c27d2d9c86368de9e8871b",
+        "manifest_sha256": "c7af32a93771976da34f818588f571b13ba20161ef7602f7b0af76833c82e0c7"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r5-c",
+        "archive_sha256": "94a049eb745c87f65b7dc1565c74c1980c80781d0f297922ada47de4f3a2979c",
+        "manifest_sha256": "9264ce7ba4ae1eceebd57d2fa69758b983bcda9afeca763ae606dbd26e931679"
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r5-rust",
+        "archive_sha256": "12efc4c963aad5f7ae2e42cc59496a172f9095c3675a8c4cde5d3e1f26738ca3",
+        "manifest_sha256": "e2f07f3feafc2498fa242957b97d777d3c4f60d894f4056bf6a673c98c240a7f"
+      }
+    ],
+    "complete_marker_sha256": "2d1d97f46886a66bb0f01a3eb5a22c143faefb3e884950dd23eb9be4de134176",
+    "progress_sha256": "a9233841016d3a3cdc0859beee09382db5c025be3a8ce54c52b2f657b1e47683",
+    "identity_sha256": "543f4d44b8581c27886940935049109522dfd862fc627ee8e3997acc5b0911e9",
+    "unchanged_full_analyzer_complete": false,
+    "full_analyzer_complete_explanation": "The unchanged analyzer requires all 11 scenes. This diagnostic intentionally supplies two scenes; raw marker is complete with20/20valid. No field is overwritten to manufacture full qualification."
+  },
+  "workload": {
+    "normalized_configuration_sha256": "5684f5b57722485a711ce3684ebd274db2cb472f839562556fb8b04aa59ea792",
+    "only_config_fields_normalized": [
+      "pid-file",
+      "log-facility"
+    ],
+    "client_rate_per_second": 200,
+    "UDP_clients": 32,
+    "TCP_clients": 8,
+    "parent_cache_prewarm": "1000 successful UDP hits before CPU endpoints",
+    "warmup_requests": 1000,
+    "measurement_requests": 4000,
+    "cpu_denominator": 5000,
+    "latency_denominator": 4000,
+    "upstream_delay_us": 1000,
+    "upstream_ttl_seconds": 120,
+    "hit_upstream_steady_requests": 0,
+    "tool_hashes": {
+      "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+      "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+    },
+    "frozen_controller_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+    "frozen_analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "source_for_frozen_tools": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "prospective_loadgen_repairs_used": false
+  },
+  "statistical_audit": {
+    "summary_sha256": "da7e84f47b372f79b985e1fcad94020f8144a50626bafd9da21673f660efae2a",
+    "independent_script_sha256": "a113488d6428907fba249407aeab8cc284552b13c13af5eb3423dca33665ad21",
+    "independent_report_sha256": "fbcbd71e84ca2cc9874664087979e04a6d6d363bf2ab447cd98cde21dce8a97e",
+    "discrepancies": [],
+    "comparisons": {
+      "udp-hit": {
+        "p50_ms": {
+          "left_median": 0.142343,
+          "right_median": 0.20659,
+          "relative_change_pct": 45.13534209620424,
+          "W_pct": 3.081289561130509,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95_ms": {
+          "left_median": 0.252755,
+          "right_median": 0.38171,
+          "relative_change_pct": 51.019762220331934,
+          "W_pct": 18.874008427132992,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "cpu_us": {
+          "left_median": 84.0,
+          "right_median": 146.0,
+          "relative_change_pct": 73.80952380952381,
+          "W_pct": 4.761904761904762,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower",
+          "cpu_ticks": {
+            "c": [
+              41,
+              42,
+              41,
+              43,
+              42
+            ],
+            "rust": [
+              71,
+              72,
+              73,
+              73,
+              73
+            ]
+          }
+        }
+      },
+      "tcp-hit": {
+        "p50_ms": {
+          "left_median": 0.185662,
+          "right_median": 0.225364,
+          "relative_change_pct": 21.384020424211748,
+          "W_pct": 7.408459203776996,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95_ms": {
+          "left_median": 0.331236,
+          "right_median": 0.392482,
+          "relative_change_pct": 18.49013996063231,
+          "W_pct": 26.034060160720752,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 116.0,
+          "right_median": 168.0,
+          "relative_change_pct": 44.827586206896555,
+          "W_pct": 7.142857142857142,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower",
+          "cpu_ticks": {
+            "c": [
+              58,
+              59,
+              58,
+              59,
+              58
+            ],
+            "rust": [
+              89,
+              83,
+              85,
+              84,
+              83
+            ]
+          }
+        }
+      }
+    },
+    "observed_discernible_C_to_E_slowdowns": [
+      {
+        "scene": "udp-hit",
+        "metric": "p50_ms",
+        "left_median": 0.142343,
+        "right_median": 0.20659,
+        "relative_change_pct": 45.13534209620424,
+        "W_pct": 3.081289561130509,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      {
+        "scene": "udp-hit",
+        "metric": "p95_ms",
+        "left_median": 0.252755,
+        "right_median": 0.38171,
+        "relative_change_pct": 51.019762220331934,
+        "W_pct": 18.874008427132992,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      {
+        "scene": "udp-hit",
+        "metric": "cpu_us",
+        "left_median": 84.0,
+        "right_median": 146.0,
+        "relative_change_pct": 73.80952380952381,
+        "W_pct": 4.761904761904762,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower",
+        "cpu_ticks": {
+          "c": [
+            41,
+            42,
+            41,
+            43,
+            42
+          ],
+          "rust": [
+            71,
+            72,
+            73,
+            73,
+            73
+          ]
+        }
+      },
+      {
+        "scene": "tcp-hit",
+        "metric": "p50_ms",
+        "left_median": 0.185662,
+        "right_median": 0.225364,
+        "relative_change_pct": 21.384020424211748,
+        "W_pct": 7.408459203776996,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      {
+        "scene": "tcp-hit",
+        "metric": "cpu_us",
+        "left_median": 116.0,
+        "right_median": 168.0,
+        "relative_change_pct": 44.827586206896555,
+        "W_pct": 7.142857142857142,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower",
+        "cpu_ticks": {
+          "c": [
+            58,
+            59,
+            58,
+            59,
+            58
+          ],
+          "rust": [
+            89,
+            83,
+            85,
+            84,
+            83
+          ]
+        }
+      }
+    ],
+    "scope": "Five paired device rounds per scene, unchanged W/direction/CPU precision formulas. C versus E gaps do not contradict earlier deployed-Rust versus E results; they compare different binaries."
+  },
+  "CPU_accounting": {
+    "counter_tick_hz": 100,
+    "one_tick_microseconds_per_operation": 2,
+    "formula": "Delta(parent utime + stime + waited-child cutime + cstime) /100 ticks/sec /5000successful warmup+measurement operations",
+    "all_endpoints_one_unchanged_parent": true,
+    "all_resource_trees_untruncated": true,
+    "C_TCP_sampled_process_peak": 9,
+    "C_TCP_parent_microseconds_per_operation": [
+      8,
+      8,
+      8,
+      8,
+      8
+    ],
+    "C_TCP_reaped_child_microseconds_per_operation": [
+      108,
+      110,
+      108,
+      110,
+      108
+    ],
+    "C_TCP_total_microseconds_per_operation": [
+      116,
+      118,
+      116,
+      118,
+      116
+    ],
+    "component_rows": [
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r1-c",
+        "scene": "udp-hit",
+        "round": 1,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 0,
+          "system_ticks": 41,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 82,
+        "parent_cpu_us_per_operation": 82,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r1-rust",
+        "scene": "udp-hit",
+        "round": 1,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 36,
+          "system_ticks": 35,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 142,
+        "parent_cpu_us_per_operation": 142,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r2-rust",
+        "scene": "udp-hit",
+        "round": 2,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 35,
+          "system_ticks": 37,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 144,
+        "parent_cpu_us_per_operation": 144,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r2-c",
+        "scene": "udp-hit",
+        "round": 2,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 42,
+          "system_ticks": 0,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 84,
+        "parent_cpu_us_per_operation": 84,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r3-c",
+        "scene": "udp-hit",
+        "round": 3,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 13,
+          "system_ticks": 28,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 82,
+        "parent_cpu_us_per_operation": 82,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r3-rust",
+        "scene": "udp-hit",
+        "round": 3,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 36,
+          "system_ticks": 37,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 146,
+        "parent_cpu_us_per_operation": 146,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r4-rust",
+        "scene": "udp-hit",
+        "round": 4,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 37,
+          "system_ticks": 36,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 146,
+        "parent_cpu_us_per_operation": 146,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r4-c",
+        "scene": "udp-hit",
+        "round": 4,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 0,
+          "system_ticks": 43,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 86,
+        "parent_cpu_us_per_operation": 86,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r5-c",
+        "scene": "udp-hit",
+        "round": 5,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 6,
+          "system_ticks": 36,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 84,
+        "parent_cpu_us_per_operation": 84,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-udp-hit-r5-rust",
+        "scene": "udp-hit",
+        "round": 5,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 0,
+          "system_ticks": 73,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 146,
+        "parent_cpu_us_per_operation": 146,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r1-c",
+        "scene": "tcp-hit",
+        "round": 1,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 1,
+          "system_ticks": 3,
+          "waited_child_user_ticks": 50,
+          "waited_child_system_ticks": 4
+        },
+        "total_cpu_us_per_operation": 116,
+        "parent_cpu_us_per_operation": 8,
+        "reaped_child_cpu_us_per_operation": 108,
+        "sampled_process_peak": 9,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r1-rust",
+        "scene": "tcp-hit",
+        "round": 1,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 44,
+          "system_ticks": 45,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 178,
+        "parent_cpu_us_per_operation": 178,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r2-rust",
+        "scene": "tcp-hit",
+        "round": 2,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 20,
+          "system_ticks": 63,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 166,
+        "parent_cpu_us_per_operation": 166,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r2-c",
+        "scene": "tcp-hit",
+        "round": 2,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 0,
+          "system_ticks": 4,
+          "waited_child_user_ticks": 55,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 118,
+        "parent_cpu_us_per_operation": 8,
+        "reaped_child_cpu_us_per_operation": 110,
+        "sampled_process_peak": 9,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r3-c",
+        "scene": "tcp-hit",
+        "round": 3,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 0,
+          "system_ticks": 4,
+          "waited_child_user_ticks": 54,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 116,
+        "parent_cpu_us_per_operation": 8,
+        "reaped_child_cpu_us_per_operation": 108,
+        "sampled_process_peak": 9,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r3-rust",
+        "scene": "tcp-hit",
+        "round": 3,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 31,
+          "system_ticks": 54,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 170,
+        "parent_cpu_us_per_operation": 170,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r4-rust",
+        "scene": "tcp-hit",
+        "round": 4,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 32,
+          "system_ticks": 52,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 168,
+        "parent_cpu_us_per_operation": 168,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r4-c",
+        "scene": "tcp-hit",
+        "round": 4,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 0,
+          "system_ticks": 4,
+          "waited_child_user_ticks": 55,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 118,
+        "parent_cpu_us_per_operation": 8,
+        "reaped_child_cpu_us_per_operation": 110,
+        "sampled_process_peak": 9,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r5-c",
+        "scene": "tcp-hit",
+        "round": 5,
+        "side": "c",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 1,
+          "system_ticks": 3,
+          "waited_child_user_ticks": 54,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 116,
+        "parent_cpu_us_per_operation": 8,
+        "reaped_child_cpu_us_per_operation": 108,
+        "sampled_process_peak": 9,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "c-e-hit-diagnostic-tcp-hit-r5-rust",
+        "scene": "tcp-hit",
+        "round": 5,
+        "side": "rust",
+        "before_after_one_parent_same_starttime": true,
+        "delta_ticks": {
+          "user_ticks": 41,
+          "system_ticks": 42,
+          "waited_child_user_ticks": 0,
+          "waited_child_system_ticks": 0
+        },
+        "total_cpu_us_per_operation": 166,
+        "parent_cpu_us_per_operation": 166,
+        "reaped_child_cpu_us_per_operation": 0,
+        "sampled_process_peak": 1,
+        "tree_truncated": false,
+        "children_disappeared_max": 0,
+        "image_library_map_paths": []
+      }
+    ],
+    "limitations": [
+      "No double-count of live and already-reaped descendants at the endpoints: both endpoints contain only the unchanged parent.",
+      "All raw interim resource rows are retained. Interim child samples are not atomic and are not summed into endpoint CPU.",
+      "User/system proc ticks are recorded separately but their cross-window swing is not accepted as function/kernel attribution; CONFIG_HZ was not inferred from SC_CLK_TCK.",
+      "Component median peaks and timing medians are independently summarized, not exact arithmetic decompositions."
+    ]
+  },
+  "resources": {
+    "udp-hit": {
+      "rss_median_kib": {
+        "deployed_median": 1232.0,
+        "E_median": 2396.0,
+        "delta": 1164.0,
+        "deployed_min_max": [
+          1176.0,
+          1244.0
+        ],
+        "E_min_max": [
+          2380.0,
+          2436.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 1232,
+        "E_median": 2396,
+        "delta": 1164,
+        "deployed_min_max": [
+          1176,
+          1244
+        ],
+        "E_min_max": [
+          2380,
+          2436
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 228,
+        "E_median": 520,
+        "delta": 292,
+        "deployed_min_max": [
+          228,
+          228
+        ],
+        "E_min_max": [
+          516,
+          528
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 752,
+        "E_median": 4,
+        "delta": -748,
+        "deployed_min_max": [
+          696,
+          764
+        ],
+        "E_min_max": [
+          4,
+          4
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 252,
+        "E_median": 1876,
+        "delta": 1624,
+        "deployed_min_max": [
+          252,
+          252
+        ],
+        "E_min_max": [
+          1856,
+          1912
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 1232,
+        "E_median": 2396,
+        "delta": 1164,
+        "deployed_min_max": [
+          1176,
+          1244
+        ],
+        "E_min_max": [
+          2380,
+          2436
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 11,
+        "E_median": 12,
+        "delta": 1,
+        "deployed_min_max": [
+          11,
+          11
+        ],
+        "E_min_max": [
+          12,
+          12
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 11,
+        "E_median": 12,
+        "delta": 1,
+        "deployed_min_max": [
+          11,
+          11
+        ],
+        "E_min_max": [
+          12,
+          12
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      }
+    },
+    "tcp-hit": {
+      "rss_median_kib": {
+        "deployed_median": 1248.0,
+        "E_median": 2592.0,
+        "delta": 1344.0,
+        "deployed_min_max": [
+          1228.0,
+          1248.0
+        ],
+        "E_min_max": [
+          2548.0,
+          2596.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 1248,
+        "E_median": 2592,
+        "delta": 1344,
+        "deployed_min_max": [
+          1228,
+          1248
+        ],
+        "E_min_max": [
+          2548,
+          2596
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 232,
+        "E_median": 716,
+        "delta": 484,
+        "deployed_min_max": [
+          232,
+          232
+        ],
+        "E_min_max": [
+          712,
+          716
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 764,
+        "E_median": 4,
+        "delta": -760,
+        "deployed_min_max": [
+          744,
+          764
+        ],
+        "E_min_max": [
+          4,
+          4
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 252,
+        "E_median": 1872,
+        "delta": 1620,
+        "deployed_min_max": [
+          252,
+          252
+        ],
+        "E_min_max": [
+          1832,
+          1876
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 9376,
+        "E_median": 2592,
+        "delta": -6784,
+        "deployed_min_max": [
+          9088,
+          9808
+        ],
+        "E_min_max": [
+          2548,
+          2596
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 143,
+        "E_median": 20,
+        "delta": -123,
+        "deployed_min_max": [
+          143,
+          143
+        ],
+        "E_min_max": [
+          20,
+          20
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 20,
+        "delta": 1,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          20,
+          20
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 9,
+        "E_median": 1,
+        "delta": -8,
+        "deployed_min_max": [
+          9,
+          9
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 9,
+        "E_median": 1,
+        "delta": -8,
+        "deployed_min_max": [
+          9,
+          9
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "health": {
+    "guard_segments": [
+      {
+        "scene": "tcp-hit",
+        "sha256": "a9f9ec907a77e706ff85b06efbf6c75541bf2aa3f0d705200f829707778106ea",
+        "samples": 410,
+        "covered_windows": 10,
+        "memory_min_kib": 95428,
+        "dns_completed": 158,
+        "dns_max_ms": 1.216,
+        "http_completed": 74,
+        "max_sample_gap_seconds": 1
+      },
+      {
+        "scene": "udp-hit",
+        "sha256": "3441b0a05e84b1fff3f1bbd686dbfdc1310a3c0444c44ad5d2be40879f1ee8e8",
+        "samples": 410,
+        "covered_windows": 10,
+        "memory_min_kib": 99876,
+        "dns_completed": 160,
+        "dns_max_ms": 0.803,
+        "http_completed": 73,
+        "max_sample_gap_seconds": 1
+      }
+    ],
+    "total_guard_samples": 820,
+    "all_window_intervals_covered": true,
+    "external_checks": 56,
+    "external_http200": 56,
+    "external_sha256": "8971acb37ae3a4229d56749d99922675ca3df68ba202c7e84bc68022062efc4a",
+    "no_guard_stop_events": true,
+    "cancelled_terminal_http_probes": 0
+  },
+  "postflight": {
+    "epoch": 1792081231.940722,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "comparison": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "image_library_hashes": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "available_memory_kib": 103784,
+    "no_active_group": true,
+    "no_STOP": true,
+    "no_owned_live_executables": true,
+    "controller_exited": true,
+    "original_windows": 20,
+    "valid_windows": 20,
+    "supplements": 0,
+    "scope": "Fresh two-scene diagnostic complete; no candidate qualification and no production modification.",
+    "receipt_sha256": "cd778c12544ce8b1fc638c46b9d0c6761796f41f7c57bc8697cfc85c07786d80",
+    "production_identity_matches_preflight": true
+  },
+  "conclusion": "This fresh diagnostic confirms a remaining E hit-path gap versus exact C: UDP CPU84→146us/op and TCP116→168us/op, with all five pairs slower. It does not yet attribute the gap to functions, syscalls or kernel cost. Separate whole-process-tree PMU and syscall evidence is required for attribution."
+}
