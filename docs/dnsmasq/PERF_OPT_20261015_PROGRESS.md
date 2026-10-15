@@ -597,3 +597,32 @@ explicit current goal makes discernible UDP-hit improvement the primary
 incremental target; full eleven-scene no-regression/resource/correctness gates
 and original statistical thresholds still apply. This does not relabel E/F
 as a fresh deployed/F comparison or alter E's historical acceptance evidence.
+
+
+## F frozen and SDK complete; fresh correctness started
+
+F source `3a3d8e3e848b93b0309353acfa0033d0b01a7cd0`, tag
+`perf/dnsmasq-candidate-f-20261015`, is exact E plus three separate performance
+commits (admission b49f8ca3, local address 445f3a09, bound pktinfo 3a3d8e3e).
+There are no new behavior repairs. Local address completed all 150 windows:
+12 scenes improve beyond W, three inconclusive, no regressions. Bound pktinfo
+completed all 40 windows: bound burst1/burst16 improve 2.310%/2.212%, five of
+five pairs, while generic controls remain within W. All failed setup attempts
+and original counter increases remain preserved.
+
+The unchanged SDK recipe built F ELF
+`b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc`,
+2,136,859 bytes (same as E); same-link map
+`75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab`.
+Root and correctness independently verified all 179 Git-bound inputs and full
+build receipt `9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40`.
+Public receipt is `candidate-f-build.json`; private ELF/map/build remain under
+`private/perf-opt-20261015/sdk-f` and Oracle `root/private/sdk-f`.
+
+Correctness fresh short runner PID310233 is active; no qualification claim
+until short, original 44/67 and all boundary/corpus gates finish. Then loop
+owns exclusive Oracle full E/F110 and DHCP owns simultaneous router full E/F110.
+Tool identities and incremental criteria were fixed beforehand in
+`F_E_NEXT_ROUND.md`. Router remains idle, production unchanged, old comparator
+staging untouched. Root and DNS prepare later experiments only in isolated
+F-based local worktrees; they must not mutate F or consume Oracle CPU now.
