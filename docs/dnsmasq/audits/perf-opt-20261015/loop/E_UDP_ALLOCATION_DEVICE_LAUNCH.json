@@ -1,0 +1,69 @@
+{
+  "scope": "EXCLUDED count-only; not performance acceptance or candidate release",
+  "epoch": 1792096585.504124,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-e-udp-allocation/udp_allocation_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/E_UDP_ALLOCATION_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-e-udp-allocation/summary.json",
+    "--elf-hash",
+    "3ade51ea60df79824c6c646b9bd035d52720af9ae7c00abca4cc4e1db0cfe108",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/e-udp-allocation-device"
+  ],
+  "source_commit": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "elf_sha256": "3ade51ea60df79824c6c646b9bd035d52720af9ae7c00abca4cc4e1db0cfe108",
+  "elf_bytes": 2358043,
+  "map_sha256": "bff1af4bc826940a594204a5c2fecde1f6ef1478df203d9f7fd8a6c81a13d011",
+  "build_receipt_sha256": "0400e753eab60e495f061af91cc506da9c066414786d725462a1c948b6bca595",
+  "within_existing_release_budget": false,
+  "release_elf_limit_bytes": 2200000,
+  "budget_gate_not_relaxed": true,
+  "plan_sha256": "65d715f66b28f434a3eb4a6f0d0661b615b515d0550ebf5fab748e1c1c1cc64d",
+  "driver_sha256": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1",
+  "validator_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "health_summary_sha256": "10ddb4e3257f8eaa839aa8f7b57c996685592e7c0897b47ee07f319f0fb2aa8c",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.428,
+    "dns_samples": 49,
+    "dns_p95_ms": 0.677,
+    "dns_max_ms": 0.749,
+    "http_samples": 23,
+    "http_max_ms": 89.846,
+    "threshold_ms": 200,
+    "raw_sha256": "6d601dc54ab3bdeb6f6693873d27395d8ccb5ac8cc74768c70acc5f1d63c82be"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "original_staged_hashes": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "staged_diagnostic_verified_before_atomic_rename": true,
+  "restoration_source": "private/perf-opt-20261015/sdk-f/dnsmasq-rs",
+  "source_review_commit": "0783e424",
+  "fixed_windows": 3,
+  "labels": [
+    "e-udp-allocation-r1-rust",
+    "e-udp-allocation-r2-rust",
+    "e-udp-allocation-r3-rust"
+  ],
+  "pid": 81691,
+  "launch_epoch": 1792096585.5066922,
+  "started_utc": "2026-10-15T20:36:25.506692+00:00"
+}
