@@ -6,7 +6,7 @@
       "id": "DNS-1",
       "hypothesis": "Validate encoded names without materializing discarded Name",
       "status": "accepted-screen",
-      "evidence": "D1 hit5\u21924alloc,8RR13\u21925; native instruction -5.78%; v0.2 device conclusion pending",
+      "evidence": "D1 hit5→4alloc,8RR13→5; native instruction -5.78%; v0.2 device conclusion pending",
       "commit": "039fe983"
     },
     {
@@ -34,35 +34,35 @@
       "id": "LOOP-1",
       "hypothesis": "Borrow UDP receive packet until deferred state needs ownership",
       "status": "accepted-screen",
-      "evidence": "Actual owner11\u219210alloc/query,566\u2192538allocatedB, buffer restored everycall",
+      "evidence": "Actual owner11→10alloc/query,566→538allocatedB, buffer restored everycall",
       "commit": "872190e1"
     },
     {
       "id": "LOOP-2",
       "hypothesis": "Keep TCP prefix separate and write vectored; direct complete inbound frame copy",
       "status": "accepted-screen",
-      "evidence": "One less allocation/payload copy per outbound;32/1232/65535B screen -37/-45/-50%instructions; fragmented overhead10\u201318instructions retained; small capacity retention cost",
+      "evidence": "One less allocation/payload copy per outbound;32/1232/65535B screen -37/-45/-50%instructions; fragmented overhead10–18instructions retained; small capacity retention cost",
       "commit": "9ef559e5"
     },
     {
       "id": "LOOP-4",
       "hypothesis": "Reuse upstream poll fd/token scratch",
       "status": "accepted-screen",
-      "evidence": "1000 pending polls2000alloc/16000B\u21920 afterwarmup;16B/socket high-water+48Binline retained; no timer/readiness shortcut",
+      "evidence": "1000 pending polls2000alloc/16000B→0 afterwarmup;16B/socket high-water+48Binline retained; no timer/readiness shortcut",
       "commit": "e324db85"
     },
     {
       "id": "DHCP-1",
       "hypothesis": "Encode lease hex fields in bounded stack chunks",
       "status": "accepted-screen",
-      "evidence": "150leases Write calls4665\u21922400 (not syscalls), instruction-46.83%; five-pair instrumented local serializer time-46.75%",
+      "evidence": "150leases Write calls4665→2400 (not syscalls), instruction-46.83%; five-pair instrumented local serializer time-46.75%",
       "commit": "44af09dc"
     },
     {
       "id": "DHCP-2",
       "hypothesis": "Borrow already canonical lease lookup keys",
       "status": "accepted-screen",
-      "evidence": "150lookup allocations150\u21920; native instructions-22.15%screen",
+      "evidence": "150lookup allocations150→0; native instructions-22.15%screen",
       "commit": "06ecb4a3"
     },
     {
@@ -83,21 +83,21 @@
       "id": "HOSTS-3d",
       "hypothesis": "Keep per-name count instead of heap vector",
       "status": "accepted-screen",
-      "evidence": "Plain five-pair timing 8hosts\u22124.40%/W2.43%,1000\u22129.50%/W1.95%; clone+source-remove+0.42% withinW1.81%,3/5 adverse, no discernible regression",
+      "evidence": "Plain five-pair timing 8hosts−4.40%/W2.43%,1000−9.50%/W1.95%; clone+source-remove+0.42% withinW1.81%,3/5 adverse, no discernible regression",
       "commit": "5c2c985b"
     },
     {
       "id": "DHCP-4",
       "hypothesis": "Borrow publication keys and update already-existing ancestor expiry",
       "status": "accepted-screen",
-      "evidence": "150FQDN+short publication plain CPU\u22126.36%,W0.655%,5/5; instr\u22125.69%,alloc1832\u21921234",
+      "evidence": "150FQDN+short publication plain CPU−6.36%,W0.655%,5/5; instr−5.69%,alloc1832→1234",
       "commit": "745212bb"
     },
     {
       "id": "DHCP-5",
       "hypothesis": "Batch lease fixed prefix formatting and use one sort",
       "status": "rejected",
-      "evidence": "Write calls2400\u2192750 but instructions+22\u201327%; single-sort portion\u22642.2% of serializer and less whole-daemon benefit; reverted",
+      "evidence": "Write calls2400→750 but instructions+22–27%; single-sort portion≤2.2% of serializer and less whole-daemon benefit; reverted",
       "commit": "9111b803"
     },
     {
@@ -111,21 +111,21 @@
       "id": "CACHE-CLEAR1",
       "hypothesis": "Check COW uniqueness once per block when clearing",
       "status": "accepted-screen",
-      "evidence": "100k clear1000 instructions9.281B\u21924.034B; same allocation counts, contents/drop order, antiABA generations",
+      "evidence": "100k clear1000 instructions9.281B→4.034B; same allocation counts, contents/drop order, antiABA generations",
       "commit": "505c0df6"
     },
     {
       "id": "CACHE-CLEAR2",
       "hypothesis": "Reuse unique zero-capacity empty name roots",
       "status": "accepted-screen",
-      "evidence": "Clear uniqueempty65alloc/4608B\u21920; combinedinstruction9.281B\u21922.412B; shared/allocated roots still replace duringclear; startupallocation unchanged",
+      "evidence": "Clear uniqueempty65alloc/4608B→0; combinedinstruction9.281B→2.412B; shared/allocated roots still replace duringclear; startupallocation unchanged",
       "commit": "d48c0568"
     },
     {
       "id": "EXIT-1",
       "hypothesis": "Retire pure cache memory at final successful process exit",
       "status": "accepted-screen",
-      "evidence": "106\u21927 dealloc,96033\u21922785B allocator cleanup; FD4\u21924; onlyterminal main return, allIO Drop retained",
+      "evidence": "106→7 dealloc,96033→2785B allocator cleanup; FD4→4; onlyterminal main return, allIO Drop retained",
       "commit": "83536032"
     },
     {
@@ -148,8 +148,51 @@
       "status": "rejected",
       "evidence": "Actual SDK ACK profile metrics0.046%control/0.124%A samples; expected whole daemon benefit below device variation/CPU precision; no extra gates added",
       "commit": ""
+    },
+    {
+      "id": "SOCKET-FLAGS",
+      "hypothesis": "Set nonblocking and close-on-exec flags during upstream UDP socket creation",
+      "status": "accepted-screen",
+      "evidence": "5000 UDP sockets each saved1 ioctl+1 fcntl; six1000-call factory controls preserve flags/binding/random/FD semantics; fullcandidate timing pending",
+      "commit": "95403890"
+    },
+    {
+      "id": "DHCP-6",
+      "hypothesis": "Store one lease-name index inline until multiple records exist",
+      "status": "accepted-screen",
+      "evidence": "Plain owner publication native instructions6leases−6.27%,150−8.59%; combined D6D7 quiet timing below",
+      "commit": "f2c5ce8b"
+    },
+    {
+      "id": "DHCP-7",
+      "hypothesis": "Share immutable lease-input/name/index bytes while preserving mixed-case spelling",
+      "status": "accepted-screen",
+      "evidence": "D6D7 vs D3dD4 complete ownerpublication6−15.15%W1.21%,150−18.20%W7.19%,5/5; triplelookup+0.256%withinW12.60%. Local integrated703lib tests pass; exactSDK/Linux/device pending",
+      "commit": "b4532991"
+    },
+    {
+      "id": "OWNER-INLINE",
+      "hypothesis": "Inline common singleton upstream socket owner",
+      "status": "rejected",
+      "evidence": "~610instructions saved/single lifetime (model0.37%miss);150-owner adds1373; belowfrozen deviceprecision/noise",
+      "commit": "dbb19f92"
+    },
+    {
+      "id": "UPSTREAM-POLL",
+      "hypothesis": "Reuse owner readiness to omit nested zero-timeout poll",
+      "status": "rejected-before-product-code",
+      "evidence": "Projected upper1.99%miss instructions versus deployed4.60%CPU range/3.07%CPU precision; required token/error/order safeguards would reduce benefit",
+      "commit": "dbb19f92"
+    },
+    {
+      "id": "CURSOR-2",
+      "hypothesis": "Reuse query-local cache-name inspection",
+      "status": "rejected",
+      "evidence": "Plain fixedbaseline hit−13.12%,miss−21.92%;400configuredCNAME+8.54%W0.17%5/5regression. Wholeattempt retained; equalinstructions butcycles+8.6%; investigating allocatingalias scan independently",
+      "commit": "71e7178d"
     }
   ],
-  "candidate_a_status": "rejected_pending_stale_metadata_gate_root_cause; no device/performance qualification",
-  "candidate_b_status": "unqualified, inherits A gate hold and needs all new combination gates"
+  "candidate_a_status": "rejected: stale1098/1100 plus historical UBus registry346/350 mismatch; no retroactive qualification",
+  "candidate_b_status": "rejected: inherited stale compatibility defect; not measured on device",
+  "candidate_c_status": "being assembled with authorized separate stale fix and UBus metadata amendment; not yet frozen/qualified"
 }

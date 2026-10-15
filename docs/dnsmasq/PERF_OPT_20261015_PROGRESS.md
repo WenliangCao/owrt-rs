@@ -89,3 +89,27 @@ assertions/negative controls unchanged. Original freeze manifests remain intact;
 `correctness/ubus-inventory-amendment.json` binds both hashes, patch and consent.
 The fresh finalist still requires all44families; this is not a gate waiver or
 retroactive A/B pass.
+
+## Selected mechanisms and harness readiness, morning continuation
+
+User authorized autonomous necessary research/bug/tool fixes with small commits;
+continue performance mainline without repeated routine approval questions.
+Original no deployment/main merge/push boundary remains.
+
+Root integrated atomic UDPflags95403890 (six factory controls, independent
+review), D6 f2c5ce8b and D7 b4532991 (combined complete ownerpublication15–18%
+quiet improvement, no discernible lookup regression). Local all-target compile
+passes;703lib tests pass/8existing ignored. These do not replace frozen Linux
+and exactC gates.
+
+Cursor2 rejected: configuredCNAME+8.54% versusW0.17 despite hit−13.12%/miss−21.92%.
+Retain all timing, investigate allocating alias scan independently. DNS insertion
+nonallocating size/clone variant under quiet screen; DHCP same-call hosts bucket
+variant has a multi-record lookup counter concern and is not selected.
+
+Oracle full runner lifecycle helper requires real /tmp directory. b6fcc0c9
+uses owned /tmp scratch, verifies archived persistent copies before cleanup,
+retains interrupted windows, and marks explicit2window smoke asnonacceptance.
+Both full-duration baseline smoke windows passed. Correctness scheduler bd8eb22f
+permits3 isolated families concurrently and preserves exact44families/67jobs;
+full timing remains globally exclusive.
