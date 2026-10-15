@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "status": "preregistered exploratory fixed10; ELF/map/build download and local source verification pending; no workload started",
+  "status": "frozen exploratory fixed10; SDK identities and179source verified; fresh health pending; no workload started",
   "scope": "Exploratory unqualified F/udp-idle-batch A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
   "reason": "Direct A53 test of independent F-based adaptive idle/busy UDP batching after the Oracle screen; no name-buffer or layout changes combined.",
   "source_commit": "1b934951750559c08807db93bb5c4196745cd25c",
   "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "source_files_verified": null,
+  "source_files_verified": 179,
   "elf_sha256": "18794b7266a2c1f7ac5993fe5c01e955769afce178703d38ebefa5bc88ac23e2",
-  "elf_bytes": null,
-  "map_sha256": null,
+  "elf_bytes": 2136859,
+  "map_sha256": "9067bf018df09b6076b2cb3ab807523492c8560e41e3bdaa2392743b5bcef98a",
   "build_receipt_sha256": "c8289db977d34366b369c5634dfb79c99334e54181a617a250c1e857889e5948",
   "prior_gate_scope": "Related Linux83+4 passed in c38108d9. Prior Oracle low-load EAGAIN reduction is separate evidence, not a measured A53 syscall count; full44 is incomplete.",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
@@ -154,8 +154,7 @@
   "automatic_replacement": false,
   "source_inputs_expected": 179,
   "pending_before_launch": [
-    "Wait for explicit Oracle transfer gap; read-only download ELF/map/build, verify full hashes and all179 source files.",
-    "Bind final map/build/ELF size identities before fresh health/launch; no workload starts with pending identities.",
     "Previous diagnostic postflight complete; fresh>=120s health and exact originalE/F restoration/source copies required."
-  ]
+  ],
+  "artifact_verification_receipt_sha256": "c979aabd4a11ce86b8eda801d7499255296e515c653bc543df818105b23d4b2d"
 }
