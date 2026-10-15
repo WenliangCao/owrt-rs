@@ -1,0 +1,99 @@
+{
+  "status": "prepared-not-started-awaiting-root-quiet-grant",
+  "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "candidate_source": "60c3bdf29905eb3ef4cbd1f18f6447b10b56826d",
+  "baseline_label": "baseline-e",
+  "candidate_label": "insert-key2",
+  "cpu": 2,
+  "allocator": "uninstrumented System",
+  "pairs": 5,
+  "pair_order": [
+    [
+      "baseline-e",
+      "insert-key2"
+    ],
+    [
+      "insert-key2",
+      "baseline-e"
+    ],
+    [
+      "baseline-e",
+      "insert-key2"
+    ],
+    [
+      "insert-key2",
+      "baseline-e"
+    ],
+    [
+      "baseline-e",
+      "insert-key2"
+    ]
+  ],
+  "matrices": [
+    {
+      "probe_suffix": "-insert-probe",
+      "operations": 50000,
+      "scenes": [
+        "replace",
+        "pressure",
+        "reverse",
+        "long",
+        "short",
+        "replace-upper",
+        "pressure-upper",
+        "reverse-upper",
+        "short-upper"
+      ],
+      "output": "timing-insert-key2-final.json"
+    },
+    {
+      "probe_suffix": "-hot-probe",
+      "operations": 500000,
+      "scenes": [
+        "hit",
+        "miss",
+        "rrset",
+        "host",
+        "cname"
+      ],
+      "output": "timing-insert-key2-final-hot.json"
+    },
+    {
+      "probe_suffix": "-hot-probe",
+      "operations": 10000,
+      "scenes": [
+        "cname-config"
+      ],
+      "output": "timing-insert-key2-final-config.json"
+    }
+  ],
+  "declared_windows": 150,
+  "artifact_sha256": {
+    "baseline-e-insert-probe": "94f5a7685047ebe01a3728344a9abc20bffe4bb5f7300f79f944fe82c98b546e",
+    "insert-key2-insert-probe": "1f7858b34af5d24f48126a5f70ec612ddb3577b3720fda56f198db87718f54bb",
+    "baseline-e-hot-probe": "12cc8f97921d3352aafb75a603471ba365b20361832f49327b32e0f7188dce7f",
+    "insert-key2-hot-probe": "da0ee4e7fd7a6afcd24fe8f004afe9aab57cec14e5604cfe45426a49d09b9f33"
+  },
+  "source_receipt": {
+    "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "candidate_product_source": "60c3bdf29905eb3ef4cbd1f18f6447b10b56826d",
+    "baseline_files_verified": 172,
+    "changed_files_verified": 2,
+    "source_e_unchanged": true,
+    "identity_sha256": "1c17aedb21aaacfe1697217567f79685ab08d29b8ced565104fbe6cc00410cee",
+    "patch_sha256": "8ca20626eb203258941e0d89ee0d99f0c2146c7f3058b13d947f14701c7dbd71",
+    "probe_sha256": "6f55057cd7248444262a19787e4cf136960fdb4d1f9bbdbd07b739929c1d9830"
+  },
+  "runner": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/run_hotpath_timing.py",
+  "raw_directory": "/home/ubuntu/dnsmasq-perf-20261015/dns/private",
+  "rules": [
+    "Start only after root explicitly grants the quiet slot.",
+    "Verify every plain artifact against fixed SHA256 before first timed process.",
+    "Keep all150declaredwindows;no replacements or favorable-result repeats.",
+    "No allocation instrumentation or perf process in timing windows.",
+    "Whole-process CPU includes common fixture creation and priming;no devicegain inference.",
+    "Derive medians/fullrangeW/fivepairdirection from the complete matrix;retain every control regression.",
+    "No automatic product integration.",
+    "Retrieve onlysmall derivedsummary;rawremainsOracle untildevice ends."
+  ]
+}
