@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "status": "RELATED_LINUX_GATES_PASSED",
+  "scope": "Independent F-based UDP idle-batch native musl test build and existing isolated Linux bin plus four ignored-live gates; CPU1 nice10 one build job; no performance acceptance claim.",
+  "candidate_commit": "1b934951750559c08807db93bb5c4196745cd25c",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_identity_sha256": "d6d79334d65bf2d1f45952de6ee9dbce534703fb4191c393c91846554f93e574",
+  "source_inputs_verified_before": 179,
+  "source_inputs_verified_after": 179,
+  "runner_sha256": "1ee811bebc28b556298b3108c12f4baa91c43bed39bd756d2655490102f27abd",
+  "affinity": [
+    1
+  ],
+  "nice": 10,
+  "build_jobs": 1,
+  "started_epoch": 1792096014.5616665,
+  "finished_epoch": 1792096086.3996031,
+  "verified_epoch": 1792096178.2645297,
+  "build_receipt_sha256": "3575291d7880f98f01e3ac0c01603e4c2b0466776674251deb1e859bc63efd83",
+  "artifacts": [
+    {
+      "path": "bin-dnsmasq-rs",
+      "bytes": 50973544,
+      "sha256": "f3e0a9d11b600edda253ef0292e84d1d4f69afe85bc2c2af90f5a930da8f172c"
+    },
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 71951704,
+      "sha256": "798498a55bc3123784df85fabb49708b64ecd5891baf9265d71702ef6f98efd5"
+    }
+  ],
+  "commands": [
+    {
+      "name": "build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-idle-batch/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-idle-batch",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-idle-batch-linux-gates-20261015/udp-idle-batch/tests",
+        "tests"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 67.16156053543091,
+      "stdout_sha256": "3b3b3b57f4825a63fe7efa71d7fae94f3fe2baec4f9afb844a285b28a336cff2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bin",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-idle-batch/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-idle-batch-linux-gates-20261015/udp-idle-batch/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 4.274404287338257,
+      "stdout_sha256": "ce28326e00280214e06f788e470e65358888a70fb0410bb98fdfc1eba253e195",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 83 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 4.23s"
+      ],
+      "passed": 83,
+      "failed": 0,
+      "ignored": 4,
+      "binary_sha256": "f3e0a9d11b600edda253ef0292e84d1d4f69afe85bc2c2af90f5a930da8f172c"
+    },
+    {
+      "name": "bin-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-idle-batch/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-idle-batch-linux-gates-20261015/udp-idle-batch/tests/bin-dnsmasq-rs",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.15110230445861816,
+      "stdout_sha256": "aec9af05dea35585fc6eb843fcbfa6619497c1b02dd4130f9c584082d81238e6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 83 filtered out; finished in 0.11s"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "binary_sha256": "f3e0a9d11b600edda253ef0292e84d1d4f69afe85bc2c2af90f5a930da8f172c"
+    }
+  ],
+  "total_tests_passed": 87,
+  "new_udp_queue_test": {
+    "name": "tests::udp_idle_batch_preserves_queued_packets_and_busy_budget",
+    "passed": true
+  },
+  "ignored_live_test_names": [
+    "tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind",
+    "tftp_admission_tests::tftp_label_exception_resumes_the_original_rrq_without_another_packet",
+    "tftp_admission_tests::tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector",
+    "tftp_admission_tests::tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name"
+  ],
+  "all_log_hashes_rechecked": true,
+  "both_artifact_hashes_rechecked": true,
+  "all_builds_and_tests_exited": true,
+  "owned_live_processes": [],
+  "raw_result_sha256": "07ce22ba75e31ceceb18c21fd4f4f77ed4d620d5f4fc16d0faa034fa67678ee6",
+  "verified_receipt_sha256": "b1f9f159318e4f988b55f7cbeeb3ea212ca360ff65dc7027685944416c60ed0a",
+  "limitations": [
+    "Native musl debug test artifacts and the original bin/ignored selections; no library runtime suite or full candidate qualification is claimed.",
+    "The separate SDK builder ran on CPU0 with coordinator authorization. These functional gates are not timing or performance measurements.",
+    "The real socket test forces 1/16 scheduling modes; actual elapsed-poll mode selection and its performance tradeoff remain unmeasured.",
+    "Raw logs and both test binaries remain on Oracle; only derived receipts were transferred. Neither test artifact is deployable firmware or an accepted SDK candidate.",
+    "E remains accepted, F is unchanged, and this independent prototype is not promoted by these checks."
+  ]
+}
