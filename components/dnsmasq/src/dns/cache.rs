@@ -746,7 +746,7 @@ impl Cache {
             }
             slot
         };
-        let long = record.name.dnsmasq_bytes().len() >= 75;
+        let long = record.name.dnsmasq_bytes_len() >= 75;
         if long && self.long_names >= self.slots.len() / 10 {
             return self.fail(InsertError::LongNameLimit);
         }
@@ -916,20 +916,19 @@ impl Cache {
                 continue;
             }
             let capacity = self.slots.len();
-            let (key, reverse, name) = {
+            let (key, reverse_name) = {
                 let entry = self.entry_mut(slot).as_mut().unwrap();
                 entry.committed = true;
                 (
                     entry.record.name.canonical_wire(),
-                    entry.record.kind.is_reverse(),
-                    entry.record.name.clone(),
+                    entry.record.kind.is_reverse().then(|| entry.record.name.clone()),
                 )
             };
             self.names_shard_mut(&key)
                 .entry(Arc::from(key.into_boxed_slice()))
                 .or_default()
                 .push(slot);
-            if reverse {
+            if let Some(name) = reverse_name {
                 let bucket = reverse_bucket(&name, capacity);
                 let mut at = self.reverse_chain.partition_point(|&old| {
                     reverse_bucket(&self.entry(old).unwrap().record.name, self.slots.len()) < bucket
@@ -1172,7 +1171,7 @@ impl Cache {
 
     fn free(&mut self, slot: usize) {
         let entry = self.entry_mut(slot).take().unwrap();
-        self.long_names -= usize::from(entry.record.name.dnsmasq_bytes().len() >= 75);
+        self.long_names -= usize::from(entry.record.name.dnsmasq_bytes_len() >= 75);
         self.slots[slot].prev = self.tail.map(slot_link);
         self.slots[slot].next = None;
         if let Some(tail) = self.tail {

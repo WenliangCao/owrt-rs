@@ -133,9 +133,24 @@ fn maximum_name_uses_wire_length_even_for_escaped_bytes() {
     let (name, next) = decode_name(&packet, 0, 0).unwrap();
     assert_eq!(next, 255);
     assert_eq!(name.dnsmasq_bytes().len(), 503);
+    assert_eq!(name.dnsmasq_bytes_len(), 503);
     packet[192] = 62;
     packet.push(0);
     assert_eq!(decode_name(&packet, 0, 0), Err(WireError::NameTooLong));
+}
+
+#[test]
+fn escaped_length_matches_materialized_binary_names() {
+    assert_eq!(Name::root().dnsmasq_bytes_len(), 0);
+    for byte in 0..=255 {
+        for length in [1, 37, 46, 63] {
+            let mut packet = vec![length];
+            packet.extend(std::iter::repeat_n(byte, length as usize));
+            packet.extend_from_slice(&[3, b'e', b'n', b'd', 0]);
+            let (name, _) = decode_name(&packet, 0, 0).unwrap();
+            assert_eq!(name.dnsmasq_bytes_len(), name.dnsmasq_bytes().len());
+        }
+    }
 }
 
 #[test]
