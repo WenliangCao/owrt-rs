@@ -1,0 +1,51 @@
+{
+  "pid": 43894,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "tools/dnsmasq/perf_opt_device_run.py",
+    "--out",
+    "private/perf-opt-20261015/candidate-e",
+    "--prefix",
+    "candidate-e",
+    "--c-hash",
+    "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "--rust-hash",
+    "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "--health-baseline",
+    "private/perf-opt-20261015/health/summary.json"
+  ],
+  "epoch": 1792073625.280458,
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "candidate_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "candidate_bytes": 2136859,
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "frozen_tool_hashes": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+  },
+  "qualification_result_sha256": "fbd24e2dfda70ecf200729cb9c90593a8596f555d294e98641d9dde539886def",
+  "preflight_sha256": "220abc81fb117bba340b4cd5794ef22feb2a75aad8bdf5434771dc1b3d23f624",
+  "stage": {
+    "start_epoch": 1792073624.533698,
+    "end_epoch": 1792073625.28056,
+    "write_path": "/tmp/dnsmasq-perf-20261015/dnsmasq-rust.new",
+    "verified_before_rename": true,
+    "mode": "755"
+  },
+  "controller_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+  "scope": "User-authorized DHCP agent router ownership; full fresh110 deployed/E temporary loopback-only pairs, simultaneous independent Oracle screen permitted; production unchanged, no deployment/flash/packages/config changes.",
+  "launch_receipt_sha256": "47da5761771efe26237e7db306cc655dc87fa529881f9aab762fe1cf47facb30",
+  "stage_scope": "D staging had never launched a device workload. Replaced only the owned temporary dnsmasq-rust file with verified E; original deployed daemon and physical configuration unchanged.",
+  "acceptance_status": "Running, no performance acceptance claim. All110 attempted windows will remain retained; no replacements or pooling."
+}
