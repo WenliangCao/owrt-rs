@@ -153,9 +153,10 @@ def parse(lines, root_pid):
                 continue
             name = entry[1]
             calls[pid][name]['entered'] += 1
-        if '<unfinished ...>' in body:
+        unfinished = next((marker for marker in ('<unfinished ...>', '<detached ...>') if marker in body), None)
+        if unfinished:
             assert pid not in pending
-            pending[pid] = (name, body.split('<unfinished ...>')[0])
+            pending[pid] = (name, body.split(unfinished)[0])
             continue
         row = calls[pid][name]
         row['completed'] += 1

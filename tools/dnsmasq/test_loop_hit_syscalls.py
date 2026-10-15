@@ -14,7 +14,7 @@ class TraceTests(unittest.TestCase):
             '11 1.000050 exit_group(0) = ?\n',
             '11 1.000060 +++ exited with 0 +++\n',
             '10 1.000070 <... ppoll resumed>) = -1 EINTR (Interrupted system call)\n',
-            '10 1.000080 ppoll([{fd=3, events=POLLIN}], 1, NULL, NULL, 8 <unfinished ...>\n',
+            '10 1.000080 ppoll([{fd=3, events=POLLIN}], 1, NULL, NULL, 8 <detached ...>\n',
         ]
         parsed = parse(rows, 10)
         self.assertEqual(parsed['parents'], {11: 10})
