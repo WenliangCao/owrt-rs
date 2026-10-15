@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "status": "software perf not established usable; evidence strongly supports missing perf core, not merely missing hardware PMU",
+  "observed_final_CONFIG_PERF_EVENTS": null,
+  "inference": "The valid software task-clock self probes returned ENOSYS on kernel6.12.94; current whole event_source bus and perf sysctl are absent. This matches perf core being compiled out. Final .config cannot be read, so do not present CONFIG_PERF_EVENTS=n as directly observed.",
+  "historical_software_probe": {
+    "record": "docs/reviews/r137-registration-phase-results.json",
+    "record_sha256": "7290e494ef991609291f01d6735108aa2a8223be162785b4386b2a5f05723d8b",
+    "caller_ELF_sha256": "4930759767aeadb8f5c3267a1346a2d76e75862cd8575da59881a81081c68d0f",
+    "source": "tools/benchmark/src/registration_phase.rs",
+    "source_sha256": "f3905bcdf72725fe6166707b3fbc554da18d325c8be305c26ba08ea4e5abe926",
+    "syscall_number_aarch64": 241,
+    "attr_size": 64,
+    "type": 1,
+    "config": 1,
+    "event": "PERF_COUNT_SW_TASK_CLOCK",
+    "disabled": true,
+    "context_switch": true,
+    "sample_type": 0,
+    "pid": 0,
+    "cpu": -1,
+    "group_fd": -1,
+    "flags": 0,
+    "opened_events_enabled": false,
+    "fd_closed_immediately_if_opened": true,
+    "results": {
+      "cases": 24,
+      "available_cases": 0,
+      "errno": 38,
+      "errno_name": "ENOSYS",
+      "scope": "disabled self task-clock/context_switch perf_event_open capability probe only"
+    },
+    "same_caller_Oracle_smoke": "Previously succeeded there; this is only ABI/tool sanity, not router capability. No new Oracle operation occurred.",
+    "kernel_txt_sha256": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+    "kernel_version_bytes_match_current": true
+  },
+  "current_inventory": {
+    "capture_sha256": "2f17935985807adc5d567ff021e1ec64a932fef2dc9de10da2e82188de922b00",
+    "captured_utc": "2026-10-15T20:17:54.302332+00:00",
+    "kernel": "6.12.94",
+    "reader_uid": 0,
+    "reader_seccomp": 0,
+    "reader_seccomp_filters": 0,
+    "reader_NoNewPrivs": 0,
+    "absent_paths": [
+      "/proc/sys/kernel/perf_event_paranoid",
+      "/sys/bus/event_source",
+      "/sys/bus/event_source/devices",
+      "/proc/config.gz",
+      "/boot/config-6.12.94"
+    ],
+    "kallsyms_unavailable": true,
+    "production_file_live_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "existing_guard_sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "tool_hashes_verified": 8,
+    "health_check_seconds": 5.009,
+    "DNS_checks": 3,
+    "DNS_failures": 0,
+    "HTTP_checks": 1,
+    "HTTP_status": 403,
+    "minimum_memory_kib": 94052,
+    "guard_end": "explicit SIGTERM; monitor_stopped; no STOP/active group",
+    "health_scope": "Minimal capability-check preflight only, not a full performance baseline."
+  },
+  "what_was_not_tested": {
+    "new_current_perf_event_open_calls": 0,
+    "historical_cpu_clock_config0_attempts": 0,
+    "current_CPU_CLOCK_or_TASK_CLOCK_sampling": false,
+    "hardware_counters": false
+  },
+  "software_event_distinction": "Software CPU_CLOCK/TASK_CLOCK do not depend on an ARM hardware PMU driver when perf core is enabled. They still need perf_event_open and perf core. POSIX process CPU clocks are a different interface and existing phase diagnostics used them successfully; they provide aggregate CPU time, not PC samples or hardware IPC.",
+  "errno_interpretation": "The historical probe requested no user-stack or branch sampling. Linux core ENOSYS for unsupported user-stack dumping therefore does not explain this sample_type=0 request. ENOSYS is consistent with the arm64 weak unimplemented syscall path. Permission errors or hidden capability paths would require separate classification; current SSH reader has no seccomp filter, but this is not a new direct syscall result.",
+  "primary_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.94/kernel/Makefile",
+      "point": "events/ selected by CONFIG_PERF_EVENTS"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.94/kernel/events/Makefile",
+      "point": "events includes core.o/ring_buffer.o/callchain.o"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.94/kernel/events/core.c",
+      "point": "Software CPU/task clocks registered by perf_event_init; software types routed separately from hardware PMU; user-stack ENOSYS requires a flag absent in the retained probe"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.94/kernel/sys_ni.c",
+      "point": "unimplemented syscall returns ENOSYS; conditional perf_event_open listed"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.94/arch/arm64/include/asm/syscall_wrapper.h",
+      "point": "weak conditional arm64 syscall delegates to sys_ni_syscall"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.94/include/uapi/asm-generic/unistd.h",
+      "point": "AArch64 generic perf_event_open number241"
+    }
+  ],
+  "activity": "Read existing local records and public matching Linux source; execute only existing five-second health guard and read capability files on idle router. No new helper, perf event, sampling, target workload, sysctl, mount, package install or Oracle access.",
+  "next_boundary": "Do not assume an untested software sampler works, or infer no software perf merely from missing PMU/perf CLI. If coordinator needs a new direct current-boot confirmation, the minimal follow-up is disabled self config0/config1 opens with attr64 and sample_type0, immediate close, exact source/ELF/errno/security metadata; still no daemon sampling until separately coordinated."
+}
