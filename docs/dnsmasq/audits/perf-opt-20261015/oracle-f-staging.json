@@ -1,0 +1,105 @@
+{
+  "scope": "Prospective F/E Oracle tool stage only; no test or measurement launched.",
+  "tool_source_commit": "91409ea3d3c4b15274e7f3377558480828b320b9",
+  "preparation_manifest_sha256": "1250cc2b24bfd3a59cefa866d387f20a4691c38454eebd8374a7e68e5e3c7d3c",
+  "tool_archive_sha256": "c1ef8608f4fd98c92f04e839562c891e0f1de6032ab7525698960c6b7fef44e8",
+  "tool_archive_bytes": 102400,
+  "tool_files": {
+    "tools/dnsmasq/m6a_loadgen.c": {
+      "sha256": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+      "bytes": 36194
+    },
+    "tools/dnsmasq/perf_opt_device_run.py": {
+      "sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+      "bytes": 15437
+    },
+    "tools/dnsmasq/perf_opt_oracle_run.py": {
+      "sha256": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+      "bytes": 6098
+    },
+    "tools/dnsmasq/perf_opt_analyze.py": {
+      "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "bytes": 11018
+    },
+    "tools/dnsmasq/perf_opt_tables.py": {
+      "sha256": "0e786b6f7ea02020c7c198220c3372f6df743e6a162785aa056e174d132a3269",
+      "bytes": 13370
+    },
+    "tools/dnsmasq/perf_opt_device_case.sh": {
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "bytes": 7564
+    },
+    "tools/dnsmasq/perf_opt_device_group.sh": {
+      "sha256": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "bytes": 692
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": {
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "bytes": 7564
+    },
+    "device_perf_guard": {
+      "sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "bytes": 561456
+    },
+    "device_perf_lifecycle": {
+      "sha256": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "bytes": 635928
+    },
+    "device_perf_netns": {
+      "sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "bytes": 348152
+    },
+    "device_perf_resource_probe": {
+      "sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "bytes": 544576
+    },
+    "group.sh": {
+      "sha256": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "bytes": 692
+    },
+    "m6a_loadgen": {
+      "sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "bytes": 544760
+    },
+    "m6a_upstream": {
+      "sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "bytes": 449464
+    },
+    "nice10": {
+      "sha256": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "bytes": 162800
+    }
+  },
+  "baseline_source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "baseline_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "candidate_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "oracle_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-f-vs-e",
+  "controller_command": [
+    "sudo",
+    "-n",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/tools-fe/tools/dnsmasq/perf_opt_oracle_run.py",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-f-vs-e",
+    "--baseline",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e/dnsmasq-rs",
+    "--candidate",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-f/dnsmasq-rs",
+    "--inputs",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs-fe",
+    "--cpu",
+    "2"
+  ],
+  "launch_gate": "Exact F build identity plus complete correctness qualification and exclusive Oracle timing handoff; not yet satisfied.",
+  "remote_tool_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/tools-fe",
+  "remote_input_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs-fe",
+  "tool_identity_verified": true,
+  "input_identity_verified": true,
+  "candidate_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "candidate_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+  "candidate_correctness_qualified": false,
+  "timing_started": false,
+  "old_input_directory_unchanged": true
+}
