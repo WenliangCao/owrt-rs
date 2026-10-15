@@ -1,0 +1,23 @@
+{
+  "scope": "Task-owned private copy of original E device controller; original110 still running, no supplement started",
+  "original_controller_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+  "supplement_controller_sha256": "d7df658c7ec5d306249726a352f95d4a71cc6f190f1bdd1e951218ce3e0f2f76",
+  "reconstruction_diff_sha256": "904efd81cca591f7fcec267aed00d6ab9aab329373f4a105902302c9c5f336ef",
+  "rule_commit": "7691e8aa",
+  "rule_sha256": "cfb2b0c30f5aec3781f63e1850c5936558908bb3827276669503218ff79ca470",
+  "changes": "Only main adds fixed pair-plan selection, provenance and preflight/once-only guards. Original SSH, archive, validator, external-health and guard functions are unchanged ASTs. Measurements, scene arguments, binaries and window validator remain frozen.",
+  "checks": [
+    "Original full110 scene/round/side inventory and alternating order, marker/valid count and progress SHA",
+    "Original complete scenes and exact comparator identities",
+    "Fixed plan contains every original invalid pair once, in scene/round order; independently reviewed eligibility is required",
+    "Distinct output and labels, no resume or scene override, exclusive original-attempt claim file",
+    "Same health-baseline hash and threshold; same production PID/start identity",
+    "Before claim/guard: fresh absence of STOP/active.group and exact measurement-tool/comparator file hashes"
+  ],
+  "independent_review": "Correctness agent reviewed d7df658c and found no static blocker; final eligibility and full original archive verification still required before launch.",
+  "limits": [
+    "The supplement rule was adopted after original invalid windows appeared and before any supplement; it was not preregistered before the original run.",
+    "No phase-cohort or load-generator repair is applied to E original or supplemental windows.",
+    "Any supplemental side remaining invalid fails that pair permanently; original and supplemental raw data must both remain."
+  ]
+}

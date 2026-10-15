@@ -1,0 +1,91 @@
+--- tools/dnsmasq/perf_opt_device_run.py
++++ private/perf-opt-20261015/candidate-e-supplement-run.py
+@@ -188,21 +188,69 @@
+     parser.add_argument('--scenes', nargs='*')
+     parser.add_argument('--health-baseline', required=True, type=Path)
+     parser.add_argument('--resume', action='store_true')
++    parser.add_argument('--pair-plan', required=True, type=Path)
+     args = parser.parse_args()
++    assert not args.resume and args.scenes is None, 'supplement uses only its fixed pair plan'
++    plan_bytes = args.pair_plan.read_bytes()
++    plan = json.loads(plan_bytes)
++    assert hashlib.sha256(Path(plan['rule_path']).read_bytes()).hexdigest() == plan['rule_sha256']
++    original = Path(plan['original_out'])
++    progress_bytes = (original / 'progress.json').read_bytes()
++    assert hashlib.sha256(progress_bytes).hexdigest() == plan['original_progress_sha256']
++    original_rows = json.loads(progress_bytes)
++    original_complete = json.loads((original / 'complete.json').read_text())
++    assert original_complete['complete'] and original_complete['windows'] == 110
++    assert len(original_rows) == 110 and len({row['label'] for row in original_rows}) == 110
++    expected_inventory = [(scene[0],number,side) for scene in SCENES for number in range(1,6)
++                          for side in (('c','rust') if number % 2 else ('rust','c'))]
++    assert [(row['scene'],row['round'],row['side']) for row in original_rows] == expected_inventory
++    assert original_complete['valid'] == sum(row['valid'] for row in original_rows)
++    original_identity = json.loads((original / 'identity.json').read_text())
++    assert original_identity['comparison'] == {'c':args.c_hash, 'rust':args.rust_hash}
++    assert original_identity['scenes'] == [list(scene) for scene in SCENES]
++    assert args.out.resolve() != original.resolve() and not args.out.exists()
++    assert plan['supplement_attempt'] == 1
++    pairs = [tuple(pair) for pair in plan['pairs']]
++    scene_order = {scene[0]:index for index,scene in enumerate(SCENES)}
++    assert pairs and all(scene in scene_order and type(number) is int and 1 <= number <= 5 for scene,number in pairs)
++    assert pairs == sorted(set(pairs), key=lambda pair:(scene_order[pair[0]],pair[1]))
++    assert set(pairs) == {(row['scene'],row['round']) for row in original_rows if not row['valid']}
++    assert plan['all_invalid_pairs_eligible'] is True
++    assert not {f'{args.prefix}-{scene}-r{number}-{side}' for scene,number in pairs for side in ('c','rust')} & {row['label'] for row in original_rows}
++    rounds = {scene:[number for name,number in pairs if name == scene] for scene,_ in pairs}
+     health = json.loads(args.health_baseline.read_text())
+     assert health['valid'] and health['elapsed_seconds'] >= 120
+     threshold = health['threshold_ms']
+     assert 1 <= threshold <= 700
++    assert threshold == original_identity['threshold_ms']
++    assert hashlib.sha256(args.health_baseline.read_bytes()).hexdigest() == original_identity['health_baseline_sha256']
+     if not args.prefix.replace('-', '').isalnum():
+         raise ValueError('unsafe prefix')
+-    selected = [s for s in SCENES if not args.scenes or s[0] in args.scenes]
++    selected = [s for s in SCENES if s[0] in rounds]
+     if args.scenes and len(selected) != len(args.scenes):
+         raise ValueError('unknown or duplicate scene')
+-    args.out.mkdir(parents=True, exist_ok=args.resume)
+     identity = production_identity()
++    assert identity == original_identity['production_pid_start']
++    preflight_bytes = Path(plan['preflight_receipt']).read_bytes()
++    assert hashlib.sha256(preflight_bytes).hexdigest() == plan['preflight_sha256']
++    expected_hashes = {**json.loads(preflight_bytes)['frozen_tool_hashes'],
++                       'dnsmasq-c':args.c_hash, 'dnsmasq-rust':args.rust_hash}
++    checked = ssh(f'test ! -e {ROOT}/STOP && test ! -e {ROOT}/active.group && sha256sum ' +
++                  ' '.join(shlex.quote(ROOT + '/' + name) for name in expected_hashes))
++    actual_hashes = {Path(name).name:digest for digest,name in
++                     (line.split(None,1) for line in checked.stdout.decode().splitlines())}
++    assert actual_hashes == expected_hashes
++    claim = original.parent / (original.name + '-supplement-claimed.json')
++    with claim.open('x') as receipt:
++        json.dump({'pair_plan_sha256':hashlib.sha256(plan_bytes).hexdigest(), 'pairs':pairs}, receipt)
++    args.out.mkdir(parents=True, exist_ok=False)
+     run_identity = {'production_pid_start':identity, 'production_sha256':PRODUCTION,
+           'comparison':{'c':args.c_hash, 'rust':args.rust_hash}, 'controller_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+-          'scenes':selected, 'threshold_ms':threshold, 'health_baseline_sha256':hashlib.sha256(args.health_baseline.read_bytes()).hexdigest()}
++          'scenes':selected, 'threshold_ms':threshold, 'health_baseline_sha256':hashlib.sha256(args.health_baseline.read_bytes()).hexdigest(),
++          'supplement':{'original_progress_sha256':plan['original_progress_sha256'],
++                        'pair_plan_sha256':hashlib.sha256(plan_bytes).hexdigest(),
++                        'pairs':pairs, 'rule_commit':plan['rule_commit'],
++                        'rule_sha256':plan['rule_sha256']}}
+     results = []
+     if args.resume:
+         previous = json.loads((args.out / 'identity.json').read_text())
+@@ -226,13 +274,13 @@
+     label = guard_label = None
+     try:
+         for scene in selected:
+-            expected_labels = {f'{args.prefix}-{scene[0]}-r{n}-{s}' for n in range(1,6) for s in ('c','rust')}
++            expected_labels = {f'{args.prefix}-{scene[0]}-r{n}-{s}' for n in rounds[scene[0]] for s in ('c','rust')}
+             if expected_labels <= completed:
+                 continue
+             # A resumed scene must never overwrite the previous guard segment.
+             guard_label = f'{args.prefix}-{scene[0]}-guard-{time.time_ns()}'
+             guard = guard_start(identity[0], guard_label, threshold)
+-            for round_number in range(1, 6):
++            for round_number in rounds[scene[0]]:
+                 for side in (('c', 'rust') if round_number % 2 else ('rust', 'c')):
+                     if failed.is_set() or production_identity() != identity:
+                         raise RuntimeError('health or production identity changed')
