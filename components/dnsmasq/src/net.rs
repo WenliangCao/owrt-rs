@@ -160,6 +160,7 @@ pub struct Datagram {
 pub struct DatagramSocket {
     socket: UdpSocket,
     ipv6: bool,
+    bound_dns_ipv4: Option<Ipv4Addr>,
 }
 
 impl AsRawFd for DatagramSocket {
@@ -456,19 +457,32 @@ pub(crate) fn inject_arp_with_name(
 
 impl DatagramSocket {
     pub fn bind(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_options(address, true, false)
+        Self::bind_options(address, true, false, None)
+    }
+
+    /// Static IPv4 DNS listeners use their bound address instead of IP_PKTINFO,
+    /// matching network.c's OPT_NOWILD socket and forward.c's !check_dst path.
+    /// Only the DNS factory may select this policy; other protocols need ingress.
+    pub(crate) fn bind_dns_static_ipv4(address: SocketAddrV4) -> io::Result<Self> {
+        if address.ip().is_unspecified() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "static DNS socket requires a bound IPv4 address",
+            ));
+        }
+        Self::bind_options(address.into(), true, false, Some(*address.ip()))
     }
 
     /// Default DHCP listeners are exclusive; C enables reuse only for the
     /// separately gated bind-interfaces/bind-dynamic modes.
     pub fn bind_exclusive(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_options(address, false, false)
+        Self::bind_options(address, false, false, None)
     }
 
     /// dhcp.c:70-92 enables both reuse flags only for bind-interfaces or
     /// bind-dynamic. Older kernels may lack SO_REUSEPORT (ENOPROTOOPT).
     pub fn bind_dhcp(address: SocketAddr, reuse: bool) -> io::Result<Self> {
-        Self::bind_options(address, reuse, reuse)
+        Self::bind_options(address, reuse, reuse, None)
     }
 
     /// dhcp-common.c bindtodevice passes the terminated name, capped at IFNAMSIZ.
@@ -491,6 +505,7 @@ impl DatagramSocket {
         address: SocketAddr,
         reuse_address: bool,
         reuse_port: bool,
+        bound_dns_ipv4: Option<Ipv4Addr>,
     ) -> io::Result<Self> {
         let ipv6 = address.is_ipv6();
         // SAFETY: socket has no pointers and returns a new descriptor on success.
@@ -527,10 +542,14 @@ impl DatagramSocket {
         }
         if ipv6 {
             set_flag(fd, IPPROTO_IPV6, IPV6_RECVPKTINFO)?;
-        } else {
+        } else if bound_dns_ipv4.is_none() {
             set_flag(fd, IPPROTO_IP, IP_PKTINFO)?;
         }
-        Ok(Self { socket, ipv6 })
+        Ok(Self {
+            socket,
+            ipv6,
+            bound_dns_ipv4,
+        })
     }
 
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
@@ -590,12 +609,17 @@ impl DatagramSocket {
         if peer.port() == 0 {
             return Ok(None);
         }
-        // SAFETY: initialized control array, bounded by its actual allocation.
-        let bytes = unsafe {
-            std::slice::from_raw_parts(control.as_ptr().cast::<u8>(), msg.controllen.min(40))
-        };
-        let Some((destination, local_address, interface)) = packet_info(bytes, self.ipv6) else {
-            return Ok(None);
+        let (destination, local_address, interface) = if let Some(address) = self.bound_dns_ipv4 {
+            (IpAddr::V4(address), IpAddr::V4(address), 0)
+        } else {
+            // SAFETY: initialized control array, bounded by its actual allocation.
+            let bytes = unsafe {
+                std::slice::from_raw_parts(control.as_ptr().cast::<u8>(), msg.controllen.min(40))
+            };
+            let Some(metadata) = packet_info(bytes, self.ipv6) else {
+                return Ok(None);
+            };
+            metadata
         };
         Ok(Some(Datagram {
             len: len as usize,
@@ -849,6 +873,43 @@ mod tests {
                 tcp_interface(&stream, address.is_ipv6()),
                 Some((b"lo".to_vec(), true))
             );
+        }
+    }
+
+    #[test]
+    #[ignore = "requires Linux isolated network namespace; run with run_isolated.sh"]
+    fn static_dns_ipv4_preserves_zero_port_and_receive_errors() {
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        assert_eq!(
+            DatagramSocket::bind_dns_static_ipv4("0.0.0.0:0".parse().unwrap()).err().unwrap().kind(),
+            io::ErrorKind::InvalidInput,
+        );
+        for static_dns in [false, true] {
+            let server = if static_dns {
+                DatagramSocket::bind_dns_static_ipv4("127.0.0.1:0".parse().unwrap()).unwrap()
+            } else {
+                DatagramSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap()
+            };
+            // A raw IPv4 UDP socket permits a genuine zero source port. The
+            // isolated namespace owns this packet and the kernel adds IPv4.
+            // SAFETY: socket has no pointers and returns a new descriptor.
+            let fd = unsafe { socket(AF_INET, 3 | SOCK_CLOEXEC, 17) };
+            assert!(fd >= 0, "{}", io::Error::last_os_error());
+            // SAFETY: a fresh descriptor has exactly this scoped owner.
+            let raw = unsafe { OwnedFd::from_raw_fd(fd) };
+            let mut target = Address::new(server.local_addr().unwrap());
+            let port = server.local_addr().unwrap().port().to_be_bytes();
+            let packet = [0, 0, port[0], port[1], 0, 9, 0, 0, 7];
+            // SAFETY: all initialized address and datagram bytes outlive sendto.
+            assert_eq!(unsafe { sendto(raw.as_raw_fd(), packet.as_ptr(), packet.len(), 0,
+                target.bytes_mut().as_ptr(), target.len) }, packet.len() as isize);
+            let mut bytes = [0; 32];
+            assert_eq!(server.receive(&mut bytes).unwrap(), None);
+            assert_eq!(server.receive(&mut bytes).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+            let client = UdpSocket::bind("127.0.0.1:0").unwrap();
+            client.send_to(b"valid-after-zero-port", server.local_addr().unwrap()).unwrap();
+            let incoming = server.receive(&mut bytes).unwrap().unwrap();
+            assert_eq!(&bytes[..incoming.len], b"valid-after-zero-port");
         }
     }
 
