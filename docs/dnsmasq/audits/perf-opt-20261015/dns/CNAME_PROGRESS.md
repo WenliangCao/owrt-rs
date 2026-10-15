@@ -35,3 +35,22 @@ operations. It may reenter only if fresh plain timing versus **alias alone**
 passes; unrelated alias savings cannot conceal the earlier cursor regression.
 The combined source passes 380 macOS DNS tests. Full frozen candidate gates
 are mandatory for any chosen combination. No router access.
+
+## Quiet native screen complete
+
+Reservation `alias-cursor3-20261015` completed all 90 windows with three
+variants, five alternating rounds and all six scenes. Alias alone improves
+configured-CNAME CPU 50.86% (W 1.07%, all five pairs); its other five scenes
+remain within variation. The **incremental cursor comparison against alias
+alone** improves hit 12.84% (W 1.04%), miss 21.40% (W 0.80%), and dynamic CNAME
+6.49% (W 0.84%), each in all five pairs. Configured CNAME is 1.14% faster
+(W 1.07%, five pairs); RRset and hosts remain within variation. The original
+cursor2 rejection remains recorded and is not retroactively waived: only this
+different combination passed the fresh screen.
+
+Retain the alias comparison and query-local cursor together for full gates.
+`cname1-cursor3-timing.json` records both independent effects, the combined
+comparison, every raw window and artifact identity. No runs were replaced.
+This remains native micro evidence; final source-combination controls, exact
+SDK size/memory, full correctness, Oracle workloads and device gates remain
+outstanding.
