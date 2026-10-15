@@ -199,13 +199,17 @@ def main():
         monitor.join(timeout=12)
         if monitor.is_alive() or failed.is_set():
             raise RuntimeError('external health failed or did not finish')
+        if not run.guard_check(guard):
+            raise RuntimeError('guard unavailable at final completion')
         run.guard_stop(guard)
         guard = None
         run.write(args.out / 'summary.json', {'scope': plan['scope'], 'windows': results, 'comparisons': comparisons(results)})
     except BaseException as error:
         run.stop_owned('a53_udp_stage_diagnostic_failed')
         recovery = {}
-        if label is not None and not any(row['label'] == label for row in results):
+        if label is not None and (args.out / (label + '.archive.json')).exists():
+            recovery['attempt_already_archived'] = label
+        elif label is not None:
             try:
                 run.archive_run(args.out, label)
                 recovery['attempt_archived'] = label
