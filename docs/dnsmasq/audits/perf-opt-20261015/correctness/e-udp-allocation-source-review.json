@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "status": "DIAGNOSTIC_SOURCE_REVIEW_COMPLETE",
+  "source_commit": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "initial_instrumentation_commit": "52332bc14df0c904b77a8c75052db1f2e49cbe0b",
+  "base_E": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "scope": "Local read-only review of excluded E allocation instrumentation and retained control/compiler evidence. No reviewer build, test execution or remote access.",
+  "source_sha256": {
+    "components/dnsmasq/src/main.rs": "643b7b1b89a99a5b0a35d79d14810e0f31c1d441215015ad08ab6cf156a9464c",
+    "components/dnsmasq/src/udp_allocation_diagnostic.rs": "e62ae10c6ca094152db543243d5963537f31aa50bf5491e386b934df8d1dc1c4",
+    "tools/dnsmasq/udp_allocation_meter_check.rs": "ad669923f7484fbbafe1e0db30a78fcc89ed8d6dc92c681485aafd7a72733c86"
+  },
+  "review": [
+    "The diagnostic is based directly on E. Splitting Local/Cached match arms retains the original answer actions; Stale retains its original send-before-refresh behavior.",
+    "The System GlobalAlloc wrapper counts successful alloc and realloc separately, standalone dealloc, and complete requested/released sizes. Default alloc_zeroed is included through alloc. Counter callbacks do not allocate.",
+    "Step begins at step_udp entry and drops after its owned locals, covering receive, admission, synchronous processing/send and owned drops. No-packet/error attempts remain separate from Cached, Local, OtherPacket and Stale.",
+    "Turn encloses the complete normal owner-loop body, including control/file work, service steps and the following poll. Its cached-only category is based on UDP query kinds and can include control work.",
+    "The only source finding was unguarded classification from deferred interface/MAC continuations. Commit 6d6e6038 records DEPTH==0 in unscoped_classifications and returns without changing KIND. This exposes invalid attribution; it does not reconstruct deferred per-query totals.",
+    "The report snapshots completed step/turn totals and writes once after the normal loop, before shutdown draining. Output allocations are outside both guards."
+  ],
+  "control_fixture": {
+    "method": "Independently recomputed the exact expected vectors from explicit alloc(16), realloc(32), alloc_zeroed(24), an 8-byte allocation outside Step but inside Turn, and a separate Local 8-byte allocation. Read and compared retained JSON without executing the fixture.",
+    "columns": ["alloc", "dealloc", "realloc", "requested_bytes", "released_bytes"],
+    "expected_queries": [0, 0, 1, 1, 0],
+    "expected_cached_totals": [2, 2, 1, 72, 72],
+    "expected_local_totals": [1, 1, 0, 8, 8],
+    "turn_columns": ["turns", "cached_queries", "alloc", "dealloc", "realloc", "requested_bytes", "released_bytes"],
+    "expected_cached_only_turn": [1, 1, 3, 3, 1, 80, 80],
+    "expected_mixed_or_other_turn": [1, 0, 1, 1, 0, 8, 8],
+    "expected_histogram": "Only alloc-count bucket 2 has value 1; every other bucket is zero.",
+    "expected_nested_steps": 0,
+    "expected_unscoped_classifications": 1,
+    "deliberate_invalid_scope_probe": "The final fixture calls classify(Cached) outside Step. Exactly one unscoped event is required, while every original query/total/turn/histogram value remains unchanged. This positive control is not a valid device measurement.",
+    "all_expected_values_matched": true,
+    "initial_output_sha256": "0eab33dcbca9e7d164c6e627c2275d91581af46ca07bd622841aeff266b14ac6",
+    "final_output_sha256": "2b3f4a07c56a4f0269b00597be00821f0aa5c30d975b687f718a00d5a7ff87e8",
+    "fixture_build_stderr_sha256": "34bbafeee81c346b151026a5c1efb5af5c3988699e7a40f560d5923901af447b",
+    "fixture_build_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "local_compile_evidence": {
+    "coordinator_report": "Final Linux-musl bin cargo check returned exit 0.",
+    "reviewed_log": "private/udp-alloc/check-unscoped.stderr in the diagnostic worktree",
+    "stderr_sha256": "e1f75ad742dfffde95ce06002bc7763bd609c7e607e0f8df3e15c126a1acf49a",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "direct_log_evidence": "No error diagnostic; Finished dev profile [unoptimized + debuginfo] target(s) in 0.09s. Warnings remain.",
+    "limit": "The logs corroborate compiler completion; target/command/exit status are coordinator-reported. The review did not rerun compilation or execute the daemon."
+  },
+  "device_count_validity_requirements": [
+    "Verify the intended single-thread UDP workload. Global counters include allocations from any thread; nested_steps alone does not establish single-thread execution.",
+    "Require nested_steps == 0 and unscoped_classifications == 0. Any nonzero value invalidates complete per-query attribution.",
+    "Require the report to exist and parse, and verify final daemon exit code 0. A report can be written before a later shutdown error.",
+    "Validate the cached-query denominator against the intended workload; no-packet/error step counts are not queries.",
+    "Label cached-only turn allocations per cached query as a conditional subset. It excludes no-packet and mixed-turn totals and must not be described as the entire run's allocation cost."
+  ],
+  "limitations": [
+    "Counts describe Rust GlobalAlloc requests, not every native allocator operation. Byte totals describe requested/released traffic, not live heap size, RSS or physical realloc copying.",
+    "The fixture's successful process exit alone is insufficient: absent output environment configuration can still exit 0. Exact JSON validation above is the counter evidence.",
+    "Initial setup before the normal loop and shutdown after it are outside Turn. Deferred/control work occurring inside the loop is included.",
+    "This is count-only diagnostic evidence. The instrumented ELF must not be timed, deployed or used as a performance-acceptance artifact."
+  ],
+  "remaining_source_findings": [],
+  "runtime_device_counts": "PENDING",
+  "performance_acceptance": false,
+  "deployment": false
+}
