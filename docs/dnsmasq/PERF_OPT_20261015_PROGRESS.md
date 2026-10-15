@@ -819,3 +819,57 @@ Continue until an immutable next candidate has complete frozen-C correctness,
 full Oracle/device matrices and a discernible A53 improvement over E. Tool
 repairs, behavior repairs and performance patches remain separate commits and
 separate report categories. No production deployment is part of these tests.
+
+## Current continuation after independent physical screens
+
+F/name-buffer10 completed all windows and independent audit: CPU130→132us,
+one tick, no primary discernible change. F/adaptive-idle10 also completed:
+126→126us, zero median ticks and no primary discernible change. These do not
+prove either change has zero cost; neither earns promotion. Every original raw
+window and all restoration evidence remain. Three retired branch heads
+(fixed read-one, reply layout, address dispatch) now have durable annotated
+`archive/perf-20261016/*` tags; their worktrees/private evidence remain in place.
+
+The fresh-address/singleton-slice native480 completed with all486 commands and
+1152 small raw metadata files verified. Fresh-address has4 gains,8 regressions,
+3 inconclusive scenes: its hit classes improve8–10%, but miss/local/RRset/CNAME
+paths worsen1–3%. Singleton-slice has6 gains,1 regression,8 inconclusive; synth
+remains adverse. None of these results is pooled with its earlier version.
+See `loop/FRESH_ADDRESS_NATIVE_RESULT.md`. Exact fresh-address related gates
+pass935. Its immutable SDK owner32 is active under loop's Oracle reservation;
+DHCP has downloaded both required SDKs in the inter-matrix gap and is preparing
+the independent A53 fresh-address10 after idle-batch postflight.
+
+Root prepared three further immutable, uncombined sources:
+
+- `5d94139b`: existing hosts forward-index miss shortcut. Local715/8, musl
+  checking and30 allocation controls pass; source review finds no blocker.
+- `40cc86fe`: optional cache metadata. Measured local Entry/Option<Entry>
+  shrinks72→32B. Each first metadata value costs one64B allocation; the
+  two fields can coexist. Slot-content plus metadata requested bytes change
+  by−40×capacity+64×metadata_entries, not an RSS promise. Shared64-block target
+  update requests4650→2154B but makes one extra allocation. Snapshot/live and
+  hot15 controls pass; the invalid initial64/64 long-name fixture is retained.
+  See `dns/COLD_METADATA_LOCAL_REVIEW.md`.
+- `b343df11`: fresh-address writer moved into a non-inline selected-hit helper.
+  Exact parent SDK evidence shows shared caller frame592→720B relative to F;
+  this helps explain why a separate refinement merits testing, not proof of
+  causality. Local LTO caller frame is688/752/688B for F/parent/refinement,
+  but refinement's selected-hit chain grows752→896B. Local716/8 and musl
+  checking pass; writer/general source semantics are reviewed unchanged.
+
+Each has a fixed independent240-window native plan using the same15 scenes and
+original comparison rules. The runner's only new change derives its final row
+count from the already fixed plan dimensions instead of literal480. Old active
+and historical runner copies/hashes remain unchanged. Correctness has prepared
+three179-file source manifests and the existing Linux gate runner locally;
+none has been uploaded or run on Oracle yet. Wait for owner32 to release before
+their gates/builds. PGO's narrowly scoped E-control/generate smoke controller is
+being prepared locally; its two SDK builds need a continuous reservation over
+the existing per-build lock. Generated instrumentation is excluded from release
+budget decisions; exact control identity and all hardening checks remain gates.
+
+No G is selected and no new physical performance win is claimed. Next decide
+from the immutable fresh-address device result, then prioritize actual A53
+evidence for compact metadata and the writer refinement. Keep the PGO smoke
+separate, do not expand the test framework, and do not mutate active artifacts.
