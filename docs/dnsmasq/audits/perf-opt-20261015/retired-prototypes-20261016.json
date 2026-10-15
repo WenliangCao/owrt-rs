@@ -24,6 +24,38 @@
       "worktree": "/Users/USER/Developer/owrt-perf-address-dispatch-20261015",
       "private_evidence": "retained in place; no file cleanup",
       "reason": "No discernible exact-SDK or A53 gain; see A53_ADDRESS_DISPATCH_DEVICE_RESULT.md"
+    },
+    {
+      "former_branch": "perf/dnsmasq-cache-cold-metadata-20261016",
+      "preserved_tag": "archive/perf-20261016/cache-cold-metadata",
+      "commit": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
+      "worktree": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-20261016",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "Retired for the current performance candidate: 5 native regressions, physical CPU inconclusive; retained memory reduction is separately reported."
+    },
+    {
+      "former_branch": "perf/dnsmasq-udp-name-buffer-20261015",
+      "preserved_tag": "archive/perf-20261016/udp-name-buffer",
+      "commit": "f404ed754a26f9385c733e7474f28e4595520957",
+      "worktree": "/Users/USER/Developer/owrt-perf-udp-name-buffer-20261015",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "Physical CPU inconclusive; no discernible low-load SDK CPU improvement."
+    },
+    {
+      "former_branch": "perf/dnsmasq-udp-idle-batch-20261015",
+      "preserved_tag": "archive/perf-20261016/udp-idle-batch",
+      "commit": "1b934951750559c08807db93bb5c4196745cd25c",
+      "worktree": "/Users/USER/Developer/owrt-perf-udp-idle-batch-20261015",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "Mechanism confirmed, but physical and Oracle low-load CPU inconclusive."
+    },
+    {
+      "former_branch": "perf/dnsmasq-fresh-address-answer-20261015",
+      "preserved_tag": "archive/perf-20261016/fresh-address-parent",
+      "commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+      "worktree": "/Users/USER/Developer/owrt-perf-fresh-address-answer-20261015",
+      "private_evidence": "retained in place; no file cleanup",
+      "reason": "Standalone parent has 8 native regressions and below-gate physical gain; refinement/combined descendant branches remain active."
     }
   ]
 }
