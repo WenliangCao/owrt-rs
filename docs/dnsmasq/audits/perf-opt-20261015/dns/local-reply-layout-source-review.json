@@ -1,0 +1,72 @@
+{
+  "scope": "Independent source-only review; no product edits, no Oracle work and no duplicate test execution",
+  "baseline": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "candidate": "2bd0d6b2c15c4616e3c4c2a0e3203eca69adecbf",
+  "file": "components/dnsmasq/src/dns/local.rs",
+  "baseline_sha256": "565488ae11ff3380c6194c0167a14ad2ee37540f50e566919fcfa1d63e878868",
+  "candidate_sha256": "efd5a98343b433e8aab5b7d30a7f1ad54343971fbeabd2df5367a549dfaaafd5",
+  "decision": "No static correctness blocker found; resource/performance acceptance remains separate",
+  "byte_proof": {
+    "body_without_method_close_bytes": 6038,
+    "body_with_method_close_bytes": 6045,
+    "body_sha256_without_method_close": "b73033b9fe5e1416edf683f1cc41a689b7ec7c196e611509d04510fa799c00b0",
+    "exact_match": true,
+    "boundary_added_lines": 26,
+    "boundary_added_bytes": 1016,
+    "removing_added_boundary_restores_entire_baseline_file": true,
+    "baseline_first_body_line": 432,
+    "candidate_first_body_line": 458
+  },
+  "parameters": {
+    "count_including_self": 13,
+    "ownership_moved": [
+      "rows",
+      "extra_rows",
+      "QueryEvents",
+      "cname_terminal"
+    ],
+    "mutable_borrows_preserved": [
+      "self including hosts",
+      "lease_names Arc by mutable reference, no Arc clone",
+      "cache Option of mutable reference, no snapshot"
+    ],
+    "copied_or_borrowed_inputs": [
+      "Header Copy",
+      "Question immutable reference",
+      "now",
+      "windows_filtered",
+      "notimp",
+      "preserve_negative_authority"
+    ],
+    "class_in": "Recomputed from the same immutable question.class; no caller between the two reads can mutate it"
+  },
+  "preserved_boundaries": [
+    "Both existing !owned returns remain before the helper; the first still calls answer_forward_rule and can return a domain/address answer.",
+    "Every header/flag/question/row-compression/TTL write and query-event operation remains in identical order.",
+    "Answer record_at/record_wire errors of every kind still set truncation; only the existing authority Full error is converted to truncation.",
+    "NX/SOA cache lookup still requires class-IN, preserve_negative_authority and no truncation; configured CNAME terminal validation remains distinct from opaque raw CNAME data.",
+    "Successful mail targets alone are remembered; append_mail_addresses remains unconditional after authority handling, including after truncation. Its hosts rotation, lease expiry and cache lookup/LRU side effects therefore still occur before RRset discard.",
+    "Final truncation still restores the question-only packet, clears AN/NS/AR and emits the same query event.",
+    "No clones, new heap objects, index mutation, lookup reordering or lifetime extension through returned references is introduced by the boundary."
+  ],
+  "resource_risks": [
+    "The private helper is inline(never), not cold; all locally owned responses including hosts, configured CNAME, filtered/NOTIMP paths now cross this boundary.",
+    "Thirteen explicit arguments include vector descriptors and a result value; outgoing argument storage and caller/callee frames may overlap in the positive path.",
+    "Configured CNAME with leases can leave the original dotted-name Vec in the caller until return; tail-call elimination must not be assumed.",
+    "A smaller hot function does not prove smaller hot instruction working set, improved IPC, fewer dynamic spills or less aggregate stack. Inspect actual uninstrumented prologues and call/tail-call sites, then use separate controlled timings.",
+    "Final live allocation balance alone does not measure peak stack or heap; moving existing owning parameters is not proof of a performance gain."
+  ],
+  "existing_test_evidence": {
+    "root_reported_mac_library_passed": 714,
+    "root_reported_ignored": 8,
+    "independently_rerun": false,
+    "reason": "The requested review was source-only and the unchanged body and existing completed tests supplied the necessary semantic evidence."
+  },
+  "reviewed_existing_controls": [
+    "raw address/ANY declaration order",
+    "CNAME chain and terminal authority handling",
+    "optional Additional overflow",
+    "Additional cache pruning and sticky lease expiry",
+    "truncated answers still visiting successful mail targets"
+  ]
+}
