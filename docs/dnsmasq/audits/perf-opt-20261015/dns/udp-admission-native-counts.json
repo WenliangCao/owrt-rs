@@ -1,0 +1,511 @@
+{
+  "scope": "Native public UDP admission/local-cache chain; not owner/socket/device cost",
+  "source_e": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "candidate": "c1ea66f6",
+  "probe_sha256": "f1c1bdb3f6b1d4b6c6fb66c9a18055fc7ca877ae20f75b26921386d30360afc5",
+  "artifacts": {
+    "baseline-probe": "524e9a108553ecf457943b8cdc4a15852d9b6c5f6f9d10cc0c77e15adc66decb",
+    "baseline-alloc": "4e9a9a30002cb208ffaeaea79f60078c16d3b5298dbf37948fbdb69f55b7772d",
+    "candidate-probe": "9feb67560b1a171ba332d7d4667ac07408a917ae6751400975e652b0f1899373",
+    "candidate-alloc": "4ee02d0917f6657bff725b335b4fd13650bf7b53b476ae32d94bddd569265074"
+  },
+  "raw_sha256": "241a2e1a98a5fff5f9ca9c09f6e82136a7c712eb898e3ea91735814b0bacce14",
+  "completed_rows": 40,
+  "scenes": [
+    {
+      "scene": "hit",
+      "allocation_8000_operations": {
+        "baseline": {
+          "label": "baseline",
+          "kind": "alloc",
+          "scene": "hit",
+          "operations": 8000,
+          "checksum": 15136520,
+          "allocation_reallocation_requested_live": [
+            40000,
+            0,
+            2160000,
+            0
+          ]
+        },
+        "candidate": {
+          "label": "candidate",
+          "kind": "alloc",
+          "scene": "hit",
+          "operations": 8000,
+          "checksum": 15136520,
+          "allocation_reallocation_requested_live": [
+            32000,
+            0,
+            1904000,
+            0
+          ]
+        }
+      },
+      "pmu": {
+        "baseline": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 378413000,
+            "counts": {
+              "instructions": 1049012100,
+              "cycles": 380600636
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 378413000,
+            "counts": {
+              "instructions": 1048980835,
+              "cycles": 373956888
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 378413000,
+            "counts": {
+              "instructions": 1048937729,
+              "cycles": 373796934
+            },
+            "running_percent": 100
+          }
+        ],
+        "candidate": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 378413000,
+            "counts": {
+              "instructions": 979945156,
+              "cycles": 365096563
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 378413000,
+            "counts": {
+              "instructions": 979959525,
+              "cycles": 360543249
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 378413000,
+            "counts": {
+              "instructions": 979916168,
+              "cycles": 359257722
+            },
+            "running_percent": 100
+          }
+        ]
+      },
+      "instruction_change_percent": -6.581214517613187
+    },
+    {
+      "scene": "hit-upper",
+      "allocation_8000_operations": {
+        "baseline": {
+          "label": "baseline",
+          "kind": "alloc",
+          "scene": "hit-upper",
+          "operations": 8000,
+          "checksum": 13156360,
+          "allocation_reallocation_requested_live": [
+            48000,
+            0,
+            2288000,
+            0
+          ]
+        },
+        "candidate": {
+          "label": "candidate",
+          "kind": "alloc",
+          "scene": "hit-upper",
+          "operations": 8000,
+          "checksum": 13156360,
+          "allocation_reallocation_requested_live": [
+            40000,
+            0,
+            2032000,
+            0
+          ]
+        }
+      },
+      "pmu": {
+        "baseline": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 328909000,
+            "counts": {
+              "instructions": 1073578439,
+              "cycles": 383520504
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 328909000,
+            "counts": {
+              "instructions": 1073819525,
+              "cycles": 383186512
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 328909000,
+            "counts": {
+              "instructions": 1073591875,
+              "cycles": 384951366
+            },
+            "running_percent": 100
+          }
+        ],
+        "candidate": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 328909000,
+            "counts": {
+              "instructions": 1004464703,
+              "cycles": 365162322
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 328909000,
+            "counts": {
+              "instructions": 1004463640,
+              "cycles": 366863695
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 328909000,
+            "counts": {
+              "instructions": 1004454685,
+              "cycles": 367621709
+            },
+            "running_percent": 100
+          }
+        ]
+      },
+      "instruction_change_percent": -6.438967787456473
+    },
+    {
+      "scene": "miss",
+      "allocation_8000_operations": {
+        "baseline": {
+          "label": "baseline",
+          "kind": "alloc",
+          "scene": "miss",
+          "operations": 8000,
+          "checksum": 8000,
+          "allocation_reallocation_requested_live": [
+            24000,
+            0,
+            624000,
+            0
+          ]
+        },
+        "candidate": {
+          "label": "candidate",
+          "kind": "alloc",
+          "scene": "miss",
+          "operations": 8000,
+          "checksum": 8000,
+          "allocation_reallocation_requested_live": [
+            16000,
+            0,
+            368000,
+            0
+          ]
+        }
+      },
+      "pmu": {
+        "baseline": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 200000,
+            "counts": {
+              "instructions": 738933137,
+              "cycles": 266924918
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 200000,
+            "counts": {
+              "instructions": 739008988,
+              "cycles": 266323109
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 200000,
+            "counts": {
+              "instructions": 738983047,
+              "cycles": 266801214
+            },
+            "running_percent": 100
+          }
+        ],
+        "candidate": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 200000,
+            "counts": {
+              "instructions": 672044008,
+              "cycles": 249525496
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 200000,
+            "counts": {
+              "instructions": 672159550,
+              "cycles": 248143191
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 200000,
+            "counts": {
+              "instructions": 672043251,
+              "cycles": 249219075
+            },
+            "running_percent": 100
+          }
+        ]
+      },
+      "instruction_change_percent": -9.058264498996005
+    },
+    {
+      "scene": "host",
+      "allocation_8000_operations": {
+        "baseline": {
+          "label": "baseline",
+          "kind": "alloc",
+          "scene": "host",
+          "operations": 8000,
+          "checksum": 22208000,
+          "allocation_reallocation_requested_live": [
+            72000,
+            0,
+            4240000,
+            0
+          ]
+        },
+        "candidate": {
+          "label": "candidate",
+          "kind": "alloc",
+          "scene": "host",
+          "operations": 8000,
+          "checksum": 22208000,
+          "allocation_reallocation_requested_live": [
+            64000,
+            0,
+            3984000,
+            0
+          ]
+        }
+      },
+      "pmu": {
+        "baseline": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 555200000,
+            "counts": {
+              "instructions": 1324977752,
+              "cycles": 471660107
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 555200000,
+            "counts": {
+              "instructions": 1324900139,
+              "cycles": 471425441
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 555200000,
+            "counts": {
+              "instructions": 1324939034,
+              "cycles": 475474323
+            },
+            "running_percent": 100
+          }
+        ],
+        "candidate": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 555200000,
+            "counts": {
+              "instructions": 1256038276,
+              "cycles": 453973390
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 555200000,
+            "counts": {
+              "instructions": 1256101677,
+              "cycles": 466090582
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 555200000,
+            "counts": {
+              "instructions": 1261272240,
+              "cycles": 455015873
+            },
+            "running_percent": 100
+          }
+        ]
+      },
+      "instruction_change_percent": -5.195511282672349
+    },
+    {
+      "scene": "malformed",
+      "allocation_8000_operations": {
+        "baseline": {
+          "label": "baseline",
+          "kind": "alloc",
+          "scene": "malformed",
+          "operations": 8000,
+          "checksum": 3808000,
+          "allocation_reallocation_requested_live": [
+            16000,
+            0,
+            400000,
+            0
+          ]
+        },
+        "candidate": {
+          "label": "candidate",
+          "kind": "alloc",
+          "scene": "malformed",
+          "operations": 8000,
+          "checksum": 3808000,
+          "allocation_reallocation_requested_live": [
+            8000,
+            0,
+            144000,
+            0
+          ]
+        }
+      },
+      "pmu": {
+        "baseline": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 95200000,
+            "counts": {
+              "instructions": 1240124831,
+              "cycles": 439662579
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 95200000,
+            "counts": {
+              "instructions": 1240160218,
+              "cycles": 439753667
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 95200000,
+            "counts": {
+              "instructions": 1240157903,
+              "cycles": 440459062
+            },
+            "running_percent": 100
+          }
+        ],
+        "candidate": [
+          {
+            "run": 1,
+            "operations": 200000,
+            "checksum": 95200000,
+            "counts": {
+              "instructions": 1253426364,
+              "cycles": 430317026
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 2,
+            "operations": 200000,
+            "checksum": 95200000,
+            "counts": {
+              "instructions": 1253388604,
+              "cycles": 429879160
+            },
+            "running_percent": 100
+          },
+          {
+            "run": 3,
+            "operations": 200000,
+            "checksum": 95200000,
+            "counts": {
+              "instructions": 1253375163,
+              "cycles": 430001208
+            },
+            "running_percent": 100
+          }
+        ]
+      },
+      "instruction_change_percent": 1.0668561614609162
+    }
+  ],
+  "limitations": [
+    "Counters use separate sequential side runs, not quiet plain timing. Whole process includes setup and 800 priming operations.",
+    "The probe omits owner, syscall and device cost. Malformed instructions increase 1.067%; no timing conclusion.",
+    "All original compiler failures and raw files retained in ignored local/remote private directories."
+  ]
+}
