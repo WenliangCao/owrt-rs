@@ -719,3 +719,32 @@ measurement; source inputs and probe hashes are bound.32 independent original
 SDK owner windows follow. Native frame/code-size reductions are mechanisms to
 test, not evidence of a shipping performance improvement. No next candidate
 is selected until both requested mechanisms have actual results.
+
+## Read-one result rejects fixed mode; adaptive follow-up prepared
+
+Read-one completed all36 windows. Low200/s recvmsg2→1/query and EAGAIN5000→0
+confirm the mechanism; CPU28→24µs has only2ticks difference and is below W.
+High unpaced ppoll rises~1/16→1/query, observed throughput213790.90→166067.75/s
+(−22.322%) and CPU/query4.6747→6.0222µs (+28.826%), five adverse pairs beyond W.
+Both sender and daemon approach one CPU, so this is a closed-loop pipeline
+comparison, not isolated server capacity. Fixed read-one is not selected.
+All raw/derived failures and counts remain; see `loop/UDP_READ_ONE_RESULT.md`.
+
+Root's new independent F prototype1b934951 lives in
+`owrt-perf-udp-idle-batch-20261015`. It reuses the existing poll-wait measurement:
+≥1ms permits one true-result per ready listener, shorter waits restore the
+original shared16 budget. The threshold is fixed before measurement and is only
+a hint, including scheduler delay. The packet body/error/resend/service ordering
+remains unchanged. New deterministic real-socket tests force1→16→1 across valid,
+short-invalid and oversize packets. Local Linux-musl all-target check passed
+after fixing the statistics usize/u64 mismatch; initial logs are retained.
+Linux runtime and SDK build remain pending until the layout reservation ends.
+Preparation inputs are local `private/perf-opt-20261015/idle-batch-inputs`;
+correctness separately prepared its unchanged bin+4ignored-live runner.
+
+The layout native480-window controller is running after read-one analysis ended.
+Its fixed plan93381a06 has independent reviewfd1fec93. Loop only watches failures
+or completion.32 SDK low-load windows follow before releasing Oracle for the
+new UDP follow-up. The exact downloaded SDK ELF/maps independently confirm the
+address chain2768→1360B and reply owned-answer chain848→1264B. Those observations
+remain static reservations, not dynamic stack traffic or CPU evidence.
