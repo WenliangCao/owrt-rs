@@ -2,7 +2,10 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
+import udp_stage_device_run as stage
 from udp_stage_device_run import GROUPS, MODES, schedule, stage_report
 
 
@@ -92,6 +95,38 @@ class StageGateTests(unittest.TestCase):
             stage_report(folder, 'full')
         with self.assertRaises(AssertionError):
             stage_report(folder, None)
+
+    def test_validator_exception_preserves_completed_archive_and_stops(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        out = root / 'out'
+        health = root / 'health.json'
+        health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
+        plan = Path(__file__).resolve().parents[2] / 'docs/dnsmasq/audits/perf-opt-20261015/loop/A53_UDP_STAGE_DEVICE_PLAN.json'
+        def archived(destination, label):
+            (destination / (label + '.archive.json')).write_text('{"files":{}}')
+            return root
+        argv = ['udp_stage_device_run.py', '--plan', str(plan), '--health-baseline', str(health),
+                '--stage-hash', '0' * 64, '--out', str(out)]
+        with patch('sys.argv', argv), patch.object(stage, 'verify_files'), patch.object(stage, 'set_slots'), \
+             patch.object(stage.run, 'production_identity', return_value=[1, 2]), \
+             patch.object(stage.run, 'ssh', return_value=SimpleNamespace(stdout=b'', returncode=0)), \
+             patch.object(stage.run, 'guard_start', return_value=(3, 4)), \
+             patch.object(stage.run, 'guard_check', return_value=True), patch.object(stage.run, 'guard_stop'), \
+             patch.object(stage.run, 'stop_owned'), patch.object(stage.run, 'external_health'), \
+             patch.object(stage.run, 'archive_run', side_effect=archived) as archive, \
+             patch.object(stage.run, 'validate', side_effect=ValueError('malformed client JSON')), \
+             patch.object(stage.subprocess, 'Popen') as launch:
+            launch.return_value.poll.return_value = 0
+            launch.return_value.returncode = 0
+            with self.assertRaisesRegex(ValueError, 'malformed client JSON'):
+                stage.main()
+        archive.assert_called_once()
+        launch.assert_called_once()
+        failure = json.loads((out / 'failure.json').read_text())
+        self.assertEqual(failure['recovery']['attempt_already_archived'], schedule()[0]['label'])
+        self.assertFalse((out / 'complete.json').exists())
 
 
 if __name__ == '__main__':
