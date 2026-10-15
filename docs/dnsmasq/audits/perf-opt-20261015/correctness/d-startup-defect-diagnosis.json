@@ -1,0 +1,677 @@
+{
+  "scope": "Complete retained D task coverage plus corrected startup-defect diagnosis; not qualification",
+  "source_commit": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "shipping_elf_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+  "candidate_correctness_qualified": false,
+  "device_admission": false,
+  "original_attempt_passed": false,
+  "original_attempt_result_sha256": "b2d13491e2139050ad2abc47ce1459946667bfbdda6439e29b90bea1b547f338",
+  "original_finished_families": 38,
+  "original_passed_families": 37,
+  "unrun_continuation_families": [
+    "dhcp-device-binding",
+    "filterwin2k",
+    "helper-shutdown",
+    "logging-dhcp-companion",
+    "query-id-wrap-source-controls",
+    "ubus-ordinary"
+  ],
+  "continuation_passed": true,
+  "continuation_sha256": "09d3ccf94fa4d66283be84fce0c0a27b3e04c99a5ca1f092b9223f170691ade2",
+  "interface_continuation_sha256": "9af78a7b0095acf7f938b52066c1d0cfed32d0bbe11e2c72354a49d8a41ae4eb",
+  "complete_unique_jobs": 67,
+  "raw_passed_jobs": 65,
+  "raw_passed_families": 43,
+  "failed_family": "m5_interface_records",
+  "raw_failures": [
+    {
+      "id": "m5_interface_records-service",
+      "returncode": 1,
+      "error": "ValueError('command exited 1')",
+      "result_exists": true
+    },
+    {
+      "id": "m5_interface_records-qualify",
+      "returncode": 1,
+      "error": "FileNotFoundError(2, 'No such file or directory')",
+      "result_exists": false
+    }
+  ],
+  "qualification_failure_stderr": "Traceback (most recent call last):\n  File \"/home/ubuntu/dnsmasq-perf-20261015/root/source-d/tools/dnsmasq/m5_interface_records_qualify.py\", line 73, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/home/ubuntu/dnsmasq-perf-20261015/root/source-d/tools/dnsmasq/m5_interface_records_qualify.py\", line 68, in main\n    result=qualify(args.run,args.scope,args.source_commit,args.rust_sha256)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/dnsmasq-perf-20261015/root/source-d/tools/dnsmasq/m5_interface_records_qualify.py\", line 22, in qualify\n    if not report['comparison_executed'] or report['failures']:raise AssertionError('C-only or failed run')\n                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: C-only or failed run\n",
+  "qualified_json_created": false,
+  "jobs": [
+    {
+      "id": "logging-all-scopes-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "39c5c1b0f737652622811e426a01093a7a8f4597a111ea2a0d9ac093f2651f78"
+    },
+    {
+      "id": "m5_option_matrix-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "04d2f5fffba933550dfd9d98ec42ae973f1df035956b6eec4f05585ca9468856"
+    },
+    {
+      "id": "m5_option_matrix_next-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "4e9251beb4efce7549789175f2f0bf23fdf802b27a81eecf788a9ab352660174"
+    },
+    {
+      "id": "m5_option_matrix_third-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "d99f9c914f307ed82737dcfce5f7d6b6d72a8d8a45d8e4ae32494ae1d82ff878"
+    },
+    {
+      "id": "m5_option_matrix_tag_if-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "ba760c756d5d7ae5a8e1b4f072323b87a294344932a8533e6f1741df7e09d1c9"
+    },
+    {
+      "id": "m5_option_matrix_dhcp-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "d847a8baaac948a7d524b21a7602d1edb6d0ade00f1fc84b461c78080e3682e9"
+    },
+    {
+      "id": "m5_option_matrix_dhcp_v4-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "871bb31f707d740b7f79a3c1438a04da75cac79854bbe7b9219d11ee484e86f7"
+    },
+    {
+      "id": "m5_option_matrix_lease_names-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "ad573580d5bb4641540544978b945be01c6f7012cdec3c78ea7bdfd61df2543b"
+    },
+    {
+      "id": "m5_local_records-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "f4dcedd25734f0a90227853b210bd2fdc2cde6bdffa76233b14d431efd64cd68"
+    },
+    {
+      "id": "m5_boot-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "17352e648551612ba8228f6211f1686be620efec4d4b74cb9c18b6b1c5bd16b3"
+    },
+    {
+      "id": "m5_helper-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "1e97b4affc8e732f5e33012be494fd338643a9e7ae161753a456b52d64bda923"
+    },
+    {
+      "id": "m5_rr_filter-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "efa30aee2f109b8b4ebfd244ecad04dbc3c49d7fc4710270320cf0262d074ed3"
+    },
+    {
+      "id": "m5_config_inputs-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "fb33f984ed5a68ad0fb2d8428c0f9a4c00393cb76d776946d29a1e6d1499e9c6"
+    },
+    {
+      "id": "m5_listeners-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "4ff460821d1b0fb292c6c13c4ead1bf7430946650736ce0e1e78f79e5e47aed6"
+    },
+    {
+      "id": "m5_lease_recovery-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "3837eb2b899b3c6d39b7e95ac3a41bac85b77ad57ec313aafb29278a82cfb219"
+    },
+    {
+      "id": "m5_dump-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "a02216808d08000be656f1a71fe3f5e84df9bc21900999f707528885d533aee4"
+    },
+    {
+      "id": "m5_tftp-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "8394516c4b44d126b9fb40d2a0f959b13dea9a9939e73570d2d0d2a073d4c377"
+    },
+    {
+      "id": "dhcp-proxy-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "e520af5ea4489e2e8f29fdf242b4a9b45b1dae8895ea627d0771b66f35be1348"
+    },
+    {
+      "id": "bridge-interface-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "cbaaf211bb377d2f9dac6fef45a294703435a3a443de6416deed436a552ead52"
+    },
+    {
+      "id": "m5_dns_cache-c",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "07f63e67f6ec9c6ccbd9d695fc7816ad60b19d42cbb18b3bbbe61adee1799fff"
+    },
+    {
+      "id": "m5_dns_cache-rust",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "5936c4a0a8894e10926f9b323c7d12b7faa1841fb74fa94ef0fa717a794ce1c2"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-1",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "4aa6607dcada3c551c3bc6079a9553ab627fdd153eebe3c10ca00642a49555a1"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-2",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "230e9c2ca77b79a2728d12d4b72e8a687dff4831928579df7f924c68c4ac5949"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-3",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "db92ff08785bade418eebb709e0a43fcd44b7883b660c8743c142bc58f8c0d76"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-4",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "b2b6d3c52b65029969548b3fa0a080f1ab63b59bac63a566e2dbf4468bb6b1b2"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-5",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "396e265d910f2afeb2a195958e558732fdca793ea912578efa61e566c8de950d"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-6",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "9f817091dad4432f778c5982936deacd7fbac02a8ab4734900210efd75f78667"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-7",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "2053bbcc57ff492338c44ab72f2630a30cf5bf9c7cc9e37bc5fb1096e643f147"
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-8",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "680cf4ad7bf9fa16ae2c49a84df079a0346c8aae2c2e725dac3d3fcc1a1ea9ca"
+    },
+    {
+      "id": "m5_dns_cache-compare",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "8e9dea40a67f70bd4bb8d61a54d1a00c9b13c6b5884482c26deaa3f28f9ad4ae"
+    },
+    {
+      "id": "m5_dns_cache-lease-tcp-caller",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "31c62e0dacad224c8ca3a8536859399fd366f97bf0121087969f306d23fa89aa"
+    },
+    {
+      "id": "shared-network-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "c746a3b74fd33264bd18106737bb34a9fc78990f7cbb75c9d1cf0c5185038c7f"
+    },
+    {
+      "id": "dhcp-reply-delay-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "e6b14679b66635981a81204b050f24e40dbb7842a50441b231f93c1d37eb9677"
+    },
+    {
+      "id": "m5_relay-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "7bdc7971fe416a697aeb89a5cd7d3eb1cef01a2d0ace6b99b9c5dbfea6a2b036"
+    },
+    {
+      "id": "m5_leasequery-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "b920f82a30dea6006f25c56bcff06e700bf13b209ea1f7037565e9626580c731"
+    },
+    {
+      "id": "dhcp-tags-options-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "f86498bbbdebc96d4fe5604506d0ced5112fb4da3cbd7d62c99cb24f452d6eb6"
+    },
+    {
+      "id": "dhcp-identities-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "84b9004f9238eaf87567ad497c1e463f3d7f9b4f30db4ed4745f15f8021dd4f1"
+    },
+    {
+      "id": "dhcp-range-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "eac6e7de9a756fce517c5b067321f44d4f1de63c9dfda6b2e590bd8efa16e696"
+    },
+    {
+      "id": "dhcp-files-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "8530e48448935e88fa663b13019bcab22e4b71088a645bb1215abf95ebc0c84c"
+    },
+    {
+      "id": "m5_pxe-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "282a9786161a11e5232910b2091f114a8e7c8fe344271db1239c972b8cec5913"
+    },
+    {
+      "id": "cli-test-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "e2ef1acca8c0cc7ad9700aaacb97a3571fb560a7899fff2cb0b5409337fc82ae"
+    },
+    {
+      "id": "cli-log-malloc-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "4d3351bf84b06d3443a4bd75bd91e380f676d930f39245da18b1fa128e5005bd"
+    },
+    {
+      "id": "loop-detect-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "5fc98414e71c9722982c1095b1b32258e70cfa2265a1b34651224d2491ea656c"
+    },
+    {
+      "id": "m5_script_arp-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "87d3e3d040069b26fd55073af75033a2a19e282725b44e48539b4d0584be7122"
+    },
+    {
+      "id": "m5_dns_endpoints-syntax",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "997073e0436d053e00ea377091cca2643d2c0ca25faf97a7d8b572ea9d4a35ed"
+    },
+    {
+      "id": "m5_dns_endpoints-service",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "85ef4b570a514bd9f8292f16c2d6164304628c030a0e892b04d7bf0b65c4eadd"
+    },
+    {
+      "id": "m5_dns_endpoints-source-row-audit",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "2f53f4a4ab274c9f4c08e6613b4008a366b3a0c439a19a49c84171edc7a496fb"
+    },
+    {
+      "id": "m5_edns-c",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "5a6b04a2b966189aaa82152eedc2832401252b0f4173eb0796310b6593113668"
+    },
+    {
+      "id": "m5_edns-rust",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "18d9fea3baa98d5e2de835294cfa18c6ca68d9f08608f2d6ac09d09763789bef"
+    },
+    {
+      "id": "m5_edns-compare",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "ffb09abf4020209c89563678b4fc5b7c82d858ba072f80b0faaa8b74fefdb836"
+    },
+    {
+      "id": "m5_interface_records-syntax",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "62367c095431688efcde8ba1f398c324faa95e3d568ea6e8873b842c9245c3bb"
+    },
+    {
+      "id": "m5_interface_records-service",
+      "passed": false,
+      "returncode": 1,
+      "result_sha256": null
+    },
+    {
+      "id": "tftp-errors-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "c27dc43ca58662e4166a22bdf1ce0b81560031212135bffee4c48c1ca640efe8"
+    },
+    {
+      "id": "dns-files-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "4d67d81139041ca0f5e7658e630642384672f5321612648ab610008dd4fea394"
+    },
+    {
+      "id": "filterwin2k-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "2ce237f6cf2622b183abbcca0d55ecd0b8702e37ab324b835ed33286bbb42265"
+    },
+    {
+      "id": "helper-shutdown-paired",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "95406ad911de97950945872e9ce247396af4f3f25780abbcc7b2d0ee49e00cdf"
+    },
+    {
+      "id": "ubus-ordinary-all",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "7ebbea1b67d7819dc5e09abaad2eb65a97f61044cd2f80c78552b53fcf2db9ed"
+    },
+    {
+      "id": "logging-dhcp-companion-all",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "791363e09e25ac344d295ebe077665ba00cf0537c97de0a8d5ac90adc8cfad4d"
+    },
+    {
+      "id": "logging-dhcp-companion-overflow-seven",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "f0dad70d0b866a1d16b0543d4584c2ea3ae76acc5cd96a43c6d16797b2a5f24f"
+    },
+    {
+      "id": "dhcp-device-binding-c",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "7aca1f9032239573a31090dc66179a63945cf2f90ad643fe7332cdcbd39f9280"
+    },
+    {
+      "id": "dhcp-device-binding-rust",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "025741541c28b06c5e53171e92c781f849a8188bbe2919658f8434e2d22e3f49"
+    },
+    {
+      "id": "dhcp-device-binding-compare",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "f1f437ee481fa20b011c41d282a8e5ac7916f0b7a80750ee6f20f69a672257c3"
+    },
+    {
+      "id": "query-id-wrap-source-controls-sdk-source-probe",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "1d07ec4fbf6b973b0ae01274d2d059e779d50e8e847aaf29610bdeb8f895d447"
+    },
+    {
+      "id": "m5_interface_records-qualify",
+      "passed": false,
+      "returncode": 1,
+      "result_sha256": null
+    },
+    {
+      "id": "m5_interface_records-closeout-syntax",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "e9a61e1f0a5aef67854b1f2c395905f4c36dbe0bbaf1c208b48adb525fe77782"
+    },
+    {
+      "id": "m5_interface_records-closeout-rust-refusals",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "ef34da18377c260c74c4a20d3fb2f5e654a4a15bc9ec885e70ca6d4be4ba1c54"
+    },
+    {
+      "id": "m5_interface_records-closeout-service",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "ac61580ad113acb4e2b6d0a176124b19b1cb8e28fb9b52b7de70ba3baca89019"
+    }
+  ],
+  "source_files": {
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "inotify.c": "6a5b0239b9c9fbb1ca0bf638e18efd32914c88d4899602c030b23cf8221b96a7"
+  },
+  "fixed_final_three_snapshot_runs": [
+    {
+      "variant": "deployed",
+      "side": "c",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial_lease_file": {
+        "text": "4102444800 02:00:00:00:00:01 127.0.0.40 fromhosts *\n",
+        "sha256": "710cb8efc937006368170dcb029be6737c1a20abd9f4b027e494bf9eb2edb5c8"
+      },
+      "initial_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\n",
+        "sha256": "14a1445327b33ca4df6c5cf464275975e882dd91bc41b71c0a15488c74aff00d"
+      },
+      "final_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|updated\n",
+        "sha256": "cb99bf975e37aeb0815f6d466d6cbd2c141d747848075f71d8f6a342039044d3"
+      },
+      "initial_maps_sha256": "ccddc1499fced50721b8ca2e3bb35c676494f89c160d4970739b83bf47062c9f",
+      "raw_hashes": {
+        "observed.json": "19d93619e6d20e9172dbeffbc3c77523bc9ce587a69b3e90dd0bf30022d00787",
+        "initial-helper-snapshot.json": "d97534392408b9d60e65c7adbccde2f889d74d1f4136bcf945c447a9f84deffa",
+        "final-file-snapshot.json": "ef891e6037ede46b93b34e84f47e956e0a002e664430d050c308fd08d36c15fb",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61"
+      }
+    },
+    {
+      "variant": "deployed",
+      "side": "rust",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "initial_lease_file": {
+        "text": "4102444800 02:00:00:00:00:01 127.0.0.40 fromhosts *\n",
+        "sha256": "710cb8efc937006368170dcb029be6737c1a20abd9f4b027e494bf9eb2edb5c8"
+      },
+      "initial_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\n",
+        "sha256": "14a1445327b33ca4df6c5cf464275975e882dd91bc41b71c0a15488c74aff00d"
+      },
+      "final_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|updated\n",
+        "sha256": "cb99bf975e37aeb0815f6d466d6cbd2c141d747848075f71d8f6a342039044d3"
+      },
+      "initial_maps_sha256": "b0219494b490912e2af8b2f53c77a1c25e2033a6f51823ac8a882afa408fa086",
+      "raw_hashes": {
+        "observed.json": "2ae85fc7c7492974bd0bd79caa7982ac3c0720556175c6857426551bf3a3fef2",
+        "initial-helper-snapshot.json": "7d4970b80b14a27861301503cc7a2f60f5a663a787ecf902134089294eb032eb",
+        "final-file-snapshot.json": "ef891e6037ede46b93b34e84f47e956e0a002e664430d050c308fd08d36c15fb",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61"
+      }
+    },
+    {
+      "variant": "candidate-c",
+      "side": "c",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial_lease_file": {
+        "text": "4102444800 02:00:00:00:00:01 127.0.0.40 fromhosts *\n",
+        "sha256": "710cb8efc937006368170dcb029be6737c1a20abd9f4b027e494bf9eb2edb5c8"
+      },
+      "initial_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\n",
+        "sha256": "14a1445327b33ca4df6c5cf464275975e882dd91bc41b71c0a15488c74aff00d"
+      },
+      "final_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|updated\n",
+        "sha256": "cb99bf975e37aeb0815f6d466d6cbd2c141d747848075f71d8f6a342039044d3"
+      },
+      "initial_maps_sha256": "4899b83f6ae1e0a96db2daecc3ac9243c9a39b6121fba048c0a6d75be22c011d",
+      "raw_hashes": {
+        "observed.json": "5a706e89fafb1fc3296a8bcf6585b76c27638069e4405a48328782f1880ae791",
+        "initial-helper-snapshot.json": "262863fa516105f0f9f75defa6b9c7325581a887fb1fc47aab978d0a2ae3949f",
+        "final-file-snapshot.json": "ef891e6037ede46b93b34e84f47e956e0a002e664430d050c308fd08d36c15fb",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61"
+      }
+    },
+    {
+      "variant": "candidate-c",
+      "side": "rust",
+      "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+      "initial_lease_file": {
+        "text": "4102444800 02:00:00:00:00:01 127.0.0.40 fromhosts *\n",
+        "sha256": "710cb8efc937006368170dcb029be6737c1a20abd9f4b027e494bf9eb2edb5c8"
+      },
+      "initial_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\n",
+        "sha256": "14a1445327b33ca4df6c5cf464275975e882dd91bc41b71c0a15488c74aff00d"
+      },
+      "final_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|updated\n",
+        "sha256": "cb99bf975e37aeb0815f6d466d6cbd2c141d747848075f71d8f6a342039044d3"
+      },
+      "initial_maps_sha256": "90b9ada05d9f664e38052e1b8a5ef9998624d33ece9321201620f394adcef8ee",
+      "raw_hashes": {
+        "observed.json": "bf8992221fdaaf42eae55bc2e82cc42c2ca9af8f7f089220183d8b640a67d24e",
+        "initial-helper-snapshot.json": "de1975e156f595743b607852b16706f95069db9e19839fec3fa4cb1a7960592e",
+        "final-file-snapshot.json": "ef891e6037ede46b93b34e84f47e956e0a002e664430d050c308fd08d36c15fb",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61"
+      }
+    },
+    {
+      "variant": "candidate-d",
+      "side": "c",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial_lease_file": {
+        "text": "4102444800 02:00:00:00:00:01 127.0.0.40 fromhosts *\n",
+        "sha256": "710cb8efc937006368170dcb029be6737c1a20abd9f4b027e494bf9eb2edb5c8"
+      },
+      "initial_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\n",
+        "sha256": "14a1445327b33ca4df6c5cf464275975e882dd91bc41b71c0a15488c74aff00d"
+      },
+      "final_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|updated\n",
+        "sha256": "cb99bf975e37aeb0815f6d466d6cbd2c141d747848075f71d8f6a342039044d3"
+      },
+      "initial_maps_sha256": "d1099cb308298c8962a31bfe1cc54c3f21d84804689fed7e1b8a20c0cedaa64a",
+      "raw_hashes": {
+        "observed.json": "2542ce9e0c991a7bd633abb7f86ade1d98abad096fd16ee0dc6819f3b940840d",
+        "initial-helper-snapshot.json": "a233261a70f60d05ef8e04f576cfa88d55160ced5c47d41b58123fd04c3204ff",
+        "final-file-snapshot.json": "ef891e6037ede46b93b34e84f47e956e0a002e664430d050c308fd08d36c15fb",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61"
+      }
+    },
+    {
+      "variant": "candidate-d",
+      "side": "rust",
+      "elf_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+      "initial_lease_file": {
+        "text": "4102444800 02:00:00:00:00:01 127.0.0.40 fromhosts *\n",
+        "sha256": "710cb8efc937006368170dcb029be6737c1a20abd9f4b027e494bf9eb2edb5c8"
+      },
+      "initial_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\n",
+        "sha256": "14a1445327b33ca4df6c5cf464275975e882dd91bc41b71c0a15488c74aff00d"
+      },
+      "final_helper_file": {
+        "text": "old|02:00:00:00:00:01|127.0.0.40|original\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|fromhosts\nold|02:00:00:00:00:01|127.0.0.40|\nold|02:00:00:00:00:01|127.0.0.40|updated\n",
+        "sha256": "cb99bf975e37aeb0815f6d466d6cbd2c141d747848075f71d8f6a342039044d3"
+      },
+      "initial_maps_sha256": "9c2410d6e890e164abca0f264e0d2bad82345c65bcbdaf2e23c97ac1c9b6b4f0",
+      "raw_hashes": {
+        "observed.json": "08a38560ae45287636a7ddfa081c529a9fb3170d96ca62bd0267531f56acb3d5",
+        "initial-helper-snapshot.json": "57fd37067e2b2434ad57a10656ac0b73f0a3cf9b1163084925d766aff9c07d47",
+        "final-file-snapshot.json": "ef891e6037ede46b93b34e84f47e956e0a002e664430d050c308fd08d36c15fb",
+        "config": "00d6f2520defeec245374aed7b225a1036b800d9214770a7ded4365a3b028b61"
+      }
+    }
+  ],
+  "source_path_findings": {
+    "exact_C": [
+      "lease_init reads/prunes restored leases and sets dns_dirty without publishing DHCP DNS cache entries.",
+      "cache_init creates an empty DNS cache; startup queues EVENT_INIT.",
+      "The first do_script_run freezes the original helper event before EVENT_INIT.",
+      "EVENT_INIT invokes clear_cache_and_reload: cache_reload hosts, lease_update_from_configs, lease_update_file, then first lease_update_dns. Thus startup reverse-name selection precedes old DHCP DNS publication."
+    ],
+    "Rust": [
+      "Main first runs step_dhcp_files, whose provider initialize calls maintain(force_dns=true) and publishes restored original lease DNS names.",
+      "The later initial hostsdir reload retains those published lease names in its mixed reverse chain.",
+      "provider_reverse returns None when that retained DHCP node precedes the static node, suppressing the required initial rename; repeated script maintenance can then emit original twice."
+    ],
+    "distinction": "The historical C/C layout-dependent mixed-chain evidence describes reload/HUP after DHCP DNS publication. It does not authorize an extra old DHCP DNS node before the first EVENT_INIT hosts lookup."
+  },
+  "offline_Rust_bucket_crosscheck": [
+    {
+      "observation": "original D gate retain",
+      "original_fqdn_bucket": 26,
+      "fromhosts_bucket": 37,
+      "helper_state": "retain"
+    },
+    {
+      "observation": "candidate C diagnostic retain",
+      "original_fqdn_bucket": 6,
+      "fromhosts_bucket": 13,
+      "helper_state": "retain"
+    },
+    {
+      "observation": "candidate D diagnostic retain",
+      "original_fqdn_bucket": 10,
+      "fromhosts_bucket": 39,
+      "helper_state": "retain"
+    },
+    {
+      "observation": "deployed final snapshot rename",
+      "original_fqdn_bucket": 59,
+      "fromhosts_bucket": 18,
+      "helper_state": "rename"
+    },
+    {
+      "observation": "candidate C final snapshot rename",
+      "original_fqdn_bucket": 47,
+      "fromhosts_bucket": 18,
+      "helper_state": "rename"
+    },
+    {
+      "observation": "candidate D final snapshot rename",
+      "original_fqdn_bucket": 54,
+      "fromhosts_bucket": 24,
+      "helper_state": "rename"
+    }
+  ],
+  "exact_C_counterevidence": [
+    {
+      "observation": "original D gate C side",
+      "hypothetical_original_fqdn_bucket": 2,
+      "fromhosts_bucket": 59,
+      "observed": "rename"
+    },
+    {
+      "observation": "D diagnostic C side",
+      "hypothetical_original_fqdn_bucket": 15,
+      "fromhosts_bucket": 19,
+      "observed": "rename"
+    },
+    {
+      "observation": "D final snapshot C side",
+      "hypothetical_original_fqdn_bucket": 1,
+      "fromhosts_bucket": 9,
+      "observed": "rename"
+    }
+  ],
+  "diagnostic_limits": [
+    "No initial leasefile was captured for original failing run or fixed9; final3observational snapshots allrenamed and have complete initiallease/finalhelper files.",
+    "ExactC initial case renamed in all12 captured repetitions; historical HUPretain evidence is a distinct boundary.",
+    "The fixed9/3diagnostics are not replacements of failedgate or evidence of unconditional candidate pass."
+  ],
+  "classification_correction": "Reviewer initial inference that historical mixed-chain semantics fully covered startup was withdrawn immediately after exactC bucket counterevidence; source review establishes a pre-existing Rust premature initial DNS publication defect exposed by layout.",
+  "next_candidate_required": "Separate product fix plus deterministic regression exercising both relative bucket orders and startup helper frozen original event; rerun relevant existing gates and fresh candidate screening. Frozen D remains unchanged and unqualified."
+}
