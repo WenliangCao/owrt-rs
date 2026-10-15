@@ -1,0 +1,152 @@
+{
+  "scope": "Local Mac allocation checks only; not native timing, whole-daemon or device evidence",
+  "baseline": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "candidate": "b1180f728543d56132df0f144467b3c97ef7b410",
+  "probe_sha256": "f1c1bdb3f6b1d4b6c6fb66c9a18055fc7ca877ae20f75b26921386d30360afc5",
+  "runs": [
+    {
+      "side": "F",
+      "scene": "hit",
+      "operations": 8000,
+      "checksum": 15136520,
+      "allocation_reallocation_requested_live": [
+        32000,
+        0,
+        1904000,
+        0
+      ]
+    },
+    {
+      "side": "F",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "checksum": 13156360,
+      "allocation_reallocation_requested_live": [
+        40000,
+        0,
+        2032000,
+        0
+      ]
+    },
+    {
+      "side": "F",
+      "scene": "miss",
+      "operations": 8000,
+      "checksum": 8000,
+      "allocation_reallocation_requested_live": [
+        16000,
+        0,
+        368000,
+        0
+      ]
+    },
+    {
+      "side": "F",
+      "scene": "host",
+      "operations": 8000,
+      "checksum": 22208000,
+      "allocation_reallocation_requested_live": [
+        64000,
+        0,
+        3984000,
+        0
+      ]
+    },
+    {
+      "side": "F",
+      "scene": "malformed",
+      "operations": 8000,
+      "checksum": 3808000,
+      "allocation_reallocation_requested_live": [
+        8000,
+        0,
+        144000,
+        0
+      ]
+    },
+    {
+      "side": "singleton",
+      "scene": "hit",
+      "operations": 8000,
+      "checksum": 15136520,
+      "allocation_reallocation_requested_live": [
+        24000,
+        0,
+        1392000,
+        0
+      ]
+    },
+    {
+      "side": "singleton",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "checksum": 13156360,
+      "allocation_reallocation_requested_live": [
+        32000,
+        0,
+        1520000,
+        0
+      ]
+    },
+    {
+      "side": "singleton",
+      "scene": "miss",
+      "operations": 8000,
+      "checksum": 8000,
+      "allocation_reallocation_requested_live": [
+        16000,
+        0,
+        368000,
+        0
+      ]
+    },
+    {
+      "side": "singleton",
+      "scene": "host",
+      "operations": 8000,
+      "checksum": 22208000,
+      "allocation_reallocation_requested_live": [
+        64000,
+        0,
+        3984000,
+        0
+      ]
+    },
+    {
+      "side": "singleton",
+      "scene": "malformed",
+      "operations": 8000,
+      "checksum": 3808000,
+      "allocation_reallocation_requested_live": [
+        8000,
+        0,
+        144000,
+        0
+      ]
+    }
+  ],
+  "artifacts": {
+    "F": "f4f1bb225fdff1533252d5334bb0e290b7833c0219dfdf2d4e5538a5dd7af28a",
+    "singleton": "0d6db10136bb36c601b833983e5e7fb031704e70d979c10faf467ed5604ac858"
+  },
+  "raw_sha256": "985415dc905e8e6db0f0809f391541a5df344b9c62df120cb67beaf5c2a657e0",
+  "earlier_attempt": {
+    "source": "0a94e3b0",
+    "raw_sha256": "fa9f9664d0d03a188e5660eea706ed9858203b30be674f6a645f9e59287c7f5b",
+    "retained": "private/hit-singleton",
+    "difference": "many-result lifetime refinement b1180f72 retained separately, allocation outcomes unchanged"
+  },
+  "tests": {
+    "passed": 63,
+    "ignored_existing": 1,
+    "log_sha256": "f756e5883a2376bf4f87c1410227f8228641b51e8920a28f989be996240fdd5e"
+  },
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "product_source_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "4792b1aeb46d2a83dad7e5cea237c2c59cffd187889a6b8fb9c733be6fb6688d",
+    "components/dnsmasq/src/dns/cache_engine.rs": "043bd7fbf1ad12c39e2d27284e6d128101eef77f5f214828988a51ac06b88135",
+    "components/dnsmasq/src/dns/cache_tests.rs": "b12665056774fd25438a6e6191b0b429a3dab162e4e661eb3d44d9d0b63a08f5"
+  },
+  "build": "cargo build --frozen --release --lib --manifest-path components/dnsmasq/Cargo.toml; rustc --edition=2021 -O -C lto=fat -C panic=abort --cfg allocation_tracking <existing udp_admission_probe.rs> --extern dnsmasq_rs=<release rlib> -L dependency=<release/deps>",
+  "decision": "Prepare only: ordinary and uppercase hits save one 64-byte allocation; all other five-scene controls unchanged. CPU costs of enum dispatch and larger return value require future native screens after F measurement; F unchanged."
+}
