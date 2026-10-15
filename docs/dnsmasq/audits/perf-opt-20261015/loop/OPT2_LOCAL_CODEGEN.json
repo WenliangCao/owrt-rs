@@ -1,0 +1,592 @@
+{
+  "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+  "target": "aarch64-unknown-linux-musl",
+  "codegen_flags": [
+    "-Cforce-unwind-tables=no",
+    "-Crelocation-model=pie",
+    "-Ctarget-feature=+crt-static"
+  ],
+  "sources": {
+    "F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "opt2": "c52d1935"
+  },
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/F-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-6baa13a0d0788820.rlib"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=2",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/opt2-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private/opt2-codegen/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-e9621b0e0bd21a42.rlib"
+      ],
+      "returncode": 0
+    }
+  ],
+  "outputs": {
+    "F": {
+      "sha256": "d4a612f559c64e46f24eba014c49e273ab774211c3988ca8bc43c76c96e95900",
+      "bytes": 5015032
+    },
+    "opt2": {
+      "sha256": "47a19ff7dfe0f34f98976bf2ecd271696af2691081b91ac91dd37a5ff63493fe",
+      "bytes": 4896160
+    }
+  },
+  "functions": {
+    "F": {
+      "answer_parsed_with_query_events": {
+        "symbol": "_RNvMs_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "assembly_sha256": "0762460b980972a93270fe102fde6ffb6de1debbb7529e009b89415f893d8cbb",
+        "static_instructions": 3508,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "0000000000317ad0 <_RNvMs_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+          "  317ad0:      \tstr\td10, [sp, #-0x80]!",
+          "  317ad4:      \tstp\td9, d8, [sp, #0x10]",
+          "  317ad8:      \tstp\tx29, x30, [sp, #0x20]",
+          "  317adc:      \tadd\tx29, sp, #0x20",
+          "  317ae0:      \tstp\tx28, x27, [sp, #0x30]",
+          "  317ae4:      \tstp\tx26, x25, [sp, #0x40]",
+          "  317ae8:      \tstp\tx24, x23, [sp, #0x50]",
+          "  317aec:      \tstp\tx22, x21, [sp, #0x60]",
+          "  317af0:      \tstp\tx20, x19, [sp, #0x70]",
+          "  317af4:      \tsub\tsp, sp, #0x2d0",
+          "  317af8:      \tldp\tx25, x23, [x29, #0x68]",
+          "  317afc:      \tmov\tw8, #0x8                // =8",
+          "  317b00:      \tldrsh\tw27, [x4, #0x2]",
+          "  317b04:      \tldr\tx10, [x29, #0x80]",
+          "  317b08:      \tldrb\tw9, [x29, #0x78]",
+          "  317b0c:      \tldr\tx24, [x29, #0x60]"
+        ],
+        "stack_adjustments": [
+          "317af4:      \tsub\tsp, sp, #0x2d0",
+          "317ba0:      \tadd\tsp, sp, #0x2d0",
+          "31aa48:      \tadd\tsp, sp, #0x2d0"
+        ]
+      },
+      "add_local_records_for_name": {
+        "symbol": "_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "assembly_sha256": "517b7e4d89745a73e57ed5f4afbd0571cdd8328a44a9a5c282eaf1e210df7ee5",
+        "static_instructions": 2510,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000031c5bc <_RNvNtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5local26add_local_records_for_name>:",
+          "  31c5bc:      \tstr\td10, [sp, #-0x80]!",
+          "  31c5c0:      \tstp\td9, d8, [sp, #0x10]",
+          "  31c5c4:      \tstp\tx29, x30, [sp, #0x20]",
+          "  31c5c8:      \tadd\tx29, sp, #0x20",
+          "  31c5cc:      \tstp\tx28, x27, [sp, #0x30]",
+          "  31c5d0:      \tstp\tx26, x25, [sp, #0x40]",
+          "  31c5d4:      \tstp\tx24, x23, [sp, #0x50]",
+          "  31c5d8:      \tstp\tx22, x21, [sp, #0x60]",
+          "  31c5dc:      \tstp\tx20, x19, [sp, #0x70]",
+          "  31c5e0:      \tsub\tsp, sp, #0x500",
+          "  31c5e4:      \tstr\txzr, [sp]",
+          "  31c5e8:      \tstr\tx7, [sp, #0x50]",
+          "  31c5ec:      \tldp\tx7, x25, [x29, #0x60]",
+          "  31c5f0:      \tand\tw8, w5, #0xffff",
+          "  31c5f4:      \tmov\tw20, w5",
+          "  31c5f8:      \tmov\tx22, x4"
+        ],
+        "stack_adjustments": [
+          "31c5e0:      \tsub\tsp, sp, #0x500",
+          "31e890:      \tadd\tsp, sp, #0x500"
+        ]
+      },
+      "answer_records_filtered": {
+        "symbol": "_RNvMs0_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+        "assembly_sha256": "b0676c65dca06b442ee486658a5e26345e10016cd91aa7e843a5a38f13395c55",
+        "static_instructions": 3381,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000030c608 <_RNvMs0_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered>:",
+          "  30c608:      \tstp\tx29, x30, [sp, #-0x60]!",
+          "  30c60c:      \tstp\tx28, x27, [sp, #0x10]",
+          "  30c610:      \tmov\tx29, sp",
+          "  30c614:      \tstp\tx26, x25, [sp, #0x20]",
+          "  30c618:      \tstp\tx24, x23, [sp, #0x30]",
+          "  30c61c:      \tstp\tx22, x21, [sp, #0x40]",
+          "  30c620:      \tstp\tx20, x19, [sp, #0x50]",
+          "  30c624:      \tsub\tsp, sp, #0x870",
+          "  30c628:      \tstr\txzr, [sp]",
+          "  30c62c:      \tldrh\tw8, [x2, #0x1a]",
+          "  30c630:      \tmov\tx25, x0",
+          "  30c634:      \tcmp\tw8, #0x1",
+          "  30c638:      \tb.ne\t0x30c694 <_RNvMs0_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered+0x8c>",
+          "  30c63c:      \tldr\tx8, [x6, #0x1d0]",
+          "  30c640:      \tldrh\tw24, [x2, #0x18]",
+          "  30c644:      \tmov\tx28, x7"
+        ],
+        "stack_adjustments": [
+          "30c624:      \tsub\tsp, sp, #0x870",
+          "30e0d0:      \tadd\tsp, sp, #0x870"
+        ]
+      },
+      "names_for": {
+        "symbol": "_RNvMs3_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for",
+        "assembly_sha256": "4f317f939a5340fccfe705c9eb432deb31f8bba3cc0d70e7cd7fec09001066b3",
+        "static_instructions": 95,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "0000000000312d6c <_RNvMs3_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for>:",
+          "  312d6c:      \tstp\td9, d8, [sp, #-0x60]!",
+          "  312d70:      \tstp\tx29, x30, [sp, #0x10]",
+          "  312d74:      \tstp\tx26, x25, [sp, #0x20]",
+          "  312d78:      \tstp\tx24, x23, [sp, #0x30]",
+          "  312d7c:      \tstp\tx22, x21, [sp, #0x40]",
+          "  312d80:      \tstp\tx20, x19, [sp, #0x50]",
+          "  312d84:      \tadd\tx29, sp, #0x10",
+          "  312d88:      \tmov\tx19, x3",
+          "  312d8c:      \tmov\tx20, x2",
+          "  312d90:      \tcbz\tx3, 0x312e98 <_RNvMs3_NtNtCsgpE4GEN5yeG_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for+0x12c>",
+          "  312d94:      \tmov\tx8, #0x2325             // =8997",
+          "  312d98:      \tmov\tx9, #0x1b3              // =435",
+          "  312d9c:      \tmov\tx10, x19",
+          "  312da0:      \tmovk\tx8, #0x8422, lsl #16",
+          "  312da4:      \tmovk\tx9, #0x100, lsl #32",
+          "  312da8:      \tmov\tx11, x20"
+        ],
+        "stack_adjustments": []
+      },
+      "step_udp": {
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "assembly_sha256": "6edd372a22e6c39dc841d6853aeebf8a902d9731b99886354634bcab69357d4e",
+        "static_instructions": 441,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000029630c <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp>:",
+          "  29630c:      \tsub\tsp, sp, #0x180",
+          "  296310:      \tstp\tx29, x30, [sp, #0x120]",
+          "  296314:      \tstp\tx28, x27, [sp, #0x130]",
+          "  296318:      \tstp\tx26, x25, [sp, #0x140]",
+          "  29631c:      \tstp\tx24, x23, [sp, #0x150]",
+          "  296320:      \tstp\tx22, x21, [sp, #0x160]",
+          "  296324:      \tstp\tx20, x19, [sp, #0x170]",
+          "  296328:      \tadd\tx29, sp, #0x120",
+          "  29632c:      \tldr\tx8, [x0, #0x950]",
+          "  296330:      \tcmn\tx8, #0x1",
+          "  296334:      \tb.eq\t0x296340 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp+0x34>",
+          "  296338:      \tldrb\tw8, [x0, #0x9b8]",
+          "  29633c:      \tcbnz\tw8, 0x296400 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp+0xf4>",
+          "  296340:      \tldr\tx26, [x0, #0x1bf0]",
+          "  296344:      \tmov\tx9, #0x7fffffffffffffff // =9223372036854775807",
+          "  296348:      \tldr\tx8, [x26, #0x10]"
+        ],
+        "stack_adjustments": [
+          "29630c:      \tsub\tsp, sp, #0x180",
+          "29641c:      \tadd\tsp, sp, #0x180"
+        ]
+      },
+      "process_udp": {
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "assembly_sha256": "b9dc0d38fa548dea8c2b0d06d33d91bfb523af78276cb34f3bfa32569b26fd6f",
+        "static_instructions": 1121,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/F-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "0000000000278e20 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp>:",
+          "  278e20:      \tstp\tx29, x30, [sp, #-0x60]!",
+          "  278e24:      \tstp\tx28, x27, [sp, #0x10]",
+          "  278e28:      \tmov\tx29, sp",
+          "  278e2c:      \tstp\tx26, x25, [sp, #0x20]",
+          "  278e30:      \tstp\tx24, x23, [sp, #0x30]",
+          "  278e34:      \tstp\tx22, x21, [sp, #0x40]",
+          "  278e38:      \tstp\tx20, x19, [sp, #0x50]",
+          "  278e3c:      \tsub\tsp, sp, #0x3c0",
+          "  278e40:      \tldr\tx9, [x0, #0x1bf8]",
+          "  278e44:      \tmov\tx20, x5",
+          "  278e48:      \tmov\tx21, x4",
+          "  278e4c:      \tmov\tx19, x2",
+          "  278e50:      \tmov\tx8, x9",
+          "  278e54:      \tldr\tx10, [x8, #0x10]!",
+          "  278e58:      \tcbz\tx10, 0x278ec0 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp+0xa0>",
+          "  278e5c:      \tldr\tx8, [x20]"
+        ],
+        "stack_adjustments": [
+          "278e3c:      \tsub\tsp, sp, #0x3c0",
+          "278ea0:      \tadd\tsp, sp, #0x3c0",
+          "279e18:      \tadd\tsp, sp, #0x3c0"
+        ]
+      }
+    },
+    "opt2": {
+      "answer_parsed_with_query_events": {
+        "symbol": "_RNvMs_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "assembly_sha256": "5ac48139305e266267f4a3f93b6e0aa68fe3153ce7fbeb3c3f480b18c114e93e",
+        "static_instructions": 3200,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/opt2-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000030a520 <_RNvMs_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+          "  30a520:      \tstr\td10, [sp, #-0x80]!",
+          "  30a524:      \tstp\td9, d8, [sp, #0x10]",
+          "  30a528:      \tstp\tx29, x30, [sp, #0x20]",
+          "  30a52c:      \tadd\tx29, sp, #0x20",
+          "  30a530:      \tstp\tx28, x27, [sp, #0x30]",
+          "  30a534:      \tstp\tx26, x25, [sp, #0x40]",
+          "  30a538:      \tstp\tx24, x23, [sp, #0x50]",
+          "  30a53c:      \tstp\tx22, x21, [sp, #0x60]",
+          "  30a540:      \tstp\tx20, x19, [sp, #0x70]",
+          "  30a544:      \tsub\tsp, sp, #0x2d0",
+          "  30a548:      \tldp\tx28, x21, [x29, #0x68]",
+          "  30a54c:      \tmov\tw8, #0x8                // =8",
+          "  30a550:      \tldrsh\tw9, [x4, #0x2]",
+          "  30a554:      \tldr\tx11, [x29, #0x80]",
+          "  30a558:      \tldrb\tw10, [x29, #0x78]",
+          "  30a55c:      \tldr\tx27, [x29, #0x60]"
+        ],
+        "stack_adjustments": [
+          "30a544:      \tsub\tsp, sp, #0x2d0",
+          "30a58c:      \tadd\tsp, sp, #0x2d0",
+          "30d300:      \tadd\tsp, sp, #0x2d0"
+        ]
+      },
+      "add_local_records_for_name": {
+        "symbol": "_RNvNtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "assembly_sha256": "d57bfeeda3bb758d392b113d265c66b2d4a985f701a070da5dc4914bd6c1b108",
+        "static_instructions": 2509,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/opt2-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000030eb30 <_RNvNtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5local26add_local_records_for_name>:",
+          "  30eb30:      \tstr\td10, [sp, #-0x80]!",
+          "  30eb34:      \tstp\td9, d8, [sp, #0x10]",
+          "  30eb38:      \tstp\tx29, x30, [sp, #0x20]",
+          "  30eb3c:      \tadd\tx29, sp, #0x20",
+          "  30eb40:      \tstp\tx28, x27, [sp, #0x30]",
+          "  30eb44:      \tstp\tx26, x25, [sp, #0x40]",
+          "  30eb48:      \tstp\tx24, x23, [sp, #0x50]",
+          "  30eb4c:      \tstp\tx22, x21, [sp, #0x60]",
+          "  30eb50:      \tstp\tx20, x19, [sp, #0x70]",
+          "  30eb54:      \tsub\tsp, sp, #0x530",
+          "  30eb58:      \tstr\txzr, [sp]",
+          "  30eb5c:      \tldp\tx9, x22, [x29, #0x60]",
+          "  30eb60:      \tand\tw8, w5, #0xffff",
+          "  30eb64:      \tmov\tw20, w5",
+          "  30eb68:      \tmov\tx21, x4",
+          "  30eb6c:      \tmov\tx24, x3"
+        ],
+        "stack_adjustments": [
+          "30eb54:      \tsub\tsp, sp, #0x530",
+          "310c34:      \tadd\tsp, sp, #0x530"
+        ]
+      },
+      "answer_records_filtered": {
+        "symbol": "_RNvMs0_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+        "assembly_sha256": "189e52e82a46115dc4a3d0ffa1c692e6629cf0a8457320b3ad8a655aa60accbf",
+        "static_instructions": 3191,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/opt2-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "00000000002ffb80 <_RNvMs0_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered>:",
+          "  2ffb80:      \tstp\tx29, x30, [sp, #-0x60]!",
+          "  2ffb84:      \tstp\tx28, x27, [sp, #0x10]",
+          "  2ffb88:      \tmov\tx29, sp",
+          "  2ffb8c:      \tstp\tx26, x25, [sp, #0x20]",
+          "  2ffb90:      \tstp\tx24, x23, [sp, #0x30]",
+          "  2ffb94:      \tstp\tx22, x21, [sp, #0x40]",
+          "  2ffb98:      \tstp\tx20, x19, [sp, #0x50]",
+          "  2ffb9c:      \tsub\tsp, sp, #0x870",
+          "  2ffba0:      \tstr\txzr, [sp]",
+          "  2ffba4:      \tldrh\tw8, [x2, #0x1a]",
+          "  2ffba8:      \tmov\tx22, x0",
+          "  2ffbac:      \tcmp\tw8, #0x1",
+          "  2ffbb0:      \tb.ne\t0x2ffc10 <_RNvMs0_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered+0x90>",
+          "  2ffbb4:      \tldr\tx8, [x6, #0x1d0]",
+          "  2ffbb8:      \tldrh\tw24, [x2, #0x18]",
+          "  2ffbbc:      \tmov\tx20, x7"
+        ],
+        "stack_adjustments": [
+          "2ffb9c:      \tsub\tsp, sp, #0x870",
+          "301560:      \tadd\tsp, sp, #0x870"
+        ]
+      },
+      "names_for": {
+        "symbol": "_RNvMs3_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for",
+        "assembly_sha256": "c1a46efe0e3c3f7c915fcc00cf91ef097e95efa7ce8c1b83188c821176fd2aad",
+        "static_instructions": 89,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/opt2-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "0000000000305e50 <_RNvMs3_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for>:",
+          "  305e50:      \tstp\td9, d8, [sp, #-0x60]!",
+          "  305e54:      \tstp\tx29, x30, [sp, #0x10]",
+          "  305e58:      \tstp\tx26, x25, [sp, #0x20]",
+          "  305e5c:      \tstp\tx24, x23, [sp, #0x30]",
+          "  305e60:      \tstp\tx22, x21, [sp, #0x40]",
+          "  305e64:      \tstp\tx20, x19, [sp, #0x50]",
+          "  305e68:      \tadd\tx29, sp, #0x10",
+          "  305e6c:      \tmov\tx19, x3",
+          "  305e70:      \tmov\tx20, x2",
+          "  305e74:      \tcbz\tx3, 0x305f64 <_RNvMs3_NtNtCskJPPxmu0wRS_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for+0x114>",
+          "  305e78:      \tmov\tx8, #0x2325             // =8997",
+          "  305e7c:      \tmov\tx9, #0x1b3              // =435",
+          "  305e80:      \tmov\tx10, x19",
+          "  305e84:      \tmovk\tx8, #0x8422, lsl #16",
+          "  305e88:      \tmovk\tx9, #0x100, lsl #32",
+          "  305e8c:      \tmov\tx11, x20"
+        ],
+        "stack_adjustments": []
+      },
+      "step_udp": {
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "assembly_sha256": "ffd69e5cb78f1dd8e55679a357a192a40a5d539f3450f78fda9f4742a111610b",
+        "static_instructions": 429,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/opt2-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "00000000002920f8 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp>:",
+          "  2920f8:      \tsub\tsp, sp, #0x180",
+          "  2920fc:      \tstp\tx29, x30, [sp, #0x120]",
+          "  292100:      \tstp\tx28, x27, [sp, #0x130]",
+          "  292104:      \tstp\tx26, x25, [sp, #0x140]",
+          "  292108:      \tstp\tx24, x23, [sp, #0x150]",
+          "  29210c:      \tstp\tx22, x21, [sp, #0x160]",
+          "  292110:      \tstp\tx20, x19, [sp, #0x170]",
+          "  292114:      \tadd\tx29, sp, #0x120",
+          "  292118:      \tldr\tx8, [x0, #0x950]",
+          "  29211c:      \tcmn\tx8, #0x1",
+          "  292120:      \tb.eq\t0x29212c <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp+0x34>",
+          "  292124:      \tldrb\tw8, [x0, #0x9b8]",
+          "  292128:      \tcbnz\tw8, 0x2921ec <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp+0xf4>",
+          "  29212c:      \tldr\tx26, [x0, #0x1bf0]",
+          "  292130:      \tmov\tx9, #0x7fffffffffffffff // =9223372036854775807",
+          "  292134:      \tldr\tx8, [x26, #0x10]"
+        ],
+        "stack_adjustments": [
+          "2920f8:      \tsub\tsp, sp, #0x180",
+          "292208:      \tadd\tsp, sp, #0x180"
+        ]
+      },
+      "process_udp": {
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "assembly_sha256": "63896332dc691093f04ef2366ec8f747fa89bed1961db32bb45453fd28a744bc",
+        "static_instructions": 1115,
+        "prologue": [
+          "",
+          "private/opt2-codegen/cross-daemon-final/opt2-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "00000000002760d8 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp>:",
+          "  2760d8:      \tstp\tx29, x30, [sp, #-0x60]!",
+          "  2760dc:      \tstp\tx28, x27, [sp, #0x10]",
+          "  2760e0:      \tmov\tx29, sp",
+          "  2760e4:      \tstp\tx26, x25, [sp, #0x20]",
+          "  2760e8:      \tstp\tx24, x23, [sp, #0x30]",
+          "  2760ec:      \tstp\tx22, x21, [sp, #0x40]",
+          "  2760f0:      \tstp\tx20, x19, [sp, #0x50]",
+          "  2760f4:      \tsub\tsp, sp, #0x3c0",
+          "  2760f8:      \tldr\tx9, [x0, #0x1bf8]",
+          "  2760fc:      \tmov\tx20, x5",
+          "  276100:      \tmov\tx21, x4",
+          "  276104:      \tmov\tx19, x2",
+          "  276108:      \tmov\tx8, x9",
+          "  27610c:      \tldr\tx10, [x8, #0x10]!",
+          "  276110:      \tcbz\tx10, 0x276178 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp+0xa0>",
+          "  276114:      \tldr\tx8, [x20]"
+        ],
+        "stack_adjustments": [
+          "2760f4:      \tsub\tsp, sp, #0x3c0",
+          "276158:      \tadd\tsp, sp, #0x3c0",
+          "2770b8:      \tadd\tsp, sp, #0x3c0"
+        ]
+      }
+    }
+  },
+  "section_sizes": {
+    "F": {
+      ".rodata": 93316,
+      ".gcc_except_table": 5640,
+      ".eh_frame_hdr": 18852,
+      ".eh_frame": 96560,
+      ".text": 1817864,
+      ".init": 16,
+      ".fini": 16,
+      ".tbss": 48,
+      ".fini_array": 8,
+      ".init_array": 24,
+      ".data.rel.ro": 46096,
+      ".got": 192,
+      ".relro_padding": 1608,
+      ".data": 2840,
+      ".bss": 4441,
+      ".debug_info": 562926,
+      ".debug_abbrev": 23762,
+      ".debug_aranges": 24784,
+      ".debug_ranges": 335728,
+      ".debug_line": 289867,
+      ".debug_str": 1144382,
+      ".comment": 170,
+      ".debug_frame": 21056,
+      ".debug_loc": 598
+    },
+    "opt2": {
+      ".rodata": 92116,
+      ".gcc_except_table": 5520,
+      ".eh_frame_hdr": 18868,
+      ".eh_frame": 93616,
+      ".text": 1723848,
+      ".init": 16,
+      ".fini": 16,
+      ".tbss": 48,
+      ".fini_array": 8,
+      ".init_array": 24,
+      ".data.rel.ro": 46240,
+      ".got": 192,
+      ".relro_padding": 1416,
+      ".data": 2840,
+      ".bss": 4449,
+      ".debug_info": 562649,
+      ".debug_abbrev": 23762,
+      ".debug_aranges": 24752,
+      ".debug_ranges": 319408,
+      ".debug_line": 284654,
+      ".debug_str": 1144635,
+      ".comment": 170,
+      ".debug_frame": 21056,
+      ".debug_loc": 598
+    }
+  },
+  "elf_types": {
+    "F": 2,
+    "opt2": 2
+  },
+  "text_change_bytes": -94016,
+  "text_change_percent": -5.171784027848068,
+  "validation": {
+    "mac_release_library_tests_passed": 714,
+    "ignored_existing": 8,
+    "test_log_sha256": "ef50cda52429aaa12a41a963b41af161af3b8626fe7ace7bf77129829b1a74ca"
+  },
+  "limitations": [
+    "Local ET_EXEC using Rust bundled musl/rust-lld is not the SDK static-PIE artifact; no ELF budget, device or CPU/IPC acceptance claim.",
+    "Only opt-level changed. Fat LTO, codegen-units1, panicabort and source logic remain F. No combination with A53 or product prototypes.",
+    "Any future SDK build must report the actual opt-level2; the legacy research builder hardcodes opt_level3 metadata and oracle_build.sh overrides the release level. Do not use those unchanged to mislabel this experiment.",
+    "No timing has run; smaller text or fewer static instructions does not establish faster execution."
+  ]
+}
