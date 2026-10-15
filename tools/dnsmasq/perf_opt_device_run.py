@@ -136,6 +136,15 @@ def validate(folder, scene, expected_hash):
             n = scene[6]
             if load['warmup']['dora_correct'] != n or load['measurement']['dora_correct'] or load['measurement']['renew_correct'] != 2000 or load['leased_clients_final'] != n:
                 errors.append('DORA/renew boundary')
+        elif scene[2] == 'miss' and load.get('saturation_seconds') == 0:
+            # Miss has no prewarm. Client cohorts include their drained replies,
+            # while upstream time buckets can cross either measurement boundary.
+            expected = scene[3] * (scene[4] + scene[5])
+            if (load.get('mode') != scene[1] or load.get('profile') != 'miss'
+                    or (folder / 'prewarm.json').exists()
+                    or any(up['phases'][phase]['requests'] for phase in ('fault', 'recovery'))
+                    or up['total']['requests'] != expected):
+                errors.append('upstream miss cohort count')
         elif up['phases']['steady']['requests'] != {'hit':0, 'miss':4000, 'mixed':800}[scene[2]]:
             errors.append('upstream hit/miss count')
     return errors

@@ -1,0 +1,46 @@
+{
+  "scope": "Prospective miss-only/no-saturation validator repair; current frozen E attempts stay unchanged and invalid window is not requalified",
+  "base_commit": "99f5466fb66867119f8bb748a4e129b1b04b425e",
+  "changed_code": "9 inserted lines in perf_opt_device_run.validate; no product/measurement binary/workload/statistical formula/C expectation changes",
+  "controller_old_sha256": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+  "controller_new_sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+  "rule": "No-prewarm miss windows with zero configured saturation validate exact upstream total requests/replies across1000warmup+4000measurement, including drained processing; normal global completeness and all clientzeroerror/skip/exactcounts stillrequired. Fault/recovery traffic, wrongprofile/mode orunexpectedprewarm reject.",
+  "unchanged": [
+    "hit/mixed steady forwarding counts",
+    "DHCP/lifecycle gates",
+    "any actual-saturation path",
+    "W/paired direction/CPU precision/latency statistics",
+    "all recorded source/runtime identities"
+  ],
+  "reproducer": "Existing validator on local synthetic raw files with exact clientcohort counts and upstream phase partitions around start/end; test suite created before codechange and runbefore/after",
+  "test_command": "python3 -m unittest discover -s tools/dnsmasq -p test_perf_opt_miss_cohort.py -v",
+  "before": {
+    "tests": 12,
+    "exit": 1,
+    "failure_assertions": 9,
+    "log_sha256": "779343f9149dbbb33b21e920e2ca0f82f0bd4f02a86ef113dda26a40e3a5f60e"
+  },
+  "after": {
+    "tests": 12,
+    "exit": 0,
+    "failure_assertions": 0,
+    "log_sha256": "f85be6da27b49d3ce33e99a7d4602b2686a1278e8a403542cbfc33f4787e473d"
+  },
+  "controls": [
+    "in-window control",
+    "measurement request processed afterend",
+    "warmup request processed afterstart",
+    "both boundaries",
+    "reply-only latecompletion",
+    "TCPmiss samecohort",
+    "missing/extra forwarding",
+    "clientskip/wrong/timeout/transport",
+    "upstreamerror/unanswered",
+    "fault/recovery/unexpectedprewarm",
+    "actualsaturation oldrule",
+    "hit/mixed oldrule"
+  ],
+  "negative_control_statement": "Missing4999 andextra5001 forwarding stillreject; no numeric tolerance or selective sample replacement.",
+  "rollout": "Root review then new candidate/version sourceidentity; no edit of currentE controller/privateoutputs and no run oncurrentEtooverwritevalidity",
+  "network_runtime_activity": "None; localunit tests only. Oracle ongoingtiming onlysmallprogressread."
+}
