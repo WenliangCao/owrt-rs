@@ -1,0 +1,226 @@
+{
+  "scope": "Retained SDK smoke1 setup failure before Rust compilation; no PGO/static-PIE feasibility or performance conclusion",
+  "controller_commit": "47275549",
+  "remote_attempt": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1",
+  "state": {
+    "status": "failed",
+    "pid": 553620,
+    "plan_sha256": "61ff70bd2289ded8f84e5c8fa04b537da0424ddedbbda37c169cdb011aa9540b",
+    "commands": [
+      {
+        "label": "rustc-version",
+        "argv": [
+          "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+          "-vV"
+        ],
+        "environment_updates": {},
+        "returncode": 0,
+        "cleanup": {
+          "term_sent": false,
+          "kill_sent": false,
+          "group_exited": true
+        },
+        "stdout_sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "cargo-version",
+        "argv": [
+          "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/cargo",
+          "--version"
+        ],
+        "environment_updates": {},
+        "returncode": 0,
+        "cleanup": {
+          "term_sent": false,
+          "kill_sent": false,
+          "group_exited": true
+        },
+        "stdout_sha256": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "profdata-version",
+        "argv": [
+          "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+          "--version"
+        ],
+        "environment_updates": {},
+        "returncode": 0,
+        "cleanup": {
+          "term_sent": false,
+          "kill_sent": false,
+          "group_exited": true
+        },
+        "stdout_sha256": "5ae7a612628be9b747b73e340d6294bd2c3311a3a5a4898098dab82e260ae519",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "control-build",
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/source-e",
+          "--commit",
+          "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+          "--epoch",
+          "1792069943",
+          "--sdk",
+          "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/control",
+          "--cargo",
+          "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/wrapper/cargo",
+          "--build-slot",
+          "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/package-build",
+          "--cargo-target",
+          "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/cargo-control",
+          "--expected-baseline-sha",
+          "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+        ],
+        "environment_updates": {
+          "PGO_SMOKE_PLAN": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/plan.json",
+          "PGO_SMOKE_MODE": "control"
+        },
+        "returncode": 1,
+        "error": "AssertionError('control-build')",
+        "cleanup": {
+          "term_sent": false,
+          "kill_sent": false,
+          "group_exited": true
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "eb89a12b489b94f45223af510796f16b2ad8c87ce7bdf000fb8e1a8e381a2bce"
+      }
+    ],
+    "builds": {},
+    "active": null,
+    "tools_sha256": {
+      "cargo": "2101d7104b91a013912c94275dcd31c2b41061ef7f6e8530df11cdad55b8fbc5",
+      "rustc": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f"
+    },
+    "fixed_inputs_sha256": {
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/plan.json": "61ff70bd2289ded8f84e5c8fa04b537da0424ddedbbda37c169cdb011aa9540b",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/inputs/pgo_sdk_smoke.py": "8df299151f4b3669e734de3d781e0a0e17c68af625501220b940f33950b9eb78",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/packaging/openwrt/owrt-dnsmasq/Makefile": "0438d7ad8dcf6f2b986cdffb9afdba4dee2857078e3b23a49f33fe1386f244ab",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py": "9b04b7a13281414e4b79253a0a9ae8650abafa1645484dd6945e269d0335af58",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/tools/dnsmasq/perf_opt_map_cc.py": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+      "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/wrapper/cargo": "fd9c874354ac51efd56d7df88314278993b5be1f267db19f24d79a0720bce58e",
+      "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-musl/lib/libprofiler_builtins-32af23de7a5fb6a7.rlib": "e4f497ea63ecf965949028c36c9fa7adfffaa3a185b807008be74314811fdde0"
+    },
+    "error": "AssertionError('control-build')"
+  },
+  "partial_build": {
+    "status": "failed",
+    "error": "ValueError('command exited 101; see /home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/control/invalidate-product.log')",
+    "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "source_date_epoch": "1792069943",
+    "source_digest": "336248646755d2fdcbcb427c2f04ad36b961ed6ab4fc3e88112fc4353abf44f2",
+    "git_identity_sha256": "e4915b7f8d2ed6e37cf316f2037188f8a1be772d779c99edf34e358e602cb1d4",
+    "toolchain": {
+      "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+      "map_wrapper_sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5"
+    },
+    "commands": [
+      [
+        "make",
+        "package/owrt-dnsmasq/prepare",
+        "V=s",
+        "-j1",
+        "CONFIG_AUTOREMOVE=",
+        "V1_PACKAGE_RELEASE=4",
+        "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-perf-20261015/root/source-e/components",
+        "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/package-build",
+        "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/control/sdk-output",
+        "V1_CARGO=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke1/wrapper/cargo",
+        "V1_CARGO_HOME=/home/ubuntu/.cargo",
+        "V1_RUSTUP_HOME=/home/ubuntu/.rustup",
+        "TARGET_CC_NOCACHE=/home/ubuntu/dnsmasq-perf-20261015/root/source-e/tools/dnsmasq/perf_opt_map_cc.py"
+      ]
+    ],
+    "sdk_recipe_restored": true
+  },
+  "cleanup": {
+    "status": "failed",
+    "active_smoke_processes": [],
+    "sdk_lock_available": true,
+    "sdk_recipe_restored": true,
+    "source_files_checked": 179,
+    "source_mismatches": [],
+    "sdk_files_checked": 106,
+    "sdk_mismatches": [],
+    "generate_created": false,
+    "runtime_created": false
+  },
+  "retained_files": {
+    "state.json": {
+      "bytes": 5515,
+      "sha256": "c8aca72dc899ac92443b489de676bc8e2c341391f75d20e43eb3446759fe0c87"
+    },
+    "control/build.json": {
+      "bytes": 40306,
+      "sha256": "8ce752bcafb797f5a4954cbe79f14c519156728a6318c7027a5d4a0fdd7e46bf"
+    },
+    "failure-cleanup.json": {
+      "bytes": 285,
+      "sha256": "de5693f2bcfdeb5283020179c2c59a9723c0cba045edcf954cfb0f5033f32e2f"
+    },
+    "control/invalidate-product.log": {
+      "bytes": 115,
+      "sha256": "235382520425c4841a699c405e75ba1b581db26e68d7ff626656e0302cd25dec"
+    },
+    "control-build.stderr": {
+      "bytes": 908,
+      "sha256": "eb89a12b489b94f45223af510796f16b2ad8c87ce7bdf000fb8e1a8e381a2bce"
+    },
+    "controller.stderr": {
+      "bytes": 716,
+      "sha256": "39042b5a1d2fb1af682a439a68bca186fec9ed0ab1fa0c08e66d6e9b51df6f46"
+    },
+    "rustc-version.stdout": {
+      "bytes": 197,
+      "sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14"
+    },
+    "cargo-version.stdout": {
+      "bytes": 36,
+      "sha256": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503"
+    },
+    "profdata-version.stdout": {
+      "bytes": 85,
+      "sha256": "5ae7a612628be9b747b73e340d6294bd2c3311a3a5a4898098dab82e260ae519"
+    },
+    "control/prepare.log": {
+      "bytes": 7307,
+      "sha256": "bd9a02e037bb0736b53ec1db096f48629ac250fcd72295507b873550bbcd20b3"
+    },
+    "inputs/plan.json": {
+      "bytes": 9616,
+      "sha256": "61ff70bd2289ded8f84e5c8fa04b537da0424ddedbbda37c169cdb011aa9540b"
+    },
+    "inputs/pgo_sdk_smoke.py": {
+      "bytes": 19121,
+      "sha256": "8df299151f4b3669e734de3d781e0a0e17c68af625501220b940f33950b9eb78"
+    },
+    "inputs/pgo_smoke_cargo.py": {
+      "bytes": 4073,
+      "sha256": "fd9c874354ac51efd56d7df88314278993b5be1f267db19f24d79a0720bce58e"
+    }
+  },
+  "failure_log": "error: could not execute process `rustc -vV` (never executed)\n\nCaused by:\n  No such file or directory (os error 2)\n",
+  "interpretation": {
+    "failed_step": "Pinned direct Cargo clean could not discover rustc -vV through the noninteractive launch environment",
+    "cause": "The new wrapper used toolchain/bin/cargo instead of the existing rustup Cargo proxy; compiler discovery was not exercised by the capture-only local stub",
+    "rust_compilation_started": false,
+    "generate_started": false,
+    "runtime_started": false,
+    "exact_control_reproduction_established": false,
+    "release_or_hardening_changed": false,
+    "attempt_retried": false
+  }
+}
