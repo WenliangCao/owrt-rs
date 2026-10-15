@@ -82,8 +82,8 @@ with fresh profiling rather than transferring historical EPS1 percentages.
 ## Resumed current-source counter screen
 
 After C completed its first four full device scenes, root authorized this
-screen while the remaining C sequence continues independently. Fresh exact-C
-candidate profiling still attributes 11.09% of UDP-miss and 18.12% of TCP-miss
+screen while the remaining C sequence continues independently. Fresh profiling
+of candidate C still attributes 11.09% of UDP-miss and 18.12% of TCP-miss
 instruction samples to insertion; no historical gain was reused.
 
 Oracle baseline is frozen C `f7f7a2ed`; D product source is `9f2a9052`. All 172
@@ -116,3 +116,27 @@ These are counter results only, not accepted CPU timing or device gains.
 `expiry1-screen.json` retains every sample and raw/artifact identity. A root
 quiet reservation is requested for plain timing; final exact-C/SDK gates are
 still outstanding.
+
+## Quiet plain screen
+
+Reservation `expiry1-plain-20261015` completed all 120 declared windows with
+fixed artifact hashes, and no replacement/repeat runs. Whole-process native
+CPU improves for pressure (−80.300%, W 1.555%), expiry (−71.820%, W 0.717%) and
+finite stale (−79.937%, W 0.784%), each in five of five pairs. Replacement,
+reverse, long names, ordinary hit and eight-record answers are within their
+measured variation. Marginal miss/host changes are not the proposed mechanism.
+
+Two supplemental CNAME controls regress in all five pairs: dynamic CNAME
+**+0.754%, W 0.612%**, and configured CNAME **+2.836%, W 0.266%**. These are
+explicit screening caveats; no universal or device no-regression claim is made.
+Their instruction counts were effectively unchanged and the read loops were
+not edited, which suggests code-layout sensitivity but does not establish its
+cause. Root will decide whether further attribution or full-candidate screening
+is appropriate. No new timing is started autonomously.
+
+`expiry1-timing.json` contains all 120 CPU samples, decisions and fixed artifact
+identities. Only the 7,131-byte derived summary was retrieved; complete timing
+rows/raw logs remain on Oracle with recorded hashes. The PMU and plain CPU probes
+include fixture creation and priming, so these percentages are not steady-state
+service or device predictions. Exact-source C differential, SDK, service and
+final memory gates remain outstanding.
