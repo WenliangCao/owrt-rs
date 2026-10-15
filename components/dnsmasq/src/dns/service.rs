@@ -797,6 +797,31 @@ mod tests {
     }
 
     #[test]
+    fn unclaimed_address_preserves_filter_win2k_malformed_additional_miss() {
+        use crate::dns::wire::{Name, PacketWriter};
+        for rrtype in [1, 28] {
+            for tcp in [false, true] {
+                let mut service = configured(&[b"filterwin2k".to_vec()], 1232);
+                let mut writer = PacketWriter::new(7, 0x100, 512).unwrap();
+                writer.question(&Name::from_ascii("absent.test").unwrap(), rrtype, 1).unwrap();
+                let mut query = writer.finish();
+                let mut header = Header::parse(&query).unwrap();
+                header.additionals = 1;
+                header.write(&mut query).unwrap();
+                let question = super::super::forward::Question::parse_with_header(&query, header).unwrap();
+                let mut answerer = LocalAnswerer { config: &service.config, hosts: &mut service.hosts,
+                    local_ttl: service.local_ttl, max_packet: if tcp { 65535 } else { 512 } };
+                let reference = answerer.answer_parsed_with_query_events(&query, header, &question,
+                    &mut service.leases, 100, None, None, &service.interfaces, false, &mut None);
+                // find_pseudoheader treats a truncated additional RR as no
+                // OPT. filterwin2k does not claim these address questions.
+                assert!(reference.unwrap().is_none());
+                assert!(service.lookup_local_parsed(&query, header, &question, 100, None, tcp, &mut None).unwrap().is_none());
+            }
+        }
+    }
+
+    #[test]
     fn query_notices_keep_selected_record_origin_without_changing_answers() {
         use crate::dns::wire::{Name, PacketWriter};
         use crate::query_logging::{self as log, QueryData};
