@@ -1,0 +1,305 @@
+{
+  "status": "strong-insertion-improvement-with-two-supplemental-CNAME-regressions-pending-root-screen-decision",
+  "source_baseline": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "source_candidate": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "reservation": "expiry1-plain-20261015",
+  "scope": "Native System allocator plain API probes atCPU2, wholeprocessCPU includes fixturecreation/priming. Notdevice orSDK timing. All120declaredwindows retained;noextra runs.",
+  "summaries": [
+    {
+      "scene": "replace",
+      "cpu_ns": {
+        "baseline-c": [
+          37382000,
+          36958000,
+          36756000,
+          37104000,
+          36989000
+        ],
+        "expiry1": [
+          37494000,
+          37404000,
+          37439000,
+          37391000,
+          37146000
+        ]
+      },
+      "change_percent": 1.1219551758630875,
+      "W_percent": 1.6923950363621616,
+      "improving_pairs": 0,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "pressure",
+      "cpu_ns": {
+        "baseline-c": [
+          235675000,
+          238250000,
+          237015000,
+          236651000,
+          236208000
+        ],
+        "expiry1": [
+          46645000,
+          46621000,
+          46751000,
+          46336000,
+          46026000
+        ]
+      },
+      "change_percent": -80.29968180992263,
+      "W_percent": 1.5550931983440939,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "reverse",
+      "cpu_ns": {
+        "baseline-c": [
+          538285000,
+          538328000,
+          538795000,
+          538502000,
+          539976000
+        ],
+        "expiry1": [
+          541161000,
+          541389000,
+          539911000,
+          539503000,
+          539991000
+        ]
+      },
+      "change_percent": 0.27650779384291724,
+      "W_percent": 0.34926508034393167,
+      "improving_pairs": 0,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "long",
+      "cpu_ns": {
+        "baseline-c": [
+          42533000,
+          42458000,
+          42195000,
+          42592000,
+          42361000
+        ],
+        "expiry1": [
+          42734000,
+          42687000,
+          42268000,
+          42351000,
+          42471000
+        ]
+      },
+      "change_percent": 0.030618493570111482,
+      "W_percent": 1.0972192790374609,
+      "improving_pairs": 1,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "expiry",
+      "cpu_ns": {
+        "baseline-c": [
+          158455000,
+          157870000,
+          158815000,
+          158187000,
+          158355000
+        ],
+        "expiry1": [
+          44565000,
+          44554000,
+          44733000,
+          44874000,
+          44624000
+        ]
+      },
+      "change_percent": -71.82027722522182,
+      "W_percent": 0.7171029042667623,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "expiry-stale",
+      "cpu_ns": {
+        "baseline-c": [
+          232181000,
+          231840000,
+          232712000,
+          232876000,
+          231924000
+        ],
+        "expiry1": [
+          46538000,
+          46621000,
+          46799000,
+          46434000,
+          46583000
+        ]
+      },
+      "change_percent": -79.93677346552906,
+      "W_percent": 0.7835476461370028,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "hit",
+      "cpu_ns": {
+        "baseline-c": [
+          301541000,
+          299120000,
+          297900000,
+          297923000,
+          298543000
+        ],
+        "expiry1": [
+          298175000,
+          297405000,
+          297629000,
+          298590000,
+          299847000
+        ]
+      },
+      "change_percent": -0.12326532526302225,
+      "W_percent": 1.2195898078333773,
+      "improving_pairs": 3,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "miss",
+      "cpu_ns": {
+        "baseline-c": [
+          196162000,
+          195024000,
+          194511000,
+          195262000,
+          195445000
+        ],
+        "expiry1": [
+          194086000,
+          194006000,
+          193151000,
+          193590000,
+          193315000
+        ]
+      },
+      "change_percent": -0.8562854011533227,
+      "W_percent": 0.8455306203972099,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "rrset",
+      "cpu_ns": {
+        "baseline-c": [
+          757790000,
+          757125000,
+          756725000,
+          754294000,
+          756371000
+        ],
+        "expiry1": [
+          757190000,
+          756348000,
+          759877000,
+          758316000,
+          756759000
+        ]
+      },
+      "change_percent": 0.06144900723512592,
+      "W_percent": 0.4660653204611788,
+      "improving_pairs": 2,
+      "decision": "indistinguishable"
+    },
+    {
+      "scene": "host",
+      "cpu_ns": {
+        "baseline-c": [
+          440672000,
+          441827000,
+          444030000,
+          443844000,
+          444748000
+        ],
+        "expiry1": [
+          439947000,
+          439045000,
+          441484000,
+          439546000,
+          438889000
+        ]
+      },
+      "change_percent": -0.9683582519984468,
+      "W_percent": 0.9183406782563244,
+      "improving_pairs": 5,
+      "decision": "improvement"
+    },
+    {
+      "scene": "cname",
+      "cpu_ns": {
+        "baseline-c": [
+          599498000,
+          601844000,
+          598506000,
+          601930000,
+          599728000
+        ],
+        "expiry1": [
+          602749000,
+          604251000,
+          605521000,
+          602728000,
+          606429000
+        ]
+      },
+      "change_percent": 0.7541752261025048,
+      "W_percent": 0.6124938146564921,
+      "improving_pairs": 0,
+      "decision": "regression"
+    },
+    {
+      "scene": "cname-config",
+      "cpu_ns": {
+        "baseline-c": [
+          242113000,
+          241822000,
+          241924000,
+          241495000,
+          241615000
+        ],
+        "expiry1": [
+          249169000,
+          248887000,
+          248507000,
+          248666000,
+          248680000
+        ]
+      },
+      "change_percent": 2.835970259116216,
+      "W_percent": 0.26620556538523404,
+      "improving_pairs": 0,
+      "decision": "regression"
+    }
+  ],
+  "raw_sha256": {
+    "timing-expiry1.json": "1256317b70cbb8527c1661b298acc532e0c80e35b381a13b5809bc3aa00fdfe2",
+    "timing-expiry1-hot.json": "d4d14ce63bc83e4c0af7725b804e7cab76bba11e6d8739956637022e8dcfa28a",
+    "timing-expiry1-config.json": "52d07c0c132f0b280c3a484aeb928bf0924192bea9eb53bf456725138677995e"
+  },
+  "complete_remote_report": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/expiry1-timing.json",
+    "bytes": 61914,
+    "sha256": "58328df94ab0388548045f616a5ff770fc5cbf670df6d42e25cd729644456fdb"
+  },
+  "artifact_sha256": {
+    "baseline-c-insert-probe": "6abda540df91aeae47b15d43ff9a9c1c2e255b43de266d9ffe3f97c94db29552",
+    "baseline-c-hot-probe": "b5877fb0d9206adaf411fb7e96cb6cb7ba462a7aa42f44f43d02b6d8fdcc052c",
+    "expiry1-insert-probe": "8ff0c56defcaa72fe5ff89ea089d1716e5ce3aad3c75f045fd9579a3524dd923",
+    "expiry1-hot-probe": "060883e2e41b6fbdc338ed1a4907e2647cc351003ce6510a662310b389774065"
+  },
+  "runner_sha256": "81545ddf0abc28a12e9625dacd992a9044816c4c799f364e58b7e22ca01a12f7",
+  "completed_windows": 120,
+  "retrieved_summary_sha256": "da1b76324134e11508c7a9157388929e5de07ff457ecc274457ef3fe9a174787",
+  "artifact_identity_note": "Probe-qualified artifact names retained from fixed counter receipt; timing runner labels variants only, so the insert/hot identities must not be collapsed by variant name."
+}
