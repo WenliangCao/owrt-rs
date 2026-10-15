@@ -25,3 +25,17 @@ still stand. Independent source-interaction review, runtime qualification and
 newly frozen integrated timing would be required before this tree could become
 a candidate. No remote build, native timing, SDK/device run or full44 acceptance
 has been performed for it. E remains accepted and no G has been selected.
+
+## Independent integration screen now predeclared
+
+After the existing native reservation, related Linux qualification and the
+original SDK build, [this fixed plan](local-cache-integration-native-plan.json)
+uses the same15 scenes and240 windows against fresh F controls. The planned
+32-window exact-SDK low/high owner comparison and ten-window exploratory A53
+comparison also use separate original-condition alternating F controls. These
+results must stand on their own; parent/refinement/singleton timings remain
+separate. Original W, direction and fixed-cohort precision rules apply, with
+the existing variable-N caveat at high load. Full44 and both full matrices
+remain necessary for any eventual candidate selection. No hardware test is
+started by this local preparation; the device controller must bind the actual
+SDK artifact and pass its existing recovery/health gate first.
