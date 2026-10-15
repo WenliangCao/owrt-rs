@@ -280,20 +280,35 @@ impl CacheContext<'_> {
             if let Some(id) = kind.and_then(|kind| cache.single_fresh_address_with_hint(
                 &question.name, kind, now, name_lookup,
             )) {
-                let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
-                writer.question(&question.name, question.rrtype, question.class)?;
-                record_cached(local, cache, id, now);
-                let entry = cache.get(id).expect("selected fresh address remains live");
-                match writer.record_at(Section::Answer, 12, question.rrtype, 1,
-                    entry.reply_ttl(now, cache.policy()), &entry.record.data)
-                {
-                    Ok(()) | Err(WireError::Full) => return Ok(finish_cached_answer(writer, false)?),
-                    Err(error) => return Err(error.into()),
-                }
+                return Self::answer_fresh_address(cache, question, header, now, local, limit, id);
             }
         }
         Self::answer_records_general(cache, question, header, now, local, limit,
             dnssec_requested, filtered_type, name_lookup)
+    }
+
+    // Only a selected fresh hit needs this writer frame. Keep it out of the
+    // shared caller so a fallback does not reserve its space as well.
+    #[inline(never)]
+    fn answer_fresh_address(
+        cache: &Cache,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        id: super::cache::EntryId,
+    ) -> Result<CachedAnswer, CacheError> {
+        let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+        writer.question(&question.name, question.rrtype, question.class)?;
+        record_cached(local, cache, id, now);
+        let entry = cache.get(id).expect("selected fresh address remains live");
+        match writer.record_at(Section::Answer, 12, question.rrtype, 1,
+            entry.reply_ttl(now, cache.policy()), &entry.record.data)
+        {
+            Ok(()) | Err(WireError::Full) => Ok(finish_cached_answer(writer, false)?),
+            Err(error) => Err(error.into()),
+        }
     }
 
     // Keep the unchanged general state machine and its large frame off the
