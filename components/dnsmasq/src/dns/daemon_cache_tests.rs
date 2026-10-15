@@ -1163,3 +1163,62 @@ fn exact_c_oracle_driver() {
         }
     }
 }
+
+#[test]
+fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
+    let mut daemon = daemon();
+    let now = unix_seconds();
+    for name in ["one.test", "two.test"] {
+        let mut reply = packet(name, 1, 0x8180);
+        reply.record(Section::Answer, &Name::from_ascii(name).unwrap(), 1, 1, 120, &[192,0,2,7]).unwrap();
+        daemon.cache_reply_at(&reply.finish(), now);
+    }
+    let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 120, 1232);
+    let client = ClientRequest { source: "127.0.0.1:53001".parse().unwrap(),
+        destination: "127.0.0.1".parse().unwrap(), interface: 0 };
+    let first = packet("one.test", 1, 0x100).finish();
+    let metadata = super::super::forward_service::query_metadata(&first, 1232).unwrap();
+    let mut answers = Vec::new();
+    let mut allocation = None;
+    for name in ["one.test", "two.test", "one.test"] {
+        let query = packet(name, 1, 0x100).finish();
+        let answer = daemon.answer_udp_prepared_with_local(&query, &query, metadata,
+            client.clone(), None, &mut local).unwrap();
+        let QueryResult::Cached(answer) = answer else { panic!("expected cache hit"); };
+        answers.push((name, answer));
+        let pointer = daemon.udp_name_buffer.as_ptr();
+        if let Some(previous) = allocation { assert_eq!(pointer, previous); }
+        allocation = Some(pointer);
+        assert_eq!(daemon.udp_name_buffer.capacity(), 32);
+        // An invalid pointer loop follows a complete header/question footer.
+        // Failed decoding must return its scratch instead of losing it.
+        let mut malformed = first[..12].to_vec();
+        malformed.extend_from_slice(&[0xc0,12,0,1,0,1]);
+        assert!(matches!(daemon.answer_udp_prepared_with_local(&malformed, &malformed,
+            metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(_))));
+        assert_eq!(daemon.udp_name_buffer.as_ptr(), pointer);
+    }
+    // Reusing and failing the following requests cannot overwrite retained replies.
+    for (name, answer) in answers {
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(super::super::forward::Question::parse(&answer).unwrap().name,
+                   Name::from_ascii(name).unwrap());
+        assert_eq!(message.records(Section::Answer).next().unwrap().rdata, &[192,0,2,7]);
+    }
+    // A compressed question and the longest valid question use the same
+    // decoder/cursor contract; retained capacity stays bounded at256 bytes.
+    let mut compressed = first[..12].to_vec();
+    compressed.extend_from_slice(&[0xc0,18,0,1,0,1]);
+    compressed.extend_from_slice(Name::from_ascii("one.test").unwrap().as_wire());
+    assert!(matches!(daemon.answer_udp_prepared_with_local(&compressed, &compressed,
+        metadata, client.clone(), None, &mut local), Ok(QueryResult::Cached(_))));
+    let long_name = ["a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(61)].join(".");
+    let long = packet(&long_name, 1, 0x100).finish();
+    let _ = daemon.answer_udp_prepared_with_local(&long, &long, metadata,
+        client.clone(), None, &mut local);
+    assert_eq!(daemon.udp_name_buffer.len(), 255);
+    assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+    assert!(matches!(daemon.answer_udp_prepared_with_local(&first, &first, metadata,
+        client, None, &mut local), Ok(QueryResult::Cached(_))));
+    assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+}
