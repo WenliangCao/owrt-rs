@@ -1,0 +1,106 @@
+{
+  "scope": "Fresh same-source D short correctness gates; full-screen candidate, not accepted",
+  "source_commit": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-d",
+  "source_git_identity_sha256": "c8c21f69b368fc616a5d89404728f6099b61b6767394bac03871b45663772233",
+  "test_artifacts": [
+    {
+      "path": "bin-dnsmasq-rs",
+      "bytes": 50664240,
+      "sha256": "f977c49e7be5ba56deaacff9c1dde2d98db87a6bd77a0c4db07ec9e45520f1b9"
+    },
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 71748992,
+      "sha256": "8e8c8d0eb07880f54dc0e69a64caf38690dd885cea5851a97e88b1145131906e"
+    }
+  ],
+  "allocation_artifact": {
+    "sha256": "f0117dd163ec9ad8f907e4fa32a5a7c5eea418792d5417bdfc703fb39d69d237",
+    "bytes": 34476592
+  },
+  "probe_artifacts": [
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 5685392,
+      "sha256": "5f2cec80cfe869251c9367423a8eb115cc1e903a7a003fbfbce9a58107591a6f"
+    }
+  ],
+  "probe_build_receipt_sha256": "1a6ef747b95cd2b1f65cc09a316d97491558a4dcca231a6c145c574781fb3462",
+  "probe_source_before_sha256": "0d0f5dc5c874f0154d0b6997afde1f4cadd5d68d0927b252e481197a5fcfd8ab",
+  "probe_build_exit": 0,
+  "probe_build_elapsed_seconds": 137.2286515235901,
+  "gates": [
+    {
+      "gate": "lib",
+      "passed": 826,
+      "failed": 0,
+      "ignored": 20,
+      "summary": "test result: ok. 826 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 8.16s",
+      "elapsed_seconds": 8.201272249221802,
+      "log_sha256": "7ead46c2f953252bc08e678b3a8fd1760917dec0a803f1d1efd81dfcd361630e",
+      "binary_sha256": "8e8c8d0eb07880f54dc0e69a64caf38690dd885cea5851a97e88b1145131906e"
+    },
+    {
+      "gate": "bin",
+      "passed": 81,
+      "failed": 0,
+      "ignored": 3,
+      "summary": "test result: ok. 81 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.24s",
+      "elapsed_seconds": 4.282611846923828,
+      "log_sha256": "6832449541f0c814bbc90b49246e6485569bf35a9943c8fc3c03ac4b962c9e47",
+      "binary_sha256": "f977c49e7be5ba56deaacff9c1dde2d98db87a6bd77a0c4db07ec9e45520f1b9"
+    },
+    {
+      "gate": "allocations",
+      "passed": 17,
+      "failed": 0,
+      "ignored": 0,
+      "summary": "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.45s",
+      "elapsed_seconds": 1.4879381656646729,
+      "log_sha256": "1e1be75731699f28f345fbcde92da06f294d735bf9edb7803ad7b478d0001851",
+      "binary_sha256": "f0117dd163ec9ad8f907e4fa32a5a7c5eea418792d5417bdfc703fb39d69d237"
+    },
+    {
+      "gate": "lib-ignored-live",
+      "passed": 16,
+      "failed": 0,
+      "ignored": 0,
+      "summary": "test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 830 filtered out; finished in 0.31s",
+      "elapsed_seconds": 0.3515036106109619,
+      "log_sha256": "852583bdef10ec134cd2cd617f45a8221b0f0df05b419064b16600b01413be5e",
+      "binary_sha256": "8e8c8d0eb07880f54dc0e69a64caf38690dd885cea5851a97e88b1145131906e"
+    },
+    {
+      "gate": "bin-ignored-live",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0,
+      "summary": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 81 filtered out; finished in 0.12s",
+      "elapsed_seconds": 0.15559649467468262,
+      "log_sha256": "e54d707c6d9d885ef040329395918cec6e6bdfeba3320ea2c92469156f7929cd",
+      "binary_sha256": "f977c49e7be5ba56deaacff9c1dde2d98db87a6bd77a0c4db07ec9e45520f1b9"
+    }
+  ],
+  "total_passed": 943,
+  "total_failed": 0,
+  "network_mount_pid_namespaces": true,
+  "private_tmpfs_per_gate": true,
+  "serial_tests": true,
+  "build_jobs": 1,
+  "raw_unit_receipt": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/d-unit-run/result.json",
+  "raw_unit_receipt_sha256": "ad9ada9cc871c11ca835ac523b649b357b6c666c7ad2fa4675affe269fd7dc88",
+  "raw_test_build_receipt_sha256": "6bbf4aefd138e007341502ac357527ed8c5f5afe3caffbdbb08acc6d8510ed7a",
+  "raw_allocation_build_receipt_sha256": "5a203230cd22a541af114da9dd6ae1fe826e61c59e49e7542fd7888a0043a362",
+  "config_C_reference_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "pending": [
+    "exclusive complete D Oracle 110-window screen",
+    "fresh exact D SDK 44-family gates",
+    "fresh exact D SDK F10/protocol/TCP gates",
+    "four fresh source-bound corpus diagnostics"
+  ],
+  "known_UID_policy": "Existing exact two UID-reuse C differences remain nonblocking only per explicit user instruction; preserve original raw comparator exit1; new or changed difference blocks",
+  "correctness_processes_completed": true,
+  "waiting_for_root_timing_release": true,
+  "router_activity_by_reviewer": false
+}

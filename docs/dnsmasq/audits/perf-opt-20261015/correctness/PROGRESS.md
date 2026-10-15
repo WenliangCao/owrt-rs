@@ -401,3 +401,24 @@ state/counter comparisons and snapshot/import coverage; this reviewer inspected
 it without rerunning tests. No Oracle workload or router access occurred. If
 screening qualifies D, existing complete gates must run freshly on its exact new
 SDK output. C's currently running device comparison is unchanged.
+
+## D short gates ready for full Oracle screening
+
+D is frozen at `9f2a905289c6c009edd747abc590a1d013b114e5` (epoch 1792053656),
+immutable Oracle `root/source-d`. Its cache source hash equals the independently
+reviewed `ca58d871…`. Fresh same-source musl tests passed **826 lib + 81 bin +
+17 allocation + 16 ignored lib namespace/config + 3 ignored bin namespace =
+943**, with zero failures. Each test group uses the unchanged C execution
+recipe: fresh network/mount/PID namespaces, private tmpfs `/tmp`, exact image C
+for config acceptance and serial test execution. [Receipt](d-short-gates.json)
+records all artifact identities, raw log hashes and source-bound receipt paths.
+
+The copied feature-off release corpus probe was built before the timing window,
+with unchanged existing build tooling and one Cargo job. All correctness build
+and test processes have exited; the coordinator received READY/IDLE and may
+reserve the full D 110-window Oracle timing. No full-family or daemon/corpus gate
+has yet run for D, and no C gate pass transfers. D remains a screening candidate;
+the incremental CNAME micro caveats do not change the frozen final comparator.
+The existing two UID-reuse differences retain the explicit user decision and
+raw exit 1. No new framework or qualifier was introduced. No bulk raw data was
+downloaded during the coordinator's continuing C router test.
