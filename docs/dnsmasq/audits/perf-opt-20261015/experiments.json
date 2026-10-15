@@ -6,7 +6,7 @@
       "id": "DNS-1",
       "hypothesis": "Validate encoded names without materializing discarded Name",
       "status": "accepted-screen",
-      "evidence": "D1 hit5→4alloc,8RR13→5; native instruction -5.78%; v0.2 device conclusion pending",
+      "evidence": "D1 hit5→4alloc,8RR13→5; native instruction -5.78%. Included in qualified C source; C device whole-attempt acceptance failed at109/110 valid windows, so no device qualification.",
       "commit": "039fe983"
     },
     {
@@ -153,7 +153,7 @@
       "id": "SOCKET-FLAGS",
       "hypothesis": "Set nonblocking and close-on-exec flags during upstream UDP socket creation",
       "status": "accepted-screen",
-      "evidence": "5000 UDP sockets each saved1 ioctl+1 fcntl; six1000-call factory controls preserve flags/binding/random/FD semantics; fullcandidate timing pending",
+      "evidence": "5000 UDP sockets each saved1 ioctl+1 fcntl; six1000-call factory controls preserve flags/binding/random/FD semantics. Exact C candidate trace confirms0 FIONBIO/0 F_SETFD. C full Oracle110/110 and correctness passed; C device whole-attempt acceptance failed, D fresh device acceptance pending.",
       "commit": "95403890"
     },
     {
@@ -167,7 +167,7 @@
       "id": "DHCP-7",
       "hypothesis": "Share immutable lease-input/name/index bytes while preserving mixed-case spelling",
       "status": "accepted-screen",
-      "evidence": "D6D7 vs D3dD4 complete ownerpublication6−15.15%W1.21%,150−18.20%W7.19%,5/5; triplelookup+0.256%withinW12.60%. Local integrated703lib tests pass; exactSDK/Linux/device pending",
+      "evidence": "D6D7 vs D3dD4 complete ownerpublication6−15.15%W1.21%,150−18.20%W7.19%,5/5; triplelookup+0.256%withinW12.60%. Local integrated703lib tests passed at screening. C exactSDK/Linux qualification subsequently passed; C device whole-attempt acceptance failed, D fresh device acceptance pending.",
       "commit": "b4532991"
     },
     {
@@ -188,7 +188,7 @@
       "id": "CURSOR-2",
       "hypothesis": "Reuse query-local cache-name inspection",
       "status": "rejected",
-      "evidence": "Plain fixedbaseline hit−13.12%,miss−21.92%;400configuredCNAME+8.54%W0.17%5/5regression. Wholeattempt retained; equalinstructions butcycles+8.6%; investigating allocatingalias scan independently",
+      "evidence": "Plain fixedbaseline hit−13.12%,miss−21.92%;400configuredCNAME+8.54%W0.17%5/5regression. Wholeattempt retained; equalinstructions butcycles+8.6%. Remains rejected; later alias comparison and cursor3 were screened independently, not replacements for this failed attempt.",
       "commit": "71e7178d"
     },
     {
@@ -196,7 +196,7 @@
       "hypothesis": "Count escaped name length without allocation and clone names only for reverse index",
       "status": "accepted-combined-screen",
       "commit": "9f739ffc",
-      "evidence": "Plain replace−9.18%,pressure−2.82%,long−17.93%;8RR+0.547%W0.435 explicitly retained as small supplemental read-layout caveat; full11 acceptance pending"
+      "evidence": "Plain replace−9.18%,pressure−2.82%,long−17.93%;8RR+0.547%W0.435 explicitly retained as small supplemental read-layout caveat. C fullOracle110/110 and correctness passed; C device whole-attempt acceptance failed, D fresh device acceptance pending."
     },
     {
       "id": "CNAME-COMPARE",
@@ -218,9 +218,25 @@
       "status": "accepted-combined-screen",
       "commit": "a929d975",
       "evidence": "Plain owner6−7.89%/150−7.35%;single3RRsetlookupwithinW;50RRsetcounter+14.21 and repeats retained, finaltiming−2.38%W26.59 is inconclusive"
+    },
+    {
+      "id": "CACHE-EXPIRY1",
+      "hypothesis": "Maintain a conservative expiry lower bound to skip a pressure scan only when no committed record can be expired",
+      "status": "accepted-combined-screen-device-pending",
+      "commit": "9f2a9052",
+      "evidence": "D versus frozen C plain native pressure/expiry/finite-stale CPU -80.300%/-71.820%/-79.937%, all 5/5 pairs; all 32 allocation controls unchanged, Cache 216→224 B. Supplemental dynamic/configured CNAME CPU regresses +0.754% (W 0.612%)/+2.836% (W 0.266%), 5/5; retained explicitly, cause not established. D SDK ELF 4167609f… is 2,136,859 B, equal to C. Full Oracle 110/110 valid versus deployed: DHCP150 p50 -8.443% (W 8.324%), CPU -28.421% (W 8.421%); UDP mixed p95 -1.853% (W 1.703%); other primary metrics inconclusive, no discernible primary regression. Oracle screening is not device acceptance. 943 short tests, boundary/TCP/four original corpora passed with only explicitly nonblocking historical C UID2 differences; full44 running, device pending. Evidence: dns/expiry1-screen.json, dns/expiry1-timing.json, oracle-d-summary.json, correctness/d-short-gates.json, correctness/d-boundary-gates.json, correctness/d-tcp-corpus-gates.json."
+    },
+    {
+      "id": "OWNER-POLL-CARDINALITY",
+      "hypothesis": "Measure descriptor-count-dependent outer owner wait work separately from the rejected one-fd nested zero-timeout poll shortcut",
+      "status": "research-open-count-screen",
+      "commit": "d373fc7e",
+      "evidence": "C TCP-hit trace has 4910/5052 ppoll invocation entries with 14 array entries; counts include a final detached wait. 21 serial native primitive count cases cover 1/6/14 descriptors and immediate/deferred readiness. Deferred 14−1 delta 9424–9758 instructions/iteration; optimistic projection against separate C TCP-hit PMU/strace diagnostics 18.1–18.7%, not a measured CPU/latency gain or rigorous bound. Cannot dismiss as below variation; no product mechanism/backend selected. GCC/glibc timerfd+idle UDP differs from SDK musl/device; fixed precheck/timer-read/setup and coalescing remain; correctness workloads may overlap counts. D profile attribution remains next mechanism-selection evidence. Evidence: loop/owner-syscalls-c-tcp-hit.json, loop/WAIT_INTERFACE_AUDIT.md, loop/PPOLL_CARDINALITY_PREP.md; loop/ppoll-cardinality-counts.json receipt prepared by loop owner, commit pending integration."
     }
   ],
   "candidate_a_status": "rejected: stale1098/1100 plus historical UBus registry346/350 mismatch; no retroactive qualification",
   "candidate_b_status": "rejected: inherited stale compatibility defect; not measured on device",
-  "candidate_c_status": "frozen by perf/dnsmasq-candidate-c-20261015; exact SDK build/fullOracle/allcorrectness pending"
+  "candidate_c_status": "Whole-candidate device acceptance FAILED: frozen source f7f7a2ed/SDK b4c4a8e… built and passed full Oracle 110/110, 941 short tests, 44/44 families and 67/67 unique jobs, F10/protocol/TCP/four corpora with only explicitly nonblocking historical C UID2 differences. Device 110 attempts, 109 valid: TCP-miss-r2-rust skipped 13 scheduled queries; all 3987 sent measured queries correct. Entire failed attempt retained, no replacement or pooling; valid-scene gains are diagnostic only. Separate 9.49 MB transfer overlap with UDP-miss-r1-rust retained.",
+  "candidate_d_status": "Frozen source 9f2a9052/SDK 4167609f…; 2,136,859 B after source-verified SDK preparation repair. Full Oracle 110/110 valid with no discernible primary regression; 2/11 scenes have at least one discernible primary gain (DHCP150, UDP mixed), which does not establish most-scenes improvement. 943 short tests, F10/protocol/TCP/four original corpora passed with historical C UID2 explicitly nonblocking. Full44 running, fresh 110-window device comparison pending. No final acceptance or deployment claim.",
+  "research_status": "Not a stopping conclusion: frozen most-scenes/weakness improvement requirement remains unestablished; D must complete its own full correctness and fresh device gates. Outer owner wait cardinality has a potentially material unresolved count screen; no irreducibility, below-noise or persistent-backend speedup claim. Rejected directions and all prior attempts remain retained."
 }
