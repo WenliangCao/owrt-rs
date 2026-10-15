@@ -1,0 +1,86 @@
+{
+  "scope": "Fresh same-source candidate C musl test gates; no full-candidate correctness or performance qualification",
+  "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-c",
+  "shipping_elf": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-c/dnsmasq-rs",
+    "sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+    "bytes": 2136859,
+    "identity_reported_by": "coordinator exact SDK build; this receipt does not claim daemon gates ran yet"
+  },
+  "test_artifacts": [
+    {
+      "path": "correctness/private/c-tests/lib-dnsmasq_rs",
+      "sha256": "646977d3b88700d3dfaa974242e98d222ee59b6855123a65e8cd0ddf2a5c53cc",
+      "bytes": 71669696
+    },
+    {
+      "path": "correctness/private/c-tests/bin-dnsmasq-rs",
+      "sha256": "98a8d9adbacc5484b156287c5089a57803b005c812da6f0ed007b5935e8ce2f3",
+      "bytes": 50662080
+    },
+    {
+      "path": "correctness/private/c-allocation-build/hosts_allocations",
+      "sha256": "f3f2f70fae0aefc58a17d899696942cad633f7bbca98602b08a661ce579583d1",
+      "bytes": 34479008
+    }
+  ],
+  "gates": [
+    {
+      "gate": "ordinary-lib",
+      "passed": 824,
+      "failed": 0,
+      "ignored": 20,
+      "elapsed_test_seconds": 5.6
+    },
+    {
+      "gate": "ordinary-bin",
+      "passed": 81,
+      "failed": 0,
+      "ignored": 3,
+      "elapsed_test_seconds": 4.18
+    },
+    {
+      "gate": "hosts-allocations",
+      "passed": 17,
+      "failed": 0,
+      "ignored": 0,
+      "elapsed_test_seconds": 1.43
+    },
+    {
+      "gate": "ignored-lib-live-namespace-and-config",
+      "passed": 16,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 828,
+      "elapsed_test_seconds": 0.3
+    },
+    {
+      "gate": "ignored-bin-live-namespace",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 81,
+      "elapsed_test_seconds": 0.11
+    }
+  ],
+  "total_passed": 941,
+  "total_failed": 0,
+  "isolated_network_mount_pid_namespaces": true,
+  "private_tmpfs_tmp_per_gate": true,
+  "serial_tests": true,
+  "build_jobs": 1,
+  "c_config_reference_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "raw_receipt": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-unit-run/result.json",
+  "raw_logs": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/c-unit-run/",
+  "pending": [
+    "four frozen-clock source corpus diagnostics",
+    "fresh44families/67jobs",
+    "exact SDK ELF F10",
+    "exact SDK ELF protocol",
+    "exact SDK ELF TCP upstream"
+  ],
+  "user_UID_decision": "User explicitly states existing two UID-reuse C differences do not block acceptance; record them with original raw comparator/exit. Any new or unclassified failure blocks. No new qualifier framework.",
+  "qualifier_draft_status": "Retired uncommitted into ignored private/retired-lease-qualifier; never executed as a gate. Remote draft likewise never executed.",
+  "timing_reservation": "Correctness idle after these gates; coordinator exclusive full110 Oracle timing started10:40CEST. No new remote workload until release."
+}
