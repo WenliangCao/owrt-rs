@@ -801,6 +801,9 @@ impl Hosts {
     pub fn is_empty(&self) -> bool {
         self.records.entries.is_empty()
     }
+    pub(crate) fn is_published(&self) -> bool {
+        self.bulk.is_none()
+    }
     pub fn entries(&self) -> &[Host] {
         &self.records.entries
     }

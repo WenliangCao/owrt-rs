@@ -555,6 +555,17 @@ impl Cache {
     pub(super) fn single_fresh_address_with_hint(
         &mut self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
     ) -> Option<EntryId> {
+        let id = self.single_fresh_address_id_with_hint(name, kind, now, hint)?;
+        // Exactly the existing single-slot lookup promotion, without a Vec.
+        self.unlink(id.slot);
+        self.link_head(id.slot);
+        Some(self.id(id.slot))
+    }
+
+    /// Read-only eligibility for a query-local shortcut before local ownership.
+    pub(super) fn single_fresh_address_id_with_hint(
+        &self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
+    ) -> Option<EntryId> {
         let hint = hint?;
         let NameSelection::One(id) = hint.selection else { return None };
         if !std::ptr::eq(name, hint.name)
@@ -569,10 +580,7 @@ impl Cache {
             || entry.record.data.len() != expected_length || entry.is_stale(now)
             || !self.is_valid(id, now)
         { return None; }
-        // Exactly the existing single-slot lookup promotion, without a Vec.
-        self.unlink(id.slot);
-        self.link_head(id.slot);
-        Some(self.id(id.slot))
+        Some(id)
     }
 
     pub(super) fn lookup_with_hint(
