@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "status": "preregistered exploratory fixed10; ELF/map/build download and local source verification pending; no workload started",
+  "status": "frozen exploratory fixed10; SDK identities and179source verified; fresh health pending; no workload started",
   "scope": "Exploratory unqualified F/fresh-address A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
   "reason": "Direct A53 test of independent F-based fresh-address cache fast path; no name-buffer, idle-batch or other layout changes combined.",
   "source_commit": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
   "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "source_files_verified": null,
+  "source_files_verified": 179,
   "elf_sha256": "b52432a274ab9dda36d60e568e4b618e755d34e69ffce72bc5343df485fcce7f",
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
+  "elf_bytes": 2136859,
+  "map_sha256": "950e1273312c33a9f7cc2de7ed9178706d6a1f1e7ecdda0f2c0575963d72778e",
+  "build_receipt_sha256": "1463c8849b8aecf273f058cea827815753923bcc3844c4ec467776ccaac0c660",
   "prior_gate_scope": "Related Linux935/source review passed in78c25964; full44 qualification is incomplete.",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
@@ -154,8 +154,7 @@
   "automatic_replacement": false,
   "source_inputs_expected": 179,
   "pending_before_launch": [
-    "Wait for explicit Oracle transfer gap; read-only download ELF/map/build, verify full hashes and all179 source files.",
-    "Bind final map/build/ELF size identities before fresh health/launch; no workload starts with pending identities.",
     "Previous diagnostic postflight complete; fresh>=120s health and exact originalE/F restoration/source copies required."
-  ]
+  ],
+  "artifact_verification_receipt_sha256": "c979aabd4a11ce86b8eda801d7499255296e515c653bc543df818105b23d4b2d"
 }
