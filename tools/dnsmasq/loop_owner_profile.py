@@ -257,6 +257,11 @@ def main():
                 control(channel, 'disable')
             save(out / 'perf-controls.json', {'controls': controls,
                  'load_start_ns': load_start, 'load_end_ns': load_end})
+        # Stop observing at the shared grace boundary, before artifact hashing
+        # or map verification adds implementation-size-dependent work.
+        statuses = ([finish(tracer, signal.SIGINT)] if observer == 'strace' else
+                    [finish(channel[0], signal.SIGINT) for channel in instruments])
+        assert all(status in (0, 130, -signal.SIGINT) for status in statuses)
         maps_after = (proc / 'maps').read_text()
         (out / 'maps-after').write_text(maps_after)
         mapped_after = verify_mapped_files(maps_after, image_files)
@@ -264,9 +269,6 @@ def main():
         assert mapped_after == identity['mapped_file_identity'], 'mapped file identities changed during capture'
         assert sha(proc / 'exe') == process_expected
         assert all(sha(path) == digest for path, digest in image_files.items())
-        statuses = ([finish(tracer, signal.SIGINT)] if observer == 'strace' else
-                    [finish(channel[0], signal.SIGINT) for channel in instruments])
-        assert all(status in (0, 130, -signal.SIGINT) for status in statuses)
         assert not remaining_children, 'fixed post-load drain ended with live children; retain incomplete attempt'
         assert re.search(r'TracerPid:\s+0\b', (proc / 'status').read_text())
         assert finish(daemon, signal.SIGTERM) == 0
