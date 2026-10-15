@@ -1,0 +1,537 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only frozen F/cache-cold-metadata exploratory audit. Existing raw/statistical/health checks were reused; no remote queries, builds or new loads.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "cache-cold-metadata",
+    "source_commit": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "ed91f32912144f1a25f7ab388047dea8b2ee07f83af3138fce63d763082949b7",
+        "bytes": 2136859
+      },
+      "link.map": {
+        "sha256": "84a9ab9f031d36aac41b6db3d40c2ddbcf63d6913599b3aa8b835ea9b25252a5",
+        "bytes": 3019347
+      },
+      "build.json": {
+        "sha256": "2c3a181ff65e2385a13c143f5233d00b8f12e81507785fd6be7c0773ac34fedd",
+        "bytes": 43989
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "5e2cbebc",
+    "author_public_result": "../loop/A53_CACHE_COLD_METADATA_DEVICE_RESULT.json",
+    "author_public_result_sha256": "7d0b480358220535f316ed92c6e9b24222d2ce8404e77eee5eb911806e8e0800",
+    "summary_sha256": "d1a8980601019b3f3da684b8bccf99de56872448c5267a447577825f69686fb1",
+    "progress_sha256": "eeec1a95e834e12d6a83544227ad83086f4a7de4e1b28264a4e33bcd22e134a5",
+    "identity_sha256": "50cf5e0ec3af983890178ef41d8b8f43730de2b76e7ebd29cb84fe9df7010635",
+    "plan_sha256": "3208d56f9b1924cac592898d8a657edeb41c219027107f7b2d6102c1935e63b7",
+    "launch_sha256": "8941eaee7d4256bff4982a06c0cb16ed1c340ebad4b94e626361ea2580aa1422",
+    "independent_receipt_sha256": "fa02ebf154cbfb286867ad7b76ac33fbefdb67040aa49205fe4c35ab84e03634",
+    "statistical_result_sha256": "28da6f4939d2f31e05e5e76fbaa391609b4680a49deb5618f58779e8329fd9be",
+    "health_result_sha256": "4bd8cb2c0308e3c46ba333da487f39a3bd8f4f96f303bf1daaa4df93f8aca38c",
+    "statistical_script_sha256": "81a7b930ee408a535a0292aed2608ab1d2ee7b6f3a03a045f90bb271fbbf8f74",
+    "health_script_sha256": "85e6769fc3e143b0fbcd4ba32bc7d33f54ada9646adca2cb6095fc2958a93559",
+    "adaptation_receipt_sha256": "82b22cf9737710d67625cf8712aeb82048bc7a9383967b0f0f41d9c67638ffe1"
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 315,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_members_all_manifest_and_extracted_hashes_match": true,
+    "all_local_files_regular_not_symlinks": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-cache-cold-metadata": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "cache-cold-metadata",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.190278,
+            "min": 0.179506,
+            "max": 0.20282,
+            "rounds": [
+              0.192586,
+              0.190278,
+              0.20282,
+              0.179506,
+              0.189662
+            ]
+          },
+          "right": {
+            "median": 0.187354,
+            "min": 0.185507,
+            "max": 0.202512,
+            "rounds": [
+              0.186892,
+              0.189123,
+              0.202512,
+              0.187354,
+              0.185507
+            ]
+          },
+          "relative_change_pct": -1.5366989352421245,
+          "W_pct": 12.25259882908166,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.378402,
+            "min": 0.257449,
+            "max": 1.155286,
+            "rounds": [
+              1.155286,
+              0.297612,
+              0.378402,
+              0.257449,
+              0.396406
+            ]
+          },
+          "right": {
+            "median": 0.277377,
+            "min": 0.26068,
+            "max": 0.390712,
+            "rounds": [
+              0.277377,
+              0.272221,
+              0.362936,
+              0.390712,
+              0.26068
+            ]
+          },
+          "relative_change_pct": -26.69779758035106,
+          "W_pct": 237.27068038752438,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 134.0,
+            "min": 126.0,
+            "max": 138.0,
+            "rounds": [
+              138.0,
+              134.0,
+              132.0,
+              126.0,
+              134.0
+            ]
+          },
+          "right": {
+            "median": 130.0,
+            "min": 130.0,
+            "max": 134.0,
+            "rounds": [
+              130.0,
+              132.0,
+              134.0,
+              130.0,
+              130.0
+            ]
+          },
+          "relative_change_pct": -2.9850746268656714,
+          "W_pct": 8.955223880597014,
+          "same_direction_pairs": 3,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2388.0,
+            "max": 2432.0,
+            "rounds": [
+              2396.0,
+              2388.0,
+              2432.0,
+              2388.0,
+              2408.0
+            ]
+          },
+          "right": {
+            "median": 2320.0,
+            "min": 2316.0,
+            "max": 2356.0,
+            "rounds": [
+              2356.0,
+              2316.0,
+              2348.0,
+              2320.0,
+              2316.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2388,
+            "max": 2432,
+            "rounds": [
+              2396,
+              2388,
+              2432,
+              2388,
+              2408
+            ]
+          },
+          "right": {
+            "median": 2320,
+            "min": 2316,
+            "max": 2356,
+            "rounds": [
+              2356,
+              2316,
+              2348,
+              2320,
+              2316
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 524,
+            "rounds": [
+              520,
+              524,
+              516,
+              516,
+              520
+            ]
+          },
+          "right": {
+            "median": 472,
+            "min": 472,
+            "max": 476,
+            "rounds": [
+              472,
+              472,
+              472,
+              476,
+              476
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1860,
+            "max": 1912,
+            "rounds": [
+              1872,
+              1860,
+              1912,
+              1868,
+              1884
+            ]
+          },
+          "right": {
+            "median": 1840,
+            "min": 1836,
+            "max": 1880,
+            "rounds": [
+              1880,
+              1840,
+              1872,
+              1840,
+              1836
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 67,
+        "right": 65,
+        "absolute_delta": 2,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          69,
+          67,
+          66,
+          63,
+          67
+        ],
+        "rust": [
+          65,
+          66,
+          67,
+          65,
+          65
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "left": 67,
+    "right": 65,
+    "absolute_delta": 2,
+    "required_delta_exclusive": 8,
+    "same_direction_pairs": 3,
+    "discernible": false
+  },
+  "resource_observation": {
+    "rss_median_kib_F_candidate": [
+      2396.0,
+      2320.0
+    ],
+    "RssAnon_peak_median_kib_F_candidate": [
+      520,
+      472
+    ],
+    "RssAnon_peak_ranges_kib_F_candidate": [
+      [
+        516,
+        524
+      ],
+      [
+        472,
+        476
+      ]
+    ],
+    "parent_tree_FD_peak_medians": [
+      12,
+      12
+    ],
+    "scope": "Retained descriptive sampled resource values. No PSS/USS/private-memory or memory-based acceptance inference."
+  },
+  "health": {
+    "fresh_baseline": {
+      "sha256": "b5a7ac7d4e94747d3ffb097c118eeffcd774ea35f5ca2b7aaabc6acf90e49e42",
+      "samples": 126,
+      "dns_completed": 48,
+      "http_completed": 23,
+      "dns_p95_ms": 0.51,
+      "dns_max_ms": 0.767,
+      "http_max_ms": 63.024,
+      "min_memory_kib": 96196,
+      "start_epoch": 1792105124,
+      "last_sample_epoch": 1792105249,
+      "stop_epoch": 1792105250,
+      "elapsed_seconds": 125.619,
+      "sample_elapsed_step_range_seconds": [
+        1.0,
+        1.0
+      ],
+      "wall_epoch_step_counts": {
+        "1": 125
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "runtime_guard": {
+      "sha256": "5dc55ec6cff6c9a95fab2e235ea3e9f482339ae7ca92597ac650a088e9066c73",
+      "samples": 423,
+      "dns_completed": 167,
+      "http_completed": 77,
+      "dns_p95_ms": 0.625,
+      "dns_max_ms": 2.645,
+      "http_max_ms": 122.592,
+      "min_memory_kib": 84608,
+      "start_epoch": 1792105272,
+      "last_sample_epoch": 1792105694,
+      "stop_epoch": 1792105695,
+      "elapsed_seconds": 422.973,
+      "sample_elapsed_step_range_seconds": [
+        0.9990000000000236,
+        1.0009999999999764
+      ],
+      "wall_epoch_step_counts": {
+        "1": 422
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "external_checks": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "602ba0605355773bf1ccfd71b629544f953c18213f2b89744bf5d0f9c22c2046"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "fed8d868de44eb0acc6bd6b806db2e316f59086b633e793737563920bac91933"
+      }
+    ],
+    "all_ten_window_intervals_covered": true,
+    "all_completed_probes_passed": true,
+    "failed_or_cancelled_probes": 0,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained": true
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "48bcc7aeee8e1c68b2001cd28b9c927d94cc7383e8e16de310d94e4ded989bb5",
+    "postflight_script_sha256": "03b265dde5d1e3dfe09f9ab341b4f6428ebb80b062628604c8ac112d868b4476",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 88928,
+    "local_controller_pid_absent": 52701,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "conclusion": "All three primary metrics are indistinguishable. CPU134 to130us/op is -2.98507%, below W8.95522%, with three same-direction pairs and two median ticks; no demonstrated improvement or regression and no promotion.",
+  "limits": [
+    "This is F versus cold metadata only; historical E/C or separate prototype/native data are not pooled.",
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "Metadata cold-path allocations/COW costs and whole-program qualification remain outside the narrow hit-window result.",
+    "Postflight is a captured script/record audit; production final identity is supported by the frozen runner restoration check, while the shell namespace output is init. No new device query was performed."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
