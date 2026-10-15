@@ -1,0 +1,2431 @@
+{
+  "status": "PASS",
+  "scope": "Independent remote read-only raw and statistical audit on one CPU after timing completed; existing audit reused, no reruns or pooling; raw remains Oracle during router test.",
+  "summary_sha256": "202ef36e07e8e829551a4823107d6ba7ac2137873e937877f620a353c939144a",
+  "identity_sha256": "a069bd6f1d6b2a74e161f5b8f848a14b54758bb595c7e438f464b63208d24868",
+  "progress_sha256": "ce13a67421980b9ccfb59cb51b2c9425c30e5f0e35789be2b3e20a0c654c3bb9",
+  "verified_archives": 110,
+  "verified_files": 3430,
+  "windows": 110,
+  "errors": [],
+  "comparison_identities": {
+    "c": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "rust": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+  },
+  "archive_index_sha256": "4acd69d36b54d5339f198c2058a8e4440542e4ac71118b607218551f4b3ead47",
+  "primary_improvements": [
+    {
+      "scene": "tcp-miss",
+      "metric": "p50_ms",
+      "left_median": 1.20585,
+      "right_median": 1.17897,
+      "relative_change_pct": -2.229132976738401,
+      "W_pct": 1.879606775405647,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "faster"
+    },
+    {
+      "scene": "dhcp",
+      "metric": "p50_ms",
+      "left_median": 2.925745,
+      "right_median": 2.630822,
+      "relative_change_pct": -10.080270153413911,
+      "W_pct": 8.107085922194663,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "faster"
+    },
+    {
+      "scene": "dhcp",
+      "metric": "cpu_us",
+      "left_median": 756.0,
+      "right_median": 548.0,
+      "relative_change_pct": -27.513227513227513,
+      "W_pct": 4.37956204379562,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "faster",
+      "cpu_ticks": {
+        "c": [
+          188,
+          183,
+          191,
+          189,
+          191
+        ],
+        "rust": [
+          133,
+          133,
+          139,
+          137,
+          139
+        ]
+      }
+    }
+  ],
+  "primary_regressions": [],
+  "comparisons": {
+    "udp-hit": {
+      "p50_ms": {
+        "left_median": 0.035481,
+        "right_median": 0.034,
+        "relative_change_pct": -4.174064992531203,
+        "W_pct": 6.120588235294115,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 0.06232,
+        "right_median": 0.060641,
+        "relative_change_pct": -2.6941591784338894,
+        "W_pct": 3.497633614221398,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 28.0,
+        "right_median": 26.0,
+        "relative_change_pct": -7.142857142857143,
+        "W_pct": 15.384615384615385,
+        "same_direction_pairs": 3,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            14,
+            14,
+            14,
+            13,
+            14
+          ],
+          "rust": [
+            12,
+            12,
+            14,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    "udp-miss": {
+      "p50_ms": {
+        "left_median": 1.18149,
+        "right_median": 1.168809,
+        "relative_change_pct": -1.0733057410557807,
+        "W_pct": 1.8078866516009484,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 1.23137,
+        "right_median": 1.20993,
+        "relative_change_pct": -1.7411501011069073,
+        "W_pct": 2.8465283115552094,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 88.0,
+        "right_median": 74.0,
+        "relative_change_pct": -15.909090909090908,
+        "W_pct": 11.363636363636363,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            46,
+            44,
+            41,
+            45,
+            42
+          ],
+          "rust": [
+            37,
+            40,
+            37,
+            36,
+            36
+          ]
+        }
+      }
+    },
+    "udp-mixed": {
+      "p50_ms": {
+        "left_median": 0.039401,
+        "right_median": 0.03784,
+        "relative_change_pct": -3.9618283799903553,
+        "W_pct": 6.700337554884403,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 1.251651,
+        "right_median": 1.23249,
+        "relative_change_pct": -1.530858042697204,
+        "W_pct": 2.099706707380891,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 44.0,
+        "right_median": 42.0,
+        "relative_change_pct": -4.545454545454546,
+        "W_pct": 13.636363636363635,
+        "same_direction_pairs": 4,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            22,
+            24,
+            22,
+            21,
+            23
+          ],
+          "rust": [
+            20,
+            21,
+            21,
+            21,
+            20
+          ]
+        }
+      }
+    },
+    "tcp-hit": {
+      "p50_ms": {
+        "left_median": 0.044681,
+        "right_median": 0.0426,
+        "relative_change_pct": -4.657460665607304,
+        "W_pct": 32.32022559924799,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 0.07616,
+        "right_median": 0.07456,
+        "relative_change_pct": -2.100840336134459,
+        "W_pct": 28.886554621848724,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 36.0,
+        "right_median": 32.0,
+        "relative_change_pct": -11.11111111111111,
+        "W_pct": 11.11111111111111,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            19,
+            19,
+            18,
+            17,
+            17
+          ],
+          "rust": [
+            16,
+            16,
+            17,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    "tcp-miss": {
+      "p50_ms": {
+        "left_median": 1.20585,
+        "right_median": 1.17897,
+        "relative_change_pct": -2.229132976738401,
+        "W_pct": 1.879606775405647,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "p95_ms": {
+        "left_median": 1.24705,
+        "right_median": 1.224411,
+        "relative_change_pct": -1.8154043542760976,
+        "W_pct": 2.391353883622409,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 90.0,
+        "right_median": 78.0,
+        "relative_change_pct": -13.333333333333334,
+        "W_pct": 7.6923076923076925,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            43,
+            45,
+            43,
+            45,
+            46
+          ],
+          "rust": [
+            37,
+            40,
+            39,
+            40,
+            38
+          ]
+        }
+      }
+    },
+    "dhcp-home6": {
+      "p50_ms": {
+        "left_median": 0.062601,
+        "right_median": 0.059601,
+        "relative_change_pct": -4.792255714764944,
+        "W_pct": 49.195483297260104,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 2.175978,
+        "right_median": 2.020377,
+        "relative_change_pct": -7.150853547232569,
+        "W_pct": 18.816504578630838,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 80.0,
+        "right_median": 76.0,
+        "relative_change_pct": -5.0,
+        "W_pct": 26.31578947368421,
+        "same_direction_pairs": 2,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            22,
+            19,
+            20,
+            21,
+            18
+          ],
+          "rust": [
+            18,
+            19,
+            23,
+            18,
+            19
+          ]
+        }
+      }
+    },
+    "dhcp": {
+      "p50_ms": {
+        "left_median": 2.925745,
+        "right_median": 2.630822,
+        "relative_change_pct": -10.080270153413911,
+        "W_pct": 8.107085922194663,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "p95_ms": {
+        "left_median": 3.389149,
+        "right_median": 3.208867,
+        "relative_change_pct": -5.319388436448207,
+        "W_pct": 13.542630467389271,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 756.0,
+        "right_median": 548.0,
+        "relative_change_pct": -27.513227513227513,
+        "W_pct": 4.37956204379562,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster",
+        "cpu_ticks": {
+          "c": [
+            188,
+            183,
+            191,
+            189,
+            191
+          ],
+          "rust": [
+            133,
+            133,
+            139,
+            137,
+            139
+          ]
+        }
+      },
+      "dora_p50_ms": {
+        "left_median": 2.563182,
+        "right_median": 2.516941,
+        "relative_change_pct": -1.8040466888422186,
+        "W_pct": 12.494651245301343,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "dora_p95_ms": {
+        "left_median": 3.121906,
+        "right_median": 3.026705,
+        "relative_change_pct": -3.04945120064473,
+        "W_pct": 6.79164305738419,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      }
+    },
+    "startup-small": {
+      "p50_ms": {
+        "left_median": 1.476653,
+        "right_median": 1.426692,
+        "relative_change_pct": -3.38339474473691,
+        "W_pct": 4.223131636207024,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 1.545373,
+        "right_median": 1.528653,
+        "relative_change_pct": -1.081939441157576,
+        "W_pct": 56.13092049013086,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 1628.85,
+        "right_median": 1492.2,
+        "relative_change_pct": -8.389354452527849,
+        "W_pct": 4.982576062190064,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            3.2577,
+            3.2637,
+            3.2481,
+            3.2721,
+            3.1377
+          ],
+          "rust": [
+            3.0929,
+            3.0602,
+            2.9828,
+            2.9844,
+            2.9442
+          ]
+        }
+      }
+    },
+    "config-small": {
+      "p50_ms": {
+        "left_median": 2.43762,
+        "right_median": 2.4781,
+        "relative_change_pct": 1.6606361943206929,
+        "W_pct": 1.8692143174206157,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 2.488981,
+        "right_median": 2.564061,
+        "relative_change_pct": 3.0164955055904508,
+        "W_pct": 2.59222549308331,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 1669.85,
+        "right_median": 1657.95,
+        "relative_change_pct": -0.7126388597778163,
+        "W_pct": 10.189537982453507,
+        "same_direction_pairs": 4,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            3.3344,
+            3.6691,
+            3.3397,
+            3.398,
+            3.3288
+          ],
+          "rust": [
+            3.3159,
+            3.2727,
+            3.4297,
+            3.3345,
+            3.3136
+          ]
+        }
+      }
+    },
+    "hup-small": {
+      "p50_ms": {
+        "left_median": 0.303083,
+        "right_median": 0.275082,
+        "relative_change_pct": -9.238723386003173,
+        "W_pct": 7.483098689137971,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 0.613285,
+        "right_median": 0.319723,
+        "relative_change_pct": -47.867141704101684,
+        "W_pct": 97.34770410636706,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 391.6,
+        "right_median": 304.65,
+        "relative_change_pct": -22.203779366700722,
+        "W_pct": 28.855975485188967,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            0.6728,
+            0.7922,
+            0.6643,
+            0.7832,
+            0.8903
+          ],
+          "rust": [
+            0.6344,
+            0.6948,
+            0.6079,
+            0.6093,
+            0.6088
+          ]
+        }
+      }
+    },
+    "hup-large": {
+      "p50_ms": {
+        "left_median": 3.004585,
+        "right_median": 2.657823,
+        "relative_change_pct": -11.541094693609933,
+        "W_pct": 3.8392699589099735,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 3.135146,
+        "right_median": 3.365948,
+        "relative_change_pct": 7.361762418719884,
+        "W_pct": 5.081510468967428,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 3243.55,
+        "right_median": 2970.25,
+        "relative_change_pct": -8.425953045274474,
+        "W_pct": 3.358303173133575,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            6.4542,
+            6.4864,
+            6.5077,
+            6.4871,
+            6.4907
+          ],
+          "rust": [
+            5.8762,
+            5.8534,
+            5.9405,
+            6.0529,
+            6.0371
+          ]
+        }
+      }
+    }
+  },
+  "resources": {
+    "udp-hit": {
+      "rss_median_kib": {
+        "deployed_median": 2316.0,
+        "E_median": 2388.0,
+        "delta": 72.0,
+        "deployed_min_max": [
+          2316.0,
+          2320.0
+        ],
+        "E_min_max": [
+          2384.0,
+          2388.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2316,
+        "E_median": 2388,
+        "delta": 72,
+        "deployed_min_max": [
+          2316,
+          2320
+        ],
+        "E_min_max": [
+          2384,
+          2388
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 512,
+        "E_median": 520,
+        "delta": 8,
+        "deployed_min_max": [
+          512,
+          516
+        ],
+        "E_min_max": [
+          516,
+          520
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1804,
+        "E_median": 1868,
+        "delta": 64,
+        "deployed_min_max": [
+          1804,
+          1804
+        ],
+        "E_min_max": [
+          1868,
+          1868
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 2316,
+        "E_median": 2388,
+        "delta": 72,
+        "deployed_min_max": [
+          2316,
+          2320
+        ],
+        "E_min_max": [
+          2384,
+          2388
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 12,
+        "E_median": 12,
+        "delta": 0,
+        "deployed_min_max": [
+          12,
+          12
+        ],
+        "E_min_max": [
+          12,
+          12
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 12,
+        "E_median": 12,
+        "delta": 0,
+        "deployed_min_max": [
+          12,
+          12
+        ],
+        "E_min_max": [
+          12,
+          12
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 2308,
+        "E_median": 2380,
+        "delta": 72,
+        "deployed_min_max": [
+          2308,
+          2312
+        ],
+        "E_min_max": [
+          2376,
+          2380
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 2308,
+        "E_median": 2380,
+        "delta": 72,
+        "deployed_min_max": [
+          2308,
+          2312
+        ],
+        "E_min_max": [
+          2376,
+          2380
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 2308,
+        "E_median": 2380,
+        "delta": 72,
+        "deployed_min_max": [
+          2308,
+          2312
+        ],
+        "E_min_max": [
+          2376,
+          2380
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 2308,
+        "E_median": 2380,
+        "delta": 72,
+        "deployed_min_max": [
+          2308,
+          2312
+        ],
+        "E_min_max": [
+          2376,
+          2380
+        ]
+      }
+    },
+    "udp-miss": {
+      "rss_median_kib": {
+        "deployed_median": 2432.0,
+        "E_median": 2428.0,
+        "delta": -4.0,
+        "deployed_min_max": [
+          2422.0,
+          2436.0
+        ],
+        "E_min_max": [
+          2424.0,
+          2432.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2472,
+        "E_median": 2476,
+        "delta": 4,
+        "deployed_min_max": [
+          2464,
+          2492
+        ],
+        "E_min_max": [
+          2464,
+          2476
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 668,
+        "E_median": 672,
+        "delta": 4,
+        "deployed_min_max": [
+          660,
+          688
+        ],
+        "E_min_max": [
+          660,
+          672
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1804,
+        "E_median": 1804,
+        "delta": 0,
+        "deployed_min_max": [
+          1804,
+          1804
+        ],
+        "E_min_max": [
+          1804,
+          1804
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 2472,
+        "E_median": 2476,
+        "delta": 4,
+        "deployed_min_max": [
+          2464,
+          2492
+        ],
+        "E_min_max": [
+          2464,
+          2476
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 13,
+        "E_median": 13,
+        "delta": 0,
+        "deployed_min_max": [
+          12,
+          13
+        ],
+        "E_min_max": [
+          12,
+          13
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 13,
+        "E_median": 13,
+        "delta": 0,
+        "deployed_min_max": [
+          12,
+          13
+        ],
+        "E_min_max": [
+          12,
+          13
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 2464,
+        "E_median": 2468,
+        "delta": 4,
+        "deployed_min_max": [
+          2456,
+          2484
+        ],
+        "E_min_max": [
+          2456,
+          2468
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 2464,
+        "E_median": 2468,
+        "delta": 4,
+        "deployed_min_max": [
+          2456,
+          2484
+        ],
+        "E_min_max": [
+          2456,
+          2468
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 2464,
+        "E_median": 2468,
+        "delta": 4,
+        "deployed_min_max": [
+          2456,
+          2484
+        ],
+        "E_min_max": [
+          2456,
+          2468
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 2464,
+        "E_median": 2468,
+        "delta": 4,
+        "deployed_min_max": [
+          2456,
+          2484
+        ],
+        "E_min_max": [
+          2456,
+          2468
+        ]
+      }
+    },
+    "udp-mixed": {
+      "rss_median_kib": {
+        "deployed_median": 2406.0,
+        "E_median": 2468.0,
+        "delta": 62.0,
+        "deployed_min_max": [
+          2404.0,
+          2416.0
+        ],
+        "E_min_max": [
+          2468.0,
+          2476.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2416,
+        "E_median": 2480,
+        "delta": 64,
+        "deployed_min_max": [
+          2412,
+          2416
+        ],
+        "E_min_max": [
+          2476,
+          2480
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 612,
+        "E_median": 612,
+        "delta": 0,
+        "deployed_min_max": [
+          608,
+          612
+        ],
+        "E_min_max": [
+          608,
+          612
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1804,
+        "E_median": 1868,
+        "delta": 64,
+        "deployed_min_max": [
+          1804,
+          1804
+        ],
+        "E_min_max": [
+          1868,
+          1868
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 2416,
+        "E_median": 2480,
+        "delta": 64,
+        "deployed_min_max": [
+          2412,
+          2416
+        ],
+        "E_min_max": [
+          2476,
+          2480
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 12,
+        "E_median": 12,
+        "delta": 0,
+        "deployed_min_max": [
+          12,
+          12
+        ],
+        "E_min_max": [
+          12,
+          12
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 12,
+        "E_median": 12,
+        "delta": 0,
+        "deployed_min_max": [
+          12,
+          12
+        ],
+        "E_min_max": [
+          12,
+          12
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 2408,
+        "E_median": 2472,
+        "delta": 64,
+        "deployed_min_max": [
+          2404,
+          2408
+        ],
+        "E_min_max": [
+          2468,
+          2472
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 2408,
+        "E_median": 2472,
+        "delta": 64,
+        "deployed_min_max": [
+          2404,
+          2408
+        ],
+        "E_min_max": [
+          2468,
+          2472
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 2408,
+        "E_median": 2472,
+        "delta": 64,
+        "deployed_min_max": [
+          2404,
+          2408
+        ],
+        "E_min_max": [
+          2468,
+          2472
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 2408,
+        "E_median": 2472,
+        "delta": 64,
+        "deployed_min_max": [
+          2404,
+          2408
+        ],
+        "E_min_max": [
+          2468,
+          2472
+        ]
+      }
+    },
+    "tcp-hit": {
+      "rss_median_kib": {
+        "deployed_median": 2520.0,
+        "E_median": 2584.0,
+        "delta": 64.0,
+        "deployed_min_max": [
+          2516.0,
+          2520.0
+        ],
+        "E_min_max": [
+          2580.0,
+          2584.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2520,
+        "E_median": 2584,
+        "delta": 64,
+        "deployed_min_max": [
+          2516,
+          2520
+        ],
+        "E_min_max": [
+          2580,
+          2584
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 716,
+        "E_median": 716,
+        "delta": 0,
+        "deployed_min_max": [
+          712,
+          716
+        ],
+        "E_min_max": [
+          712,
+          716
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1804,
+        "E_median": 1868,
+        "delta": 64,
+        "deployed_min_max": [
+          1804,
+          1804
+        ],
+        "E_min_max": [
+          1868,
+          1868
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 2520,
+        "E_median": 2584,
+        "delta": 64,
+        "deployed_min_max": [
+          2516,
+          2520
+        ],
+        "E_min_max": [
+          2580,
+          2584
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 20,
+        "E_median": 20,
+        "delta": 0,
+        "deployed_min_max": [
+          20,
+          20
+        ],
+        "E_min_max": [
+          20,
+          20
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 20,
+        "E_median": 20,
+        "delta": 0,
+        "deployed_min_max": [
+          20,
+          20
+        ],
+        "E_min_max": [
+          20,
+          20
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 2512,
+        "E_median": 2576,
+        "delta": 64,
+        "deployed_min_max": [
+          2508,
+          2512
+        ],
+        "E_min_max": [
+          2572,
+          2576
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 2512,
+        "E_median": 2576,
+        "delta": 64,
+        "deployed_min_max": [
+          2508,
+          2512
+        ],
+        "E_min_max": [
+          2572,
+          2576
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 2512,
+        "E_median": 2576,
+        "delta": 64,
+        "deployed_min_max": [
+          2508,
+          2512
+        ],
+        "E_min_max": [
+          2572,
+          2576
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 2512,
+        "E_median": 2576,
+        "delta": 64,
+        "deployed_min_max": [
+          2508,
+          2512
+        ],
+        "E_min_max": [
+          2572,
+          2576
+        ]
+      }
+    },
+    "tcp-miss": {
+      "rss_median_kib": {
+        "deployed_median": 3542.0,
+        "E_median": 3552.0,
+        "delta": 10.0,
+        "deployed_min_max": [
+          3492.0,
+          3554.0
+        ],
+        "E_min_max": [
+          3540.0,
+          3558.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 3932,
+        "E_median": 3948,
+        "delta": 16,
+        "deployed_min_max": [
+          3924,
+          3968
+        ],
+        "E_min_max": [
+          3920,
+          3956
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 2128,
+        "E_median": 2144,
+        "delta": 16,
+        "deployed_min_max": [
+          2120,
+          2164
+        ],
+        "E_min_max": [
+          2116,
+          2152
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1804,
+        "E_median": 1804,
+        "delta": 0,
+        "deployed_min_max": [
+          1804,
+          1804
+        ],
+        "E_min_max": [
+          1804,
+          1804
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 3932,
+        "E_median": 3948,
+        "delta": 16,
+        "deployed_min_max": [
+          3924,
+          3968
+        ],
+        "E_min_max": [
+          3920,
+          3956
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 28,
+        "E_median": 28,
+        "delta": 0,
+        "deployed_min_max": [
+          28,
+          28
+        ],
+        "E_min_max": [
+          28,
+          28
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 28,
+        "E_median": 28,
+        "delta": 0,
+        "deployed_min_max": [
+          28,
+          28
+        ],
+        "E_min_max": [
+          28,
+          28
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 3924,
+        "E_median": 3940,
+        "delta": 16,
+        "deployed_min_max": [
+          3916,
+          3960
+        ],
+        "E_min_max": [
+          3912,
+          3948
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 3924,
+        "E_median": 3940,
+        "delta": 16,
+        "deployed_min_max": [
+          3916,
+          3960
+        ],
+        "E_min_max": [
+          3912,
+          3948
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 3924,
+        "E_median": 3940,
+        "delta": 16,
+        "deployed_min_max": [
+          3916,
+          3960
+        ],
+        "E_min_max": [
+          3912,
+          3948
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 3924,
+        "E_median": 3940,
+        "delta": 16,
+        "deployed_min_max": [
+          3916,
+          3960
+        ],
+        "E_min_max": [
+          3912,
+          3948
+        ]
+      }
+    },
+    "dhcp-home6": {
+      "rss_median_kib": {
+        "deployed_median": 2292.0,
+        "E_median": 2292.0,
+        "delta": 0.0,
+        "deployed_min_max": [
+          2288.0,
+          2292.0
+        ],
+        "E_min_max": [
+          2292.0,
+          2292.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2292,
+        "E_median": 2292,
+        "delta": 0,
+        "deployed_min_max": [
+          2288,
+          2292
+        ],
+        "E_min_max": [
+          2292,
+          2292
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 360,
+        "E_median": 360,
+        "delta": 0,
+        "deployed_min_max": [
+          356,
+          360
+        ],
+        "E_min_max": [
+          360,
+          360
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1932,
+        "E_median": 1932,
+        "delta": 0,
+        "deployed_min_max": [
+          1932,
+          1932
+        ],
+        "E_min_max": [
+          1932,
+          1932
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 2292,
+        "E_median": 2292,
+        "delta": 0,
+        "deployed_min_max": [
+          2288,
+          2292
+        ],
+        "E_min_max": [
+          2292,
+          2292
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 18,
+        "E_median": 18,
+        "delta": 0,
+        "deployed_min_max": [
+          18,
+          18
+        ],
+        "E_min_max": [
+          18,
+          18
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 18,
+        "E_median": 18,
+        "delta": 0,
+        "deployed_min_max": [
+          18,
+          18
+        ],
+        "E_min_max": [
+          18,
+          18
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 2284,
+        "E_median": 2284,
+        "delta": 0,
+        "deployed_min_max": [
+          2280,
+          2284
+        ],
+        "E_min_max": [
+          2284,
+          2284
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 2284,
+        "E_median": 2284,
+        "delta": 0,
+        "deployed_min_max": [
+          2280,
+          2284
+        ],
+        "E_min_max": [
+          2284,
+          2284
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 2284,
+        "E_median": 2284,
+        "delta": 0,
+        "deployed_min_max": [
+          2280,
+          2284
+        ],
+        "E_min_max": [
+          2284,
+          2284
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 2284,
+        "E_median": 2284,
+        "delta": 0,
+        "deployed_min_max": [
+          2280,
+          2284
+        ],
+        "E_min_max": [
+          2284,
+          2284
+        ]
+      }
+    },
+    "dhcp": {
+      "rss_median_kib": {
+        "deployed_median": 2804.0,
+        "E_median": 2750.0,
+        "delta": -54.0,
+        "deployed_min_max": [
+          2800.0,
+          2804.0
+        ],
+        "E_min_max": [
+          2746.0,
+          2752.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2804,
+        "E_median": 2752,
+        "delta": -52,
+        "deployed_min_max": [
+          2800,
+          2804
+        ],
+        "E_min_max": [
+          2748,
+          2752
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 872,
+        "E_median": 820,
+        "delta": -52,
+        "deployed_min_max": [
+          868,
+          872
+        ],
+        "E_min_max": [
+          816,
+          820
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1932,
+        "E_median": 1932,
+        "delta": 0,
+        "deployed_min_max": [
+          1932,
+          1932
+        ],
+        "E_min_max": [
+          1932,
+          1932
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_rss_peak_kib": {
+        "deployed_median": 2804,
+        "E_median": 2752,
+        "delta": -52,
+        "deployed_min_max": [
+          2800,
+          2804
+        ],
+        "E_min_max": [
+          2748,
+          2752
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 18,
+        "E_median": 18,
+        "delta": 0,
+        "deployed_min_max": [
+          18,
+          18
+        ],
+        "E_min_max": [
+          18,
+          18
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 18,
+        "E_median": 18,
+        "delta": 0,
+        "deployed_min_max": [
+          18,
+          18
+        ],
+        "E_min_max": [
+          18,
+          18
+        ]
+      },
+      "thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "process_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      },
+      "pss_peak_kib": {
+        "deployed_median": 2796,
+        "E_median": 2744,
+        "delta": -52,
+        "deployed_min_max": [
+          2792,
+          2796
+        ],
+        "E_min_max": [
+          2740,
+          2744
+        ]
+      },
+      "uss_peak_kib": {
+        "deployed_median": 2796,
+        "E_median": 2744,
+        "delta": -52,
+        "deployed_min_max": [
+          2792,
+          2796
+        ],
+        "E_min_max": [
+          2740,
+          2744
+        ]
+      },
+      "tree_pss_peak_kib": {
+        "deployed_median": 2796,
+        "E_median": 2744,
+        "delta": -52,
+        "deployed_min_max": [
+          2792,
+          2796
+        ],
+        "E_min_max": [
+          2740,
+          2744
+        ]
+      },
+      "tree_uss_peak_kib": {
+        "deployed_median": 2796,
+        "E_median": 2744,
+        "delta": -52,
+        "deployed_min_max": [
+          2792,
+          2796
+        ],
+        "E_min_max": [
+          2740,
+          2744
+        ]
+      }
+    },
+    "startup-small": {
+      "rss_median_kib": {
+        "deployed_median": 2212.0,
+        "E_median": 2208.0,
+        "delta": -4.0,
+        "deployed_min_max": [
+          2212.0,
+          2212.0
+        ],
+        "E_min_max": [
+          2208.0,
+          2208.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2212,
+        "E_median": 2208,
+        "delta": -4,
+        "deployed_min_max": [
+          2212,
+          2212
+        ],
+        "E_min_max": [
+          2208,
+          2208
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 344,
+        "E_median": 340,
+        "delta": -4,
+        "deployed_min_max": [
+          344,
+          344
+        ],
+        "E_min_max": [
+          340,
+          340
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1868,
+        "E_median": 1868,
+        "delta": 0,
+        "deployed_min_max": [
+          1868,
+          1868
+        ],
+        "E_min_max": [
+          1868,
+          1868
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "observed_thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      }
+    },
+    "config-small": {
+      "rss_median_kib": {
+        "deployed_median": 2212.0,
+        "E_median": 2208.0,
+        "delta": -4.0,
+        "deployed_min_max": [
+          2208.0,
+          2212.0
+        ],
+        "E_min_max": [
+          2208.0,
+          2208.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2212,
+        "E_median": 2208,
+        "delta": -4,
+        "deployed_min_max": [
+          2212,
+          2212
+        ],
+        "E_min_max": [
+          2208,
+          2208
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 344,
+        "E_median": 340,
+        "delta": -4,
+        "deployed_min_max": [
+          344,
+          344
+        ],
+        "E_min_max": [
+          340,
+          340
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1868,
+        "E_median": 1868,
+        "delta": 0,
+        "deployed_min_max": [
+          1868,
+          1868
+        ],
+        "E_min_max": [
+          1868,
+          1868
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "observed_thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      }
+    },
+    "hup-small": {
+      "rss_median_kib": {
+        "deployed_median": 2232.0,
+        "E_median": 2280.0,
+        "delta": 48.0,
+        "deployed_min_max": [
+          2228.0,
+          2232.0
+        ],
+        "E_min_max": [
+          2276.0,
+          2280.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 2236,
+        "E_median": 2288,
+        "delta": 52,
+        "deployed_min_max": [
+          2232,
+          2236
+        ],
+        "E_min_max": [
+          2284,
+          2288
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 368,
+        "E_median": 356,
+        "delta": -12,
+        "deployed_min_max": [
+          364,
+          368
+        ],
+        "E_min_max": [
+          352,
+          356
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1868,
+        "E_median": 1932,
+        "delta": 64,
+        "deployed_min_max": [
+          1868,
+          1868
+        ],
+        "E_min_max": [
+          1932,
+          1932
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "observed_thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      }
+    },
+    "hup-large": {
+      "rss_median_kib": {
+        "deployed_median": 3276.0,
+        "E_median": 3094.0,
+        "delta": -182.0,
+        "deployed_min_max": [
+          3272.0,
+          3276.0
+        ],
+        "E_min_max": [
+          3072.0,
+          3098.0
+        ]
+      },
+      "rss_peak_kib": {
+        "deployed_median": 3300,
+        "E_median": 3104,
+        "delta": -196,
+        "deployed_min_max": [
+          3296,
+          3300
+        ],
+        "E_min_max": [
+          3104,
+          3104
+        ]
+      },
+      "anon_peak_kib": {
+        "deployed_median": 1432,
+        "E_median": 1172,
+        "delta": -260,
+        "deployed_min_max": [
+          1428,
+          1432
+        ],
+        "E_min_max": [
+          1172,
+          1172
+        ]
+      },
+      "file_peak_kib": {
+        "deployed_median": 1868,
+        "E_median": 1932,
+        "delta": 64,
+        "deployed_min_max": [
+          1868,
+          1868
+        ],
+        "E_min_max": [
+          1932,
+          1932
+        ]
+      },
+      "shmem_peak_kib": {
+        "deployed_median": 0,
+        "E_median": 0,
+        "delta": 0,
+        "deployed_min_max": [
+          0,
+          0
+        ],
+        "E_min_max": [
+          0,
+          0
+        ]
+      },
+      "tree_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "parent_fd_peak": {
+        "deployed_median": 19,
+        "E_median": 19,
+        "delta": 0,
+        "deployed_min_max": [
+          19,
+          19
+        ],
+        "E_min_max": [
+          19,
+          19
+        ]
+      },
+      "observed_thread_peak": {
+        "deployed_median": 1,
+        "E_median": 1,
+        "delta": 0,
+        "deployed_min_max": [
+          1,
+          1
+        ],
+        "E_min_max": [
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "source_tree_identity_sha256": "e4915b7f8d2ed6e37cf316f2037188f8a1be772d779c99edf34e358e602cb1d4",
+  "sdk_elf_bytes": 2136859,
+  "deployed_elf_bytes": 2124571,
+  "elf_growth_bytes": 12288,
+  "elf_budget_bytes": 2200000,
+  "controller_sha256": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+  "case_sha256": "921e613ce784051102ea60cdf18c47b6e4a8090c1dcd349c5e49b398ef9ec5cb",
+  "measurement_binary_sha256": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "measurement_binary_identities_equal_prior_frozen_runs": true,
+  "affinity": [
+    2
+  ],
+  "original_analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "independent_audit_sha256": "f50987e0b9ddeaac14c0dbefed57c79704804abe571c11611007ad85221e4558",
+  "independent_audit_script_sha256": "19d19ca213e01206081d06348e3aba6237afac5471cd02ce8a753220434dff58",
+  "complete_marker_sha256": "7c892a6d8fd94b64111466b2f85030e6094a7b412adce4bb4bcfeafcdbe431b2",
+  "complete": {
+    "complete": true,
+    "smoke_only": false,
+    "windows": 110,
+    "valid": 110
+  },
+  "failure_file_absent": true,
+  "frozen_primary_metrics_recomputed": 33,
+  "ranked_DORA_metrics_recomputed": 2,
+  "DORA_minmax_and_home6_descriptive_rechecked": true,
+  "DORA": [
+    {
+      "scene": "dhcp",
+      "metric": "dora_p50_ms",
+      "left_median": 2.563182,
+      "right_median": 2.516941,
+      "relative_change_pct": -1.8040466888422186,
+      "W_pct": 12.494651245301343,
+      "same_direction_pairs": 3,
+      "precision_ok": true,
+      "discernible": false,
+      "direction": "within_variation_or_resolution"
+    },
+    {
+      "scene": "dhcp",
+      "metric": "dora_p95_ms",
+      "left_median": 3.121906,
+      "right_median": 3.026705,
+      "relative_change_pct": -3.04945120064473,
+      "W_pct": 6.79164305738419,
+      "same_direction_pairs": 3,
+      "precision_ok": true,
+      "discernible": false,
+      "direction": "within_variation_or_resolution"
+    }
+  ],
+  "summary_path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-e-summary-verified.json",
+  "independent_audit_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/oracle-e-audit/independent-audit.json",
+  "all_raw_retained_on_oracle": true,
+  "bulk_download_performed": false,
+  "raw_download_deferred_until_both_runs_complete": true,
+  "owned_runtime_directory_removed": true,
+  "controller_after_completion": {
+    "exists": false
+  },
+  "analysis_attempts": [
+    {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-e-summary.json",
+      "sha256": "5e00b1bb17470ca6893fb411236be483d22c4b3f0d0f7e60dad33540eaf5cdd0",
+      "outcome": "non-root analyzer could not read protected raw files;110PermissionErrors; preserved,not product/window failure"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-e-summary-verified.json",
+      "sha256": "202ef36e07e8e829551a4823107d6ba7ac2137873e937877f620a353c939144a",
+      "outcome": "same unchanged original analyzer run with sudo read access;110valid0parseerrors"
+    }
+  ],
+  "audit_cpu": {
+    "affinity": [
+      1
+    ],
+    "nice": 10,
+    "started_only_after_timing_complete": true
+  },
+  "scope_limits": [
+    "Legacy labels c=deployedRust8472 andrust=candidateE8b8082; neither side is exactimageC.",
+    "Only2of11scenes show discernible primary gains; cannot claimmostscenesimproved orfinalperformanceacceptance.",
+    "No discernible primary latency/CPU regression onthisOracleattempt; device validation remainsseparate.",
+    "Primary analyzer has a device-oriented PSSunavailable text; Oracle rawactuallycontainsPSS/USS and these wereindependently derived here.",
+    "Allcounter/CPU/FD/resource differences retained; RSS/PSS changes aremeasured,not assumedleaks.",
+    "No benchmark rerun,rawexpectation change or selectivewindowreplacement occurred."
+  ]
+}

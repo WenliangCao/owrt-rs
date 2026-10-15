@@ -676,3 +676,49 @@ all-C-zero-difference claim. Exact E remains source `4f869c88`, SDK `8b8082b9…
 is scheduled. The coordinator received READY/IDLE for exclusive E Oracle timing;
 device performance acceptance remains separate and no reviewer router operation
 occurred.
+
+## Oracle E complete and independently audited
+
+The reviewer took over Oracle-only finish ownership while the explicitly
+authorized DHCP owner ran the router concurrently. Until completion, only small
+progress reads ran: no compilation, tests, analysis workload or bulk transfer.
+After `complete=true`, 110/110 valid and no failure file were verified, the
+coordinator was immediately notified that the global timing reservation was
+released. Original analyzer and reused independent audit then ran on CPU1 at
+nice10; controller PID225895 had exited and its owned runtime directory was
+removed. No benchmark was repeated.
+
+[Oracle E audit](oracle-e-independent-audit.json) verifies **110 archives/3,430
+files**, including tar membership/hashes, extracted files, exact artifact and
+measurement-tool identities, complete alternating pairs and original counters.
+All 33 primary metrics, two ranked DORA metrics, home6 descriptive DORA and raw
+RSS/PSS/USS/FD/process/thread values were independently recomputed without
+importing the analyzer. Zero discrepancies or discernible primary regressions.
+
+Discernible primary gains versus deployed `8472…` are limited to **TCP-miss p50
+−2.229%**, **DHCP150 p50 −10.080%**, and **DHCP150 combined CPU −27.513%**; each
+has 5/5 paired direction and exceeds its existing W/precision threshold. Only
+2/11 scenes improve discernibly, so this does not establish the frozen
+most-scenes objective or final candidate acceptance. Other primary metrics and
+DORA are inconclusive. The legacy `c` label denotes deployed Rust, not image C.
+
+Resource deltas remain explicit: median peak PSS/USS +72 KiB UDP hit (+64 file,
++8 anonymous), +64 mixed/TCP-hit (file-backed), +4 UDP-miss, +16 TCP-miss, zero
+home6 and −52 DHCP150. FD/thread/process peaks have zero median change. Large
+HUP RSS median peak decreases196 KiB (anonymous−260,file+64). E ELF is2,136,859
+bytes, +12,288 versus deployed, within the existing2,200,000-byte budget.
+
+The first analyzer invocation lacked root read access and recorded110
+PermissionErrors at `root/private/oracle-e-summary.json`; it is preserved and
+is not a product/window failure. The unchanged analyzer with authorized read
+access wrote authoritative `root/private/oracle-e-summary-verified.json`, with
+110 valid and zero parse failures. Independent detailed output stays at
+`correctness/private/oracle-e-audit/independent-audit.json`. Only the derived
+receipt returned locally; raw remains Oracle until both parallel runs finish.
+
+A separate next-version miss-cohort validator repair was prepared in isolated
+branch `fix/perf-miss-cohort-20261015`, commit `dba05f2e`, after the coordinator's
+explicit instruction. It is nine validator lines plus12 local tests and an
+old/new-hash receipt. It was not applied to frozen E, its running controller or
+retained validity decisions. The current E device phase-boundary invalid remains
+invalid; no retroqualification or selective replacement was performed.
