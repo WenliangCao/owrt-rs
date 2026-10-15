@@ -1,0 +1,44 @@
+{
+  "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "source_date_epoch": "1792053143",
+  "source_digest": "54defa949fbbfdea385f0a2380677ca65322d64741592c09e42f0e90ed30fec0",
+  "git_identity_sha256": "65b73039c31aa5ccedfd04f058ec2f4337ede49e239a4d862217bb520741741c",
+  "features": "",
+  "opt_level": "3",
+  "status": "built-unqualified",
+  "artifacts": [
+    {
+      "path": "dnsmasq-rs",
+      "bytes": 2136859,
+      "sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1"
+    }
+  ],
+  "link_map": {
+    "path": "link.map",
+    "sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a"
+  },
+  "artifact": {
+    "name": "dnsmasq-2.93-r4.apk",
+    "bytes": 1161516,
+    "sha256": "b64d545cf095bdcd5f7203c6cc8ddd3a10ebe58cf4940441f64e068c6e14653a"
+  },
+  "prestrip": {
+    "sha256": "eae8ae4dc17eb1c4b4e591054b732fa95c2c00acee36b92e004829f53351c089",
+    "bytes": 2138592
+  },
+  "source_unchanged": true,
+  "within_existing_budget": true,
+  "toolchain": {
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+    "map_wrapper_sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5"
+  },
+  "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+  "sdk_inputs_sha256": "1c5a8201578bdc768de01eaa5d75cda6e43952ee618b7b990cdf1278e9835c67",
+  "deployed_baseline": {
+    "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "bytes": 2124571
+  },
+  "elf_growth_bytes": 12288,
+  "elf_growth_pct": 0.5783755873538743
+}
