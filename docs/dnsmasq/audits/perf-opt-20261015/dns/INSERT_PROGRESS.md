@@ -27,3 +27,14 @@ reallocations and 268 bytes. Requested bytes are not copied-byte estimates.
 Instruction changes: replacement −15.91%, full pressure −2.81%, reverse +0.16%,
 long names −28.77%. Counters alone cannot qualify timing or device benefit.
 All raw artifacts remain private. No router access.
+
+Quiet reservation `micro-20261015-insert1` completed all 100 windows:
+replacement CPU −9.18% (W 2.78%, 5/5 pairs), pressure −2.82% (W 1.05%, 5/5),
+long names −17.93% (W 0.80%, 5/5). Reverse is within its measured variation.
+Whole-answer hit, miss, hosts, dynamic/configured CNAME are also within their
+variation. The supplemental eight-record answer is **+0.547%, W 0.435%, all
+five pairs slower** despite unchanged read-path code. This is an explicit
+caveat, not a universal micro improvement claim. Root retains the allocation
+removal for combined-candidate screening; final combined read-path controls
+and all frozen 11 device scenes decide acceptance. Every window and artifact
+identity is retained in `insert1-timing.json`; no repeats/replacements.
