@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "status": "frozen exploratory fixed10; SDK identities and179source verified; fresh health pending; no workload started",
+  "scope": "Exploratory unqualified F/fresh-address-frame A53 UDP-hit comparison; not full44 qualification or candidate acceptance. Frozen C and accepted E stay unchanged.",
+  "reason": "Direct A53 test of exact independent fresh-address-frame source; no composition with other separately tested prototype sources.",
+  "source_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+  "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_files_verified": 179,
+  "elf_sha256": "02b500e55acc65d7099612801d89ea8e19a20ae9884e0a86edfdd051a3b057ad",
+  "elf_bytes": 2136859,
+  "map_sha256": "6852c4c04099ac8b936df587f50fcfe3333fce4bb0edb1e136cc7830aaaa89a2",
+  "build_receipt_sha256": "243027630a044b865b7c76fe50c1943f602e06f38a66828b1cba0c5af1e48cb9",
+  "prior_gate_scope": "Coordinator-confirmed related Linux935/source gates passed; full44 qualification remains incomplete. Separate prototype identities must not be combined.",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "entry_sha256": "80d478f29a111b4370906c978e6258b8ed64de4df3d0c93e3a0f41179717f888",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "artifacts": {
+    "e": {
+      "name": "a53-fresh-address-frame-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-fresh-address-frame-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "fresh-address-frame": {
+      "name": "a53-fresh-address-frame-artifact-fresh-address-frame",
+      "sha256": "02b500e55acc65d7099612801d89ea8e19a20ae9884e0a86edfdd051a3b057ad"
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "schedule": [
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 1,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r1-c"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 1,
+      "side": "rust",
+      "artifact": "fresh-address-frame",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r1-rust"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 2,
+      "side": "rust",
+      "artifact": "fresh-address-frame",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r2-rust"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 2,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r2-c"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 3,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r3-c"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 3,
+      "side": "rust",
+      "artifact": "fresh-address-frame",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r3-rust"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 4,
+      "side": "rust",
+      "artifact": "fresh-address-frame",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r4-rust"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 4,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r4-c"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 5,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r5-c"
+    },
+    {
+      "group": "f-vs-fresh-address-frame",
+      "round": 5,
+      "side": "rust",
+      "artifact": "fresh-address-frame",
+      "mode": null,
+      "label": "a53-fresh-address-frame-f-vs-fresh-address-frame-r5-rust"
+    }
+  ],
+  "measurement_environment": "No DNSMASQ_UDP_STAGE or allocation-meter variables. Both normal product ELFs use the unchanged real cache/local answer.",
+  "output_requirements": [
+    "10 attempts in five alternating F/address-dispatch pairs; no extra windows, supplements or replacement.",
+    "Each6000 fixture replies correct, including1000 prewarm; original steady upstream0, file/live ELF, single process/thread samples and final endpoint, isolated namespace, case/daemon exit0.",
+    "Original20s measurement and100Hz CPU endpoint over5000 completed warmup+measurement queries; original W/direction and exclusive8tick median-difference gate.",
+    "First archive attempt retained even if partial; any failed gate stops; verify all raw bytes before pruning valid device copies.",
+    "Fresh>=120s health; unchanged guard/prod identity; restore E/F slots only after no owned daemon remains."
+  ],
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "automatic_replacement": false,
+  "source_inputs_expected": 179,
+  "pending_before_launch": [
+    "Previous diagnostic postflight complete; fresh>=120s health and exact originalE/F restoration/source copies required."
+  ],
+  "artifact_verification_receipt_sha256": "01d7e8b2b27a6cd607118b772e6cf7eb99f9bc60e54b9c1d466c6771026930a3"
+}
