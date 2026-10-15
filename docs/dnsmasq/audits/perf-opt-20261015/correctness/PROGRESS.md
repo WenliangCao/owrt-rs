@@ -171,3 +171,44 @@ The carried per-family scheduler now records duplicate-free exact 67-job
 coverage and exact C identity as requested in its earlier review. It preserves
 unchanged original runner calls and waits only before a new family. No new
 Oracle build, correctness execution or timing was started in this continuation.
+
+The new scheduler supports `--jobs 1` (default, original family order) or up to
+three independent family runners. Parallel mode starts cache, listeners and
+logging first; each family keeps its original serial jobs and fresh nested
+output. No source/build directory is mutated by the supervisor. UBus compiles
+its helper into its own family output and verifies the shared inputs read-only.
+A global `PAUSE` marker prevents new dispatch; existing families drain naturally,
+and `state.json` reports `paused-before-family` with an empty active list only
+when quiet. Any failure stops new dispatch and retains all finishing active
+results. No case receives a scheduling signal. Five local orchestration controls
+passed: three-worker bound/completeness, serial order, duplicate-job rejection,
+wrong-C rejection, and pause/drain/resume. These are supervisor tests, not product
+passes. Expected full wall time with three workers is roughly 35–45 minutes,
+subject to existing deadlines and host load; a pause may need up to a full cache
+family (about 23 minutes) to drain. Do not mix this work with performance timing.
+
+Finalist family invocation, after coordinator freezes its exact source/ELF/map
+and resolves the registry decision (the source variables identify that finalist):
+
+```sh
+CARGO_BUILD_JOBS=1 python3 "$correctness/run_family_gates.py" \
+  --source "$source" --elf "$elf" --link-map "$link_map" \
+  --commit "$commit" --base-identity "$correctness/private/family-base-identity.json" \
+  --out "$correctness/private/c-families-attempt1" --jobs 3
+```
+
+The scheduler itself can be copied from this evidence directory into the Oracle
+correctness root. Output must not exist. `touch .../PAUSE`, wait for the empty
+active list/`paused-before-family` state, then `rm .../PAUSE` implements a safe
+reservation boundary. All other required gates retain the command forms in
+[FROZEN_GATES.md](FROZEN_GATES.md); family success does not replace Rust,
+four frozen-clock corpus, protocol, F10 or TCP gates.
+
+Further static reviews: `93190195` insertion-name copies and `97a975a5` same-call
+hosts bucket reuse have no behavior blocker. The length-only wire helper equals
+escaped dotted length (including root and escaped 0/1/dot bytes), keeps the 75-byte
+limit and counter ordering, and removes only discarded infallible temporaries.
+Reverse-name clone remains before name-index publication. Hosts bucket reuse
+keeps both scans and IPv4 rotation; no hosts mutation/capacity change intervenes.
+The cursor owner subsequently rejected the reviewed hint on configured-CNAME
+performance; its static review is not a recommendation to integrate it.
