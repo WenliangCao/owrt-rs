@@ -1,0 +1,179 @@
+{
+  "scope": "independent local raw recovery; no router access; no analyzer import",
+  "passed": true,
+  "windows": 110,
+  "archive_files_verified_twice": 3430,
+  "counts": {
+    "warmup_correct": 60000,
+    "measurement_correct": 240000,
+    "dora_observations": 1560,
+    "lifecycle_observations": 800
+  },
+  "guards": [
+    {
+      "scene": "config-small",
+      "sha256": "f0fc251481b43749778ed00b0ec3b55c750521d8e4fa8c72253e50d077d9b16e",
+      "samples": 271,
+      "start_epoch": 1792019193,
+      "stop_epoch": 1792019464,
+      "dns_samples": 106,
+      "dns_max_ms": 1.417,
+      "http_samples": 49,
+      "http_max_ms": 70.082,
+      "memory_min_kib": 74508
+    },
+    {
+      "scene": "dhcp",
+      "sha256": "e64dea9e69b3c01b79933ebc9f3b793aaf5c93c5bbeaab2bee5313f73dbf6ffd",
+      "samples": 357,
+      "start_epoch": 1792018565,
+      "stop_epoch": 1792018921,
+      "dns_samples": 139,
+      "dns_max_ms": 3.133,
+      "http_samples": 64,
+      "http_max_ms": 170.244,
+      "memory_min_kib": 77204
+    },
+    {
+      "scene": "dhcp-home6",
+      "sha256": "93fd03a9d265dafc10e80a00250f12e3f13c272dcf7527ae29122d0df9a87688",
+      "samples": 371,
+      "start_epoch": 1792018194,
+      "stop_epoch": 1792018564,
+      "dns_samples": 146,
+      "dns_max_ms": 6.502,
+      "http_samples": 67,
+      "http_max_ms": 76.688,
+      "memory_min_kib": 86200
+    },
+    {
+      "scene": "hup-large",
+      "sha256": "149337926be9b34f74f4eeb3694c871818e61f3ed230b25a95a2ef5af043002c",
+      "samples": 272,
+      "start_epoch": 1792019736,
+      "stop_epoch": 1792020007,
+      "dns_samples": 107,
+      "dns_max_ms": 0.798,
+      "http_samples": 49,
+      "http_max_ms": 63.609,
+      "memory_min_kib": 72284
+    },
+    {
+      "scene": "hup-small",
+      "sha256": "24ff68e7e2b6535d0ee925d967b6d5a5759b9989ca02716c68f392232b6f49bd",
+      "samples": 272,
+      "start_epoch": 1792019465,
+      "stop_epoch": 1792019736,
+      "dns_samples": 105,
+      "dns_max_ms": 6.573,
+      "http_samples": 49,
+      "http_max_ms": 70.524,
+      "memory_min_kib": 74496
+    },
+    {
+      "scene": "startup-small",
+      "sha256": "f29d729ed3b7d63f33f6d1e0c722b047c7774114725d6a94523f40f11745e1b2",
+      "samples": 271,
+      "start_epoch": 1792018922,
+      "stop_epoch": 1792019193,
+      "dns_samples": 106,
+      "dns_max_ms": 1.183,
+      "http_samples": 48,
+      "http_max_ms": 83.935,
+      "memory_min_kib": 77228
+    },
+    {
+      "scene": "tcp-hit",
+      "sha256": "2b64ec65e93c8ea55a2a4ab5c48aa4cf948875400e7d0035e0939df351ea035a",
+      "samples": 404,
+      "start_epoch": 1792017413,
+      "stop_epoch": 1792017816,
+      "dns_samples": 158,
+      "dns_max_ms": 1.382,
+      "http_samples": 73,
+      "http_max_ms": 72.92,
+      "memory_min_kib": 96424
+    },
+    {
+      "scene": "tcp-miss",
+      "sha256": "80a8c4271dc4379a3edd383365492c65e98520e01feb4f0e8f1a358b9013f05f",
+      "samples": 377,
+      "start_epoch": 1792017816,
+      "stop_epoch": 1792018193,
+      "dns_samples": 145,
+      "dns_max_ms": 1.915,
+      "http_samples": 68,
+      "http_max_ms": 133.602,
+      "memory_min_kib": 91560
+    },
+    {
+      "scene": "udp-hit",
+      "sha256": "7d5998011dca9f7d10da994b03c01068c0b182c0318fb62c931c1b0a7e1f6eee",
+      "samples": 409,
+      "start_epoch": 1792016222,
+      "stop_epoch": 1792016631,
+      "dns_samples": 160,
+      "dns_max_ms": 1.475,
+      "http_samples": 73,
+      "http_max_ms": 139.995,
+      "memory_min_kib": 110024
+    },
+    {
+      "scene": "udp-miss",
+      "sha256": "9ce07137157bb7186a0aa6adb93405cefc3c02966907e5e7d3524f62d768dfd4",
+      "samples": 367,
+      "start_epoch": 1792016631,
+      "stop_epoch": 1792016998,
+      "dns_samples": 143,
+      "dns_max_ms": 9.603,
+      "http_samples": 66,
+      "http_max_ms": 172.789,
+      "memory_min_kib": 108152
+    },
+    {
+      "scene": "udp-mixed",
+      "sha256": "29ae78dc72a513b4b905568094339d65dd36d10627310fe8afeb83d564d1b199",
+      "samples": 414,
+      "start_epoch": 1792016999,
+      "stop_epoch": 1792017412,
+      "dns_samples": 162,
+      "dns_max_ms": 21.371,
+      "http_samples": 75,
+      "http_max_ms": 69.475,
+      "memory_min_kib": 103056
+    }
+  ],
+  "external_health": {
+    "4": {
+      "samples": 126,
+      "max_ms": 1305.6589999999999
+    },
+    "6": {
+      "samples": 126,
+      "max_ms": 1089.199
+    }
+  },
+  "cancelled_http_probes": [
+    {
+      "scene": "tcp-hit",
+      "epoch": 1792017816,
+      "last_window_end_epoch": 1792017809.0,
+      "http_status": 0,
+      "classification": "terminal signal-interrupted probe; not counted as pass"
+    }
+  ],
+  "summary_sha256": "01bef643b5ef40489d50bb28987254b492a5b505ce2cd6a529ab1267dff40a7e",
+  "identity_sha256": "bdd721bcb0d71e84022bd82c9dc7b03a027f48174b55b1cef9eef3094693072e",
+  "progress_sha256": "b2173d88a12a080ac3ff1a9e59b0416d4dbc5ad8b8cf5551234e81a57083c38e",
+  "external_health_sha256": "fd3a343352339032de65d2d59ab691b00d73ccf5469569f1ef9be2f7fdf15099",
+  "local_audit_attempts": [
+    "Attempt 1 rejected tar member comparison until observed label/ prefix was handled.",
+    "Attempt 2 rejected controller fractional epoch versus integer guard epoch; raw start/end coverage added.",
+    "Attempt 3 rejected terminal HTTP status0; source-bound interrupted cancellation classified explicitly, never passed."
+  ],
+  "limitations": [
+    "No production router state was sampled during this offline audit.",
+    "Guard CPU is record-only by the approved frozen policy.",
+    "This confirms baseline evidence, not candidate improvement."
+  ]
+}

@@ -212,3 +212,32 @@ Reverse-name clone remains before name-index publication. Hosts bucket reuse
 keeps both scans and IPv4 rotation; no hosts mutation/capacity change intervenes.
 The cursor owner subsequently rejected the reviewed hint on configured-CNAME
 performance; its static review is not a recommendation to integrate it.
+
+## Independent base2 archive audit
+
+[Offline audit](base2-independent-audit.json) verified all **110 unique windows**
+and the five alternating C/R rounds in each of 11 scenes. It independently read
+all 110 archive hashes and **3,430 files twice** (archive member and extracted
+copy), recomputed each traffic/lifecycle latency quantile, scheduled latency,
+CPU-counter denominator and DORA quantile without importing the analyzer.
+Observed counts: 60,000 warmup + 240,000 measured successful traffic operations,
+1,560 DORA observations and 800 lifecycle observations. All match the exported
+baseline. All 11 guard segments cover their raw start/end intervals and keep
+production PID/starttime, memory floor, DNS and IPv4 default route intact.
+
+The TCP-hit final HTTP probe has status 0 at guard shutdown, seven seconds after
+the last measured window ended. The source signal path and immediately following
+`monitor_stopped` establish a terminal cancelled probe; it is explicitly retained
+and **not counted as a passed HTTP check**. All completed HTTP checks are 403.
+External IPv4 and IPv6 each have 126 successful HTTP200 checks; observed maximum
+latencies are 1,305.659/1,089.199 ms. The external check is a connectivity gate,
+not the local 200 ms production-DNS threshold. Local audit construction attempts
+(prefix handling, epoch precision, cancellation classification) are retained in
+the receipt; none altered or repeated the underlying measured windows.
+
+The coordinator reports the user approved the exact UBus metadata correction,
+now committed as `e26a40ab` with original/new hashes and explicit amendment.
+New full candidate gates must consume that amended snapshot; the old freeze and
+A failure stay unchanged. The user also authorized necessary research/tool bug
+corrections during continuation; no deployment or router modification follows
+from this permission. Correctness remains Oracle-idle pending finalist freeze.
