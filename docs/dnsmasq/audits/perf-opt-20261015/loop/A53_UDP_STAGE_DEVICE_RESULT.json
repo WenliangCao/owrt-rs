@@ -1,0 +1,5258 @@
+{
+  "schema": 1,
+  "status": "complete fixed50 device diagnostic; independent final audit pending",
+  "scope": "EXCLUDED cumulative-path intervention. Original C/E baseline, E/full calibration and each contemporaneous full/cut group are separate. No product candidate or replacement of frozen oracle.",
+  "source_commit": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+  "source_files_verified": 180,
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "artifacts": {
+    "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+    "elf_bytes": 2140955,
+    "map_sha256": "8a1bbc4a288b3ee6c291dfa50dece17f583c424a5a969625211d4e6497cdfd9a",
+    "build_receipt_sha256": "181b4938a994a9102c9635cb510944d8166cc67af1c81031de83c89a296c96e2",
+    "within_size_budget": true,
+    "release_elf_budget_bytes": 2200000
+  },
+  "launch_commit": "10b8ac7d",
+  "driver_source_commit": "79d32167",
+  "driver_independent_review_commit": "e396e71f",
+  "identities": {
+    "driver_sha256": "59b21c0dc7841f9e62686c8ebc7da44334c4846c5c87c258f9a8806969992aeb",
+    "plan_sha256": "6b403edb27d555de7588504a68acc4bc6206c6c677baaeee792b5c1c191ed30c",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "production_pid_start": [
+      3086,
+      2115
+    ]
+  },
+  "execution": {
+    "attempted_windows": 50,
+    "valid_windows": 50,
+    "failed_windows": 0,
+    "replacement_windows": 0,
+    "raw_archives": 50,
+    "verified_raw_files": 2185,
+    "correct_fixture_replies": 300000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "cpu_tick_us_per_query": 2,
+    "stage_windows": 35,
+    "full_mode_stage_windows": 20,
+    "cut_windows": 15,
+    "stage_matched_queries_per_window": 6000,
+    "cut_counts_per_selected_window": 5000,
+    "other_cut_slots": 0,
+    "upstream_total_requests_per_window": 800,
+    "upstream_bucket": "all800 setup_warmup; zero steady/saturation/fault/recovery requests",
+    "observed_single_thread_samples": 1578,
+    "all_daemon_and_case_exits": 0,
+    "scope_of_thread_evidence": "Observed before/resources/after samples and final endpoint; not continuous tracing."
+  },
+  "comparisons": {
+    "exact-c-vs-e": {
+      "left": [
+        "exact-c",
+        null
+      ],
+      "right": [
+        "e",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.136803,
+            "min": 0.135803,
+            "max": 0.145343,
+            "rounds": [
+              0.138496,
+              0.136033,
+              0.135803,
+              0.136803,
+              0.145343
+            ]
+          },
+          "right": {
+            "median": 0.199742,
+            "min": 0.195048,
+            "max": 0.211206,
+            "rounds": [
+              0.201203,
+              0.195048,
+              0.196895,
+              0.211206,
+              0.199742
+            ]
+          },
+          "relative_change_pct": 46.00703200953195,
+          "W_pct": 8.089435371629405,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.230442,
+            "min": 0.211591,
+            "max": 0.323464,
+            "rounds": [
+              0.230442,
+              0.211591,
+              0.231365,
+              0.212668,
+              0.323464
+            ]
+          },
+          "right": {
+            "median": 0.408332,
+            "min": 0.348624,
+            "max": 0.689094,
+            "rounds": [
+              0.408717,
+              0.408332,
+              0.350318,
+              0.689094,
+              0.348624
+            ]
+          },
+          "relative_change_pct": 77.19512936009927,
+          "W_pct": 83.3806804267116,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 80.0,
+            "min": 78.0,
+            "max": 88.0,
+            "rounds": [
+              82.0,
+              78.0,
+              80.0,
+              80.0,
+              88.0
+            ]
+          },
+          "right": {
+            "median": 140.0,
+            "min": 136.0,
+            "max": 152.0,
+            "rounds": [
+              144.0,
+              136.0,
+              140.0,
+              152.0,
+              140.0
+            ]
+          },
+          "relative_change_pct": 75.0,
+          "W_pct": 12.5,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 1212.0,
+            "min": 1176.0,
+            "max": 1244.0,
+            "rounds": [
+              1176.0,
+              1244.0,
+              1176.0,
+              1232.0,
+              1212.0
+            ]
+          },
+          "right": {
+            "median": 2388.0,
+            "min": 2284.0,
+            "max": 2408.0,
+            "rounds": [
+              2396.0,
+              2356.0,
+              2284.0,
+              2408.0,
+              2388.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 1212,
+            "min": 1176,
+            "max": 1244,
+            "rounds": [
+              1176,
+              1244,
+              1176,
+              1232,
+              1212
+            ]
+          },
+          "right": {
+            "median": 2388,
+            "min": 2284,
+            "max": 2408,
+            "rounds": [
+              2396,
+              2356,
+              2284,
+              2408,
+              2388
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 228,
+            "min": 228,
+            "max": 228,
+            "rounds": [
+              228,
+              228,
+              228,
+              228,
+              228
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 732,
+            "min": 696,
+            "max": 764,
+            "rounds": [
+              696,
+              764,
+              696,
+              752,
+              732
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 252,
+            "min": 252,
+            "max": 252,
+            "rounds": [
+              252,
+              252,
+              252,
+              252,
+              252
+            ]
+          },
+          "right": {
+            "median": 1868,
+            "min": 1764,
+            "max": 1884,
+            "rounds": [
+              1872,
+              1832,
+              1764,
+              1884,
+              1868
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 11,
+            "min": 11,
+            "max": 11,
+            "rounds": [
+              11,
+              11,
+              11,
+              11,
+              11
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 11,
+            "min": 11,
+            "max": 11,
+            "rounds": [
+              11,
+              11,
+              11,
+              11,
+              11
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 40,
+        "right": 70,
+        "absolute_delta": 30,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 39
+      }
+    },
+    "e-vs-stage-full": {
+      "left": [
+        "e",
+        null
+      ],
+      "right": [
+        "stage",
+        "full"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.20482,
+            "min": 0.187816,
+            "max": 0.211206,
+            "rounds": [
+              0.211206,
+              0.205128,
+              0.190355,
+              0.187816,
+              0.20482
+            ]
+          },
+          "right": {
+            "median": 0.193279,
+            "min": 0.183815,
+            "max": 0.196048,
+            "rounds": [
+              0.193279,
+              0.196048,
+              0.192432,
+              0.194202,
+              0.183815
+            ]
+          },
+          "relative_change_pct": -5.634703642222437,
+          "W_pct": 11.4197832242945,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.394482,
+            "min": 0.296074,
+            "max": 1.135589,
+            "rounds": [
+              0.362089,
+              1.135589,
+              0.296074,
+              0.422874,
+              0.394482
+            ]
+          },
+          "right": {
+            "median": 0.350702,
+            "min": 0.272452,
+            "max": 0.412872,
+            "rounds": [
+              0.350702,
+              0.296688,
+              0.412872,
+              0.410871,
+              0.272452
+            ]
+          },
+          "relative_change_pct": -11.098098265573585,
+          "W_pct": 212.81452639157172,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 140.0,
+            "min": 136.0,
+            "max": 142.0,
+            "rounds": [
+              140.0,
+              142.0,
+              136.0,
+              136.0,
+              140.0
+            ]
+          },
+          "right": {
+            "median": 140.0,
+            "min": 130.0,
+            "max": 140.0,
+            "rounds": [
+              140.0,
+              136.0,
+              140.0,
+              140.0,
+              130.0
+            ]
+          },
+          "relative_change_pct": 0.0,
+          "W_pct": 7.142857142857142,
+          "same_direction_pairs": 0,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2356.0,
+            "max": 2440.0,
+            "rounds": [
+              2360.0,
+              2440.0,
+              2404.0,
+              2396.0,
+              2356.0
+            ]
+          },
+          "right": {
+            "median": 2380.0,
+            "min": 2364.0,
+            "max": 2440.0,
+            "rounds": [
+              2380.0,
+              2440.0,
+              2364.0,
+              2364.0,
+              2384.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2356,
+            "max": 2440,
+            "rounds": [
+              2360,
+              2440,
+              2404,
+              2396,
+              2356
+            ]
+          },
+          "right": {
+            "median": 2380,
+            "min": 2364,
+            "max": 2440,
+            "rounds": [
+              2380,
+              2440,
+              2364,
+              2364,
+              2384
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 524,
+            "rounds": [
+              516,
+              520,
+              524,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              516,
+              520,
+              516,
+              516,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1832,
+            "max": 1916,
+            "rounds": [
+              1840,
+              1916,
+              1876,
+              1872,
+              1832
+            ]
+          },
+          "right": {
+            "median": 1860,
+            "min": 1844,
+            "max": 1916,
+            "rounds": [
+              1860,
+              1916,
+              1844,
+              1844,
+              1860
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 70,
+        "right": 70,
+        "absolute_delta": 0,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 65
+      }
+    },
+    "stage-full-vs-receive": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "receive"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.194125,
+            "min": 0.187585,
+            "max": 0.196125,
+            "rounds": [
+              0.196125,
+              0.188354,
+              0.194125,
+              0.187585,
+              0.194279
+            ]
+          },
+          "right": {
+            "median": 0.116798,
+            "min": 0.115028,
+            "max": 0.121645,
+            "rounds": [
+              0.116644,
+              0.121645,
+              0.116798,
+              0.118645,
+              0.115028
+            ]
+          },
+          "relative_change_pct": -39.83361236316806,
+          "W_pct": 5.665336735218067,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.399253,
+            "min": 0.272222,
+            "max": 0.413103,
+            "rounds": [
+              0.403638,
+              0.272222,
+              0.413103,
+              0.360397,
+              0.399253
+            ]
+          },
+          "right": {
+            "median": 0.209513,
+            "min": 0.185739,
+            "max": 0.304845,
+            "rounds": [
+              0.209513,
+              0.304845,
+              0.191201,
+              0.273529,
+              0.185739
+            ]
+          },
+          "relative_change_pct": -47.52375060425344,
+          "W_pct": 56.848978345019155,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 136.0,
+            "min": 134.0,
+            "max": 140.0,
+            "rounds": [
+              138.0,
+              134.0,
+              140.0,
+              134.0,
+              136.0
+            ]
+          },
+          "right": {
+            "median": 70.0,
+            "min": 68.0,
+            "max": 74.0,
+            "rounds": [
+              72.0,
+              74.0,
+              70.0,
+              70.0,
+              68.0
+            ]
+          },
+          "relative_change_pct": -48.529411764705884,
+          "W_pct": 8.571428571428571,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2352.0,
+            "max": 2416.0,
+            "rounds": [
+              2352.0,
+              2384.0,
+              2396.0,
+              2416.0,
+              2404.0
+            ]
+          },
+          "right": {
+            "median": 2396.0,
+            "min": 2356.0,
+            "max": 2444.0,
+            "rounds": [
+              2356.0,
+              2440.0,
+              2396.0,
+              2444.0,
+              2364.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2352,
+            "max": 2416,
+            "rounds": [
+              2352,
+              2384,
+              2396,
+              2416,
+              2404
+            ]
+          },
+          "right": {
+            "median": 2396,
+            "min": 2356,
+            "max": 2444,
+            "rounds": [
+              2356,
+              2440,
+              2396,
+              2444,
+              2364
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 516,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              516,
+              516,
+              516,
+              520,
+              528
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              516,
+              516,
+              520,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1832,
+            "max": 1892,
+            "rounds": [
+              1832,
+              1864,
+              1876,
+              1892,
+              1872
+            ]
+          },
+          "right": {
+            "median": 1876,
+            "min": 1832,
+            "max": 1920,
+            "rounds": [
+              1832,
+              1920,
+              1876,
+              1920,
+              1840
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 68,
+        "right": 35,
+        "absolute_delta": 33,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 34
+      }
+    },
+    "stage-full-vs-before-answer": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "before-answer"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.192048,
+            "min": 0.188508,
+            "max": 0.203204,
+            "rounds": [
+              0.192048,
+              0.193356,
+              0.188508,
+              0.203204,
+              0.190893
+            ]
+          },
+          "right": {
+            "median": 0.152038,
+            "min": 0.142112,
+            "max": 0.156962,
+            "rounds": [
+              0.150345,
+              0.142112,
+              0.156962,
+              0.152038,
+              0.155962
+            ]
+          },
+          "relative_change_pct": -20.83333333333333,
+          "W_pct": 9.767295018350676,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.299382,
+            "min": 0.278454,
+            "max": 0.560985,
+            "rounds": [
+              0.299382,
+              0.290842,
+              0.344393,
+              0.560985,
+              0.278454
+            ]
+          },
+          "right": {
+            "median": 0.351087,
+            "min": 0.246061,
+            "max": 0.533132,
+            "rounds": [
+              0.320079,
+              0.246061,
+              0.533132,
+              0.359705,
+              0.351087
+            ]
+          },
+          "relative_change_pct": 17.27057738942221,
+          "W_pct": 94.37140509449465,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 136.0,
+            "min": 134.0,
+            "max": 144.0,
+            "rounds": [
+              136.0,
+              138.0,
+              134.0,
+              144.0,
+              136.0
+            ]
+          },
+          "right": {
+            "median": 98.0,
+            "min": 96.0,
+            "max": 106.0,
+            "rounds": [
+              98.0,
+              96.0,
+              106.0,
+              98.0,
+              104.0
+            ]
+          },
+          "relative_change_pct": -27.941176470588236,
+          "W_pct": 10.204081632653061,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2384.0,
+            "min": 2360.0,
+            "max": 2416.0,
+            "rounds": [
+              2416.0,
+              2364.0,
+              2384.0,
+              2384.0,
+              2360.0
+            ]
+          },
+          "right": {
+            "median": 2388.0,
+            "min": 2356.0,
+            "max": 2440.0,
+            "rounds": [
+              2388.0,
+              2364.0,
+              2356.0,
+              2396.0,
+              2440.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2384,
+            "min": 2360,
+            "max": 2416,
+            "rounds": [
+              2416,
+              2364,
+              2384,
+              2384,
+              2360
+            ]
+          },
+          "right": {
+            "median": 2388,
+            "min": 2356,
+            "max": 2440,
+            "rounds": [
+              2388,
+              2364,
+              2356,
+              2396,
+              2440
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 520,
+            "max": 524,
+            "rounds": [
+              524,
+              520,
+              520,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 520,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              520,
+              520,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1860,
+            "min": 1836,
+            "max": 1888,
+            "rounds": [
+              1888,
+              1840,
+              1860,
+              1860,
+              1836
+            ]
+          },
+          "right": {
+            "median": 1864,
+            "min": 1832,
+            "max": 1916,
+            "rounds": [
+              1864,
+              1840,
+              1832,
+              1872,
+              1916
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 68,
+        "right": 49,
+        "absolute_delta": 19,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 48
+      }
+    },
+    "stage-full-vs-skip-local": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "skip-local"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.196356,
+            "min": 0.193048,
+            "max": 0.202204,
+            "rounds": [
+              0.196356,
+              0.193048,
+              0.202204,
+              0.195433,
+              0.200511
+            ]
+          },
+          "right": {
+            "median": 0.179736,
+            "min": 0.175582,
+            "max": 0.182507,
+            "rounds": [
+              0.175582,
+              0.179044,
+              0.182122,
+              0.182507,
+              0.179736
+            ]
+          },
+          "relative_change_pct": -8.464218052924279,
+          "W_pct": 4.662959115076696,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.283147,
+            "min": 0.275684,
+            "max": 0.458268,
+            "rounds": [
+              0.283147,
+              0.280916,
+              0.458268,
+              0.275684,
+              0.353934
+            ]
+          },
+          "right": {
+            "median": 0.275529,
+            "min": 0.253755,
+            "max": 0.289226,
+            "rounds": [
+              0.256294,
+              0.253755,
+              0.289226,
+              0.277453,
+              0.275529
+            ]
+          },
+          "relative_change_pct": -2.6904752654981188,
+          "W_pct": 64.48381935884895,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 138.0,
+            "min": 134.0,
+            "max": 142.0,
+            "rounds": [
+              138.0,
+              134.0,
+              140.0,
+              136.0,
+              142.0
+            ]
+          },
+          "right": {
+            "median": 120.0,
+            "min": 118.0,
+            "max": 124.0,
+            "rounds": [
+              118.0,
+              118.0,
+              124.0,
+              124.0,
+              120.0
+            ]
+          },
+          "relative_change_pct": -13.043478260869565,
+          "W_pct": 5.797101449275362,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2364.0,
+            "min": 2360.0,
+            "max": 2440.0,
+            "rounds": [
+              2364.0,
+              2360.0,
+              2440.0,
+              2432.0,
+              2364.0
+            ]
+          },
+          "right": {
+            "median": 2384.0,
+            "min": 2360.0,
+            "max": 2436.0,
+            "rounds": [
+              2436.0,
+              2384.0,
+              2432.0,
+              2380.0,
+              2360.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2364,
+            "min": 2360,
+            "max": 2440,
+            "rounds": [
+              2364,
+              2360,
+              2440,
+              2432,
+              2364
+            ]
+          },
+          "right": {
+            "median": 2384,
+            "min": 2360,
+            "max": 2436,
+            "rounds": [
+              2436,
+              2384,
+              2432,
+              2380,
+              2360
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 516,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              516,
+              520,
+              516,
+              516
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              516,
+              516,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1844,
+            "min": 1840,
+            "max": 1916,
+            "rounds": [
+              1840,
+              1840,
+              1916,
+              1912,
+              1844
+            ]
+          },
+          "right": {
+            "median": 1860,
+            "min": 1836,
+            "max": 1912,
+            "rounds": [
+              1912,
+              1860,
+              1912,
+              1860,
+              1836
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 69,
+        "right": 60,
+        "absolute_delta": 9,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 59
+      }
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-stage-exact-c-vs-e-r1-c",
+      "group": "exact-c-vs-e",
+      "round": 1,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 41,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 82.0,
+      "cpu_endpoint_seconds": 27.015831261,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.071941,
+        "p50": 0.138496,
+        "p95": 0.230442,
+        "p99": null,
+        "max": 4.557744
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.149724,
+        "p50": 0.237442,
+        "p95": 0.368957,
+        "p99": null,
+        "max": 7.225248
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.052775,
+        "p50": 0.097808,
+        "p95": 0.144202,
+        "p99": null,
+        "max": 6.171448
+      },
+      "rss_median_kib": 1176.0,
+      "rss_peak_kib": 1176,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 696,
+      "shmem_peak_kib": 252,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "921317836820a4c92495c1b0f37767a7df3b0a301f6d3cbb03ee34330cbefa1f"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r1-rust",
+      "group": "exact-c-vs-e",
+      "round": 1,
+      "side": "rust",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 72,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 144.0,
+      "cpu_endpoint_seconds": 27.01582265,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104487,
+        "p50": 0.201203,
+        "p95": 0.408717,
+        "p99": null,
+        "max": 18.457185
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183876,
+        "p50": 0.303301,
+        "p95": 0.593595,
+        "p99": null,
+        "max": 19.672335
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.056889,
+        "p50": 0.100896,
+        "p95": 0.172407,
+        "p99": null,
+        "max": 13.659187
+      },
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "c3b26538bfedad8e8f512771c3b2cd8888541eb7bdcf180be18f8f79fa1c6129"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r2-rust",
+      "group": "exact-c-vs-e",
+      "round": 2,
+      "side": "rust",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.015282059,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104641,
+        "p50": 0.195048,
+        "p95": 0.408332,
+        "p99": null,
+        "max": 19.747737
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183556,
+        "p50": 0.29532,
+        "p95": 0.595105,
+        "p99": null,
+        "max": 25.91958
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055294,
+        "p50": 0.099129,
+        "p95": 0.179852,
+        "p99": null,
+        "max": 17.683578
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "3230eddad71936a228b5a5010ce9545ab45a56799fd04e4ae1d1d375b0160eab"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r2-c",
+      "group": "exact-c-vs-e",
+      "round": 2,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 39,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 78.0,
+      "cpu_endpoint_seconds": 27.016913468,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.070094,
+        "p50": 0.136033,
+        "p95": 0.211591,
+        "p99": null,
+        "max": 16.914804
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.147261,
+        "p50": 0.233112,
+        "p95": 0.351861,
+        "p99": null,
+        "max": 17.092231
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.056197,
+        "p50": 0.09612,
+        "p95": 0.143534,
+        "p99": null,
+        "max": 12.212414
+      },
+      "rss_median_kib": 1244.0,
+      "rss_peak_kib": 1244,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 764,
+      "shmem_peak_kib": 252,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "78d23d69c9907ba97b12398e96ac6ab4c5b3c5b8611707ee0ce56fde17a426ba"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r3-c",
+      "group": "exact-c-vs-e",
+      "round": 3,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 40,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 80.0,
+      "cpu_endpoint_seconds": 27.015264293,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.070556,
+        "p50": 0.135803,
+        "p95": 0.231365,
+        "p99": null,
+        "max": 5.203981
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.148198,
+        "p50": 0.231619,
+        "p95": 0.372433,
+        "p99": null,
+        "max": 5.395805
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.048872,
+        "p50": 0.095157,
+        "p95": 0.146354,
+        "p99": null,
+        "max": 2.990291
+      },
+      "rss_median_kib": 1176.0,
+      "rss_peak_kib": 1176,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 696,
+      "shmem_peak_kib": 252,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "bd8e845d90e5691094df30f0ade816b1183f4cc2574621fcb0cb8e219b35fe80"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r3-rust",
+      "group": "exact-c-vs-e",
+      "round": 3,
+      "side": "rust",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015948003,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102564,
+        "p50": 0.196895,
+        "p95": 0.350318,
+        "p99": null,
+        "max": 7.511168
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.181478,
+        "p50": 0.294039,
+        "p95": 0.507117,
+        "p99": null,
+        "max": 10.064773
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050815,
+        "p50": 0.096515,
+        "p95": 0.153498,
+        "p99": null,
+        "max": 5.095549
+      },
+      "rss_median_kib": 2284.0,
+      "rss_peak_kib": 2284,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1764,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "cf492ec8e481c985ea74c72f0cc1df60ea6a9c4bd08234812da49bef52a77710"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r4-rust",
+      "group": "exact-c-vs-e",
+      "round": 4,
+      "side": "rust",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 76,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 152.0,
+      "cpu_endpoint_seconds": 27.015268367,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102026,
+        "p50": 0.211206,
+        "p95": 0.689094,
+        "p99": null,
+        "max": 20.401129
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183255,
+        "p50": 0.318028,
+        "p95": 0.961184,
+        "p99": null,
+        "max": 20.620075
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050257,
+        "p50": 0.105392,
+        "p95": 0.189465,
+        "p99": null,
+        "max": 15.761341
+      },
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "05c8219aa492115542f24dbf0edfba5962a3fe579bc758f65e87cd8e254a71be"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r4-c",
+      "group": "exact-c-vs-e",
+      "round": 4,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 40,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 80.0,
+      "cpu_endpoint_seconds": 27.015912219,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.071941,
+        "p50": 0.136803,
+        "p95": 0.212668,
+        "p99": null,
+        "max": 2.785074
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.150086,
+        "p50": 0.234772,
+        "p95": 0.358509,
+        "p99": null,
+        "max": 3.019619
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.054349,
+        "p50": 0.097115,
+        "p95": 0.145013,
+        "p99": null,
+        "max": 1.329666
+      },
+      "rss_median_kib": 1232.0,
+      "rss_peak_kib": 1232,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 752,
+      "shmem_peak_kib": 252,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "0fcf40ca823956083a7e15f8c07f22f289ecc48b951aa599cfe561a1ef22db95"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r5-c",
+      "group": "exact-c-vs-e",
+      "round": 5,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 44,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 88.0,
+      "cpu_endpoint_seconds": 27.100190321,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.072403,
+        "p50": 0.145343,
+        "p95": 0.323464,
+        "p99": null,
+        "max": 5.084105
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.149339,
+        "p50": 0.246858,
+        "p95": 0.504922,
+        "p99": null,
+        "max": 7.492874
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050042,
+        "p50": 0.101035,
+        "p95": 0.173899,
+        "p99": null,
+        "max": 2.524805
+      },
+      "rss_median_kib": 1212.0,
+      "rss_peak_kib": 1212,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 732,
+      "shmem_peak_kib": 252,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "eecff235a2bb6ea4f8317a8f4266567a14009d0687975387c3065985f3a3ea83"
+      }
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r5-rust",
+      "group": "exact-c-vs-e",
+      "round": 5,
+      "side": "rust",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015165957,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102102,
+        "p50": 0.199742,
+        "p95": 0.348624,
+        "p99": null,
+        "max": 7.87218
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.181931,
+        "p50": 0.300716,
+        "p95": 0.503869,
+        "p99": null,
+        "max": 8.003336
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065216,
+        "p50": 0.099638,
+        "p95": 0.154931,
+        "p99": null,
+        "max": 1.52116
+      },
+      "rss_median_kib": 2388.0,
+      "rss_peak_kib": 2388,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1868,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "0adf12b6e258b7741330bc2d2747e5db6154e4ce9f157ac04e8fc73b8b17a1bf"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r1-c",
+      "group": "e-vs-stage-full",
+      "round": 1,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.017743596,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.101563,
+        "p50": 0.211206,
+        "p95": 0.362089,
+        "p99": null,
+        "max": 4.514041
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.180102,
+        "p50": 0.312125,
+        "p95": 0.506529,
+        "p99": null,
+        "max": 4.64919
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.072707,
+        "p50": 0.097671,
+        "p95": 0.146832,
+        "p99": null,
+        "max": 0.655939
+      },
+      "rss_median_kib": 2360.0,
+      "rss_peak_kib": 2360,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "6d92a4d01f6638b3148931a578660de0d4297faf6f07025ceb5230fb9949a1c6"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r1-rust",
+      "group": "e-vs-stage-full",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015761564,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.109027,
+        "p50": 0.193279,
+        "p95": 0.350702,
+        "p99": null,
+        "max": 10.123815
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.1877,
+        "p50": 0.291153,
+        "p95": 0.507309,
+        "p99": null,
+        "max": 11.251642
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.061141,
+        "p50": 0.096292,
+        "p95": 0.156978,
+        "p99": null,
+        "max": 10.771446
+      },
+      "rss_median_kib": 2380.0,
+      "rss_peak_kib": 2380,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1860,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "7e8d1adc9a70efcbb2eb18235cc4049a7546f27e2dac95a8e57dc737635b4df5"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r2-rust",
+      "group": "e-vs-stage-full",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.015389469,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.106949,
+        "p50": 0.196048,
+        "p95": 0.296688,
+        "p99": null,
+        "max": 1.484676
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.186501,
+        "p50": 0.295486,
+        "p95": 0.431753,
+        "p99": null,
+        "max": 1.644785
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.056209,
+        "p50": 0.098597,
+        "p95": 0.145519,
+        "p99": null,
+        "max": 0.560153
+      },
+      "rss_median_kib": 2440.0,
+      "rss_peak_kib": 2440,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1916,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "a5eba2b6a0201516f5ee0974d22bc4b30254d1f82f9960bbf64de956e3659194"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r2-c",
+      "group": "e-vs-stage-full",
+      "round": 2,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 71,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 142.0,
+      "cpu_endpoint_seconds": 27.015663764,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.101871,
+        "p50": 0.205128,
+        "p95": 1.135589,
+        "p99": null,
+        "max": 38.668269
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.181992,
+        "p50": 0.320603,
+        "p95": 1.749988,
+        "p99": null,
+        "max": 41.057355
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.015854,
+        "p50": 0.114215,
+        "p95": 0.311327,
+        "p99": null,
+        "max": 24.838498
+      },
+      "rss_median_kib": 2440.0,
+      "rss_peak_kib": 2440,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1916,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "9012cb2a4f0e6cd88316085f6faab23a09aaee4fc6959c944b605c457a498de6"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r3-c",
+      "group": "e-vs-stage-full",
+      "round": 3,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.015593126,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104795,
+        "p50": 0.190355,
+        "p95": 0.296074,
+        "p99": null,
+        "max": 5.701412
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.182787,
+        "p50": 0.28777,
+        "p95": 0.425561,
+        "p99": null,
+        "max": 5.873033
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.076376,
+        "p50": 0.096192,
+        "p95": 0.142534,
+        "p99": null,
+        "max": 0.560938
+      },
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "267ac95202d4d71c43fc5f799c0afe886b7f95f9350c6ba1cd74b076ff057cbe"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r3-rust",
+      "group": "e-vs-stage-full",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015862034,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.106334,
+        "p50": 0.192432,
+        "p95": 0.412872,
+        "p99": null,
+        "max": 24.235002
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.18582,
+        "p50": 0.290008,
+        "p95": 0.599451,
+        "p99": null,
+        "max": 44.039786
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.041241,
+        "p50": 0.095849,
+        "p95": 0.173767,
+        "p99": null,
+        "max": 20.007988
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "98fa991c40b1d7ac708d80c985609014adf736ec0b9c9f80a81cf2e38d34139a"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r4-rust",
+      "group": "e-vs-stage-full",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015597724,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.107796,
+        "p50": 0.194202,
+        "p95": 0.410871,
+        "p99": null,
+        "max": 6.193764
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.187206,
+        "p50": 0.292351,
+        "p95": 0.587633,
+        "p99": null,
+        "max": 7.632614
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.061814,
+        "p50": 0.09671,
+        "p95": 0.172852,
+        "p99": null,
+        "max": 5.019285
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "10f90e3a438aa01f57bd9fd57fdc56f5162121ae05386b2f1c5d8da28a9b53db"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r4-c",
+      "group": "e-vs-stage-full",
+      "round": 4,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.016040595,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104256,
+        "p50": 0.187816,
+        "p95": 0.422874,
+        "p99": null,
+        "max": 12.854107
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.184909,
+        "p50": 0.283206,
+        "p95": 0.61058,
+        "p99": null,
+        "max": 28.445658
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.049789,
+        "p50": 0.094544,
+        "p95": 0.176939,
+        "p99": null,
+        "max": 23.878142
+      },
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "0bae1d20ab789448b880f643c056a14eccbcb4aa6a4fd6594129437e1a53b736"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r5-c",
+      "group": "e-vs-stage-full",
+      "round": 5,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.016447458,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.103948,
+        "p50": 0.20482,
+        "p95": 0.394482,
+        "p99": null,
+        "max": 6.452521
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.179643,
+        "p50": 0.302114,
+        "p95": 0.568099,
+        "p99": null,
+        "max": 6.556511
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.057548,
+        "p50": 0.096176,
+        "p95": 0.171869,
+        "p99": null,
+        "max": 5.172052
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 43,
+        "sha256": "19f42142588e7aeb71ebcf1364a815bceb686038612f664273666aa7ed632d04"
+      }
+    },
+    {
+      "label": "a53-stage-e-vs-stage-full-r5-rust",
+      "group": "e-vs-stage-full",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.017980522,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.101948,
+        "p50": 0.183815,
+        "p95": 0.272452,
+        "p99": null,
+        "max": 3.94667
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.181182,
+        "p50": 0.278906,
+        "p95": 0.405579,
+        "p99": null,
+        "max": 4.121768
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060765,
+        "p50": 0.093973,
+        "p95": 0.139723,
+        "p99": null,
+        "max": 1.540117
+      },
+      "rss_median_kib": 2384.0,
+      "rss_peak_kib": 2384,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1860,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "0036173b2c5351a3551fcca9ce7111398a3c300021e63154307744c75cd34517"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r1-c",
+      "group": "stage-full-vs-receive",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.025379578,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.103872,
+        "p50": 0.196125,
+        "p95": 0.403638,
+        "p99": null,
+        "max": 13.453025
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.182883,
+        "p50": 0.29577,
+        "p95": 0.576767,
+        "p99": null,
+        "max": 13.636996
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055955,
+        "p50": 0.098644,
+        "p95": 0.171764,
+        "p99": null,
+        "max": 5.295548
+      },
+      "rss_median_kib": 2352.0,
+      "rss_peak_kib": 2352,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "3e82cce19f5f8d37f9d5433afec2e39cffe0bb374978cd714c70c2fe33760ce6"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r1-rust",
+      "group": "stage-full-vs-receive",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 36,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 72.0,
+      "cpu_endpoint_seconds": 27.015562745,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.064092,
+        "p50": 0.116644,
+        "p95": 0.209513,
+        "p99": null,
+        "max": 1.013943
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.140785,
+        "p50": 0.209838,
+        "p95": 0.349094,
+        "p99": null,
+        "max": 2.289776
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.062479,
+        "p50": 0.092818,
+        "p95": 0.146349,
+        "p99": null,
+        "max": 1.963618
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "6fff0fcd91fb3c6841c5ded12cf571747ce05bc1d4a6412ff12b870187ae6e43"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r2-rust",
+      "group": "stage-full-vs-receive",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 37,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 74.0,
+      "cpu_endpoint_seconds": 27.015480099,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.064093,
+        "p50": 0.121645,
+        "p95": 0.304845,
+        "p99": null,
+        "max": 8.902282
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.140752,
+        "p50": 0.216409,
+        "p95": 0.484808,
+        "p99": null,
+        "max": 9.064979
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.054018,
+        "p50": 0.094401,
+        "p95": 0.176668,
+        "p99": null,
+        "max": 8.7306
+      },
+      "rss_median_kib": 2440.0,
+      "rss_peak_kib": 2440,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1920,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "66e2463f015ad8498577be7dcb91746f6de9e31ece7f972089215a2998d0c8d4"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r2-c",
+      "group": "stage-full-vs-receive",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.019930114,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.107334,
+        "p50": 0.188354,
+        "p95": 0.272222,
+        "p99": null,
+        "max": 2.871403
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.188678,
+        "p50": 0.283271,
+        "p95": 0.399849,
+        "p99": null,
+        "max": 3.119066
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050433,
+        "p50": 0.094288,
+        "p95": 0.136075,
+        "p99": null,
+        "max": 1.319389
+      },
+      "rss_median_kib": 2384.0,
+      "rss_peak_kib": 2384,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1864,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "1f8900fd99545cf2f7b4840f81fbb1f70ecc1fc22ff4287e95e7813c3856aba6"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r3-c",
+      "group": "stage-full-vs-receive",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015966506,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.105487,
+        "p50": 0.194125,
+        "p95": 0.413103,
+        "p99": null,
+        "max": 17.298823
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.185412,
+        "p50": 0.292296,
+        "p95": 0.60015,
+        "p99": null,
+        "max": 19.83391
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.022878,
+        "p50": 0.097105,
+        "p95": 0.178004,
+        "p99": null,
+        "max": 14.865302
+      },
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "b9b22210dfa3717332255f3d3423968ce6ef79062b5802333bb8a175fc3efa24"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r3-rust",
+      "group": "stage-full-vs-receive",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 35,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 70.0,
+      "cpu_endpoint_seconds": 27.015844925,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.061169,
+        "p50": 0.116798,
+        "p95": 0.191201,
+        "p99": null,
+        "max": 5.508903
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.13804,
+        "p50": 0.210612,
+        "p95": 0.325072,
+        "p99": null,
+        "max": 5.731818
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.043383,
+        "p50": 0.0935,
+        "p95": 0.140441,
+        "p99": null,
+        "max": 1.731004
+      },
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "e361f3698a1f9024b7a1794eee93e4683781c5aa271f261ef5bb64996f080868"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r4-rust",
+      "group": "stage-full-vs-receive",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 35,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 70.0,
+      "cpu_endpoint_seconds": 27.015460579,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.064016,
+        "p50": 0.118645,
+        "p95": 0.273529,
+        "p99": null,
+        "max": 36.533664
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.114995,
+        "p50": 0.21174,
+        "p95": 0.450945,
+        "p99": null,
+        "max": 36.843483
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.037053,
+        "p50": 0.093285,
+        "p95": 0.167351,
+        "p99": null,
+        "max": 31.876261
+      },
+      "rss_median_kib": 2444.0,
+      "rss_peak_kib": 2444,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1920,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "0f0333304c168cab84e999a459caa804e692d86f5735935a17e60467569eaecc"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r4-c",
+      "group": "stage-full-vs-receive",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.015593675,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.10341,
+        "p50": 0.187585,
+        "p95": 0.360397,
+        "p99": null,
+        "max": 9.794734
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183285,
+        "p50": 0.290131,
+        "p95": 0.534832,
+        "p99": null,
+        "max": 9.970456
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.036934,
+        "p50": 0.104081,
+        "p95": 0.177967,
+        "p99": null,
+        "max": 2.211421
+      },
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1892,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "2457cafbf9c1e12eca698046673b34c26c928d77a3116bdf16dde1ace3219a0a"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r5-c",
+      "group": "stage-full-vs-receive",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.017851681,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104487,
+        "p50": 0.194279,
+        "p95": 0.399253,
+        "p99": null,
+        "max": 8.225884
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183296,
+        "p50": 0.292912,
+        "p95": 0.578774,
+        "p99": null,
+        "max": 8.410971
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058165,
+        "p50": 0.097376,
+        "p95": 0.170912,
+        "p99": null,
+        "max": 7.175704
+      },
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 528,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "de8e87e2bfb2e08df4adc5614b2387040ef5356558c89d22525ad91ec83eb640"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-receive-r5-rust",
+      "group": "stage-full-vs-receive",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 34,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 68.0,
+      "cpu_endpoint_seconds": 27.015388441,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.063862,
+        "p50": 0.115028,
+        "p95": 0.185739,
+        "p99": null,
+        "max": 0.835129
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.141102,
+        "p50": 0.20977,
+        "p95": 0.32572,
+        "p99": null,
+        "max": 1.165883
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060981,
+        "p50": 0.09387,
+        "p95": 0.142426,
+        "p99": null,
+        "max": 0.870579
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "6fe99c32de346392488820bc04f53052099d67fe63373f641b6522ce0515efc3"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r1-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.01550461,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.106949,
+        "p50": 0.192048,
+        "p95": 0.299382,
+        "p99": null,
+        "max": 8.946601
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.185259,
+        "p50": 0.287874,
+        "p95": 0.446462,
+        "p99": null,
+        "max": 9.658616
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.068171,
+        "p50": 0.095274,
+        "p95": 0.144408,
+        "p99": null,
+        "max": 9.191962
+      },
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "6cb6bcce6f119f7de363e3e58e25256b6d206f7f6ed490ca082934f537795d28"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r1-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 49,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 98.0,
+      "cpu_endpoint_seconds": 27.015206359,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.075326,
+        "p50": 0.150345,
+        "p95": 0.320079,
+        "p99": null,
+        "max": 18.518202
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.153001,
+        "p50": 0.248259,
+        "p95": 0.485645,
+        "p99": null,
+        "max": 19.259946
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.064597,
+        "p50": 0.096765,
+        "p95": 0.160569,
+        "p99": null,
+        "max": 11.849771
+      },
+      "rss_median_kib": 2388.0,
+      "rss_peak_kib": 2388,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1864,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "e413553f411484e5618852a1a8768119c57fde613ae6ed76a28bc136de7db9ea"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r2-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 48,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 96.0,
+      "cpu_endpoint_seconds": 27.019555958,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.073941,
+        "p50": 0.142112,
+        "p95": 0.246061,
+        "p99": null,
+        "max": 6.563779
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.151855,
+        "p50": 0.236796,
+        "p95": 0.389441,
+        "p99": null,
+        "max": 6.763499
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065021,
+        "p50": 0.094511,
+        "p95": 0.147772,
+        "p99": null,
+        "max": 0.417582
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "7fd51375e5fe5d5b19c8563d6def7fecdb59e728dc38f33c61ec2912985c9368"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r2-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.015563413,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.107719,
+        "p50": 0.193356,
+        "p95": 0.290842,
+        "p99": null,
+        "max": 3.439236
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.188186,
+        "p50": 0.289993,
+        "p95": 0.424126,
+        "p99": null,
+        "max": 3.58999
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055205,
+        "p50": 0.095972,
+        "p95": 0.143758,
+        "p99": null,
+        "max": 2.336834
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "8bc77c830ab3de2ed08321de16eaf765a1ed837fe03f12d06845e728233311c3"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r3-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.015304946,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.103641,
+        "p50": 0.188508,
+        "p95": 0.344393,
+        "p99": null,
+        "max": 10.337946
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.18132,
+        "p50": 0.284906,
+        "p95": 0.495038,
+        "p99": null,
+        "max": 10.530438
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.057645,
+        "p50": 0.096147,
+        "p95": 0.15092,
+        "p99": null,
+        "max": 5.55983
+      },
+      "rss_median_kib": 2384.0,
+      "rss_peak_kib": 2384,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1860,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "0544629f0a363cb19393c87c66eb266297c542dacb9c1f757c37d7718f295f64"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r3-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 53,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 106.0,
+      "cpu_endpoint_seconds": 27.015451349,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.076095,
+        "p50": 0.156962,
+        "p95": 0.533132,
+        "p99": null,
+        "max": 34.375515
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.153667,
+        "p50": 0.258548,
+        "p95": 0.882787,
+        "p99": null,
+        "max": 41.471226
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.054254,
+        "p50": 0.100338,
+        "p95": 0.197436,
+        "p99": null,
+        "max": 29.588439
+      },
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1832,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "1da06865eb7614bb5d0728abd4444b07261f4b8db34803fcc517f2dbec02fe07"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r4-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 49,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 98.0,
+      "cpu_endpoint_seconds": 27.016324308,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.077096,
+        "p50": 0.152038,
+        "p95": 0.359705,
+        "p99": null,
+        "max": 44.724771
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.154905,
+        "p50": 0.25098,
+        "p95": 0.550089,
+        "p99": null,
+        "max": 46.155088
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.040289,
+        "p50": 0.097879,
+        "p95": 0.182899,
+        "p99": null,
+        "max": 41.180095
+      },
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "a08381d0ca4f154d50d12063bcd4fe3f5315706c95a3d0ef78cbb1f0bb227649"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r4-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 72,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 144.0,
+      "cpu_endpoint_seconds": 27.018866534,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.105334,
+        "p50": 0.203204,
+        "p95": 0.560985,
+        "p99": null,
+        "max": 12.851953
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.184218,
+        "p50": 0.305577,
+        "p95": 0.940543,
+        "p99": null,
+        "max": 13.013419
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.049888,
+        "p50": 0.100676,
+        "p95": 0.236835,
+        "p99": null,
+        "max": 10.716361
+      },
+      "rss_median_kib": 2384.0,
+      "rss_peak_kib": 2384,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1860,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "83b0a869455c4e563a147f4ab8180cdae2adf6c9161430172bbdd04363b88ce5"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r5-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.015815521,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.105103,
+        "p50": 0.190893,
+        "p95": 0.278454,
+        "p99": null,
+        "max": 5.294773
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183939,
+        "p50": 0.287834,
+        "p95": 0.412332,
+        "p99": null,
+        "max": 8.181471
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.051268,
+        "p50": 0.096252,
+        "p95": 0.143194,
+        "p99": null,
+        "max": 7.836308
+      },
+      "rss_median_kib": 2360.0,
+      "rss_peak_kib": 2360,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1836,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "f90972970a5c0ed14c1850c76cb6d509915425bb48acfaf5bc40e1df05da9b77"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-before-answer-r5-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 52,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 104.0,
+      "cpu_endpoint_seconds": 27.013417752,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.075404,
+        "p50": 0.155962,
+        "p95": 0.351087,
+        "p99": null,
+        "max": 6.612792
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.152941,
+        "p50": 0.256435,
+        "p95": 0.527292,
+        "p99": null,
+        "max": 7.775998
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.032179,
+        "p50": 0.100318,
+        "p95": 0.176478,
+        "p99": null,
+        "max": 6.910938
+      },
+      "rss_median_kib": 2440.0,
+      "rss_peak_kib": 2440,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1916,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "eae88f87dd53d0aa9e076b42b1bf1f2b88c931b8f936c22fc264c7261e217180"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r1-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 69,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 138.0,
+      "cpu_endpoint_seconds": 27.015326512,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104257,
+        "p50": 0.196356,
+        "p95": 0.283147,
+        "p99": null,
+        "max": 4.412401
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183605,
+        "p50": 0.295043,
+        "p95": 0.423503,
+        "p99": null,
+        "max": 5.549927
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.068686,
+        "p50": 0.09854,
+        "p95": 0.144018,
+        "p99": null,
+        "max": 2.312956
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "444d5959b157d6446d7438eba753b947a882d9178a1bf7fd5f3af5cd6f9058e7"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r1-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 59,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "cpu_endpoint_seconds": 27.015865387,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.094408,
+        "p50": 0.175582,
+        "p95": 0.256294,
+        "p99": null,
+        "max": 7.187781
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.173034,
+        "p50": 0.271207,
+        "p95": 0.385458,
+        "p99": null,
+        "max": 7.342673
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.041729,
+        "p50": 0.094767,
+        "p95": 0.136076,
+        "p99": null,
+        "max": 1.360475
+      },
+      "rss_median_kib": 2436.0,
+      "rss_peak_kib": 2436,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "84715079b2b65fdd8c17ac8d79478ae47e64ce7fdabbf72a2cee94b7e3ac3c8d"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r2-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 59,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "cpu_endpoint_seconds": 27.01534108,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.098101,
+        "p50": 0.179044,
+        "p95": 0.253755,
+        "p99": null,
+        "max": 1.357413
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.177594,
+        "p50": 0.276702,
+        "p95": 0.383189,
+        "p99": null,
+        "max": 2.072331
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.072478,
+        "p50": 0.096474,
+        "p95": 0.134262,
+        "p99": null,
+        "max": 1.497727
+      },
+      "rss_median_kib": 2384.0,
+      "rss_peak_kib": 2384,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1860,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "90dd7b97e88eec857a2d7e1a605165f5bd0d0996cd8fd3f3be25a79e913c7479"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r2-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 67,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "cpu_endpoint_seconds": 27.015601968,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.103179,
+        "p50": 0.193048,
+        "p95": 0.280916,
+        "p99": null,
+        "max": 6.27994
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.184037,
+        "p50": 0.292221,
+        "p95": 0.409629,
+        "p99": null,
+        "max": 6.301298
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.021358,
+        "p50": 0.097963,
+        "p95": 0.138921,
+        "p99": null,
+        "max": 1.353494
+      },
+      "rss_median_kib": 2360.0,
+      "rss_peak_kib": 2360,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "a55bc2d61870f2061b4cbe18fffb86f6b3547fe7701a0d726605b2e4cf84fea5"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r3-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 70,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 140.0,
+      "cpu_endpoint_seconds": 27.015211155,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104949,
+        "p50": 0.202204,
+        "p95": 0.458268,
+        "p99": null,
+        "max": 40.262744
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.185379,
+        "p50": 0.304311,
+        "p95": 0.782937,
+        "p99": null,
+        "max": 40.461854
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.03586,
+        "p50": 0.100938,
+        "p95": 0.191025,
+        "p99": null,
+        "max": 35.494169
+      },
+      "rss_median_kib": 2440.0,
+      "rss_peak_kib": 2440,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1916,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "5531158bea458e0c6f5fcc1fbb02ac1c7212e6a9ddafa8ab48f475eba555d64f"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r3-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.015736954,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.096255,
+        "p50": 0.182122,
+        "p95": 0.289226,
+        "p99": null,
+        "max": 5.994639
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.17622,
+        "p50": 0.282102,
+        "p95": 0.439719,
+        "p99": null,
+        "max": 10.388985
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060451,
+        "p50": 0.09925,
+        "p95": 0.149715,
+        "p99": null,
+        "max": 6.826179
+      },
+      "rss_median_kib": 2432.0,
+      "rss_peak_kib": 2432,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "732c960669c17225f1c3c24051dc9049e303a4a9a9ff3987d9e7d0dce6c32291"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r4-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.01551433,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.093485,
+        "p50": 0.182507,
+        "p95": 0.277453,
+        "p99": null,
+        "max": 6.289173
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171275,
+        "p50": 0.281454,
+        "p95": 0.415802,
+        "p99": null,
+        "max": 6.438112
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.054592,
+        "p50": 0.097781,
+        "p95": 0.146064,
+        "p99": null,
+        "max": 2.292328
+      },
+      "rss_median_kib": 2380.0,
+      "rss_peak_kib": 2380,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1860,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "7fa209f4e1f423ecffed9bd11f6cc7e69c22feeb344d8a8126b213e17cb8886c"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r4-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 68,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 136.0,
+      "cpu_endpoint_seconds": 27.015538387,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.104257,
+        "p50": 0.195433,
+        "p95": 0.275684,
+        "p99": null,
+        "max": 1.772131
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.183118,
+        "p50": 0.29465,
+        "p95": 0.412771,
+        "p99": null,
+        "max": 1.939687
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.057251,
+        "p50": 0.098087,
+        "p95": 0.143122,
+        "p99": null,
+        "max": 0.449046
+      },
+      "rss_median_kib": 2432.0,
+      "rss_peak_kib": 2432,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1912,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "e23bc438fdaa89836df1d0337a8abfb6f7e4f429dca6ce5a30ac9bfb317c5f41"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r5-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 71,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 142.0,
+      "cpu_endpoint_seconds": 27.015555212,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.102256,
+        "p50": 0.200511,
+        "p95": 0.353934,
+        "p99": null,
+        "max": 8.549041
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.182612,
+        "p50": 0.301958,
+        "p95": 0.508547,
+        "p99": null,
+        "max": 9.599854
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.07534,
+        "p50": 0.100518,
+        "p95": 0.154028,
+        "p99": null,
+        "max": 5.003383
+      },
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "3f977bd7c7eba45a23ff1475e4a217b2a370625f2acc240ebe9f83a7e28c2bde"
+      }
+    },
+    {
+      "label": "a53-stage-stage-full-vs-skip-local-r5-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "valid": true,
+      "errors": [],
+      "elf_sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9",
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "daemon_exit_basis": "Unchanged set-e case passes final wait for daemon before COMPLETE.",
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.017973009,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.094639,
+        "p50": 0.179736,
+        "p95": 0.275529,
+        "p99": null,
+        "max": 2.555633
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.173002,
+        "p50": 0.27725,
+        "p95": 0.409181,
+        "p99": null,
+        "max": 2.721275
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.049059,
+        "p50": 0.096955,
+        "p95": 0.141623,
+        "p99": null,
+        "max": 0.580856
+      },
+      "rss_median_kib": 2360.0,
+      "rss_peak_kib": 2360,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1836,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "resource_samples": 20,
+      "upstream_total_requests": 800,
+      "upstream_total_replies": 800,
+      "steady_upstream_requests": 0,
+      "raw_archive": {
+        "files": 44,
+        "sha256": "48663ddd3999b27eb0ed2693438ba6cfb9413cd0392cfda717562b486ade61a0"
+      }
+    }
+  ],
+  "health": {
+    "guard_samples": 2113,
+    "external_checks": 140,
+    "dns_samples": 826,
+    "http_samples": 381,
+    "minimum_available_memory_kib": 83148,
+    "guard_sha256": "e4504bcb6d6c30bbc0d2e02901634fe1bf79ac4129defa14588cd60809f968db"
+  },
+  "preflight_health": {
+    "valid": true,
+    "elapsed_seconds": 125.281,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.803,
+    "dns_max_ms": 10.319,
+    "http_samples": 23,
+    "http_max_ms": 86.782,
+    "threshold_ms": 200,
+    "raw_sha256": "3a8731efe989c45cb63def48506997095f74ef2947ada2bf6f53701c0e492889"
+  },
+  "restoration": {
+    "epoch": 1792100366.940029,
+    "scope": "All50 windows archived and locally verified; confirm restoredE/F slots and reclaim only four hash-verified new immutable diagnostic source copies; no production changes.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all50_verified_remote_window_copies_pruned": true,
+    "immutable_source_copies_pruned_after_local_identity_verification": {
+      "exact-c": {
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-stage-artifact-exact-c",
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "e": {
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-stage-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      },
+      "f": {
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-stage-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "stage": {
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-stage-artifact-stage",
+        "sha256": "d72596b34a2fc08ce9248bdb01daeaf5f625d444e8badbfdab016c7dcd32e7e9"
+      }
+    },
+    "available_memory_before_source_prune_kib": 87020,
+    "available_memory_after_source_prune_kib": 87020,
+    "production_namespace": "net:[4026531840]",
+    "stdout": "87020\n8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n87020\nnet:[4026531840]\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "evidence": {
+    "private_root": "private/perf-opt-20261015/a53-stage-device",
+    "summary_sha256": "2df39ce06644b84d6991c83fdfb591ee957f3e965fb096c34278e375ea9fc329",
+    "progress_sha256": "24e003d2777b4b837002bb66a19895d5350c8e6fbadadd5acf05a36321a83775",
+    "local_verifier_sha256": "d6e4a31d4bf107f6ec21ce9ce1a6b473ba73a97d3daf6f7ac678619e29ebd7d1",
+    "local_verification_sha256": "b0ac4632d17efc9415759371888039b0d757ae3e88713e225e175b165ffead53",
+    "postflight_sha256": "dd05eb456956ebb312af10dfadc5bff7ccb48d25016f6c76006961f465d21162",
+    "local_verifier_first_attempt": "Preserved local JSON-list/Python-tuple comparison failure; fixed only normalization in recomputation checker. No controller, statistics, raw evidence or measurement changed."
+  },
+  "interpretation": [
+    "This round reproduces a discernible C/E UDP-hit CPU gap. E/full calibration has no discernible CPU/p50/p95 difference under the unchanged rules; this does not prove zero diagnostic overhead.",
+    "Each of the three cut interventions has discernible CPU and p50 reductions against its own full controls. All five p95 comparisons remain indistinguishable under the original W/direction rule.",
+    "Skip-local CPU median delta is9ticks, just above the unchanged exclusive8tick gate; preserve the observed result and its resolution margin.",
+    "Receive bypasses admission and synchronous query processing after receive; before-answer retains admission/owner/meta and a128-byte answer allocation but substitutes synthetic assembly. Skip-local retains inspect_name hint and real cache lookup/answer.",
+    "Synthetic receive/before-answer TTL120 and preserved query/addresses/48-or60byte size satisfy only the frozen diagnostic fixture. They are not exact-C wire equivalence.",
+    "No calibration subtraction, adjacent-delta attribution, additive exact function costs, PMU/IPC or allocator-site CPU attribution follows. Function prologues, layout, branch prediction and changed cache access remain.",
+    "No stage mode is promotable. Accepted E and frozen C remain unchanged; any real optimization still requires all normal gates."
+  ]
+}
