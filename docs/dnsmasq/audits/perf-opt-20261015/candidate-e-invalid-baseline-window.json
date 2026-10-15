@@ -1,0 +1,183 @@
+{
+  "scope": "Local analysis of one retained invalid baseline window in the original candidate E device attempt; no rerun, replacement or gate change",
+  "label": "candidate-e-udp-miss-r4-c",
+  "side": "deployed v0.2.0 baseline, not candidate E",
+  "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "live_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "original_validation": {
+    "label": "candidate-e-udp-miss-r4-c",
+    "scene": "udp-miss",
+    "round": 4,
+    "side": "c",
+    "valid": false,
+    "errors": [
+      "upstream hit/miss count"
+    ],
+    "epoch": 1792074305.9755452
+  },
+  "archive_sha256": "6064d9d514267855d1d8de0979cf1c8f743f02e77ca9772bafc8b81f6bcb8411",
+  "verified_files": 37,
+  "raw_sha256": {
+    "client.json": "88706ef5747a85416502f8b582c6f98e46df9f9facb292595da21591001c89a8",
+    "client.latencies.bin": "18d98c88147f0072e08ff628e6409440fc925ed8e7679c8a89b369e844445896",
+    "client.send-lag.bin": "e5ccb40f63d89067eeb98fe457cfcf47aabbb4727e3ee5f07527193ded72130b",
+    "epoch.json": "9b53d43a62da1f218e0b86b6b1daa5cc90274f3c069e4b3da1198e88760b9f17",
+    "upstream.json": "ca8f59872bed7d41b4ffc9fab9d956e65ebb3323468346a10f7953c2e73add2f",
+    "elf.sha256": "9bceff220a1606f85d8d46ca8367a46b5ba3b893815a678b8f053b455b9c692c",
+    "live.sha256": "8b5c2d318a4e5d7cc9956d4a9d51a6c6d113c4974811b6e217d924ede08f7074",
+    "parameters.txt": "6bb0d52e8baa6a977a0870a9e573734fa9dd4bf3023bc79270f1430d6c5696b0"
+  },
+  "epoch": {
+    "warmup_start_ns": 61347624277927,
+    "measurement_start_ns": 61352624277927,
+    "measurement_end_ns": 61372624277927,
+    "saturation_start_ns": 61372624277927
+  },
+  "counts": {
+    "warmup": {
+      "scheduled": 1000,
+      "sent": 1000,
+      "correct": 1000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0,
+      "stale_reply": 0,
+      "datagrams_sent": 1000,
+      "release_sent": 0,
+      "dora_correct": 0,
+      "renew_correct": 0,
+      "correct_in_window": 0,
+      "correct_after_window": 0,
+      "send_lag_count": 1000,
+      "send_lag_sum_ns": 98569215,
+      "send_lag_max_ns": 1056689
+    },
+    "measurement": {
+      "scheduled": 4000,
+      "sent": 4000,
+      "correct": 4000,
+      "timeout": 0,
+      "wrong": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0,
+      "stale_reply": 0,
+      "datagrams_sent": 4000,
+      "release_sent": 0,
+      "dora_correct": 0,
+      "renew_correct": 0,
+      "correct_in_window": 3999,
+      "correct_after_window": 1,
+      "send_lag_count": 4000,
+      "send_lag_sum_ns": 406939800,
+      "send_lag_max_ns": 6060790
+    },
+    "interrupted": false,
+    "output_failed": false
+  },
+  "upstream": {
+    "schema": 1,
+    "epoch_ns": 61352624277927,
+    "disabled": false,
+    "total": {
+      "requests": 5000,
+      "replies": 5000,
+      "generated_replies": 5000,
+      "disabled_requests": 0,
+      "dropped_requests": 0,
+      "invalid_queries": 0,
+      "udp_requests": 5000,
+      "tcp_requests": 0
+    },
+    "delay_us": 1000,
+    "ttl": 120,
+    "delay_queue_dropped": 0,
+    "requests": 5000,
+    "disabled_requests": 0,
+    "invalid_queries": 0,
+    "phases": {
+      "setup_warmup": {
+        "requests": 1000,
+        "replies": 1000,
+        "generated_replies": 1000,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 1000,
+        "tcp_requests": 0
+      },
+      "steady": {
+        "requests": 3999,
+        "replies": 3999,
+        "generated_replies": 3999,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 3999,
+        "tcp_requests": 0
+      },
+      "saturation": {
+        "requests": 1,
+        "replies": 1,
+        "generated_replies": 1,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 1,
+        "tcp_requests": 0
+      },
+      "fault": {
+        "requests": 0,
+        "replies": 0,
+        "generated_replies": 0,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 0
+      },
+      "recovery": {
+        "requests": 0,
+        "replies": 0,
+        "generated_replies": 0,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 0,
+        "tcp_requests": 0
+      }
+    }
+  },
+  "one_late_correct_completion": {
+    "sequence": 11593254898242440,
+    "client": 7,
+    "qtype": 1,
+    "status": 0,
+    "phase": 1,
+    "kind": 1,
+    "send_mono_ns": 61372622460576,
+    "latency_ns": 4871289,
+    "completion_mono_ns": 61372627331865,
+    "send_lag_ns": 3109697,
+    "scheduled_mono_ns": 61372619350879,
+    "send_before_measurement_end_ns": 1817351,
+    "completion_after_measurement_end_ns": 3053938
+  },
+  "interpretation": [
+    "All 1000 warmup and4000 measured requests were sent and correctly answered, with zero timeouts/wrong/transport errors/scheduling skips. Exactly one measured completion fell after the measurement end.",
+    "Upstream totals are5000requests/5000replies. Phase accounting places3999 in steady and1 in the following saturation-labeled interval; original required steady4000 therefore fails.",
+    "The last measured send was1.817351ms before cutoff with3.109697ms send lag; its4.871289ms latency ends3.053938ms after cutoff. No per-request upstream timestamp/ID log is present, so the individual late upstream request cannot be proven identical to that last client request.",
+    "The observed mismatch concerns phase-boundary accounting. These records do not establish a system/product/harness root cause, a packet-loss defect, or grounds to change the frozen criterion.",
+    "This invalid baseline window makes the original E whole-attempt valid-window gate fail. The original full110-window attempt continues; other complete valid scenes are diagnostic only."
+  ],
+  "source_reference": {
+    "tools/dnsmasq/m6a_loadgen.c": {
+      "sha256": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4",
+      "scope": "lines4\u201313 define binary records; completion uses send time+latency"
+    },
+    "tools/dnsmasq/m6a_upstream.c": {
+      "sha256": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee",
+      "scope": "phase(t) lines57\u201362; answer() line69 classifies by current processing time"
+    }
+  }
+}
