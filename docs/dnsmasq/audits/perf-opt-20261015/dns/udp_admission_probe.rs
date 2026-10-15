@@ -47,6 +47,8 @@ fn main() {
     let scene = args[1].as_str();
     assert!(["hit", "hit-upper", "miss", "host", "malformed"].contains(&scene));
     let operations: usize = args[2].parse().unwrap();
+    assert!(operations > 0);
+    let iterations = operations.checked_add(800).unwrap();
     let mut config = DnsConfig::default();
     config.no_hosts = true; config.no_resolv = true; config.bind_interfaces = true;
     config.apply(&lex_line(b"host-record=ready.device-perf.test,192.0.2.1").unwrap().unwrap()).unwrap();
@@ -77,14 +79,18 @@ fn main() {
     }
     let mut checksum = 0u64;
     let mut before = counts();
-    for iteration in 0..operations + 800 {
+    for iteration in 0..iterations {
         if iteration == 800 { before = counts(); checksum = 0; }
         let query = black_box(queries[iteration % 800].as_slice());
-        if let Admission::Reply(packet) = inspect(query, 1232) {
-            assert_eq!(scene, "malformed"); assert_eq!(Header::parse(&packet).unwrap().rcode(), 5);
-            checksum = checksum.wrapping_add(packet.len() as u64); continue;
+        match inspect(query, 1232) {
+            Admission::Reply(packet) => {
+                assert_eq!(scene, "malformed"); assert_eq!(Header::parse(&packet).unwrap().rcode(), 5);
+                checksum = checksum.wrapping_add(packet.iter().map(|&b| u64::from(b)).sum::<u64>());
+                continue;
+            }
+            Admission::Continue => assert_ne!(scene, "malformed"),
+            Admission::Drop => panic!("none of these fixtures may be dropped"),
         }
-        assert_ne!(scene, "malformed");
         let metadata = dnsmasq_rs::dns::forward_service::query_metadata(query, 1232).unwrap();
         assert!(!metadata.had_opt);
         assert!(dnsmasq_rs::dns::edns_policy::client_subnet_cacheable(query));
