@@ -106,6 +106,23 @@ def main():
     channels = []
     controls = []
 
+    def verify_mapped_files(mapping):
+        elf_files, data_files = {}, {}
+        for line in mapping.splitlines():
+            fields = line.split(maxsplit=5)
+            if len(fields) < 6 or not fields[5].startswith('/'):
+                continue
+            path, permissions = fields[5], fields[1]
+            data = Path(path).read_bytes()
+            digest = hashlib.sha256(data).hexdigest()
+            if data.startswith(b'\x7fELF'):
+                elf_files[path] = digest
+            else:
+                assert 'x' not in permissions, ('unexpected executable data mapping', path)
+                data_files[path] = {'sha256': digest, 'bytes': len(data), 'permissions': permissions}
+        assert elf_files == image_files, (elf_files, image_files)
+        return {'elf_files': elf_files, 'non_executable_data_files': data_files}
+
     def start(argv, label):
         with (out / f'{label}.stdout').open('wb') as stdout, (out / f'{label}.stderr').open('wb') as stderr:
             environment = dict(os.environ)
@@ -193,10 +210,7 @@ def main():
                     'sha256': sha(proc / 'exe'), 'maps': (proc / 'maps').read_text(),
                     'stat': (proc / 'stat').read_text()}
         assert identity['sha256'] == process_expected and os.sched_getaffinity(daemon.pid) == {2}
-        mapped = {line.split()[-1] for line in identity['maps'].splitlines()
-                  if len(line.split()) >= 6 and line.split()[-1].startswith('/')}
-        assert mapped == set(image_files), (mapped, set(image_files))
-        assert all(sha(path) == digest for path, digest in image_files.items())
+        identity['mapped_file_identity'] = verify_mapped_files(identity['maps'])
         identity['mapped_images'] = image_files
         save(out / 'process-identity.json', identity)
         if args.profile != 'miss':
@@ -238,7 +252,9 @@ def main():
                 control(channel, 'disable')
             save(out / 'perf-controls.json', {'controls': controls,
                  'load_start_ns': load_start, 'load_end_ns': load_end})
-        (out / 'maps-after').write_text((proc / 'maps').read_text())
+        maps_after = (proc / 'maps').read_text()
+        (out / 'maps-after').write_text(maps_after)
+        save(out / 'mapped-files-after.json', verify_mapped_files(maps_after))
         assert sha(proc / 'exe') == process_expected
         assert all(sha(path) == digest for path, digest in image_files.items())
         statuses = ([finish(tracer, signal.SIGINT)] if observer == 'strace' else
