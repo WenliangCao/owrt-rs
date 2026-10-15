@@ -10,7 +10,7 @@ use crate::config::records::Cname;
 use crate::dhcp::persistence::DnsLeaseRecord;
 use crate::hosts::Hosts;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap};
 use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Clone, Copy, Debug)]
@@ -152,11 +152,40 @@ pub struct LeaseNames {
     /// Per-reader cache visibility. Arc copy-on-write preserves the state a
     /// TCP child inherited while expiry removals remain local to that reader.
     active: Vec<bool>,
-    forward: HashMap<Vec<u8>, Vec<usize>>,
+    forward: HashMap<Vec<u8>, LeaseIds>,
     reverse: HashMap<Ipv4Addr, usize>,
     non_terminals: HashMap<Vec<u8>, Option<i64>>,
     warnings: Vec<PublicationWarning>,
     policy: LeasePolicy,
+}
+
+#[derive(Clone)]
+enum LeaseIds {
+    One(usize),
+    Many(Vec<usize>),
+}
+
+impl LeaseIds {
+    fn as_slice(&self) -> &[usize] {
+        match self {
+            Self::One(id) => std::slice::from_ref(id),
+            Self::Many(ids) => ids,
+        }
+    }
+
+    fn insert(&mut self, at: usize, id: usize) {
+        match self {
+            Self::One(previous) => {
+                assert!(at <= 1);
+                let pair = if at == 0 { [id, *previous] } else { [*previous, id] };
+                let mut ids = Vec::new();
+                ids.push(pair[0]);
+                ids.push(pair[1]);
+                *self = Self::Many(ids);
+            }
+            Self::Many(ids) => ids.insert(at, id),
+        }
+    }
 }
 
 impl LeaseNames {
@@ -239,7 +268,7 @@ impl LeaseNames {
             .then(|| self.forward.get(name_key(name).as_ref()))
             .flatten()
             .into_iter()
-            .flatten()
+            .flat_map(|ids| ids.as_slice())
             .filter_map(move |&id| {
                 let entry = &self.entries[id];
                 (self.active[id] && self.policy.live(entry.expires, now)).then_some(entry)
@@ -253,7 +282,7 @@ impl LeaseNames {
         self.forward
             .get(name_key(name).as_ref())
             .into_iter()
-            .flatten()
+            .flat_map(|ids| ids.as_slice())
             .filter_map(|&id| self.active[id].then_some(&self.entries[id]))
     }
 
@@ -280,7 +309,7 @@ impl LeaseNames {
     pub(crate) fn has_expired_name(&self, name: &[u8], now: i64) -> bool {
         let key = name_key(name);
         self.forward.get(key.as_ref()).is_some_and(|ids| {
-            ids.iter()
+            ids.as_slice().iter()
                 .any(|&id| self.active[id] && !self.policy.live(self.entries[id].expires, now))
         }) || self
             .non_terminals
@@ -291,7 +320,7 @@ impl LeaseNames {
     pub(crate) fn expire_name(&mut self, name: &[u8], now: i64) {
         let key = name_key(name);
         if let Some(ids) = self.forward.get(key.as_ref()) {
-            for &id in ids {
+            for &id in ids.as_slice() {
                 if !self.policy.live(self.entries[id].expires, now) {
                     self.active[id] = false;
                 }
@@ -357,7 +386,7 @@ impl LeaseNames {
             });
         }
         if let Some(ids) = self.forward.get(key.as_ref()) {
-            blockers.extend(ids.iter().map(|&id| PublicationBlocker {
+            blockers.extend(ids.as_slice().iter().map(|&id| PublicationBlocker {
                 kind: BlockerKind::Ipv4,
                 reverse: self.entries[id].reverse,
                 immortal: self.entries[id].expires.is_none(),
@@ -398,27 +427,35 @@ impl LeaseNames {
         let id = self.entries.len();
         let expires = record.expires.filter(|&expires| expires != 0);
         let immortal = expires.is_none();
-        let ids = self.forward.entry(key.as_ref().to_vec()).or_default();
-        // cache_hash: reverse first; mortal before immortal for non-reverse;
-        // preserve order within the same (reverse, immortal) flags group.
-        let mut at = 0;
-        if !reverse {
-            while at < ids.len() && self.entries[ids[at]].reverse {
-                at += 1;
+        match self.forward.entry(key.as_ref().to_vec()) {
+            Entry::Vacant(entry) => {
+                entry.insert(LeaseIds::One(id));
             }
-            if immortal {
-                while at < ids.len() && self.entries[ids[at]].expires.is_some() {
+            Entry::Occupied(mut entry) => {
+                let ids = entry.get_mut();
+                let current = ids.as_slice();
+                // cache_hash: reverse first; mortal before immortal for
+                // non-reverse; preserve order within each flags group.
+                let mut at = 0;
+                if !reverse {
+                    while at < current.len() && self.entries[current[at]].reverse {
+                        at += 1;
+                    }
+                    if immortal {
+                        while at < current.len() && self.entries[current[at]].expires.is_some() {
+                            at += 1;
+                        }
+                    }
+                }
+                while at < current.len()
+                    && self.entries[current[at]].reverse == reverse
+                    && self.entries[current[at]].expires.is_none() == immortal
+                {
                     at += 1;
                 }
+                ids.insert(at, id);
             }
         }
-        while at < ids.len()
-            && self.entries[ids[at]].reverse == reverse
-            && self.entries[ids[at]].expires.is_none() == immortal
-        {
-            at += 1;
-        }
-        ids.insert(at, id);
         self.entries.push(LeaseName {
             name: record.name.to_vec(),
             address: record.address,
@@ -438,7 +475,7 @@ impl LeaseNames {
             // C extends the first existing DHCP record even when it is a
             // real address, not just a synthetic non-terminal.
             if let Some(ids) = self.forward.get(parent) {
-                extend_expiry(&mut self.entries[ids[0]].expires, expires);
+                extend_expiry(&mut self.entries[ids.as_slice()[0]].expires, expires);
             } else if let Some(expiry) = self.non_terminals.get_mut(parent) {
                 extend_expiry(expiry, expires);
             } else {
@@ -472,6 +509,24 @@ mod tests {
             address: Ipv4Addr::new(192, 0, 2, address),
             expires,
         }
+    }
+
+    #[test]
+    fn same_name_entries_keep_reverse_finite_and_immortal_order() {
+        let records = [
+            input(b"ptr-owner.test", 1, Some(900)),
+            input(b"same.test", 1, None),
+            input(b"same.test", 2, Some(800)),
+            input(b"same.test", 1, Some(700)),
+            input(b"same.test", 3, None),
+        ];
+        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        assert_eq!(names.lookup(b"same.test", 100).map(|entry|
+            (entry.address.octets()[3], entry.expires, entry.reverse)
+        ).collect::<Vec<_>>(), [
+            (3, None, true), (2, Some(800), true),
+            (1, Some(700), false), (1, None, false),
+        ]);
     }
 
     // Expected cases were first observed using exact C cache.c and
