@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "scope": "Read-only local evidence audit plus one router command-v lookup; no tracing, install, state mutation, new benchmark or production attachment.",
+  "capability_capture": {
+    "epoch": 1792104926.14264,
+    "scope": "Read-only capability: command-v and existing executable version/hash/header only; no tracing, install, measurement or router file writes.",
+    "command_v": {
+      "exit": 127,
+      "stdout": "",
+      "stderr": ""
+    },
+    "found": false
+  },
+  "raw_capability_sha256": "ccecb01b6648ceab8bbe0513d9b733ddf3434ecba4965134e932e36cca92b469",
+  "finding": "strace not found in the current SSH PATH; existing A53 evidence does not reconcile clock/vDSO invocation counts, IDs, fallback paths or costs between exact-image C and E.",
+  "path_limit": "command-v exit127/empty output is not an exhaustive filesystem search for non-PATH copies.",
+  "existing_A53_mapping_evidence": [
+    {
+      "label": "a53-stage-exact-c-vs-e-r1-c",
+      "vdso_mapping_present": true,
+      "permissions": [
+        "r-xp"
+      ],
+      "maps_sha256": "08fad6a3783111cd36ad01de8af6fd48a22b8f63a95825556600e0bb39e22d0c",
+      "scope": "Existing frozen stage round mapping capture; no new workload."
+    },
+    {
+      "label": "a53-stage-exact-c-vs-e-r1-rust",
+      "vdso_mapping_present": true,
+      "permissions": [
+        "r-xp"
+      ],
+      "maps_sha256": "2ffc459a066fec8a74962050d7a72dc4e3e9db4206f7640ea41771a28732242c",
+      "scope": "Existing frozen stage round mapping capture; no new workload."
+    }
+  ],
+  "source_evidence": {
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/C_E_HIT_SOURCE_ACCOUNTING.md",
+    "claim": "C calls dnsmasq_time after poll and passes time down; Rust owner deadlines and daemon wall clock are read at multiple boundaries. Source structure only, no measured A53 frequency or cost."
+  },
+  "existing_runtime_clock_evidence": {
+    "syscalls": "IMAGE_C_E_HIT_SYSCALLS.md explicitly identifies four Oracle captures, no router access. No clock syscall appears, but vDSO calls are invisible to strace.",
+    "samples": "dns/IMAGE_C_E_PMU.md explicitly describes Oracle measurements, not on-device CPU. vDSO samples remain unattributed; no per-call invocation count or A53 cost follows."
+  },
+  "missing_actual_A53_accounting": [
+    "Clock function invocation counts across exactC/E query/owner paths",
+    "Clock IDs and coarse/high-resolution selection as actually executed",
+    "vDSO calls versus kernel fallback syscalls",
+    "Per-call or aggregate clock read cost and causal contribution to C/E gap"
+  ],
+  "interpretation": [
+    "A mapped executable vDSO does not prove it was called or reveal call count/cost.",
+    "No-clock-syscall observations cannot establish no time-read work.",
+    "The seconds-vs-high-resolution cost hypothesis remains untested on A53; do not infer an accepted cause from source or Oracle samples."
+  ]
+}
