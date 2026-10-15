@@ -690,3 +690,32 @@ uninstrumented mode, bound tool identity, full-cohort CPU endpoints and sender
 CPU accounting (bec57a22/039de987/7c958af9). The frozen110 controllers are untouched.
 Do not use the old C/E fixed5000 analyzer on unpaced/F-prototype data. No Linux
 runtime, SDK or timing claim is attached to locally cross-linked ELF inspection.
+
+## F completed; root continues the two requested mechanisms
+
+F passed correctness but did not meet the predeclared UDP-hit CPU improvement
+goal. Both complete Oracle and router comparisons have 110 valid windows and
+all 33 primary comparisons inconclusive. The router retained its tool-memory
+stop after 58 windows, recovered outside any started window and completed the
+remaining 52 in original order. E remains accepted; F is not promoted. See
+`F_E_DEVICE_RESULT.md` and `ORACLE_F_RESULT.md`. No production state changed.
+
+Root owns the active independent UDP read-one screen2: four strace, twelve
+grouped PMU and twenty plain windows, low200/s and high unpaced. The first
+attempt's namespace-wrapper assertion occurred before daemon startup and is
+retained separately. Loop only monitors failure/completion; no simultaneous
+Oracle workload or raw bulk transfer is allowed. Read-one passed83 Linux bin
+tests plus4 ignored-live checks; each independent layout passed829 library
+tests plus18 ignored-live checks. The unchanged SDK builder reproduced F
+exactly and built all three prototypes, each within the existing size budget.
+
+Root prepared `dns/layout-screen-plan.json` and its dedicated replay runner
+while read-one runs. It reuses the unchanged hot15 fixture, independently
+compares each layout to F, and fixes three user instructions/cycles pairs plus
+five no-observer CPU pairs. Counts are fixed before timing:200,000 for PMU;
+plain2,000,000 except raw/configured-CNAME200,000, justified by retained
+setup-inclusive durations of the prior counter screen. All native builds precede
+measurement; source inputs and probe hashes are bound.32 independent original
+SDK owner windows follow. Native frame/code-size reductions are mechanisms to
+test, not evidence of a shipping performance improvement. No next candidate
+is selected until both requested mechanisms have actual results.
