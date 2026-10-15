@@ -286,8 +286,11 @@ def main():
         try:
             stop_owned('controller_failed')
             if label is not None:
-                archive_run(args.out, label)
-                recovery['attempt_archived'] = label
+                if any(row['label'] == label for row in results):
+                    recovery['attempt_already_archived'] = label
+                else:
+                    archive_run(args.out, label)
+                    recovery['attempt_archived'] = label
             if guard_label is not None:
                 for suffix in ('jsonl', 'stderr'):
                     (args.out / (guard_label + '.' + suffix)).write_bytes(ssh(f'cat {ROOT}/{guard_label}.{suffix}').stdout)
