@@ -1,0 +1,302 @@
+{
+  "schema": 1,
+  "status": "PASS_CODE_AND_DERIVED_REVIEW",
+  "scope": "Independent code review of exact-image/task-tree attribution and independent recalculation of all local16-window derived fields. This receipt does not claim independent decoding of remote perf.data.",
+  "reviewed_analyzer_commit": "735ecf6a",
+  "reviewed_analyzer_sha256": "0e18d47e83a0e8855847f16281f332203fba6807263bab3d84137a3920d99fe3",
+  "summary_analyzer_sha256": "1180eb026594928f4893f081d19e927e02d31fe0fd993440726493c2a1245531",
+  "summary_sha256": "2ecebc2540579eabcb1c8d3371bdf1ebb99f54315b39bcfff4a982979bc35819",
+  "plan_sha256": "5b3f91a8d523ee93a3ec31db39b4d98a74f3c9b9fb25443c82e8b15eda23efff",
+  "driver_sha256": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325",
+  "derived_audit_sha256": "152ebaf884028ba84b758f2982b689bb9b45e12169b896341b26df9e8579529e",
+  "verified": {
+    "window_inventory": {
+      "stat": 12,
+      "instruction_samples": 4,
+      "plan_order_exact": true
+    },
+    "stat_events": 48,
+    "all_stat_events_unscaled": true,
+    "all_stat_raw_reported_and_enabled_running_times_match": true,
+    "all_per_query_normalization_and_three_round_medians_ranges_match": true,
+    "all_sample_count_period_mode_DSO_category_sums_conserved": true,
+    "all_cross_run_function_estimates_recomputed": true,
+    "all_sample_estimates_including_unknowns_sum_to_stat_user_instruction_median": true
+  },
+  "source_review": [
+    "Stat parser checks inherited four-event root-PID group, privilege filters, raw counts/time-enabled/time-running and scaled CSV agreement; unsupported/uncounted or missing events are rejected.",
+    "Actual C companion allocated bytes and LOAD layout are rechecked against exact image, including stripped trailing-zero treatment. Libraries are read from exact mapped images, and E ranges come from the matching linker map.",
+    "Sample task/MMAP stream admits PIDs through active fork lineage only, disallows new exec/mapping changes and requires every descendant to exit. It cross-checks timestamped sample inventory against sample export.",
+    "Overlapping/shared functions, zero-size symbols, gaps, unknown images and non-user PCs remain explicit; no nearest-function fill-in.",
+    "Main rejects client interruption/output failure and non5000correct cohorts. Capture remains unchanged after parser corrections."
+  ],
+  "sample_summaries": [
+    {
+      "window": "udp-sample-c",
+      "samples": 4056,
+      "period_by_mode": {
+        "U": 40040000,
+        "K": 520000
+      },
+      "children": 0,
+      "categorized_estimate_sum": 8922.213800000003,
+      "median_user_instructions": 8922.2138
+    },
+    {
+      "window": "udp-sample-e",
+      "samples": 4040,
+      "period_by_mode": {
+        "U": 37680000,
+        "K": 2720000
+      },
+      "children": 0,
+      "categorized_estimate_sum": 9534.413000000008,
+      "median_user_instructions": 9534.413
+    },
+    {
+      "window": "tcp-sample-c",
+      "samples": 4696,
+      "period_by_mode": {
+        "K": 2350000,
+        "U": 44610000
+      },
+      "children": 56,
+      "categorized_estimate_sum": 10070.305399999997,
+      "median_user_instructions": 10070.3054
+    },
+    {
+      "window": "tcp-sample-e",
+      "samples": 5092,
+      "period_by_mode": {
+        "U": 50090000,
+        "K": 830000
+      },
+      "children": 0,
+      "categorized_estimate_sum": 10803.869599999996,
+      "median_user_instructions": 10803.8696
+    }
+  ],
+  "medians_and_ranges": {
+    "udp-C": {
+      "instructions:u": {
+        "values_per_query": [
+          8883.8964,
+          8924.0706,
+          8922.2138
+        ],
+        "median": 8922.2138,
+        "minimum": 8883.8964,
+        "maximum": 8924.0706
+      },
+      "instructions:k": {
+        "values_per_query": [
+          23811.9536,
+          31384.309,
+          25661.5366
+        ],
+        "median": 25661.5366,
+        "minimum": 23811.9536,
+        "maximum": 31384.309
+      },
+      "cycles:u": {
+        "values_per_query": [
+          14290.9198,
+          15763.9262,
+          14416.3858
+        ],
+        "median": 14416.3858,
+        "minimum": 14290.9198,
+        "maximum": 15763.9262
+      },
+      "cycles:k": {
+        "values_per_query": [
+          40446.3152,
+          52504.785,
+          41867.7464
+        ],
+        "median": 41867.7464,
+        "minimum": 40446.3152,
+        "maximum": 52504.785
+      }
+    },
+    "udp-E": {
+      "instructions:u": {
+        "values_per_query": [
+          9534.9328,
+          9534.413,
+          9534.4008
+        ],
+        "median": 9534.413,
+        "minimum": 9534.4008,
+        "maximum": 9534.9328
+      },
+      "instructions:k": {
+        "values_per_query": [
+          28571.8362,
+          33701.662,
+          26992.831
+        ],
+        "median": 28571.8362,
+        "minimum": 26992.831,
+        "maximum": 33701.662
+      },
+      "cycles:u": {
+        "values_per_query": [
+          22409.4736,
+          23808.4432,
+          22129.4522
+        ],
+        "median": 22409.4736,
+        "minimum": 22129.4522,
+        "maximum": 23808.4432
+      },
+      "cycles:k": {
+        "values_per_query": [
+          45499.365,
+          55573.7708,
+          43219.909
+        ],
+        "median": 45499.365,
+        "minimum": 43219.909,
+        "maximum": 55573.7708
+      }
+    },
+    "tcp-C": {
+      "instructions:u": {
+        "values_per_query": [
+          10140.234,
+          10070.3054,
+          9793.886
+        ],
+        "median": 10070.3054,
+        "minimum": 9793.886,
+        "maximum": 10140.234
+      },
+      "instructions:k": {
+        "values_per_query": [
+          42287.5324,
+          43910.5836,
+          42646.7404
+        ],
+        "median": 42646.7404,
+        "minimum": 42287.5324,
+        "maximum": 43910.5836
+      },
+      "cycles:u": {
+        "values_per_query": [
+          23198.6724,
+          23035.3926,
+          24222.8914
+        ],
+        "median": 23198.6724,
+        "minimum": 23035.3926,
+        "maximum": 24222.8914
+      },
+      "cycles:k": {
+        "values_per_query": [
+          99301.683,
+          99653.0256,
+          102118.7376
+        ],
+        "median": 99653.0256,
+        "minimum": 99301.683,
+        "maximum": 102118.7376
+      }
+    },
+    "tcp-E": {
+      "instructions:u": {
+        "values_per_query": [
+          10803.8696,
+          10803.9046,
+          10803.6666
+        ],
+        "median": 10803.8696,
+        "minimum": 10803.6666,
+        "maximum": 10803.9046
+      },
+      "instructions:k": {
+        "values_per_query": [
+          37745.7952,
+          37735.2006,
+          38754.8568
+        ],
+        "median": 37745.7952,
+        "minimum": 37735.2006,
+        "maximum": 38754.8568
+      },
+      "cycles:u": {
+        "values_per_query": [
+          26439.935,
+          26530.7634,
+          27170.1782
+        ],
+        "median": 26530.7634,
+        "minimum": 26439.935,
+        "maximum": 27170.1782
+      },
+      "cycles:k": {
+        "values_per_query": [
+          73382.1536,
+          75303.1816,
+          78562.7474
+        ],
+        "median": 75303.1816,
+        "minimum": 73382.1536,
+        "maximum": 78562.7474
+      }
+    }
+  },
+  "median_relative_differences": {
+    "udp": {
+      "instructions:u": {
+        "C": 8922.2138,
+        "E": 9534.413,
+        "difference_pct": 6.861516813237545
+      },
+      "instructions:k": {
+        "C": 25661.5366,
+        "E": 28571.8362,
+        "difference_pct": 11.341096386254602
+      },
+      "cycles:u": {
+        "C": 14416.3858,
+        "E": 22409.4736,
+        "difference_pct": 55.4444637573448
+      },
+      "cycles:k": {
+        "C": 41867.7464,
+        "E": 45499.365,
+        "difference_pct": 8.674024546972014
+      }
+    },
+    "tcp": {
+      "instructions:u": {
+        "C": 10070.3054,
+        "E": 10803.8696,
+        "difference_pct": 7.284428533815879
+      },
+      "instructions:k": {
+        "C": 42646.7404,
+        "E": 37745.7952,
+        "difference_pct": -11.491957307949384
+      },
+      "cycles:u": {
+        "C": 23198.6724,
+        "E": 26530.7634,
+        "difference_pct": 14.363283133391725
+      },
+      "cycles:k": {
+        "C": 99653.0256,
+        "E": 75303.1816,
+        "difference_pct": -24.434625896596962
+      }
+    }
+  },
+  "unknown_PC_interpretation": "Sampling event remains instructions:u. K-mode PCs are retained as non-user-PC unattributed in the full denominator, not counted as kernel instructions. Their cause has not been established; independent stat instructions:k is the kernel count evidence.",
+  "limits": [
+    "Three stat pairs and one sample per side/scene are diagnostic evidence, not the frozen five-pair device acceptance.",
+    "Function estimates multiply separate-run user-instruction stat medians by all-period sample shares, including unknown samples; they are estimates, not directly counted function instructions.",
+    "Oracle counter decomposition must not be asserted to numerically explain the physical router microsecond gap. TCP E has higher median user cycles but lower kernel cycles than C on Oracle.",
+    "The original16 captures and initial rejected attribution attempt remain retained. Separate authorized cycles:u follow-up windows do not replace them."
+  ]
+}
