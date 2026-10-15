@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "status": "RELATED_LINUX_GATES_PASSED",
+  "scope": "Independent F-based UDP name-buffer native musl related lib/ignored-live/bin/ignored gates; CPU2 nice10 one build job; no full qualification or performance claim.",
+  "candidate_commit": "f404ed754a26f9385c733e7474f28e4595520957",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_identity_sha256": "21a8ec66a59765c947e28ecfbc3cf12bc8392ea46eca1928e550d884708a9a92",
+  "source_inputs_verified_before": 179,
+  "source_inputs_verified_after": 179,
+  "runner_sha256": "13b1cdc5a2842b8ac89de1513fc65cfd5aef45f8190db7b47dafa90187d960f8",
+  "affinity": [
+    2
+  ],
+  "nice": 10,
+  "build_jobs": 1,
+  "started_epoch": 1792099439.654559,
+  "finished_epoch": 1792099520.4570048,
+  "verified_epoch": 1792099594.707297,
+  "build_receipt_sha256": "0f5366149d3bf0d7ed9545f6be221c3100d17bcd3f30ab8b1f5f228ed9680424",
+  "artifacts": [
+    {
+      "path": "bin-dnsmasq-rs",
+      "bytes": 50989008,
+      "sha256": "57291ee01a8a5be3a04f9441c2c046f871210d318d340b6e2d382365ead3f8c4"
+    },
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 72026440,
+      "sha256": "dae219f5fe3e68665c7cdd04eaf4ca9335b437648448e2997a0e92c49230854f"
+    }
+  ],
+  "commands": [
+    {
+      "name": "build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-name-buffer/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-name-buffer",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-name-buffer-linux-gates-20261015/udp-name-buffer/tests",
+        "tests"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 67.51117944717407,
+      "stdout_sha256": "37fa0eba0d511895b765c50e9b4c562f9dafb76414c652afa1c33ba73c008cf6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lib",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-name-buffer/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-name-buffer-linux-gates-20261015/udp-name-buffer/tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 8.081561088562012,
+      "stdout_sha256": "62228547a3d1ef8c6627665f556f45a18f222b464e40845319b51feb983b5d78",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 830 passed; 0 failed; 22 ignored; 0 measured; 0 filtered out; finished in 8.04s"
+      ],
+      "passed": 830,
+      "failed": 0,
+      "ignored": 22,
+      "binary_sha256": "dae219f5fe3e68665c7cdd04eaf4ca9335b437648448e2997a0e92c49230854f"
+    },
+    {
+      "name": "lib-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-name-buffer/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-name-buffer-linux-gates-20261015/udp-name-buffer/tests/lib-dnsmasq_rs",
+        "--ignored",
+        "--skip",
+        "exact_c_oracle_driver",
+        "--skip",
+        "exact_c_stale_driver",
+        "--skip",
+        "exact_c_transfer_probe",
+        "--skip",
+        "exact_c_lease_cache_driver",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.3671295642852783,
+      "stdout_sha256": "3f01987f09fcc17359f592486103eafed4aca470be2082fca17d69dc361f74e2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 834 filtered out; finished in 0.33s"
+      ],
+      "passed": 18,
+      "failed": 0,
+      "ignored": 0,
+      "binary_sha256": "dae219f5fe3e68665c7cdd04eaf4ca9335b437648448e2997a0e92c49230854f"
+    },
+    {
+      "name": "bin",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-name-buffer/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-name-buffer-linux-gates-20261015/udp-name-buffer/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 4.281180143356323,
+      "stdout_sha256": "933b97a3fb5dcf27fccd71ab8f8ca565196341d90c261a928193afc81c58c978",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 82 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 4.24s"
+      ],
+      "passed": 82,
+      "failed": 0,
+      "ignored": 4,
+      "binary_sha256": "57291ee01a8a5be3a04f9441c2c046f871210d318d340b6e2d382365ead3f8c4"
+    },
+    {
+      "name": "bin-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-udp-name-buffer/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/udp-name-buffer-linux-gates-20261015/udp-name-buffer/tests/bin-dnsmasq-rs",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.15405678749084473,
+      "stdout_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.11s"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "binary_sha256": "57291ee01a8a5be3a04f9441c2c046f871210d318d340b6e2d382365ead3f8c4"
+    }
+  ],
+  "test_passes": {
+    "lib": 830,
+    "lib-ignored-live": 18,
+    "bin": 82,
+    "bin-ignored-live": 4
+  },
+  "total_test_passes": 934,
+  "new_name_reuse_fixture": {
+    "name": "dns::daemon::cache_tests::prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned",
+    "passed": true,
+    "scope": "Continuous cached names, retained replies, pointer loop, partial truncation/label error, compressed name, overlong recovery, and irregular-label retained capacity."
+  },
+  "original_lib_live_test_names": [
+    "config::dns::tests::dns_config_acceptance_matches_c",
+    "config::loader::tests::cli_include_acceptance_matches_c",
+    "config::records::tests::local_record_acceptance_matches_c",
+    "config::tests::scalar_config_acceptance_matches_c",
+    "dhcp::service::tests::device_binding_linux_sockets_retry_and_relay_gate",
+    "dhcp::service::tests::poll_once_is_nonblocking_and_stop_aware",
+    "dhcp::service::tests::receive_once_admits_loopback_pktinfo_and_preserves_addresses",
+    "dhcp::service::tests::receive_once_rejects_ipv6_for_dhcpv4",
+    "dhcp::service::tests::socket_listener_processes_local_ack_and_replies_to_peer",
+    "interfaces::ipv4_snapshot::tests::isolated_fresh_snapshot_and_primary_address_need_no_spare_descriptor",
+    "interfaces::linux::tests::isolated_loopback_snapshot_matches_kernel_configuration",
+    "listeners::tests::dns_socket_bound_ipv4_metadata_policy",
+    "net::tests::static_dns_ipv4_preserves_zero_port_and_receive_errors",
+    "net::tests::tcp_pktoptions_identifies_loopback_for_both_families",
+    "net::tests::udp_source_and_truncation",
+    "tftp_listener::tests::dedicated_tid_idle_tick_and_cleanup_on_ipv4_and_ipv6",
+    "tftp_listener::tests::integrated_dual_stack_shares_capacity_and_pending_mac_does_not_block",
+    "tftp_listener::tests::port_range_upper_bound_exhaustion_and_zero_start"
+  ],
+  "original_bin_ignored_test_names": [
+    "tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind",
+    "tftp_admission_tests::tftp_label_exception_resumes_the_original_rrq_without_another_packet",
+    "tftp_admission_tests::tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector",
+    "tftp_admission_tests::tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name"
+  ],
+  "excluded_full_oracle_driver_names": [
+    "dns::cache::transfer_tests::exact_c_transfer_probe",
+    "dns::daemon::cache_tests::exact_c_oracle_driver",
+    "dns::daemon::lease_cache_tests::exact_c_lease_cache_driver",
+    "dns::daemon::stale_tests::exact_c_stale_driver"
+  ],
+  "original_ignored_inventories_reconciled_with_normal_listings": true,
+  "all_ten_log_hashes_rechecked": true,
+  "both_artifact_hashes_rechecked": true,
+  "all_builds_and_tests_exited": true,
+  "owned_live_processes": [],
+  "raw_result_sha256": "de4e25af9b7041a05bc7bbc62a64c1929056e7bad534ed4dd3f644507b557afb",
+  "verified_receipt_sha256": "059479d352b7219518d10fe1e197bd46fd4e3e71be9ccd9d4eb64229a16d5011",
+  "limitations": [
+    "Native musl debug related functional gates. Four complete exact-C oracle drivers remain excluded by the existing selection; this is not full44 or complete candidate qualification.",
+    "The separate SDK builder ran on CPU1 with coordinator authorization while these gates ran on CPU2/nice10. No new timing workload was run.",
+    "The independent F-based product prototype was not combined with stage diagnostics or other prototypes. No performance gain or acceptance is established by these tests.",
+    "Raw logs and both test binaries remain on Oracle. Only derived receipts were transferred, and no router was accessed or changed."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
