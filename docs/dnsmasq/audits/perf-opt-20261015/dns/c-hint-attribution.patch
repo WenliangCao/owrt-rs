@@ -1,0 +1,143 @@
+--- a/components/dnsmasq/src/dns/cache.rs
++++ b/components/dnsmasq/src/dns/cache.rs
+@@ -255,6 +255,11 @@
+ }
+ 
+ type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
++#[cfg(test)]
++thread_local! { static ATTRIBUTION: std::cell::RefCell<[usize; 12]> = const { std::cell::RefCell::new([0; 12]) }; }
++#[cfg(test)]
++fn attribute(index: usize) { ATTRIBUTION.with(|counts| counts.borrow_mut()[index] += 1); }
++
+ 
+ #[derive(Clone, Copy)]
+ enum NameSelection {
+@@ -324,6 +329,7 @@
+     }
+ 
+     fn names_for(&self, key: &[u8]) -> Option<&SlotIndices> {
++        #[cfg(test)] attribute(0);
+         self.names[Self::key_shard(key)].get(key)
+     }
+ 
+@@ -516,6 +522,7 @@
+     /// answer operation ends; object/root identities also reject replacement
+     /// or movement of the owning cache. Saturation permanently disables reuse.
+     pub(super) fn inspect_name<'a>(&self, name: &'a Name, now: i64) -> (bool, Option<NameLookup<'a>>) {
++        #[cfg(test)] attribute(1);
+         let canonical;
+         let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
+             canonical = name.canonical_wire();
+@@ -532,9 +539,9 @@
+             return (cname, None);
+         }
+         let selection = match indices {
+-            None | Some(SlotIndices::Empty) => NameSelection::Missing,
+-            Some(SlotIndices::One(slot)) => NameSelection::One(self.id(*slot)),
+-            Some(SlotIndices::Many(_)) => return (cname, None),
++            None | Some(SlotIndices::Empty) => { #[cfg(test)] attribute(2); NameSelection::Missing },
++            Some(SlotIndices::One(slot)) => { #[cfg(test)] attribute(3); NameSelection::One(self.id(*slot)) },
++            Some(SlotIndices::Many(_)) => { #[cfg(test)] attribute(4); return (cname, None) },
+         };
+         (cname, Some(NameLookup {
+             name,
+@@ -553,6 +560,7 @@
+         round_robin: bool,
+         hint: Option<&NameLookup<'_>>,
+     ) -> Vec<EntryId> {
++        #[cfg(test)] attribute(5);
+         let usable = hint.filter(|hint| {
+             std::ptr::eq(name, hint.name)
+                 && hint.owner == self as *const Self as usize
+@@ -560,9 +568,15 @@
+                 && hint.revision == self.name_revision
+                 && self.name_revision != u64::MAX
+         });
++        #[cfg(test)] if let Some(hint) = hint {
++            if !std::ptr::eq(name, hint.name) { attribute(9); }
++            if hint.owner != self as *const Self as usize || hint.roots != self.names.as_ptr() as usize { attribute(10); }
++            if hint.revision != self.name_revision || self.name_revision == u64::MAX { attribute(11); }
++        }
+         match usable.map(|hint| hint.selection) {
+-            Some(NameSelection::Missing) => Vec::new(),
++            Some(NameSelection::Missing) => { #[cfg(test)] attribute(6); Vec::new() },
+             Some(NameSelection::One(id)) if self.get(id).is_some() => {
++                #[cfg(test)] attribute(7);
+                 let mut found = Vec::new();
+                 // Same single-slot step as lookup; leave its multi-slot loop
+                 // intact so it has no extra per-record dispatch or calls.
+@@ -575,7 +589,7 @@
+                 }
+                 found
+             }
+-            _ => self.lookup(name, kinds, now, round_robin),
++            _ => { #[cfg(test)] attribute(8); self.lookup(name, kinds, now, round_robin) },
+         }
+     }
+ 
+--- a/components/dnsmasq/src/dns/cache_tests.rs
++++ b/components/dnsmasq/src/dns/cache_tests.rs
+@@ -1396,3 +1396,63 @@
+         assert_eq!(parent.lookup_reverse(address, 104).len(), 1);
+     }
+ }
++
++#[test]
++fn attribution_frozen_hit_extraction_and_hint_reuse() {
++    use crate::config::dns::DnsConfig;
++    use crate::dns::cache_engine::{CacheContext, OrdinaryCacheMode};
++    use crate::dns::daemon::{DnsDaemon, QueryResult};
++    use crate::dns::forward::Question;
++    use crate::dns::process::AddressPolicy;
++    use crate::dns::service::LocalDnsService;
++    use crate::dns::upstream::OsRandom;
++    use crate::dns::wire::{Header, PacketWriter, Section};
++    let mut config = DnsConfig::default();
++    for line in [b"no-resolv".as_slice(), b"no-poll", b"server=127.0.0.1#15354", b"host-record=ready.device-perf.test,192.0.2.1"] {
++        config.apply(&crate::config::lex_line(line).unwrap().unwrap()).unwrap();
++    }
++    let hosts = crate::dns::local::configured_hosts(&config, 0);
++    let mut local = LocalDnsService::new(config, hosts, 0, 1232);
++    let mut cache = Cache::new(1000, Policy::default());
++    let mut metrics = CacheCounters::default();
++    for sequence in 1..=1000 {
++        let index = sequence % 800;
++        let rrtype = if index % 10 < 7 { 1 } else { 28 };
++        let name = Name::from_ascii(&format!("q{index:04x}.m6a.test")).unwrap();
++        let data = if rrtype == 1 { vec![192, 0, 2, 1] } else { vec![0x20, 1, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] };
++        let mut reply = PacketWriter::new(sequence, 0x8180, 1232).unwrap();
++        reply.question(&name, rrtype, 1).unwrap();
++        reply.record_at(Section::Answer, 12, rrtype, 1, 120, &data).unwrap();
++        CacheContext { cache: &mut cache, counters: &mut metrics, negative_cache: true,
++            negative_ttl: 0, filter_rr: &[] }.insert_reply_with_policy(
++                &reply.finish(), 100, &local, &AddressPolicy::default(), 0, OrdinaryCacheMode::Commit).unwrap();
++    }
++    let mut shape = [0usize; 3];
++    for shard in &cache.names {
++        for indices in shard.values() {
++            shape[match indices { SlotIndices::Empty => 0, SlotIndices::One(_) => 1, SlotIndices::Many(_) => 2 }] += 1;
++        }
++    }
++    let mut kinds = [0usize; 3];
++    for entry in cache.entries() {
++        kinds[match entry.record.kind { Kind::Ipv4 => 0, Kind::Ipv6 => 1, _ => 2 }] += 1;
++    }
++    assert_eq!(shape, [0, 800, 0]);
++    assert_eq!(kinds, [560, 240, 0]);
++    ATTRIBUTION.with(|counts| *counts.borrow_mut() = [0; 12]);
++    for sequence in 1001..=5000 {
++        let index = sequence % 800;
++        let rrtype = if index % 10 < 7 { 1 } else { 28 };
++        let name = Name::from_ascii(&format!("q{index:04x}.m6a.test")).unwrap();
++        let mut query = PacketWriter::new(sequence, 0x0100, 1232).unwrap();
++        query.question(&name, rrtype, 1).unwrap();
++        let query = query.finish();
++        let header = Header::parse(&query).unwrap();
++        let question = Question::parse_with_header(&query, header).unwrap();
++        let answer = DnsDaemon::<OsRandom>::answer_local_or_cached(
++            Some(&mut cache), &query, header, &question, &mut local, 101, true, false).unwrap();
++        let Some(QueryResult::Cached(packet)) = answer.answer else { panic!("expected cached response"); };
++        assert_eq!(Header::parse(&packet).unwrap().answers, 1);
++    }
++    ATTRIBUTION.with(|counts| println!("ATTRIBUTION shape={shape:?} kinds={kinds:?} counters={:?}", *counts.borrow()));
++}

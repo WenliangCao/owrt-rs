@@ -1,0 +1,71 @@
+{
+  "scope": "Local diagnostic only: cfg(test) counters in ignored frozen-C source copy. Neither C product nor active paused D product changed. No Oracle/router action or performance claim.",
+  "frozen_source": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b",
+  "original_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "df81dd0ec219d40ff6013d185c2cb93b7bbcf9fb9ba8a141a2ee0eace3abd0ef",
+    "components/dnsmasq/src/dns/cache_tests.rs": "cfa5788c42644c963ec3f7ad4ee5395e61977f0f20ac808205e49488cd9a2012"
+  },
+  "instrumented_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "cfe6d4c21830aa258f8c43c725acc14c1943461860911f31859b2c09dd4769cf",
+    "components/dnsmasq/src/dns/cache_tests.rs": "4c60323af8e236d44f6522813b945cba8289cbca647b118fbfddd2675c832d75"
+  },
+  "patch_sha256": "4278376bb2d48b3d5386ad61411a198bf6361d66f22ee11c8dc618455dfacab7",
+  "invocation": "cargo test --manifest-path private/perf-opt-20261015/dns/c-hint-attribution/components/dnsmasq/Cargo.toml --lib attribution_frozen_hit_extraction_and_hint_reuse -j 1 -- --nocapture",
+  "fixture": {
+    "cache_capacity": 1000,
+    "prewarm_extracted_replies": 1000,
+    "hot_names": 800,
+    "ipv4_owners": 560,
+    "ipv6_owners": 240,
+    "empty_indices": 0,
+    "singleton_indices": 800,
+    "many_indices": 0,
+    "query_wire_name_bytes": 16,
+    "prior_native_micro_wire_name_bytes": 23,
+    "hit_operations": 4000,
+    "one_answer_rr_per_operation": true
+  },
+  "observed_counts": {
+    "names_for": 4000,
+    "inspect": 4000,
+    "inspect_missing": 0,
+    "inspect_one": 4000,
+    "inspect_many": 0,
+    "lookup_with_hint": 4000,
+    "used_missing": 0,
+    "used_one": 4000,
+    "fallback": 0,
+    "question_mismatch": 0,
+    "owner_or_roots_mismatch": 0,
+    "revision_or_saturation_mismatch": 0
+  },
+  "existing_exact_sdk_profile": {
+    "elf_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+    "map_sha256": "9ed8e0a304e0a3333bb9f23d685171802c61f5688ec734e209a7622ade17da0a",
+    "summary_sha256": "7d69a3d6cff412d9ccc0dcad43c3bba8579ea7dc691b5e437893b90a83f19c5b",
+    "one_only_hint_workload_check": {
+      "measured_queries": 4000,
+      "distinct_hot_names": 800,
+      "names_with_multiple_observed_qtypes": 0,
+      "distinct_A_names": 560,
+      "distinct_AAAA_names": 240,
+      "wire_samples_checked": 40,
+      "sampled_answer_rr_count": 1,
+      "measurement_latency_records_sha256": "df62989f6d656563f962d75c3e7be53208e8d5d0cb3d464a3391756009aa9de2",
+      "wire_samples_sha256": "04153a41aa15d6a9c38664125c06695ddcbca2e0a254d97de99a91231dffded5",
+      "interpretation": "Frozen aaaa30 maps qtype deterministically from hot-name index. Dual A+AAAA names do not explain One-only hint bypass here. Internal SlotIndices state and actual hint hit-rate were not instrumented; a remaining initial names_for lookup is still required."
+    },
+    "udp_hit_kernel_samples": 6042,
+    "udp_hit_total_samples": 10598,
+    "udp_hit_names_for_self_instruction_sample_percent": 18.635591621060577,
+    "udp_miss_insert_self_instruction_sample_percent": 11.091042114408523,
+    "tcp_miss_insert_self_instruction_sample_percent": 18.117203009730154
+  },
+  "raw_sha256": {
+    "source.tar": "35044d8d28f521202346b5100dbf8503d63bca03f8ec42868a1c1d5853e9465b",
+    "instrumentation.json": "fecefef1392ff4b8d3c7b7d34cf69b860076062d0f85418a48f7d400771e20d3",
+    "test.stdout": "b18817746d4368527cbfbd79a3aedf2dc1023e06e2dc777581de8e6247829849",
+    "test.stderr": "22965e8b1094571fb4abf6e09cfa553829e0e826c8eec66da42e33020b02b173"
+  },
+  "conclusion": "Dual-family records and hint fallback do not explain the missing discernible device hit gain. The required first name lookup remains. Native shorter-scope/longer-name/system-library micro results do not predict full owner/kernel device CPU results. Insertion pressure remains a concrete fresh-C hotspot; D stays paused until C device comparison completes."
+}
