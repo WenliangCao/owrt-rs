@@ -10,6 +10,11 @@ The shipping SDK F control reproduced ELF `b7926bcf…`; read-one is source
 `4bd3c9a4…`, ELF `5216c41d…`. Both are2136859B. These compare independent F
 artifacts, not E or exact C, and do not change the accepted E baseline.
 
+CPU, PMU and syscall per-query values use the actual warmup plus measurement
+completion count (5000 at low load). The observation also includes the fixed
+one-second grace. Throughput and latency use only the 20-second measurement
+cohort; the grace is not counted as an extra query.
+
 | Observation | F | Read-one |
 | --- | ---: | ---: |
 | Low recvmsg/query | 2.000 | 1.000 |
@@ -21,8 +26,19 @@ artifacts, not E or exact C, and do not change the accepted E baseline.
 
 The extra entered ppoll at each observation boundary is retained rather than
 counted as a completed query. One final high-load F EAGAIN is also retained.
-Traced query counts are295079 and191586; traced throughput is not a speed
-measurement. Parameters, pending calls and all syscall kinds remain in JSON.
+Traced query counts are 295079 and 191586; traced throughput is not a speed
+measurement. JSON retains all observed syscall kinds, selected parameter
+counts on completed calls, and pending syscall names. It does not contain
+every per-call argument: the full trace remains private, and the pending
+boundary `ppoll` is listed by name without its arguments.
+
+The parameter aggregates show receive flags `0`, iovec length 65535 and
+control length `0`; sends show flags `0`, lengths 48/60 and control length `0`.
+Completed polls show six descriptors, an infinite timeout and six `POLLIN`
+interests. Receive iovec/control fields are counted only as many times as
+successful receives, rather than all completed calls including EAGAIN. Errors,
+fd roles and flags are retained, but the derived file cannot establish full
+message/iovec arguments for each failed receive.
 
 | Plain five-pair result | F median | Read-one median | Change | W |
 | --- | ---: | ---: | ---: | ---: |
@@ -39,9 +55,11 @@ only2ticks, below the strict >8-tick threshold, and smaller than W. No low-load
 CPU/latency improvement is accepted. High CPU/throughput/latency changes are
 all five pairs in the adverse direction and exceed W. High CPU uses the actual
 variable query counts and is descriptive saturation evidence; the fixed-N
-acceptance tick-difference rule is not applied to it. Sender CPU is99.60–99.89%
-in the high windows, and the daemon also consumes nearly one CPU. These are
-observed closed-loop pipeline rates, not an isolated server capacity estimate.
+acceptance tick-difference rule is not applied to it. Sender CPU is 99.60–99.89%
+in the high plain windows, and the daemon also consumes nearly one CPU. The
+high PMU windows show 99.56–99.63% sender CPU; the heavily instrumented high
+strace windows show only 9.00–13.64%. The plain rates are observed closed-loop
+pipeline rates, not an isolated server capacity estimate.
 
 | Median PMU /query | Low F | Low read-one | High F | High read-one |
 | --- | ---: | ---: | ---: | ---: |
