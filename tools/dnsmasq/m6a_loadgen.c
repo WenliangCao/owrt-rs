@@ -47,6 +47,9 @@ struct counters {
 struct client {
   int fd; bool busy, measured, leased; uint64_t seq, sent_at, deadline;
   uint64_t scheduled_at, send_lag_ns;
+  /* Fixed-rate round-robin slots form one arithmetic sequence per client.
+   * Retain overdue work without an allocating queue or another outstanding I/O. */
+  uint64_t pending, pending_at, pending_seq;
   unsigned phase;
   uint16_t id, qtype; uint8_t kind, dhcp_stage;
   uint16_t tcp_queries;
@@ -292,10 +295,9 @@ static bool dhcp_correct(struct client *c,const unsigned char *p,size_t size) {
   return end && message==(c->dhcp_stage==0?2U:5U) &&
     server==destination.sin_addr.s_addr && lease>=120 && t1>0 && t1<t2 && t2<lease;
 }
-static void start_request(struct client *c,uint64_t scheduled,unsigned phase) {
-  struct counters *v=&counts[phase]; v->scheduled++;
-  if (c->busy) { v->skipped++; return; }
-  c->seq=++sequence; c->id=(uint16_t)c->seq; c->xid=(uint32_t)c->seq;
+static void begin_request(struct client *c,uint64_t scheduled,unsigned phase,uint64_t seq) {
+  struct counters *v=&counts[phase];
+  c->seq=seq; c->id=(uint16_t)c->seq; c->xid=(uint32_t)c->seq;
   c->phase=phase;c->measured=phase!=0;c->scheduled_at=scheduled;c->send_lag_ns=0;
   c->sent_at=now_ns(); c->deadline=c->sent_at+(uint64_t)opt.timeout_ms*1000000;
   c->busy=true; c->tx_off=c->rx_len=0;
@@ -316,6 +318,28 @@ static void start_request(struct client *c,uint64_t scheduled,unsigned phase) {
     if (length!=(ssize_t)c->tx_len) completion(c,TRANSPORT,now_ns());
     else v->datagrams++;
   }
+}
+static void start_request(struct client *c,uint64_t scheduled,unsigned phase) {
+  struct counters *v=&counts[phase]; v->scheduled++;
+  if (c->busy) { v->skipped++; return; }
+  begin_request(c,scheduled,phase,++sequence);
+}
+static void queue_request(struct client *c,uint64_t scheduled) {
+  unsigned phase=scheduled<measure_start?0:1;
+  counts[phase].scheduled++;
+  uint64_t seq=++sequence;
+  if (!c->pending) { c->pending_at=scheduled; c->pending_seq=seq; }
+  c->pending++;
+}
+static void discard_pending(struct client *c,uint64_t stride) {
+  uint64_t warm=0;
+  if (c->pending && c->pending_at<measure_start) {
+    warm=(measure_start-1-c->pending_at)/stride+1;
+    if (warm>c->pending) warm=c->pending;
+  }
+  counts[0].skipped+=warm;
+  counts[1].skipped+=c->pending-warm;
+  c->pending=0;
 }
 static bool socket_connect(struct client *c) {
   int type=!strcmp(opt.mode,"tcp")?SOCK_STREAM:SOCK_DGRAM;
@@ -533,7 +557,12 @@ int main(int argc,char **argv) {
   if (opt.epoch_output && !publish_epoch(opt.epoch_output,true)) { perror("epoch-output");return 2; }
   if (opt.epoch_file && !publish_epoch(opt.epoch_file,false)) { perror("epoch-file");return 2; }
   uint64_t next=warmup_start, interval=opt.rate>0?(uint64_t)(NS/opt.rate):0;
-  unsigned turn=0; bool transition=false; struct pollfd pollfds[MAX_CLIENTS];
+  /* These fixed-rate benchmark modes use one sequence per complete operation.
+   * Full DHCP cycles additionally allocate XIDs; retain that separate workload. */
+  bool queued_rate=interval && opt.saturation==0 && (!dhcp || opt.dhcp_renew_only);
+  uint64_t stride=interval>UINT64_MAX/opt.clients?UINT64_MAX:interval*opt.clients;
+  uint64_t dispatch_end=measure_end+(uint64_t)opt.timeout_ms*1000000;
+  uint64_t turn=0; bool transition=false; struct pollfd pollfds[MAX_CLIENTS];
   while (!stopping) {
     uint64_t time=now_ns();
     if (!transition && time>=measure_start) {
@@ -542,22 +571,41 @@ int main(int argc,char **argv) {
         if (renew_setup_failed) {stopping=1;break;}
       }
       transition=true;
-      next=time;
+      if (!queued_rate) next=time;
     }
     unsigned phase=transition?(time>=saturation_start?2:1):0;
     uint64_t active_interval=phase==2?0:interval;
+    if (queued_rate) {
+      while (next<=time && next<measure_end) {
+        queue_request(&clients[turn++%opt.clients],next);
+        next=UINT64_MAX-next<interval?UINT64_MAX:next+interval;
+      }
+    }
     unsigned outstanding=0;
+    uint64_t pending=0;
     for (unsigned i=0;i<opt.clients;i++) {
       struct client *c=&clients[i];
+      /* Reconnect may block: check admission and existing deadlines afresh.
+       * An operation admitted before dispatch_end keeps its normal I/O deadline. */
+      if (queued_rate) time=now_ns();
       if (c->busy && time>=c->deadline) {
         completion(c,TIMEOUT,time);
         /* Keep the timeout, then discard the stream before another request. */
         if (!strcmp(opt.mode,"tcp")) tcp_reset(c);
       }
+      if (queued_rate) {
+        if (time>=dispatch_end) discard_pending(c,stride);
+        else if (!c->busy && c->pending) {
+          uint64_t scheduled=c->pending_at, seq=c->pending_seq;
+          if (--c->pending) { c->pending_at+=stride; c->pending_seq+=opt.clients; }
+          begin_request(c,scheduled,scheduled<measure_start?0:1,seq);
+        }
+        pending+=c->pending;
+      }
       if (c->busy) outstanding++;
     }
-    if (time>=measure_end && !outstanding) break;
-    if (time<measure_end) {
+    if (time>=measure_end && !outstanding && (!queued_rate || (!pending && next>=measure_end))) break;
+    if (!queued_rate && time<measure_end) {
       if (!active_interval) {
         for (unsigned i=0;i<opt.clients;i++) if (!clients[i].busy) start_request(&clients[i],time,phase);
       } else while (next<=time) {
@@ -571,7 +619,12 @@ int main(int argc,char **argv) {
       pollfds[i].revents=0;
     }
     uint64_t wake=time+10000000;
-    if (active_interval && time<measure_end && next<wake) wake=next;
+    if (queued_rate) {
+      /* next is an unqueued slot, never an overdue busy client's queue head.
+       * If reconnect crossed it, one immediate turn enqueues the new work. */
+      if (next<measure_end && next<wake) wake=next;
+      if (pending && dispatch_end>time && dispatch_end<wake) wake=dispatch_end;
+    } else if (active_interval && time<measure_end && next<wake) wake=next;
     if (time<saturation_start && saturation_start<wake) wake=saturation_start;
     if (!transition && measure_start<wake) wake=measure_start;
     if (time<measure_end && measure_end<wake) wake=measure_end;
@@ -600,6 +653,7 @@ int main(int argc,char **argv) {
     }
   }
   run_end=now_ns();
+  if (queued_rate) for (unsigned i=0;i<opt.clients;i++) discard_pending(&clients[i],stride);
   for (unsigned i=0;i<opt.clients;i++) if (clients[i].busy) completion(&clients[i],TIMEOUT,run_end);
   if (dhcp) socket_close(&clients[0]);else for (unsigned i=0;i<opt.clients;i++) socket_close(&clients[i]);
   if (fclose(latencies)) output_failed=true;
