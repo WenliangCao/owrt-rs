@@ -552,3 +552,43 @@ supported by existing code; exact C did not show retention in these nine current
 case runs. No product change, new qualifier, case waiver or inferred acceptance
 was introduced by this reviewer. Further minimal diagnosis, if needed, must
 capture the lease/helper state before its namespace exits.
+
+## Corrected D diagnosis: real initial-publication defect, not old HUP variation
+
+The remaining six original families were each run once, and all passed. The
+four previously unrun interface steps also executed once against original
+inputs: three closeouts passed; the original qualifier rejected the original
+failed service result and created no `qualified.json`. Overall coverage is now
+**67/67 unique original tasks, 65 raw passes and two raw failures in one family**,
+or 43 raw-pass families and one failed family. The original full-attempt result
+remains false. [Complete coverage and diagnosis](d-startup-defect-diagnosis.json)
+retains every result hash and the qualification rejection.
+
+The final fixed three diagnostic pairs captured initial lease files, process
+maps and complete final helper logs before namespace exit. This time all sides,
+including D, renamed to `fromhosts`. Together with the earlier fixed runs, Rust
+layout explains its retain/rename variation. However, **that does not establish
+C compatibility at startup**. Offline exact C bucket counterexamples show C
+renaming even where a hypothetical old DHCP node would precede the static host.
+Both this reviewer and the DHCP owner independently found that discrepancy.
+
+Matching C source resolves it: `lease_init` marks DNS dirty without publishing
+DHCP cache nodes; the first helper queue turn freezes the old event, then
+`EVENT_INIT -> clear_cache_and_reload` reads hosts and runs
+`lease_update_from_configs` **before the first `lease_update_dns`**. Rust instead
+runs DHCP file initialization and `maintain(force_dns=true)` first, publishing
+`original`; its initial hostsdir rebuild then retains that premature DHCP node
+and can suppress the required rename through `provider_reverse`. The historical
+mixed-chain C/C record concerns HUP/reload with already-published DHCP nodes,
+so it cannot waive this initial-publication defect.
+
+The reviewer's brief preliminary device-admission statement was withdrawn as
+soon as this counterevidence appeared, before the coordinator launched a device
+controller. **D remains unqualified and must not proceed to device comparison.**
+This is a pre-existing Rust startup defect exposed by process layout, not a
+reason to alter C expectations or emulate a new C exception. A separate next
+candidate must fix initial DNS publication order while preserving the frozen
+original helper event, with deterministic tests covering both relative bucket
+orders and the existing full qualification workflow. Frozen D and all failed
+observations remain unchanged. No new random sample, seed search or qualifier
+framework was introduced.
