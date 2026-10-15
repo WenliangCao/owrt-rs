@@ -144,6 +144,21 @@ impl Name {
         self.0.to_ascii_lowercase()
     }
 
+    /// Length of the escaped byte string without constructing a temporary.
+    pub(super) fn dnsmasq_bytes_len(&self) -> usize {
+        let mut result = self.0.len().saturating_sub(2);
+        let mut pos = 0;
+        while self.0[pos] != 0 {
+            let length = self.0[pos] as usize;
+            result += self.0[pos + 1..pos + 1 + length]
+                .iter()
+                .filter(|&&byte| matches!(byte, 0 | 1 | b'.'))
+                .count();
+            pos += length + 1;
+        }
+        result
+    }
+
     /// dnsmasq's internal escaped byte string, without its C NUL terminator.
     pub fn dnsmasq_bytes(&self) -> Vec<u8> {
         let mut result = Vec::with_capacity(self.0.len().saturating_sub(2));
