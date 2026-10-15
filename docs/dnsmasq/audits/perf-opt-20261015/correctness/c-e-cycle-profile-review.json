@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "status": "PASS_DERIVED_ARITHMETIC_AND_CLAIMS",
+  "scope": "Independent local recalculation of the separate four cycles:u sample summaries and review of final IMAGE_C_E_PMU.md. Does not claim fresh raw perf.data decoding or physical-router attribution.",
+  "final_evidence_commit": "c4d3cc24",
+  "cycles_plan_sha256": "824b6ecf439c075d89d19a9f9110d43b10d73e965dbaf3300935f88a3f3be850",
+  "cycles_summary_sha256": "c1d7d1d3d406ba97029a56a1b5d174722db87926f7bec922e4db1f2a7c8a76e6",
+  "instruction_stat_summary_sha256": "2ecebc2540579eabcb1c8d3371bdf1ebb99f54315b39bcfff4a982979bc35819",
+  "driver_sha256": "2c1bb2ec7531b403c1d0a3ea19489e726adb1540e6fca84cbd5f33b6d14dac37",
+  "analyzer_sha256": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a",
+  "samples": [
+    {
+      "window": "udp-cycles-c",
+      "samples": 6190,
+      "period": 61900000,
+      "non_user_PC_share_pct": 2.552504038772213,
+      "other_unattributed_share_pct": 4.248788368336026,
+      "children": 0,
+      "independent_stat_user_cycle_median": 14416.3858
+    },
+    {
+      "window": "udp-cycles-e",
+      "samples": 9695,
+      "period": 96950000,
+      "non_user_PC_share_pct": 2.0216606498194944,
+      "other_unattributed_share_pct": 2.929345023207839,
+      "children": 0,
+      "independent_stat_user_cycle_median": 22409.4736
+    },
+    {
+      "window": "tcp-cycles-c",
+      "samples": 10155,
+      "period": 101550000,
+      "non_user_PC_share_pct": 2.3436730674544557,
+      "other_unattributed_share_pct": 5.800098473658297,
+      "children": 56,
+      "independent_stat_user_cycle_median": 23198.6724
+    },
+    {
+      "window": "tcp-cycles-e",
+      "samples": 13275,
+      "period": 132750000,
+      "non_user_PC_share_pct": 3.186440677966101,
+      "other_unattributed_share_pct": 5.91337099811676,
+      "children": 0,
+      "independent_stat_user_cycle_median": 26530.7634
+    }
+  ],
+  "checks": [
+    "The four windows match the separately frozen cycles plan exactly; the original16summary hash remains linked.",
+    "All sample counts, periods, mode/DSO/category sums and every per-range share/cross-run user-cycle estimate independently recompute.",
+    "Each function estimate uses original stat cycles:u median/5000, not instructions:u or kernel counters. Estimates including unknowns sum to their matched total.",
+    "Both C TCP instruction and cycle sample trees contain56descendants with exits; other scenes have no descendants.",
+    "All reported lost counts are zero; non-user PCs remain unknown rather than kernel-cost samples.",
+    "Final report gives all three-window stat ranges and labels sample estimates, emitted/inlined ranges, unknowns and Oracle-only limits."
+  ],
+  "report_claim_review": {
+    "no_material_discrepancies": true,
+    "E_UDP_two_local_function_cycle_sample_share_pct": 20.319752449716347,
+    "method": "Share and estimate claims cross-checked against full emitted ranges, not treated as exact causal savings."
+  },
+  "limitations": [
+    "One cycle sample window per side/scene is a diagnostic ranking, not stable per-function precision or acceptance.",
+    "Higher UDP user cycles with only modestly higher instructions does not by itself establish allocator, cache-miss or any microarchitectural cause.",
+    "TCP Oracle kernel work is lower for E while device CPU is higher; do not combine environments as an exact gap decomposition."
+  ]
+}
