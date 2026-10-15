@@ -1,0 +1,69 @@
+{
+  "scope": "Independent local source review only; no remote load, no performance claim, and no change to frozen F.",
+  "baseline_f_source": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "initial_prototype_source": "0a94e3b0a6a1cb6a8ea2ee1c25a3d26643daaf2f",
+  "reviewed_final_source": "b1180f728543d56132df0f144467b3c97ef7b410",
+  "source_files": {
+    "baseline": {
+      "components/dnsmasq/src/dns/cache.rs": "ca58d8711daa4520ac4874f35c2994cf7591988230c8dda3f8c82788a6fa6a49",
+      "components/dnsmasq/src/dns/cache_engine.rs": "f8dd4763da8a5ff1cba60d079cfbfdbd032c31f1e37d656fe9f7d304813e2382",
+      "components/dnsmasq/src/dns/cache_tests.rs": "39b5f1a72967e7925ba6d88f4b1433e2862701e3d698527c95de5ae6cdbec6f9"
+    },
+    "candidate": {
+      "components/dnsmasq/src/dns/cache.rs": "4792b1aeb46d2a83dad7e5cea237c2c59cffd187889a6b8fb9c733be6fb6688d",
+      "components/dnsmasq/src/dns/cache_engine.rs": "043bd7fbf1ad12c39e2d27284e6d128101eef77f5f214828988a51ac06b88135",
+      "components/dnsmasq/src/dns/cache_tests.rs": "b12665056774fd25438a6e6191b0b429a3dab162e4e661eb3d44d9d0b63a08f5"
+    }
+  },
+  "result": "No concrete remaining source blocker found after b1180f72 restores the multi-result release boundary.",
+  "resolved_finding": {
+    "kind": "multi-result temporary lifetime",
+    "initial_behavior": "Changing consuming Vec iteration to ids.iter kept Many(Vec) alive across the final filtered-name lookup, unlike the old IntoIter release at loop end.",
+    "fix": "Explicit drop(ids) immediately after the final consuming loop, before written handling and any later lookup.",
+    "fixed_commit": "b1180f728543d56132df0f144467b3c97ef7b410"
+  },
+  "reviewed_invariants": [
+    {
+      "area": "ownership and ID generation",
+      "finding": "Empty/One/Many owns only copied EntryId handles or the original Vec. The slice reference belongs to the result enum, not cache storage; no Arc or index reference is retained. Cache::get still verifies slot generation on every use."
+    },
+    {
+      "area": "expiry and stale policy",
+      "finding": "The usable singleton branch still calls the same invalid(slot, now) before kind matching, including stale-policy expiry and invalid CNAME targets. It invokes the same remove path before returning Empty; unsupported kinds return Empty without promotion."
+    },
+    {
+      "area": "LRU and rotation",
+      "finding": "A matching singleton still unlinks and links the same slot at the LRU head, then returns the current ID. A singleton cannot require round-robin rotation. The ordinary multi-slot lookup and its snapshot drop, rotate_matches and final reverse are unchanged."
+    },
+    {
+      "area": "hint identity and invalidation",
+      "finding": "Question pointer, owner address, root allocation pointer, name revision and saturated revision checks are unchanged. Insertion/removal/clear/rotation invalidate through existing revision updates; failed generation checks fall back to the ordinary lookup."
+    },
+    {
+      "area": "multiple lookup calls",
+      "finding": "DO and filtered/NXDOMAIN paths may reuse the hint. Mismatching-kind lookup keeps a still-valid hint; promotion does not change membership; expiry/removal changes revision so the next call falls back. No new result state is used as a future hint."
+    },
+    {
+      "area": "first and iteration order",
+      "finding": "All first/is_empty/len/iter consumers access the same ordered slice. Empty stays empty; One has exactly the same ID; Many wraps the exact ordinary Vec, including zero-length or singleton fallback results. Three loop syntax changes copy IDs without changing order or filtering."
+    },
+    {
+      "area": "snapshot isolation",
+      "finding": "Result storage introduces no new copy-on-write ownership. Cache snapshots retain their existing separate mutable links/index behavior; Many continues to use the ordinary lookup implementation."
+    },
+    {
+      "area": "release and public API",
+      "finding": "The final explicit drop restores the original multi-result free point. Early-return paths drop the result while returning as before. Public lookup/lookup_question continue returning Vec; only crate-internal hinted lookup changes representation."
+    }
+  ],
+  "controls_read_not_rerun": [
+    "New 0/1/3 record comparison across lower/mixed case, time100/160, round-robin on/off and requested IPv4/IPv6; checks IDs, LRU endpoints, revision, subsequent order and original snapshot invariance.",
+    "Existing missing/added member, changed question, cache replacement/move, saturated revision, unique-many Arc/COW and mixed-RR rotation controls."
+  ],
+  "limits": [
+    "Root reports 63 cache controls passed and one pre-existing ignored control; this review did not independently rerun them.",
+    "Root allocation probes are separate artifacts; no full CPU/timing claim is inferred.",
+    "A future candidate still needs complete allocation/fault, full correctness and unchanged performance/resource acceptance.",
+    "This prototype is separate from F3a3d8e3e, whose full qualification remains underway."
+  ]
+}
