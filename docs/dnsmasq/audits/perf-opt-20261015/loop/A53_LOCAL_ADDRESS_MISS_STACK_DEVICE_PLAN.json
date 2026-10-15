@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "status": "preregistered fixed10; Linux gate and SDK artifact identities pending; no device launch authorized until gates supplied",
+  "scope": "Exploratory unqualified F/local-address-miss-stack A53 UDP-hit comparison; no full qualification or candidate selection.",
+  "reason": "Standalone bounded stack local-address-miss refinement, compared independently with F; not the owned1676 precursor.",
+  "source_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+  "F_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "prior_gate_scope": "Coordinator will supply successful exact-source Linux and SDK gates before launch; full44 incomplete.",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "entry_sha256": "44c8783df53dbbd22abb102d6f9c21b893898a6720d84aad088bc4dbaefc5e5b",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "artifacts": {
+    "e": {
+      "name": "a53-local-address-miss-stack-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-local-address-miss-stack-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "local-address-miss-stack": {
+      "name": "a53-local-address-miss-stack-artifact-local-address-miss-stack",
+      "sha256": null
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "schedule": [
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 1,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r1-c"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 1,
+      "side": "rust",
+      "artifact": "local-address-miss-stack",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r1-rust"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 2,
+      "side": "rust",
+      "artifact": "local-address-miss-stack",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r2-rust"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 2,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r2-c"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 3,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r3-c"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 3,
+      "side": "rust",
+      "artifact": "local-address-miss-stack",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r3-rust"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 4,
+      "side": "rust",
+      "artifact": "local-address-miss-stack",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r4-rust"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 4,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r4-c"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 5,
+      "side": "c",
+      "artifact": "f",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r5-c"
+    },
+    {
+      "group": "f-vs-local-address-miss-stack",
+      "round": 5,
+      "side": "rust",
+      "artifact": "local-address-miss-stack",
+      "mode": null,
+      "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r5-rust"
+    }
+  ],
+  "measurement_environment": "No DNSMASQ_UDP_STAGE or allocation-meter variables. Both normal product ELFs use the unchanged real cache/local answer.",
+  "output_requirements": [
+    "10 attempts in five alternating F/address-dispatch pairs; no extra windows, supplements or replacement.",
+    "Each6000 fixture replies correct, including1000 prewarm; original steady upstream0, file/live ELF, single process/thread samples and final endpoint, isolated namespace, case/daemon exit0.",
+    "Original20s measurement and100Hz CPU endpoint over5000 completed warmup+measurement queries; original W/direction and exclusive8tick median-difference gate.",
+    "First archive attempt retained even if partial; any failed gate stops; verify all raw bytes before pruning valid device copies.",
+    "Fresh>=120s health; unchanged guard/prod identity; restore E/F slots only after no owned daemon remains."
+  ],
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "automatic_replacement": false,
+  "source_inputs_expected": 179,
+  "pending_before_launch": [
+    "Coordinator confirms exact-source Linux gates and SDK artifact identities.",
+    "Download complete immutable ELF/map/build before Oracle next timing; verify all179 source files and full artifact hashes.",
+    "Commit bound identities, complete preceding device postflight, then fresh>=120s health and frozen original tool/recovery gates."
+  ],
+  "artifact_verification_receipt_sha256": null
+}
