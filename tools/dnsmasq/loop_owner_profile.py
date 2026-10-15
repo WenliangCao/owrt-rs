@@ -205,8 +205,8 @@ def main():
         assert not child_path.read_text().strip(), 'prewarm must leave no unobserved children'
         instruments = []
         if observer == 'strace':
-            tracer = start(['strace', '-I2', '-yy', '-ttt', '-s', '0', '-e',
-                'trace=network,ppoll,close,fcntl,ioctl', '-p', daemon.pid,
+            tracer = start(['strace', '-f', '-v', '-I2', '-yy', '-ttt', '-s', '0', '-e',
+                'trace=all', '-p', daemon.pid,
                 '-o', out / 'syscalls.txt'], 'strace')
             deadline = time.monotonic() + 5
             while not re.search(r'TracerPid:\s+[1-9]', (proc / 'status').read_text()):
