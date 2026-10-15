@@ -2283,6 +2283,7 @@ struct SinglePoll {
     edns_max: u16,
     m6b: M6bDiagnostics,
     udp_buffer: Vec<u8>,
+    udp_batch_limit: usize,
     #[cfg(target_os = "linux")]
     signal_wake_read: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
@@ -3159,6 +3160,7 @@ impl SinglePoll {
             edns_max,
             m6b: M6bDiagnostics::new(listener_count),
             udp_buffer: vec![0; 65_535],
+            udp_batch_limit: UDP_PACKETS_PER_TURN,
             #[cfg(target_os = "linux")]
             signal_wake_read: None,
             #[cfg(target_os = "linux")]
@@ -4416,6 +4418,15 @@ impl SinglePoll {
                 }
             };
             let waited = started.elapsed();
+            // An idle wake usually carries one query: avoid the terminal
+            // EAGAIN receive. A prompt next poll restores bounded draining
+            // for queued bursts. This is only a scheduling hint; readiness
+            // and the unchanged per-turn budget still bound all UDP work.
+            self.udp_batch_limit = if waited >= Duration::from_millis(1) {
+                1
+            } else {
+                UDP_PACKETS_PER_TURN
+            };
             let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
             let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
             let signal_ready = signal_fd_index
@@ -4639,13 +4650,13 @@ impl SinglePoll {
         for index in 0..listeners {
             if udp_budget != 0 {
                 let mut batch = 0;
-                while udp_budget != 0 && self.step_udp(index) {
+                while batch < self.udp_batch_limit && udp_budget != 0 && self.step_udp(index) {
                     udp_budget -= 1;
                     batch += 1;
                 }
                 if self.m6b.enabled() {
                     let counters = self.m6b.listener_mut(index);
-                    counters.max_batch = counters.max_batch.max(batch);
+                    counters.max_batch = counters.max_batch.max(batch as u64);
                     if udp_budget == 0 {
                         counters.budget_yields += 1;
                     }
@@ -8695,6 +8706,59 @@ mod tests {
     fn udp_turn_budget_is_bounded_for_service_fairness() {
         assert!(UDP_PACKETS_PER_TURN > 1);
         assert!(UDP_PACKETS_PER_TURN <= 64);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn udp_idle_batch_preserves_queued_packets_and_busy_budget() {
+        for first_length in [0, 2, 1233] {
+            let mut config = DnsConfig::default();
+            config.bind_interfaces = true;
+            config.no_hosts = true;
+            config.no_resolv = true;
+            config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+            let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+                DaemonOptions::default()).unwrap();
+            let mut owner = test_owner(config, Some(daemon));
+            let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+            let address = udp.local_addr().unwrap();
+            owner.add_listener(SocketToken(1), Some(udp), None);
+            let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+            client.set_nonblocking(true).unwrap();
+            let query = test_dns_query();
+            let first = if first_length == 0 { query.clone() } else { vec![0; first_length] };
+            client.send_to(&first, address).unwrap();
+            // More than one full busy budget must remain after the idle turn.
+            for _ in 0..=UDP_PACKETS_PER_TURN {
+                client.send_to(&query, address).unwrap();
+            }
+            owner.wait_for_files().unwrap();
+            // Select both scheduling modes explicitly: correctness must not
+            // depend on how long the scheduler happened to suspend this test.
+            owner.udp_batch_limit = 1;
+            owner.step().unwrap();
+            let mut answer = [0; 1232];
+            if first_length == 0 {
+                let (length, _) = client.recv_from(&mut answer).unwrap();
+                assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
+            }
+            assert_eq!(client.recv_from(&mut answer).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+            owner.wait_for_files().unwrap();
+            owner.udp_batch_limit = UDP_PACKETS_PER_TURN;
+            owner.step().unwrap();
+            for _ in 0..UDP_PACKETS_PER_TURN {
+                let (length, _) = client.recv_from(&mut answer).unwrap();
+                assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
+            }
+            assert_eq!(client.recv_from(&mut answer).unwrap_err().kind(), io::ErrorKind::WouldBlock,
+                       "busy draining must retain the original shared budget");
+            owner.wait_for_files().unwrap();
+            owner.udp_batch_limit = 1;
+            owner.step().unwrap();
+            let (length, _) = client.recv_from(&mut answer).unwrap();
+            assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
+            assert_eq!(client.recv_from(&mut answer).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        }
     }
 
     #[test]
