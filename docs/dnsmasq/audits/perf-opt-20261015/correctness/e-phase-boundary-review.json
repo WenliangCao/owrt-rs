@@ -1,0 +1,44 @@
+{
+  "scope": "Local static review of retained E device baseline phase-boundary rejection; no runtime mutation, capture, rerun or retroqualification",
+  "receipt_commit": "8d99220f5a9bbcb06ff3b4fac4a873a5bacfd6b2",
+  "receipt_sha256": "c5922ec1493be81e602d2ae532204a86c97eb1c9f06d60d516811b41e4dfc30d",
+  "window": "candidate-e-udp-miss-r4-c",
+  "current_frozen_validity": false,
+  "source_identity": {
+    "tools/dnsmasq/m6a_loadgen.c": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4",
+    "tools/dnsmasq/m6a_upstream.c": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee",
+    "tools/dnsmasq/perf_opt_device_run.py": "e3d070dc4b38108f16cc953a2cb86dfa2f250f1738ba17c0731b12fc665b5458",
+    "tools/dnsmasq/perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "tools/dnsmasq/perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "docs/dnsmasq/PERF_DEVICE_20261014.md": "83a85577ee77e6a8dd2e8b0c9916cd5ad400df1cf663d8a070cb90300a612599"
+  },
+  "findings": [
+    "Client assigns phase to initiated request, retains outstanding requests after end for drain, and records successful late completion separately without changing correct status.",
+    "Upstream attributes request to answer processing time; post20seconds is called saturation even when no saturation workload runs.",
+    "Validator requires exact client scheduled/sent/correct counts yet also exact upstream steady4000. The latter imposes an additional processing-time cutoff beyond request-cohort drain.",
+    "Frozen documented CPU denominator covers warmup anddrain and analyzer retains all measured-correct latencies. Exacttimebucket4000 is not intrinsically necessary for fullcohort comparison, but remains binding for the current attempt."
+  ],
+  "prospective_minimal_repair_only": {
+    "scope": "A separate next-version no-saturation miss validator; no change to running or retained E attempt",
+    "exact_total": "warmup+measurement upstream requests=replies=5000, no miss prewarm; retain exact client1000+4000,zeroerror/skip and full late/lag/latency reporting",
+    "do_not": [
+      "Do not add an arbitrary+1 tolerance.",
+      "Do not only sum steady+saturation because warmup can cross the start boundary.",
+      "Do not generalize to hit/mixed without proven prewarm/lifetime accounting or explicit sequence cohorts.",
+      "Do not rewrite E validity or replace individual windows."
+    ],
+    "required_reproducer_controls": [
+      "upstream handling immediately before/after start/end boundaries",
+      "reply-only late completion with in-window upstream request",
+      "missing and extra upstream forwarding rejected",
+      "skip/wrong/timeout/transport error retained as failure"
+    ]
+  },
+  "limits": [
+    "Read retained receipt and matching source, but did not reverify device raw archive in this review.",
+    "No per-request upstream timestamps/IDs exist, so individual lateupstream request cannot be matched conclusively to lastclient request.",
+    "No attribution of underlying scheduler/product delay follows."
+  ],
+  "implementation_changed": false,
+  "new_framework_created": false
+}
