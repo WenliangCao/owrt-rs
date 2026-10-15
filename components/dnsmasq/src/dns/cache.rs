@@ -155,10 +155,18 @@ pub struct Entry {
     /// these bytes while owning its own expiry, links and generation state.
     pub record: Arc<Record>,
     pub expires: i64,
-    target: Option<CnameTarget>,
-    authority_name: Option<Name>,
+    metadata: Option<Arc<EntryMetadata>>,
     referenced: bool,
     committed: bool,
+}
+
+// Ordinary positive addresses need neither field. Keep their slot content
+// compact while sharing these immutable values across TCP snapshots. Only a
+// metadata setter detaches them, after the containing content block detaches.
+#[derive(Debug, Clone, Default)]
+struct EntryMetadata {
+    target: Option<CnameTarget>,
+    authority_name: Option<Name>,
 }
 
 impl Entry {
@@ -177,11 +185,19 @@ impl Entry {
     }
 
     pub fn cname_target(&self) -> Option<CnameTarget> {
-        self.target.clone()
+        self.cname_target_ref().cloned()
+    }
+
+    fn cname_target_ref(&self) -> Option<&CnameTarget> {
+        self.metadata.as_deref().and_then(|metadata| metadata.target.as_ref())
     }
 
     pub fn negative_authority_name(&self) -> Option<&Name> {
-        self.authority_name.as_ref()
+        self.metadata.as_deref().and_then(|metadata| metadata.authority_name.as_ref())
+    }
+
+    fn metadata_mut(&mut self) -> &mut EntryMetadata {
+        Arc::make_mut(self.metadata.get_or_insert_with(|| Arc::new(EntryMetadata::default())))
     }
 }
 
@@ -865,8 +881,7 @@ impl Cache {
         *self.entry_mut(slot) = Some(Entry {
             record: Arc::new(record),
             expires,
-            target: None,
-            authority_name: None,
+            metadata: None,
             referenced: preserved.is_some(),
             committed: false,
         });
@@ -939,7 +954,7 @@ impl Cache {
         if !entry.record.negative {
             return false;
         }
-        entry.authority_name = Some(authority);
+        entry.metadata_mut().authority_name = Some(authority);
         true
     }
 
@@ -953,7 +968,7 @@ impl Cache {
             return false;
         }
         self.entry_mut(target.slot).as_mut().unwrap().referenced = true;
-        self.entry_mut(cname.slot).as_mut().unwrap().target = Some(CnameTarget::Dynamic(target));
+        self.entry_mut(cname.slot).as_mut().unwrap().metadata_mut().target = Some(CnameTarget::Dynamic(target));
         true
     }
 
@@ -975,7 +990,7 @@ impl Cache {
         {
             return false;
         }
-        self.entry_mut(cname.slot).as_mut().unwrap().target = Some(CnameTarget::Local(target));
+        self.entry_mut(cname.slot).as_mut().unwrap().metadata_mut().target = Some(CnameTarget::Local(target));
         true
     }
 
@@ -1064,7 +1079,7 @@ impl Cache {
                         },
                     },
                     expires: entry.expires,
-                    authority_name: entry.authority_name.clone(),
+                    authority_name: entry.negative_authority_name().cloned(),
                 });
             }
         }
@@ -1244,7 +1259,7 @@ impl Cache {
     fn outdated_cname(&self, slot: usize) -> bool {
         let entry = self.entry(slot).unwrap();
         entry.record.kind == Kind::Cname
-            && match &entry.target {
+            && match entry.cname_target_ref() {
                 None => true,
                 Some(CnameTarget::Dynamic(id)) => self.get(*id).is_none(),
                 Some(CnameTarget::Local(target)) => target

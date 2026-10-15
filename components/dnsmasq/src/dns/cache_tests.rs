@@ -1,6 +1,33 @@
 use super::*;
 
 #[test]
+fn snapshot_metadata_updates_keep_target_and_authority_independent() {
+    let mut parent = Cache::new(8, Policy::default());
+    parent.start_insert();
+    let first = parent.insert(record("first.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    let second = parent.insert(record("second.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    // The public setters permit both values even for this unusual record.
+    // Compact storage must preserve that contract rather than make a union.
+    let alias = parent.insert(Record {
+        name: Name::from_ascii("alias.test").unwrap(), kind: Kind::Cname,
+        negative: true, data: Vec::new(),
+    }, 100, 60).unwrap();
+    assert!(parent.set_cname_target(alias, first));
+    assert!(parent.set_negative_authority(alias, Name::from_ascii("old.test").unwrap()));
+    assert!(parent.commit());
+    let mut child = parent.snapshot();
+    assert!(child.set_cname_target(alias, second));
+    assert!(matches!(parent.get(alias).unwrap().cname_target(), Some(CnameTarget::Dynamic(id)) if id == first));
+    assert_eq!(child.get(alias).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("old.test").unwrap());
+    assert!(child.set_negative_authority(alias, Name::from_ascii("new.test").unwrap()));
+    assert_eq!(parent.get(alias).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("old.test").unwrap());
+    assert!(matches!(child.get(alias).unwrap().cname_target(), Some(CnameTarget::Dynamic(id)) if id == second));
+    drop(parent);
+    assert!(child.is_valid(alias, 100));
+    assert_eq!(child.get(alias).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("new.test").unwrap());
+}
+
+#[test]
 fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
     let mut cache = Cache::new(8, Policy::default());
     cache.start_insert();
