@@ -873,3 +873,77 @@ No G is selected and no new physical performance win is claimed. Next decide
 from the immutable fresh-address device result, then prioritize actual A53
 evidence for compact metadata and the writer refinement. Keep the PGO smoke
 separate, do not expand the test framework, and do not mutate active artifacts.
+
+## Continuation through 01:16 local, 2026-10-16
+
+Fresh-address parent completed exact-SDK owner32 and A53 ten windows. Oracle
+low CPU28→30 remains inconclusive; high variable-N CPU/query−5.347%, throughput
++5.666%, response p50/p95 improve, but sender lag p50/p95 worsen beyond W.
+A53 F130→124us has3tick difference and absolute change exactly equal to W,
+so both strict precision and variation criteria reject promotion. All raw and
+independent audits pass; this is a valid inconclusive outcome, not a tool failure.
+
+The next three prototypes pass2803 related Linux tests in total and unchanged
+SDK builds. All three artifact sets were downloaded before their timing. Cold
+metadata's native240 has1 small gain,5 regressions (configured-CNAME+5.201%),
+9 inconclusive scenes. Its A53 ten windows are134→130us,2ticks, inconclusive;
+RssAnon peak medians520→472KiB are retained separately as memory evidence, not
+USS or CPU attribution. Cold metadata is retired for the current performance
+candidate and receives no SDK owner32 follow-up. The source remains archived.
+Frame and hosts-index240 native and ten-window physical rounds continue with
+independent F controls. All exact SDK code/frame differences are recorded in
+`dns/NEXT_CACHE_SDK_CODEGEN.md`; no static reservation is called runtime cost.
+
+PGO smoke1 stopped during Cargo compiler discovery before compilation. The
+separate pinned-RUSTC repair passes its real empty-PATH regression. Smoke2
+then built a hardened control but its hash did not reproduce E, so generate
+and runtime never started. The difference is now traced to the prepared package
+path: Cargo path-dependency metadata changes when that root moves, despite
+corresponding source remaps. A real two-crate local regression confirms this.
+Tool repair `3b4abe0b` restores the canonical E build-slot/control target and
+binds them to the original receipt; smoke3 retains the exact-E identity gate.
+All10 integrated local PGO tool tests pass when invoked with the existing tools
+module path. The earlier missing-PYTHONPATH invocation is retained privately.
+PGO is still unproved; there is no instrumented product/profile/training result.
+
+Root prepared a more direct local ownership miss experiment:
+
+- Source `1676fbb6` (product9617d93e) proves no local A/AAAA ownership or lookup
+  side effects, then retains the original cache name hint and returns None
+  before local reply machinery. Broad config/hosts/lease/bulk guards preserve
+  the original fallback. Local715/8 plus two added/updated fixture tests pass.
+  It adds one allocation on four fallback classes, retained in its hot15 data.
+- Child `c44cd116` uses the existing bounded253B converter only inside the
+  non-inline miss-check helper. Original general local/expiry functions remain
+  unchanged. Local717/8 and musl checking pass. Hot15 now saves one21B fixture
+  allocation on four hit classes, both misses, RRset and CNAME-with-leases;
+  the parent's four extra allocation counts disappear. Host-localise varying
+  reallocations/requested bytes remain explicitly reported, not attributed.
+- Local integration `8d572ba1` cherry-picks fresh writer refinement and bounded
+  local miss only. No conflicts/manual product edits; six files match the two
+  original source variants byte-for-byte. Local719/8, musl checking and30 hot15
+  controls pass. Ordinary hit4→2 allocations/245→160 requested bytes. This tree
+  is not G, has no remote build or timing, and gains must not be added together.
+  Source-interaction review finds no blocker; runtime/selection remain pending.
+
+A review hypothesis about filterwin2k plus a missing Additional RR was disproved
+by a reproducer and the helper's actual error boundary. Original and prototype
+both return no local answer. The erroneous expected-error assertion is retained,
+corrected regression passes, and no unnecessary product guard was committed.
+This is not recorded as a product bug or changed C expectation.
+
+Next non-timing reservation is conditionally authorized after loop's three
+native rounds fully exit and release: correctness runs1676 then c44 related
+Linux gates on CPU2 with separate179-file manifests; DNS runs canonical-path
+PGO smoke3 under the SDK reservation. Completed agents must be awakened using
+followup_task. Root's next two-SDK controller is prepared locally at
+`private/perf-opt-20261015/local-miss-sdk-inputs/build-sdk.py`; it must wait for
+both runtime gates and smoke3's SDK release. Integration is local only. Fixed
+independent240-window plans for each local-miss variant are committed but not
+started. Do not mutate or pool any already measured artifact/sample.
+
+Retired standalone source heads now have annotated archive tags and detached
+worktrees: read-one, reply layout, address dispatch, cold metadata, UDP name
+buffer, adaptive idle batching, original fresh-address parent. All private
+artifacts remain in place; active refinements/integration branches are intact.
+E remains the only accepted optimization candidate; production is unchanged.
