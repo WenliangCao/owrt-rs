@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "status": "functional-qualification-passed",
+  "candidate": "F",
+  "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_tag": "perf/dnsmasq-candidate-f-20261015",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+  "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-f",
+  "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "elf_bytes": 2136859,
+  "same_build_map_sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+  "same_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+  "short_tests": 950,
+  "families": 44,
+  "jobs": 67,
+  "raw_family_result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-families-attempt1/result.json",
+  "raw_family_result_sha256": "5c53b6d67fef84e97a4c7b5946d044c0fb67773b01423171f0f15f4bcde70032",
+  "raw_family_state_sha256": "6d9ca88d6786656393ae1f7e905af4e33c38177a282b6796fea3fb53aa6220ee",
+  "all_original_jobs_raw_passed": true,
+  "all_job_inventories_identical_to_E": true,
+  "new_or_unclassified_failures": [],
+  "known_classifications": {
+    "F10": "Original approved PTR-order manifest; 39 raw ptr-order-only differences retained",
+    "protocol": "Original two exact-C forward-pointer defects retained",
+    "lease": "Exact two historical UID-reuse differences; original raw comparator exit1 retained under explicit user instruction"
+  },
+  "receipts": {
+    "f-short-independent-gates.json": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-short-independent-gates.json",
+      "sha256": "6f05770f345743440876a512ee732febedaa23e23da887d7bbcfa493dcb5279f"
+    },
+    "f-boundary-independent-gates.json": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-boundary-independent-gates.json",
+      "sha256": "6169e68edda569c1942cf35a8dad2661e23edfd9a3c198ad62b18c1ea0bc567e"
+    },
+    "f-full44-independent-audit.json": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-full44-independent-audit.json",
+      "sha256": "22337fb95e6a876c22574ce4915eb9d5d136b6e84cf50ac41fea25d398c22ad0"
+    }
+  },
+  "quiet_receipt": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/f-final-quiet.json",
+    "sha256": "569ccb51d7e7572b4b5744f633f1d32dd0d86e3dfd0b05a37a5f6773bfb5444e",
+    "value": {
+      "epoch": 1792086687.399669,
+      "correctness_controllers": {
+        "f-short.launch.json": {
+          "pid": 310233,
+          "same_running_process": false
+        },
+        "f-families-attempt1.launch.json": {
+          "pid": 313413,
+          "same_running_process": false
+        },
+        "f-remaining.launch.json": {
+          "pid": 319592,
+          "same_running_process": false
+        }
+      },
+      "task_processes_active": [],
+      "prototype_result_sha256": "f5f965082df229722060d4f2213da17def1b4910f09057a8fb6689fffddf3368",
+      "prototype_status": "complete",
+      "prototype_active": null,
+      "prototype_STOP_set": true,
+      "retired_wrapper_cleanup_sha256": "a1229ea68f93b8a0706f594429b605c7c52ec9462f8932c8034f8f83cb1d0ecd",
+      "quiet_for_F_oracle": true,
+      "scope": "Root-readable task-process scan: no live process command references the owned task tree. Correctness controllers exited; prototype complete; retired stopped wrappers with exited Python children cleaned with evidence retained."
+    }
+  },
+  "ready_for_exclusive_oracle_timing": true,
+  "ready_for_authorized_router_isolated_performance": true,
+  "performance_accepted": false,
+  "deployed": false,
+  "handoff_authorization": "Root explicitly preauthorized direct handoff after full functional gates, artifact identity and quiet checks; no second confirmation required. Router health/staging and110-window validation remain their owners responsibility."
+}
