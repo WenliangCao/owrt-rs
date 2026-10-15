@@ -2045,7 +2045,7 @@ mod tests {
 
     const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";
 
-    fn bulk_fixture(retained_lease: Option<bool>) -> Hosts {
+    fn bulk_fixture(retained_lease: Option<bool>, input: &[u8]) -> Hosts {
         let mut hosts = Hosts::new();
         hosts.begin_bulk(1497, 1000, 1000).unwrap();
         if let Some(immortal) = retained_lease {
@@ -2053,11 +2053,7 @@ mod tests {
                 .add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, immortal)
                 .unwrap();
         }
-        assert!(
-            !hosts
-                .read(REPEATED_ADDRESS_FIXTURE, 2, 37, false, |_| None)
-                .allocation_failed
-        );
+        assert!(!hosts.read(input, 2, 37, false, |_| None).allocation_failed);
         hosts
     }
 
@@ -2072,7 +2068,7 @@ mod tests {
 
     #[test]
     fn bulk_reverse_link_reuse_preserves_multiple_ptr_owners_and_mixed_rotation() {
-        let mut hosts = bulk_fixture(None);
+        let mut hosts = bulk_fixture(None, REPEATED_ADDRESS_FIXTURE);
         assert_eq!(
             reverse_names(&hosts, "192.0.2.1"),
             [b"x.test".to_vec(), b"y.test".to_vec()]
@@ -2102,8 +2098,21 @@ mod tests {
 
     #[test]
     fn retained_finite_and_immortal_lease_links_follow_exact_c_counterexample() {
-        let finite = bulk_fixture(Some(false));
-        let immortal = bulk_fixture(Some(true));
+        // The counterexample needs the old owner outside a.test's name bucket.
+        // Otherwise cache_hash inserts the hosts a.test before the immortal
+        // lease, and its next link makes that lease suppress y.test's PTR too.
+        // Name hashing includes process pointers, so fixed names cannot ensure it.
+        let old = (0..10000)
+            .map(|id| format!("old{id}.test"))
+            .find(|name| {
+                name_hash_bucket(name.as_bytes(), 1000) != name_hash_bucket(b"a.test", 1000)
+            })
+            .expect("bounded name pool has a separate bucket");
+        let input = std::str::from_utf8(REPEATED_ADDRESS_FIXTURE)
+            .unwrap()
+            .replace("old.test", &old);
+        let finite = bulk_fixture(Some(false), input.as_bytes());
+        let immortal = bulk_fixture(Some(true), input.as_bytes());
         assert_eq!(reverse_names(&finite, "192.0.2.1"), [b"x.test".to_vec()]);
         assert_eq!(
             reverse_names(&immortal, "192.0.2.1"),
@@ -2118,7 +2127,7 @@ mod tests {
     #[test]
     fn bulk_three_address_duplicate_and_no_round_robin_keep_reverse_groups() {
         for no_rr in [false, true] {
-            let mut hosts = bulk_fixture(None);
+            let mut hosts = bulk_fixture(None, REPEATED_ADDRESS_FIXTURE);
             hosts.set_round_robin(!no_rr);
             let before = hosts.len();
             assert!(
