@@ -1,0 +1,1512 @@
+{
+  "schema": 1,
+  "status": "LOCAL PREPARATION ONLY; full correctness receipt and root execution decision pending; no new measurement authorized",
+  "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+  "artifact": {
+    "elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+    "elf_bytes": 2140955,
+    "map_sha256": "641f79fc1faadfacbec4c600db5a2c55426fd69a1eb38c5c5c46ef692c2998cf",
+    "build_receipt_sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6"
+  },
+  "related_linux": {
+    "tests": 938,
+    "batch_total": 2809,
+    "verified_receipt_sha256": "050fe64b167ad1c449449e074ff62df876ab132285317a18fa38813a25f43c53",
+    "full44_pass": false,
+    "full_qualification_receipt_sha256": null
+  },
+  "full_correctness_required": [
+    "All ordinary and relevant ignored namespace/config/frozen-clock tests; explicit16 hosts_allocations and all original allocation-failure families",
+    "Canonical44 C differential families,68 registered/67 executed procedural steps with190 semantic requirements, frozen exactC",
+    "Daemon368 pairs/366 identical plus original2 C-invalid qualifiers,8 lifecycles and5 negative controls",
+    "F10all13/704observations plus original24 checker controls and approved PTR manifest",
+    "TCP upstream13conditions/50pairs plus7 original tool tests",
+    "Independent exact-source review and affected historical DNS regressions"
+  ],
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "controller_history": "7c93 includes only prior archive-verified pruning and preservation repair43f7fc58; original F/E launch702042 remains historical",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "scenes": [
+    [
+      "udp-hit",
+      "udp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-miss",
+      "udp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-mixed",
+      "udp",
+      "mixed",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-hit",
+      "tcp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-miss",
+      "tcp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "dhcp-home6",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      6
+    ],
+    [
+      "dhcp",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      150
+    ],
+    [
+      "startup-small",
+      "life-startup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "config-small",
+      "life-config",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-small",
+      "life-hup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-large",
+      "life-hup",
+      999,
+      150,
+      20,
+      1000,
+      150
+    ]
+  ],
+  "matrices": [
+    {
+      "prefix": "integration-vs-e",
+      "left_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "right_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "windows": 110,
+      "schedule": [
+        {
+          "scene": "udp-hit",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-udp-hit-r1-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-udp-hit-r1-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-udp-hit-r2-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-udp-hit-r2-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-udp-hit-r3-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-udp-hit-r3-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-udp-hit-r4-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-udp-hit-r4-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-udp-hit-r5-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-udp-hit-r5-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-udp-miss-r1-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-udp-miss-r1-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-udp-miss-r2-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-udp-miss-r2-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-udp-miss-r3-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-udp-miss-r3-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-udp-miss-r4-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-udp-miss-r4-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-udp-miss-r5-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-udp-miss-r5-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-udp-mixed-r1-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-udp-mixed-r1-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-udp-mixed-r2-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-udp-mixed-r2-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-udp-mixed-r3-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-udp-mixed-r3-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-udp-mixed-r4-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-udp-mixed-r4-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-udp-mixed-r5-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-udp-mixed-r5-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-tcp-hit-r1-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-hit-r1-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-hit-r2-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-tcp-hit-r2-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-tcp-hit-r3-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-hit-r3-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-hit-r4-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-tcp-hit-r4-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-tcp-hit-r5-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-hit-r5-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-tcp-miss-r1-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-miss-r1-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-miss-r2-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-tcp-miss-r2-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-tcp-miss-r3-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-miss-r3-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-miss-r4-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-tcp-miss-r4-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-tcp-miss-r5-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-tcp-miss-r5-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-home6-r1-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-home6-r1-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-home6-r2-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-home6-r2-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-home6-r3-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-home6-r3-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-home6-r4-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-home6-r4-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-home6-r5-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-home6-r5-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-r1-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-r1-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-r2-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-r2-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-r3-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-r3-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-r4-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-r4-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-dhcp-r5-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-dhcp-r5-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-startup-small-r1-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-startup-small-r1-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-startup-small-r2-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-startup-small-r2-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-startup-small-r3-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-startup-small-r3-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-startup-small-r4-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-startup-small-r4-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-startup-small-r5-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-startup-small-r5-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-config-small-r1-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-config-small-r1-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-config-small-r2-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-config-small-r2-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-config-small-r3-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-config-small-r3-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-config-small-r4-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-config-small-r4-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-config-small-r5-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-config-small-r5-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-hup-small-r1-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-hup-small-r1-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-hup-small-r2-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-hup-small-r2-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-hup-small-r3-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-hup-small-r3-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-hup-small-r4-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-hup-small-r4-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-hup-small-r5-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-hup-small-r5-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-e-hup-large-r1-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-e-hup-large-r1-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-e-hup-large-r2-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-e-hup-large-r2-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-e-hup-large-r3-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-e-hup-large-r3-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-e-hup-large-r4-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-e-hup-large-r4-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-e-hup-large-r5-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-e-hup-large-r5-rust"
+        }
+      ],
+      "execution_authorized": false,
+      "scope": "Primary current increment versus accepted E"
+    },
+    {
+      "prefix": "integration-vs-deployed",
+      "left_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "right_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+      "windows": 110,
+      "schedule": [
+        {
+          "scene": "udp-hit",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-hit-r1-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-hit-r1-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-hit-r2-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-hit-r2-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-hit-r3-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-hit-r3-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-hit-r4-rust"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-hit-r4-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-hit-r5-c"
+        },
+        {
+          "scene": "udp-hit",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-hit-r5-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-miss-r1-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-miss-r1-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-miss-r2-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-miss-r2-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-miss-r3-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-miss-r3-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-miss-r4-rust"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-miss-r4-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-miss-r5-c"
+        },
+        {
+          "scene": "udp-miss",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-miss-r5-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-mixed-r1-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-mixed-r1-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-mixed-r2-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-mixed-r2-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-mixed-r3-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-mixed-r3-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-mixed-r4-rust"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-mixed-r4-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-udp-mixed-r5-c"
+        },
+        {
+          "scene": "udp-mixed",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-udp-mixed-r5-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-hit-r1-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-hit-r1-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-hit-r2-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-hit-r2-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-hit-r3-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-hit-r3-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-hit-r4-rust"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-hit-r4-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-hit-r5-c"
+        },
+        {
+          "scene": "tcp-hit",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-hit-r5-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-miss-r1-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-miss-r1-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-miss-r2-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-miss-r2-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-miss-r3-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-miss-r3-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-miss-r4-rust"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-miss-r4-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-tcp-miss-r5-c"
+        },
+        {
+          "scene": "tcp-miss",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-tcp-miss-r5-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-home6-r1-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-home6-r1-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-home6-r2-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-home6-r2-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-home6-r3-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-home6-r3-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-home6-r4-rust"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-home6-r4-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-home6-r5-c"
+        },
+        {
+          "scene": "dhcp-home6",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-home6-r5-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-r1-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-r1-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-r2-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-r2-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-r3-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-r3-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-r4-rust"
+        },
+        {
+          "scene": "dhcp",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-r4-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-dhcp-r5-c"
+        },
+        {
+          "scene": "dhcp",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-dhcp-r5-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-startup-small-r1-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-startup-small-r1-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-startup-small-r2-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-startup-small-r2-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-startup-small-r3-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-startup-small-r3-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-startup-small-r4-rust"
+        },
+        {
+          "scene": "startup-small",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-startup-small-r4-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-startup-small-r5-c"
+        },
+        {
+          "scene": "startup-small",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-startup-small-r5-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-config-small-r1-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-config-small-r1-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-config-small-r2-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-config-small-r2-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-config-small-r3-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-config-small-r3-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-config-small-r4-rust"
+        },
+        {
+          "scene": "config-small",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-config-small-r4-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-config-small-r5-c"
+        },
+        {
+          "scene": "config-small",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-config-small-r5-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-small-r1-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-small-r1-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-small-r2-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-small-r2-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-small-r3-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-small-r3-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-small-r4-rust"
+        },
+        {
+          "scene": "hup-small",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-small-r4-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-small-r5-c"
+        },
+        {
+          "scene": "hup-small",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-small-r5-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 1,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-large-r1-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 1,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-large-r1-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 2,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-large-r2-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 2,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-large-r2-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 3,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-large-r3-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 3,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-large-r3-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 4,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-large-r4-rust"
+        },
+        {
+          "scene": "hup-large",
+          "round": 4,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-large-r4-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 5,
+          "side": "c",
+          "label": "integration-vs-deployed-hup-large-r5-c"
+        },
+        {
+          "scene": "hup-large",
+          "round": 5,
+          "side": "rust",
+          "label": "integration-vs-deployed-hup-large-r5-rust"
+        }
+      ],
+      "execution_authorized": false,
+      "scope": "Separate fresh direct deployed comparison only if original B/N final acceptance/direct claim is requested; no historical transitive inference"
+    }
+  ],
+  "comparability": "No pooling of original E/B, F/E, exploratory10, Oracle or stage controls. Every new matrix gets its own contemporaneous controls and health receipt.",
+  "accepted_increment_rule": "F_E_NEXT_ROUND later user-targeted increment: UDP-hit CPU/query distinguishably lower than acceptedE; report TCP hit; no discernible p50/p95/CPU regression anywhere across11scenes. Original resource/correctness gates remain; no repeat demand for majority11-scene improvements for this E-relative increment.",
+  "original_deployed_rule": "FROZEN original candidate acceptance uses fresh B/N five pairs per scene and majority scene improvements/no regression. If claiming this original acceptance or direct v0.2.0 result, require independent B/integration110; current E-relative direction is not automatically an additional B-run requirement.",
+  "statistics": {
+    "metric": "median[min,max]",
+    "W": "max of each side full-range/median",
+    "discernibility": "abs(relative median delta)>W and>=4/5same direction",
+    "cpu": "all windows>=10ticks and median absolute tick delta>8",
+    "lifecycle_latency_resolution_ms": 1,
+    "p99_min_samples": 10000
+  },
+  "resource_gates": [
+    "Production exact file/live/PID-start and unchanged config; same netns/nice10/affinity, no production mutation/deployment",
+    "Available memory>=65536KiB; fresh>=120s guard health, thresholdceil(max(200,10*p95))<=700; HTTPSv4/v6 every30s",
+    "Retain RSS/RssAnon/RssFile/RssShmem/treeRSS/process/thread/treeFD/parentFD and all ranges; no RSS-to-USS claim, lifecycle values are readiness snapshots",
+    "ELF<=2200000 bytes, unchanged SDK/allocator/features/hardening; integration2140955 is+4096 overE2136859 and+16384 overB2124571; all growth measured/justified",
+    "No newly invented numeric relative-memory/FD allowance; retain frozen qualitative growth/resource review requirement"
+  ],
+  "tool_supplement": "Only after original110; exact evidence-based tool-invalid whole pair may be repeated once with original order/all tools/identities, both sides valid required. Product wrong/timeout/crash or unknown cause ineligible; no cherry-picking/favorable retries. Preserve original failures and selection map.",
+  "recovery": "No automatic health bypass or restart. Preserve STOP/failed attempt. Resume only unstarted schedule after independent ownership/identity/health recovery; no valid re-runs. Archive+manifest+hash+durable progress before remote pruning. Restore exact original stagedE/F only after no owned executables.",
+  "inputs_sha256": {
+    "docs/dnsmasq/audits/perf-opt-20261015/FROZEN.md": "cc74654b3076a67c8e0a2126efc839e18c0998effdc6c2f625be628dae8fb71a",
+    "docs/dnsmasq/audits/perf-opt-20261015/F_E_NEXT_ROUND.md": "89d7fbda79c8be285181f4e3799384b091e20997cbcc323276741faf2d99d25b",
+    "docs/dnsmasq/audits/perf-opt-20261015/F_E_LAUNCH_GATES.md": "47fed723553f8aaae6c9e8ecd2c5efd7a5ac0c54f3f4f65eb9901c96d6220bab",
+    "docs/dnsmasq/audits/perf-opt-20261015/FROZEN_TOOL_WINDOW_SUPPLEMENT.md": "cfb2b0c30f5aec3781f63e1850c5936558908bb3827276669503218ff79ca470",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/FROZEN_GATES.md": "d37639de2cbef5057886746ff30120b3e2af9f73e61f46a5a111bb28cbada186",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/local-cache-linux-gates.json": "2fc7f3817ef1e8c76c82689d6a484d3bfd998b1f6a61b8f5057e6d41f9e3d444",
+    "docs/dnsmasq/PERF_DEVICE_20261014.md": "83a85577ee77e6a8dd2e8b0c9916cd5ad400df1cf663d8a070cb90300a612599"
+  }
+}
