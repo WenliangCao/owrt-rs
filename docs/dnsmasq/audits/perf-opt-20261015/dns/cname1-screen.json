@@ -1,0 +1,331 @@
+{
+  "status": "screen-only-pending-quiet-timing-final-gates",
+  "baseline_source": "9b91a192 + b1136023 for PMU; allocation corpus from unchanged B on unexpired cases",
+  "alias_source": "16dec683 (B + b1136023 + alias comparison)",
+  "alias_cursor_source": "32ef5964 (B + b1136023 + alias comparison + cursor2)",
+  "probe_sha256": "48782d3b4532761b02b453bba65df59d1f8ddc42e84a1dcfc71a34a54da6bdd0",
+  "counts_scope": "Whole-API configured400aliases,10000ops PMU includes setup;8000ops allocations exclude setup/priming. Concurrent counters, not accepted timing.",
+  "configured_instructions": {
+    "baseline-b-fixed": {
+      "instructions": [
+        4980655825,
+        4980424384,
+        4980357826
+      ],
+      "median_instructions": 4980424384,
+      "operations": 10000
+    },
+    "cname1": {
+      "instructions": [
+        2288773391,
+        2286373575,
+        2288027226
+      ],
+      "median_instructions": 2288027226,
+      "operations": 10000
+    },
+    "cursor3": {
+      "instructions": [
+        2287542527,
+        2288492714,
+        2288223134
+      ],
+      "median_instructions": 2288223134,
+      "operations": 10000
+    }
+  },
+  "allocations": {
+    "baseline-b": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 48000,
+        "reallocations": 0,
+        "requested_bytes": 2328000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 6552000,
+        "reallocations": 0,
+        "requested_bytes": 155492800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ],
+    "cname1": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 48000,
+        "reallocations": 0,
+        "requested_bytes": 2328000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ],
+    "cursor3": [
+      {
+        "scene": "hit",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-upper",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 0,
+        "requested_bytes": 2144000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "hit-leases",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "miss",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "miss-leases",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 424000,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      {
+        "scene": "host",
+        "operations": 8000,
+        "allocations": 64000,
+        "reallocations": 0,
+        "requested_bytes": 3996800,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "scene": "rrset",
+        "operations": 8000,
+        "allocations": 40000,
+        "reallocations": 18400,
+        "requested_bytes": 6772800,
+        "live_bytes_delta": 0,
+        "checksum": 1566400
+      },
+      {
+        "scene": "cname",
+        "operations": 8000,
+        "allocations": 80000,
+        "reallocations": 0,
+        "requested_bytes": 4352000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-leases",
+        "operations": 8000,
+        "allocations": 88000,
+        "reallocations": 0,
+        "requested_bytes": 4520000,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      },
+      {
+        "scene": "cname-config",
+        "operations": 8000,
+        "allocations": 144000,
+        "reallocations": 0,
+        "requested_bytes": 8108800,
+        "live_bytes_delta": 0,
+        "checksum": 764800
+      }
+    ]
+  },
+  "raw_sha256": {
+    "cname1-config-pmu-1.perf": "6034145ecdf3b75153bad4ea14dd2421fe8ac401c824ae46763595b78248c91f",
+    "cname1-config-pmu-2.perf": "7645bf90d86d2635201e5aa09f3367f146b207573efda06acb6ee4cd64787b6d",
+    "cname1-config-pmu-3.perf": "1f9dee0592402e28b7f65d060cf0993d9e6173ce6e816c2d5d9fdca390c0c6e6",
+    "cname1-name-alloc.jsonl": "48796bf3e4421d35959af67f9b774f94ecf1cb56a0d092637b149b06eaf3c74d",
+    "cursor3-config-pmu-1.perf": "e516cd37fa6103d4fc6bcbe161fc620ebfbf62195e265746343b1c3c42c9e870",
+    "cursor3-config-pmu-2.perf": "c0a33f08acd463752f27d0fd8d13668fcc0d6000aacfaf48d157686c87265ca0",
+    "cursor3-config-pmu-3.perf": "3c936cc5d4f615589cefcbc99b9c1675933d92586eff34c40d5ff6a8eb6cf208",
+    "cursor3-name-alloc.jsonl": "e010f7117d1b55829999a11b966742c0a00d896805c7b339490c0cf8cf9c7a61"
+  },
+  "artifact_sha256": {
+    "cname1-hot-probe": "a72f12d857da6bcc59af468ef33eeb844fc83a2b5c769d458f2a88b2dae0b134",
+    "cname1-hot-probe-alloc": "8e06716b14409139d17bc10889276ceb3de56348aeda39263dc154e667109e58",
+    "cursor3-hot-probe": "a679fe220595d7d08cb95d2efebb1148038c1866574d3c4056a4ef4157a0bd7b",
+    "cursor3-hot-probe-alloc": "af0ba107f04bdf510031eb85885a4008b524501a4fdaa4111f48dcc9a514f489"
+  }
+}
