@@ -1,0 +1,2782 @@
+{
+  "scope": "Actual DNS socket API mechanism only, whole process including client/setup; not DNS parsing/answering or daemon acceptance.",
+  "plan": {
+    "scope": "Actual DNS socket API mechanism only, whole process including client/setup; not DNS parsing/answering or daemon acceptance.",
+    "payload_bytes": 32,
+    "scratch_bytes": 65535,
+    "cases": [
+      [
+        "receive-bound4",
+        1
+      ],
+      [
+        "receive-bound4",
+        16
+      ],
+      [
+        "receive-generic4",
+        1
+      ],
+      [
+        "receive-generic4",
+        16
+      ]
+    ],
+    "alloc_iterations": 1000,
+    "trace_iterations": 4,
+    "counter_iterations": 10000,
+    "counter_repeats": 5,
+    "counter_events": "{instructions:u,instructions:k,cycles:u,cycles:k}",
+    "counter_order": "case order fixed; E,candidate on even zero-based repeat, reversed on odd",
+    "runner_sha256": "5e5a185aeeccc2cdad212f19ec2c7e25ad1f2fb9d41429ef2b518afdc19cb16e",
+    "wrapper_sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "builds": {
+      "e-alloc": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "harness_sha256": "0c76de5bf6e1ff140718ba6020a3cd93669476292e081d5adf3a11dfb13d02ce",
+        "driver_sha256": "3fa23929776cbd505f59d969730f5f93920b6b896e06e9e2f4fffad89209c9e6",
+        "elf_sha256": "b87c2dfb3a9c1833a488e8d8e5a1be24d60afa3378b46d04b706a23a2491cc2e",
+        "configured_dns_bind": false,
+        "counting_allocator": true,
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-alloc-r2-20261015/input/components/dnsmasq/Cargo.toml",
+          "--example",
+          "loop-source-socket-screen",
+          "--message-format=json",
+          "--release"
+        ]
+      },
+      "e-counts": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "harness_sha256": "0c76de5bf6e1ff140718ba6020a3cd93669476292e081d5adf3a11dfb13d02ce",
+        "driver_sha256": "3fa23929776cbd505f59d969730f5f93920b6b896e06e9e2f4fffad89209c9e6",
+        "elf_sha256": "8ebbeaa26f39005eec48e82ce75a3bf74a66595d1f0d50983b3924f467e27509",
+        "configured_dns_bind": false,
+        "counting_allocator": false,
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/input/components/dnsmasq/Cargo.toml",
+          "--example",
+          "loop-source-socket-screen",
+          "--message-format=json",
+          "--release"
+        ]
+      },
+      "candidate-alloc": {
+        "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+        "harness_sha256": "0c76de5bf6e1ff140718ba6020a3cd93669476292e081d5adf3a11dfb13d02ce",
+        "driver_sha256": "3fa23929776cbd505f59d969730f5f93920b6b896e06e9e2f4fffad89209c9e6",
+        "elf_sha256": "1a2e231bffa1af58f124f99adeefdfc3da372e3124a324b3730f356195849146",
+        "configured_dns_bind": true,
+        "counting_allocator": true,
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-alloc-r2-20261015/input/components/dnsmasq/Cargo.toml",
+          "--example",
+          "loop-source-socket-screen",
+          "--message-format=json",
+          "--release"
+        ]
+      },
+      "candidate-counts": {
+        "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+        "harness_sha256": "0c76de5bf6e1ff140718ba6020a3cd93669476292e081d5adf3a11dfb13d02ce",
+        "driver_sha256": "3fa23929776cbd505f59d969730f5f93920b6b896e06e9e2f4fffad89209c9e6",
+        "elf_sha256": "b6b45000e1c8b63a3bf98958b64f97be0db3965ce05e7606ccbee97d6ab3fa51",
+        "configured_dns_bind": true,
+        "counting_allocator": false,
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/input/components/dnsmasq/Cargo.toml",
+          "--example",
+          "loop-source-socket-screen",
+          "--message-format=json",
+          "--release"
+        ]
+      }
+    }
+  },
+  "private_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-screen-r2-20261015",
+  "completed_attempts": 56,
+  "raw_manifest_sha256": "fcff48f88503c52892b989128dadf439ad311da4049469302db0234319355592",
+  "attempts_sha256": "53d538125d2e19b476f906debc37883fbdd093ccff8d2d12ca955d007cd96c11",
+  "summary_tool_sha256": "69236df4c8a98048852e77eb4d1893eba8ceab13a9edbd8a2a98a1e8e3c9113c",
+  "identities_after": {
+    "e-alloc": {
+      "elf_and_instrumented_source_verified_after": true,
+      "build_receipt_sha256": "95accdf755d59aa4c5b1e8c3524b8749524dc25ee310c74d7474701748d60682"
+    },
+    "e-counts": {
+      "elf_and_instrumented_source_verified_after": true,
+      "build_receipt_sha256": "aef6cb09540824cc81197e571585e4714f42555194cbdcedb31ca241ac88e96a"
+    },
+    "candidate-alloc": {
+      "elf_and_instrumented_source_verified_after": true,
+      "build_receipt_sha256": "9f0fd20035b184276913b71b43e006509d10efb8022f5a1b7e3418ea83f2897f"
+    },
+    "candidate-counts": {
+      "elf_and_instrumented_source_verified_after": true,
+      "build_receipt_sha256": "97f3c50946088606c7b934cda356825d37bce94d061572d9c65cf1fe85d6db44"
+    }
+  },
+  "allocation_results": [
+    {
+      "label": "alloc-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 1000,
+        "burst": 1,
+        "packets": 1000,
+        "receive_calls": 2000,
+        "would_block": 1000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 1000,
+        "burst": 1,
+        "packets": 1000,
+        "receive_calls": 2000,
+        "would_block": 1000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 1000,
+        "burst": 16,
+        "packets": 16000,
+        "receive_calls": 16000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 1000,
+        "burst": 16,
+        "packets": 16000,
+        "receive_calls": 16000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 1000,
+        "burst": 1,
+        "packets": 1000,
+        "receive_calls": 2000,
+        "would_block": 1000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 1000,
+        "burst": 1,
+        "packets": 1000,
+        "receive_calls": 2000,
+        "would_block": 1000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 1000,
+        "burst": 16,
+        "packets": 16000,
+        "receive_calls": 16000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    },
+    {
+      "label": "alloc-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 1000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 1000,
+        "burst": 16,
+        "packets": 16000,
+        "receive_calls": 16000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      }
+    }
+  ],
+  "syscall_results": [
+    {
+      "label": "trace-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 4,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 4,
+        "burst": 1,
+        "packets": 4,
+        "receive_calls": 8,
+        "would_block": 4,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 4,
+        "recvmsg": 8,
+        "sendmsg": 4,
+        "recvfrom": 4
+      },
+      "loop_errors": {
+        "recvmsg:EAGAIN": 4
+      },
+      "successful_recv_control": {
+        "controllen_32": 4,
+        "ip_pktinfo": 4
+      }
+    },
+    {
+      "label": "trace-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 4,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 4,
+        "burst": 1,
+        "packets": 4,
+        "receive_calls": 8,
+        "would_block": 4,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 4,
+        "recvmsg": 8,
+        "sendmsg": 4,
+        "recvfrom": 4
+      },
+      "loop_errors": {
+        "recvmsg:EAGAIN": 4
+      },
+      "successful_recv_control": {
+        "controllen_0": 4,
+        "ip_pktinfo": 0
+      }
+    },
+    {
+      "label": "trace-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 4,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 4,
+        "burst": 16,
+        "packets": 64,
+        "receive_calls": 64,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 64,
+        "recvmsg": 64,
+        "sendmsg": 64,
+        "recvfrom": 64
+      },
+      "loop_errors": {},
+      "successful_recv_control": {
+        "controllen_32": 64,
+        "ip_pktinfo": 64
+      }
+    },
+    {
+      "label": "trace-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 4,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 4,
+        "burst": 16,
+        "packets": 64,
+        "receive_calls": 64,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 64,
+        "recvmsg": 64,
+        "sendmsg": 64,
+        "recvfrom": 64
+      },
+      "loop_errors": {},
+      "successful_recv_control": {
+        "controllen_0": 64,
+        "ip_pktinfo": 0
+      }
+    },
+    {
+      "label": "trace-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 4,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 4,
+        "burst": 1,
+        "packets": 4,
+        "receive_calls": 8,
+        "would_block": 4,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 4,
+        "recvmsg": 8,
+        "sendmsg": 4,
+        "recvfrom": 4
+      },
+      "loop_errors": {
+        "recvmsg:EAGAIN": 4
+      },
+      "successful_recv_control": {
+        "controllen_32": 4,
+        "ip_pktinfo": 4
+      }
+    },
+    {
+      "label": "trace-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 4,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 4,
+        "burst": 1,
+        "packets": 4,
+        "receive_calls": 8,
+        "would_block": 4,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 4,
+        "recvmsg": 8,
+        "sendmsg": 4,
+        "recvfrom": 4
+      },
+      "loop_errors": {
+        "recvmsg:EAGAIN": 4
+      },
+      "successful_recv_control": {
+        "controllen_32": 4,
+        "ip_pktinfo": 4
+      }
+    },
+    {
+      "label": "trace-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 4,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 4,
+        "burst": 16,
+        "packets": 64,
+        "receive_calls": 64,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 64,
+        "recvmsg": 64,
+        "sendmsg": 64,
+        "recvfrom": 64
+      },
+      "loop_errors": {},
+      "successful_recv_control": {
+        "controllen_32": 64,
+        "ip_pktinfo": 64
+      }
+    },
+    {
+      "label": "trace-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 4,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 4,
+        "burst": 16,
+        "packets": 64,
+        "receive_calls": 64,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "loop_syscalls": {
+        "sendto": 64,
+        "recvmsg": 64,
+        "sendmsg": 64,
+        "recvfrom": 64
+      },
+      "loop_errors": {},
+      "successful_recv_control": {
+        "controllen_32": 64,
+        "ip_pktinfo": 64
+      }
+    }
+  ],
+  "counter_results": [
+    {
+      "label": "counter-0-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709503,
+        "instructions:k": 267047966,
+        "cycles:u": 5454025,
+        "cycles:k": 137399163
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9503,
+        "instructions:k": 26704.7966,
+        "cycles:u": 545.4025,
+        "cycles:k": 13739.9163
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5528713,
+        "instructions:k": 263893243,
+        "cycles:u": 5381043,
+        "cycles:k": 133647666
+      },
+      "events_per_packet": {
+        "instructions:u": 552.8713,
+        "instructions:k": 26389.3243,
+        "cycles:u": 538.1043,
+        "cycles:k": 13364.7666
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469629,
+        "instructions:k": 3972329691,
+        "cycles:u": 52862906,
+        "cycles:k": 1878820531
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93518125,
+        "instructions:k": 24827.06056875,
+        "cycles:u": 330.3931625,
+        "cycles:k": 11742.62831875
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 62369711,
+        "instructions:k": 3920660327,
+        "cycles:u": 49921648,
+        "cycles:k": 1836608223
+      },
+      "events_per_packet": {
+        "instructions:u": 389.81069375,
+        "instructions:k": 24504.12704375,
+        "cycles:u": 312.0103,
+        "cycles:k": 11478.80139375
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709537,
+        "instructions:k": 267147232,
+        "cycles:u": 5430878,
+        "cycles:k": 136742977
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9537,
+        "instructions:k": 26714.7232,
+        "cycles:u": 543.0878,
+        "cycles:k": 13674.2977
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5739129,
+        "instructions:k": 266966931,
+        "cycles:u": 5390367,
+        "cycles:k": 136618631
+      },
+      "events_per_packet": {
+        "instructions:u": 573.9129,
+        "instructions:k": 26696.6931,
+        "cycles:u": 539.0367,
+        "cycles:k": 13661.8631
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469035,
+        "instructions:k": 3971926390,
+        "cycles:u": 53306587,
+        "cycles:k": 1879011444
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93146875,
+        "instructions:k": 24824.5399375,
+        "cycles:u": 333.16616875,
+        "cycles:k": 11743.821525
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-0-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 65728880,
+        "instructions:k": 3971034653,
+        "cycles:u": 53430081,
+        "cycles:k": 1874066038
+      },
+      "events_per_packet": {
+        "instructions:u": 410.8055,
+        "instructions:k": 24818.96658125,
+        "cycles:u": 333.93800625,
+        "cycles:k": 11712.9127375
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5529389,
+        "instructions:k": 263949374,
+        "cycles:u": 5067380,
+        "cycles:k": 133665942
+      },
+      "events_per_packet": {
+        "instructions:u": 552.9389,
+        "instructions:k": 26394.9374,
+        "cycles:u": 506.738,
+        "cycles:k": 13366.5942
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709195,
+        "instructions:k": 267165656,
+        "cycles:u": 5527376,
+        "cycles:k": 136860647
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9195,
+        "instructions:k": 26716.5656,
+        "cycles:u": 552.7376,
+        "cycles:k": 13686.0647
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 62369455,
+        "instructions:k": 3919005603,
+        "cycles:u": 50014445,
+        "cycles:k": 1838219765
+      },
+      "events_per_packet": {
+        "instructions:u": 389.80909375,
+        "instructions:k": 24493.78501875,
+        "cycles:u": 312.59028125,
+        "cycles:k": 11488.87353125
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469418,
+        "instructions:k": 3970551471,
+        "cycles:u": 52512424,
+        "cycles:k": 1876419299
+      },
+      "events_per_packet": {
+        "instructions:u": 402.9338625,
+        "instructions:k": 24815.94669375,
+        "cycles:u": 328.20265,
+        "cycles:k": 11727.62061875
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5739736,
+        "instructions:k": 266990024,
+        "cycles:u": 5546512,
+        "cycles:k": 136461815
+      },
+      "events_per_packet": {
+        "instructions:u": 573.9736,
+        "instructions:k": 26699.0024,
+        "cycles:u": 554.6512,
+        "cycles:k": 13646.1815
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709213,
+        "instructions:k": 267120667,
+        "cycles:u": 5383988,
+        "cycles:k": 136337504
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9213,
+        "instructions:k": 26712.0667,
+        "cycles:u": 538.3988,
+        "cycles:k": 13633.7504
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 65728707,
+        "instructions:k": 3970492897,
+        "cycles:u": 52386424,
+        "cycles:k": 1871658137
+      },
+      "events_per_packet": {
+        "instructions:u": 410.80441875,
+        "instructions:k": 24815.58060625,
+        "cycles:u": 327.41515,
+        "cycles:k": 11697.86335625
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-1-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469195,
+        "instructions:k": 3970483263,
+        "cycles:u": 52646978,
+        "cycles:k": 1876719898
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93246875,
+        "instructions:k": 24815.52039375,
+        "cycles:u": 329.0436125,
+        "cycles:k": 11729.4993625
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709335,
+        "instructions:k": 267073871,
+        "cycles:u": 5352436,
+        "cycles:k": 136460429
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9335,
+        "instructions:k": 26707.3871,
+        "cycles:u": 535.2436,
+        "cycles:k": 13646.0429
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5529853,
+        "instructions:k": 263939737,
+        "cycles:u": 5092246,
+        "cycles:k": 133274012
+      },
+      "events_per_packet": {
+        "instructions:u": 552.9853,
+        "instructions:k": 26393.9737,
+        "cycles:u": 509.2246,
+        "cycles:k": 13327.4012
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469169,
+        "instructions:k": 3970377811,
+        "cycles:u": 52235641,
+        "cycles:k": 1875413918
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93230625,
+        "instructions:k": 24814.86131875,
+        "cycles:u": 326.47275625,
+        "cycles:k": 11721.3369875
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 62369220,
+        "instructions:k": 3918839748,
+        "cycles:u": 50321321,
+        "cycles:k": 1839843533
+      },
+      "events_per_packet": {
+        "instructions:u": 389.807625,
+        "instructions:k": 24492.748425,
+        "cycles:u": 314.50825625,
+        "cycles:k": 11499.02208125
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5708561,
+        "instructions:k": 267171803,
+        "cycles:u": 5467572,
+        "cycles:k": 136797038
+      },
+      "events_per_packet": {
+        "instructions:u": 570.8561,
+        "instructions:k": 26717.1803,
+        "cycles:u": 546.7572,
+        "cycles:k": 13679.7038
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5738776,
+        "instructions:k": 267135172,
+        "cycles:u": 5339753,
+        "cycles:k": 136496410
+      },
+      "events_per_packet": {
+        "instructions:u": 573.8776,
+        "instructions:k": 26713.5172,
+        "cycles:u": 533.9753,
+        "cycles:k": 13649.641
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469679,
+        "instructions:k": 3970452773,
+        "cycles:u": 53590096,
+        "cycles:k": 1878682377
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93549375,
+        "instructions:k": 24815.32983125,
+        "cycles:u": 334.9381,
+        "cycles:k": 11741.76485625
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-2-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 65728839,
+        "instructions:k": 3970486708,
+        "cycles:u": 52605085,
+        "cycles:k": 1877016926
+      },
+      "events_per_packet": {
+        "instructions:u": 410.80524375,
+        "instructions:k": 24815.541925,
+        "cycles:u": 328.78178125,
+        "cycles:k": 11731.3557875
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5529265,
+        "instructions:k": 263883016,
+        "cycles:u": 5404145,
+        "cycles:k": 133287300
+      },
+      "events_per_packet": {
+        "instructions:u": 552.9265,
+        "instructions:k": 26388.3016,
+        "cycles:u": 540.4145,
+        "cycles:k": 13328.73
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709199,
+        "instructions:k": 267062542,
+        "cycles:u": 5271195,
+        "cycles:k": 137116004
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9199,
+        "instructions:k": 26706.2542,
+        "cycles:u": 527.1195,
+        "cycles:k": 13711.6004
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 62369064,
+        "instructions:k": 3921007466,
+        "cycles:u": 51338467,
+        "cycles:k": 1842008164
+      },
+      "events_per_packet": {
+        "instructions:u": 389.80665,
+        "instructions:k": 24506.2966625,
+        "cycles:u": 320.86541875,
+        "cycles:k": 11512.551025
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469029,
+        "instructions:k": 3971885543,
+        "cycles:u": 52715886,
+        "cycles:k": 1879364776
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93143125,
+        "instructions:k": 24824.28464375,
+        "cycles:u": 329.4742875,
+        "cycles:k": 11746.02985
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5739536,
+        "instructions:k": 267018633,
+        "cycles:u": 5502600,
+        "cycles:k": 136618765
+      },
+      "events_per_packet": {
+        "instructions:u": 573.9536,
+        "instructions:k": 26701.8633,
+        "cycles:u": 550.26,
+        "cycles:k": 13661.8765
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5708917,
+        "instructions:k": 267158905,
+        "cycles:u": 5615004,
+        "cycles:k": 137729571
+      },
+      "events_per_packet": {
+        "instructions:u": 570.8917,
+        "instructions:k": 26715.8905,
+        "cycles:u": 561.5004,
+        "cycles:k": 13772.9571
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 65729339,
+        "instructions:k": 3971935202,
+        "cycles:u": 51938567,
+        "cycles:k": 1874771262
+      },
+      "events_per_packet": {
+        "instructions:u": 410.80836875,
+        "instructions:k": 24824.5950125,
+        "cycles:u": 324.61604375,
+        "cycles:k": 11717.3203875
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-3-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469063,
+        "instructions:k": 3971751242,
+        "cycles:u": 55418355,
+        "cycles:k": 1881255182
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93164375,
+        "instructions:k": 24823.4452625,
+        "cycles:u": 346.36471875,
+        "cycles:k": 11757.8448875
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-bound4-1-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709783,
+        "instructions:k": 267061393,
+        "cycles:u": 5390286,
+        "cycles:k": 136726194
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9783,
+        "instructions:k": 26706.1393,
+        "cycles:u": 539.0286,
+        "cycles:k": 13672.6194
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-bound4-1-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5529261,
+        "instructions:k": 263942669,
+        "cycles:u": 5405581,
+        "cycles:k": 133387060
+      },
+      "events_per_packet": {
+        "instructions:u": 552.9261,
+        "instructions:k": 26394.2669,
+        "cycles:u": 540.5581,
+        "cycles:k": 13338.706
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-bound4-16-e",
+      "side": "e",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469129,
+        "instructions:k": 3972004828,
+        "cycles:u": 53219562,
+        "cycles:k": 1878647287
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93205625,
+        "instructions:k": 24825.030175,
+        "cycles:u": 332.6222625,
+        "cycles:k": 11741.54554375
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-bound4-16-candidate",
+      "side": "candidate",
+      "case": "receive-bound4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 62369331,
+        "instructions:k": 3920278124,
+        "cycles:u": 50672764,
+        "cycles:k": 1837196623
+      },
+      "events_per_packet": {
+        "instructions:u": 389.80831875,
+        "instructions:k": 24501.738275,
+        "cycles:u": 316.704775,
+        "cycles:k": 11482.47889375
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-generic4-1-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5709321,
+        "instructions:k": 267111291,
+        "cycles:u": 5500691,
+        "cycles:k": 137358511
+      },
+      "events_per_packet": {
+        "instructions:u": 570.9321,
+        "instructions:k": 26711.1291,
+        "cycles:u": 550.0691,
+        "cycles:k": 13735.8511
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-generic4-1-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 1,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 5739216,
+        "instructions:k": 267167304,
+        "cycles:u": 5300445,
+        "cycles:k": 135903974
+      },
+      "events_per_packet": {
+        "instructions:u": 573.9216,
+        "instructions:k": 26716.7304,
+        "cycles:u": 530.0445,
+        "cycles:k": 13590.3974
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-generic4-16-e",
+      "side": "e",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 64469171,
+        "instructions:k": 3971879631,
+        "cycles:u": 51832060,
+        "cycles:k": 1875593634
+      },
+      "events_per_packet": {
+        "instructions:u": 402.93231875,
+        "instructions:k": 24824.24769375,
+        "cycles:u": 323.950375,
+        "cycles:k": 11722.4602125
+      },
+      "all_events_running_percent": 100.0
+    },
+    {
+      "label": "counter-4-receive-generic4-16-candidate",
+      "side": "candidate",
+      "case": "receive-generic4",
+      "burst": 16,
+      "iterations": 10000,
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 5,
+        "fds_after": 5
+      },
+      "events": {
+        "instructions:u": 65728703,
+        "instructions:k": 3971874735,
+        "cycles:u": 53121455,
+        "cycles:k": 1877176064
+      },
+      "events_per_packet": {
+        "instructions:u": 410.80439375,
+        "instructions:k": 24824.21709375,
+        "cycles:u": 332.00909375,
+        "cycles:k": 11732.3504
+      },
+      "all_events_running_percent": 100.0
+    }
+  ],
+  "paired_summary": {
+    "receive-bound4-burst1": {
+      "instructions:u": {
+        "e": {
+          "median_per_packet": 570.9335,
+          "min_per_packet": 570.9195,
+          "max_per_packet": 570.9783
+        },
+        "candidate": {
+          "median_per_packet": 552.9265,
+          "min_per_packet": 552.8713,
+          "max_per_packet": 552.9853
+        },
+        "paired_change_percent": {
+          "median": -3.1516505205020806,
+          "min": -3.166475260631263,
+          "max": -3.1436585872084755
+        }
+      },
+      "instructions:k": {
+        "e": {
+          "median_per_packet": 26706.2542,
+          "min_per_packet": 26704.7966,
+          "max_per_packet": 26716.5656
+        },
+        "candidate": {
+          "median_per_packet": 26393.9737,
+          "min_per_packet": 26388.3016,
+          "max_per_packet": 26394.9374
+        },
+        "paired_change_percent": {
+          "median": -1.1813319709014447,
+          "min": -1.2038530880631004,
+          "max": -1.1677929052066327
+        }
+      },
+      "cycles:u": {
+        "e": {
+          "median_per_packet": 539.0286,
+          "min_per_packet": 527.1195,
+          "max_per_packet": 552.7376
+        },
+        "candidate": {
+          "median_per_packet": 538.1043,
+          "min_per_packet": 506.738,
+          "max_per_packet": 540.5581
+        },
+        "paired_change_percent": {
+          "median": -1.3381310133341984,
+          "min": -8.32214056000533,
+          "max": 2.522198476815962
+        }
+      },
+      "cycles:k": {
+        "e": {
+          "median_per_packet": 13686.0647,
+          "min_per_packet": 13646.0429,
+          "max_per_packet": 13739.9163
+        },
+        "candidate": {
+          "median_per_packet": 13338.706,
+          "min_per_packet": 13327.4012,
+          "max_per_packet": 13366.5942
+        },
+        "paired_change_percent": {
+          "median": -2.4422050393650196,
+          "min": -2.7923100792814792,
+          "max": -2.3342758272946185
+        }
+      }
+    },
+    "receive-bound4-burst16": {
+      "instructions:u": {
+        "e": {
+          "median_per_packet": 402.93230625,
+          "min_per_packet": 402.93143125,
+          "max_per_packet": 402.93518125
+        },
+        "candidate": {
+          "median_per_packet": 389.80831875,
+          "min_per_packet": 389.80665,
+          "max_per_packet": 389.81069375
+        },
+        "paired_change_percent": {
+          "median": -3.2572918692344355,
+          "min": -3.2573237608402694,
+          "max": -3.257059669597828
+        }
+      },
+      "instructions:k": {
+        "e": {
+          "median_per_packet": 24824.28464375,
+          "min_per_packet": 24814.86131875,
+          "max_per_packet": 24827.06056875
+        },
+        "candidate": {
+          "median_per_packet": 24501.738275,
+          "min_per_packet": 24492.748425,
+          "max_per_packet": 24506.2966625
+        },
+        "paired_change_percent": {
+          "median": -1.2982042513862146,
+          "min": -1.3022820021607484,
+          "max": -1.2809552654322265
+        }
+      },
+      "cycles:u": {
+        "e": {
+          "median_per_packet": 329.4742875,
+          "min_per_packet": 326.47275625,
+          "max_per_packet": 332.6222625
+        },
+        "candidate": {
+          "median_per_packet": 314.50825625,
+          "min_per_packet": 312.0103,
+          "max_per_packet": 320.86541875
+        },
+        "paired_change_percent": {
+          "median": -4.75692952204988,
+          "min": -5.563935512739326,
+          "max": -2.6129106508804623
+        }
+      },
+      "cycles:k": {
+        "e": {
+          "median_per_packet": 11741.54554375,
+          "min_per_packet": 11721.3369875,
+          "max_per_packet": 11746.02985
+        },
+        "candidate": {
+          "median_per_packet": 11488.87353125,
+          "min_per_packet": 11478.80139375,
+          "max_per_packet": 11512.551025
+        },
+        "paired_change_percent": {
+          "median": -2.0357674865291386,
+          "min": -2.24674508839503,
+          "max": -1.8966684985431748
+        }
+      }
+    },
+    "receive-generic4-burst1": {
+      "instructions:u": {
+        "e": {
+          "median_per_packet": 570.9213,
+          "min_per_packet": 570.8561,
+          "max_per_packet": 570.9537
+        },
+        "candidate": {
+          "median_per_packet": 573.9216,
+          "min_per_packet": 573.8776,
+          "max_per_packet": 573.9736
+        },
+        "paired_change_percent": {
+          "median": 0.529292758718003,
+          "min": 0.5182907125393932,
+          "max": 0.5363364014575822
+        }
+      },
+      "instructions:k": {
+        "e": {
+          "median_per_packet": 26714.7232,
+          "min_per_packet": 26711.1291,
+          "max_per_packet": 26717.1803
+        },
+        "candidate": {
+          "median_per_packet": 26701.8633,
+          "min_per_packet": 26696.6931,
+          "max_per_packet": 26716.7304
+        },
+        "paired_change_percent": {
+          "median": -0.048907859308389146,
+          "min": -0.06749124767274628,
+          "max": 0.02096991100237755
+        }
+      },
+      "cycles:u": {
+        "e": {
+          "median_per_packet": 546.7572,
+          "min_per_packet": 538.3988,
+          "max_per_packet": 561.5004
+        },
+        "candidate": {
+          "median_per_packet": 539.0367,
+          "min_per_packet": 530.0445,
+          "max_per_packet": 554.6512
+        },
+        "paired_change_percent": {
+          "median": -2.0018507555827236,
+          "min": -3.6403789996566016,
+          "max": 3.018654573524304
+        }
+      },
+      "cycles:k": {
+        "e": {
+          "median_per_packet": 13679.7038,
+          "min_per_packet": 13633.7504,
+          "max_per_packet": 13772.9571
+        },
+        "candidate": {
+          "median_per_packet": 13649.641,
+          "min_per_packet": 13590.3974,
+          "max_per_packet": 13661.8765
+        },
+        "paired_change_percent": {
+          "median": -0.21976206824010358,
+          "min": -1.0589347463150656,
+          "max": 0.09117887327612095
+        }
+      }
+    },
+    "receive-generic4-burst16": {
+      "instructions:u": {
+        "e": {
+          "median_per_packet": 402.93231875,
+          "min_per_packet": 402.93146875,
+          "max_per_packet": 402.93549375
+        },
+        "candidate": {
+          "median_per_packet": 410.80524375,
+          "min_per_packet": 410.80439375,
+          "max_per_packet": 410.80836875
+        },
+        "paired_change_percent": {
+          "median": 1.9536965970913478,
+          "min": 1.9531041871637012,
+          "max": 1.9548539118677821
+        }
+      },
+      "instructions:k": {
+        "e": {
+          "median_per_packet": 24823.4452625,
+          "min_per_packet": 24815.32983125,
+          "max_per_packet": 24824.5399375
+        },
+        "candidate": {
+          "median_per_packet": 24818.96658125,
+          "min_per_packet": 24815.541925,
+          "max_per_packet": 24824.5950125
+        },
+        "paired_change_percent": {
+          "median": 0.000242640488878898,
+          "min": -0.02245099512029336,
+          "max": 0.004631710013835999
+        }
+      },
+      "cycles:u": {
+        "e": {
+          "median_per_packet": 333.16616875,
+          "min_per_packet": 323.950375,
+          "max_per_packet": 346.36471875
+        },
+        "candidate": {
+          "median_per_packet": 328.78178125,
+          "min_per_packet": 324.61604375,
+          "max_per_packet": 333.93800625
+        },
+        "paired_change_percent": {
+          "median": -0.49490779888639036,
+          "min": -6.27912539085651,
+          "max": 2.4876398892885954
+        }
+      },
+      "cycles:k": {
+        "e": {
+          "median_per_packet": 11741.76485625,
+          "min_per_packet": 11722.4602125,
+          "max_per_packet": 11757.8448875
+        },
+        "candidate": {
+          "median_per_packet": 11717.3203875,
+          "min_per_packet": 11697.86335625,
+          "max_per_packet": 11732.3504
+        },
+        "paired_change_percent": {
+          "median": -0.2631919042213049,
+          "min": -0.34465924995389363,
+          "max": 0.08436955486061937
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Native library/API mechanism screen, not SDK/full-owner performance acceptance.",
+    "PMU counts cover sender, receiver, setup, teardown and reporting; no subtraction.",
+    "No plain timing; cycles are diagnostic only.",
+    "Payload is 32 synthetic bytes, not parsed or answered as DNS.",
+    "The old single compile failure is retained separately; no measurement sample replaced."
+  ],
+  "git_source_verification": {
+    "git_source_identity_manifest_sha256": "0321603036f0c6dd333e1b25778e2d5524f354c7c02e324b8bfb15ff52f5c30b",
+    "builds": {
+      "e-alloc": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "git_source_files_verified": 164,
+        "source_digest": "9c411d3d5633e07d2f9999283a6e1da7a91502c374bc2db909a2fb4fe9519054",
+        "instrumented_digest": "399774dfd89ed7e1c1b4017bea1fc99d251c650f32fc8c9dea4f602f2c9b0bf8",
+        "build_json_sha256": "95accdf755d59aa4c5b1e8c3524b8749524dc25ee310c74d7474701748d60682",
+        "elf_sha256": "b87c2dfb3a9c1833a488e8d8e5a1be24d60afa3378b46d04b706a23a2491cc2e"
+      },
+      "e-counts": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "git_source_files_verified": 164,
+        "source_digest": "9c411d3d5633e07d2f9999283a6e1da7a91502c374bc2db909a2fb4fe9519054",
+        "instrumented_digest": "fccdab1878a40b69c8a7dcc3624d23c56dc6c105f21c5ad594e346b1698f77de",
+        "build_json_sha256": "aef6cb09540824cc81197e571585e4714f42555194cbdcedb31ca241ac88e96a",
+        "elf_sha256": "8ebbeaa26f39005eec48e82ce75a3bf74a66595d1f0d50983b3924f467e27509"
+      },
+      "candidate-alloc": {
+        "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+        "git_source_files_verified": 164,
+        "source_digest": "3b6543209f57677083702d02e6b3acbf52acc15a45c8714d07a112947a099e08",
+        "instrumented_digest": "44ee5e7c1b399fe13844f2797aed4f4fb47fb365d5e6e8c23d917d029ecf10a1",
+        "build_json_sha256": "9f0fd20035b184276913b71b43e006509d10efb8022f5a1b7e3418ea83f2897f",
+        "elf_sha256": "1a2e231bffa1af58f124f99adeefdfc3da372e3124a324b3730f356195849146"
+      },
+      "candidate-counts": {
+        "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+        "git_source_files_verified": 164,
+        "source_digest": "3b6543209f57677083702d02e6b3acbf52acc15a45c8714d07a112947a099e08",
+        "instrumented_digest": "1070717a94bc8c8607b4f6d0e029f12df1ea19e69e8de20f740f72b24cd9ddcb",
+        "build_json_sha256": "97f3c50946088606c7b934cda356825d37bce94d061572d9c65cf1fe85d6db44",
+        "elf_sha256": "b6b45000e1c8b63a3bf98958b64f97be0db3965ce05e7606ccbee97d6ab3fa51"
+      }
+    },
+    "preserved_pre_measurement_failure": {
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-alloc-20261015",
+      "reason": "External example used struct update on DnsConfig private resolv_default; compilation failed before any measurement. Fixed with public Default plus field assignment in harness commit799f6ec4.",
+      "build_stdout_sha256": "c827828194582d458d585dae5d814595b649aee450361f2bdae229c8da9c36f0",
+      "build_stderr_sha256": "26a33e25f1f12373e6392526d0a2b5e5cb02c689e83f097722d213b24a3a7fe1"
+    }
+  },
+  "transferred_summary_sha256": "377066fcc8031d804997368c9a37aafcf67fcc3165ffc94863ad1f79d5a28047"
+}
