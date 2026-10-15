@@ -1,0 +1,26 @@
+{
+  "scope": "Completed integrated research/fix branches only; main, root and active correctness branch untouched",
+  "refs": [
+    {
+      "branch": "perf/dnsmasq-expiry-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/expiry-reviews-20261015-1535",
+      "tip": "b5c058bc2e86f1bf934b0034d298b773cc45bd3f",
+      "worktree": "/Users/USER/Developer/owrt-perf-expiry-20261015",
+      "clean_before_detach": true,
+      "private_artifacts_retained": true
+    },
+    {
+      "branch": "fix/dnsmasq-initial-hosts-20261015",
+      "preserved_ref": "refs/archive/perf-opt-20261015/initial-hosts-fix-20261015-1535",
+      "tip": "c51c5cb559b0b186d6f24058963b5092fa15d47f",
+      "worktree": "/Users/USER/Developer/owrt-fix-initial-hosts-20261015",
+      "clean_before_detach": true,
+      "private_artifacts_retained": true
+    },
+    {
+      "preserved_ref": "refs/archive/perf-opt-20261015/loop-final-20261015-1504",
+      "tip": "181e3dbedd8740a977ea69d5f9b93d467bd5bf3f",
+      "note": "advanced to include final readonly owner audit; old tip remains ancestor"
+    }
+  ]
+}
