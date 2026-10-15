@@ -1,0 +1,2906 @@
+{
+  "scope": "Fresh exact candidate D daemon boundary gates; full44/TCP/corpus gates remain separate",
+  "source_commit": "9f2a905289c6c009edd747abc590a1d013b114e5",
+  "elf_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+  "sdk_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-d-fresh-prepare",
+  "failed_sdk_prepare_attempt_retained": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-d",
+  "f10": {
+    "cases": 13,
+    "dns_observations": 704,
+    "all_process_identities_match": true,
+    "all_cases_completed_exit0": true,
+    "checker_passed": true,
+    "failures": [],
+    "raw_matches_c": false,
+    "raw_difference_counts": {
+      "ptr-order-only": 40
+    },
+    "qualified_ptr_order": [
+      {
+        "case": "six-default",
+        "label": "udp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "01a3e10b4b5cd7fbd77e3742feb4c68e1120eb63c073d400846d75a1be9145e0"
+      },
+      {
+        "case": "six-default",
+        "label": "udp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "01a3e10b4b5cd7fbd77e3742feb4c68e1120eb63c073d400846d75a1be9145e0"
+      },
+      {
+        "case": "six-default",
+        "label": "udp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "01a3e10b4b5cd7fbd77e3742feb4c68e1120eb63c073d400846d75a1be9145e0"
+      },
+      {
+        "case": "six-default",
+        "label": "udp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "01a3e10b4b5cd7fbd77e3742feb4c68e1120eb63c073d400846d75a1be9145e0"
+      },
+      {
+        "case": "six-default",
+        "label": "tcp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "df5c7f290b14137b9b9bb83236fadf9f372247ac5f46b4a55658ea24cffb2d48"
+      },
+      {
+        "case": "six-default",
+        "label": "tcp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "df5c7f290b14137b9b9bb83236fadf9f372247ac5f46b4a55658ea24cffb2d48"
+      },
+      {
+        "case": "six-default",
+        "label": "tcp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "df5c7f290b14137b9b9bb83236fadf9f372247ac5f46b4a55658ea24cffb2d48"
+      },
+      {
+        "case": "six-default",
+        "label": "tcp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "df5c7f290b14137b9b9bb83236fadf9f372247ac5f46b4a55658ea24cffb2d48"
+      },
+      {
+        "case": "six-host-record",
+        "label": "udp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "udp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "udp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "udp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "tcp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "tcp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "tcp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "six-host-record",
+        "label": "tcp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "six-host-record-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "udp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "udp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "udp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "udp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "tcp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "tcp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "tcp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "ipv6-three-duplicate",
+        "label": "tcp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "udp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "udp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "udp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "udp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "c23b2efaf14b7f79ce126e18903be7bf4e1ea1c1731791367806ea9c9c4e6f18"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "tcp-ptr-before-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "tcp-ptr-before-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-before-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "tcp-ptr-after-192.0.2.1-0",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "no-round-robin",
+        "label": "tcp-ptr-after-192.0.2.1-1",
+        "name": "1.2.0.192.in-addr.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-ptr-after-192.0.2.1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.2.0.192.in-addr.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x.test"
+            }
+          ]
+        },
+        "kind": "qualified-observed-ptr-order",
+        "sequence_sha256": "a157ac372eff283db549111c9ad18499d06efbe33c05f1c65ed8f86dd036b622"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "udp-v6-ptr-before-2001:db8::1-0",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-v6-ptr-before-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "udp-v6-ptr-before-2001:db8::1-1",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-v6-ptr-before-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "udp-v6-ptr-after-2001:db8::1-0",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-v6-ptr-after-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "udp-v6-ptr-after-2001:db8::1-1",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "udp",
+        "state": "udp-v6-ptr-after-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "tcp-v6-ptr-before-2001:db8::1-0",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-v6-ptr-before-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "tcp-v6-ptr-before-2001:db8::1-1",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-v6-ptr-before-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "tcp-v6-ptr-after-2001:db8::1-0",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-v6-ptr-after-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      },
+      {
+        "case": "ipv6-repeated-ptr",
+        "label": "tcp-v6-ptr-after-2001:db8::1-1",
+        "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+        "type": 12,
+        "transport": "tcp",
+        "state": "tcp-v6-ptr-after-2001:db8::1",
+        "c": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            }
+          ]
+        },
+        "actual": {
+          "id": 13330,
+          "flags": 34176,
+          "questions": [
+            [
+              "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              12,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "y6.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 37,
+              "data": "x6.test"
+            }
+          ]
+        },
+        "kind": "qualified-source-bound-ptr-order",
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1"
+      }
+    ],
+    "ptr_sequence_checks": 72,
+    "source_bound_checks": [
+      {
+        "contract_id": "six-host-record-ptr-initial-order-v1",
+        "matches": true,
+        "case": "six-host-record",
+        "permutation": [
+          1,
+          0
+        ],
+        "target_labels": [
+          "udp-ptr-before-192.0.2.1-0",
+          "udp-ptr-before-192.0.2.1-1",
+          "udp-ptr-after-192.0.2.1-0",
+          "udp-ptr-after-192.0.2.1-1",
+          "tcp-ptr-before-192.0.2.1-0",
+          "tcp-ptr-before-192.0.2.1-1",
+          "tcp-ptr-after-192.0.2.1-0",
+          "tcp-ptr-after-192.0.2.1-1"
+        ],
+        "fixture_input_sha256": "1fcbdc9c0dc1baa90c91fff0a1ad875cb95eb081d984afdb105eca5128767411"
+      },
+      {
+        "contract_id": "six-hostsdir-initial-ptr-initial-order-v1",
+        "matches": true,
+        "case": "six-hostsdir-initial",
+        "permutation": [
+          0,
+          1
+        ],
+        "target_labels": [
+          "udp-ptr-before-192.0.2.1-0",
+          "udp-ptr-before-192.0.2.1-1",
+          "udp-ptr-after-192.0.2.1-0",
+          "udp-ptr-after-192.0.2.1-1",
+          "tcp-ptr-before-192.0.2.1-0",
+          "tcp-ptr-before-192.0.2.1-1",
+          "tcp-ptr-after-192.0.2.1-0",
+          "tcp-ptr-after-192.0.2.1-1"
+        ],
+        "fixture_input_sha256": "a1e135eb9b64c8697cbbbb0797981059fe41fd092bc2c6c577a2f867c95af392"
+      },
+      {
+        "contract_id": "leases-dhcp-ptr-initial-order-v1",
+        "matches": true,
+        "case": "leases-dhcp",
+        "permutation": [
+          0,
+          1
+        ],
+        "target_labels": [
+          "udp-ptr-before-192.0.2.1-0",
+          "udp-ptr-before-192.0.2.1-1",
+          "udp-ptr-after-192.0.2.1-0",
+          "udp-ptr-after-192.0.2.1-1",
+          "tcp-ptr-before-192.0.2.1-0",
+          "tcp-ptr-before-192.0.2.1-1",
+          "tcp-ptr-after-192.0.2.1-0",
+          "tcp-ptr-after-192.0.2.1-1",
+          "after-dhcp-ptr-before-192.0.2.1-0",
+          "after-dhcp-ptr-before-192.0.2.1-1",
+          "after-dhcp-ptr-after-192.0.2.1-0",
+          "after-dhcp-ptr-after-192.0.2.1-1"
+        ],
+        "fixture_input_sha256": "c55eb61da745777ca44dd24fe1174b3bfbd866ecb08e720cc21c5ef3ddcf47df"
+      },
+      {
+        "contract_id": "ipv6-repeated-ptr-initial-order-v1",
+        "matches": true,
+        "case": "ipv6-repeated-ptr",
+        "permutation": [
+          1,
+          0
+        ],
+        "target_labels": [
+          "udp-v6-ptr-before-2001:db8::1-0",
+          "udp-v6-ptr-before-2001:db8::1-1",
+          "udp-v6-ptr-after-2001:db8::1-0",
+          "udp-v6-ptr-after-2001:db8::1-1",
+          "tcp-v6-ptr-before-2001:db8::1-0",
+          "tcp-v6-ptr-before-2001:db8::1-1",
+          "tcp-v6-ptr-after-2001:db8::1-0",
+          "tcp-v6-ptr-after-2001:db8::1-1"
+        ],
+        "fixture_input_sha256": "9f61583bf417ed0263ebc23526d112fb37e99d1f4bc13fd8d02d5b97157b1df0"
+      }
+    ],
+    "raw_order_preserved": true,
+    "reference_raw_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+    "approved_manifest_raw_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+    "result_sha256": "1741de2ff7daa1de8789124f59ea2611656970faf1b92b2594e1238b8b4f918a",
+    "checker_result_sha256": "e8e195f7ca72459fd6a6bbd78d4b63aa4e8c268b170ced1e2f553f468bbb0b26"
+  },
+  "protocol": {
+    "paired_cases": 368,
+    "exact_client_matches": 366,
+    "profiles": {
+      "local": {
+        "paired_cases": 116,
+        "upstream_requests_each_side": 0
+      },
+      "forward": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "filter": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "rebind": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      }
+    },
+    "differences": [
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "udp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      },
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "tcp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      }
+    ],
+    "daemon_lifecycles": 8,
+    "input_sha256": "bd8d796e46ffedd30ec3a88d118fdbc6db0d5d4ad65e83947c3a113bdc2bf15a",
+    "expected_rust_sha256": "4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8",
+    "checker_sha256": "f92f1d3bbf3cde2a3ed8b1b65b2ca832fcf111d87dc23b004bd9cae137624020",
+    "negative_controls": [
+      {
+        "control": "missing-case",
+        "rejected": true
+      },
+      {
+        "control": "changed-wire",
+        "rejected": true
+      },
+      {
+        "control": "failed-health",
+        "rejected": true
+      },
+      {
+        "control": "forged-comparison",
+        "rejected": true
+      },
+      {
+        "control": "wrong-rust-identity",
+        "rejected": true
+      }
+    ]
+  },
+  "protocol_checker_result_sha256": "3f59afdac486fa06023080c1981cf49e4d1a4c2316aad05162a56b184e25bf1f",
+  "checker_tests": {
+    "f10": 24,
+    "tcp_upstream": 7,
+    "failed": 0,
+    "log_sha256": {
+      "d-f10-checker-tests.log": "3fee53d8e0cd08eb0c9080180ded13f7384a7b1904c3a972cc4067b0a2b51438",
+      "d-tcp-tool-tests.log": "a64e87ceceaf22e544227778973c5b400b160cd0bf5b5dbc2c032220df84ad30"
+    }
+  },
+  "preexisting_short_tests_passed": 943
+}

@@ -460,3 +460,24 @@ no temporal overlap or evidence connecting the events. No transfer correction,
 selective replacement or altered zero-skips rule was applied. The coordinator
 was told every C archive is locally verified for its separately controlled
 remote-copy cleanup. D's exclusive Oracle screen was not touched.
+
+## D complete gates launched after its Oracle screen
+
+The D Oracle output was independently checked before launch: `complete=true`,
+110 windows, 110 valid progress rows and no failure file. Fresh 44-family
+scheduler PID 13199 uses three workers under `correctness/private/d-families-attempt1`;
+fourth serial batch PID 13200 owns F10/protocol/TCP/source corpora and existing
+checker tests. The already-built D release probe is reused. Both run immutable
+source `9f2a9052` with exact SDK ELF
+`4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8`
+and map from `root/private/sdk-d-fresh-prepare`. The earlier source-prepare-guard
+failure at `sdk-d` remains preserved and is never used for qualification.
+
+[First D boundary receipt](d-boundary-gates.json): F10 **13 cases/704 observations**
+passed with exact running-ELF identities, healthy complete cases and zero
+unqualified failure. Original PTR-order differences remain recorded under the
+unchanged approved manifest. Protocol **368 pairs/366 exact wires**, eight
+healthy daemon lifecycles and all five negative controls passed, retaining only
+the two established C forward-pointer classifications. Existing F10/TCP tool
+checks passed **24 + 7**. TCP, source corpora and full 44-family completion remain
+pending; no D full correctness or device acceptance is claimed here.
