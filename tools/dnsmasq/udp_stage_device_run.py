@@ -13,6 +13,9 @@ import perf_opt_analyze as analyze
 import perf_opt_device_run as run
 
 MODES = ('full', 'receive', 'before-answer', 'skip-local')
+PREFIX = 'a53-stage'
+ARTIFACT_ROLES = {'exact-c', 'e', 'stage', 'f'}
+EXPERIMENT_ROLE = 'stage'
 GROUPS = (
     ('exact-c-vs-e', ('exact-c', None), ('e', None)),
     ('e-vs-stage-full', ('e', None), ('stage', 'full')),
@@ -26,7 +29,7 @@ def schedule():
     return [{'group': name, 'round': number, 'side': side,
              'artifact': (left if side == 'c' else right)[0],
              'mode': (left if side == 'c' else right)[1],
-             'label': f'a53-stage-{name}-r{number}-{side}'}
+             'label': f'{PREFIX}-{name}-r{number}-{side}'}
             for name, left, right in GROUPS for number in range(1, 6)
             for side in (('c', 'rust') if number % 2 else ('rust', 'c'))]
 
@@ -114,7 +117,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--plan', type=Path, required=True)
     parser.add_argument('--health-baseline', type=Path, required=True)
-    parser.add_argument('--stage-hash', required=True)
+    parser.add_argument('--experiment-hash', '--stage-hash', dest='stage_hash', required=True)
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
     plan = json.loads(args.plan.read_text())
@@ -125,9 +128,9 @@ def main():
     assert health['valid'] and health['elapsed_seconds'] >= 120 and 1 <= health['threshold_ms'] <= 700
     assert len(args.stage_hash) == 64 and all(c in '0123456789abcdef' for c in args.stage_hash)
     artifacts = plan['artifacts']
-    artifacts['stage']['sha256'] = args.stage_hash
-    assert all(entry['name'] == 'a53-stage-artifact-' + name for name, entry in artifacts.items())
-    assert set(artifacts) == {'exact-c', 'e', 'stage', 'f'}
+    artifacts[EXPERIMENT_ROLE]['sha256'] = args.stage_hash
+    assert all(entry['name'] == PREFIX + '-artifact-' + name for name, entry in artifacts.items())
+    assert set(artifacts) == ARTIFACT_ROLES
     assert all(len(entry['sha256']) == 64 and all(c in '0123456789abcdef' for c in entry['sha256'])
                for entry in artifacts.values())
     scene = run.SCENES[0]
@@ -150,7 +153,7 @@ def main():
     archive_attempted = set()
     cleanup_errors = []
     try:
-        guard_label = 'a53-stage-guard-' + str(time.time_ns())
+        guard_label = PREFIX + '-guard-' + str(time.time_ns())
         guard = run.guard_start(identity[0], guard_label, health['threshold_ms'])
         monitor.start()
         for window in schedule():
@@ -212,7 +215,7 @@ def main():
         failure_record = {'error': repr(error), 'label': label, 'results': results, 'recovery': recovery}
         run.write(args.out / 'failure.json', failure_record)
         try:
-            run.stop_owned('a53_udp_stage_diagnostic_failed')
+            run.stop_owned(PREFIX.replace('-', '_') + '_diagnostic_failed')
         except Exception as stop_error:
             recovery['stop_owned_error'] = repr(stop_error)
             cleanup_errors.append({'action': 'stop_owned', 'error': repr(stop_error)})
@@ -260,7 +263,8 @@ def main():
         run.write(args.out / 'cleanup.json', {'errors': cleanup_errors})
     if cleanup_errors:
         raise RuntimeError('diagnostic cleanup incomplete; see cleanup.json')
-    run.write(args.out / 'complete.json', {'complete': True, 'windows': 50, 'valid': 50, 'candidate_eligible': False})
+    run.write(args.out / 'complete.json', {'complete': True, 'windows': len(schedule()),
+              'valid': len(results), 'candidate_eligible': False})
 
 
 if __name__ == '__main__':

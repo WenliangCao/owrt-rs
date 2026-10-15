@@ -48,6 +48,20 @@ class StageGateTests(unittest.TestCase):
             for row in group:
                 self.assertEqual((row['artifact'], row['mode']), left if row['side'] == 'c' else right)
 
+    def test_address_dispatch_is_one_static_group_without_stage_modes(self):
+        import address_dispatch_device_run as address
+        with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
+                            ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
+            address.configure()
+            rows = schedule()
+            self.assertEqual(len(rows), 10)
+            self.assertEqual([row['side'] for row in rows], ['c', 'rust', 'rust', 'c', 'c', 'rust', 'rust', 'c', 'c', 'rust'])
+            self.assertTrue(all(row['mode'] is None for row in rows))
+            self.assertEqual({row['artifact'] for row in rows}, {'f', 'address-dispatch'})
+            self.assertEqual(stage.ARTIFACT_ROLES, {'e', 'f', 'address-dispatch'})
+            self.assertEqual(stage.EXPERIMENT_ROLE, 'address-dispatch')
+        self.assertEqual(len(schedule()), 50)
+
     def test_every_mode_and_originals_have_required_cohorts(self):
         for mode in (None,) + MODES:
             result = stage_report(self.fixture(mode), mode)
