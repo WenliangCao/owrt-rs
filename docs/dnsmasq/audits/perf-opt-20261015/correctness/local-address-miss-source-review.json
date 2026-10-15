@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_SOURCE_REVIEW_EXACT_LINUX_GATES_PREPARED",
+  "candidate_commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+  "product_implementation_commit": "9617d93e9425aabfb83a85893d71e9cf393854fa",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "scope": "Local read-only semantic and retained-evidence review. Exact-source Linux inputs are prepared locally only; no upload, remote access, reviewer test/build or timing.",
+  "source_sha256": {
+    "components/dnsmasq/src/dns/service.rs": "284eb1145f01d5b3ec33dcff10474b76efd5c9adf514cf81ea4131fe6ccd455a",
+    "components/dnsmasq/src/hosts.rs": "fdac0442933c9dfa9c73eb7d7ffa936e5055c849c82f7f6f91d457c334259429"
+  },
+  "original_lookup_body_after_guard_byte_identical": true,
+  "original_lookup_body_sha256": "c38bfe5e84fd95bd79bdbb0e7c0e3b67f4ea4d042b8555eeef96ae471e3a8047",
+  "semantic_review": [
+    "The shortcut admits only ordinary well-formed-header IN A/AAAA with no configured CNAME, matching raw address type, interface declarations/records, synthesis domain or local-address/local-only rule. Anything uncertain reaches the unchanged original body.",
+    "Hosts must be published and name_exists must be false. This includes canonical owner and non-terminal presence checks; active/sealed bulk generations keep retained-lease lookup and rotation in the original engine.",
+    "has_expired_name covers both active expired lease entries and expired non-terminals. It rejects the shortcut before the original expire_name mutation, preserving sticky deletion under clock rollback.",
+    "Any live lease blocks the shortcut, including an IPv4 lease queried as AAAA. This is conservative; it does not invent an AAAA local answer.",
+    "Before returning None, cache.inspect_name runs with the same question Name object and stores its hint. Cached CNAME inspection is read-only and continues to defer local output to the later cache engine; no local/CNAME precedence is bypassed.",
+    "The shortcut has no address to rotate and no local answer/log event to emit. Source and local-only rule guards retain the original query logging and configured-answer ownership paths.",
+    "Normal header gates match the original LocalAnswerer rejection boundary. For a consistent parsed question/query, malformed Additional records are treated as no OPT by the existing find_pseudoheader, rather than errors."
+  ],
+  "review_hypothesis_retracted": {
+    "initial_claim": "Reviewer inferred that filterwin2k plus ARCOUNT1 with a missing Additional RR would return Err in the original path but None in the shortcut.",
+    "resolution": "This claim was false: find_pseudoheader catches truncated Additional parsing and returns Ok with no OPT. The first author reproduction failed because reference.is_err was false; the uncommitted conservative filterwin2k guard was removed.",
+    "retained_failed_reproduction_stdout_sha256": "0a2e3370cf80fdee879629ef84beda66ba0bf0bfb60038a70a32b795accd2678",
+    "retained_failed_reproduction_stderr_sha256": "7481856fb3f20932e3937d1db51139caf57bf039a5df38c24724459a7ec2cf28",
+    "final_test_commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+    "corrected_test": "Both A/AAAA and UDP/TCP yield None on both original and shortcut paths with the malformed Additional. No production fix was required.",
+    "corrected_two_test_stdout_sha256": "008919d2b619129a3a9a066d78427847893db758c98e9bf9bbd2dfa4abc734e8"
+  },
+  "tests": {
+    "original_engine_comparison_cases": 600,
+    "matrix": "10 configurations x5 names x2 address types x2 transports x3 clock values.",
+    "additional_stateful_checks": "The same lease generation is queried at160 then100; expired name remains removed. Bulk state rejects the shortcut.",
+    "local_lib_at_implementation_commit": {
+      "passed": 715,
+      "failed": 0,
+      "ignored": 8,
+      "stdout_sha256": "d6c5c80eced28806c6aedff7262849ad2294a02f447b22afcefd4b5b10d3b11b"
+    },
+    "local_linux_musl_all_target_check_at_implementation_commit": {
+      "coordinator_report": "passed",
+      "stderr_sha256": "81c90731e09a623e50ab441fb42df0e095e11eae9927742e8624928fada7fc30"
+    },
+    "final_targeted_tests": {
+      "passed": 2,
+      "failed": 0,
+      "stdout_sha256": "008919d2b619129a3a9a066d78427847893db758c98e9bf9bbd2dfa4abc734e8",
+      "stderr_sha256": "fbe4d6e3d6d22672628dcb94596f8f0fc9123f9264491c73399d8ff658f129e1"
+    },
+    "reviewer_reran_tests": false
+  },
+  "local_allocation_evidence": {
+    "scope": "Retained30-row/15-scene local allocation diagnostic, not A53 or timing; independently checked34 successful command log hashes and row arithmetic.",
+    "rows_sha256": "357b73a15f4de76981e94db88e7ab44efcfe68e9595d140dbbe38aadb68071c9",
+    "commands_sha256": "9708dc18ce07bb2fad079ff8c0f9ba7b7c1f3b5c7022a1a5b574502d2a211a1b",
+    "operations_per_row": 8000,
+    "all15_checksums_match": true,
+    "all_live_byte_deltas_zero": true,
+    "per_operation_candidate_minus_F": {
+      "hit": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "hit-upper": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "hit-leases": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "hit-typed": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "miss": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "miss-leases": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "host": {
+        "allocations": 1.0,
+        "reallocations": 0.0,
+        "requested_bytes": 21.0
+      },
+      "host-localise": {
+        "allocations": 1.0,
+        "reallocations": 0.02,
+        "requested_bytes": 63.16
+      },
+      "raw-address": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "synth-address": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "lease-address": {
+        "allocations": 1.0,
+        "reallocations": 0.0,
+        "requested_bytes": 21.0
+      },
+      "rrset": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "cname": {
+        "allocations": 1.0,
+        "reallocations": 0.0,
+        "requested_bytes": 21.0
+      },
+      "cname-leases": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      },
+      "cname-config": {
+        "allocations": 0.0,
+        "reallocations": 0.0,
+        "requested_bytes": 0.0
+      }
+    },
+    "interpretation": "Four hit cases, both misses, raw/synth addresses, RRset and configured/lease CNAME rows are allocation-neutral here. host,host-localise,lease-address and ordinary cname each add1 alloc/op. host-localise also differs by0.02 realloc/op and63.16 requested bytes/op; retain this measured difference without attributing it solely to one allocation site."
+  },
+  "prepared_linux_inputs": {
+    "status": "local-only; waiting explicit coordinator release",
+    "source_commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+    "inputs": 179,
+    "identity_sha256": "d688cefb15f025d7f2d0e9207e06b95be4db3a716449145572b3aba99c607b41",
+    "manifest_sha256": "64017291751f3e4f433ee9b3e4af4015d4bc62c2d3f691338aadaf938bea59f9",
+    "input_archive_sha256": "44e38a249afb93b41af7160ac02fc0ea4fd27a1e7bff8e02baf9133e3c1eb9f0",
+    "runner_sha256": "0b1f7090fbe839ac9127b3e76aa0c41186ee1b2df1c8954b6d352cfa0187cf47",
+    "local_input_directory": "private/local-address-miss-linux-inputs",
+    "local_runner": "private/local-address-miss-linux-gates/run.py",
+    "intended_source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-address-miss",
+    "gates": [
+      "normal lib",
+      "original lib ignored-live excluding four complete exact-C oracle drivers",
+      "normal bin",
+      "all original bin ignored"
+    ],
+    "affinity": [
+      2
+    ],
+    "nice": 10,
+    "build_jobs": 1
+  },
+  "remaining_blocking_findings": [],
+  "limitations": [
+    "The conservative test can add an extra dotted-name allocation/check on a fallback. The observed cold-path costs remain part of the candidate tradeoff.",
+    "This review does not establish Linux runtime qualification, full44 coverage, SDK frame improvement, performance acceptance or deployment eligibility.",
+    "The prototype remains an independent F-derived source and is not substituted into active native/device experiments."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
