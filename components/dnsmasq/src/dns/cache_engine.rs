@@ -910,6 +910,9 @@ impl CacheContext<'_> {
                 Err(error) => return Err(error.into()),
             }
         }
+        // The old consuming iterator released its Vec at this point. Keep
+        // the fallback's lifetime unchanged before any later name lookup.
+        drop(ids);
         if written {
             return Ok(finish_cached_answer(writer, stale)?);
         }
