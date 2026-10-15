@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "status": "SOURCE_REVIEW_PASSED_RELATED_LINUX_GATES_PENDING",
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
   "candidate_commit": "f404ed754a26f9385c733e7474f28e4595520957",
   "product_implementation_commit": "f0a96480b42060e8624b73b719c72a5ac9d2091a",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
-  "review_scope": "Local read-only final-source and retained local-log review. No product edits or reviewer local build/test. Separately authorized native Linux gates are pending and do not establish a performance claim.",
+  "review_scope": "Initial source and retained local-log review was read-only. Later coordinator-authorized native Linux related gates are separately bound below; no product edits or router access by reviewer.",
   "source_sha256": {
     "components/dnsmasq/src/dns/daemon.rs": "4be13c9bc5be8a08545f1642de402cfe7567a195b24459eaf98e8b0c3a2ab652",
     "components/dnsmasq/src/dns/forward.rs": "4a4237e1aefbd3f16238d1b1c7d2bbd792816364a27b96232218bafe8116dd19",
@@ -73,10 +73,15 @@
       "stdout_sha256": "9a72cc606e3a1d90b1a1c8f375ef9faac25c7707c22892277da4effe0ecf5253",
       "stderr_sha256": "abf6dcde2775106532c7fb1afd5a75b36d7beb974be0dbed14c4dfe0e4347b65"
     },
-    "scope": "Existing author logs were inspected, not independently rerun. Final changes after f0a96480 are fixture coverage and a capacity comment; related Linux execution is bound separately when complete."
+    "scope": "Existing author logs were inspected, not independently rerun locally. Final changes after f0a96480 are fixture coverage and a capacity comment; the completed native Linux related gates are separately bound below."
   },
   "remaining_blocking_findings": [],
-  "related_linux_gates": "pending",
+  "related_linux_gates": {
+    "file": "udp-name-buffer-linux-gates.json",
+    "sha256": "4ad92003c7bd752189c69038aee5ee9a7c9819a3f8eab53884f5b77b9617c0c2",
+    "verified_private_receipt_sha256": "059479d352b7219518d10fe1e197bd46fd4e3e71be9ccd9d4eb64229a16d5011",
+    "total_passed": 934
+  },
   "performance_acceptance": false,
   "deployment": false,
   "limitations": [
