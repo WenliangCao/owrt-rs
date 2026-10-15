@@ -1,0 +1,1312 @@
+{
+  "scope": "Local Apple AArch64 compilation/codegen/allocation controls only; no timing, Oracle or SDK/device claim",
+  "base_commit": "b1180f728543d56132df0f144467b3c97ef7b410",
+  "commands": [
+    {
+      "label": "base-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo",
+        "-j",
+        "1"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "6345e371e8f61709ba7858ac5f7f4ab9a32de683933a2997d617e0198752121d"
+    },
+    {
+      "label": "base-hot-build",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "--cfg",
+        "allocation_tracking"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-admission-build",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/udp_admission_probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-admission",
+        "--cfg",
+        "allocation_tracking"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-codegen-build",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-codegen",
+        "--emit=llvm-ir,asm,link"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7ebd0827d0286054d2208a1a2e21ca7982daa14cd4d7d95f6caaa68e8894e272"
+    },
+    {
+      "label": "slice-cache-tests",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "cache",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo",
+        "-j",
+        "1",
+        "--",
+        "--test-threads=1"
+      ],
+      "status": 0,
+      "stdout_sha256": "901822a226ff88196aa16ab79e7061470cd440ae7667b2cf8ccf5421b9d61a08",
+      "stderr_sha256": "023ef078f2af821ad494511879b2309fc345663dbfbac228992e1d7f5a20ff96"
+    },
+    {
+      "label": "slice-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo",
+        "-j",
+        "1"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5933e93cc9b190e32d5101c5b0ef875c8c26b312f2fe5bde73082cd22884ae17"
+    },
+    {
+      "label": "slice-hot-build",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "--cfg",
+        "allocation_tracking"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-admission-build",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/udp_admission_probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-admission",
+        "--cfg",
+        "allocation_tracking"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-codegen-build",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/hotpath_probe_v2.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-codegen",
+        "--emit=llvm-ir,asm,link"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7ebd0827d0286054d2208a1a2e21ca7982daa14cd4d7d95f6caaa68e8894e272"
+    },
+    {
+      "label": "base-hot-hit-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "hit",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "4bc7a39dee4f26382a696f22b822b7f1188754ed7a2637404b5ca86d9c4745d8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-hit-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "hit",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "4bc7a39dee4f26382a696f22b822b7f1188754ed7a2637404b5ca86d9c4745d8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-hit-upper-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "hit-upper",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "d8ba221b9b8b3b96627378d42a716d21098cdd1d40783098f6299b52196eb9b7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-hit-upper-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "hit-upper",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "d8ba221b9b8b3b96627378d42a716d21098cdd1d40783098f6299b52196eb9b7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-hit-leases-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "hit-leases",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "6b6f303aa5bbd6c70aa8c9403d86aba24adcbadb5abe0c769f7020ff52b504d9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-hit-leases-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "hit-leases",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "6b6f303aa5bbd6c70aa8c9403d86aba24adcbadb5abe0c769f7020ff52b504d9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-hit-typed-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "hit-typed",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "68408f2884faba070b32f3bcc0ce7dc0727fff1cae2590d7daee78b998ea8b06",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-hit-typed-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "hit-typed",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "68408f2884faba070b32f3bcc0ce7dc0727fff1cae2590d7daee78b998ea8b06",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-miss-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "miss",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-miss-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "miss",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "b5d45b5f4f374a465755180bddfaece2c6a218628b7c7ae679bb2174872a2b13",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-miss-leases-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "miss-leases",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-miss-leases-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "miss-leases",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "8cb1aab84507fc1731310e1bccd6ab294b4aeb4d84b008b346358cde60b17568",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-host-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "host",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-host-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "host",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "d8c8c08a73eba5fe7040a7a23c2b4e4003c97d875b8af88378f5f9d6135a7dd4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-host-localise-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "host-localise",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "6eb8395b61ca3c0ffee39f0bcf8fd44a7ac76fa6a96c746cbb1a24d8d4d62953",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-host-localise-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "host-localise",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "982d3d862296c2183c3d0f3432bb138b3f63c6c623279662039ad5c2f9c34af4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-raw-address-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "raw-address",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "8fb8eccef03c8528a55d5e788019fdac60b5bacc6a03747bad235b480977b8bb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-raw-address-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "raw-address",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "8fb8eccef03c8528a55d5e788019fdac60b5bacc6a03747bad235b480977b8bb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-synth-address-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "synth-address",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "5628690c8ac59d3282e59166e224ba3c60413c4cd0eefaea28afbdb7ef5ee1f5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-synth-address-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "synth-address",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "5628690c8ac59d3282e59166e224ba3c60413c4cd0eefaea28afbdb7ef5ee1f5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-lease-address-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "lease-address",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "f263b21636b78c1342d75a1c54fa50aac61bac0b28ae4c8cb637fd8708123066",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-lease-address-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "lease-address",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "f263b21636b78c1342d75a1c54fa50aac61bac0b28ae4c8cb637fd8708123066",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-rrset-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "rrset",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-rrset-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "rrset",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "9f9de667c2e72dab3ac3c62879b9b9affaba46b4df72aa8560898bbed52fb55f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-cname-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "cname",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "5b914b020bf40b36a5b98ba5f30e8e6e00ed22c65cd6e88ee69f8f1bd7df4df6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-cname-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "cname",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "5b914b020bf40b36a5b98ba5f30e8e6e00ed22c65cd6e88ee69f8f1bd7df4df6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-cname-leases-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "cname-leases",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "9fe96f853f877abcd6dd3f81d89ba11a8d3f3992d1deafe4dd8c4d99e520141d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-cname-leases-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "cname-leases",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "9fe96f853f877abcd6dd3f81d89ba11a8d3f3992d1deafe4dd8c4d99e520141d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-hot-cname-config-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-hot",
+        "cname-config",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-hot-cname-config-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-hot",
+        "cname-config",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "494858c50b6513c9b1e2bf7e595ffe9245771fd3915b8471b49d7b602f2457ae",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-admission-hit-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-admission",
+        "hit",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "4445c10d048e9c0cb3d951515b6fccc65833762acb82af457e8d220b12382428",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-admission-hit-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-admission",
+        "hit",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "4445c10d048e9c0cb3d951515b6fccc65833762acb82af457e8d220b12382428",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-admission-hit-upper-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-admission",
+        "hit-upper",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "f55c223d63029efd3901f8d1d8cf3d00c3a1e9d2603b8f452a7beb064125d70b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-admission-hit-upper-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-admission",
+        "hit-upper",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "f55c223d63029efd3901f8d1d8cf3d00c3a1e9d2603b8f452a7beb064125d70b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-admission-miss-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-admission",
+        "miss",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "2dd4fb3a7929a3f47cc4548657bab5c2b854160e25bdf631346327d8f2b09a8f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-admission-miss-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-admission",
+        "miss",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "2dd4fb3a7929a3f47cc4548657bab5c2b854160e25bdf631346327d8f2b09a8f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-admission-host-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-admission",
+        "host",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "2d445972c968f4c8cd6654a16e06cb23c0ff53f34e5f13439cb31ca8c5c6cf8c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-admission-host-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-admission",
+        "host",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "2d445972c968f4c8cd6654a16e06cb23c0ff53f34e5f13439cb31ca8c5c6cf8c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "base-admission-malformed-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/base-admission",
+        "malformed",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "b45746379a3dd05200de8792d1f095c37b693a1da26ca77d463244d0ba3d96d0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-admission-malformed-alloc",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private/perf-opt-20261015/singleton-slice-local/slice-admission",
+        "malformed",
+        "8000"
+      ],
+      "status": 0,
+      "stdout_sha256": "b45746379a3dd05200de8792d1f095c37b693a1da26ca77d463244d0ba3d96d0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "probes": {
+    "hotpath_probe_v2.rs": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+    "udp_admission_probe.rs": "f1c1bdb3f6b1d4b6c6fb66c9a18055fc7ca877ae20f75b26921386d30360afc5"
+  },
+  "base_source_sha256": "043bd7fbf1ad12c39e2d27284e6d128101eef77f5f214828988a51ac06b88135",
+  "slice_source_sha256": "0d029f38c3c2cde94dd8af88abbbed678f43651e8ce5e04e0b79120853922c05",
+  "prototype_commit": "8ed0cfdff8dfea18b438c298727f772813af5758",
+  "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "tests": {
+    "filter": "cache",
+    "passed": 127,
+    "failed": 0,
+    "ignored": 3,
+    "filtered_out": 593,
+    "scope": "Apple AArch64 local library tests; no Linux runtime or frozen-C differential"
+  },
+  "allocation_controls": [
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1632000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1632000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "hit-typed",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "hit-typed",
+      "operations": 8000,
+      "allocations": 24000,
+      "reallocations": 0,
+      "requested_bytes": 1448000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 64000,
+      "reallocations": 0,
+      "requested_bytes": 3996800,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 64000,
+      "reallocations": 0,
+      "requested_bytes": 3996800,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "host-localise",
+      "operations": 8000,
+      "allocations": 69600,
+      "reallocations": 18500,
+      "requested_bytes": 8094080,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "host-localise",
+      "operations": 8000,
+      "allocations": 69600,
+      "reallocations": 17600,
+      "requested_bytes": 7594240,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "raw-address",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 4057600,
+      "live_bytes_delta": 0,
+      "checksum": 625600
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "raw-address",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 4057600,
+      "live_bytes_delta": 0,
+      "checksum": 625600
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "synth-address",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4245400,
+      "live_bytes_delta": 0,
+      "checksum": 460280
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "synth-address",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4245400,
+      "live_bytes_delta": 0,
+      "checksum": 460280
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "lease-address",
+      "operations": 8000,
+      "allocations": 56000,
+      "reallocations": 0,
+      "requested_bytes": 3712000,
+      "live_bytes_delta": 0,
+      "checksum": 440000
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "lease-address",
+      "operations": 8000,
+      "allocations": 56000,
+      "reallocations": 0,
+      "requested_bytes": 3712000,
+      "live_bytes_delta": 0,
+      "checksum": 440000
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 18400,
+      "requested_bytes": 6772800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 18400,
+      "requested_bytes": 6772800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "cname",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 3840000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "cname",
+      "operations": 8000,
+      "allocations": 72000,
+      "reallocations": 0,
+      "requested_bytes": 3840000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "cname-leases",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4008000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "cname-leases",
+      "operations": 8000,
+      "allocations": 80000,
+      "reallocations": 0,
+      "requested_bytes": 4008000,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "base",
+      "kind": "hot",
+      "scene": "cname-config",
+      "operations": 8000,
+      "allocations": 144000,
+      "reallocations": 0,
+      "requested_bytes": 8108800,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "slice",
+      "kind": "hot",
+      "scene": "cname-config",
+      "operations": 8000,
+      "allocations": 144000,
+      "reallocations": 0,
+      "requested_bytes": 8108800,
+      "live_bytes_delta": 0,
+      "checksum": 764800
+    },
+    {
+      "side": "base",
+      "kind": "admission",
+      "scene": "hit",
+      "operations": 8000,
+      "checksum": 15136520,
+      "allocation_reallocation_requested_live": [
+        24000,
+        0,
+        1392000,
+        0
+      ]
+    },
+    {
+      "side": "slice",
+      "kind": "admission",
+      "scene": "hit",
+      "operations": 8000,
+      "checksum": 15136520,
+      "allocation_reallocation_requested_live": [
+        24000,
+        0,
+        1392000,
+        0
+      ]
+    },
+    {
+      "side": "base",
+      "kind": "admission",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "checksum": 13156360,
+      "allocation_reallocation_requested_live": [
+        32000,
+        0,
+        1520000,
+        0
+      ]
+    },
+    {
+      "side": "slice",
+      "kind": "admission",
+      "scene": "hit-upper",
+      "operations": 8000,
+      "checksum": 13156360,
+      "allocation_reallocation_requested_live": [
+        32000,
+        0,
+        1520000,
+        0
+      ]
+    },
+    {
+      "side": "base",
+      "kind": "admission",
+      "scene": "miss",
+      "operations": 8000,
+      "checksum": 8000,
+      "allocation_reallocation_requested_live": [
+        16000,
+        0,
+        368000,
+        0
+      ]
+    },
+    {
+      "side": "slice",
+      "kind": "admission",
+      "scene": "miss",
+      "operations": 8000,
+      "checksum": 8000,
+      "allocation_reallocation_requested_live": [
+        16000,
+        0,
+        368000,
+        0
+      ]
+    },
+    {
+      "side": "base",
+      "kind": "admission",
+      "scene": "host",
+      "operations": 8000,
+      "checksum": 22208000,
+      "allocation_reallocation_requested_live": [
+        64000,
+        0,
+        3984000,
+        0
+      ]
+    },
+    {
+      "side": "slice",
+      "kind": "admission",
+      "scene": "host",
+      "operations": 8000,
+      "checksum": 22208000,
+      "allocation_reallocation_requested_live": [
+        64000,
+        0,
+        3984000,
+        0
+      ]
+    },
+    {
+      "side": "base",
+      "kind": "admission",
+      "scene": "malformed",
+      "operations": 8000,
+      "checksum": 3808000,
+      "allocation_reallocation_requested_live": [
+        8000,
+        0,
+        144000,
+        0
+      ]
+    },
+    {
+      "side": "slice",
+      "kind": "admission",
+      "scene": "malformed",
+      "operations": 8000,
+      "checksum": 3808000,
+      "allocation_reallocation_requested_live": [
+        8000,
+        0,
+        144000,
+        0
+      ]
+    }
+  ],
+  "codegen": {
+    "base": {
+      "owner_ir_value": "%82",
+      "owner_loads": [
+        {
+          "function_line": 148,
+          "ir": "%121 = load i64, ptr %82, align 8, !range !3313, !alias.scope !18602"
+        },
+        {
+          "function_line": 296,
+          "ir": "%204 = load i64, ptr %82, align 8, !range !3313, !alias.scope !18625"
+        },
+        {
+          "function_line": 731,
+          "ir": "%431 = load i64, ptr %82, align 8, !range !3313, !noundef !37"
+        },
+        {
+          "function_line": 1000,
+          "ir": "%576 = load i64, ptr %82, align 8, !range !3313, !alias.scope !18602"
+        },
+        {
+          "function_line": 1972,
+          "ir": "%1077 = load i64, ptr %82, align 8, !range !3313, !alias.scope !18804, !noundef !37"
+        },
+        {
+          "function_line": 2006,
+          "ir": "%1095 = load i64, ptr %82, align 8, !range !3313, !alias.scope !18807, !noundef !37"
+        },
+        {
+          "function_line": 2297,
+          "ir": "%1246 = load i64, ptr %82, align 8, !range !3313, !alias.scope !18844, !noundef !37"
+        },
+        {
+          "function_line": 3003,
+          "ir": "%1628 = load i64, ptr %82, align 8"
+        },
+        {
+          "function_line": 3140,
+          "ir": "%1715 = load i64, ptr %82, align 8"
+        }
+      ],
+      "ir_lines": 5061,
+      "asm_instruction_lines": 3118,
+      "asm_start": [
+        "__RNvMs0_NtNtCsduT7YHmnmQJ_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered:",
+        "Lfunc_begin265:",
+        "\t.cfi_startproc",
+        "\tstp\tx28, x27, [sp, #-96]!",
+        "\tstp\tx26, x25, [sp, #16]",
+        "\tstp\tx24, x23, [sp, #32]",
+        "\tstp\tx22, x21, [sp, #48]",
+        "\tstp\tx20, x19, [sp, #64]",
+        "\tstp\tx29, x30, [sp, #80]",
+        "\tadd\tx29, sp, #80",
+        "\tsub\tsp, sp, #784",
+        "\t.cfi_def_cfa w29, 16",
+        "\t.cfi_offset w30, -8",
+        "\t.cfi_offset w29, -16",
+        "\t.cfi_offset w19, -24",
+        "\t.cfi_offset w20, -32",
+        "\t.cfi_offset w21, -40",
+        "\t.cfi_offset w22, -48",
+        "\t.cfi_offset w23, -56",
+        "\t.cfi_offset w24, -64",
+        "\t.cfi_offset w25, -72"
+      ],
+      "full_ir_sha256": "953addc98e3915a53723b10752419d3c7ac2c39196cd03743a01f6ac4d4f1824",
+      "function_ir_sha256": "27ce4bddb1c0f7e8ff396e712077617da9cb2747b25a6b569f1aaf576c973c1b",
+      "function_asm_sha256": "8360fbceee7090d5aa91e0d9fa56275a5ebde9313dad2c3e6226279cd0d1095b"
+    },
+    "slice": {
+      "owner_ir_value": "%81",
+      "owner_loads": [
+        {
+          "function_line": 146,
+          "ir": "%119 = load i64, ptr %81, align 8, !range !3313, !alias.scope !18602, !noundef !37"
+        },
+        {
+          "function_line": 752,
+          "ir": "%436 = load i64, ptr %81, align 8, !range !3313, !noundef !37"
+        },
+        {
+          "function_line": 2835,
+          "ir": "%1534 = load i64, ptr %81, align 8"
+        }
+      ],
+      "ir_lines": 4734,
+      "asm_instruction_lines": 3021,
+      "asm_start": [
+        "__RNvMs0_NtNtCsduT7YHmnmQJ_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered:",
+        "Lfunc_begin265:",
+        "\t.cfi_startproc",
+        "\tstp\tx28, x27, [sp, #-96]!",
+        "\tstp\tx26, x25, [sp, #16]",
+        "\tstp\tx24, x23, [sp, #32]",
+        "\tstp\tx22, x21, [sp, #48]",
+        "\tstp\tx20, x19, [sp, #64]",
+        "\tstp\tx29, x30, [sp, #80]",
+        "\tadd\tx29, sp, #80",
+        "\tsub\tsp, sp, #800",
+        "\t.cfi_def_cfa w29, 16",
+        "\t.cfi_offset w30, -8",
+        "\t.cfi_offset w29, -16",
+        "\t.cfi_offset w19, -24",
+        "\t.cfi_offset w20, -32",
+        "\t.cfi_offset w21, -40",
+        "\t.cfi_offset w22, -48",
+        "\t.cfi_offset w23, -56",
+        "\t.cfi_offset w24, -64",
+        "\t.cfi_offset w25, -72"
+      ],
+      "full_ir_sha256": "77478729b3081f9e5a77efeb392b6e3542f91cba5e713f499cb536f015c291ca",
+      "function_ir_sha256": "96e2cb1035c174960370e5a47a92330c367874c6220f582fa4cbf68db82c09c5",
+      "function_asm_sha256": "ecb6944d7f68fa3701bfdd0bc2ddff2d912b15e123de6450dc01682919e1a0b2"
+    }
+  },
+  "artifacts": {
+    "base-hot": {
+      "sha256": "0b4281dca383c0a806122fa212aad51700da277fd0ec97d65cc4756f90912f5e",
+      "bytes": 819976
+    },
+    "base-admission": {
+      "sha256": "ff8ad4a020e6d602834ee69e2a13793774271084ac1f3789755b4365e7a7e798",
+      "bytes": 800000
+    },
+    "base-codegen": {
+      "sha256": "7e1d53f5435cf1574b16e903c0d06b1353de9c291753caff4830171e4037fae7",
+      "bytes": 786160
+    },
+    "slice-hot": {
+      "sha256": "1c795c0809689f0e9bc7d46fb277da440776b0d91f445fa669eae09174b49536",
+      "bytes": 820136
+    },
+    "slice-admission": {
+      "sha256": "948065910f8cdd86d3471cd8787ee2669eb05c0f9f6b5751f4850f8d3c69eaef",
+      "bytes": 800160
+    },
+    "slice-codegen": {
+      "sha256": "ba6135c2aa58e14c3e506990c54c5580d9dd6f6ed2271d8b0346e731c6d8eff1",
+      "bytes": 786320
+    }
+  },
+  "interpretation": {
+    "distinct_owner_tag_load_sites": [
+      9,
+      3
+    ],
+    "remaining_slice_sites": "one initial slice selection; shared early-return cleanup and explicit original normal drop boundary",
+    "assembly_instruction_lines": [
+      3118,
+      3021
+    ],
+    "single_function_frame_bytes": [
+      880,
+      896
+    ],
+    "dynamic_instruction_or_cpu_claim": false,
+    "host_localise_variation": "Allocations equal; reallocation/requested-byte differences retained without causal savings claim or selective rerun",
+    "product_selection": "not selected; native/SDK/device timing and complete qualification remain pending"
+  }
+}
