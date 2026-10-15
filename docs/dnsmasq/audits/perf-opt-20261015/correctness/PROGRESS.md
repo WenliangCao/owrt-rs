@@ -632,3 +632,19 @@ receipt paths remain unchanged; a separate reuse binding records this evidence.
 All short groups were freshly run in isolated namespaces/private tmpfs with
 serial execution. Allocation executable was freshly built. No D pass transfers
 and no E full correctness result is yet claimed.
+
+[E's boundary/corpus batch](e-boundary-corpus-gates.json) completed freshly:
+F10 **13/704**, zero unqualified failure with original PTR-order differences
+and approved manifest retained; protocol **368/366 exact**, eight healthy
+lifecycles/five rejected negative controls; TCP **13 conditions/50 pairs**, zero
+differences and all 26 daemon identities/cleanup verified. Exactly the original
+2 s short-v4 timeout remains per side. Existing checker tests passed 24+7.
+
+Full source corpora passed cache-answer **764 commands/164 queries/382 metric
+snapshots**, transfer **307/307**, and stale **1,100/1,100**. Lease insertion
+retains only the exact two explicitly accepted UID-reuse differences and raw
+exit1, with no ordinary/new mismatch. A source-bound release probe was freshly
+built. The stale tool builds its fresh E debug driver, so it does not confuse
+same-source reused debug test paths with byte-identical newly linked artifacts.
+No comparator or fixture was altered. Full44 remains running and is the only
+pending E correctness requirement; the earlier D startup failure is not waived.
