@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-15T08:50:10.412533+00:00",
+  "scope": "Only completed loop/DHCP/table task branches; every tip preserved before deletion",
+  "active_branches_untouched": [
+    "main",
+    "perf/dnsmasq-20261015",
+    "perf/dnsmasq-correctness-20261015",
+    "perf/dnsmasq-expiry-20261015"
+  ],
+  "retired": [
+    {
+      "retired_branch": "perf/dnsmasq-loop-20261015",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired/dnsmasq-loop-20261015",
+      "commit": "e1bdcd4ad2ef49bfdf003c556c37fd2e84fa17c8",
+      "retained_detached_worktree": null,
+      "private_and_untracked_files": "not removed"
+    },
+    {
+      "retired_branch": "perf/dnsmasq-loop-exit-20261015",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired/dnsmasq-loop-exit-20261015",
+      "commit": "8b3f1f4a02de9f41d1100a41c814183451faac8b",
+      "retained_detached_worktree": null,
+      "private_and_untracked_files": "not removed"
+    },
+    {
+      "retired_branch": "perf/dnsmasq-loop-socket-20261015",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired/dnsmasq-loop-socket-20261015",
+      "commit": "2ee575aca339c1a6e8a53eb2e68761679d7966b2",
+      "retained_detached_worktree": "/Users/USER/Developer/owrt-perf-loop-20261015",
+      "private_and_untracked_files": "not removed"
+    },
+    {
+      "retired_branch": "perf/dnsmasq-dhcp-20261015",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired/dnsmasq-dhcp-20261015",
+      "commit": "5fb7b04c241e3f4fead57485a06caa777ed65777",
+      "retained_detached_worktree": "/Users/USER/Developer/owrt-perf-dhcp-20261015",
+      "private_and_untracked_files": "not removed"
+    },
+    {
+      "retired_branch": "perf/dnsmasq-report-tables-20261015",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired/dnsmasq-report-tables-20261015",
+      "commit": "b3506f8d5d82968eba4ad3dadf51059fa759e881",
+      "retained_detached_worktree": "/Users/USER/Developer/owrt-perf-tables-20261015",
+      "private_and_untracked_files": "not removed"
+    }
+  ]
+}
