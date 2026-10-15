@@ -1,0 +1,152 @@
+{
+  "schema": "dnsmasq-integration-full-qualification-preparation-v1",
+  "status": "prepared-and-identity-bound-not-launched",
+  "authorization": "Local preparation only. Root must explicitly release a quiet Oracle slot before any upload, build or execution.",
+  "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-cache-integration",
+  "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-local-cache-integration",
+  "shipping_elf_sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+  "shipping_elf_bytes": 2140955,
+  "same_build_map_sha256": "641f79fc1faadfacbec4c600db5a2c55426fd69a1eb38c5c5c46ef692c2998cf",
+  "same_build_receipt_sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6",
+  "local_artifacts_rehashed": true,
+  "source_files_rehashed": 179,
+  "git_identity_sha256": "a36d66ace90037e4e53d5347fb23fec149072cf0e2f535efb9cf0c42c06ad5e6",
+  "source_digest": "8901f28d206bf6fe9fd01bdf7ba861d69174676d2f8ffc08480001725c3d8906",
+  "F_base_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_changed_files": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs",
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/service.rs",
+    "components/dnsmasq/src/hosts.rs"
+  ],
+  "all_other_tracked_files_identical_to_F": true,
+  "validated_F_wrappers": {
+    "run_integration_short.py": {
+      "sha256": "cb68a1439c7ac66c2978c47457931247b14bb59434acada58c71f324341a9b45",
+      "validated_F_original": "run_f_short.py",
+      "validated_F_original_sha256": "e693092f548c46a3e972a9cf1b6dceaa03e85203b68e9c5401ea894223cdefd9",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true
+    },
+    "build_integration_allocations.py": {
+      "sha256": "280cc84cbfb1e78f3ac2f43c6829d590adc19ebc7f8c1f048d57b196fad1e7d3",
+      "validated_F_original": "build_f_allocations.py",
+      "validated_F_original_sha256": "d2abf472a24d6a5ad23e5e0cdf97772e3e2b20934d8680c9389197592d909c97",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true
+    },
+    "run_integration_tcp.py": {
+      "sha256": "2cb5463a4f34ac5d9f42afecaa3e9927a993d685cb65eecc2a0f00a3e9ec1c3c",
+      "validated_F_original": "run_f_tcp.py",
+      "validated_F_original_sha256": "cbb1229a60dee9421a4e03f90efd126ebdcfcbacb0a2affa330d79f4624544d3",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true
+    },
+    "run_integration_corpus.py": {
+      "sha256": "53bdab26e31cb6abb2d77731ddbd1c18b92a58d765779218e2cd9a2a410e0452",
+      "validated_F_original": "run_f_corpus.py",
+      "validated_F_original_sha256": "fdef9a044665a5b27eec5a8754b16939a82b4dee7b2d8fd887aa3e3a15a2430e",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true
+    },
+    "run_integration_remaining.py": {
+      "sha256": "ed6f4fc377f800a2328905c7b3d3d7425140b908da6c978c2b6ad21244134cbe",
+      "validated_F_original": "run_f_remaining.py",
+      "validated_F_original_sha256": "329872f989ed9e08ddd46aae0402a63242db3a6106e97121674673aa17a6195d",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true
+    },
+    "audit_integration_families_final.py": {
+      "sha256": "9ca81820f5642a702a7cdbe40ac04c544d77abbe37c998b1c229b9e04813b722",
+      "validated_F_original": "audit_f_families_final.py",
+      "validated_F_original_sha256": "63c0742ed220cc0ec2b054f0136c12ab13c87d0827002e4776018f0d7cffc5e6",
+      "same_checks_and_historical_comparisons": true,
+      "ast_parse_passed": true
+    },
+    "audit_integration_boundary.py": {
+      "sha256": "0e4c8ae438ee9f95df397fc8de991f87589cd4e7804a374e3d985fabd4a313b3",
+      "validated_F_original": "audit_f_boundary.py",
+      "validated_F_original_sha256": "34934ff2afa49f093ceac384a3cca7ab10149343927cb5247c16c2f5cbbf98e8",
+      "same_checks_and_historical_comparisons": true,
+      "ast_parse_passed": true
+    }
+  },
+  "immutable_input_hashes": {
+    "tools/dnsmasq/m5_final_families.draft.json": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+    "tools/dnsmasq/m5_final_validation.py": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+    "tools/dnsmasq/audit_20261011_families.py": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py": "6c56077e3ccf8d2ea605271da14751d2c4ea7f318c52b59818dcf68af2b41db3",
+    "docs/dnsmasq/audits/full-20261014/f10-contract/qualifier/approved/manifest.json": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78"
+  },
+  "family_base_identity": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "expected_sha256": "0a317a758e1933a160abc58d8ee5ac93abb461b547c74d270ed49c86af6211d9",
+    "provenance": "Retained E/C full44 identity receipts and the identical successful F command; actual remote file must be rehashed before launch.",
+    "rehashed_this_preparation": false
+  },
+  "family_command": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-cache-integration/docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-cache-integration",
+    "--elf",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-local-cache-integration/dnsmasq-rs",
+    "--link-map",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-local-cache-integration/link.map",
+    "--commit",
+    "8d572ba1348037420da6c6a36dd8623a08572f25",
+    "--base-identity",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/integration-families-attempt1",
+    "--jobs",
+    "3"
+  ],
+  "family_command_sha256": "e8a87185e0e32541c6325f35cae515a2e17b9301e2df35ccb1e12acdd267075b",
+  "families": 44,
+  "jobs": 67,
+  "omitted_procedural_job": "m5_dns_endpoints-local-archive-gate",
+  "schedule": {
+    "before_start": "Obtain root scheduling release, verify quiet state, rehash all remote source/artifact/input/wrapper identities and require all integration output paths absent.",
+    "first": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_integration_short.py"
+    ],
+    "after_short": "Original family coordinator jobs3 plus one serial run_integration_remaining.py worker. No overlap with performance timing.",
+    "fresh_builds": [
+      "integration-tests",
+      "integration-allocation-build",
+      "integration-probe-tests"
+    ],
+    "related_Linux_938_tests_are_not_reused_as_full_qualification": true,
+    "output_paths": "Fresh integration-* paths; no original output overwrite or replacement run."
+  },
+  "preserved_comparisons": {
+    "exact_image_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "F10": "Original13cases/704observations and approved PTR-order manifest; retain39 original raw order differences.",
+    "protocol": "Original368pairs/366exact; exact same two historical C forward-pointer defects.",
+    "TCP": "Original13conditions/50pairs; all three groups and resolver order unchanged.",
+    "cache_answer": "Original764commands/164queries/382metrics.",
+    "transfer": "Original307comparisons.",
+    "stale": "Original1100comparisons.",
+    "lease": "Exact same source-a two UID mismatches and cohort counts; preserve raw comparator exit1 and corpus exits[0,0,0,1].",
+    "ubus": "Approved346 paired observations; unchanged original checks and26negative controls; no new amendment.",
+    "historical_references": "All exact-C baselines, source-a lease comparisons and historical E inventory/protocol comparisons remain unchanged."
+  },
+  "prepared_only": true,
+  "uploaded": false,
+  "executed": false,
+  "new_framework_comparators_expectations_or_waivers": false,
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "followup_audits": "Reuse adapted F final family and boundary audits; reconcile fresh short groups from raw outputs; rehash all67job results/44family results/source/artifacts and confirm no owned surviving processes.",
+  "local_preparation_directory": "private/integration-full-qualification",
+  "prepared_recipe_sha256": "d5d53b5f8bf47ec804473ff192d5addac8cd18c9870c986a87058f6f38ef102f",
+  "unit_command_manifest_sha256": "2baa13612ef2618ced5d9c8a745c4bbd87f1818e62e01e02d9b897fb42f6c8b6",
+  "original_F_family_command_sha256": "281290b718ce3aefaf2ae896a097d6a4d18e9293412604d0395626888a9b4d3a",
+  "inventory_manifest": "private/integration-full-qualification/prepared-recipe.json",
+  "verification": "Seven adapted wrappers parsed with ast.parse without imports or execution; original five wrapper hashes matched successful F launch; all179SDK source files and all3SDK artifacts rehashed locally; canonical44families/67jobs and approvedubus346 checked."
+}
