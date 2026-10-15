@@ -1,0 +1,605 @@
+{
+  "candidate_A_eligible": false,
+  "baseline_same_two_failures": true,
+  "C_native_confirmation": [
+    {
+      "profile": "disabled",
+      "same_bytes": true,
+      "original_native_c_stdout_sha256": "3b54a40e29cba948eaaa0f40b0a38308ded6e2a1b2b771f2ad9508c3e0f9ba04",
+      "rebuilt_c_stdout_sha256": "3b54a40e29cba948eaaa0f40b0a38308ded6e2a1b2b771f2ad9508c3e0f9ba04"
+    },
+    {
+      "profile": "finite",
+      "same_bytes": true,
+      "original_native_c_stdout_sha256": "0ff71af151f1504078198b7910f5aebd7a6daaf3c668b6f55e5691bd9dc8178c",
+      "rebuilt_c_stdout_sha256": "0ff71af151f1504078198b7910f5aebd7a6daaf3c668b6f55e5691bd9dc8178c"
+    },
+    {
+      "profile": "forever",
+      "same_bytes": true,
+      "original_native_c_stdout_sha256": "a7e6d824572a42e4eac94318dbf70eb2fc33d7b30e427ec21e1cf772655f21d2",
+      "rebuilt_c_stdout_sha256": "a7e6d824572a42e4eac94318dbf70eb2fc33d7b30e427ec21e1cf772655f21d2"
+    },
+    {
+      "profile": "min-max",
+      "same_bytes": true,
+      "original_native_c_stdout_sha256": "36b053684b1d35eecd4009757dd0c98ac92291f4484ce220e9bc795ea6ae185f",
+      "rebuilt_c_stdout_sha256": "36b053684b1d35eecd4009757dd0c98ac92291f4484ce220e9bc795ea6ae185f"
+    },
+    {
+      "profile": "max-reply-library",
+      "same_bytes": true,
+      "original_native_c_stdout_sha256": "4157f52092b0fd2f26a216d76c611e5ca32323603ec914b5f9b6bf2e9b782685",
+      "rebuilt_c_stdout_sha256": "4157f52092b0fd2f26a216d76c611e5ca32323603ec914b5f9b6bf2e9b782685"
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "result_sha256": "198975d47374bfd49b00f3c98cadf7f111c64482617b8e32ee8459d2f3602ccd",
+      "planned": 1100,
+      "compared": 1100,
+      "passed": 1098,
+      "mismatches": 2,
+      "execution_errors": [],
+      "rust_driver_sha256": "227989d2164f3006e8f86ccb84b06ce821c976388d4ff185c224dabf34aaab52",
+      "failures": [
+        {
+          "profile": "finite",
+          "index": 133,
+          "case": "cname-nx-q1-at-110",
+          "command": "T 110 512 12340100000100000000000005616c69617304746573740000010001",
+          "c": "T 0 0 NONE",
+          "rust": "T 1 0 NONE",
+          "c_semantics": {
+            "stale": 0,
+            "filtered": 0,
+            "reply": null
+          },
+          "rust_semantics": {
+            "stale": 1,
+            "filtered": 0,
+            "reply": null
+          }
+        },
+        {
+          "profile": "min-max",
+          "index": 133,
+          "case": "cname-nx-q1-at-110",
+          "command": "T 110 512 12340100000100000000000005616c69617304746573740000010001",
+          "c": "T 0 0 NONE",
+          "rust": "T 1 0 NONE",
+          "c_semantics": {
+            "stale": 0,
+            "filtered": 0,
+            "reply": null
+          },
+          "rust_semantics": {
+            "stale": 1,
+            "filtered": 0,
+            "reply": null
+          }
+        }
+      ]
+    },
+    "A": {
+      "result_sha256": "68d3aef8b8164121446710e6a4b37d5b9e1546d138530a81922780e213f6145c",
+      "planned": 1100,
+      "compared": 1100,
+      "passed": 1098,
+      "mismatches": 2,
+      "execution_errors": [],
+      "rust_driver_sha256": "4f6994f016a4bbdb82aab6e34bf80f4859e4c33674fdfa3a995eae8489337d1b",
+      "failures": [
+        {
+          "profile": "finite",
+          "index": 133,
+          "case": "cname-nx-q1-at-110",
+          "command": "T 110 512 12340100000100000000000005616c69617304746573740000010001",
+          "c": "T 0 0 NONE",
+          "rust": "T 1 0 NONE",
+          "c_semantics": {
+            "stale": 0,
+            "filtered": 0,
+            "reply": null
+          },
+          "rust_semantics": {
+            "stale": 1,
+            "filtered": 0,
+            "reply": null
+          }
+        },
+        {
+          "profile": "min-max",
+          "index": 133,
+          "case": "cname-nx-q1-at-110",
+          "command": "T 110 512 12340100000100000000000005616c69617304746573740000010001",
+          "c": "T 0 0 NONE",
+          "rust": "T 1 0 NONE",
+          "c_semantics": {
+            "stale": 0,
+            "filtered": 0,
+            "reply": null
+          },
+          "rust_semantics": {
+            "stale": 1,
+            "filtered": 0,
+            "reply": null
+          }
+        }
+      ]
+    },
+    "fix_b113602": {
+      "result_sha256": "be0964b31acf9379ab5a95f050618492a8acfc37aef7bec57902b47a752ff6df",
+      "planned": 1100,
+      "compared": 1100,
+      "passed": 1100,
+      "mismatches": 0,
+      "execution_errors": [],
+      "rust_driver_sha256": "215edc63fc55eea625417768395689922fc95c74d8520218e8bd4786f2cdc798",
+      "failures": [],
+      "eight_legitimate_stale_none_controls": [
+        {
+          "profile": "finite",
+          "case": "stale-no-rd",
+          "index": 229,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "finite",
+          "case": "stale-any",
+          "index": 230,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "forever",
+          "case": "stale-no-rd",
+          "index": 195,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "forever",
+          "case": "stale-any",
+          "index": 196,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "min-max",
+          "case": "stale-no-rd",
+          "index": 232,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "min-max",
+          "case": "stale-any",
+          "index": 233,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "max-reply-library",
+          "case": "stale-no-rd",
+          "index": 229,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        },
+        {
+          "profile": "max-reply-library",
+          "case": "stale-any",
+          "index": 230,
+          "c": "T 1 0 NONE",
+          "fixed": "T 1 0 NONE"
+        }
+      ]
+    }
+  },
+  "initial_live_observations": [
+    {
+      "case": "finite-udp-ordinary",
+      "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "c_queries": [
+        {
+          "phase": "seed",
+          "sent_epoch": 1792018869.1001139,
+          "epoch_delta": 0.00011396408081054688,
+          "request_wire": "12340100000100000000000005616c69617304746573740000010001",
+          "response_wire": "12348183000100010001000005616c6961730474657374000001000105616c6961730474657374000005000100000014000d067461726765740474657374000474657374000006000100000014002e026e730474657374000a686f73746d61737465720474657374000000000100000002000000030000000400000005",
+          "semantics": {
+            "id": 4660,
+            "flags": 33155,
+            "questions": [
+              [
+                "alias.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 20,
+                "data": "target.test"
+              },
+              {
+                "section": "authority",
+                "name": "test",
+                "type": 6,
+                "class": 1,
+                "ttl": 20,
+                "data": [
+                  "ns.test",
+                  "hostmaster.test",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "upstream_before": 0,
+          "upstream_after": 1
+        },
+        {
+          "phase": "cutoff",
+          "sent_epoch": 1792018879.3001413,
+          "epoch_delta": 10.200141429901123,
+          "request_wire": "12340100000100000000000005616c69617304746573740000010001",
+          "response_wire": "12348183000100010001000005616c6961730474657374000001000105616c6961730474657374000005000100000014000d067461726765740474657374000474657374000006000100000014002e026e730474657374000a686f73746d61737465720474657374000000000100000002000000030000000400000005",
+          "semantics": {
+            "id": 4660,
+            "flags": 33155,
+            "questions": [
+              [
+                "alias.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 20,
+                "data": "target.test"
+              },
+              {
+                "section": "authority",
+                "name": "test",
+                "type": 6,
+                "class": 1,
+                "ttl": 20,
+                "data": [
+                  "ns.test",
+                  "hostmaster.test",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "upstream_before": 1,
+          "upstream_after": 2
+        }
+      ],
+      "rust_queries": [
+        {
+          "phase": "seed",
+          "sent_epoch": 1792018869.1001298,
+          "epoch_delta": 0.00012993812561035156,
+          "request_wire": "12340100000100000000000005616c69617304746573740000010001",
+          "response_wire": "12348183000100010001000005616c6961730474657374000001000105616c6961730474657374000005000100000014000d067461726765740474657374000474657374000006000100000014002e026e730474657374000a686f73746d61737465720474657374000000000100000002000000030000000400000005",
+          "semantics": {
+            "id": 4660,
+            "flags": 33155,
+            "questions": [
+              [
+                "alias.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 20,
+                "data": "target.test"
+              },
+              {
+                "section": "authority",
+                "name": "test",
+                "type": 6,
+                "class": 1,
+                "ttl": 20,
+                "data": [
+                  "ns.test",
+                  "hostmaster.test",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "upstream_before": 0,
+          "upstream_after": 1
+        },
+        {
+          "phase": "cutoff",
+          "sent_epoch": 1792018879.3001442,
+          "epoch_delta": 10.200144290924072,
+          "request_wire": "12340100000100000000000005616c69617304746573740000010001",
+          "response_wire": "12348183000100010001000005616c6961730474657374000001000105616c6961730474657374000005000100000014000d067461726765740474657374000474657374000006000100000014002e026e730474657374000a686f73746d61737465720474657374000000000100000002000000030000000400000005",
+          "semantics": {
+            "id": 4660,
+            "flags": 33155,
+            "questions": [
+              [
+                "alias.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 20,
+                "data": "target.test"
+              },
+              {
+                "section": "authority",
+                "name": "test",
+                "type": 6,
+                "class": 1,
+                "ttl": 20,
+                "data": [
+                  "ns.test",
+                  "hostmaster.test",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "upstream_before": 1,
+          "upstream_after": 2
+        }
+      ],
+      "c_upstream_count": 2,
+      "rust_upstream_count": 2,
+      "semantics_equal": [
+        true,
+        true
+      ]
+    },
+    {
+      "case": "finite-udp-txt-terminal",
+      "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "c_queries": [
+        {
+          "phase": "seed",
+          "sent_epoch": 1792018880.1001275,
+          "epoch_delta": 0.00012755393981933594,
+          "request_wire": "12340100000100000000000005616c69617304746573740000010001",
+          "response_wire": "12348183000100010001000005616c6961730474657374000001000105616c6961730474657374000005000100000014000d067461726765740474657374000474657374000006000100000014002e026e730474657374000a686f73746d61737465720474657374000000000100000002000000030000000400000005",
+          "semantics": {
+            "id": 4660,
+            "flags": 33155,
+            "questions": [
+              [
+                "alias.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 20,
+                "data": "target.test"
+              },
+              {
+                "section": "authority",
+                "name": "test",
+                "type": 6,
+                "class": 1,
+                "ttl": 20,
+                "data": [
+                  "ns.test",
+                  "hostmaster.test",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "upstream_before": 0,
+          "upstream_after": 1
+        },
+        {
+          "phase": "cutoff",
+          "sent_epoch": 1792018890.3001182,
+          "epoch_delta": 10.20011830329895,
+          "request_wire": "12340100000100000000000105616c6961730474657374000010000100002904d0000000000000",
+          "response_wire": "12348580000100020000000105616c69617304746573740000100001c00c000500010000000a000d06746172676574047465737400c0280010000100000025000f0e6c6f63616c2d7465726d696e616c00002904d0000000000000",
+          "semantics": {
+            "id": 4660,
+            "flags": 34176,
+            "questions": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 10,
+                "data": "target.test"
+              },
+              {
+                "section": "answer",
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 37,
+                "data": "0e6c6f63616c2d7465726d696e616c"
+              },
+              {
+                "section": "additional",
+                "name": "",
+                "type": 41,
+                "class": 1232,
+                "ttl": 0,
+                "data": ""
+              }
+            ]
+          },
+          "upstream_before": 1,
+          "upstream_after": 1
+        }
+      ],
+      "rust_queries": [
+        {
+          "phase": "seed",
+          "sent_epoch": 1792018880.1001186,
+          "epoch_delta": 0.00011873245239257812,
+          "request_wire": "12340100000100000000000005616c69617304746573740000010001",
+          "response_wire": "12348183000100010001000005616c6961730474657374000001000105616c6961730474657374000005000100000014000d067461726765740474657374000474657374000006000100000014002e026e730474657374000a686f73746d61737465720474657374000000000100000002000000030000000400000005",
+          "semantics": {
+            "id": 4660,
+            "flags": 33155,
+            "questions": [
+              [
+                "alias.test",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 20,
+                "data": "target.test"
+              },
+              {
+                "section": "authority",
+                "name": "test",
+                "type": 6,
+                "class": 1,
+                "ttl": 20,
+                "data": [
+                  "ns.test",
+                  "hostmaster.test",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "upstream_before": 0,
+          "upstream_after": 1
+        },
+        {
+          "phase": "cutoff",
+          "sent_epoch": 1792018890.3001046,
+          "epoch_delta": 10.200104713439941,
+          "request_wire": "12340100000100000000000105616c6961730474657374000010000100002904d0000000000000",
+          "response_wire": "12348580000100020000000105616c69617304746573740000100001c00c000500010000000a000d06746172676574047465737400c0280010000100000025000f0e6c6f63616c2d7465726d696e616c00002904d0000000000006000f00020003",
+          "semantics": {
+            "id": 4660,
+            "flags": 34176,
+            "questions": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 10,
+                "data": "target.test"
+              },
+              {
+                "section": "answer",
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 37,
+                "data": "0e6c6f63616c2d7465726d696e616c"
+              },
+              {
+                "section": "additional",
+                "name": "",
+                "type": 41,
+                "class": 1232,
+                "ttl": 0,
+                "data": "000f00020003"
+              }
+            ]
+          },
+          "upstream_before": 1,
+          "upstream_after": 1
+        }
+      ],
+      "c_upstream_count": 1,
+      "rust_upstream_count": 2,
+      "semantics_equal": [
+        true,
+        false
+      ]
+    }
+  ],
+  "live_tool_sha256": "2ca2c85dd59c306d9963809c29964a61d6782d83ffb3d18b43fe42f34502b43b",
+  "full_live_matrix_pending": true,
+  "golden_comparators_or_expectations_modified": false,
+  "root_user_scope_clarification_pending": true,
+  "scope": "Existing baseline compatibility defect; b113602 fixes frozen primitive contract but has demonstrated externally observable EDE/refresh consequences, so not a pure performance acceptance."
+}
