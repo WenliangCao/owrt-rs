@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_DRIVER_REVIEW",
+  "scope": "Local-only review of the frozen fifty-window device driver, plan and test source. No device workload, router access or Oracle access was performed for this driver review. Separate native Linux evidence is in e-udp-stage-linux-gates.json.",
+  "driver_commit": "79d32167b4ebbb0ad32443e9f5b33ad4a0118bd8",
+  "initial_driver_commit": "eb1fd4d5",
+  "archive_repair_commits": [
+    "064e3825",
+    "2b5b025e"
+  ],
+  "cleanup_repair_commits": [
+    "94105a55",
+    "79d32167"
+  ],
+  "driver_sha256": "59b21c0dc7841f9e62686c8ebc7da44334c4846c5c87c258f9a8806969992aeb",
+  "test_source_sha256": "affb47289df0dccd616f7d583459c23cd607f3402f75b3840e542d8fd1efd05d",
+  "plan_sha256": "6b403edb27d555de7588504a68acc4bc6206c6c677baaeee792b5c1c191ed30c",
+  "diagnostic_source_commit": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+  "base_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "reused_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "reused_analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "schedule_review": {
+    "fixed_windows": 50,
+    "groups": [
+      "exact-c-vs-e",
+      "e-vs-stage-full",
+      "stage-full-vs-receive",
+      "stage-full-vs-before-answer",
+      "stage-full-vs-skip-local"
+    ],
+    "pairs_per_group": 5,
+    "side_order_every_group": [
+      "c",
+      "rust",
+      "rust",
+      "c",
+      "c",
+      "rust",
+      "rust",
+      "c",
+      "c",
+      "rust"
+    ],
+    "all_labels_unique": true,
+    "no_cross_group_pairing_or_pooling": true,
+    "group_bindings": "Exact C/E reference, E/stage-full calibration and three separate stage-full contrasts each use their own five original rounds. All stage modes use the same stage ELF."
+  },
+  "validation_review": [
+    "Each window requires 1000 prewarm, 1000 warmup and 4000 measurement correct replies with zero timeout/wrong/transport/skips; frozen base validate and analyzer traffic checks remain in use.",
+    "Stage modes require integer matched_queries=6000 and prewarm_threshold=1000. Full requires four zero cut counters; each nonfull mode requires exactly its own 5000 cuts and zero other counters. Original C/E windows reject a stage sidecar.",
+    "Before/resources/after must show one process and one thread with a stable PID/start time; final.stat checks the same identity and one thread, and daemon/case network namespaces must agree.",
+    "CPU endpoints cover the post-prewarm 1000 warmup plus 4000 measurement completions: denominator5000, not matched6000. The original 100Hz accounting and compare W/four-of-five direction/min10ticks/strict median delta>8ticks gates remain unchanged.",
+    "Each comparison consumes exactly five valid rows per side sorted by original round, independently per group. Synthetic stage contrasts retain excluded-diagnostic scope."
+  ],
+  "failure_and_restore_review": [
+    "The first failure stops the loop; there are no replacements or extensions. Normal valid-window pruning follows verified archive, validation and progress write.",
+    "archive_attempted is marked before the first archive call. Both a completed archive and partial first-attempt bytes are preserved; cleanup never retries that label over the first archive.",
+    "The original failure.json is written before remote stop attempts. Stop/archive/guard-stop/guard-copy failures are retained locally without masking the original exception.",
+    "Cleanup always proceeds to the safe E/F slot restoration attempt after best-effort guard handling. Slot replacement requires no active-group marker and no owned dnsmasq executable; immutable source and copied temporary hashes are verified before atomic rename.",
+    "Restoration verifies the original E/F slot hashes and production PID/start identity. An unsafe failed active-group marker is not removed to force restoration.",
+    "External monitoring must finish without failure and the guard must still be present after the last window. Guard-copy errors and any restoration/cleanup error prevent complete.json; restoration failure has its own retained record."
+  ],
+  "test_review": {
+    "author_reported_tests_passed": 9,
+    "reviewer_reran_tests": false,
+    "test_names": [
+      "test_frozen_order_is_five_separate_alternating_pairs_per_group",
+      "test_every_mode_and_originals_have_required_cohorts",
+      "test_wrong_mode_threshold_matching_or_cuts_is_rejected",
+      "test_prewarm_failure_is_rejected_even_with_correct_stage_counts",
+      "test_extra_thread_or_different_namespace_is_rejected",
+      "test_full_cut_or_original_sidecar_is_rejected",
+      "test_validator_exception_preserves_completed_archive_and_stops",
+      "test_partial_archive_failure_preserves_first_bytes_and_stops",
+      "test_cleanup_timeouts_preserve_original_failure_and_attempt_restore"
+    ],
+    "failure_fixture_coverage": "Complete archive followed by validator exception; partial first archive failure; simultaneous stop/guard-stop/guard-copy timeouts. Fixtures check first archive bytes retained, only one case launched, original failure present before stop, E/F restore attempted, and no completion marker."
+  },
+  "resolved_findings": [
+    "A validator exception before progress previously allowed a second archive call to overwrite completed evidence. First-attempt tracking now also protects partial archive evidence.",
+    "Remote cleanup timeouts previously could bypass local failure/restore records. The original failure is now persisted first, cleanup is best-effort and all recorded cleanup errors block completion."
+  ],
+  "remaining_blocking_findings": [],
+  "limits": [
+    "This is a driver review, not evidence that the fifty device windows have run or passed. Artifact delivery, fresh health, per-window raw validation and postflight remain execution responsibilities.",
+    "Stage modes are deliberately excluded synthetic cumulative-path interventions. Passing this driver review or related Linux gates does not establish full44 qualification, exact C wire equivalence, additive function cost, IPC, allocation cost, candidate acceptance or deployment eligibility."
+  ]
+}
