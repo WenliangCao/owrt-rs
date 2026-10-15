@@ -29,3 +29,14 @@ is introduced. Start only after current reservations and this source's gates/
 build finish. Any retained variant can continue through the original low/high
 SDK owner screen and independent A53 check; complete candidate qualification
 still requires the frozen full gates and a discernible physical E comparison.
+
+[Thirty local allocation controls](local-miss-stack-local-allocation.json)
+now complete: all15 checksums match F and all live-byte deltas are zero. Four
+hit classes, both misses, RRset and CNAME-with-leases each save one21-byte
+fixture-name allocation. Other allocation counts remain unchanged, removing
+the parent's four extra allocations without claiming a CPU win. Host-localise
+still varies: this run adds0.20625 reallocations and173.68 requested bytes per
+operation relative to its F control. Its process-dependent bucket/rotation
+variation remains in full and is not attributed to this patch or discarded.
+All34 command results and their log hashes were rechecked. Timing and full
+qualification remain pending.
