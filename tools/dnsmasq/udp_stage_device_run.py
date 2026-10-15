@@ -147,6 +147,7 @@ def main():
     monitor = threading.Thread(target=run.external_health, args=(args.out, finished, failed), daemon=True)
     guard = guard_label = label = current_group = None
     results = []
+    archive_attempted = set()
     try:
         guard_label = 'a53-stage-guard-' + str(time.time_ns())
         guard = run.guard_start(identity[0], guard_label, health['threshold_ms'])
@@ -174,6 +175,7 @@ def main():
             if not run.guard_check(guard):
                 raise RuntimeError('guard unavailable at completion')
             run.ssh(f'rm -f {run.ROOT}/active.group')
+            archive_attempted.add(label)
             folder = run.archive_run(args.out, label)
             expected = artifacts[window['artifact']]['sha256']
             errors = run.validate(folder, scene, expected)
@@ -207,10 +209,12 @@ def main():
     except BaseException as error:
         run.stop_owned('a53_udp_stage_diagnostic_failed')
         recovery = {}
-        if label is not None and (args.out / (label + '.archive.json')).exists():
-            recovery['attempt_already_archived'] = label
+        if label in archive_attempted:
+            recovery['archive_attempt_preserved'] = label
+            recovery['archive_manifest_complete'] = (args.out / (label + '.archive.json')).exists()
         elif label is not None:
             try:
+                archive_attempted.add(label)
                 run.archive_run(args.out, label)
                 recovery['attempt_archived'] = label
             except Exception as archive_error:

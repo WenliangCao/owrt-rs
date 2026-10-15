@@ -96,7 +96,7 @@ class StageGateTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             stage_report(folder, None)
 
-    def test_validator_exception_preserves_completed_archive_and_stops(self):
+    def run_controller_failure(self, partial_archive):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
@@ -105,6 +105,9 @@ class StageGateTests(unittest.TestCase):
         health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
         plan = Path(__file__).resolve().parents[2] / 'docs/dnsmasq/audits/perf-opt-20261015/loop/A53_UDP_STAGE_DEVICE_PLAN.json'
         def archived(destination, label):
+            (destination / (label + '.tar.gz')).write_bytes(b'first archive bytes')
+            if partial_archive:
+                raise ValueError('partial archive extraction failure')
             (destination / (label + '.archive.json')).write_text('{"files":{}}')
             return root
         argv = ['udp_stage_device_run.py', '--plan', str(plan), '--health-baseline', str(health),
@@ -120,13 +123,21 @@ class StageGateTests(unittest.TestCase):
              patch.object(stage.subprocess, 'Popen') as launch:
             launch.return_value.poll.return_value = 0
             launch.return_value.returncode = 0
-            with self.assertRaisesRegex(ValueError, 'malformed client JSON'):
+            with self.assertRaisesRegex(ValueError, 'partial archive extraction failure' if partial_archive else 'malformed client JSON'):
                 stage.main()
         archive.assert_called_once()
         launch.assert_called_once()
         failure = json.loads((out / 'failure.json').read_text())
-        self.assertEqual(failure['recovery']['attempt_already_archived'], schedule()[0]['label'])
+        self.assertEqual(failure['recovery']['archive_attempt_preserved'], schedule()[0]['label'])
+        self.assertEqual(failure['recovery']['archive_manifest_complete'], not partial_archive)
+        self.assertEqual((out / (schedule()[0]['label'] + '.tar.gz')).read_bytes(), b'first archive bytes')
         self.assertFalse((out / 'complete.json').exists())
+
+    def test_validator_exception_preserves_completed_archive_and_stops(self):
+        self.run_controller_failure(partial_archive=False)
+
+    def test_partial_archive_failure_preserves_first_bytes_and_stops(self):
+        self.run_controller_failure(partial_archive=True)
 
 
 if __name__ == '__main__':
