@@ -1,0 +1,39 @@
+{
+  "pid": 14903,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "tools/dnsmasq/perf_opt_device_run.py",
+    "--out",
+    "private/perf-opt-20261015/candidate-c",
+    "--prefix",
+    "candidate-c",
+    "--c-hash",
+    "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "--rust-hash",
+    "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+    "--health-baseline",
+    "private/perf-opt-20261015/health/summary.json"
+  ],
+  "epoch": 1792059031.396401,
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "candidate_sha256": "b4c4a8e40698feb7aa57da09699bb2988ac1cf4bb54345474a9f659a12edcda1",
+  "frozen_tool_hashes": {
+    "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+  },
+  "qualification_result_sha256": "371fa521d68c05d8b124a1f19d51b4b0ced931e02f12e5a0cf4daebe9f0bcf3d",
+  "scope": "Temporary loopback-only standalone instances; production unchanged, no flash/packages/config changes",
+  "qualification_result_digest_encoding": "SHA256 of canonical sorted JSON with compact separators, not raw file bytes",
+  "source_commit": "f7f7a2edd9f2ecfac72953e43cfc873a354b468b"
+}

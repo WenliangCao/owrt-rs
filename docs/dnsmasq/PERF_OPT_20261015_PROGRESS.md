@@ -213,3 +213,24 @@ protocol,31existing checker tests,TCP3groups,fourcorpora. Exact sourcef7f7a2ed /
 shippingELFb4c4a8e...; no new framework. KnownoriginalUID2rawexit1 recorded per
 user; any newfailureblocks. Once fullcorrectnesspasses, stage C only under
 router/tmp and run110fresh deployed/C pairs with original guard and workloads.
+
+## C qualified and DEVICE running, 12:10 CEST
+
+C complete44/44families and67/67uniquejobs passed with all rawresult hashes
+reverified;941shorttests,F10,protocol,TCP,all4corpora complete. Original
+UID2rawdifferences remain explicitlynonblocking; no newfailures/retries.
+Finalgate evidence c-full44-gates.json; product/source/ELF remainf7f7/b4c4.
+
+Root staged only owned/tmp comparator files after verifying qualification,
+all9frozen tool/script hashes and productionPID/start/hash. Baseline c-side
+is exactdeployed8472; rust-side exactCcandidateb4c4. DetachedLOCAL controller
+PID14903, outputprivate/perf-opt-20261015/candidate-c; stdout/stderr and
+launchreceipt alongside. Prefixcandidate-c, originalhealthbaseline/threshold200,
+same110window protocol. Initial9windowsvalid, nofailure. Poll localprogress and
+failure/complete JSON; controller itself maintains production/externalhealth.
+Never touchproduction; firstfailurestopsownedgroup automatically. No deployment.
+
+Fresh exactC counter-only profiles now run onOracle using existingtools and
+separate loop/private/c outputs (UDP hit/miss/mixed,TCPmiss,misssyscalls).
+Noextra routerload; elapsed diagnostic timing is excluded. D product remains
+unintegrated; use C device results and fresh profiles before next iteration.
