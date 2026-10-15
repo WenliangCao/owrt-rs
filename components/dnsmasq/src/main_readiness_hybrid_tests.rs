@@ -12,7 +12,9 @@ fn owner() -> SinglePoll {
     config.bind_interfaces = true;
     config.apply(&dnsmasq_rs::config::lex_line(
         b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
-    test_owner(config, None)
+    let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+        DaemonOptions { local_ttl: 37, ..Default::default() }).unwrap();
+    test_owner(config, Some(daemon))
 }
 
 fn query() -> Vec<u8> {
