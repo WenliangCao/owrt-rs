@@ -27,6 +27,27 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n')
 
 
+def verify_mapped_files(mapping, expected_images):
+    elf_files, data_files = {}, {}
+    for line in mapping.splitlines():
+        fields = line.split(maxsplit=5)
+        permissions = fields[1]
+        path = fields[5] if len(fields) == 6 else ''
+        if not path.startswith('/'):
+            assert 'x' not in permissions or path == '[vdso]', ('unexpected executable mapping', line)
+            continue
+        data = Path(path).read_bytes()
+        digest = hashlib.sha256(data).hexdigest()
+        if data.startswith(b'\x7fELF'):
+            elf_files[path] = digest
+        else:
+            assert 'x' not in permissions, ('unexpected executable data mapping', path)
+            row = data_files.setdefault(path, {'sha256': digest, 'bytes': len(data), 'mappings': []})
+            row['mappings'].append({'permissions': permissions, 'offset': fields[2]})
+    assert elf_files == expected_images, (elf_files, expected_images)
+    return {'elf_files': elf_files, 'non_executable_data_files': data_files}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', type=Path)
@@ -105,23 +126,6 @@ def main():
     children = []
     channels = []
     controls = []
-
-    def verify_mapped_files(mapping):
-        elf_files, data_files = {}, {}
-        for line in mapping.splitlines():
-            fields = line.split(maxsplit=5)
-            if len(fields) < 6 or not fields[5].startswith('/'):
-                continue
-            path, permissions = fields[5], fields[1]
-            data = Path(path).read_bytes()
-            digest = hashlib.sha256(data).hexdigest()
-            if data.startswith(b'\x7fELF'):
-                elf_files[path] = digest
-            else:
-                assert 'x' not in permissions, ('unexpected executable data mapping', path)
-                data_files[path] = {'sha256': digest, 'bytes': len(data), 'permissions': permissions}
-        assert elf_files == image_files, (elf_files, image_files)
-        return {'elf_files': elf_files, 'non_executable_data_files': data_files}
 
     def start(argv, label):
         with (out / f'{label}.stdout').open('wb') as stdout, (out / f'{label}.stderr').open('wb') as stderr:
@@ -209,8 +213,9 @@ def main():
         identity = {'pid': daemon.pid, 'exe': os.readlink(proc / 'exe'),
                     'sha256': sha(proc / 'exe'), 'maps': (proc / 'maps').read_text(),
                     'stat': (proc / 'stat').read_text()}
+        save(out / 'process-identity.json', identity)
         assert identity['sha256'] == process_expected and os.sched_getaffinity(daemon.pid) == {2}
-        identity['mapped_file_identity'] = verify_mapped_files(identity['maps'])
+        identity['mapped_file_identity'] = verify_mapped_files(identity['maps'], image_files)
         identity['mapped_images'] = image_files
         save(out / 'process-identity.json', identity)
         if args.profile != 'miss':
@@ -254,7 +259,9 @@ def main():
                  'load_start_ns': load_start, 'load_end_ns': load_end})
         maps_after = (proc / 'maps').read_text()
         (out / 'maps-after').write_text(maps_after)
-        save(out / 'mapped-files-after.json', verify_mapped_files(maps_after))
+        mapped_after = verify_mapped_files(maps_after, image_files)
+        save(out / 'mapped-files-after.json', mapped_after)
+        assert mapped_after == identity['mapped_file_identity'], 'mapped file identities changed during capture'
         assert sha(proc / 'exe') == process_expected
         assert all(sha(path) == digest for path, digest in image_files.items())
         statuses = ([finish(tracer, signal.SIGINT)] if observer == 'strace' else
