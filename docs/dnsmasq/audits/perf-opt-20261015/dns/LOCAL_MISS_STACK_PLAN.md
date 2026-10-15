@@ -40,3 +40,13 @@ operation relative to its F control. Its process-dependent bucket/rotation
 variation remains in full and is not attributed to this patch or discarded.
 All34 command results and their log hashes were rechecked. Timing and full
 qualification remain pending.
+
+The [local LTO codegen check](local-miss-local-codegen.json) keeps the shared
+query caller at688B for the owned miss check, stack check and local integration,
+matching the earlier F probe. The non-inline miss helper grows112→368B (+256)
+while its static assembly instruction lines change121→124. That helper returns
+before general/cache answering, so its scratch does not remain live through
+those calls. The integration's separate writer reserves208B; the unchanged
+general cache state machine reserves880B. These are local static observations,
+not exact SDK frames or measured stack traffic. All6 builds and162 source-file
+identities per variant were rechecked.
