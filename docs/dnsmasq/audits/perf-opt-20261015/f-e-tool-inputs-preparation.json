@@ -1,0 +1,314 @@
+{
+  "schema": 1,
+  "status": "prepared; tooling identities pinned; F product and run identities pending; no workload launched or router artifact changed",
+  "run_frozen": false,
+  "tool_source_commit": "91409ea3d3c4b15274e7f3377558480828b320b9",
+  "comparison": {
+    "c": {
+      "role": "accepted candidate E; incremental baseline",
+      "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "elf_bytes": 2136859
+    },
+    "rust": {
+      "role": "candidate F; E plus selected performance changes only",
+      "source_commit": null,
+      "elf_sha256": null,
+      "elf_bytes": null,
+      "sdk_build_receipt_sha256": null,
+      "complete_correctness_receipt_sha256": null,
+      "selected_performance_commits": [
+        "c1ea66f6491241e4eed02c4de92f60e158320fe0",
+        "6f594d7bc8b89a704ad67e96b8eae3256e5d6744",
+        "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72"
+      ]
+    }
+  },
+  "production_guard": {
+    "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "last_observed_pid_start": [
+      3086,
+      2115
+    ],
+    "live_preflight_required": true,
+    "health_baseline_sha256": null,
+    "threshold_formula": "max(200 ms, 10 * baseline DNS p95); reject if above 700 ms",
+    "minimum_baseline_seconds": 120,
+    "minimum_available_memory_kib": 65536
+  },
+  "incremental_acceptance": {
+    "registration": "Coordinator confirmed the latest user-requested E/F incremental criterion before any F/E workload.",
+    "primary_goal": "Discernible UDP-hit improvement against accepted E; report TCP-hit too.",
+    "full_matrix": "All 11 scenes must have no discernible regression in p50, p95 or CPU. Original correctness and memory/ELF/resource gates remain.",
+    "majority": "E already met the original deployed/E majority-of-scenes criterion. This targeted increment does not require a fresh majority of all 11 scenes to improve.",
+    "statistics": "Unchanged W, >=4/5 same-direction pairs, CPU all rounds >=10 ticks and median tick difference >8, lifecycle latency observation floor 1 ms, no p99 below 10000 samples.",
+    "limits": "E/F is a direct incremental comparison. Neither E/F nor pooled historical measurements establish a fresh deployed/F comparison."
+  },
+  "repairs": {
+    "queue_loadgen": {
+      "original_commit": "9e6556cf92553fe89c81c3c0a9ad1d622d3ed379",
+      "integrated_commit": "0f8ced6c",
+      "old_elf_sha256": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+      "new_source_sha256": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+      "new_elf_sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "new_elf_bytes": 544760,
+      "sdk_build": {
+        "compiler": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+        "compiler_sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+        "compiler_version": "aarch64-openwrt-linux-musl-gcc (OpenWrt GCC 14.3.0 r33051-f5dae5ece4) 14.3.0",
+        "flags": [
+          "-O2",
+          "-std=c11",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-static"
+        ],
+        "build_command": [
+          "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+          "-O2",
+          "-std=c11",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-static",
+          "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/m6a_loadgen.c",
+          "-o",
+          "/home/ubuntu/dnsmasq-perf-20261015/dhcp/private/loadgen-queue-dhcp-20261015/inputs/m6a_loadgen"
+        ],
+        "new_loadgen_sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e"
+      }
+    },
+    "miss_cohort": {
+      "commit": "a2dc1fa6",
+      "controller_sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+      "rule": "No-prewarm miss, saturation_seconds==0: exact 5000 total forwarded requests/replies across warmup+measurement including drained processing; global upstream completeness and exact zero-error client counts still required. Hit/mixed/DHCP/lifecycle/actual-saturation gates unchanged."
+    },
+    "table_comparator": {
+      "commit": "91409ea3d3c4b15274e7f3377558480828b320b9",
+      "behavior": "Explicit candidate-baseline SHA256 and label parameters; legacy defaults and deployed production guard unchanged."
+    }
+  },
+  "tool_files": {
+    "tools/dnsmasq/m6a_loadgen.c": {
+      "sha256": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+      "bytes": 36194
+    },
+    "tools/dnsmasq/perf_opt_device_run.py": {
+      "sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+      "bytes": 15437
+    },
+    "tools/dnsmasq/perf_opt_oracle_run.py": {
+      "sha256": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+      "bytes": 6098
+    },
+    "tools/dnsmasq/perf_opt_analyze.py": {
+      "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "bytes": 11018
+    },
+    "tools/dnsmasq/perf_opt_tables.py": {
+      "sha256": "0e786b6f7ea02020c7c198220c3372f6df743e6a162785aa056e174d132a3269",
+      "bytes": 13370
+    },
+    "tools/dnsmasq/perf_opt_device_case.sh": {
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "bytes": 7564
+    },
+    "tools/dnsmasq/perf_opt_device_group.sh": {
+      "sha256": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "bytes": 692
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": {
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "bytes": 7564
+    },
+    "device_perf_guard": {
+      "sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "bytes": 561456
+    },
+    "device_perf_lifecycle": {
+      "sha256": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "bytes": 635928
+    },
+    "device_perf_netns": {
+      "sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "bytes": 348152
+    },
+    "device_perf_resource_probe": {
+      "sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "bytes": 544576
+    },
+    "group.sh": {
+      "sha256": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "bytes": 692
+    },
+    "m6a_loadgen": {
+      "sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "bytes": 544760
+    },
+    "m6a_upstream": {
+      "sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "bytes": 449464
+    },
+    "nice10": {
+      "sha256": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "bytes": 162800
+    }
+  },
+  "scenes": [
+    [
+      "udp-hit",
+      "udp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-miss",
+      "udp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-mixed",
+      "udp",
+      "mixed",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-hit",
+      "tcp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-miss",
+      "tcp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "dhcp-home6",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      6
+    ],
+    [
+      "dhcp",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      150
+    ],
+    [
+      "startup-small",
+      "life-startup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "config-small",
+      "life-config",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-small",
+      "life-hup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-large",
+      "life-hup",
+      999,
+      150,
+      20,
+      1000,
+      150
+    ]
+  ],
+  "windows_per_environment": 110,
+  "pair_order": [
+    "c,rust",
+    "rust,c",
+    "c,rust",
+    "rust,c",
+    "c,rust"
+  ],
+  "environment_policy": {
+    "oracle": "Exclusive global timing reservation; CPU 2; unchanged nice10/netns/case recipe. Use perf_opt_oracle_run.py and perf_opt_analyze.py, never the older fixed-C supplement analyzer.",
+    "router": "Single DHCP agent owner; existing isolated loopback netns and owned /tmp root, nice10, no affinity/frequency change, production/external health guard. Qualify exact F before staging or launch.",
+    "cross_environment_scheduling": "Coordinator authorized independent Oracle and router full E/F rounds concurrently after exact F complete correctness passes. Oracle timing remains globally exclusive; no other router owner or workload."
+  },
+  "prospective_outputs": {
+    "oracle": "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-f-vs-e",
+    "router_local": "private/perf-opt-20261015/candidate-f-vs-e",
+    "router_prefix": "candidate-f-vs-e",
+    "local_prepared_inputs": "private/perf-opt-20261015/inputs-fe"
+  },
+  "supplements": {
+    "rule_commit": "7691e8aa",
+    "policy": "After the complete original 110, at most one whole-pair supplement for independently evidenced tool-invalid pairs, both sides symmetric and original order; no product wrong-answer/response-timeout/crash eligibility; retain originals and explicit pair mapping."
+  },
+  "preparation_checks": {
+    "new_table_tests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "existing_cohort_tests": {
+      "passed": 12,
+      "failed": 0
+    },
+    "legacy_render": {
+      "legacy_report_unchanged": true,
+      "report_sha256": "bf1586680d37440a76f14681d27371b759d32b56a48f085c5e2384e490470a75",
+      "inputs": {
+        "base2-summary.json": "01bef643b5ef40489d50bb28987254b492a5b505ce2cd6a529ab1267dff40a7e",
+        "candidate-e-effective-summary.json": "e3a0e556b189f35cde0a5a48abab3aab23d7c76711d03689a8bd439b3411071b"
+      },
+      "scope": "offline rendering only; original analyzer outputs were read and remain unchanged"
+    },
+    "independent_review": "loop reviewed 91409ea3 actual diff: no blocker; no remote rerun",
+    "local_artifacts": "E and all 9 tool/script identities independently hashed into a fresh private input directory; new SDK loadgen copied read-only from its retained Oracle functional-test artifact."
+  },
+  "pending_before_run": [
+    "Freeze selected F source and exact unchanged-recipe SDK ELF/size/build receipt.",
+    "Pass and bind full original correctness qualification to exact F.",
+    "After full correctness qualification, launch fresh Oracle 110 E/F windows under its exclusive reservation; the separate router 110 may run concurrently as coordinator authorized. Retain all attempts and keep environment analyses separate.",
+    "Verify current router production identity, idle owner state, old staged backups/artifact identities, fresh health baseline, available memory and the independently guarded stop path.",
+    "Only then, under coordinator launch authorization, atomically stage E into dnsmasq-c, F into dnsmasq-rust and new loadgen; verify every staged hash.",
+    "Record final source/ELF/qualification/health/tool hashes in a new launch receipt before the first router window."
+  ],
+  "historical_preservation": "Original measurement-tools.json, frozen-inputs.json, E original/supplement/effective results and prior raw archives remain unchanged. This supplement applies prospectively only."
+}
