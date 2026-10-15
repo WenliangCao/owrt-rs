@@ -247,6 +247,9 @@ pub struct DnsDaemon<R = OsRandom> {
     server_notices: Vec<crate::logging::LogEvent>,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
+    // One bounded decode scratch, not a per-name cache. A successful name
+    // is at most255 bytes; Vec's amortized capacity may exceed256 (for
+    // example380 for uneven labels), while ordinary names retain32 bytes.
     udp_name_buffer: Vec<u8>,
     cache_counters: CacheCounters,
     negative_ttl: u64,
