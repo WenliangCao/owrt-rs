@@ -356,3 +356,19 @@ unchanged. Launch was withdrawn immediately on the counterevidence. Any actual
 startupdefect will receive a separate deterministicreproducer/fixcommit andenter
 a newfrozen candidate withfulltiming; D itself staysunchanged. The stagingstep
 is retained here to avoid mistaking stagedartifact presence for an executedtest.
+
+## Confirmed startup defect; separate E repair in progress
+
+MatchingC source establishes the actual boundary: lease_init restores/prunes
+andmarks dns_dirtywithoutpublishing; firstdo_script_run freezesoriginal;
+EVENT_INIT executescache_reload→lease_update_from_configs→firstlease_update_dns.
+Ruststep_dhcp_files→initialize→maintain(forceDNS=true) publishesoriginalearly;
+initialhostsdirbulk theninheritsDHCPnodesandcan suppressrenamebybucketorder.
+This is a genuine pre-existingRuststartupdefect exposedbyDlayout, nottheoldHUP
+mixed-chainexception. No additionalrandomsamplesare needed. Dremainsfailed and
+immutable; allrawservice/qualify failures remain. A separateEfix mustdeferonly
+firstDNSpublication, keeptheoriginalpre-INIThelpercallback, preserveHUPmixedchain
+semantics, andinclude deterministicregressioncoverage forbothrelativebucketorders.
+DHCPownsfix innewworktreebasedonD, DNSreviewsRustchanges, correctnessbindsexactC
+andrelatedgates. NootherproductoptimizationiscurrentlyselectedforE; behavior
+repairwillbe reportedseparately fromD'sperformancemechanism andfreshwholeELFtiming.
