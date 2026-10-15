@@ -1095,6 +1095,25 @@ fn add_local_records_for_name(
         );
         return (rows, owned, false);
     }
+    add_general_local_records_for_name(
+        config, hosts, name, qtype, ttl, leases, cache, notices,
+    )
+}
+
+// The A/AAAA dispatcher must not inherit the general RR path's large frame.
+// This is still the normal path for raw address records and other RR types.
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn add_general_local_records_for_name(
+    config: &DnsConfig,
+    hosts: &mut Hosts,
+    name: &[u8],
+    qtype: u16,
+    ttl: u32,
+    leases: LeaseView<'_>,
+    cache: Option<&Cache>,
+    notices: &mut QueryEvents,
+) -> (Vec<(u16, u32, Vec<u8>)>, bool, bool) {
     // Raw records and address sources compare dotted names directly. Only
     // the other configured RR loops need a wire-format key.
     let records = &config.records;
