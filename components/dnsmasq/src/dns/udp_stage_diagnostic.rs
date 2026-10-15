@@ -1,6 +1,7 @@
 //! Excluded A53 cumulative-path diagnostic. Never a product optimization.
 //! All modes share one ELF. Only the frozen q0000..q031f.m6a.test A/AAAA
-//! packet shape is eligible, and its first 1000 queries always run in full.
+//! packet shape is eligible. The first 1000 matching receives cannot select
+//! a cut; the isolated no-defer fixture must separately prove completion.
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering::Relaxed};
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(usize)]
@@ -58,8 +59,11 @@ pub fn answer_in_place(buffer: &mut [u8], query_length: usize) -> Option<usize> 
 
 #[inline(never)]
 pub fn owned_answer(packet: &[u8]) -> Vec<u8> {
-    let mut answer = vec![0; 60];
-    answer[..packet.len()].copy_from_slice(packet);
+    // Match the ordinary PacketWriter's initial128-byte allocation rather
+    // than changing this one remaining allocation's size class as well.
+    let mut answer = Vec::with_capacity(128);
+    answer.extend_from_slice(packet);
+    answer.resize(60, 0);
     let size = answer_in_place(&mut answer, packet.len()).expect("selected diagnostic packet");
     answer.truncate(size);
     answer
@@ -69,7 +73,7 @@ pub fn write_report() -> std::io::Result<()> {
     use std::io::Write;
     let Some(path) = std::env::var_os("DNSMASQ_UDP_STAGE_OUT") else { return Ok(()) };
     let cuts = std::array::from_fn::<_,4,_>(|i| CUTS[i].load(Relaxed));
-    writeln!(std::fs::File::create(path)?, "{{\"scope\":\"excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance\",\"mode\":{},\"matched_queries\":{},\"full_path_prewarm\":1000,\"cuts_by_mode\":{cuts:?}}}", MODE.load(Relaxed), MATCHED.load(Relaxed))
+    writeln!(std::fs::File::create(path)?, "{{\"scope\":\"excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance\",\"mode\":{},\"matched_queries\":{},\"prewarm_threshold\":1000,\"cuts_by_mode\":{cuts:?}}}", MODE.load(Relaxed), MATCHED.load(Relaxed))
 }
 
 #[cfg(test)]
