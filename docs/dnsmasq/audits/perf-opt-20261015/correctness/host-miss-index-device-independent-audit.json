@@ -1,0 +1,540 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only F/host-miss-index fixed ten-window audit using existing raw/count/statistical/health checks; no device query, build or new load.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "host-miss-index",
+    "source_commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "081ac4a295117045f320bcd7f218a1280c8ebeebcc1511673ae7c26e9e557066",
+        "bytes": 2136859
+      },
+      "link.map": {
+        "sha256": "261cb11b3f4a7d5cd452902a17e1cee7924ee78a327949ae5d079d69a82dd411",
+        "bytes": 3018649
+      },
+      "build.json": {
+        "sha256": "636a95819e750704b98bd24a0de792eb292f8d3a0221d7088d007979f24df88c",
+        "bytes": 43961
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "ae0791ea",
+    "author_public_result": "../loop/A53_HOST_MISS_INDEX_DEVICE_RESULT.json",
+    "author_public_result_sha256": "017aa481e9ad2c760381d2179b9dda6f9f34ca1ff64ec4957fa25e611a43bd7a",
+    "summary_sha256": "700c3d248f1665ac5a13c8aa950a0b55720f434fbe96977d04c01b83bfd53dcc",
+    "progress_sha256": "379cf01b14253be56e952468c17df29dedf34ed0e4ec49b8d711899e6d9ab086",
+    "identity_sha256": "24200e782f9d6e7d66b0b480e00e56ce785b587c6ff7f4af257d1caf07b68cf5",
+    "plan_sha256": "a4752a16794e5e9516f04654b69ef34aae863b279b51c1a9c69388f221a585c0",
+    "launch_sha256": "86756c257a655cebf15b2e38dfa9f1022419f875e169627143d07fc18b14f03a",
+    "independent_audit_sha256": "853b6bafe1fbcd73088aa8409a78d29d726e71a9288f2833aa34579605d46595",
+    "statistical_script_sha256": "ffd0b65a5c743d529c0e3c82b6188e52f22dc38196521c70d0a1dd6ef4263603",
+    "health_script_sha256": "c35b98e4db2bf3250fb9dc7d42010b13d06fea397fffa4aa6d18a63ef4657879",
+    "subreceipts": {
+      "statistics_sha256": "7b3c1f32fd7438955e5d6b4b9a526fc487ff376f7dc58375a9eac7a1e2c4dcad",
+      "health_sha256": "6814bf77e4aa88eac393d2ba43000cd7400e4f93c22ec53f2d3401b164ed67e7"
+    }
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 314,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_members_all_manifest_and_extracted_hashes_match": true,
+    "all_local_files_regular_not_symlinks": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-host-miss-index": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "host-miss-index",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.185816,
+            "min": 0.181815,
+            "max": 0.188047,
+            "rounds": [
+              0.181815,
+              0.185046,
+              0.185816,
+              0.185816,
+              0.188047
+            ]
+          },
+          "right": {
+            "median": 0.191432,
+            "min": 0.182276,
+            "max": 0.193894,
+            "rounds": [
+              0.182276,
+              0.189201,
+              0.191432,
+              0.193894,
+              0.191817
+            ]
+          },
+          "relative_change_pct": 3.0223446850647857,
+          "W_pct": 6.068995779180083,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.381172,
+            "min": 0.341316,
+            "max": 0.399868,
+            "rounds": [
+              0.381172,
+              0.393867,
+              0.341316,
+              0.399868,
+              0.351856
+            ]
+          },
+          "right": {
+            "median": 0.39302,
+            "min": 0.307615,
+            "max": 0.415718,
+            "rounds": [
+              0.342316,
+              0.39302,
+              0.415718,
+              0.307615,
+              0.394867
+            ]
+          },
+          "relative_change_pct": 3.1083080604031696,
+          "W_pct": 27.505724899496197,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 132.0,
+            "min": 128.0,
+            "max": 134.0,
+            "rounds": [
+              128.0,
+              134.0,
+              130.0,
+              132.0,
+              132.0
+            ]
+          },
+          "right": {
+            "median": 136.0,
+            "min": 132.0,
+            "max": 138.0,
+            "rounds": [
+              132.0,
+              134.0,
+              138.0,
+              138.0,
+              136.0
+            ]
+          },
+          "relative_change_pct": 3.0303030303030303,
+          "W_pct": 4.545454545454546,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2388.0,
+            "min": 2368.0,
+            "max": 2412.0,
+            "rounds": [
+              2412.0,
+              2388.0,
+              2400.0,
+              2376.0,
+              2368.0
+            ]
+          },
+          "right": {
+            "median": 2388.0,
+            "min": 2284.0,
+            "max": 2488.0,
+            "rounds": [
+              2388.0,
+              2388.0,
+              2376.0,
+              2488.0,
+              2284.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2388,
+            "min": 2368,
+            "max": 2412,
+            "rounds": [
+              2412,
+              2388,
+              2400,
+              2376,
+              2368
+            ]
+          },
+          "right": {
+            "median": 2388,
+            "min": 2284,
+            "max": 2488,
+            "rounds": [
+              2388,
+              2388,
+              2376,
+              2488,
+              2284
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              516,
+              520,
+              516,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 568,
+            "rounds": [
+              516,
+              520,
+              540,
+              568,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1868,
+            "min": 1844,
+            "max": 1888,
+            "rounds": [
+              1888,
+              1868,
+              1876,
+              1856,
+              1844
+            ]
+          },
+          "right": {
+            "median": 1864,
+            "min": 1764,
+            "max": 1916,
+            "rounds": [
+              1868,
+              1864,
+              1832,
+              1916,
+              1764
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 66,
+        "right": 68,
+        "absolute_delta": 2,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          64,
+          67,
+          65,
+          66,
+          66
+        ],
+        "rust": [
+          66,
+          67,
+          69,
+          69,
+          68
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "left": 66,
+    "right": 68,
+    "absolute_delta": 2,
+    "required_delta_exclusive": 8,
+    "same_direction_pairs": 4,
+    "discernible": false
+  },
+  "resource_observation": {
+    "RssAnon_peak_median_kib_F_candidate": [
+      520,
+      520
+    ],
+    "RssAnon_peak_ranges_kib_F_candidate": [
+      [
+        516,
+        520
+      ],
+      [
+        516,
+        568
+      ]
+    ],
+    "scope": "The candidate range is retained; equal medians do not imply identical memory observations or private-memory equivalence."
+  },
+  "health": {
+    "fresh_baseline": {
+      "sha256": "e643250ccb09cfd25d6074c182867dc7443420a04dd154575bb03414f51d32b9",
+      "samples": 126,
+      "dns_completed": 51,
+      "http_completed": 23,
+      "dns_p95_ms": 0.622,
+      "dns_max_ms": 0.682,
+      "http_max_ms": 71.731,
+      "min_memory_kib": 88228,
+      "start_epoch": 1792106326,
+      "last_sample_epoch": 1792106451,
+      "stop_epoch": 1792106451,
+      "elapsed_seconds": 125.622,
+      "sample_elapsed_step_range_seconds": [
+        0.9959999999999987,
+        1.0040000000000013
+      ],
+      "wall_epoch_step_counts": {
+        "1": 125
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "runtime_guard": {
+      "sha256": "2c7df1b02221295611e8d1e42f5a63051bcdf500495a0e23f4d30d9d50d7c4cd",
+      "samples": 419,
+      "dns_completed": 165,
+      "http_completed": 76,
+      "dns_p95_ms": 0.614,
+      "dns_max_ms": 0.794,
+      "http_max_ms": 87.804,
+      "min_memory_kib": 81584,
+      "start_epoch": 1792106472,
+      "last_sample_epoch": 1792106890,
+      "stop_epoch": 1792106891,
+      "elapsed_seconds": 418.922,
+      "sample_elapsed_step_range_seconds": [
+        0.9970000000000141,
+        1.002999999999986
+      ],
+      "wall_epoch_step_counts": {
+        "1": 418
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "external_checks": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "a8d45e217e3c778aea414ceb2f19fcedfa8c83f41014a424c17feb8a9c9122b2"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "cb27fb31fb9bbda5df80c905ac2fdb621260a78c74edb667d629db7315381dfb"
+      }
+    ],
+    "all_ten_window_intervals_covered": true,
+    "all_completed_probes_passed": true,
+    "failed_or_cancelled_probes": 0,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained": true
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "081a4d9c7ca805a70ac126d8d607591c3362e72d277b211c6fc6926d0cb09545",
+    "postflight_script_sha256": "9559b3bf7fcccfbad8724cef25971fffd533f607e073c38cee3a89b4543d0e29",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 84844,
+    "local_controller_pid_absent": 93850,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "retained_setup_attempt": {
+    "record_sha256": "a2149a063839374b2f23f43bc006fa79201bc9ea7f188119dc357bfc3adf307f",
+    "script_sha256": "62f7a6bb562a167b1c70d76f976493d872955d308e0ce07643ace084717eb89a",
+    "error": "FileNotFoundError reading fresh health summary before collector finished",
+    "line": 17,
+    "static_order_verified": "Line17 reads summary; first remote production_identity is line23, upload line33, controller Popen line46. Imported entry configure only fixes constants; imported runner modules do not execute main.",
+    "workload_windows_attempted_in_this_setup_attempt": 0,
+    "classification": "Setup launch attempt before any product window; unchanged script later used the completed valid baseline. No product-window repeat or replacement.",
+    "evidence_limit": "Local captured setup-failure description and hash-matched script order, not an independently observed remote execution trace."
+  },
+  "conclusion": "All three primary metrics are indistinguishable. CPU132 to136us/op is +3.03030%, below W4.54545%, with four same-direction pairs but only two median ticks. No demonstrated gain/regression or promotion.",
+  "limits": [
+    "This is F versus host-miss-index only. Earlier E/C, native and other prototype data remain separate.",
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "Postflight is a captured script/record audit; production final identity is checked by the frozen restoration runner and the shell namespace output refers to init.",
+    "The exploratory hit-window result does not establish full44 qualification, whole-workload acceptance or deployment eligibility."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
