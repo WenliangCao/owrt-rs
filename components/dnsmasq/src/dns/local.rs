@@ -429,6 +429,32 @@ impl<'a> LocalAnswerer<'a> {
             return Ok(None);
         }
 
+        self.finish_local_records(
+            header, question, lease_names, now, cache, rows, extra_rows, notices,
+            windows_filtered, notimp, preserve_negative_authority, cname_terminal,
+        )
+    }
+
+    // Keep answer construction out of the ordinary local miss/cache-hit
+    // frame. Local positive answers still take this complete original path.
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)]
+    fn finish_local_records(
+        &mut self,
+        header: Header,
+        question: &super::forward::Question,
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        mut cache: Option<&mut Cache>,
+        rows: Vec<(u16, u32, Vec<u8>)>,
+        extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
+        mut notices: QueryEvents,
+        windows_filtered: bool,
+        notimp: bool,
+        preserve_negative_authority: bool,
+        cname_terminal: Option<Vec<u8>>,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let class_in = question.class == CLASS_IN;
         let limit = self.max_packet.max(super::wire::HEADER_LEN);
         // QR + RA; local answers are authoritative for configured/host data.
         // Preserve RD from the request.  dnsmasq sets RA on every completed
