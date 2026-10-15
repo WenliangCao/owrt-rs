@@ -1,0 +1,2591 @@
+{
+  "scope": "Whole actual API test process CPU, including sender/setup/teardown; no subtraction and no daemon/device qualification.",
+  "plan": {
+    "scope": "Whole actual API test process CPU, including sender/setup/teardown; no subtraction and no daemon/device qualification.",
+    "cases": [
+      [
+        "receive-bound4",
+        1
+      ],
+      [
+        "receive-bound4",
+        16
+      ],
+      [
+        "receive-generic4",
+        1
+      ],
+      [
+        "receive-generic4",
+        16
+      ]
+    ],
+    "repeats": 5,
+    "iterations": 10000,
+    "order": "Fixed case order within repeat; E,candidate on even zero-based repeats, reversed on odd.",
+    "observer": "Existing start/reap os.wait4 user+system usage; no perf, strace or counting allocator.",
+    "runner_sha256": "fb676d378276d2959e1810f99e4dc373edc0fe87bc1b188605e88444ffde1af8",
+    "usage_helper_sha256": "7b01a6ba9382045fbefa13c1553f4ad9e19a2925b50c96e3e1602c0ffa767985",
+    "artifacts": {
+      "e": {
+        "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+        "elf_sha256": "8ebbeaa26f39005eec48e82ce75a3bf74a66595d1f0d50983b3924f467e27509",
+        "harness_sha256": "0c76de5bf6e1ff140718ba6020a3cd93669476292e081d5adf3a11dfb13d02ce",
+        "driver_sha256": "3fa23929776cbd505f59d969730f5f93920b6b896e06e9e2f4fffad89209c9e6"
+      },
+      "candidate": {
+        "source_commit": "5a03fffe9fede0e5fe9b7a4401c90ca04de92e72",
+        "elf_sha256": "b6b45000e1c8b63a3bf98958b64f97be0db3965ce05e7606ccbee97d6ab3fa51",
+        "harness_sha256": "0c76de5bf6e1ff140718ba6020a3cd93669476292e081d5adf3a11dfb13d02ce",
+        "driver_sha256": "3fa23929776cbd505f59d969730f5f93920b6b896e06e9e2f4fffad89209c9e6"
+      }
+    }
+  },
+  "attempts": [
+    {
+      "repeat": 0,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "e",
+      "label": "0-receive-bound4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0029809999999999997,
+        "system_seconds": 0.045717999999999995,
+        "maxrss_kib": 18392
+      },
+      "elapsed_ns": 49586452,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8698999999999995
+    },
+    {
+      "repeat": 0,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "0-receive-bound4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.001009,
+        "system_seconds": 0.046426999999999996,
+        "maxrss_kib": 18392
+      },
+      "elapsed_ns": 48163720,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.7436
+    },
+    {
+      "repeat": 0,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "e",
+      "label": "0-receive-bound4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.022975,
+        "system_seconds": 0.628319,
+        "maxrss_kib": 18392
+      },
+      "elapsed_ns": 652069902,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.070587499999999
+    },
+    {
+      "repeat": 0,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "0-receive-bound4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.019991,
+        "system_seconds": 0.615717,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 636561213,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 3.9731749999999995
+    },
+    {
+      "repeat": 0,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "e",
+      "label": "0-receive-generic4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0,
+        "system_seconds": 0.048116,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 48824366,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8116
+    },
+    {
+      "repeat": 0,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "0-receive-generic4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0009939999999999999,
+        "system_seconds": 0.046744,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 48526523,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.7738
+    },
+    {
+      "repeat": 0,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "e",
+      "label": "0-receive-generic4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.025983,
+        "system_seconds": 0.622605,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 649391080,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.053675
+    },
+    {
+      "repeat": 0,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "0-receive-generic4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.024009,
+        "system_seconds": 0.623242,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 648045949,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.045318749999999
+    },
+    {
+      "repeat": 1,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "1-receive-bound4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.000998,
+        "system_seconds": 0.045932999999999995,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 47602356,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.693099999999999
+    },
+    {
+      "repeat": 1,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "e",
+      "label": "1-receive-bound4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.003006,
+        "system_seconds": 0.0451,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 48729245,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8106
+    },
+    {
+      "repeat": 1,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "1-receive-bound4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.015983,
+        "system_seconds": 0.6173179999999999,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 634042192,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 3.958131249999999
+    },
+    {
+      "repeat": 1,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "e",
+      "label": "1-receive-bound4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.02301,
+        "system_seconds": 0.6242789999999999,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 648140790,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.045556249999999
+    },
+    {
+      "repeat": 1,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "1-receive-generic4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.003013,
+        "system_seconds": 0.045204,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 48879727,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8217
+    },
+    {
+      "repeat": 1,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "e",
+      "label": "1-receive-generic4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.001016,
+        "system_seconds": 0.046769,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 48490843,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.7785
+    },
+    {
+      "repeat": 1,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "1-receive-generic4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.020023,
+        "system_seconds": 0.6257389999999999,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 648103869,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.0360125
+    },
+    {
+      "repeat": 1,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "e",
+      "label": "1-receive-generic4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.023988,
+        "system_seconds": 0.624702,
+        "maxrss_kib": 18428
+      },
+      "elapsed_ns": 649419160,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.0543125
+    },
+    {
+      "repeat": 2,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "e",
+      "label": "2-receive-bound4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.001999,
+        "system_seconds": 0.045989999999999996,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 49940575,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.7989
+    },
+    {
+      "repeat": 2,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "2-receive-bound4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0030199999999999997,
+        "system_seconds": 0.044294,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 47977119,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.7314
+    },
+    {
+      "repeat": 2,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "e",
+      "label": "2-receive-bound4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.020992,
+        "system_seconds": 0.626765,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 648525353,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.04848125
+    },
+    {
+      "repeat": 2,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "2-receive-bound4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.028002,
+        "system_seconds": 0.604044,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 632837502,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 3.9502875
+    },
+    {
+      "repeat": 2,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "e",
+      "label": "2-receive-generic4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0,
+        "system_seconds": 0.048018,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 48682285,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8018
+    },
+    {
+      "repeat": 2,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "2-receive-generic4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0020109999999999998,
+        "system_seconds": 0.04627,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 48993887,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8281
+    },
+    {
+      "repeat": 2,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "e",
+      "label": "2-receive-generic4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.021013,
+        "system_seconds": 0.628406,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 650459529,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.05886875
+    },
+    {
+      "repeat": 2,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "2-receive-generic4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.021998999999999998,
+        "system_seconds": 0.624923,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 647805747,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.0432625
+    },
+    {
+      "repeat": 3,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "3-receive-bound4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.007005,
+        "system_seconds": 0.040028999999999995,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 47699757,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.703399999999999
+    },
+    {
+      "repeat": 3,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "e",
+      "label": "3-receive-bound4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.001003,
+        "system_seconds": 0.047143,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 48753845,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8145999999999995
+    },
+    {
+      "repeat": 3,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "3-receive-bound4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.013007,
+        "system_seconds": 0.621235,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 635222402,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 3.9640125
+    },
+    {
+      "repeat": 3,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "e",
+      "label": "3-receive-bound4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.023984,
+        "system_seconds": 0.624602,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 649328119,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.0536625
+    },
+    {
+      "repeat": 3,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "3-receive-generic4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0020039999999999997,
+        "system_seconds": 0.046099,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 48759165,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8103
+    },
+    {
+      "repeat": 3,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "e",
+      "label": "3-receive-generic4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.002003,
+        "system_seconds": 0.046088,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 48768286,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.809099999999999
+    },
+    {
+      "repeat": 3,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "3-receive-generic4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.021967,
+        "system_seconds": 0.626077,
+        "maxrss_kib": 18556
+      },
+      "elapsed_ns": 648796955,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.050275
+    },
+    {
+      "repeat": 3,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "e",
+      "label": "3-receive-generic4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.019998,
+        "system_seconds": 0.629566,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 650517649,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.059774999999999
+    },
+    {
+      "repeat": 4,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "e",
+      "label": "4-receive-bound4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0,
+        "system_seconds": 0.048197,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 48890007,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8197
+    },
+    {
+      "repeat": 4,
+      "case": "receive-bound4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "4-receive-bound4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.000997,
+        "system_seconds": 0.045891999999999995,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 47526395,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.688899999999999
+    },
+    {
+      "repeat": 4,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "e",
+      "label": "4-receive-bound4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.02905,
+        "system_seconds": 0.622124,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 651951781,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.0698375
+    },
+    {
+      "repeat": 4,
+      "case": "receive-bound4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "4-receive-bound4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.024012,
+        "system_seconds": 0.610764,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 635567165,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-bound4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-bound4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 0,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 3.96735
+    },
+    {
+      "repeat": 4,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "e",
+      "label": "4-receive-generic4-1-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.0,
+        "system_seconds": 0.048229,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 48880646,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8229
+    },
+    {
+      "repeat": 4,
+      "case": "receive-generic4",
+      "burst": 1,
+      "side": "candidate",
+      "label": "4-receive-generic4-1-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.004014,
+        "system_seconds": 0.044157999999999996,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 48846527,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "1"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 1,
+        "packets": 10000,
+        "receive_calls": 20000,
+        "would_block": 10000,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.8172
+    },
+    {
+      "repeat": 4,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "e",
+      "label": "4-receive-generic4-16-e",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.025006,
+        "system_seconds": 0.624141,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 650017445,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-e-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.057168749999999
+    },
+    {
+      "repeat": 4,
+      "case": "receive-generic4",
+      "burst": 16,
+      "side": "candidate",
+      "label": "4-receive-generic4-16-candidate",
+      "usage": {
+        "exit": 0,
+        "user_seconds": 0.024981,
+        "system_seconds": 0.620545,
+        "maxrss_kib": 18684
+      },
+      "elapsed_ns": 647437104,
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/bound-dns-receive-candidate-counts-r2-20261015/socket-factory",
+        "receive-generic4",
+        "10000",
+        "16"
+      ],
+      "result": {
+        "case": "receive-generic4",
+        "iterations": 10000,
+        "burst": 16,
+        "packets": 160000,
+        "receive_calls": 160000,
+        "would_block": 0,
+        "pktinfo_enabled": 1,
+        "payload_bytes": 32,
+        "scratch_bytes": 65535,
+        "bind_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "loop_alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ],
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "cpu_us_per_packet": 4.0345375
+    }
+  ],
+  "summary": {
+    "receive-bound4-burst1": {
+      "cpu_us_per_packet": {
+        "e": {
+          "median": 4.8145999999999995,
+          "min": 4.7989,
+          "max": 4.8698999999999995,
+          "rounds": [
+            4.8698999999999995,
+            4.8106,
+            4.7989,
+            4.8145999999999995,
+            4.8197
+          ]
+        },
+        "candidate": {
+          "median": 4.703399999999999,
+          "min": 4.688899999999999,
+          "max": 4.7436,
+          "rounds": [
+            4.7436,
+            4.693099999999999,
+            4.7314,
+            4.703399999999999,
+            4.688899999999999
+          ]
+        }
+      },
+      "relative_change_percent": -2.309641507082627,
+      "W_percent": 1.4746811780833244,
+      "same_direction_pairs": 5
+    },
+    "receive-bound4-burst16": {
+      "cpu_us_per_packet": {
+        "e": {
+          "median": 4.0536625,
+          "min": 4.045556249999999,
+          "max": 4.070587499999999,
+          "rounds": [
+            4.070587499999999,
+            4.045556249999999,
+            4.04848125,
+            4.0536625,
+            4.0698375
+          ]
+        },
+        "candidate": {
+          "median": 3.9640125,
+          "min": 3.9502875,
+          "max": 3.9731749999999995,
+          "rounds": [
+            3.9731749999999995,
+            3.958131249999999,
+            3.9502875,
+            3.9640125,
+            3.96735
+          ]
+        }
+      },
+      "relative_change_percent": -2.211580268460922,
+      "W_percent": 0.617497139932111,
+      "same_direction_pairs": 5
+    },
+    "receive-generic4-burst1": {
+      "cpu_us_per_packet": {
+        "e": {
+          "median": 4.809099999999999,
+          "min": 4.7785,
+          "max": 4.8229,
+          "rounds": [
+            4.8116,
+            4.7785,
+            4.8018,
+            4.809099999999999,
+            4.8229
+          ]
+        },
+        "candidate": {
+          "median": 4.8172,
+          "min": 4.7738,
+          "max": 4.8281,
+          "rounds": [
+            4.7738,
+            4.8217,
+            4.8281,
+            4.8103,
+            4.8172
+          ]
+        }
+      },
+      "relative_change_percent": 0.1684306834958793,
+      "W_percent": 1.1272108278668203,
+      "same_direction_pairs": 3
+    },
+    "receive-generic4-burst16": {
+      "cpu_us_per_packet": {
+        "e": {
+          "median": 4.057168749999999,
+          "min": 4.053675,
+          "max": 4.059774999999999,
+          "rounds": [
+            4.053675,
+            4.0543125,
+            4.05886875,
+            4.059774999999999,
+            4.057168749999999
+          ]
+        },
+        "candidate": {
+          "median": 4.0432625,
+          "min": 4.0345375,
+          "max": 4.050275,
+          "rounds": [
+            4.045318749999999,
+            4.0360125,
+            4.0432625,
+            4.050275,
+            4.0345375
+          ]
+        }
+      },
+      "relative_change_percent": -0.34275749560575,
+      "W_percent": 0.3892277585242161,
+      "same_direction_pairs": 5
+    }
+  },
+  "complete": true,
+  "raw_files": {
+    "0-receive-bound4-1-candidate.command.json": {
+      "bytes": 156,
+      "sha256": "d814b40041a712c9a8f556b1adec4e32cfa357400902f84cf297a3ad097df418"
+    },
+    "0-receive-bound4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-bound4-1-candidate.stdout": {
+      "bytes": 277,
+      "sha256": "fab834038543346275b2813963858fb0c6750749a4fe680b41329e0e4db36633"
+    },
+    "0-receive-bound4-1-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "4d144a421bbfa0347984fb26db379b2b5a88f975ede0c320ab53b9e1475566dd"
+    },
+    "0-receive-bound4-1-e.command.json": {
+      "bytes": 148,
+      "sha256": "a75bb6f20054277caf9872d28885eaa144c80b13a1ae343036c58b312ad53d08"
+    },
+    "0-receive-bound4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-bound4-1-e.stdout": {
+      "bytes": 277,
+      "sha256": "fdebea60d5892eec8cc4701da80940e19b711a84963dbba7e975b18b8e78ae98"
+    },
+    "0-receive-bound4-1-e.usage.json": {
+      "bytes": 122,
+      "sha256": "88b2f142c0430043765d7b82a5262444642699cc4e4f7ff4fb9cdbe7f6ced7c5"
+    },
+    "0-receive-bound4-16-candidate.command.json": {
+      "bytes": 157,
+      "sha256": "4f04c38f8526bcf350d2571595a447937ff46ce4dad200584cb75f6c37a4c05a"
+    },
+    "0-receive-bound4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-bound4-16-candidate.stdout": {
+      "bytes": 276,
+      "sha256": "18fa66abd5a0f5baced108981ad87d0c0624e996af74d14c8d72a0d66569ddfa"
+    },
+    "0-receive-bound4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "f34ed80c8f25b4509117ab87bd75f43fbddaddf166774d7cd81000dc11d3e208"
+    },
+    "0-receive-bound4-16-e.command.json": {
+      "bytes": 149,
+      "sha256": "bb7360b5111a7cfaa478cc69755379ae29e658de7552e43030099a4bf75f1573"
+    },
+    "0-receive-bound4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-bound4-16-e.stdout": {
+      "bytes": 276,
+      "sha256": "44dae3d1b002f53810c1f72e47c8a63a1d30ff9ea236e96cfc5c645c8a0beb9c"
+    },
+    "0-receive-bound4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "f7e0232cc7c28dd77bfbb3c5f737e7f4363b8bdf65136a034df8f380d67a7e06"
+    },
+    "0-receive-generic4-1-candidate.command.json": {
+      "bytes": 158,
+      "sha256": "09051e2ec0ae6988fd3ecc454b45f1f59d2ab161a6527427cec9cc798a853b22"
+    },
+    "0-receive-generic4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-generic4-1-candidate.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "0-receive-generic4-1-candidate.usage.json": {
+      "bytes": 110,
+      "sha256": "57906bf8e802b21f3c9c5f440c7ba5200eea72aa0b626308c6031ff5836c4803"
+    },
+    "0-receive-generic4-1-e.command.json": {
+      "bytes": 150,
+      "sha256": "ff78eb3004e3cf1420e5ace85312d84fe7e6532a3efa5093ba14c3bb3b7a3ca4"
+    },
+    "0-receive-generic4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-generic4-1-e.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "0-receive-generic4-1-e.usage.json": {
+      "bytes": 92,
+      "sha256": "32bb9d1e6c4bcbf52099bae5c9ac3bbf9d6b3d0b962c7c417ce9cd3a413da9a8"
+    },
+    "0-receive-generic4-16-candidate.command.json": {
+      "bytes": 159,
+      "sha256": "c704b278fcf9918a1fab0fed8f76ff705e9fb0379b042e5fababf065a696cdc1"
+    },
+    "0-receive-generic4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-generic4-16-candidate.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "0-receive-generic4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "a409fd5fdc91fee9fa98e340cb53f0ed398575a40f0bc8594aa764c83e6dd91e"
+    },
+    "0-receive-generic4-16-e.command.json": {
+      "bytes": 151,
+      "sha256": "69274549cf641b3c0daf756b6f9ac19178b0142af510b41d114f327681beb1c4"
+    },
+    "0-receive-generic4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "0-receive-generic4-16-e.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "0-receive-generic4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "e1e46eb6ded7a09232617689132752558fc8efc91223d077f62c6af327cad667"
+    },
+    "1-receive-bound4-1-candidate.command.json": {
+      "bytes": 156,
+      "sha256": "d814b40041a712c9a8f556b1adec4e32cfa357400902f84cf297a3ad097df418"
+    },
+    "1-receive-bound4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-bound4-1-candidate.stdout": {
+      "bytes": 277,
+      "sha256": "fab834038543346275b2813963858fb0c6750749a4fe680b41329e0e4db36633"
+    },
+    "1-receive-bound4-1-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "d9522cb225bd373591f3e623a363d25015bbf999460bf5cca133cc9b7daa0eea"
+    },
+    "1-receive-bound4-1-e.command.json": {
+      "bytes": 148,
+      "sha256": "a75bb6f20054277caf9872d28885eaa144c80b13a1ae343036c58b312ad53d08"
+    },
+    "1-receive-bound4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-bound4-1-e.stdout": {
+      "bytes": 277,
+      "sha256": "fdebea60d5892eec8cc4701da80940e19b711a84963dbba7e975b18b8e78ae98"
+    },
+    "1-receive-bound4-1-e.usage.json": {
+      "bytes": 95,
+      "sha256": "a5af03929acf5fefb25c96071f79f23e66f61bffaa176928a6b5d02d02d54859"
+    },
+    "1-receive-bound4-16-candidate.command.json": {
+      "bytes": 157,
+      "sha256": "4f04c38f8526bcf350d2571595a447937ff46ce4dad200584cb75f6c37a4c05a"
+    },
+    "1-receive-bound4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-bound4-16-candidate.stdout": {
+      "bytes": 276,
+      "sha256": "18fa66abd5a0f5baced108981ad87d0c0624e996af74d14c8d72a0d66569ddfa"
+    },
+    "1-receive-bound4-16-candidate.usage.json": {
+      "bytes": 107,
+      "sha256": "82f5af0b6c66e2dab4e428c63ad9e7ff766104e1be8b4bf97232a7d7f6255b67"
+    },
+    "1-receive-bound4-16-e.command.json": {
+      "bytes": 149,
+      "sha256": "bb7360b5111a7cfaa478cc69755379ae29e658de7552e43030099a4bf75f1573"
+    },
+    "1-receive-bound4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-bound4-16-e.stdout": {
+      "bytes": 276,
+      "sha256": "44dae3d1b002f53810c1f72e47c8a63a1d30ff9ea236e96cfc5c645c8a0beb9c"
+    },
+    "1-receive-bound4-16-e.usage.json": {
+      "bytes": 106,
+      "sha256": "9a7e02d04d3e15c30345da282023aabb042cb698c3a60db662cf99c060dd4b8d"
+    },
+    "1-receive-generic4-1-candidate.command.json": {
+      "bytes": 158,
+      "sha256": "09051e2ec0ae6988fd3ecc454b45f1f59d2ab161a6527427cec9cc798a853b22"
+    },
+    "1-receive-generic4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-generic4-1-candidate.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "1-receive-generic4-1-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "6a20778abfe338223d31247e044a400f724656914a06dfa1d72f29b311369ed5"
+    },
+    "1-receive-generic4-1-e.command.json": {
+      "bytes": 150,
+      "sha256": "ff78eb3004e3cf1420e5ace85312d84fe7e6532a3efa5093ba14c3bb3b7a3ca4"
+    },
+    "1-receive-generic4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-generic4-1-e.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "1-receive-generic4-1-e.usage.json": {
+      "bytes": 97,
+      "sha256": "6f6f8789846a01a72515e64682a89222f2e42e64c9249c71ff0ae0d3d7e93a76"
+    },
+    "1-receive-generic4-16-candidate.command.json": {
+      "bytes": 159,
+      "sha256": "c704b278fcf9918a1fab0fed8f76ff705e9fb0379b042e5fababf065a696cdc1"
+    },
+    "1-receive-generic4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-generic4-16-candidate.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "1-receive-generic4-16-candidate.usage.json": {
+      "bytes": 107,
+      "sha256": "018273e184128d384b9c0502e35aaf5dad725cdecb2893996d15a8ab4d43c3a6"
+    },
+    "1-receive-generic4-16-e.command.json": {
+      "bytes": 151,
+      "sha256": "69274549cf641b3c0daf756b6f9ac19178b0142af510b41d114f327681beb1c4"
+    },
+    "1-receive-generic4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "1-receive-generic4-16-e.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "1-receive-generic4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "76d996c0b2ac9ee9b2ec43c8bbc83d28225847b95bfc1d6a033a15ef74ba6b22"
+    },
+    "2-receive-bound4-1-candidate.command.json": {
+      "bytes": 156,
+      "sha256": "d814b40041a712c9a8f556b1adec4e32cfa357400902f84cf297a3ad097df418"
+    },
+    "2-receive-bound4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-bound4-1-candidate.stdout": {
+      "bytes": 277,
+      "sha256": "fab834038543346275b2813963858fb0c6750749a4fe680b41329e0e4db36633"
+    },
+    "2-receive-bound4-1-candidate.usage.json": {
+      "bytes": 110,
+      "sha256": "2ffa633de22a986099e7a56a7d0f48b4710eb6ef1bd26099d295a024f36650ff"
+    },
+    "2-receive-bound4-1-e.command.json": {
+      "bytes": 148,
+      "sha256": "a75bb6f20054277caf9872d28885eaa144c80b13a1ae343036c58b312ad53d08"
+    },
+    "2-receive-bound4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-bound4-1-e.stdout": {
+      "bytes": 277,
+      "sha256": "fdebea60d5892eec8cc4701da80940e19b711a84963dbba7e975b18b8e78ae98"
+    },
+    "2-receive-bound4-1-e.usage.json": {
+      "bytes": 109,
+      "sha256": "585d2ad28f315c040a73e40bde2aa7f05671744a8cc3c136e3357b6a8c779b3a"
+    },
+    "2-receive-bound4-16-candidate.command.json": {
+      "bytes": 157,
+      "sha256": "4f04c38f8526bcf350d2571595a447937ff46ce4dad200584cb75f6c37a4c05a"
+    },
+    "2-receive-bound4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-bound4-16-candidate.stdout": {
+      "bytes": 276,
+      "sha256": "18fa66abd5a0f5baced108981ad87d0c0624e996af74d14c8d72a0d66569ddfa"
+    },
+    "2-receive-bound4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "81513db5339ba16d0bec55121d87d2a85fd615841e918cc974b9054639fce326"
+    },
+    "2-receive-bound4-16-e.command.json": {
+      "bytes": 149,
+      "sha256": "bb7360b5111a7cfaa478cc69755379ae29e658de7552e43030099a4bf75f1573"
+    },
+    "2-receive-bound4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-bound4-16-e.stdout": {
+      "bytes": 276,
+      "sha256": "44dae3d1b002f53810c1f72e47c8a63a1d30ff9ea236e96cfc5c645c8a0beb9c"
+    },
+    "2-receive-bound4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "358b65f08124665a7bd62dd541ba7e1eb6bc419272a7fd354d88501c54b37722"
+    },
+    "2-receive-generic4-1-candidate.command.json": {
+      "bytes": 158,
+      "sha256": "09051e2ec0ae6988fd3ecc454b45f1f59d2ab161a6527427cec9cc798a853b22"
+    },
+    "2-receive-generic4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-generic4-1-candidate.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "2-receive-generic4-1-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "51d9f231c7a7523a35c189a2f95931041a41d27d83e2adf0b2fceb53b80688f8"
+    },
+    "2-receive-generic4-1-e.command.json": {
+      "bytes": 150,
+      "sha256": "ff78eb3004e3cf1420e5ace85312d84fe7e6532a3efa5093ba14c3bb3b7a3ca4"
+    },
+    "2-receive-generic4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-generic4-1-e.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "2-receive-generic4-1-e.usage.json": {
+      "bytes": 92,
+      "sha256": "f198cdb7f55a19f3879a6d579ac60981351c638ba5d2e2810b741a569146ab4a"
+    },
+    "2-receive-generic4-16-candidate.command.json": {
+      "bytes": 159,
+      "sha256": "c704b278fcf9918a1fab0fed8f76ff705e9fb0379b042e5fababf065a696cdc1"
+    },
+    "2-receive-generic4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-generic4-16-candidate.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "2-receive-generic4-16-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "c40bb39f859045cf3469e1275614d43c35cd41c1cfd0922f34fb3852849bb075"
+    },
+    "2-receive-generic4-16-e.command.json": {
+      "bytes": 151,
+      "sha256": "69274549cf641b3c0daf756b6f9ac19178b0142af510b41d114f327681beb1c4"
+    },
+    "2-receive-generic4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "2-receive-generic4-16-e.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "2-receive-generic4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "40f60f9b3c7ac09f2abf96da2639423e8658df241b2c3b577828f15a633d3e72"
+    },
+    "3-receive-bound4-1-candidate.command.json": {
+      "bytes": 156,
+      "sha256": "d814b40041a712c9a8f556b1adec4e32cfa357400902f84cf297a3ad097df418"
+    },
+    "3-receive-bound4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-bound4-1-candidate.stdout": {
+      "bytes": 277,
+      "sha256": "fab834038543346275b2813963858fb0c6750749a4fe680b41329e0e4db36633"
+    },
+    "3-receive-bound4-1-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "72654b6e1fc80c335ecc7d1d580074281d52c7961a1b21475ab23e1764ca5246"
+    },
+    "3-receive-bound4-1-e.command.json": {
+      "bytes": 148,
+      "sha256": "a75bb6f20054277caf9872d28885eaa144c80b13a1ae343036c58b312ad53d08"
+    },
+    "3-receive-bound4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-bound4-1-e.stdout": {
+      "bytes": 277,
+      "sha256": "fdebea60d5892eec8cc4701da80940e19b711a84963dbba7e975b18b8e78ae98"
+    },
+    "3-receive-bound4-1-e.usage.json": {
+      "bytes": 97,
+      "sha256": "3d970b48c1d9f453cf605d4fd39b6fb575c31888495c4831c0b2de676e68b5af"
+    },
+    "3-receive-bound4-16-candidate.command.json": {
+      "bytes": 157,
+      "sha256": "4f04c38f8526bcf350d2571595a447937ff46ce4dad200584cb75f6c37a4c05a"
+    },
+    "3-receive-bound4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-bound4-16-candidate.stdout": {
+      "bytes": 276,
+      "sha256": "18fa66abd5a0f5baced108981ad87d0c0624e996af74d14c8d72a0d66569ddfa"
+    },
+    "3-receive-bound4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "90546e2c7d5af32fba417e83392cc6888a68b33357476636a0ce3b9aa1322d0a"
+    },
+    "3-receive-bound4-16-e.command.json": {
+      "bytes": 149,
+      "sha256": "bb7360b5111a7cfaa478cc69755379ae29e658de7552e43030099a4bf75f1573"
+    },
+    "3-receive-bound4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-bound4-16-e.stdout": {
+      "bytes": 276,
+      "sha256": "44dae3d1b002f53810c1f72e47c8a63a1d30ff9ea236e96cfc5c645c8a0beb9c"
+    },
+    "3-receive-bound4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "87af84ac8bf3db72db09c991f09a293ab3d499e9ce742b16d2a7819a2e4168be"
+    },
+    "3-receive-generic4-1-candidate.command.json": {
+      "bytes": 158,
+      "sha256": "09051e2ec0ae6988fd3ecc454b45f1f59d2ab161a6527427cec9cc798a853b22"
+    },
+    "3-receive-generic4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-generic4-1-candidate.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "3-receive-generic4-1-candidate.usage.json": {
+      "bytes": 110,
+      "sha256": "ec619aa21e8a52f08e379f1846950feae575d6852587cb58e42ddb09546eb12f"
+    },
+    "3-receive-generic4-1-e.command.json": {
+      "bytes": 150,
+      "sha256": "ff78eb3004e3cf1420e5ace85312d84fe7e6532a3efa5093ba14c3bb3b7a3ca4"
+    },
+    "3-receive-generic4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-generic4-1-e.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "3-receive-generic4-1-e.usage.json": {
+      "bytes": 97,
+      "sha256": "f17006bd26e77312b74583b2498aa9c87daf0021f9314dc7f6a0ef00f304b9f0"
+    },
+    "3-receive-generic4-16-candidate.command.json": {
+      "bytes": 159,
+      "sha256": "c704b278fcf9918a1fab0fed8f76ff705e9fb0379b042e5fababf065a696cdc1"
+    },
+    "3-receive-generic4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-generic4-16-candidate.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "3-receive-generic4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "0a689389ae42045ec75716d8a3310de8f3b6e0c8c4f59b9b64974dcd3749e638"
+    },
+    "3-receive-generic4-16-e.command.json": {
+      "bytes": 151,
+      "sha256": "69274549cf641b3c0daf756b6f9ac19178b0142af510b41d114f327681beb1c4"
+    },
+    "3-receive-generic4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "3-receive-generic4-16-e.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "3-receive-generic4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "1fd9b50c085c82c6b0b5efccfc2f075a23f6da368651ee5be948bfe6bd58a0e7"
+    },
+    "4-receive-bound4-1-candidate.command.json": {
+      "bytes": 156,
+      "sha256": "d814b40041a712c9a8f556b1adec4e32cfa357400902f84cf297a3ad097df418"
+    },
+    "4-receive-bound4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-bound4-1-candidate.stdout": {
+      "bytes": 277,
+      "sha256": "fab834038543346275b2813963858fb0c6750749a4fe680b41329e0e4db36633"
+    },
+    "4-receive-bound4-1-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "3ab05de955a2186235dea66baa09f1f4f1440fcffb7c32b86922d4aadb635560"
+    },
+    "4-receive-bound4-1-e.command.json": {
+      "bytes": 148,
+      "sha256": "a75bb6f20054277caf9872d28885eaa144c80b13a1ae343036c58b312ad53d08"
+    },
+    "4-receive-bound4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-bound4-1-e.stdout": {
+      "bytes": 277,
+      "sha256": "fdebea60d5892eec8cc4701da80940e19b711a84963dbba7e975b18b8e78ae98"
+    },
+    "4-receive-bound4-1-e.usage.json": {
+      "bytes": 92,
+      "sha256": "b44225f5c6bb2ee10a8da5518246a6018fd10bd1461310375196052f6e665afe"
+    },
+    "4-receive-bound4-16-candidate.command.json": {
+      "bytes": 157,
+      "sha256": "4f04c38f8526bcf350d2571595a447937ff46ce4dad200584cb75f6c37a4c05a"
+    },
+    "4-receive-bound4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-bound4-16-candidate.stdout": {
+      "bytes": 276,
+      "sha256": "18fa66abd5a0f5baced108981ad87d0c0624e996af74d14c8d72a0d66569ddfa"
+    },
+    "4-receive-bound4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "beac7a157a59171b2e1b2923968dd0a34efd6c3e5fe7fa34855eceaa57549036"
+    },
+    "4-receive-bound4-16-e.command.json": {
+      "bytes": 149,
+      "sha256": "bb7360b5111a7cfaa478cc69755379ae29e658de7552e43030099a4bf75f1573"
+    },
+    "4-receive-bound4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-bound4-16-e.stdout": {
+      "bytes": 276,
+      "sha256": "44dae3d1b002f53810c1f72e47c8a63a1d30ff9ea236e96cfc5c645c8a0beb9c"
+    },
+    "4-receive-bound4-16-e.usage.json": {
+      "bytes": 96,
+      "sha256": "9d93a8fcef6655e23e128fb6d226c5b45b274751dffa73a53bde9e58574b1083"
+    },
+    "4-receive-generic4-1-candidate.command.json": {
+      "bytes": 158,
+      "sha256": "09051e2ec0ae6988fd3ecc454b45f1f59d2ab161a6527427cec9cc798a853b22"
+    },
+    "4-receive-generic4-1-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-generic4-1-candidate.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "4-receive-generic4-1-candidate.usage.json": {
+      "bytes": 109,
+      "sha256": "6ec126e976ea81e6631c92c3fb892d813c58b859a4b1707588647fd8da2cc09c"
+    },
+    "4-receive-generic4-1-e.command.json": {
+      "bytes": 150,
+      "sha256": "ff78eb3004e3cf1420e5ace85312d84fe7e6532a3efa5093ba14c3bb3b7a3ca4"
+    },
+    "4-receive-generic4-1-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-generic4-1-e.stdout": {
+      "bytes": 279,
+      "sha256": "cb7a14d194fc913bcc0fa83aeb210ec0082233e1ba2662a91880c5aae775a951"
+    },
+    "4-receive-generic4-1-e.usage.json": {
+      "bytes": 92,
+      "sha256": "0c8b9e230ce25c994318e6dcb961ece4c31d0ca0f4106b2e04a14f77a965f5de"
+    },
+    "4-receive-generic4-16-candidate.command.json": {
+      "bytes": 159,
+      "sha256": "c704b278fcf9918a1fab0fed8f76ff705e9fb0379b042e5fababf065a696cdc1"
+    },
+    "4-receive-generic4-16-candidate.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-generic4-16-candidate.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "4-receive-generic4-16-candidate.usage.json": {
+      "bytes": 97,
+      "sha256": "ea523ccca718b1d86c1e0e52bed4bfbfdb1918ea11d116b347e3aab968815f6b"
+    },
+    "4-receive-generic4-16-e.command.json": {
+      "bytes": 151,
+      "sha256": "69274549cf641b3c0daf756b6f9ac19178b0142af510b41d114f327681beb1c4"
+    },
+    "4-receive-generic4-16-e.stderr": {
+      "bytes": 50,
+      "sha256": "f406bf1dc277ba1fdd50e808651d08cc4d0ec7cbde4b81aa106a28408dceac3b"
+    },
+    "4-receive-generic4-16-e.stdout": {
+      "bytes": 278,
+      "sha256": "cb155c3afc23643af96bccdd8998c5ffb5c281b5ccad1b63aac77b6bbfa2a4d6"
+    },
+    "4-receive-generic4-16-e.usage.json": {
+      "bytes": 97,
+      "sha256": "434e0abe06796caf0b15f84bcbf962ef5e355d8c282f728834ffee6ae835b60b"
+    },
+    "attempts.json": {
+      "bytes": 39572,
+      "sha256": "5b832a986d90733f1612fae5ad4e304129506363035db8848d118d74832da360"
+    },
+    "plan.json": {
+      "bytes": 1504,
+      "sha256": "c831d11805c7c1885922c0fbecfff6b55b27d17fd52cc47c56f08ed5a41f90ec"
+    }
+  },
+  "limits": [
+    "RUSAGE exports microseconds; this is not a claim of physical 1us accuracy.",
+    "Whole standalone API process includes sender and repeated initialization.",
+    "Existing device CPU tick/eleven-scene gates remain separate."
+  ],
+  "transferred_raw_summary_sha256": "b73bd06cd002674d18550653622673eb4bd489df685942e336070f1e408d1a5b",
+  "source_bound_counter_receipt": "bound-dns-receive-counts.json",
+  "plan_commit": "9090a017"
+}
