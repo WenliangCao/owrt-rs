@@ -70,6 +70,14 @@ budget, and internal extraction failure idle budget. They are prepared for
 the existing isolated Linux test gate after the Oracle reservation ends.
 No runtime pass is claimed from local cross-compilation.
 
+Independent caller tests (`44477146`, fixture correction `dd78a4a7`) additionally
+exercise a queued normal-only signal across a full quiet probe interval,
+subsequent normal signal drain and real UDP progress, and an expired ready TCP
+client followed by a new client/probe turn with no inherited readiness. The
+fixture has a real DnsDaemon; a missing-daemon draft was caught statically
+before execution. Their module hook is included and the complete Linux-target
+test build was cross-checked again. These two tests also remain unexecuted.
+
 Before candidate eligibility, count actual initialization/teardown, memory
 layout, optional fd/watch cost, registration/mask churn, all-ready and large
 direct-fallback cases as well as steady waits. Startup/lifecycle can regress

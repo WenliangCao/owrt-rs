@@ -7233,6 +7233,10 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 mod route_resend_tests;
 
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_readiness_hybrid_tests.rs"]
+mod readiness_hybrid_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_neighbor_tail_tests.rs"]
 mod neighbor_tail_tests;
 
