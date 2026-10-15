@@ -234,3 +234,36 @@ Fresh exactC counter-only profiles now run onOracle using existingtools and
 separate loop/private/c outputs (UDP hit/miss/mixed,TCPmiss,misssyscalls).
 Noextra routerload; elapsed diagnostic timing is excluded. D product remains
 unintegrated; use C device results and fresh profiles before next iteration.
+
+## C complete failed attempt / D fullscreen active
+
+C110attempts109valid; original TCPmiss-r2-rust13busy-client scheduling skips
+remain invalid, no wrong/timeouts on3987sent. WholeCacceptanceFAILED; no
+selective replacement. Complete data private/candidate-c-summary.json and
+publiccandidate-c-device-summary.json. Independent all110archive/3430file and
+11guard/256externalHTTPS audit passed. Valid-scene diagnosticgains:DHCP150
+CPU/p50−33.6%,configp50−15.46%,largeHUPp50−15.52%,home6p95−5.33%;DNSinconclusive.
+Earlier9.49MB transfer overlap onlyUDPmiss-r1-rust remains flagged separately.
+All110ownedrouterCwindowdirs pruned after local+remotehashverification; first
+SSHverification/deletecommand reset,all110stillpresent onretry,stdin retry
+reverifiedthenremoved. Localraw includingfailure retained; pruningreceiptcommitted.
+
+D selected onlyfor complete screening, preserving incrementalCNAME caveats
+(+0.754/+2.836%vsCmicro). Nativepressure/expiry/staleCPU−80.30/−71.82/−79.94%;
+allocationcontrolsidentical,Cache216→224B. Product9f2a9052/tagD, fullsourceGit
+9f2 tree recreatedOracle root/source-d fromsource-c archive+16,340BfullGitpatch
+and16,708B179-inputidentity; no bulknetworkcopy.
+
+D first SDK root/private/sdk-d FAILEDpreparesourcehashbeforecompile: staleC
+cache.rs/tests dueunchangedSDKpreparemarkers. Builderfix5e6c41f6 externaltool
+copy root/private/sdk-builder-5e6c41f6, sourceDuntouched. Successfulreproducer/
+regressionrun root/private/sdk-d-fresh-prepare:SHA4167609f5fe1c17a480f0a395fba1e3c15142f6c2ad7c3998d133a04829965e8,
+2136859B(equalC),samelinkmap/buildreceipt.943shorttestspassed,releaseprobe ready.
+
+FULLDOracle110exclusive began13:16:46CEST, detachedPID4188061; output
+/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-d (stdout/stderr/launch
+alongside), original8472baseline,CPU2. Latest38/110valid,nofailure. Noother
+Oracleworkloads untilcomplete. Then startD44family --jobs3 and F10/protocol/TCP/
+4corpora immediately fromsourceD/SDKfreshpreparepath; knownUID2onlynonblocking.
+Dartifactnotdownloadedlocallyyet (deferbulk untiltimingends). Afterallgates,
+freshDdevice110pairs; no reuseCnumbers asacceptance.
