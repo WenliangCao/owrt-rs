@@ -1,0 +1,970 @@
+{
+  "schema": 1,
+  "status": "PASS_REVIEW_WITH_ATTRIBUTION_UNRESOLVED",
+  "scope": "Read-only local reanalysis of 60 retained UDP/TCP hit windows, not a new performance run. No router operation or Oracle workload.",
+  "identities": {
+    "exact_image_C": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "deployed_Rust_baseline": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "candidate_E": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "legacy_labels": {
+      "base2": {
+        "c": "exact_image_C",
+        "rust": "deployed_Rust_baseline"
+      },
+      "candidate-e": {
+        "c": "deployed_Rust_baseline",
+        "rust": "candidate_E"
+      },
+      "oracle-e": {
+        "c": "deployed_Rust_baseline",
+        "rust": "candidate_E"
+      }
+    }
+  },
+  "normalization": {
+    "configuration_excluded_fields": [
+      "pid-file",
+      "log-facility"
+    ],
+    "normalized_config_sha256": {
+      "device": "5684f5b57722485a711ce3684ebd274db2cb472f839562556fb8b04aa59ea792",
+      "oracle": "5684f5b57722485a711ce3684ebd274db2cb472f839562556fb8b04aa59ea792"
+    },
+    "tools": {
+      "device": {
+        "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+        "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+        "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+        "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+        "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68"
+      },
+      "oracle": {
+        "device_perf_case.sh": "921e613ce784051102ea60cdf18c47b6e4a8090c1dcd349c5e49b398ef9ec5cb",
+        "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+        "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+        "m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+        "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68"
+      }
+    },
+    "all_request_schedules_and_zero_error_counters_verified": true,
+    "hit_upstream_steady_requests_zero": true,
+    "selected_raw_hashes_match_original_archive_manifests": true,
+    "selected_raw_index_sha256": "43f59228d75ccd2dba55c5ac73afd1581f45ab00512142b2022aaab90c48c0f9",
+    "endpoint_seconds_min_max": [
+      27.007026025,
+      27.020331111
+    ],
+    "windows": 60,
+    "scenes": [
+      "udp-hit",
+      "tcp-hit"
+    ],
+    "rounds_per_side": 5,
+    "rate_per_second": 200,
+    "warmup_requests": 1000,
+    "measurement_requests": 4000,
+    "prewarm_requests": 1000,
+    "cpu_denominator": 5000,
+    "clock_ticks_per_second": 100,
+    "one_tick_microseconds_per_operation": 2,
+    "cpu_interval": "First before.jsonl to first after.jsonl, after prewarm and including warmup, measurement, completion and reap housekeeping (about 27 seconds). Latencies cover only the 4000 measurement requests.",
+    "endpoint_process_check": "All 60 windows have one unchanged parent PID/starttime at before and after. Reaped-child cutime/cstime deltas are retained; helper/loadgen/upstream CPU excluded.",
+    "config_fields_removed_only_for_semantic_equality": [
+      "pid-file",
+      "log-facility"
+    ]
+  },
+  "observations": {
+    "historical_cross_run_device_median_difference_microseconds": {
+      "UDP_hit_E_minus_exact_C": 50,
+      "TCP_hit_E_minus_exact_C": 42,
+      "status": "Descriptive across base2 and candidate-e runs; not fresh contemporaneous C/E paired evidence."
+    },
+    "user_system_attribution": "Unresolved. Near-stable totals coexist with large user/system swings, including all-user and all-system windows. Component medians/ranges cannot establish whether the total gap is primarily userspace or kernel. No unverified clock-accounting mechanism is asserted as the cause.",
+    "separate_medians_are_not_additive": "Each median is independently summarized. Do not sum component medians or subtract their medians to claim an exact decomposition of median total CPU.",
+    "C_TCP_process_scope": {
+      "max_sampled_processes": 9,
+      "parent_cpu_median_microseconds_per_operation": 8,
+      "reaped_children_cpu_median_microseconds_per_operation": 104,
+      "total_cpu_median_microseconds_per_operation": 114,
+      "warning": "Parent-only C TCP collection omits most work. A generic foreign-PID rejection rule from an E-only analyzer is invalid for this comparison."
+    },
+    "no_kernel_exclusion": "The historical approximately 50 us/op UDP difference does not demonstrate that kernel cost is negligible or unchanged.",
+    "oracle_limitation": "Retained Oracle E timing is deployed Rust versus E, not exact-image C versus E."
+  },
+  "groups": [
+    {
+      "run": "base2",
+      "scene": "udp-hit",
+      "side": "c",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 82,
+          "min": 74,
+          "max": 84,
+          "rounds": [
+            84,
+            82,
+            74,
+            82,
+            74
+          ]
+        },
+        "combined_user": {
+          "median": 30,
+          "min": 6,
+          "max": 64,
+          "rounds": [
+            6,
+            56,
+            64,
+            30,
+            12
+          ]
+        },
+        "combined_system": {
+          "median": 52,
+          "min": 10,
+          "max": 78,
+          "rounds": [
+            78,
+            26,
+            10,
+            52,
+            62
+          ]
+        },
+        "parent": {
+          "median": 82.0,
+          "min": 74.0,
+          "max": 84.0,
+          "rounds": [
+            84.0,
+            82.0,
+            74.0,
+            82.0,
+            74.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "base2",
+      "scene": "udp-hit",
+      "side": "rust",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 138,
+          "min": 130,
+          "max": 144,
+          "rounds": [
+            142,
+            138,
+            130,
+            136,
+            144
+          ]
+        },
+        "combined_user": {
+          "median": 54,
+          "min": 6,
+          "max": 92,
+          "rounds": [
+            82,
+            6,
+            10,
+            54,
+            92
+          ]
+        },
+        "combined_system": {
+          "median": 82,
+          "min": 52,
+          "max": 132,
+          "rounds": [
+            60,
+            132,
+            120,
+            82,
+            52
+          ]
+        },
+        "parent": {
+          "median": 138.0,
+          "min": 130.0,
+          "max": 144.0,
+          "rounds": [
+            142.0,
+            138.0,
+            130.0,
+            136.0,
+            144.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "base2",
+      "scene": "tcp-hit",
+      "side": "c",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 114,
+          "min": 112,
+          "max": 114,
+          "rounds": [
+            112,
+            112,
+            114,
+            114,
+            114
+          ]
+        },
+        "combined_user": {
+          "median": 90,
+          "min": 64,
+          "max": 106,
+          "rounds": [
+            64,
+            104,
+            90,
+            106,
+            86
+          ]
+        },
+        "combined_system": {
+          "median": 24,
+          "min": 8,
+          "max": 48,
+          "rounds": [
+            48,
+            8,
+            24,
+            8,
+            28
+          ]
+        },
+        "parent": {
+          "median": 8.0,
+          "min": 8.0,
+          "max": 10.0,
+          "rounds": [
+            8.0,
+            8.0,
+            8.0,
+            8.0,
+            10.0
+          ]
+        },
+        "reaped_children": {
+          "median": 104.0,
+          "min": 104.0,
+          "max": 106.0,
+          "rounds": [
+            104.0,
+            104.0,
+            106.0,
+            106.0,
+            104.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "base2",
+      "scene": "tcp-hit",
+      "side": "rust",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 166,
+          "min": 154,
+          "max": 178,
+          "rounds": [
+            166,
+            156,
+            170,
+            154,
+            178
+          ]
+        },
+        "combined_user": {
+          "median": 78,
+          "min": 0,
+          "max": 104,
+          "rounds": [
+            0,
+            96,
+            58,
+            78,
+            104
+          ]
+        },
+        "combined_system": {
+          "median": 76,
+          "min": 60,
+          "max": 166,
+          "rounds": [
+            166,
+            60,
+            112,
+            76,
+            74
+          ]
+        },
+        "parent": {
+          "median": 166.0,
+          "min": 154.0,
+          "max": 178.0,
+          "rounds": [
+            166.0,
+            156.0,
+            170.0,
+            154.0,
+            178.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "candidate-e",
+      "scene": "udp-hit",
+      "side": "c",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 134,
+          "min": 130,
+          "max": 140,
+          "rounds": [
+            130,
+            130,
+            134,
+            140,
+            134
+          ]
+        },
+        "combined_user": {
+          "median": 70,
+          "min": 20,
+          "max": 134,
+          "rounds": [
+            20,
+            70,
+            134,
+            94,
+            64
+          ]
+        },
+        "combined_system": {
+          "median": 60,
+          "min": 0,
+          "max": 110,
+          "rounds": [
+            110,
+            60,
+            0,
+            46,
+            70
+          ]
+        },
+        "parent": {
+          "median": 134.0,
+          "min": 130.0,
+          "max": 140.0,
+          "rounds": [
+            130.0,
+            130.0,
+            134.0,
+            140.0,
+            134.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "candidate-e",
+      "scene": "udp-hit",
+      "side": "rust",
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 132,
+          "min": 130,
+          "max": 136,
+          "rounds": [
+            132,
+            132,
+            136,
+            130,
+            134
+          ]
+        },
+        "combined_user": {
+          "median": 116,
+          "min": 34,
+          "max": 132,
+          "rounds": [
+            116,
+            132,
+            34,
+            130,
+            60
+          ]
+        },
+        "combined_system": {
+          "median": 16,
+          "min": 0,
+          "max": 102,
+          "rounds": [
+            16,
+            0,
+            102,
+            0,
+            74
+          ]
+        },
+        "parent": {
+          "median": 132.0,
+          "min": 130.0,
+          "max": 136.0,
+          "rounds": [
+            132.0,
+            132.0,
+            136.0,
+            130.0,
+            134.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "candidate-e",
+      "scene": "tcp-hit",
+      "side": "c",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 162,
+          "min": 152,
+          "max": 164,
+          "rounds": [
+            162,
+            152,
+            162,
+            164,
+            160
+          ]
+        },
+        "combined_user": {
+          "median": 22,
+          "min": 0,
+          "max": 162,
+          "rounds": [
+            22,
+            24,
+            162,
+            0,
+            0
+          ]
+        },
+        "combined_system": {
+          "median": 140,
+          "min": 0,
+          "max": 164,
+          "rounds": [
+            140,
+            128,
+            0,
+            164,
+            160
+          ]
+        },
+        "parent": {
+          "median": 162.0,
+          "min": 152.0,
+          "max": 164.0,
+          "rounds": [
+            162.0,
+            152.0,
+            162.0,
+            164.0,
+            160.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "candidate-e",
+      "scene": "tcp-hit",
+      "side": "rust",
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 156,
+          "min": 150,
+          "max": 158,
+          "rounds": [
+            156,
+            158,
+            156,
+            154,
+            150
+          ]
+        },
+        "combined_user": {
+          "median": 30,
+          "min": 0,
+          "max": 108,
+          "rounds": [
+            30,
+            108,
+            80,
+            0,
+            6
+          ]
+        },
+        "combined_system": {
+          "median": 126,
+          "min": 50,
+          "max": 154,
+          "rounds": [
+            126,
+            50,
+            76,
+            154,
+            144
+          ]
+        },
+        "parent": {
+          "median": 156.0,
+          "min": 150.0,
+          "max": 158.0,
+          "rounds": [
+            156.0,
+            158.0,
+            156.0,
+            154.0,
+            150.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "oracle-e",
+      "scene": "udp-hit",
+      "side": "c",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 28,
+          "min": 26,
+          "max": 28,
+          "rounds": [
+            28,
+            28,
+            28,
+            26,
+            28
+          ]
+        },
+        "combined_user": {
+          "median": 8,
+          "min": 0,
+          "max": 28,
+          "rounds": [
+            8,
+            0,
+            28,
+            12,
+            0
+          ]
+        },
+        "combined_system": {
+          "median": 20,
+          "min": 0,
+          "max": 28,
+          "rounds": [
+            20,
+            28,
+            0,
+            14,
+            28
+          ]
+        },
+        "parent": {
+          "median": 28.0,
+          "min": 26.0,
+          "max": 28.0,
+          "rounds": [
+            28.0,
+            28.0,
+            28.0,
+            26.0,
+            28.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "oracle-e",
+      "scene": "udp-hit",
+      "side": "rust",
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 26,
+          "min": 24,
+          "max": 28,
+          "rounds": [
+            24,
+            24,
+            28,
+            26,
+            26
+          ]
+        },
+        "combined_user": {
+          "median": 6,
+          "min": 0,
+          "max": 26,
+          "rounds": [
+            0,
+            6,
+            8,
+            0,
+            26
+          ]
+        },
+        "combined_system": {
+          "median": 20,
+          "min": 0,
+          "max": 26,
+          "rounds": [
+            24,
+            18,
+            20,
+            26,
+            0
+          ]
+        },
+        "parent": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            24.0,
+            24.0,
+            28.0,
+            26.0,
+            26.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "oracle-e",
+      "scene": "tcp-hit",
+      "side": "c",
+      "elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 36,
+          "min": 34,
+          "max": 38,
+          "rounds": [
+            38,
+            38,
+            36,
+            34,
+            34
+          ]
+        },
+        "combined_user": {
+          "median": 12,
+          "min": 10,
+          "max": 36,
+          "rounds": [
+            18,
+            10,
+            36,
+            12,
+            10
+          ]
+        },
+        "combined_system": {
+          "median": 22,
+          "min": 0,
+          "max": 28,
+          "rounds": [
+            20,
+            28,
+            0,
+            22,
+            24
+          ]
+        },
+        "parent": {
+          "median": 36.0,
+          "min": 34.0,
+          "max": 38.0,
+          "rounds": [
+            38.0,
+            38.0,
+            36.0,
+            34.0,
+            34.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "run": "oracle-e",
+      "scene": "tcp-hit",
+      "side": "rust",
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "microseconds_per_successful_operation": {
+        "total": {
+          "median": 32,
+          "min": 32,
+          "max": 34,
+          "rounds": [
+            32,
+            32,
+            34,
+            32,
+            32
+          ]
+        },
+        "combined_user": {
+          "median": 4,
+          "min": 0,
+          "max": 14,
+          "rounds": [
+            14,
+            4,
+            12,
+            0,
+            0
+          ]
+        },
+        "combined_system": {
+          "median": 28,
+          "min": 18,
+          "max": 32,
+          "rounds": [
+            18,
+            28,
+            22,
+            32,
+            32
+          ]
+        },
+        "parent": {
+          "median": 32.0,
+          "min": 32.0,
+          "max": 34.0,
+          "rounds": [
+            32.0,
+            32.0,
+            34.0,
+            32.0,
+            32.0
+          ]
+        },
+        "reaped_children": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "rounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  ],
+  "source_boundaries": [
+    {
+      "source": "matching OpenWrt dnsmasq 2.93-r1 nodhcpv6, src/dnsmasq.c",
+      "sha256": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "locations": [
+        "check_dns_listeners around 1915: TCP pipe/child lifecycle accounting",
+        "do_tcp_connection around 2007-2230: non-debug fork, blocking child tcp_request, child exit"
+      ],
+      "conclusion": "The regular keep-in-foreground mode still forks TCP service children; do not substitute debug mode to avoid child collection."
+    },
+    {
+      "source": "components/dnsmasq/src/main.rs",
+      "commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "sha256": "33c613a4391b2b401f6ea22adce9e15122eb2a9c37198aa1b90232a7f200255c",
+      "locations": [
+        "step_tcp_accept line 5501",
+        "connection snapshots and self.clients.push around 5623-5698",
+        "step_tcp_clients line 5737"
+      ],
+      "conclusion": "E handles accepted TCP work in the owner client collection with per-connection snapshots. These structural differences identify collection scope and candidate code paths, not measured cycle attribution."
+    },
+    {
+      "source": "tools/dnsmasq/device_perf_resource_probe.c",
+      "locations": [
+        "read_stat: proc fields 14,15,16,17,22"
+      ],
+      "conclusion": "The retained counters explicitly separate parent user/system and waited-child user/system. These accounting ticks are not function-level PMU event counts."
+    },
+    {
+      "source": "tools/dnsmasq/device_perf_case.sh",
+      "locations": [
+        "UDP parent-cache prewarm lines 124-126",
+        "before snapshot line 128",
+        "main loadgen warmup+measurement lines 137-138",
+        "post-load completion/reap and after snapshot lines 148-151"
+      ],
+      "conclusion": "The frozen CPU denominator is 5000, while the measurement latency cohort is 4000. A 20-second measurement-only PMU interval needs its own matching denominator."
+    }
+  ],
+  "requirements_for_new_diagnostic_review": [
+    "Bind exact-image C097 and E8b separately by ELF identity; preserve the image loader/libc, libubus, libubox and libgcc identities and verify live maps.",
+    "Use identical normalized config, seeds, names, qtypes, cache prewarm, client counts, request counts and documented phases; preserve every invalid attempt.",
+    "Observe C parent plus all descendants, including fork/clone/exec lineage, retained samples and final reaping. Do not exclude known service children as foreign PIDs.",
+    "Keep count scope and sampling scope explicit. Whole-tree total PMU counters, userspace-only sampled function estimates, syscall counts and traced timings are different observations.",
+    "Document sample losses, multiplex scaling, event privilege filters and unaccounted tail work; sample share times a total is an estimate, not a directly counted function total.",
+    "Strace plans need attach acknowledgement, a common completion/drain boundary and evidence of remaining children. Trace elapsed durations are not uninstrumented performance acceptance.",
+    "Use original frozen E tools for this diagnostic when comparing with E acceptance; prospective loadgen repairs are versioned separately."
+  ],
+  "evidence": {
+    "private_derived_report_sha256": "aa682bb8e552f9278a97cdcab9aa2bd5dc21c1eab0b733185abf7a5fc361bf58",
+    "selected_raw_index_sha256": "43f59228d75ccd2dba55c5ac73afd1581f45ab00512142b2022aaab90c48c0f9",
+    "prior_full_archive_audits": [
+      "base2-independent-audit.json",
+      "e-device-effective-independent-audit.json",
+      "oracle-e-independent-audit.json"
+    ]
+  }
+}
