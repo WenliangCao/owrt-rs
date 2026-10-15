@@ -293,6 +293,8 @@ pub struct Cache {
     long_names: usize,
     lease_generation: u64,
     name_revision: u64,
+    // Deletion may leave this early, but never later than a committed expiry.
+    expiry_lower_bound: i64,
 }
 
 impl Cache {
@@ -382,6 +384,7 @@ impl Cache {
             long_names: 0,
             lease_generation: 0,
             name_revision: 0,
+            expiry_lower_bound: i64::MAX,
         }
     }
 
@@ -404,6 +407,7 @@ impl Cache {
     /// become valid again when the empty slots are reused.
     pub fn clear(&mut self) {
         self.name_revision = self.name_revision.saturating_add(1);
+        self.expiry_lower_bound = i64::MAX;
         let capacity = self.slots.len();
         // Each root's uniqueness is a block-level property. Detach once before
         // clearing that block, in the same record order, instead of repeating
@@ -793,14 +797,20 @@ impl Cache {
         let slot = if let Some(id) = preserved {
             id.slot
         } else {
-            if self.tail.is_some_and(|slot| self.entry(slot).is_some()) {
+            if self.tail.is_some_and(|slot| self.entry(slot).is_some())
+                && self.policy.expired(self.expiry_lower_bound, now)
+            {
                 // Same pressure trigger as C: reclaim expired entries globally
-                // before spilling any live entry. The scan is a baseline cost.
+                // before spilling any live entry. A conservative deadline can
+                // prove this pass has no removals; otherwise keep slot order.
+                self.expiry_lower_bound = i64::MAX;
                 for slot in 0..self.slots.len() {
-                    if self.entry(slot).is_some_and(|entry| {
-                        entry.committed && self.policy.expired(entry.expires, now)
-                    }) {
-                        self.remove(slot);
+                    if let Some(entry) = self.entry(slot).filter(|entry| entry.committed) {
+                        if self.policy.expired(entry.expires, now) {
+                            self.remove(slot);
+                        } else {
+                            self.expiry_lower_bound = self.expiry_lower_bound.min(entry.expires);
+                        }
                     }
                 }
             }
@@ -1006,14 +1016,16 @@ impl Cache {
                 continue;
             }
             let capacity = self.slots.len();
-            let (key, reverse_name) = {
+            let (key, reverse_name, expires) = {
                 let entry = self.entry_mut(slot).as_mut().unwrap();
                 entry.committed = true;
                 (
                     entry.record.name.canonical_wire(),
                     entry.record.kind.is_reverse().then(|| entry.record.name.clone()),
+                    entry.expires,
                 )
             };
+            self.expiry_lower_bound = self.expiry_lower_bound.min(expires);
             self.names_shard_mut(&key)
                 .entry(Arc::from(key.into_boxed_slice()))
                 .or_default()

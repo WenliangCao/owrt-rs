@@ -53,3 +53,28 @@ DHCP invalidation, clear, snapshot divergence and parent import. The same i128
 stale predicate must be used, without adding a stale allowance in i64. Current
 layout, allocation counts, full exact-C gates and expiry-heavy/reverse/read-path
 controls remain required. No stopping or adoption claim is justified yet.
+
+## Paused at the user's C-first boundary
+
+The local prototype now adds one scalar lower bound, maintained only at
+constructor/clear, commit and the unchanged-order necessary pressure scan.
+Independent static review found no blocker in the actual diff. Forty-one
+native macOS cache tests pass. New coverage compares the candidate with a
+forced-scan control through 6,000 rounds (12,000 insert attempts) across zero,
+one, eight and 64 slots, three stale policies, failed/aborted batches, reverse
+records, backward/extreme clocks and wrapped TTLs; it compares slot links,
+record contents, indices and counters. Another test covers deleted minima,
+parent/child bound independence, imported deadlines and clear. Existing
+ownership checks now verify the conservative bound after mutations.
+
+The first test-only compile attempt failed on integer type inference; its log
+is retained and the explicit index type correction passes. This was not a
+product failure. All-target compilation of **unchanged frozen C** also passed
+locally before the D product source was edited.
+
+No D Oracle build, counters, timing, current-source C differential gate, layout
+or allocation measurement has run. The user prioritized completing C's full
+Oracle, 44-family and device comparison before further optimization. D is
+therefore preserved and paused here. Its active branch/worktree and all local
+private logs remain intact; restart only after root releases that boundary,
+with fresh profiling rather than transferring historical EPS1 percentages.

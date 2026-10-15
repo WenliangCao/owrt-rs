@@ -536,6 +536,8 @@ fn forward_name_presence_keeps_index_links_and_expired_records_untouched() {
 }
 
 fn check_ownership(cache: &Cache) {
+    assert!(cache.entries().filter(|entry| entry.committed)
+        .all(|entry| cache.expiry_lower_bound <= entry.expires));
     let mut linked = HashSet::new();
     let mut previous = None;
     let mut at = cache.head;
@@ -574,6 +576,95 @@ fn check_ownership(cache: &Cache) {
             .filter(|(index, _)| cache.entry(*index).is_some_and(|entry| entry.committed))
             .count()
     );
+}
+
+#[test]
+fn expiry_bound_matches_forced_scan_across_pressure_and_clock_changes() {
+    fn same_state(left: &Cache, right: &Cache) {
+        assert_eq!((left.head, left.tail, &left.pending, left.failed, left.long_names),
+                   (right.head, right.tail, &right.pending, right.failed, right.long_names));
+        assert_eq!(left.names, right.names);
+        assert_eq!(left.reverse_chain, right.reverse_chain);
+        assert_eq!(left.name_revision, right.name_revision);
+        for slot in 0..left.slots.len() {
+            let a = &left.slots[slot];
+            let b = &right.slots[slot];
+            assert_eq!((a.generation, a.prev, a.next), (b.generation, b.prev, b.next));
+            assert_eq!(format!("{:?}", left.entry(slot)), format!("{:?}", right.entry(slot)));
+        }
+        check_ownership(left);
+        check_ownership(right);
+    }
+
+    for stale in [StalePolicy::Disabled, StalePolicy::Seconds(5), StalePolicy::Forever] {
+        for capacity in [0, 1, 8, 64] {
+            let mut candidate = Cache::new(capacity, Policy { stale, ..Policy::default() });
+            let mut reference = candidate.snapshot();
+            let mut actual = CacheCounters::default();
+            let mut expected = CacheCounters::default();
+            for round in 0usize..500 {
+                let now = match round % 101 {
+                    97 => i64::MIN + 10,
+                    98 => i64::MAX - 10,
+                    99 => -100,
+                    _ => 100 + (round / 7) as i64,
+                };
+                if round % 97 == 0 {
+                    candidate.clear_counted(&mut actual);
+                    reference.clear_counted(&mut expected);
+                }
+                candidate.start_insert();
+                reference.start_insert();
+                for offset in 0..2 {
+                    let name = format!("e{}", (round * 7 + offset) % (capacity * 3 + 1));
+                    let kind = if round % 17 == 0 { Kind::ReverseIpv4 } else { Kind::Ipv4 };
+                    let ttl = [0, 1, 3, 60, u64::MAX][(round + offset) % 5];
+                    // i64::MIN is a conservative bound that forces the original
+                    // scan whenever any representable expiry could be expired.
+                    reference.expiry_lower_bound = i64::MIN;
+                    assert_eq!(
+                        candidate.insert_ttl_counted(record(&name, kind, round as u8), now, ttl, &mut actual),
+                        reference.insert_ttl_counted(record(&name, kind, round as u8), now, ttl, &mut expected),
+                    );
+                    same_state(&candidate, &reference);
+                }
+                if round % 11 != 0 {
+                    assert_eq!(candidate.commit_counted(&mut actual), reference.commit_counted(&mut expected));
+                }
+                let name = format!("e{}", round % (capacity * 3 + 1));
+                assert_eq!(lookup(&mut candidate, &name, Kind::Ipv4, now),
+                           lookup(&mut reference, &name, Kind::Ipv4, now));
+                assert_eq!(actual, expected);
+                same_state(&candidate, &reference);
+            }
+        }
+    }
+}
+
+#[test]
+fn expiry_bound_is_private_to_snapshots_and_tracks_imported_deadlines() {
+    let mut parent = Cache::new(4, Policy::default());
+    parent.start_insert();
+    let early = parent.insert(record("early.test", Kind::Ipv4, 1), 100, 5).unwrap();
+    parent.insert(record("later.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    assert!(parent.commit());
+    assert_eq!(parent.expiry_lower_bound, 105);
+    let mut child = parent.snapshot();
+    child.remove(early.slot);
+    assert_eq!(child.expiry_lower_bound, 105, "deleting a minimum may leave a conservative bound");
+    child.start_insert();
+    child.insert(record("import.test", Kind::Ipv4, 3), 100, 2).unwrap();
+    let transaction = child.capture_commit_counted(&mut CacheCounters::default()).unwrap();
+    assert_eq!(child.expiry_lower_bound, 102);
+    assert_eq!(parent.expiry_lower_bound, 105);
+    assert!(parent.import_counted(transaction, 101, &mut CacheCounters::default(), |_| None));
+    assert_eq!(parent.expiry_lower_bound, 102);
+    child.clear();
+    assert_eq!(child.expiry_lower_bound, i64::MAX);
+    assert_eq!(parent.expiry_lower_bound, 102);
+    assert!(parent.get(early).is_some());
+    check_ownership(&parent);
+    check_ownership(&child);
 }
 
 #[test]
