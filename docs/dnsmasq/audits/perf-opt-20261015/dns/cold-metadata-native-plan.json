@@ -171,7 +171,7 @@
     },
     "cold-metadata": {
       "commit": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
-      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cold-metadata",
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cache-cold-metadata",
       "files": {
         "components/dnsmasq/Cargo.lock": "f414678b0ec026bcd72b2dbd8ac3aaeff887451d66de4e042cbe0b73785e7f52",
         "components/dnsmasq/Cargo.toml": "3a1d9f10f9eeeeafaf1825dc949f3e6f081f7a654221a0a84c7a7a94741681ca",
@@ -421,5 +421,6 @@
     "cname-config": 191200000
   },
   "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
-  "runner_change": "Only final row cardinality derives from existing fixed plan dimensions instead of literal480; historical runner9d5bc3ab remains frozen for earlier and currently active experiments"
+  "runner_change": "Only final row cardinality derives from existing fixed plan dimensions instead of literal480; historical runner9d5bc3ab remains frozen for earlier and currently active experiments",
+  "source_directory_note": "Before any run: reuse the prepared exact-source Linux gate directory, without duplicate trees or aliases; source identities and workloads unchanged."
 }
