@@ -1,0 +1,515 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only F/fresh-address-frame fixed ten-window evidence audit using the same raw/count/statistical/health methods. No device query or new load.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "fresh-address-frame",
+    "source_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "02b500e55acc65d7099612801d89ea8e19a20ae9884e0a86edfdd051a3b057ad",
+        "bytes": 2136859
+      },
+      "link.map": {
+        "sha256": "6852c4c04099ac8b936df587f50fcfe3333fce4bb0edb1e136cc7830aaaa89a2",
+        "bytes": 3019704
+      },
+      "build.json": {
+        "sha256": "243027630a044b865b7c76fe50c1943f602e06f38a66828b1cba0c5af1e48cb9",
+        "bytes": 43989
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "0779df12",
+    "author_public_result": "../loop/A53_FRESH_ADDRESS_FRAME_DEVICE_RESULT.json",
+    "author_public_result_sha256": "23d66212d409c6741c8222797500f6a29107753dfeab95683d39c7d8d7842946",
+    "summary_sha256": "367eff249a86f9331f0cd7662d101a8bdb0b50c814e8170b085dca97e1f2e3d2",
+    "progress_sha256": "8576291bdeb423c45867132a723d0e18d83ed8b3127a8b65ba06e324c5d689be",
+    "identity_sha256": "59098514d035d6ad3021a6e1510ce6240a0d55de1f1ac96de486796b1da2d3ec",
+    "plan_sha256": "f5db2bbe58433aef852e7a32671c124d5c73dc43a2996f05f399ad16af848c94",
+    "launch_sha256": "2ecaa48127277ea3be467faa0ba41b8b17f78a84ca8ddebacb7521a1029599de",
+    "independent_audit_sha256": "a029065290e19bdf01ef157a0182abde43dd4a14b71005fb88cf095b0e01814c",
+    "statistical_script_sha256": "b1011c5c5e33f43f123bfa1b194805d6c111a6082a6f8c5fb0ad2210041a881e",
+    "health_script_sha256": "e7a259d4a2b24d1b540a843992ca7ba8e7240737c53ffd800a3254d682566645",
+    "subreceipts": {
+      "statistics_sha256": "16516135666d3c2f8bc594bab4851c5d794d571dc53c63c591eda49446fab095",
+      "health_sha256": "88d3dd044cb175900d2b3f1dc321c1b4d5a28bf861bbe4a1b73039045b682936"
+    },
+    "method": "Reused ten-window independent formulas; only frozen paths/roles/artifact bindings and actual316 observation inventory adapted."
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 316,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_members_all_manifest_and_extracted_hashes_match": true,
+    "all_local_files_regular_not_symlinks": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-fresh-address-frame": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "fresh-address-frame",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.1842,
+            "min": 0.183969,
+            "max": 0.191125,
+            "rounds": [
+              0.191125,
+              0.183969,
+              0.184122,
+              0.1842,
+              0.18443
+            ]
+          },
+          "right": {
+            "median": 0.181507,
+            "min": 0.179813,
+            "max": 0.190124,
+            "rounds": [
+              0.179813,
+              0.183507,
+              0.181507,
+              0.190124,
+              0.179814
+            ]
+          },
+          "relative_change_pct": -1.4619978284473403,
+          "W_pct": 5.680772642377422,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.325311,
+            "min": 0.268604,
+            "max": 0.414026,
+            "rounds": [
+              0.414026,
+              0.272452,
+              0.268604,
+              0.390097,
+              0.325311
+            ]
+          },
+          "right": {
+            "median": 0.383017,
+            "min": 0.258833,
+            "max": 0.398406,
+            "rounds": [
+              0.258833,
+              0.393021,
+              0.383017,
+              0.36509,
+              0.398406
+            ]
+          },
+          "relative_change_pct": 17.73871771935163,
+          "W_pct": 44.70245395944188,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 130.0,
+            "min": 126.0,
+            "max": 134.0,
+            "rounds": [
+              134.0,
+              126.0,
+              130.0,
+              132.0,
+              128.0
+            ]
+          },
+          "right": {
+            "median": 126.0,
+            "min": 122.0,
+            "max": 130.0,
+            "rounds": [
+              124.0,
+              130.0,
+              126.0,
+              122.0,
+              126.0
+            ]
+          },
+          "relative_change_pct": -3.076923076923077,
+          "W_pct": 6.349206349206349,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2356.0,
+            "max": 2408.0,
+            "rounds": [
+              2408.0,
+              2384.0,
+              2396.0,
+              2396.0,
+              2356.0
+            ]
+          },
+          "right": {
+            "median": 2412.0,
+            "min": 2392.0,
+            "max": 2440.0,
+            "rounds": [
+              2392.0,
+              2396.0,
+              2412.0,
+              2440.0,
+              2440.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2356,
+            "max": 2408,
+            "rounds": [
+              2408,
+              2384,
+              2396,
+              2396,
+              2356
+            ]
+          },
+          "right": {
+            "median": 2412,
+            "min": 2392,
+            "max": 2440,
+            "rounds": [
+              2392,
+              2396,
+              2412,
+              2440,
+              2440
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 556,
+            "rounds": [
+              520,
+              516,
+              556,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 512,
+            "max": 520,
+            "rounds": [
+              520,
+              512,
+              520,
+              520,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1864,
+            "min": 1832,
+            "max": 1884,
+            "rounds": [
+              1884,
+              1864,
+              1836,
+              1872,
+              1832
+            ]
+          },
+          "right": {
+            "median": 1888,
+            "min": 1868,
+            "max": 1916,
+            "rounds": [
+              1868,
+              1880,
+              1888,
+              1916,
+              1916
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 65,
+        "right": 63,
+        "absolute_delta": 2,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          67,
+          63,
+          65,
+          66,
+          64
+        ],
+        "rust": [
+          62,
+          65,
+          63,
+          61,
+          63
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "left": 65,
+    "right": 63,
+    "absolute_delta": 2,
+    "required_delta_exclusive": 8,
+    "same_direction_pairs": 4,
+    "discernible": false
+  },
+  "health": {
+    "fresh_baseline": {
+      "sha256": "51228040b95b0e1b5bb7d822fb1387df2f3708dc886dd30599794be10673f8f9",
+      "samples": 126,
+      "dns_completed": 50,
+      "http_completed": 23,
+      "dns_p95_ms": 0.64,
+      "dns_max_ms": 1.002,
+      "http_max_ms": 58.415,
+      "min_memory_kib": 89540,
+      "start_epoch": 1792105714,
+      "last_sample_epoch": 1792105839,
+      "stop_epoch": 1792105839,
+      "elapsed_seconds": 125.353,
+      "sample_elapsed_step_range_seconds": [
+        0.9969999999999999,
+        1.0030000000000001
+      ],
+      "wall_epoch_step_counts": {
+        "1": 125
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "runtime_guard": {
+      "sha256": "64cd04532a61056da89d5d3eac11eb976ab15799ba1ea43bb44035780b728d48",
+      "samples": 417,
+      "dns_completed": 164,
+      "http_completed": 75,
+      "dns_p95_ms": 0.71,
+      "dns_max_ms": 2.788,
+      "http_max_ms": 206.456,
+      "min_memory_kib": 84472,
+      "start_epoch": 1792105882,
+      "last_sample_epoch": 1792106298,
+      "stop_epoch": 1792106299,
+      "elapsed_seconds": 416.908,
+      "sample_elapsed_step_range_seconds": [
+        0.9939999999999998,
+        1.0060000000000002
+      ],
+      "wall_epoch_step_counts": {
+        "1": 416
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "external_checks": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "b84b20319db2f1795a81209ec799826df5dceab11ffe9586941118e1c9f60b14"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "38e035d0e1f367863aee34cd98fa43f30f6e82d845396026dbd39fd4b9ff6caf"
+      }
+    ],
+    "all_ten_window_intervals_covered": true,
+    "all_completed_probes_passed": true,
+    "failed_or_cancelled_probes": 0,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained": true
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "c7f6982ff462babe5ec18b3819eeaf6b5148325aa3262322c5ec87d45603aa95",
+    "postflight_script_sha256": "873375828d257ea940303f3808778da9305dfabbfe85bdfe9f509336e4abe7b4",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 86208,
+    "local_controller_pid_absent": 73632,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "conclusion": "All three primary metrics are indistinguishable. CPU130 to126us/op is -3.07692%, below W6.34921%, with four same-direction pairs but only two median ticks. No demonstrated gain/regression or candidate promotion.",
+  "limits": [
+    "This is F versus fresh-address-frame only. The earlier2a9d53b0 fresh-address run and native results are separate experiments, not pooled controls.",
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "A smaller compiled frame or separated writer body does not itself prove a performance benefit in this device workload.",
+    "Postflight is a captured script/record audit, not a fresh device observation; final production identity comes from the frozen runner restoration check and shell namespace is init.",
+    "This narrow exploratory run does not establish full44 qualification, whole-workload acceptance or deployment eligibility."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
