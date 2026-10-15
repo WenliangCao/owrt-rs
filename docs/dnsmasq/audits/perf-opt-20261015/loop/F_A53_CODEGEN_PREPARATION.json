@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "status": "prepared independent compiler variant; not SDK built, not qualified, not timed, not selected for G",
+  "scope": "Compiler-only F baseline experiment authorized independently of product patches. F source/recipe and current acceptance runs remain unchanged.",
+  "base": {
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "ELF_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+    "ELF_bytes": 2136859,
+    "SOURCE_DATE_EPOCH": "1792083838"
+  },
+  "variant": {
+    "commit": "c076835d64aa3b207a6a5abf0f6be92e6cfd0f67",
+    "changed_file": "packaging/openwrt/owrt-dnsmasq/Makefile",
+    "only_added_flag": "-Ctarget-cpu=cortex-a53",
+    "recipe_sha256": "b11584f2f33c6535e5af53a5bbb1e383633efa1070dd07b7ce265e86a921a214",
+    "components_git_tree": "ce1503cf04d676e98795ef62c39dc351514032bf",
+    "components_identical_to_F": true,
+    "SDK_ELF_sha256": null,
+    "timing_result": null
+  },
+  "unchanged_release_profile": {
+    "opt_level": 3,
+    "lto": "true (fat LTO already enabled)",
+    "codegen_units": 1,
+    "panic": "abort",
+    "strip": true,
+    "features": "",
+    "target": "aarch64-unknown-linux-musl"
+  },
+  "base_rustflags": "-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static",
+  "router": {
+    "model": "Xiaomi Mi Router AX3000T",
+    "compatible": [
+      "xiaomi,mi-router-ax3000t",
+      "mediatek,mt7981"
+    ],
+    "online_cpus": "0-1",
+    "cores": [
+      {
+        "processor": 0,
+        "implementer": "0x41",
+        "architecture": 8,
+        "variant": "0x0",
+        "part": "0xd03",
+        "revision": 4
+      },
+      {
+        "processor": 1,
+        "implementer": "0x41",
+        "architecture": 8,
+        "variant": "0x0",
+        "part": "0xd03",
+        "revision": 4
+      }
+    ],
+    "linux_features": [
+      "fp",
+      "asimd",
+      "evtstrm",
+      "aes",
+      "pmull",
+      "sha1",
+      "sha2",
+      "crc32",
+      "cpuid"
+    ],
+    "image_release": "25.12.5",
+    "image_revision": "r33051-f5dae5ece4",
+    "target": "mediatek/filogic",
+    "package_arch": "aarch64_cortex-a53"
+  },
+  "exact_sdk": {
+    "config_sha256": "d171dc5c433ab321ab37162fe40342b6aef4b5f377870fff2a1cb7ab492d6018",
+    "matches_F_receipt": true,
+    "CPU_TYPE": "cortex-a53",
+    "TARGET_OPTIMIZATION": "-Os -pipe -mcpu=cortex-a53",
+    "GCC_VERSION": "14.3.0",
+    "libc": "musl",
+    "target_mk_cpu_type": "cortex-a53",
+    "target_mk_sha256": "8df187016798096efead94ccc15c2f8442ffb68615938d31ccc539750dd1923f"
+  },
+  "local_compiler_probe": {
+    "scope": "local compiler option identity probe only; not product build or performance test",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "source_sha256": "14a29b8dcbe641f64d2bc7b2cbfb944d815947b29acb7bb11e2b925e975d122f",
+    "rows": [
+      {
+        "label": "generic",
+        "command": [
+          "rustc",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--crate-type=lib",
+          "--emit=llvm-ir",
+          "-O",
+          "-Ctarget-feature=+crt-static",
+          "private/perf-opt-20261015/preparation-checks/cpu-compiler/identity.rs",
+          "-o",
+          "private/perf-opt-20261015/preparation-checks/cpu-compiler/generic.ll"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "attributes": [
+          "attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"frame-pointer\"=\"non-leaf\" \"probe-stack\"=\"inline-asm\" \"target-cpu\"=\"generic\" \"target-features\"=\"+v8a,+outline-atomics\" }"
+        ],
+        "target_features": [
+          "target_feature=\"crt-static\"",
+          "target_feature=\"neon\""
+        ]
+      },
+      {
+        "label": "cortex-a53",
+        "command": [
+          "rustc",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--crate-type=lib",
+          "--emit=llvm-ir",
+          "-O",
+          "-Ctarget-feature=+crt-static",
+          "-Ctarget-cpu=cortex-a53",
+          "private/perf-opt-20261015/preparation-checks/cpu-compiler/identity.rs",
+          "-o",
+          "private/perf-opt-20261015/preparation-checks/cpu-compiler/cortex-a53.ll"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "attributes": [
+          "attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"frame-pointer\"=\"non-leaf\" \"probe-stack\"=\"inline-asm\" \"target-cpu\"=\"cortex-a53\" \"target-features\"=\"+v8a,+outline-atomics\" }"
+        ],
+        "target_features": [
+          "target_feature=\"aes\"",
+          "target_feature=\"crc\"",
+          "target_feature=\"crt-static\"",
+          "target_feature=\"neon\"",
+          "target_feature=\"pmuv3\"",
+          "target_feature=\"sha2\""
+        ]
+      }
+    ]
+  },
+  "feature_review": {
+    "generic_cfg": [
+      "crt-static",
+      "neon"
+    ],
+    "a53_cfg": [
+      "aes",
+      "crc",
+      "crt-static",
+      "neon",
+      "pmuv3",
+      "sha2"
+    ],
+    "ISA_support": "Runtime advertises AES/PMULL/SHA1/SHA2/CRC32/ASIMD/FP; target-cpu is a CPU model plus default target features, not scheduling-only. No LSE/SVE features were enabled by the observed target cfg.",
+    "pmuv3_limit": "LLVM target capability does not establish Linux perf_event availability or permission. Earlier router PMU inventory had no event source/perf; no user PMU instructions or new perf helper are introduced.",
+    "project_cfg_audit": "dnsmasq/ubus source has no inline asm and no aes/crc/sha2/pmuv3 conditional branch; existing crt-static and target_arch branches retain their values.",
+    "probe_limit": "Local rustc is the same 1.98.1 commit/LLVM22.1.8 as F build, on Darwin host. The two tiny LLVM-IR probes only validate option identity; they are neither product builds nor speed measurements."
+  },
+  "lto_review": {
+    "current": "Already fat LTO with one codegen unit. Do not describe this variant as enabling LTO.",
+    "thin": "Not changed. ThinLTO is a different optimization/link tradeoff, not an established IPC improvement for this artifact. Any future thin comparison must be a separate single-variable F build with fat/generic control; do not combine it with target-cpu or product changes."
+  },
+  "future_build_requirements": {
+    "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+    "note": "Use the same externally pinned repaired SDK builder used for exact F, not the older builder file inherited by the F source branch. No builder mutation proposed.",
+    "source_epoch": "Keep F epoch 1792083838 explicit in both experimental Git identity manifests/build arguments, record the variant commit separately; only recipe flag changes code generation.",
+    "baseline_control": "Rebuild original F recipe and require exact b7926bcf identity before attributing a variant difference. Preserve a mismatch as a failed control.",
+    "variant_output": "Fresh private SDK output, ELF/APK/prestrip/map/full expanded compiler invocation/source inventory; package recipe restore and SDK hash recheck required."
+  },
+  "timing_plan": "After F full110 reservations complete: fixed, preregistered full-daemon paired comparisons of F vs F-A53 with the new frozen measurement tools, no product patch combinations; use all original correctness, health, W/direction/tick/no-regression/resource rules. Oracle instructions/cycles/IPC are separate diagnostics on its CPU, not AX3000T IPC. On the exact A53 router report CPU/query and latency; no hardware IPC claim without supported PMU.",
+  "activity": "Read-only router and SDK configuration collection; local tiny compiler identity probes; one-line recipe commit only. No remote build, perf run, workload, router stage or deployment.",
+  "private_evidence_sha256": {
+    "router-cpu-readonly.json": "1604c645d6b5bf419e665d1fd9c351cd53708111c73ecd23ea4fd68a1102ca88",
+    "sdk-cpu-readonly.json": "5971c3776a169546d4b248252a8250c4782d20b7d34a702e7e2a7a2110666f28",
+    "cpu-compiler/receipt.json": "22a34fbbe511c2d9184fe99b27847a2c83c801a1198b8602df38693a86abd116"
+  },
+  "primary_documentation": [
+    "https://doc.rust-lang.org/rustc/codegen-options/index.html#target-cpu",
+    "https://doc.rust-lang.org/cargo/reference/profiles.html#lto",
+    "https://developer.arm.com/community/arm-community-blogs/b/soc-design-and-simulation-blog/posts/comparing-arm-cortex-a72-and-arm-cortex-a57"
+  ]
+}
