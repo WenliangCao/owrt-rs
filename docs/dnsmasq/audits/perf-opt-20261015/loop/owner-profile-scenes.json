@@ -1,0 +1,625 @@
+{
+  "scope": "Excluded exact-SDK candidate A instruction profiles, not deployed v0.2.0 or accepted timing. Each acknowledged PMU window includes 1000 warmup + 4000 measured queries. Kernel proportions are scene-dependent diagnostic samples, not exact CPU attribution or proof of irreducibility.",
+  "datasets": {
+    "udp-miss": {
+      "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+      "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+      "map_sha256": "67f7407dd83881c381a2d7178ba9051fe9d0988b6f6793b0ff598385eebe0821",
+      "profile_sha256": "639f7be0fe4c434ae7dbf36b0ef4037bd88007aa97e719f7e0e7cc1ded06e3cc",
+      "totals": {
+        "samples": 40138,
+        "period": 401380000,
+        "lost_samples": 0
+      },
+      "samples_by_mode": {
+        "user": 28869,
+        "kernel": 11269
+      },
+      "correct_measured_queries": 4000,
+      "perf_ack_bracket_valid": true,
+      "pmu_during_recording": {
+        "instructions": 816869505,
+        "cycles": 1404567564
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::send_plan_with_source::<<std::net::udp::UdpSocket>::send_to<core::net::socket_addr::SocketAddr>, dnsmasq_rs::dns::upstream::wait_udp_retry>",
+          "elf_range": [
+            "0x261b4",
+            "0x288e8"
+          ],
+          "samples": 5213,
+          "period": 52130000,
+          "percent_all_period": 12.987692461009518
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe50ac",
+            "0xe8570"
+          ],
+          "samples": 4096,
+          "period": 40960000,
+          "percent_all_period": 10.204793462554187
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf3d44",
+            "0xf4a20"
+          ],
+          "samples": 4019,
+          "period": 40190000,
+          "percent_all_period": 10.012955304200508
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::forward_service::ForwardDispatcher>::submit_with_metadata::<dnsmasq_rs::dns::upstream::OsRandom>",
+          "elf_range": [
+            "0x21680",
+            "0x22aa8"
+          ],
+          "samples": 2609,
+          "period": 26090000,
+          "percent_all_period": 6.500074742139618
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::dnsmasq_bytes",
+          "elf_range": [
+            "0xae2d8",
+            "0xae4cc"
+          ],
+          "samples": 2495,
+          "period": 24950000,
+          "percent_all_period": 6.216054611590015
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b5ba0",
+            "0x1b5ff8"
+          ],
+          "samples": 1812,
+          "period": 18120000,
+          "percent_all_period": 4.514425232946335
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b5268",
+            "0x1b5ba0"
+          ],
+          "samples": 779,
+          "period": 7790000,
+          "percent_all_period": 1.940804225422293
+        },
+        {
+          "category": "user_attributed",
+          "label": "<hashbrown::raw::RawTable<(dnsmasq_rs::dns::forward::QueryId, ())>>::reserve_rehash::<hashbrown::map::make_hasher<dnsmasq_rs::dns::forward::QueryId, (), std::hash::random::RandomState>::{closure#0}>",
+          "elf_range": [
+            "0xedb8",
+            "0xf18c"
+          ],
+          "samples": 737,
+          "period": 7370000,
+          "percent_all_period": 1.8361652299566495
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::hosts::Hosts>::addresses",
+          "elf_range": [
+            "0xf4adc",
+            "0xf4c88"
+          ],
+          "samples": 548,
+          "period": 5480000,
+          "percent_all_period": 1.3652897503612538
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::cache_engine::local_cache_match",
+          "elf_range": [
+            "0xf34e8",
+            "0xf3d44"
+          ],
+          "samples": 541,
+          "period": 5410000,
+          "percent_all_period": 1.3478499177836465
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::open_socket",
+          "elf_range": [
+            "0x70084",
+            "0x70f18"
+          ],
+          "samples": 540,
+          "period": 5400000,
+          "percent_all_period": 1.3453585131297026
+        },
+        {
+          "category": "user_attributed",
+          "label": "<std::hash::random::RandomState as core::hash::BuildHasher>::hash_one::<&dnsmasq_rs::dns::forward::SocketToken>",
+          "elf_range": [
+            "0x342c4",
+            "0x343d4"
+          ],
+          "samples": 536,
+          "period": 5360000,
+          "percent_all_period": 1.3353928945139268
+        }
+      ]
+    },
+    "udp-mixed": {
+      "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+      "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+      "map_sha256": "67f7407dd83881c381a2d7178ba9051fe9d0988b6f6793b0ff598385eebe0821",
+      "profile_sha256": "5ccd1ccd9872620b9fcec7079946d875fe5daa9ab3ed82008a7143372e454708",
+      "totals": {
+        "samples": 19921,
+        "period": 199210000,
+        "lost_samples": 0
+      },
+      "samples_by_mode": {
+        "user": 9961,
+        "kernel": 9960
+      },
+      "correct_measured_queries": 4000,
+      "perf_ack_bracket_valid": true,
+      "pmu_during_recording": {
+        "instructions": 343240647,
+        "cycles": 959206381
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+          "elf_range": [
+            "0xe01e0",
+            "0xe035c"
+          ],
+          "samples": 1359,
+          "period": 13590000,
+          "percent_all_period": 6.821946689423222
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+          "elf_range": [
+            "0xe50ac",
+            "0xe8570"
+          ],
+          "samples": 1070,
+          "period": 10700000,
+          "percent_all_period": 5.371216304402389
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf3d44",
+            "0xf4a20"
+          ],
+          "samples": 945,
+          "period": 9450000,
+          "percent_all_period": 4.743737764168466
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b5ba0",
+            "0x1b5ff8"
+          ],
+          "samples": 401,
+          "period": 4010000,
+          "percent_all_period": 2.0129511570704284
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::send_plan_with_source::<<std::net::udp::UdpSocket>::send_to<core::net::socket_addr::SocketAddr>, dnsmasq_rs::dns::upstream::wait_udp_retry>",
+          "elf_range": [
+            "0x261b4",
+            "0x288e8"
+          ],
+          "samples": 356,
+          "period": 3560000,
+          "percent_all_period": 1.7870588825862155
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::hosts::Hosts>::addresses",
+          "elf_range": [
+            "0xf4adc",
+            "0xf4c88"
+          ],
+          "samples": 277,
+          "period": 2770000,
+          "percent_all_period": 1.3904924451583756
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step",
+          "elf_range": [
+            "0x65780",
+            "0x69c84"
+          ],
+          "samples": 272,
+          "period": 2720000,
+          "percent_all_period": 1.3653933035490187
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::dnsmasq_bytes",
+          "elf_range": [
+            "0xae2d8",
+            "0xae4cc"
+          ],
+          "samples": 257,
+          "period": 2570000,
+          "percent_all_period": 1.2900958787209478
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::forward_service::ForwardDispatcher>::submit_with_metadata::<dnsmasq_rs::dns::upstream::OsRandom>",
+          "elf_range": [
+            "0x21680",
+            "0x22aa8"
+          ],
+          "samples": 197,
+          "period": 1970000,
+          "percent_all_period": 0.9889061794086642
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x501c8",
+            "0x51e48"
+          ],
+          "samples": 188,
+          "period": 1880000,
+          "percent_all_period": 0.9437277245118217
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b4bd4",
+            "0x1b4f30"
+          ],
+          "samples": 186,
+          "period": 1860000,
+          "percent_all_period": 0.9336880678680789
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::wire_to_dotted",
+          "elf_range": [
+            "0xaf768",
+            "0xafb10"
+          ],
+          "samples": 166,
+          "period": 1660000,
+          "percent_all_period": 0.8332915014306511
+        }
+      ]
+    },
+    "tcp-hit": {
+      "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+      "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+      "map_sha256": "67f7407dd83881c381a2d7178ba9051fe9d0988b6f6793b0ff598385eebe0821",
+      "profile_sha256": "c03fa9b4e2c87949f7944b62d4d01bc2ebac36419977cf26b703d9e902439963",
+      "totals": {
+        "samples": 20029,
+        "period": 200290000,
+        "lost_samples": 0
+      },
+      "samples_by_mode": {
+        "kernel": 18791,
+        "user": 1238
+      },
+      "correct_measured_queries": 4000,
+      "perf_ack_bracket_valid": true,
+      "pmu_during_recording": {
+        "instructions": 277771676,
+        "cycles": 674469287
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::wait_for_files",
+          "elf_range": [
+            "0x501c8",
+            "0x51e48"
+          ],
+          "samples": 185,
+          "period": 1850000,
+          "percent_all_period": 0.9236606919966049
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step_tcp_clients",
+          "elf_range": [
+            "0x57680",
+            "0x59408"
+          ],
+          "samples": 147,
+          "period": 1470000,
+          "percent_all_period": 0.733935793100005
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::answer_records_filtered",
+          "elf_range": [
+            "0xda10c",
+            "0xdd628"
+          ],
+          "samples": 99,
+          "period": 990000,
+          "percent_all_period": 0.4942832892306156
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step",
+          "elf_range": [
+            "0x65780",
+            "0x69c84"
+          ],
+          "samples": 57,
+          "period": 570000,
+          "percent_all_period": 0.2845873483448999
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b5268",
+            "0x1b5ba0"
+          ],
+          "samples": 48,
+          "period": 480000,
+          "percent_all_period": 0.23965250386938938
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b4bd4",
+            "0x1b4f30"
+          ],
+          "samples": 43,
+          "period": 430000,
+          "percent_all_period": 0.21468870138299465
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step_udp",
+          "elf_range": [
+            "0x69eec",
+            "0x6a5cc"
+          ],
+          "samples": 38,
+          "period": 380000,
+          "percent_all_period": 0.18972489889659994
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::step_tcp_accept",
+          "elf_range": [
+            "0x54cd8",
+            "0x5547c"
+          ],
+          "samples": 32,
+          "period": 320000,
+          "percent_all_period": 0.15976833591292625
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b5ba0",
+            "0x1b5ff8"
+          ],
+          "samples": 32,
+          "period": 320000,
+          "percent_all_period": 0.15976833591292625
+        },
+        {
+          "category": "user_attributed",
+          "label": "__clock_gettime",
+          "elf_range": [
+            "0x1bf94c",
+            "0x1bf9e8"
+          ],
+          "samples": 31,
+          "period": 310000,
+          "percent_all_period": 0.15477557541564732
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::SinglePoll>::append_file_fds",
+          "elf_range": [
+            "0x51e48",
+            "0x5240c"
+          ],
+          "samples": 29,
+          "period": 290000,
+          "percent_all_period": 0.14479005442108941
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::append_poll_fds",
+          "elf_range": [
+            "0x7124c",
+            "0x71448"
+          ],
+          "samples": 29,
+          "period": 290000,
+          "percent_all_period": 0.14479005442108941
+        }
+      ]
+    },
+    "tcp-miss": {
+      "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+      "source_commit": "a7164697ba8d27e8bea2e37a7f1c783533acb240",
+      "map_sha256": "67f7407dd83881c381a2d7178ba9051fe9d0988b6f6793b0ff598385eebe0821",
+      "profile_sha256": "018ee618a6811a4b1cb6bad35f94c3b9615c174209d05788d551d9523eaf43ac",
+      "totals": {
+        "samples": 40265,
+        "period": 402650000,
+        "lost_samples": 0
+      },
+      "samples_by_mode": {
+        "kernel": 16897,
+        "user": 23368
+      },
+      "correct_measured_queries": 4000,
+      "perf_ack_bracket_valid": true,
+      "pmu_during_recording": {
+        "instructions": 924350897,
+        "cycles": 1481751348
+      },
+      "top_user": [
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache::Cache>::insert_at_counted",
+          "elf_range": [
+            "0xf3d44",
+            "0xf4a20"
+          ],
+          "samples": 7365,
+          "period": 73650000,
+          "percent_all_period": 18.291320004967094
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::tcp_upstream::TcpUpstream>::step",
+          "elf_range": [
+            "0xf888c",
+            "0xf9ad0"
+          ],
+          "samples": 1884,
+          "period": 18840000,
+          "percent_all_period": 4.6790016143052275
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_malloc_impl",
+          "elf_range": [
+            "0x1b5ba0",
+            "0x1b5ff8"
+          ],
+          "samples": 1251,
+          "period": 12510000,
+          "percent_all_period": 3.106916677014777
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::query_policy::QueryPolicy>::reply_with_cache",
+          "elf_range": [
+            "0xaec90",
+            "0xaf61c"
+          ],
+          "samples": 1006,
+          "period": 10060000,
+          "percent_all_period": 2.4984477834347447
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::wire::Name>::eq_ignore_ascii_case",
+          "elf_range": [
+            "0xf774c",
+            "0xf77a0"
+          ],
+          "samples": 949,
+          "period": 9490000,
+          "percent_all_period": 2.356885632683472
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::local::wire_to_dotted",
+          "elf_range": [
+            "0xaf768",
+            "0xafb10"
+          ],
+          "samples": 886,
+          "period": 8860000,
+          "percent_all_period": 2.200422202905749
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::dns::cache_engine::CacheContext>::insert_reply_with_events",
+          "elf_range": [
+            "0xf59ac",
+            "0xf6f78"
+          ],
+          "samples": 813,
+          "period": 8130000,
+          "percent_all_period": 2.0191233080839437
+        },
+        {
+          "category": "user_attributed",
+          "label": "<dnsmasq_rs::TcpDnsWork>::run_forward",
+          "elf_range": [
+            "0x4b520",
+            "0x4c488"
+          ],
+          "samples": 722,
+          "period": 7220000,
+          "percent_all_period": 1.793120576182789
+        },
+        {
+          "category": "user_attributed",
+          "label": "__libc_free",
+          "elf_range": [
+            "0x1b4bd4",
+            "0x1b4f30"
+          ],
+          "samples": 695,
+          "period": 6950000,
+          "percent_all_period": 1.726064820563765
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::find_pseudoheader",
+          "elf_range": [
+            "0xb0ff4",
+            "0xb14e4"
+          ],
+          "samples": 614,
+          "period": 6140000,
+          "percent_all_period": 1.524897553706693
+        },
+        {
+          "category": "user_attributed",
+          "label": "alloc_slot",
+          "elf_range": [
+            "0x1b5268",
+            "0x1b5ba0"
+          ],
+          "samples": 594,
+          "period": 5940000,
+          "percent_all_period": 1.4752266236185272
+        },
+        {
+          "category": "user_attributed",
+          "label": "dnsmasq_rs::dns::wire::decode_name",
+          "elf_range": [
+            "0xaea60",
+            "0xaec90"
+          ],
+          "samples": 539,
+          "period": 5390000,
+          "percent_all_period": 1.338631565876071
+        }
+      ]
+    }
+  }
+}
