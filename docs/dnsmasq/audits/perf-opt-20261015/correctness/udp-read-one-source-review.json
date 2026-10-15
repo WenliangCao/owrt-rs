@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "PASS_SOURCE_REVIEW_RUNTIME_PENDING",
+  "status": "PASS_SOURCE_AND_RELATED_LINUX_GATES",
   "candidate_commit": "4bd3c9a4c9abcdfad9ce638dfc16a38c29fa4c0f",
   "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
   "product_file_sha256": "f1daeddd3f0de9165caa4402f75fe04bd006fd50ba7c1a3e0d90941917e0d5cf",
@@ -55,7 +55,8 @@
     "new_real_queue_test": "Two valid datagrams, a short-invalid first datagram and an oversize false-return first datagram; second packet must remain for the next wait_for_files/step cycle.",
     "existing_resend_tests": "Direct WouldBlock preservation and local/cached/short/QR/oversize/ACL invalidation fixtures remain intact.",
     "author_reported_compile": "Linux-musl all-target check passed.",
-    "linux_queue_test_execution": "Pending; reviewer did not run it during F Oracle exclusivity."
+    "linux_queue_test_execution": "Passed in the actual isolated Linux bin suite: 83 ordinary tests plus 4 original ignored tests. See post-f-linux-prototype-gates.json; native debug test evidence is separate from SDK performance qualification.",
+    "linux_gate_receipt_sha256": "8752641b150571b1a3cc67fd86c3e457720d5510d5a46270ba6c640413ef2da3"
   },
   "blockers": []
 }
