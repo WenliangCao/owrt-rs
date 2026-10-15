@@ -1,0 +1,208 @@
+{
+  "scope": "Existing matching OpenWrt build symbol companion; re-sstrip -z output byte-identical to exact image, plus all ALLOC section bytes/layout checked against image LOAD mappings. No native rebuilt C substitute.",
+  "stripped_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "stripped_bytes": 269305,
+  "companion_path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/dnsmasq-nodhcpv6/dnsmasq-2.93/src/dnsmasq",
+  "companion_sha256": "79cb9590a6113bca41034155ec45569eac58a2dccde80819c9863ef316f740da",
+  "companion_bytes": 303848,
+  "strip_tool": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/staging_dir/host/bin/sstrip",
+  "strip_tool_sha256": "075cfbd820f6ab37adab771a65a2560a55339abaca69bdf39f791504b26025da",
+  "strip_reproduces_exact_image": true,
+  "strip_argv": [
+    "sstrip",
+    "-z",
+    "private-copy"
+  ],
+  "ordinary_strip_attempt": {
+    "sha256": "cf4181c326175b77391f7957cdd0f10521d7478d891d247fc78c2e8b89213718",
+    "bytes": 269312,
+    "not_exact": "default sstrip retained7trailingzeros;attemptretained"
+  },
+  "allocated_sections": [
+    {
+      "name": ".interp",
+      "type": 1,
+      "flags": 2,
+      "address": 512,
+      "size": 26,
+      "sha256": "5f31465983141ce4e6f9d2ea58f7fbbd58a1490ae16f4a97c044f57fd3849cb4"
+    },
+    {
+      "name": ".hash",
+      "type": 5,
+      "flags": 2,
+      "address": 544,
+      "size": 1248,
+      "sha256": "f7a4419c61075e22188f737777737ffd51355518d84f4f5c4af813272b048908"
+    },
+    {
+      "name": ".gnu.hash",
+      "type": 1879048182,
+      "flags": 2,
+      "address": 1792,
+      "size": 40,
+      "sha256": "a592f28faf2c87cc2a766f92da5534875294c085e5705112bbd8bb5d56b52d20"
+    },
+    {
+      "name": ".dynsym",
+      "type": 11,
+      "flags": 2,
+      "address": 1832,
+      "size": 4296,
+      "sha256": "a90d734da8a4fe215c06105ba3a229b7a84f1f6966494d96244c154091c6ea2f"
+    },
+    {
+      "name": ".dynstr",
+      "type": 3,
+      "flags": 2,
+      "address": 6128,
+      "size": 1535,
+      "sha256": "6ae0941e8c95d085774e930d95e4ee77f667eef3797ccf7a50ba7a933f2e91f3"
+    },
+    {
+      "name": ".gnu.version",
+      "type": 1879048191,
+      "flags": 2,
+      "address": 7664,
+      "size": 358,
+      "sha256": "752e697e08a6cdd7ee6d2de34c5506fbc3ed74e291a53a8151ea61056d52a114"
+    },
+    {
+      "name": ".gnu.version_r",
+      "type": 1879048190,
+      "flags": 2,
+      "address": 8024,
+      "size": 32,
+      "sha256": "8e65f0fad2d247531d924485a838dbc88c42c4a6d0dba6ea84b9803f2761e346"
+    },
+    {
+      "name": ".rela.dyn",
+      "type": 4,
+      "flags": 2,
+      "address": 8056,
+      "size": 4176,
+      "sha256": "6fb71ba7ec79aa58d38f70799723666a763c0668fdf5a8ff281aeca9b758c125"
+    },
+    {
+      "name": ".relr.dyn",
+      "type": 19,
+      "flags": 2,
+      "address": 12232,
+      "size": 296,
+      "sha256": "530f0bb9dbf19d8a1af56631e4e18cb2d8261a3fe2ba2996084dfc9c94f06514"
+    },
+    {
+      "name": ".init",
+      "type": 1,
+      "flags": 6,
+      "address": 12528,
+      "size": 16,
+      "sha256": "27a4135f0ef448195b3aaba32a661f2d0e290090b19501c7b4274d71cf655f69"
+    },
+    {
+      "name": ".text",
+      "type": 1,
+      "flags": 6,
+      "address": 12544,
+      "size": 188196,
+      "sha256": "1d8af350b013afcd2d229ce32371ba8ceff1a0e32baed18e31f95fa202749066"
+    },
+    {
+      "name": ".fini",
+      "type": 1,
+      "flags": 6,
+      "address": 200740,
+      "size": 16,
+      "sha256": "27a4135f0ef448195b3aaba32a661f2d0e290090b19501c7b4274d71cf655f69"
+    },
+    {
+      "name": ".rodata",
+      "type": 1,
+      "flags": 2,
+      "address": 200760,
+      "size": 30796,
+      "sha256": "365446e83854bed7dcc33aadc1b59423fc041b320c3e91e0a6aba2a7c3fdf469"
+    },
+    {
+      "name": ".eh_frame_hdr",
+      "type": 1,
+      "flags": 2,
+      "address": 231556,
+      "size": 2628,
+      "sha256": "8c71fa34b81ed5c03a272ee2821b2e20e757355cf49505658399cc50f3857133"
+    },
+    {
+      "name": ".eh_frame",
+      "type": 1,
+      "flags": 2,
+      "address": 234184,
+      "size": 15728,
+      "sha256": "9143fc10669d613cf5f1f3783bb2578b78b62d22c5092e02e3997827ca66d7ad"
+    },
+    {
+      "name": ".init_array",
+      "type": 14,
+      "flags": 3,
+      "address": 254824,
+      "size": 8,
+      "sha256": "28d14812b02b194025c230e25670d40695b0fa27b9f792da6f37f9b2d2990502"
+    },
+    {
+      "name": ".fini_array",
+      "type": 15,
+      "flags": 3,
+      "address": 254832,
+      "size": 8,
+      "sha256": "f8013411104d2e4e98f10db4aef7aba2b3dfa14f018545811156925c2713b111"
+    },
+    {
+      "name": ".data.rel.ro",
+      "type": 1,
+      "flags": 3,
+      "address": 254840,
+      "size": 9408,
+      "sha256": "9b7617851b1af9f730084477df5eaeff3d95d7851bcfda17634e528c3c08ca61"
+    },
+    {
+      "name": ".dynamic",
+      "type": 6,
+      "flags": 3,
+      "address": 264248,
+      "size": 544,
+      "sha256": "eb83981872b9e56e56f20c62dc173c4c5995a5634054ee16d61a0765b8d55711"
+    },
+    {
+      "name": ".got",
+      "type": 1,
+      "flags": 3,
+      "address": 264792,
+      "size": 1448,
+      "sha256": "e2a39d143cc657819043c3f11c205a29c8d9afc9c125335944f00dd16f14a303"
+    },
+    {
+      "name": ".data",
+      "type": 1,
+      "flags": 3,
+      "address": 266240,
+      "size": 7168,
+      "sha256": "73db5c6d8cde3b137969f020887d16d57f91ae39cd63de3c3e75957fff6cc9be"
+    },
+    {
+      "name": ".bss",
+      "type": 8,
+      "flags": 3,
+      "address": 273408,
+      "size": 1192,
+      "sha256": null
+    }
+  ],
+  "defined_sized_functions": 332,
+  "zero_size_functions_unattributed": 3,
+  "source_files_sha256": {
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+  }
+}

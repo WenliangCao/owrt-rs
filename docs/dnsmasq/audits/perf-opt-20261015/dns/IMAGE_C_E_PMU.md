@@ -81,4 +81,6 @@ Both C TCP sample windows contain the root plus 56 children. Every child is admi
 
 Some user-event samples carry K-mode PCs. Their cause has not been established. They remain explicitly unattributed in the full denominator and are never counted as kernel instructions or cycles. The other unattributed samples include vDSO PCs and exact ELF symbol gaps. The first C UDP analyzer attempt rejected non-user PCs; the analyzer was corrected to retain them and the original capture was reused. No workload was rerun.
 
+Exact C symbol reproduction and matching source digests: [symbol receipt](image-c-symbol-receipt.json).
+
 Plans: [instruction/stat matrix](image-c-e-profile-plan.json), [separate cycle matrix](image-c-e-cycles-plan.json). Full derived ranges, raw-count/scaling fields, fork trees, event attributes, identity proofs and evidence digests: [instruction summary](image-c-e-instruction-summary.json), [cycle summary](image-c-e-cycles-summary.json). Raw perf/config/binary evidence remains private on Oracle.
