@@ -39,3 +39,25 @@ the existing variable-N caveat at high load. Full44 and both full matrices
 remain necessary for any eventual candidate selection. No hardware test is
 started by this local preparation; the device controller must bind the actual
 SDK artifact and pass its existing recovery/health gate first.
+
+## Exact artifact and related runtime qualification
+
+Integration now passes938 related Linux tests; the owned and stack miss variants
+pass935 and936 respectively. All537 source inputs,30 logs and6 test artifacts
+were independently rechecked. The original full44/67 recipe is prepared but
+has not run. The integration SDK ELF is
+`8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83`,
+2,140,955 bytes within the original budget; its build receipt is
+`f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6`.
+The immutable native240 and independent A53 ten-window screening are underway.
+
+[Exact SDK disassembly](local-cache-sdk-codegen.json) places the shared caller
+at4,100 code bytes/624B entry frame, versus F3,540/592B. The miss helper has
+536 code bytes/368B frame and the selected-hit writer1,004/288B. The miss helper
+returns before the writer runs, so their scratch reservations are not added as
+simultaneously live frames. The general cache function remains13,524/2,256B.
+The unchanged local-answer source compiles to13,456 code bytes/896B frame,
+versus F14,032/848B: smaller emitted code but a48B larger fallback frame.
+All adverse static changes remain visible. Function extents are not executed
+instruction working sets, and entry reservations are not stack traffic or CPU
+attribution. Actual performance and full correctness remain separate gates.
