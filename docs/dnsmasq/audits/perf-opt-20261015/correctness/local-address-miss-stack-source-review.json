@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_SOURCE_REVIEW_EXACT_LINUX_INPUTS_PREPARED",
+  "candidate_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+  "parent_candidate": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "scope": "Local read-only review and local exact-source preparation. No upload, Oracle access, reviewer build/test or timing. The parent1676 manifests remain unchanged.",
+  "source_sha256": {
+    "components/dnsmasq/src/dns/local.rs": "5d0212e2a0a5151a6fc7df58a382d454faf095c96c8c1c32bc539927a074c4f6",
+    "components/dnsmasq/src/dns/service.rs": "3472d515d3625968a97513bae267e77922ca52676136497fdf53d8c53b5bd424",
+    "components/dnsmasq/src/hosts.rs": "fdac0442933c9dfa9c73eb7d7ffa936e5055c849c82f7f6f91d457c334259429"
+  },
+  "helper_origin": {
+    "source_commit": "c627927d",
+    "function": "query_dotted_name",
+    "body_copied_byte_identical": true,
+    "visibility_change_only": "pub(super)",
+    "body_sha256": "0f8efc1bcf867b7371de68557ad91d2ee700e159ad7e764c0c28423f542de164",
+    "binary_maximum_fixture_copied_byte_identical": true,
+    "fixture_sha256": "0dcddf496f4c91a2538558300e442aa8749b39db7083886a4518c76f3a6f5359"
+  },
+  "review": [
+    "A legal255-byte wire name needs at most253 dotted bytes. The helper checks label bounds and final output capacity before copying; literal dots inside labels reject the shortcut just as the original owned conversion does.",
+    "Root names, ASCII lowercase conversion and binary-label handling match wire_to_dotted. The borrowed output slice is restricted to the successfully written length; a rejected conversion returns false without reading partial output.",
+    "The253-byte array is local to the existing inline-never unclaimed_address predicate. Its slice is used only by synchronous read-only hosts/lease lookups and cannot escape.",
+    "Eligibility gates, check order, lease expiry protection and cache hint publication remain unchanged from1676. Original LocalAnswerer general processing, expire_lease_lookups and wire_to_dotted are byte-identical to the parent.",
+    "The existing600-case local-answer comparison, same-generation lease rollback check, bulk guard and malformed-Additional test remain in the final source. The new binary/maximum-name test directly compares the stack helper against the original owned conversion."
+  ],
+  "local_evidence": {
+    "author_lib_passed": 717,
+    "lib_failed": 0,
+    "lib_ignored": 8,
+    "lib_stdout_sha256": "6d6b65bcd707e43f9593b3d3764126070f185e91703939b3416903453245c580",
+    "all_three_relevant_fixture_names_present": true,
+    "author_linux_musl_all_target_check": "passed",
+    "check_stderr_sha256": "d0b6b0b201521ff57695897cc6214c6d1e1ebdec49baf9b4842da8217f283acf",
+    "reviewer_reran_tests": false
+  },
+  "prepared_linux_inputs": {
+    "status": "prepared-locally-not-uploaded-or-executed",
+    "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-local-address-miss-stack",
+    "inputs": 179,
+    "identity_sha256": "ad6ac2f6dcc84f643c0e7312c8340c4a650ac7092b08ec6b43a70bbfd6437680",
+    "manifest_sha256": "101b8539eaf0a0bdcaa992a0bab314e9eb3a7903f3700727a40af1156b6df876",
+    "input_archive_sha256": "638480549647611264417e645a4dc19b494294c1216c48fa4af6990fd2944304",
+    "runner_sha256": "263a0e08501cda2859229f62ee2fd11b946bf912880e9e602f8f933d179596f2",
+    "local_input_directory": "private/local-address-miss-stack-linux-inputs",
+    "local_runner": "private/local-address-miss-stack-linux-gates/run.py",
+    "affinity": [
+      2
+    ],
+    "nice": 10,
+    "build_jobs": 1,
+    "gates": [
+      "normal lib",
+      "original lib ignored-live excluding four complete exact-C oracle drivers",
+      "normal bin",
+      "all original bin ignored"
+    ],
+    "original_parent_manifest_sha256_unchanged": "64017291751f3e4f433ee9b3e4af4015d4bc62c2d3f691338aadaf938bea59f9"
+  },
+  "remaining_blocking_findings": [],
+  "limitations": [
+    "This is an independent child of1676, not a replacement for the parent artifact or any active measurement source.",
+    "Eliminating the temporary Vec in this predicate introduces253 bytes of local storage; actual compiled frames and runtime effects still require separately bound evidence.",
+    "The parent allocation diagnostic is not reused as a stack-result claim. The new local hot15 evidence was not yet reviewed here.",
+    "Exact-source Linux gates remain prepared only; no full44, performance acceptance or deployment claim."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
