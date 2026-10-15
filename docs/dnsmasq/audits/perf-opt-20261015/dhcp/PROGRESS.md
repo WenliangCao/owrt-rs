@@ -1,10 +1,10 @@
 # DHCP / hosts screening progress
 
 Current selection: D1/D2 entered root A; clean D3d/D4 commits `5c2c985b` and
-`745212bb` passed exclusive plain micro timing and entered root B. D6/D7 passed
-native instruction and exclusive plain micro timing; clean selected commits
-`cd9aff4b` / `de2a446f` are ready for root's complete candidate gates. No device
-access or device-performance claim.
+`745212bb` passed exclusive plain micro timing and entered root B. D6/D7
+(`cd9aff4b` / `de2a446f`) and D8 (`97a975a5`) passed component screening and were
+selected by root for the combined finalist gates. No device access or
+device-performance claim.
 
 2026-10-15. Branch `perf/dnsmasq-dhcp-20261015`, base `51b03959`.
 Root's freeze `d358c3a0` has been read and optimization is authorized.
@@ -331,3 +331,72 @@ Replacing Arc with Rc is incompatible with shared TCP reader ownership; an
 arena or custom reference-counted name would enlarge the ownership API and is
 not warranted before actual A53/whole-daemon evidence. This profile does not
 justify skipping publication, cache conflict processing or persistence fsync.
+
+## D8 — reuse a hosts bucket inside one publication call
+
+Product `97a975a5` computes the existing hosts hash once for the blocker scan
+and IPv4 lookup. Two crate-private helpers accept that immediate calculation;
+the original public APIs still compute a fresh bucket. There is no retained
+hint, new allocation or changed data representation. Both original scans,
+all-family blocker order, IPv4-only rotation and fallible answer allocation
+remain. The only intervening work reads CNAME/lease indexes and constructs the
+blocker vector; it cannot mutate hosts or change its hash capacity.
+
+Independent static review found no semantic blocker. All 698 library tests
+and 16 hosts allocation tests pass (eight existing library tests ignored).
+Plain instruction screens against D7 show owner publication −6.09% at six
+leases and −6.10% at 150; triple-name publication −7.41%. Ordinary public hosts
+lookup changes +0.098% for singleton names, but an initial 50-name/three-record
+fixture rises 14.21%. That result is retained, not hidden or waived.
+
+Controls using the same unmodified ELFs found +0.168% instructions for a single
+three-record name with no bucket collisions. Three further five-run batches
+of the original 50-name fixture vary +8.01%, −5.75% and +6.73%. This is consistent
+with the existing pointer-seeded C hash affecting bucket occupancy: rotation
+copies and remaps the whole bucket. The cause is an inference, not a directly
+controlled hash-seed experiment; the aggregate counter concern remains visible.
+
+Root granted `d8-20261015` for one complete four-case, five-pair timing series:
+
+| Component | Median change | Maximum relative range W | Faster pairs |
+| --- | ---: | ---: | ---: |
+| Owner publication, 6 leases | −7.89% | 1.91% | 5/5 |
+| Owner publication, 150 leases | −7.35% | 0.77% | 5/5 |
+| One three-record hosts name | −0.034% | 0.444% | 2/5 |
+| 50 three-record hosts names | −2.38% | 26.59% | 4/5 |
+
+The collision-free public lookup is unchanged within variation. The noisy
+50-name result is inconclusive, not proof of either improvement or regression.
+All attempted windows and initial/repeated counter results are retained.
+Root accepted D8 for the combined finalist screen on its owner gains; the final
+combined source must still pass the full 11-scene timing matrix and all frozen
+correctness/device gates. `d8-screen.json` records source/probe/raw identities.
+
+## Research handoff and stopping evidence
+
+The selected DHCP path now includes bounded hex serialization, canonical key
+borrowing, the hosts count index, publication key borrowing, inline singleton
+lease IDs, immutable lease bytes and the within-call hosts bucket reuse.
+No names, cache effects, publication steps, disk synchronization or interface
+refreshes have been skipped. Rejected index-removal, representative-repair and
+prefix-formatting variants remain in history and raw evidence.
+
+Remaining hosts name ownership is deliberately fallible. Applying infallible
+Arc construction there would move the recovery boundary; a custom allocator or
+arena is not justified by the current profile. The multi-record rotation path
+still hashes its name, but the profile and noisy synthetic controls do not
+establish a material whole-daemon cost for changing that interface now. Cache
+name-selection work belongs to the DNS owner and has been handed off. The
+`update_dns` wrapper's 0.70% self sample and the earlier one-sort upper bound of
+2.20% of serialization do not warrant another isolated candidate before the
+combined source is measured. This is a handoff to the final workload gates,
+not a claim that all future optimization opportunities are exhausted.
+
+Selected-only B/C branches and worktrees were retired after `git cherry`
+confirmed every selected patch was present in root, and status including
+ignored files was empty. Durable archive refs preserve their original heads:
+
+- `refs/archive/perf/dnsmasq-dhcp-b-20261015` → `745212bb91bf57a93f58a3ecaa831487b94502da`
+- `refs/archive/perf/dnsmasq-dhcp-c-20261015` → `de2a446fe22eb724ecf8a79c1de4c1066b83e936`
+
+The active research branch and every private evidence artifact remain intact.

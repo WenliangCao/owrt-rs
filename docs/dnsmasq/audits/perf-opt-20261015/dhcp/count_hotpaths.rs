@@ -189,6 +189,11 @@ fn main() {
             "hosts-exists" => {
                 for name in &names { items += usize::from(black_box(loaded_hosts.name_exists(black_box(name)))); }
             }
+            "hosts-lookup" => {
+                for name in &names {
+                    items += black_box(loaded_hosts.lookup(black_box(name), Some(false), false)).len();
+                }
+            }
             "hosts-miss" => {
                 for name in &missing_names { items += usize::from(black_box(loaded_hosts.name_exists(black_box(name)))); }
             }

@@ -1,0 +1,362 @@
+{
+  "scope": "D8 single-call hosts bucket reuse; plain native component screen, no daemon/device acceptance claim",
+  "source_baseline": "72d1cbb73f6c0694ea6bf9a74ea172ae974996c5",
+  "source_candidate": "97a975a50d47b82a74e10cf27b24b26b5c28ee76",
+  "probe_source_sha256": "092c68628735b0cc4a393a4ecad52202eef07df60c3419d841ee8e96cc365ca2",
+  "compiler": "Rust1.98.1 native AArch64, release/LTO/codegen-units1; no allocator wrapper",
+  "screening": [
+    {
+      "name": "plain-d8-screen",
+      "raw_sha256": "ff03afa4a2da7b4d43e3946e5673d2dc7f2c1ef805dc0f9d9ff5c71f9d23b358",
+      "identities": {
+        "baseline": "95af9e94158853740d5ee449f5ce94b6f12c94bd5bcc1c60a4fb7caeb5c4639b",
+        "candidate": "0997e48164721d64fa15f817fb9f430682ca4be920934b60283a8af54c964a72"
+      },
+      "cases": [
+        {
+          "case": [
+            "publication-owner",
+            "150",
+            "3000"
+          ],
+          "instruction_relative_delta": -0.06098295557175937,
+          "instructions": {
+            "baseline": {
+              "mean": 3630550355,
+              "reported_variation": "0.02%"
+            },
+            "candidate": {
+              "mean": 3409148664,
+              "reported_variation": "0.02%"
+            }
+          }
+        },
+        {
+          "case": [
+            "publication-owner",
+            "6",
+            "30000"
+          ],
+          "instruction_relative_delta": -0.06092291745678535,
+          "instructions": {
+            "baseline": {
+              "mean": 1456932936,
+              "reported_variation": "0.04%"
+            },
+            "candidate": {
+              "mean": 1368172331,
+              "reported_variation": "0.01%"
+            }
+          }
+        },
+        {
+          "case": [
+            "hosts-lookup",
+            "150",
+            "3000"
+          ],
+          "instruction_relative_delta": 0.0009792865473152723,
+          "instructions": {
+            "baseline": {
+              "mean": 542371384,
+              "reported_variation": "1.97%"
+            },
+            "candidate": {
+              "mean": 542902521,
+              "reported_variation": "1.53%"
+            }
+          }
+        },
+        {
+          "case": [
+            "hosts-lookup",
+            "150",
+            "3000",
+            "triples"
+          ],
+          "instruction_relative_delta": 0.14205137019646052,
+          "instructions": {
+            "baseline": {
+              "mean": 1975854542,
+              "reported_variation": "1.29%"
+            },
+            "candidate": {
+              "mean": 2256527387,
+              "reported_variation": "5.87%"
+            }
+          }
+        },
+        {
+          "case": [
+            "publication",
+            "150",
+            "1000",
+            "triples"
+          ],
+          "instruction_relative_delta": -0.07408156153206702,
+          "instructions": {
+            "baseline": {
+              "mean": 633800625,
+              "reported_variation": "0.05%"
+            },
+            "candidate": {
+              "mean": 586847685,
+              "reported_variation": "0.11%"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "plain-d8-isolated-rrset-screen",
+      "raw_sha256": "84d2e2db42b7fd4f2e08211e0a70865a33db777f3c7053ee245c04f263564d5d",
+      "identities": {
+        "baseline": "95af9e94158853740d5ee449f5ce94b6f12c94bd5bcc1c60a4fb7caeb5c4639b",
+        "candidate": "0997e48164721d64fa15f817fb9f430682ca4be920934b60283a8af54c964a72"
+      },
+      "cases": [
+        {
+          "case": [
+            "hosts-lookup",
+            "3",
+            "100000",
+            "repeated"
+          ],
+          "instruction_relative_delta": 0.0016765493075705518,
+          "instructions": {
+            "baseline": {
+              "mean": 1013469149,
+              "reported_variation": "0.00%"
+            },
+            "candidate": {
+              "mean": 1015168280,
+              "reported_variation": "0.00%"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "plain-d8-collision-repeat-2",
+      "raw_sha256": "81b3c23a29ed9f551240f644f2efc0b26e8a798c856ccf08d684045b84d15121",
+      "identities": {
+        "baseline": "95af9e94158853740d5ee449f5ce94b6f12c94bd5bcc1c60a4fb7caeb5c4639b",
+        "candidate": "0997e48164721d64fa15f817fb9f430682ca4be920934b60283a8af54c964a72"
+      },
+      "cases": [
+        {
+          "case": [
+            "hosts-lookup",
+            "150",
+            "3000",
+            "triples"
+          ],
+          "instruction_relative_delta": 0.08007740764628335,
+          "instructions": {
+            "baseline": {
+              "mean": 2114915617,
+              "reported_variation": "4.03%"
+            },
+            "candidate": {
+              "mean": 2284272577,
+              "reported_variation": "11.75%"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "plain-d8-collision-repeat-3",
+      "raw_sha256": "ac9f8ff7d5de42dd5bfd81c2aadf5be53599a5c4f36f45c88b834670f291fedf",
+      "identities": {
+        "baseline": "95af9e94158853740d5ee449f5ce94b6f12c94bd5bcc1c60a4fb7caeb5c4639b",
+        "candidate": "0997e48164721d64fa15f817fb9f430682ca4be920934b60283a8af54c964a72"
+      },
+      "cases": [
+        {
+          "case": [
+            "hosts-lookup",
+            "150",
+            "3000",
+            "triples"
+          ],
+          "instruction_relative_delta": -0.05750693641714022,
+          "instructions": {
+            "baseline": {
+              "mean": 2330230027,
+              "reported_variation": "8.26%"
+            },
+            "candidate": {
+              "mean": 2196225637,
+              "reported_variation": "6.11%"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "plain-d8-collision-repeat-4",
+      "raw_sha256": "a1f0a852ce29387c14ec3211b47a96f59cae0cac5dab20e4e68f5464d79804cf",
+      "identities": {
+        "baseline": "95af9e94158853740d5ee449f5ce94b6f12c94bd5bcc1c60a4fb7caeb5c4639b",
+        "candidate": "0997e48164721d64fa15f817fb9f430682ca4be920934b60283a8af54c964a72"
+      },
+      "cases": [
+        {
+          "case": [
+            "hosts-lookup",
+            "150",
+            "3000",
+            "triples"
+          ],
+          "instruction_relative_delta": 0.06727647386965807,
+          "instructions": {
+            "baseline": {
+              "mean": 2202242381,
+              "reported_variation": "4.53%"
+            },
+            "candidate": {
+              "mean": 2350401483,
+              "reported_variation": "5.41%"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "local_tests": {
+    "library": {
+      "passed": 698,
+      "ignored": 8
+    },
+    "hosts_allocations": {
+      "passed": 16
+    }
+  },
+  "static_review": "No semantic blocker; same name/capacity remains valid across both scans, lookup allocation/rotation preserved.",
+  "decision": "Selected by root for combined finalist gates: owner gains exceed variation, collision-free public lookup unchanged.50-name collision-heavy fixture inconclusive, initial counter regression and all repeats retained. Full exact-source11-scene/correctness/device gates remain mandatory.",
+  "timing": {
+    "reservation": "d8-20261015",
+    "cpu": 3,
+    "pairs": 5,
+    "attempted_series": 1,
+    "raw_sha256": "4f0400b5db0629ad25481b5dd8d8976d135ba276068841fbe6d27675b6b86817",
+    "binary_sha256": {
+      "baseline": "95af9e94158853740d5ee449f5ce94b6f12c94bd5bcc1c60a4fb7caeb5c4639b",
+      "candidate": "0997e48164721d64fa15f817fb9f430682ca4be920934b60283a8af54c964a72"
+    },
+    "summary": [
+      {
+        "case": [
+          "publication-owner",
+          "6",
+          "200000"
+        ],
+        "records": 6,
+        "median_seconds": {
+          "baseline": 1.283490227,
+          "candidate": 1.182213618
+        },
+        "ranges": {
+          "baseline": [
+            1.282816021,
+            1.307279826
+          ],
+          "candidate": [
+            1.176362691,
+            1.185570167
+          ]
+        },
+        "relative_delta": -0.07890719139850522,
+        "maximum_relative_range": 0.019060374972376098,
+        "candidate_faster_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": [
+          "publication-owner",
+          "150",
+          "8000"
+        ],
+        "records": 150,
+        "median_seconds": {
+          "baseline": 1.357423004,
+          "candidate": 1.257643049
+        },
+        "ranges": {
+          "baseline": [
+            1.356025792,
+            1.358613534
+          ],
+          "candidate": [
+            1.251391717,
+            1.261040236
+          ]
+        },
+        "relative_delta": -0.07350689851724368,
+        "maximum_relative_range": 0.00767190579844724,
+        "candidate_faster_pairs": 5,
+        "discernible": true
+      },
+      {
+        "case": [
+          "hosts-lookup",
+          "3",
+          "500000",
+          "repeated"
+        ],
+        "records": 3,
+        "median_seconds": {
+          "baseline": 0.571470504,
+          "candidate": 0.571278742
+        },
+        "ranges": {
+          "baseline": [
+            0.570635337,
+            0.571931907
+          ],
+          "candidate": [
+            0.570834258,
+            0.57337192
+          ]
+        },
+        "relative_delta": -0.0003355588760186601,
+        "maximum_relative_range": 0.0044420732182610285,
+        "candidate_faster_pairs": 2,
+        "discernible": false
+      },
+      {
+        "case": [
+          "hosts-lookup",
+          "150",
+          "10000",
+          "triples"
+        ],
+        "records": 150,
+        "median_seconds": {
+          "baseline": 0.789521529,
+          "candidate": 0.770736851
+        },
+        "ranges": {
+          "baseline": [
+            0.705613466,
+            0.915581424
+          ],
+          "candidate": [
+            0.733138817,
+            0.78015765
+          ]
+        },
+        "relative_delta": -0.023792483561268507,
+        "maximum_relative_range": 0.2659432963986977,
+        "candidate_faster_pairs": 4,
+        "discernible": false
+      }
+    ],
+    "all_windows_retained": true
+  },
+  "test_log_sha256": {
+    "d8-lib-tests.log": "dc909a349e2d4b39f26e1a46a8adc9b3505b9693e868035d050012890741875f",
+    "d8-allocation-tests.log": "b5c383b3460f769edb9ac2dc3f0698af6173b7d7f8e03234f59badd7337816cb"
+  }
+}
