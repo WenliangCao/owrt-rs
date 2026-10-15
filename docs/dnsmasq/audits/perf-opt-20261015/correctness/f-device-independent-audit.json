@@ -1,0 +1,744 @@
+{
+  "schema": "dnsmasq-f-device-independent-audit-v1",
+  "status": "PASS: retained evidence and frozen analysis independently verified; performance goal not met",
+  "scope": "Local-only audit of the completed F/E device round. No new router or Oracle access, workload, deployment, reload or flash.",
+  "decision": "F has no discernible primary improvement or regression against E under the frozen rules. Do not promote F on performance; E remains the accepted baseline.",
+  "comparison": {
+    "baseline": "E",
+    "candidate": "F",
+    "raw_side_labels": {
+      "c": "E",
+      "rust": "F"
+    },
+    "baseline_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "candidate_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+    "candidate_source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "candidate_source_tag": "perf/dnsmasq-candidate-f-20261015",
+    "candidate_elf_bytes": 2136859,
+    "same_build_map_sha256": "75efe620d1455b6bdcee55fda5304f8a967faeff84ecb316e285c6bd48dec5ab",
+    "same_build_receipt_sha256": "9e0339be8651258d9e56f1140c679de6849c60cc828d22e910badea7c7ef5c40",
+    "functional_qualification_sha256": "84ca19157d7f40710715fc000d1491e8c9918961ce9600a67abcc92185b8a821",
+    "production_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "qualification_scope": "Functional qualification is retained separately; this audit does not replace it or turn it into a performance claim."
+  },
+  "evidence_bindings": {
+    "full_private_summary_sha256": "3ce4283d1eb6508c53ee3f69b23eab4cc0cdbb01b78b07f32b382de153cbee99",
+    "author_derived_commit": "96ffc91b",
+    "author_public_summary": "../candidate-f-vs-e-device-summary.json",
+    "author_public_summary_sha256": "f85be97cb0bf3b987796a0552a80d9095776d664997d06b0b7992a528e68919a",
+    "identity_sha256": "b2b2d8dbd7352d76d0276e3dd9534779f8ea24dcce2375de3c811f47bd3f3fd2",
+    "progress_sha256": "09bff90591cc867ad561381809ce463e5bd83746bf015b5b9b5c4cdbe2b8645a",
+    "archive_index_sha256": "7f78e2edaabd0746dd0186182735d854dc3a18509ec8f6fc491a94f1cc8c6b9e",
+    "independent_audit_script_sha256": "addb73f5922f0f673ad86d3395809f06c61954cf6d21152a9518807cd821ba7a",
+    "independent_audit_result_sha256": "14c9edfbd584f56cb1f91fcff92dd295d84ebcf3097ad98935d2ad4a5080cbed",
+    "independent_resume_review_sha256": "d893d3c152bb9fe70c5186d5b9be6fd6f1705b92cd4bc0fb616e3ca6c1d2388f",
+    "independent_health_and_prune_review_sha256": "30a5cef317900c1491da65f3cee95903bc469da564e99f05bc136b20a00abc5d",
+    "private_artifacts_policy": "Raw data, archives, device captures and local audit scratch files remain outside Git."
+  },
+  "inventory": {
+    "scenes": [
+      "udp-hit",
+      "udp-miss",
+      "udp-mixed",
+      "tcp-hit",
+      "tcp-miss",
+      "dhcp-home6",
+      "dhcp",
+      "startup-small",
+      "config-small",
+      "hup-small",
+      "hup-large"
+    ],
+    "pairs_per_scene": 5,
+    "alternating_original_order_verified": true,
+    "valid_windows": 110,
+    "verified_archives": 110,
+    "verified_raw_files": 3430,
+    "original_valid_prefix_preserved": 58,
+    "resumed_first_execution_windows": 52,
+    "valid_window_repeats": 0,
+    "supplements": 0,
+    "single_side_replacements": 0,
+    "discrepancies": []
+  },
+  "independent_checks": [
+    "All 110 archive SHA256 values, safe unique regular-file/directory members, member manifests and retained extracted-file hashes match.",
+    "Every raw ELF/tool/config identity, original scene/round/side order and complete marker matches the frozen inventory.",
+    "Recomputed binary latency and send-lag quantiles, load counts, CPU accounting, measurement-window resource observations and lifecycle samples match the retained analyzer output.",
+    "Measurement correct_in_window + correct_after_window equals correct; no additional late-reply rejection was introduced.",
+    "No-saturation miss windows have exactly 5000 total upstream requests/replies and no upstream errors; hit, mixed, prewarm and DHCP checks retain the frozen rules.",
+    "All 35 statistical comparisons, including the 33 primary metrics and two DHCP DORA secondary metrics, match independent recomputation.",
+    "A separate read-only review also matched all 35 comparisons and 77 published resource median/min/max summaries against the author public summary."
+  ],
+  "interruption_and_resume": {
+    "manifest_sha256": "5c5b3f7957e7caec0ef1cba6ba53233f35913207ff3666bf7144683fefad4df4",
+    "preserved_interruption_files": 10,
+    "original_controller_sha256": "7020420968ef050aad43d52e94055c0972280cac7c7b1fce4acfed54de275d44",
+    "resumed_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "identical_non_main_functions": [
+      "ssh",
+      "write",
+      "production_identity",
+      "stop_owned",
+      "archive_run",
+      "validate",
+      "external_health",
+      "guard_start",
+      "guard_check",
+      "guard_stop"
+    ],
+    "preserved_valid_prefix": 58,
+    "remaining_first_attempt_windows": 52,
+    "full_unique_alternating_windows": 110,
+    "health_baseline_unchanged": true,
+    "original_identity_unchanged": true,
+    "resume_plan_sha256": "f3ee7809f66fe443dc764921f8eb6c34188ff86fa2c183bac9aa001b6ab019d4",
+    "last_completed_window": "candidate-f-vs-e-dhcp-home6-r4-c",
+    "last_completed_window_end_epoch": 1792090640,
+    "stop_epoch": 1792090646,
+    "stop_reason": "low_memory",
+    "seconds_after_last_completed_window": 6,
+    "group_killed": 0,
+    "next_label": "candidate-f-vs-e-dhcp-home6-r5-c",
+    "next_remote_window_directory_existed": false,
+    "next_controller_log_empty": true,
+    "preserved_failure": "RuntimeError('guard unavailable or case deadline')",
+    "preserved_archive_recovery_failure": "Next remote window directory was absent.",
+    "preserved_STOP_contents": "controller_failed",
+    "failure_sha256": "330c8ff182deab5e3c2e6aaf9ec9a10b96983a7021b5f842f7d48ee772551263",
+    "original_58_progress_sha256": "67d6bdbd3d92b9296de7e3a2b26aeaca9999328835128c46521a62c812335757",
+    "classification": "Controller launch was blocked before the next product window; no failed product window was discarded.",
+    "resume_authorization": "Coordinator explicitly authorized continuation of the same original round before launch.",
+    "resume_registered_epoch": 1792091407.306394,
+    "all_52_epochs_after_registration": true,
+    "repair_commits": [
+      "723b4d50",
+      "43f7fc58"
+    ],
+    "repair_scope": "Only after verified archive, successful validation and progress write, remove that valid remote window outside timing; retain invalid windows. On later cleanup failure reuse the completed archive instead of overwriting it.",
+    "all_ten_non_main_controller_functions_ast_identical": true,
+    "analyzer_sha256_before_and_after": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "measurement_tool_identities_unchanged": {
+      "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "original_health_summary_sha256": "49e2cecb4d002bc928b1be9dd389e75c2741ebf6759b52358e72a6004be61222",
+    "original_health_threshold_ms": 200,
+    "fresh_recovery_health_not_substituted_for_original": true,
+    "prune_proof": {
+      "retained_before_deletion_remote_manifest_sha256": "81ab2fbfe570d4f964302cabc3593ff9d62ec59f49516d1e9f58548395e9c0ac",
+      "remote_manifest_entries_match_current_retained_raw": 2350,
+      "preserved_prefix_archive_hashes_match_prune_plan": 58,
+      "raw_bytes": 19380707
+    }
+  },
+  "statistics": {
+    "comparison_order": "left = E; right = F; negative relative change is lower latency/CPU.",
+    "primary_metrics": [
+      "p50_ms",
+      "p95_ms",
+      "cpu_us"
+    ],
+    "primary_comparisons": 33,
+    "secondary_DORA_comparisons": 2,
+    "all_35_classifications": "within_variation_or_resolution",
+    "primary_improvements": [],
+    "primary_regressions": [],
+    "frozen_discernibility_rule": "Absolute relative change must exceed W, at least four of five pairs must share its direction, and all precision/resolution gates must pass.",
+    "W_rule": "100 * max((max(E)-min(E))/median(E), (max(F)-min(F))/median(F)).",
+    "cpu_precision_rule": "Every window must have at least 10 CPU ticks and the absolute difference of side median ticks must be strictly greater than 8.",
+    "lifecycle_latency_resolution_ms": 1,
+    "udp_hit_cpu_median_tick_difference": 2,
+    "tcp_hit_cpu_median_tick_difference": 3,
+    "cpu_precision_gates_passed": 0,
+    "cpu_precision_gates_evaluated": 11,
+    "resolution_examples": [
+      "DHCP-home6 CPU increases 1.960784%, exceeding W=1.923077%, but the median difference is only 2 ticks; no discernible regression.",
+      "Startup-small p50 decreases 2.809656%, exceeding W=2.627454% with five same-direction pairs, but the difference is only 0.130878 ms; the 1 ms resolution gate fails."
+    ],
+    "comparisons": {
+      "udp-hit": {
+        "p50_ms": {
+          "left_median": 0.209283,
+          "right_median": 0.197202,
+          "relative_change_pct": -5.772566333624809,
+          "W_pct": 7.296579142199376,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 0.491815,
+          "right_median": 0.4318,
+          "relative_change_pct": -12.20275916757317,
+          "W_pct": 38.09680407596109,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 150.0,
+          "right_median": 146.0,
+          "relative_change_pct": -2.6666666666666665,
+          "W_pct": 9.58904109589041,
+          "same_direction_pairs": 5,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution",
+          "cpu_ticks": {
+            "c": [
+              69,
+              72,
+              75,
+              75,
+              76
+            ],
+            "rust": [
+              67,
+              69,
+              73,
+              73,
+              74
+            ]
+          }
+        }
+      },
+      "udp-miss": {
+        "p50_ms": {
+          "left_median": 1.639484,
+          "right_median": 1.639022,
+          "relative_change_pct": -0.028179597971066655,
+          "W_pct": 2.3934969783175735,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 2.330348,
+          "right_median": 3.012825,
+          "relative_change_pct": 29.286484250420965,
+          "W_pct": 165.27552966338075,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 460.0,
+          "right_median": 458.0,
+          "relative_change_pct": -0.43478260869565216,
+          "W_pct": 6.521739130434782,
+          "same_direction_pairs": 1,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "udp-mixed": {
+        "p50_ms": {
+          "left_median": 0.208667,
+          "right_median": 0.208129,
+          "relative_change_pct": -0.25782706417401074,
+          "W_pct": 7.7259776388682075,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 1.748126,
+          "right_median": 1.741894,
+          "relative_change_pct": -0.3564960420473132,
+          "W_pct": 36.31346109464755,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 210.0,
+          "right_median": 210.0,
+          "relative_change_pct": 0.0,
+          "W_pct": 6.666666666666667,
+          "same_direction_pairs": 0,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "tcp-hit": {
+        "p50_ms": {
+          "left_median": 0.224594,
+          "right_median": 0.223748,
+          "relative_change_pct": -0.3766796975876407,
+          "W_pct": 6.88575830164653,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 0.438187,
+          "right_median": 0.359321,
+          "relative_change_pct": -17.99825188789261,
+          "W_pct": 34.21870695005301,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 170.0,
+          "right_median": 164.0,
+          "relative_change_pct": -3.5294117647058822,
+          "W_pct": 4.705882352941177,
+          "same_direction_pairs": 3,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution",
+          "cpu_ticks": {
+            "c": [
+              82,
+              85,
+              85,
+              85,
+              81
+            ],
+            "rust": [
+              82,
+              82,
+              81,
+              82,
+              81
+            ]
+          }
+        }
+      },
+      "tcp-miss": {
+        "p50_ms": {
+          "left_median": 1.602171,
+          "right_median": 1.593707,
+          "relative_change_pct": -0.528283185752334,
+          "W_pct": 1.1055984569309145,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 2.735301,
+          "right_median": 1.942718,
+          "relative_change_pct": -28.97607978061647,
+          "W_pct": 59.86778054773495,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 398.0,
+          "right_median": 390.0,
+          "relative_change_pct": -2.0100502512562812,
+          "W_pct": 4.522613065326634,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "dhcp-home6": {
+        "p50_ms": {
+          "left_median": 0.396637,
+          "right_median": 0.40087,
+          "relative_change_pct": 1.0672226746370073,
+          "W_pct": 8.618255294733945,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 0.601689,
+          "right_median": 0.612461,
+          "relative_change_pct": 1.7902936566897523,
+          "W_pct": 31.69589573866744,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 408.0,
+          "right_median": 416.0,
+          "relative_change_pct": 1.9607843137254901,
+          "W_pct": 1.9230769230769231,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "dhcp": {
+        "p50_ms": {
+          "left_median": 2.619656,
+          "right_median": 2.588187,
+          "relative_change_pct": -1.201264593519148,
+          "W_pct": 4.414982379557584,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 3.041377,
+          "right_median": 3.222729,
+          "relative_change_pct": 5.962825391261918,
+          "W_pct": 36.28313753934484,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 2604.0,
+          "right_median": 2576.0,
+          "relative_change_pct": -1.075268817204301,
+          "W_pct": 6.211180124223603,
+          "same_direction_pairs": 3,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "dora_p50_ms": {
+          "left_median": 2.213246,
+          "right_median": 2.186009,
+          "relative_change_pct": -1.2306359076216542,
+          "W_pct": 40.81872490003472,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "dora_p95_ms": {
+          "left_median": 3.61252,
+          "right_median": 3.675305,
+          "relative_change_pct": 1.7379834575310273,
+          "W_pct": 54.150066989248515,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "startup-small": {
+        "p50_ms": {
+          "left_median": 4.65815,
+          "right_median": 4.527272,
+          "relative_change_pct": -2.809656193982591,
+          "W_pct": 2.62745423734203,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 5.623851,
+          "right_median": 5.186896,
+          "relative_change_pct": -7.769675974701325,
+          "W_pct": 33.93854436256289,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 5456.3,
+          "right_median": 5362.4,
+          "relative_change_pct": -1.7209464288987142,
+          "W_pct": 3.752983738624497,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "config-small": {
+        "p50_ms": {
+          "left_median": 5.919924,
+          "right_median": 5.887531,
+          "relative_change_pct": -0.5471860787401983,
+          "W_pct": 3.422138527454061,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 7.83609,
+          "right_median": 8.523644,
+          "relative_change_pct": 8.774197335661029,
+          "W_pct": 36.056139838782556,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 5825.8,
+          "right_median": 5720.9,
+          "relative_change_pct": -1.8006110748738464,
+          "W_pct": 2.560785890331941,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "hup-small": {
+        "p50_ms": {
+          "left_median": 1.010173,
+          "right_median": 1.012097,
+          "relative_change_pct": 0.19046242574292094,
+          "W_pct": 2.6887473729747273,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 1.167058,
+          "right_median": 1.166981,
+          "relative_change_pct": -0.006597786913750878,
+          "W_pct": 412.1505529288176,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 1243.65,
+          "right_median": 1244.5,
+          "relative_change_pct": 0.0683472037952727,
+          "W_pct": 4.9089374020021666,
+          "same_direction_pairs": 2,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "hup-large": {
+        "p50_ms": {
+          "left_median": 15.1212,
+          "right_median": 14.745414,
+          "relative_change_pct": -2.485159907943812,
+          "W_pct": 5.737633256619847,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left_median": 16.644885,
+          "right_median": 18.530118,
+          "relative_change_pct": 11.326200211055847,
+          "W_pct": 38.99227900943743,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left_median": 16566.85,
+          "right_median": 16333.05,
+          "relative_change_pct": -1.4112519881570684,
+          "W_pct": 4.351159091800808,
+          "same_direction_pairs": 3,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      }
+    }
+  },
+  "resources": {
+    "summary": "Observed FD peak medians agree in every scene; individual observations and ranges need not agree. Memory differences are retained without attribution.",
+    "rss_median_delta_kib_by_scene": {
+      "udp-hit": 16.0,
+      "udp-miss": -34.0,
+      "udp-mixed": 24.0,
+      "tcp-hit": -16.0,
+      "tcp-miss": 0.0,
+      "dhcp-home6": 8.0,
+      "dhcp": -4.0,
+      "startup-small": 2.0,
+      "config-small": -6.0,
+      "hup-small": -8.0,
+      "hup-large": -4.0
+    },
+    "rss_peak_median_delta_kib_by_scene": {
+      "udp-hit": 16,
+      "udp-miss": -44,
+      "udp-mixed": 20,
+      "tcp-hit": -16,
+      "tcp-miss": 0,
+      "dhcp-home6": 8,
+      "dhcp": 24,
+      "startup-small": 0,
+      "config-small": 0,
+      "hup-small": -8,
+      "hup-large": -4
+    },
+    "anon_peak_median_delta_kib_by_scene": {
+      "udp-hit": -4,
+      "udp-miss": 0,
+      "udp-mixed": 4,
+      "tcp-hit": 0,
+      "tcp-miss": 40,
+      "dhcp-home6": 0,
+      "dhcp": 32,
+      "startup-small": 0,
+      "config-small": 0,
+      "hup-small": 4,
+      "hup-large": 4
+    },
+    "tcp_miss_anon_peak_kib": {
+      "baseline_median": 2092,
+      "candidate_median": 2132,
+      "delta": 40,
+      "baseline_min_max": [
+        2068,
+        2148
+      ],
+      "candidate_min_max": [
+        2072,
+        2148
+      ]
+    },
+    "dhcp_150_anon_peak_kib": {
+      "baseline_median": 840,
+      "candidate_median": 872,
+      "delta": 32,
+      "baseline_min_max": [
+        820,
+        872
+      ],
+      "candidate_min_max": [
+        828,
+        876
+      ]
+    },
+    "udp_miss_fd_peak": {
+      "baseline_median": 13,
+      "candidate_median": 13,
+      "delta": 0,
+      "baseline_min_max": [
+        13,
+        27
+      ],
+      "candidate_min_max": [
+        12,
+        18
+      ]
+    },
+    "udp_mixed_fd_peak": {
+      "baseline_median": 12,
+      "candidate_median": 12,
+      "delta": 0,
+      "baseline_min_max": [
+        12,
+        12
+      ],
+      "candidate_min_max": [
+        12,
+        13
+      ]
+    },
+    "fd_scope": "Both parent and tree FD peaks have the displayed UDP ranges; all scene medians match.",
+    "pss_uss_available": false,
+    "limitations": [
+      "RSS and RssAnon do not establish PSS/USS or uniquely attributable memory.",
+      "Lifecycle resource data are readiness snapshots, not continuous lifetime peak measurements.",
+      "No claim that memory, every FD observation, or unsampled resource peaks are identical."
+    ]
+  },
+  "health": {
+    "guard_segments": 12,
+    "guard_samples": 3874,
+    "windows_covered_exactly_once": 110,
+    "completed_DNS_checks": 1512,
+    "completed_HTTP_checks": 701,
+    "completed_DNS_HTTP_failures": 0,
+    "cancelled_terminal_probes_counted_as_pass": 0,
+    "cancelled_terminal_probes": [],
+    "low_memory_stops": 1,
+    "normal_monitor_stopped_segments": 11,
+    "production_pid_start_unchanged": true,
+    "default_route_retained": true,
+    "external_checks": [
+      {
+        "segment": "run",
+        "checks": 260,
+        "http200": 260,
+        "versions": {
+          "4": 130,
+          "6": 130
+        },
+        "sha256": "76ca25275f07dd16ebaa5d1045e26f8f24727f2179c5dfabbc0a1dbe7dcca992"
+      },
+      {
+        "segment": "recovery",
+        "checks": 10,
+        "http200": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "aa19fbd3526fea1e06a8c8b2382011f15e5a72299ae3380a80a4a97053145aa0"
+      }
+    ],
+    "separate_fresh_recovery_health": {
+      "summary_sha256": "1782675ce19638527c0e19034139bf838a7bc6103ceb06dbdaf0cc272575a215",
+      "raw_sha256": "d5abac72daaee7c9dedf58ebc7e6191d86c5bd51cceba57aaab2835d5e954afd",
+      "elapsed_seconds": 125.553,
+      "dns_completed": 48,
+      "http_completed": 22
+    }
+  },
+  "postflight": {
+    "receipt_sha256": "ae0bb96a9fa73565157a2658543d2451fa1460457afbf480d51d14650b037a79",
+    "recorded_exit_code": 0,
+    "recorded_production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "all_staged_identities_match": true,
+    "available_memory_kib": 95300,
+    "recorded_no_STOP_no_active_no_owned_live": true,
+    "recorded_all_110_remote_copies_pruned": true,
+    "scope": "Audited the retained postflight command/output locally; no new router query."
+  },
+  "limitations": [
+    "This is F versus E. It is not F versus exact C or the deployed production ELF.",
+    "The round was interrupted and resumed with verified archive maintenance outside timing; it was not 110 uninterrupted windows.",
+    "No discernible change is not an equivalence proof. The observed UDP/TCP hit CPU median decreases do not establish improvement or a narrower CPU gap.",
+    "Oracle measurements remain a separate experiment; no cross-machine pooling was performed.",
+    "Postflight statements audit retained command/output locally and are not fresh independent router observations."
+  ]
+}
