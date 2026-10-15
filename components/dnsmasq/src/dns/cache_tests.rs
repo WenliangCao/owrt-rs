@@ -12,10 +12,10 @@ fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
     let (cname, hint) = cache.inspect_name(&name, 100);
     assert!(!cname);
     assert_eq!((cache.head, cache.tail, cache.name_revision), before);
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, Some(&hint)), [id]);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, hint.as_ref()), [id]);
     assert_eq!(cache.head, Some(id.slot));
     let (_, hint) = cache.inspect_name(&name, 100);
-    assert!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 160, true, Some(&hint)).is_empty());
+    assert!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 160, true, hint.as_ref()).is_empty());
     assert!(cache.get(id).is_none(), "expiry removal must happen in actual lookup");
 }
 
@@ -27,15 +27,15 @@ fn name_hint_rejects_new_members_and_a_different_question() {
     cache.start_insert();
     let first = cache.insert(record("hint.test", Kind::Ipv4, 1), 100, 60).unwrap();
     assert!(cache.commit());
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&absent)), [first]);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, absent.as_ref()), [first]);
     let (_, single) = cache.inspect_name(&name, 100);
     let other = Name::from_ascii("other.test").unwrap();
-    assert!(cache.lookup_with_hint(&other, &[Kind::Ipv4], 100, false, Some(&single)).is_empty());
+    assert!(cache.lookup_with_hint(&other, &[Kind::Ipv4], 100, false, single.as_ref()).is_empty());
     cache.start_insert();
     cache.insert(record("hint.test", Kind::Ipv6, 2), 100, 60).unwrap();
     assert!(cache.commit());
     assert!(cache.get(first).is_some(), "old handle validity alone cannot detect the new member");
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4, Kind::Ipv6], 100, false, Some(&single)).len(), 2);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4, Kind::Ipv6], 100, false, single.as_ref()).len(), 2);
 }
 
 #[test]
@@ -55,11 +55,11 @@ fn name_hint_rejects_cache_replacement_and_saturated_revisions() {
     let name = Name::from_ascii("hint.test").unwrap();
     let (_, hint) = cache.inspect_name(&name, 100);
     std::mem::swap(&mut cache, &mut replacement);
-    let rows = cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&hint));
+    let rows = cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref());
     assert_eq!(cache.get(rows[0]).unwrap().record.data, [33]);
     let (_, hint) = cache.inspect_name(&name, 100);
     let mut moved = Box::new(cache);
-    let rows = moved.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&hint));
+    let rows = moved.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref());
     assert_eq!(moved.get(rows[0]).unwrap().record.data, [33]);
 
     let mut cache = Cache::new(8, Policy::default());
@@ -69,7 +69,7 @@ fn name_hint_rejects_cache_replacement_and_saturated_revisions() {
     let id = cache.insert(record("hint.test", Kind::Ipv4, 55), 100, 60).unwrap();
     assert!(cache.commit());
     assert_eq!(cache.name_revision, u64::MAX);
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, Some(&hint)), [id]);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref()), [id]);
 }
 
 #[test]
@@ -87,8 +87,9 @@ fn name_hint_does_not_pin_multi_record_lists_or_create_rotation_cow() {
     assert_eq!(Arc::strong_count(indices), 1);
     let (_, hint) = cache.inspect_name(&name, 100);
     let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    assert!(hint.is_none(), "multi-record lookup keeps the ordinary loop");
     assert_eq!(Arc::strong_count(indices), 1);
-    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, Some(&hint)).len(), 2);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, hint.as_ref()).len(), 2);
     let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
     assert_eq!(indices.as_ptr(), buffer);
 }
