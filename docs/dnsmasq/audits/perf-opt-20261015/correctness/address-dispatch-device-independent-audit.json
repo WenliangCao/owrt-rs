@@ -1,0 +1,488 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only frozen F/address-dispatch exploratory diagnostic audit; no driver imports, device queries or new loads.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "address-dispatch",
+    "source_commit": "26aefa7952e001881757d41ae32456c5b2a12107",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "77dca9febedc4211f51da547027729faea4efd7aac43653875a8505ad5e1dc40",
+        "bytes": 2136859
+      },
+      "link.map": {
+        "sha256": "95e7995b1511807da8dca0efebfa73557d6fd69fc368ce64edb1b3ea64680071",
+        "bytes": 3017728
+      },
+      "build.json": {
+        "sha256": "affcacb92e32f1ac0680e14d18e9ce4ac3df80fb895e804ae95014da2ada6fa6",
+        "bytes": 43968
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "2575a41c",
+    "author_public_result": "../loop/A53_ADDRESS_DISPATCH_DEVICE_RESULT.json",
+    "author_public_result_sha256": "14d8799390ffaba73076b8dd45481ec864212ffbfb91843634f4c7da45ff870c",
+    "summary_sha256": "203abc1cc520500d637783c396f3aabf899ccec1bdfe1042ca69643417db67db",
+    "progress_sha256": "311a246df5078016091b5481d565b2849410da94b64d7174b95e269a8b9c6715",
+    "identity_sha256": "7b97e719d233446c9e38cf60a43339f7e356568473b25f9865fff1afe26cc09a",
+    "plan_sha256": "6f7722383b68987578d622effbc655aa6a490ce8989b21b6ac9ff3799c762e7c",
+    "launch_sha256": "49e1ffe48fe7628679a819c9bb0bf2af3fca414e6ff411db238aa402eee2ea21",
+    "independent_audit_sha256": "9b95d1b73bbeaf4640bacf69092140dc4523e60a47680a09df6553a13ca9a9d3",
+    "audit_script_sha256": "949dc01353eb8a958384f44c2af8224ab7639b1cb7c14db45107aee90181006e",
+    "subreceipts": {
+      "statistics": {
+        "file": "statistical-audit.json",
+        "sha256": "961dea86ad373acc4c7eba62a8efc9d90fd62a7375ec3740697972564ac1e8f1"
+      },
+      "health": {
+        "file": "health-independent.json",
+        "sha256": "17c246e847c191eab24ea8f172ea8716f41a9ac6b5d56fc9d7b56a8a675f3f11"
+      }
+    }
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 314,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_regular_members_and_all_manifest_extracted_hashes_match": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-address-dispatch": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "address-dispatch",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.182429,
+            "min": 0.175736,
+            "max": 0.190586,
+            "rounds": [
+              0.190586,
+              0.175736,
+              0.185046,
+              0.182122,
+              0.182429
+            ]
+          },
+          "right": {
+            "median": 0.19174,
+            "min": 0.183199,
+            "max": 0.194125,
+            "rounds": [
+              0.194125,
+              0.185507,
+              0.19174,
+              0.193817,
+              0.183199
+            ]
+          },
+          "relative_change_pct": 5.103903436405388,
+          "W_pct": 8.140153155474184,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.327389,
+            "min": 0.265758,
+            "max": 0.741568,
+            "rounds": [
+              0.741568,
+              0.265758,
+              0.412871,
+              0.276453,
+              0.327389
+            ]
+          },
+          "right": {
+            "median": 0.392251,
+            "min": 0.338699,
+            "max": 0.40787,
+            "rounds": [
+              0.35855,
+              0.397405,
+              0.40787,
+              0.392251,
+              0.338699
+            ]
+          },
+          "relative_change_pct": 19.811905714608628,
+          "W_pct": 145.33475468021223,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 126.0,
+            "min": 122.0,
+            "max": 130.0,
+            "rounds": [
+              128.0,
+              122.0,
+              130.0,
+              126.0,
+              126.0
+            ]
+          },
+          "right": {
+            "median": 132.0,
+            "min": 130.0,
+            "max": 138.0,
+            "rounds": [
+              130.0,
+              132.0,
+              134.0,
+              138.0,
+              130.0
+            ]
+          },
+          "relative_change_pct": 4.761904761904762,
+          "W_pct": 6.349206349206349,
+          "same_direction_pairs": 5,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2360.0,
+            "min": 2356.0,
+            "max": 2408.0,
+            "rounds": [
+              2408.0,
+              2408.0,
+              2360.0,
+              2356.0,
+              2360.0
+            ]
+          },
+          "right": {
+            "median": 2400.0,
+            "min": 2356.0,
+            "max": 2432.0,
+            "rounds": [
+              2432.0,
+              2400.0,
+              2412.0,
+              2364.0,
+              2356.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2360,
+            "min": 2356,
+            "max": 2408,
+            "rounds": [
+              2408,
+              2408,
+              2360,
+              2356,
+              2360
+            ]
+          },
+          "right": {
+            "median": 2400,
+            "min": 2356,
+            "max": 2432,
+            "rounds": [
+              2432,
+              2400,
+              2412,
+              2364,
+              2356
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              516,
+              516,
+              520,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              516,
+              520,
+              520,
+              520,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1836,
+            "min": 1832,
+            "max": 1888,
+            "rounds": [
+              1888,
+              1888,
+              1836,
+              1832,
+              1836
+            ]
+          },
+          "right": {
+            "median": 1876,
+            "min": 1832,
+            "max": 1912,
+            "rounds": [
+              1912,
+              1876,
+              1888,
+              1840,
+              1832
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 63,
+        "right": 66,
+        "absolute_delta": 3,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          64,
+          61,
+          65,
+          63,
+          63
+        ],
+        "rust": [
+          65,
+          66,
+          67,
+          69,
+          65
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "median_ticks_F": 63,
+    "median_ticks_candidate": 66,
+    "absolute_median_tick_difference": 3,
+    "required_difference_exclusive": 8,
+    "all_five_pairs_same_direction": true,
+    "discernible": false
+  },
+  "health": {
+    "baseline_elapsed_seconds": 125.668,
+    "baseline_samples": 126,
+    "baseline_DNS_HTTP": [
+      50,
+      22
+    ],
+    "baseline_external_https": 10,
+    "baseline_summary_recomputed_equal": true,
+    "guard_samples": 414,
+    "DNS_HTTP": [
+      162,
+      74
+    ],
+    "external_https": 28,
+    "minimum_available_memory_kib": 82884,
+    "completed_probes_passed": true,
+    "failed_or_cancelled_probes": 0,
+    "guard_stops": 0,
+    "all_ten_window_intervals_covered_exactly_once": true,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "default_route_retained": true
+  },
+  "restoration": {
+    "slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "cleanup_errors": [],
+    "final_production_recheck_bound_to_hash_matched_runner": true
+  },
+  "postflight": {
+    "record_sha256": "49b3d8052f032025a258e2b80b23240b88fd68767fb76269923ad445b1d2e903",
+    "script_sha256": "a2462154658a2f606845dda6d801aec405eeef45fd3c7cf4ee08ecd8658822b4",
+    "exact_script_reconstructed_from_schedule_and_artifact_identities": true,
+    "deletion_only_three_hash_verified_immutable_sources": [
+      "/tmp/dnsmasq-perf-20261015/a53-address-dispatch-artifact-e",
+      "/tmp/dnsmasq-perf-20261015/a53-address-dispatch-artifact-f",
+      "/tmp/dnsmasq-perf-20261015/a53-address-dispatch-artifact-address-dispatch"
+    ],
+    "ten_window_paths_absence_checked": true,
+    "no_STOP_active_or_owned_executables_checked": true,
+    "output_slot_hashes_match_E_F": true,
+    "available_memory_kib": 87648,
+    "exit": 0,
+    "stderr_empty": true,
+    "scope_limits": [
+      "The retained postflight script does not itself hash or inspect the production PID. Production final identity is supported by hash-matched runner restoration check and restored.json; postflight JSON repeats that identity.",
+      "Namespace stdout is readlink /proc/1/ns/net (init namespace), not a new query of /proc/3086/ns/net.",
+      "This audit checks local captured commands, records and stdout; it is not a new independent device observation."
+    ]
+  },
+  "local_controller_exit_observation": {
+    "pid": 62633,
+    "ps_exit": 1,
+    "pid_present": false
+  },
+  "checker_recovery": {
+    "status": "local independent checker assumption corrected; no raw or measured code changed",
+    "error": "AssertionError line 151: assumed before.jsonl and after.jsonl each have one sample; actual frozen probe emits two each. Frozen analyzer selects the first sample at each endpoint.",
+    "original_script_sha256": "99fa7edf6b5650151bf5db113419330fc81e9b9da1ce1c21c932b1ce78fefcd5",
+    "correction": "require nonempty endpoint arrays; retain frozen index 0 and verify all samples separately",
+    "record_sha256": "9344c0c903c729e52d19a9525c679e7454d7528ba9bb95bf67fcb2c53a3afc75",
+    "fixed_script_sha256": "949dc01353eb8a958384f44c2af8224ab7639b1cb7c14db45107aee90181006e",
+    "scope": "Local checker assertion failure, not a product window failure, replacement, or changed measurement. All before/after files contain two samples; frozen first-sample endpoints retained."
+  },
+  "conclusion": "All three primary metrics indistinguishable. CPU +4.761904761904762% is below W 6.349206349206349%; median tick difference 3 does not exceed 8. No demonstrated gain or regression, no candidate eligibility.",
+  "limits": [
+    "This is ten-window exploratory F versus address-dispatch evidence, not a new comparison against E, exact C or production. No cross-run pooling or candidate promotion.",
+    "All three primary metrics are indistinguishable. The observed CPU increase126 to132us/op is below W and only3ticks; this is not proof of equivalence or a detectable regression.",
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "Postflight is a retained local script/record audit. Final production identity comes from the frozen runner restoration check; the postflight script itself does not rehash production, and its namespace output refers to init, not a new production-PID observation."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
