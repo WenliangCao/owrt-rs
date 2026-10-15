@@ -1,0 +1,44 @@
+{
+  "pid": 12319,
+  "epoch": 1792077858.900606,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "private/perf-opt-20261015/candidate-e-supplement-run.py",
+    "--pair-plan",
+    "private/perf-opt-20261015/candidate-e-supplement-plan.json",
+    "--out",
+    "private/perf-opt-20261015/candidate-e-supplement1",
+    "--prefix",
+    "candidate-e-supplement1",
+    "--c-hash",
+    "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "--rust-hash",
+    "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "--health-baseline",
+    "private/perf-opt-20261015/health/summary.json"
+  ],
+  "rule_commit": "7691e8aa",
+  "rule_sha256": "cfb2b0c30f5aec3781f63e1850c5936558908bb3827276669503218ff79ca470",
+  "pair_plan_sha256": "622f12996852aa8653939dcc829562f0d81799491eb601dc990ddb1c9c152224",
+  "controller_sha256": "d7df658c7ec5d306249726a352f95d4a71cc6f190f1bdd1e951218ce3e0f2f76",
+  "preflight_sha256": "fc16bdd1f5a6446fbd87f08bdb0db315678f2a0e55bc1d8a423e580e1bb9a4a7",
+  "pairs": [
+    [
+      "udp-miss",
+      4
+    ],
+    [
+      "tcp-miss",
+      3
+    ],
+    [
+      "dhcp-home6",
+      2
+    ]
+  ],
+  "windows_expected": 6,
+  "supplement_attempt": 1,
+  "independent_review": "Correctness agent final review passed original and post-valid-cleanup plan; all eligibility/pair fields unchanged.",
+  "scope": "Once-only complete pair supplements after original110 finished; originalE binaries,loads,validator,healththreshold unchanged. Originalraw107/110valid remains retained. Any supplemental invalidity fails that pair with no further retry.",
+  "local_receipt_sha256": "87e265df5f73e753d63b9bab99670f2fd283f435a9b976123f22fd46e85726a0"
+}

@@ -1,0 +1,236 @@
+{
+  "scope": "Original E device run plus exactly one authorized complete-pair supplement; effective comparison, resource observations and preserved failure limits",
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "shipping_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "elf_bytes": {
+    "deployed": 2124571,
+    "candidate": 2136859,
+    "delta": 12288,
+    "relative_delta_percent": 0.5783755873538705,
+    "existing_budget": 2200000
+  },
+  "original": {
+    "attempted_windows": 110,
+    "valid_windows": 107,
+    "invalid_windows": 3,
+    "invalid_percent": 2.727272727272727,
+    "archive_verification_sha256": "76c07938dbafcc249775dfc393c121bd0075b6e8709a6f347a1f7ee5bfaa4b51",
+    "archives_verified": 110,
+    "files_verified": 3430
+  },
+  "supplement": {
+    "rule_commit": "7691e8aa",
+    "rule_sha256": "cfb2b0c30f5aec3781f63e1850c5936558908bb3827276669503218ff79ca470",
+    "plan_sha256": "622f12996852aa8653939dcc829562f0d81799491eb601dc990ddb1c9c152224",
+    "controller_sha256": "d7df658c7ec5d306249726a352f95d4a71cc6f190f1bdd1e951218ce3e0f2f76",
+    "pairs": [
+      [
+        "udp-miss",
+        4
+      ],
+      [
+        "tcp-miss",
+        3
+      ],
+      [
+        "dhcp-home6",
+        2
+      ]
+    ],
+    "attempts_per_pair": 1,
+    "windows": 6,
+    "valid": 6,
+    "invalid": 0,
+    "all_original_failures_preserved": true
+  },
+  "effective": {
+    "summary_sha256": "e3a0e556b189f35cde0a5a48abab3aab23d7c76711d03689a8bd439b3411071b",
+    "selection_sha256": "96fee31a9be5612d0e2bf983c318017401fc8709b89d1520913e7034275c0361",
+    "selection_script_sha256": "6b1a513feb1ea8ac84416adc925616a6fc4905d4da5ec99678d8a6e98b187bd8",
+    "windows": 110,
+    "valid": 110,
+    "parse_failures": 0,
+    "scenes_with_at_least_one_discernible_primary_improvement": [
+      "config-small",
+      "dhcp",
+      "hup-large",
+      "tcp-miss",
+      "udp-miss",
+      "udp-mixed"
+    ],
+    "discernible_primary_regression_scenes": [],
+    "scene_count_interpretation": "6/11 counts a scene once when any p50,p95 or CPU primary metric improves under all frozen gates; it does not mean all metrics improve."
+  },
+  "resource_median_deltas": {
+    "config-small": {
+      "rss_median_kib": 64.0,
+      "rss_peak_kib": 60,
+      "anon_peak_kib": -12,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 72,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "dhcp": {
+      "rss_median_kib": -48.0,
+      "rss_peak_kib": -56,
+      "anon_peak_kib": -36,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 8,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "dhcp-home6": {
+      "rss_median_kib": 12.0,
+      "rss_peak_kib": 12,
+      "anon_peak_kib": 4,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 8,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "hup-large": {
+      "rss_median_kib": -148.0,
+      "rss_peak_kib": -184,
+      "anon_peak_kib": -268,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 80,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "hup-small": {
+      "rss_median_kib": 72.0,
+      "rss_peak_kib": 76,
+      "anon_peak_kib": -8,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 88,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "startup-small": {
+      "rss_median_kib": 60.0,
+      "rss_peak_kib": 60,
+      "anon_peak_kib": -12,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 76,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "tcp-hit": {
+      "rss_median_kib": 68.0,
+      "rss_peak_kib": 68,
+      "anon_peak_kib": 0,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 68,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "tcp-miss": {
+      "rss_median_kib": -46.0,
+      "rss_peak_kib": -80,
+      "anon_peak_kib": -48,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 8,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "udp-hit": {
+      "rss_median_kib": 80.0,
+      "rss_peak_kib": 80,
+      "anon_peak_kib": 4,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 76,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "udp-miss": {
+      "rss_median_kib": 32.0,
+      "rss_peak_kib": 32,
+      "anon_peak_kib": -4,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 12,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    },
+    "udp-mixed": {
+      "rss_median_kib": 70.0,
+      "rss_peak_kib": 64,
+      "anon_peak_kib": -8,
+      "file_peak_kib": 0,
+      "shmem_peak_kib": 72,
+      "tree_fd_peak": 0,
+      "parent_fd_peak": 0
+    }
+  },
+  "resource_interpretation": "FD medians unchanged in every scene. RSS rises by at most80KiB in median/peak medians, mainly RssShmem; anonymous peak median increases at most4KiB. DHCP150 andlargeHUP anonymous peaks fall36/268KiB. Report all component ranges in the comparison tables; RSS/RssAnon are not private memory and lifecycle values are readiness snapshots. ELF growth12KiB remains inside existing budget.",
+  "health": {
+    "candidate-e": {
+      "segments": 11,
+      "samples": 3709,
+      "completed_dns_samples": 1436,
+      "completed_dns_failures": 0,
+      "max_completed_dns_ms": 17.703,
+      "completed_http_403": 664,
+      "cancelled_http": [
+        {
+          "segment": "candidate-e-udp-mixed-guard-1792074381981555000.jsonl",
+          "epoch": 1792074760,
+          "http_rtt_ms": 23.295,
+          "classification": "Final in-flight HTTP probe cancelled by requested monitor shutdown; not counted as a pass."
+        }
+      ],
+      "minimum_available_memory_kib": 67748,
+      "external_https_200": 246,
+      "external_https_failures": 0,
+      "segment_sha256": {
+        "candidate-e-config-small-guard-1792076516785341000.jsonl": "84cd583eb14a341ea69b5faf800ca2051654d0771c40835f4680716c4740d440",
+        "candidate-e-dhcp-guard-1792075875145788000.jsonl": "bacefd724113bf6d7a3f3b165b1118484f6d36a4de0434956b50b70686c6c72b",
+        "candidate-e-dhcp-home6-guard-1792075507132003000.jsonl": "259796a7ad8792df3736d10d16d90c602320a56a51e3f3d7f25e6530910d3913",
+        "candidate-e-hup-large-guard-1792077062045385000.jsonl": "38ed10cc793ee92b728e63d81233b34391d0fee41dc47f55e553af710cc45544",
+        "candidate-e-hup-small-guard-1792076789406458000.jsonl": "0887c60347146ce16580359aa3c31bf964bc7deb2515b914c80c2e905abb176e",
+        "candidate-e-startup-small-guard-1792076243319879000.jsonl": "3bb3efe0912b3c0873a1d047f7ebe78cbe86db5658437e03f0deb27ab5fd982f",
+        "candidate-e-tcp-hit-guard-1792074760545855000.jsonl": "b12c268d28af1dc7b8ab44a6aa24fc562d1d740927dc9f094755bd1278e470fc",
+        "candidate-e-tcp-miss-guard-1792075139081678000.jsonl": "780b1fc5f819b732efa5440b2b1f41936ca035f4745e9044fa0a68d7a691ab77",
+        "candidate-e-udp-hit-guard-1792073625677546000.jsonl": "b08ff3d60498282eb7d106e208b1003d7cedf5254b77fd1391e3a13bfb84d03a",
+        "candidate-e-udp-miss-guard-1792074019226098000.jsonl": "81e0183d073c77c323522dd8c37b3a70b79ff2df8d3a790b92f94f7040430f93",
+        "candidate-e-udp-mixed-guard-1792074381981555000.jsonl": "a515e2ee143f25869b4d7c7c1f750d277779caeae61e5ed19c4f132c0841e4c9"
+      },
+      "external_health_sha256": "007e3137a1d158aa843b51126fb9f3b592e108ba03dd24a2093b9aa76b7f1032"
+    },
+    "candidate-e-supplement1": {
+      "segments": 3,
+      "samples": 229,
+      "completed_dns_samples": 89,
+      "completed_dns_failures": 0,
+      "max_completed_dns_ms": 0.882,
+      "completed_http_403": 42,
+      "cancelled_http": [
+        {
+          "segment": "candidate-e-supplement1-dhcp-home6-guard-1792078012247336000.jsonl",
+          "epoch": 1792078088,
+          "http_rtt_ms": 38.507,
+          "classification": "Final in-flight HTTP probe cancelled by requested monitor shutdown; not counted as a pass."
+        }
+      ],
+      "minimum_available_memory_kib": 104172,
+      "external_https_200": 16,
+      "external_https_failures": 0,
+      "segment_sha256": {
+        "candidate-e-supplement1-dhcp-home6-guard-1792078012247336000.jsonl": "b4a13eabec4fb71012dfd72e9c5a7be80ea6db2e1b76a0010b86a3e52727dd32",
+        "candidate-e-supplement1-tcp-miss-guard-1792077935728994000.jsonl": "16f1cf792105a5421277ec87f7f6d237c2ff386ea681320991f4fa696002faeb",
+        "candidate-e-supplement1-udp-miss-guard-1792077859636237000.jsonl": "28609df843c1fe543d9708df6e5bbc3bc5a360e85a6ad69f892330f4ba4cc910"
+      },
+      "external_health_sha256": "458a2b404d0b9e083ed79faa979f8b8c096bf8f3ebc1e02115ef8bf2db7729d8"
+    }
+  },
+  "postflight_sha256": "fa3efaa0871a5243a3aba11ba4f3fa9a186ad672ee175f33bb386aa9686361d1",
+  "limits": [
+    "Original110 had3invalidbaseline windows(2.73%): phase-boundary count,25TCP scheduling skips,1home6skip. Supplemental6/6 are separate original data; all raw invalids and their device directories remain.",
+    "The supplemental rule was explicitly adopted after the original invalids and before any supplement. No performance metric selected pairs; no original/supplement single-side mixing, no third attempt.",
+    "UDP mixed CPU narrowly passes: -8.257% versus W8.000%,5/5 direction,median difference9ticks exceeding8. Other inconclusive/precision-limited metrics remain so; lifecycle latency differences below1ms are not ranked.",
+    "Startup/config/largeHUP CPU percentages fail the frozen tick-precision gate despite lower medians. High p95 variation was not trimmed.",
+    "Two final HTTP probes were cancelled by requested guard shutdown and are not counted as passes. All completed production checks and all262external HTTPS checks passed.",
+    "ExactE correctness and Oracle screening are separately bound; these are device data, never pooled with Oracle or historicalC. Behavioral repairs remain separate from performance mechanisms.",
+    "No deployment, production restart/reload/configuration/package/flash modification occurred."
+  ]
+}
