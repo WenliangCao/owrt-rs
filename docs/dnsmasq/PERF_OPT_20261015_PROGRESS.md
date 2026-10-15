@@ -417,3 +417,29 @@ finished; Oraclehasnootherresearchload. Latest5/44families,6/67jobs,no failures.
 Afterall44/67 pass, rootmustverifynewreceiptandthenlaunchfull110exclusiveOracle
 comparisonoriginal8472/E8b8082b9 atroot/private/oracle-e. NoE timingyet. Localand
 router DstageisnotE; noDtestwaslaunched. Edevice followsfulltiming+qualification.
+
+## E complete correctness; exclusive Oracle timing running, 15:54 CEST
+
+E passed all44/44 originalfamilies and67/67uniqueoriginaljobs RAW, no failures,
+pauses orretries (2065.11s). Independent hashesofall44family+67jobresults and
+immutableinputs rechecked; rawresultSHA c132ab5c39517fbf72355eae9c97a64d781d66888e2208ece368458427d9f01a.
+Originalinterface276service/qualified288/closeoutsallpass; originalfailedhelper
+case exactC/Eoriginal→empty→fromhosts andlaterupdatedevents match. No startup
+exception. Finalcorrectness receipt e-full44-gates.json (agentb5f68b57), plus
+944shortandF10/protocol/TCP/4corpora complete. OnlyoriginalexplicitUID2 rawcorpus
+boundary remains nonblocking. Eartifact8b8082b9, source4f869c88 unchanged.
+
+Root launched detachedexclusiveOraclefull110 controllerPID225895 at15:54:31CEST.
+Output /home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-e; .stdout/.stderr/
+.launch.json alongside. Original8472baseline versusE8b8082b9, CPU2, samefrozen
+measurementtools/controllerhashes. Ebuildreceipt matchedlocalcopy; all6measurement
+binaries matchedD'sfrozenidentity. Correctness/allotheragents idle; nobuilds,
+profiles,testsorbulktransfers duringtiming. Poll onlysmall progress/failure/complete.
+
+After110complete: copyallarchives/manifests/identity/progress/complete/controller
+logs, verifyarchiveSHAandsafeextractedfiles; runoriginalanalyzer; independently
+reviewallmetrics/resources. OnlythenrootstagesE (routercurrentlystillDartifact
+fromabortedprelaunch, noDwindows) andrunsfresh110deployed/Edevicepairs. Nochange
+toloads/thresholds/windowreplacement. AlllocalSDK-Efiles alreadydownloaded and
+verifiedbeforetiming. Remainingreadinessaudit islocalonlyandunselected; do not
+resumeOraclework untiltimingcomplete.
