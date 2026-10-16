@@ -1,0 +1,60 @@
+{
+  "status": "PASS_LOCAL_803_ORIGINAL_RELATED_AND_PROFILE2_SDK_PREPARATION_PENDING_RELEASE",
+  "author_commit": "d7957509",
+  "manifest_sha256": "23148c2eff34f1dd31e694e93d038069b9912d9247ad8cf4c6fb7da0cdb025bb",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "base_source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "wrappers": {
+    "run_185_opt2_related.py": "f854449416a3f71dd6a5f3edbdd0aec379fd00d74011df59e038ac023b31e61d",
+    "build_185_opt2_allocations.py": "037728fb57f609e5a0fde7ecd7184e67a55cc7035c08abc3c389b8970ef7b694",
+    "launch_related.py": "119ef7b0e7e689010b06a7a2b84bf7283b85e3f0866449ef009d1556a7ad3f84",
+    "preflight_related.py": "a31305e4980e95daf28e861d288d7dc013d0baf38f28c7ac32ac0abe802d20e0",
+    "verify_related.py": "5b51bbe99582317a8fa23bc83aea89da9ea4c67cd524f8a2d962be941885da59"
+  },
+  "three_runner_launcher_bytes_only_candidate_substitutions": true,
+  "preflight_body_exact_parent_bytes_after_candidate_paths": true,
+  "verifier_exact_declared_baseline_and_identity_substitutions": true,
+  "historical_G_short_receipt_sha256": "4ec0100ae7ad2360fd3ddbf041cb4e37f69bbbc8d2e3cf67a002de78e3a4a08c",
+  "five_passed_name_sets_required_identical_to_G": true,
+  "projected_total_only": 957,
+  "current_actual_result": null,
+  "SDK_source_files_verified": 179,
+  "changed_SDK_inputs": [
+    "components/dnsmasq/Cargo.toml",
+    "components/dnsmasq/src/hosts.rs"
+  ],
+  "inherited_hosts_fixture_non_test_prefix_identical": true,
+  "archive_regular_files": 4098,
+  "archive_git_files": 4097,
+  "archive_sha256": "e43ab9fd1da326e1154fed28ceddec852cbfc5bf1f5f0ba18e8c609488083392",
+  "safe_members_Git_blob_ids_and_exact_modes_verified": true,
+  "source_manifest_sha256": "163a1186fa1f022e5f5b3c4a8c6a9dbca08d0ecb05a0ff55bc5ee744d4246367",
+  "git_identity_sha256": "92dfd48474172faae3aa2bddffa80b3ce4a48e4f484ad3c0a040378feac70216",
+  "original_five_argv_skips_and_original_exact_C_unchanged": true,
+  "original_helper_oracle_build_sha256": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+  "dev_test_profile_scope": "Original oracle_build.sh kind=tests and allocation entry use dev/test builds without--release. Preserve their original opt_level3 receipt field (helper release-env metadata), never relabel it2. Actual profile2 proof belongs only to08/f26 shippingSDK effective rustc commands.",
+  "SDK_builder_review": {
+    "commit": "f26d9261",
+    "report_sha256": "9994d56c0c4100f301480f6a6690051c489cc0cf497882070b5d4e1160cde6fe"
+  },
+  "SDK_builder_sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
+  "SDK_argv_only_reviewed_builder_and_candidate_identity_substitutions": true,
+  "budget": {
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000
+  },
+  "future_SDK_entry_requirements": [
+    "Fresh803 five groups and raw-name/listing/source verification.",
+    "Actual Python>=3.11 and no ambient CARGO_PROFILE_RELEASE_* overrides.",
+    "08/f26 builder retains actual lib/bin profile2 compiler commands; original hardening and budgets remain unqualified gates."
+  ],
+  "execution_authorization": "Root selected after correctness6ab full44/boundaries/audits/transfers/quiet explicit handoff; no additional permission required.",
+  "release_gate_still_null": true,
+  "uploaded": false,
+  "tests_or_builds_run": false,
+  "remote_accessed": false,
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "schema": "803-execution-preparation-independent-review-v1",
+  "review_verifier_sha256": "862d2a75e86da3906cccc2cb4b2f43f645de3ece3ee558c9170e77887ac9c6de"
+}
