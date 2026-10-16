@@ -1,0 +1,2579 @@
+{
+  "scope": "Same-link map storage comparison only; no use ELF disassembly, optimization remarks or CPU attribution",
+  "input_sha256": {
+    "E_map": "cbf8655450a025a51be7a3c8630fa84ff48aba5ca5c641a9a3f53fd0bf4637fd",
+    "E_build": "ec4becb104e5ba2be6431eebbbed871016d974344a060a5c9a2e31cea1660cc3",
+    "use_map": "6d85acb0dff7b2b7814cc1fcf112f235bf598dfd272d41b0d075c043a77adf7c",
+    "retained_receipts": "55f4f265cf0bd07e06d56026798432c0d6a849c30c171c0c71d7d9100b4ef3d9",
+    "analyzer": "f580633c15410ae5f609b857423173b3a5e1622c41721d70c91dfc5acf451123",
+    "profile_show": "63f459e54cf06cef3cfc5d1f2c3be468a001879965974d3bb1f1d8f2893e8b4a"
+  },
+  "artifacts": {
+    "E": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2136859,
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      }
+    ],
+    "use": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2288419,
+        "sha256": "0910b49aa24e6fba72e7a45aaf2de2490fe60ab0eda23e1e71ad86b663cb9127"
+      }
+    ]
+  },
+  "matching": "Exact full mangled symbol plus input-object basename; only .text.hot./.text.unlikely. placement prefixes removed. No crate-hash, LLVM clone, closure, generic-argument or instantiation identifiers removed. Display demangling does not define identity.",
+  "demangler": {
+    "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-cxxfilt",
+    "version": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-cxxfilt\nApple LLVM version 21.0.0\n  Optimized build.",
+    "sha256": "19636f9056610385daeb17604aa247f193fa660d1f6ad48ec3e161ac7595c924"
+  },
+  "matched_count": 2295,
+  "only_E_count": 396,
+  "only_use_count": 640,
+  "output_sections": [
+    {
+      "section": ".bss",
+      "E": 4464,
+      "use": 4464,
+      "delta": 0
+    },
+    {
+      "section": ".data",
+      "E": 2848,
+      "use": 2856,
+      "delta": 8
+    },
+    {
+      "section": ".data.rel.ro",
+      "E": 45424,
+      "use": 47000,
+      "delta": 1576
+    },
+    {
+      "section": ".dynamic",
+      "E": 384,
+      "use": 384,
+      "delta": 0
+    },
+    {
+      "section": ".dynstr",
+      "E": 1,
+      "use": 1,
+      "delta": 0
+    },
+    {
+      "section": ".dynsym",
+      "E": 72,
+      "use": 72,
+      "delta": 0
+    },
+    {
+      "section": ".eh_frame",
+      "E": 96448,
+      "use": 100040,
+      "delta": 3592
+    },
+    {
+      "section": ".eh_frame_hdr",
+      "E": 18812,
+      "use": 20764,
+      "delta": 1952
+    },
+    {
+      "section": ".fini",
+      "E": 16,
+      "use": 16,
+      "delta": 0
+    },
+    {
+      "section": ".fini_array",
+      "E": 8,
+      "use": 8,
+      "delta": 0
+    },
+    {
+      "section": ".gcc_except_table",
+      "E": 5640,
+      "use": 6788,
+      "delta": 1148
+    },
+    {
+      "section": ".gnu.hash",
+      "E": 28,
+      "use": 28,
+      "delta": 0
+    },
+    {
+      "section": ".gnu.version",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".gnu.version_d",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".gnu.version_r",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".got",
+      "E": 224,
+      "use": 224,
+      "delta": 0
+    },
+    {
+      "section": ".hash",
+      "E": 20,
+      "use": 20,
+      "delta": 0
+    },
+    {
+      "section": ".init",
+      "E": 16,
+      "use": 16,
+      "delta": 0
+    },
+    {
+      "section": ".init_array",
+      "E": 24,
+      "use": 24,
+      "delta": 0
+    },
+    {
+      "section": ".note.GNU-stack",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".plt",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".preinit_array",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".rela.dyn",
+      "E": 53520,
+      "use": 55920,
+      "delta": 2400
+    },
+    {
+      "section": ".rela.plt",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".rodata",
+      "E": 92076,
+      "use": 93372,
+      "delta": 1296
+    },
+    {
+      "section": ".tbss",
+      "E": 48,
+      "use": 48,
+      "delta": 0
+    },
+    {
+      "section": ".tdata",
+      "E": 0,
+      "use": 0,
+      "delta": 0
+    },
+    {
+      "section": ".text",
+      "E": 1817780,
+      "use": 1958852,
+      "delta": 141072
+    }
+  ],
+  "text_summaries": {
+    "E": {
+      "count": 2691,
+      "attributed_bytes": 1817552,
+      "output_bytes": 1817780,
+      "thermal_bytes": {
+        "hot": 0,
+        "unlikely": 67084,
+        "ordinary": 1750468
+      }
+    },
+    "use": {
+      "count": 2935,
+      "attributed_bytes": 1958640,
+      "output_bytes": 1958852,
+      "thermal_bytes": {
+        "hot": 649476,
+        "unlikely": 672228,
+        "ordinary": 636936
+      }
+    }
+  },
+  "text_attributed_delta": 141088,
+  "text_growth_bytes": 670376,
+  "text_shrink_bytes": -529288,
+  "rodata": {
+    "E": {
+      "output_bytes": 92076,
+      "input_declared_bytes_not_additive": 100629,
+      "input_range_union_bytes": 91840,
+      "warning": "Merged string/input sections overlap; do not sum input declarations or pair anonymous constant ordinals as semantic identities."
+    },
+    "use": {
+      "output_bytes": 93372,
+      "input_declared_bytes_not_additive": 102001,
+      "input_range_union_bytes": 93212,
+      "warning": "Merged string/input sections overlap; do not sum input declarations or pair anonymous constant ordinals as semantic identities."
+    }
+  },
+  "training_activity": {
+    "positive_counter": {
+      "E_bytes": 864508,
+      "use_bytes": 1096432,
+      "net_bytes": 231924,
+      "growth_bytes": 513252,
+      "shrink_bytes": -281328
+    },
+    "all_zero_counters": {
+      "E_bytes": 523616,
+      "use_bytes": 456508,
+      "net_bytes": -67108,
+      "growth_bytes": 114040,
+      "shrink_bytes": -181148
+    },
+    "not_matched": {
+      "E_bytes": 429428,
+      "use_bytes": 405700,
+      "net_bytes": -23728,
+      "growth_bytes": 43084,
+      "shrink_bytes": -66812
+    }
+  },
+  "profile_record_count": 2838,
+  "ambiguous_profile_symbol_count": 16,
+  "profile_match_rule": "Exact mangled symbol after optional module-prefix semicolon; match only unique record, never combine ambiguity. Counter activity is from generate training, not timing.",
+  "largest_increases": [
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+      "symbol": "_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+      "delta": 162756,
+      "E": {
+        "section": ".text._RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+        "address": 245296,
+        "bytes": 30368,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner"
+      },
+      "use": {
+        "section": ".text.hot._RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+        "address": 787648,
+        "bytes": 193124,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvCs9mSXZWz6i5m_10dnsmasq_rs9run_inner",
+        "hash": "0x0df0e5f2df54d951",
+        "max_counter": 47071,
+        "sum_counters": 147416
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::run_inner"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": 34524,
+      "E": {
+        "section": ".text._RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 494552,
+        "bytes": 12452,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.hot._RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 1039024,
+        "bytes": 46976,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x0b3a2273adcc0a7a",
+        "max_counter": 16800,
+        "sum_counters": 626896
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::daemon::DnsDaemon>::poll_inner"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+      "symbol": "_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+      "delta": 22504,
+      "E": {
+        "section": ".text._RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+        "address": 1438616,
+        "bytes": 16112,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+        "address": 1332600,
+        "bytes": 38616,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider14resolve_events",
+        "hash": "0x0d0f61fc2c399c45",
+        "max_counter": 30936,
+        "sum_counters": 545438
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::daemon::LocalProvider>::resolve_events"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+      "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+      "delta": 21428,
+      "E": {
+        "section": ".text._RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+        "address": 1011636,
+        "bytes": 5580,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+        "address": 1200980,
+        "bytes": 27008,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events"
+      },
+      "profile": {
+        "profile_name": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext24insert_reply_with_events",
+        "hash": "0x0a4d0ad3efffffff",
+        "max_counter": 13400,
+        "sum_counters": 13400
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::cache_engine::CacheContext>::insert_reply_with_events"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext17answer_from_cache",
+      "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext17answer_from_cache",
+      "delta": 21024,
+      "E": null,
+      "use": {
+        "section": ".text.hot._RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext17answer_from_cache",
+        "address": 1142864,
+        "bytes": 21024,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext17answer_from_cache",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext17answer_from_cache"
+      },
+      "profile": {
+        "profile_name": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext17answer_from_cache",
+        "hash": "0x00ac11686cb756ea",
+        "max_counter": 28020,
+        "sum_counters": 200740
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::cache_engine::CacheContext>::answer_from_cache"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+      "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+      "delta": 14352,
+      "E": {
+        "section": ".text._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+        "address": 1060972,
+        "bytes": 13788,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply"
+      },
+      "use": {
+        "section": ".text._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+        "address": 1578912,
+        "bytes": 28140,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply"
+      },
+      "profile": {
+        "profile_name": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig5apply",
+        "hash": "0x07dcf20feded6126",
+        "max_counter": 869,
+        "sum_counters": 8983
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::dns::DnsConfig>::apply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+      "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+      "delta": 14172,
+      "E": {
+        "section": ".text._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": 943072,
+        "bytes": 14032,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": 1164052,
+        "bytes": 28204,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "hash": "0x0403f7294cbba5ce",
+        "max_counter": 561100,
+        "sum_counters": 1090932
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+      "delta": 11816,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "address": 317580,
+        "bytes": 4484,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "address": 993224,
+        "bytes": 16300,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "hash": "0x006c6b44cd25c479",
+        "max_counter": 18124,
+        "sum_counters": 491996
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::process_udp"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys7process4unix4unixNtNtB4_6common7Command5spawn",
+      "symbol": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys7process4unix4unixNtNtB4_6common7Command5spawn",
+      "delta": 10308,
+      "E": null,
+      "use": {
+        "section": ".text._RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys7process4unix4unixNtNtB4_6common7Command5spawn",
+        "address": 1862252,
+        "bytes": 10308,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys7process4unix4unixNtNtB4_6common7Command5spawn",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys7process4unix4unixNtNtB4_6common7Command5spawn"
+      },
+      "profile": null,
+      "activity": "not_matched",
+      "name": "<std::sys::process::unix::common::Command>::spawn"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps7_0EB29_",
+      "symbol": "_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps7_0EB29_",
+      "delta": 9132,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps7_0EB29_",
+        "address": 57920,
+        "bytes": 9132,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps7_0EB29_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps7_0EB29_"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps7_0EB29_",
+        "hash": "0x0420b5b92440df6c",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::dhcp::service::SocketListener>::process_once_on_listener::<dnsmasq_rs::dhcp::daemon::EventProvider, <dnsmasq_rs::SinglePoll>::step_dhcp::{closure#9}>"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs5_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+      "symbol": "_RNvXs5_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+      "delta": 8916,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RNvXs5_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+        "address": 652028,
+        "bytes": 8916,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvXs5_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs5_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply"
+      },
+      "profile": {
+        "profile_name": "_RNvXs5_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+        "hash": "0x04ab39a5e6e29d43",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::dhcp::daemon::LocalProvider as dnsmasq_rs::dhcp::runtime::OutcomeProvider>::lease_query_reply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": 8852,
+      "E": {
+        "section": ".text._RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 141688,
+        "bytes": 9084,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.hot._RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 739444,
+        "bytes": 17936,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RINvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns11lease_namesNtB6_10LeaseNames5buildNtNtB8_5cache5CacheECs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x05daad4c8d09b6a5",
+        "max_counter": 12166110,
+        "sum_counters": 24259155
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::lease_names::LeaseNames>::build::<dnsmasq_rs::dns::cache::Cache>"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+      "symbol": "_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+      "delta": 8480,
+      "E": {
+        "section": ".text._RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+        "address": 290912,
+        "bytes": 4324,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_"
+      },
+      "use": {
+        "section": ".text._RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+        "address": 1417300,
+        "bytes": 12804,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6loaderINtB5_6LoaderNCNvCs9mSXZWz6i5m_10dnsmasq_rs4load0E9directiveB14_",
+        "hash": "0x09ecf330722ce2da",
+        "max_counter": 1276,
+        "sum_counters": 13209
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::loader::Loader<dnsmasq_rs::load::{closure#0}>>::directive"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMNtCs8vV02h2nfPS_10dnsmasq_rs9neighborsNtB2_13NeighborCache4step",
+      "symbol": "_RNvMNtCs8vV02h2nfPS_10dnsmasq_rs9neighborsNtB2_13NeighborCache4step",
+      "delta": 6944,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RNvMNtCs8vV02h2nfPS_10dnsmasq_rs9neighborsNtB2_13NeighborCache4step",
+        "address": 276080,
+        "bytes": 6944,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMNtCs8vV02h2nfPS_10dnsmasq_rs9neighborsNtB2_13NeighborCache4step",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMNtCs8vV02h2nfPS_10dnsmasq_rs9neighborsNtB2_13NeighborCache4step"
+      },
+      "profile": {
+        "profile_name": "_RNvMNtCs8vV02h2nfPS_10dnsmasq_rs9neighborsNtB2_13NeighborCache4step",
+        "hash": "0x0845392864a85a56",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::neighbors::NeighborCache>::step"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+      "symbol": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+      "delta": 6872,
+      "E": {
+        "section": ".text._RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+        "address": 845244,
+        "bytes": 5964,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+        "address": 1121380,
+        "bytes": 12836,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert"
+      },
+      "profile": {
+        "profile_name": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts10try_insert",
+        "hash": "0x0e937b1fe227f1b2",
+        "max_counter": 580368,
+        "sum_counters": 2798351
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::hosts::Hosts>::try_insert"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.598",
+      "symbol": "_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.598",
+      "delta": 6780,
+      "E": null,
+      "use": {
+        "section": ".text._RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.598",
+        "address": 1561756,
+        "bytes": 6780,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.598",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.598"
+      },
+      "profile": null,
+      "activity": "not_matched",
+      "name": "<dnsmasq_rs::config::dns::DnsConfig as core::clone::Clone>::clone (.598)"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider31step_files_with_watch_readiness",
+      "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider31step_files_with_watch_readiness",
+      "delta": 5924,
+      "E": null,
+      "use": {
+        "section": ".text.hot._RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider31step_files_with_watch_readiness",
+        "address": 1272880,
+        "bytes": 5924,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider31step_files_with_watch_readiness",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider31step_files_with_watch_readiness"
+      },
+      "profile": {
+        "profile_name": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider31step_files_with_watch_readiness",
+        "hash": "0x0c7fe978568e25d5",
+        "max_counter": 5709,
+        "sum_counters": 23206
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::daemon::LocalProvider>::step_files_with_watch_readiness"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": 5380,
+      "E": {
+        "section": ".text._RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 136528,
+        "bytes": 5160,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.hot._RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 728904,
+        "bytes": 10540,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RINvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB6_17ForwardDispatcher20submit_with_metadataNtNtB8_8upstream8OsRandomECs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x03dc5ce9a5b86684",
+        "max_counter": 8400,
+        "sum_counters": 117600
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::forward_service::ForwardDispatcher>::submit_with_metadata::<dnsmasq_rs::dns::upstream::OsRandom>"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std",
+      "symbol": "_RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std",
+      "delta": 5356,
+      "E": {
+        "section": ".text._RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std",
+        "address": 1623328,
+        "bytes": 6792,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std"
+      },
+      "use": {
+        "section": ".text._RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std",
+        "address": 1759068,
+        "bytes": 12148,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs4_NtNtCs4eSJX98Q1V4_5gimli4read5dwarfINtB5_4UnitINtNtB7_12endian_slice11EndianSliceNtNtB9_9endianity12LittleEndianEjE3newCsiKaSbYLw9fL_3std"
+      },
+      "profile": null,
+      "activity": "not_matched",
+      "name": "<gimli::read::dwarf::Unit<gimli::read::endian_slice::EndianSlice<gimli::endianity::LittleEndian>, usize>>::new"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": 4552,
+      "E": {
+        "section": ".text._RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 534800,
+        "bytes": 3784,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.hot._RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 1086000,
+        "bytes": 8336,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon29submit_upstream_with_metadataCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x090b51267f9edb6e",
+        "max_counter": 8400,
+        "sum_counters": 84004
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::daemon::DnsDaemon>::submit_upstream_with_metadata"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": 4488,
+      "E": {
+        "section": ".text._RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 157436,
+        "bytes": 10036,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.hot._RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 763092,
+        "bytes": 14524,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RINvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver21send_plan_with_sourceINvMNtNtCsiKaSbYLw9fL_3std3net3udpNtB1B_9UdpSocket7send_toNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrENvB6_14wait_udp_retryECs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x0fccca50b777b202",
+        "max_counter": 8400,
+        "sum_counters": 218236
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::send_plan_with_source::<<std::net::udp::UdpSocket>::send_to<core::net::socket_addr::SocketAddr>, dnsmasq_rs::dns::upstream::wait_udp_retry>"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+      "symbol": "_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+      "delta": 4344,
+      "E": {
+        "section": ".text._RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+        "address": 315392,
+        "bytes": 2188,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+        "address": 986692,
+        "bytes": 6532,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs7_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10TcpDnsWork12answer_query",
+        "hash": "0x019103fff79ca141",
+        "max_counter": 10000,
+        "sum_counters": 95000
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::TcpDnsWork>::answer_query"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+      "delta": 3748,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+        "address": 1404020,
+        "bytes": 1852,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options"
+      },
+      "use": {
+        "section": ".text.hot._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+        "address": 1324172,
+        "bytes": 5600,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime19encode_name_options",
+        "hash": "0x092f811740836a11",
+        "max_counter": 25780,
+        "sum_counters": 108276
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dhcp::runtime::encode_name_options"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+      "symbol": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+      "delta": 3708,
+      "E": {
+        "section": ".text._RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+        "address": 832180,
+        "bytes": 780,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+        "address": 1116636,
+        "bytes": 4488,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+      },
+      "profile": {
+        "profile_name": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs7loggingNtB5_6Logger4emit",
+        "hash": "0x07b1a624f55e94de",
+        "max_counter": 510064,
+        "sum_counters": 552824
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::logging::Logger>::emit"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+      "delta": 3660,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+        "address": 414688,
+        "bytes": 448,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown"
+      },
+      "use": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+        "address": 1439484,
+        "bytes": 4108,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20step_helper_shutdown",
+        "hash": "0x0ebecc59c670e574",
+        "max_counter": 50,
+        "sum_counters": 50
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_helper_shutdown"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+      "delta": 3448,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+        "address": 1136948,
+        "bytes": 720,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+        "address": 517940,
+        "bytes": 4168,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns7process22process_admitted_reply",
+        "hash": "0x0e49cc4bccf82a11",
+        "max_counter": 13400,
+        "sum_counters": 80400
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dns::process::process_admitted_reply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+      "symbol": "_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+      "delta": 2948,
+      "E": {
+        "section": ".text._RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+        "address": 217252,
+        "bytes": 2540,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_"
+      },
+      "use": {
+        "section": ".text.hot._RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+        "address": 782160,
+        "bytes": 5488,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNCINvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB8_5Hosts26read_from_with_diagnosticsNtNtCsiKaSbYLw9fL_3std2fs4FileNCINvNvCs9mSXZWz6i5m_10dnsmasq_rs23read_hosts_with_notices4readNCNvMs8_B1U_NtB1U_10SinglePoll17reload_hosts_datas0_0Es0_0NCB1P_s1_0E0B1U_",
+        "hash": "0x07d7a269ccb5eea0",
+        "max_counter": 849568,
+        "sum_counters": 4399333
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::hosts::Hosts>::read_from_with_diagnostics::<std::fs::File, dnsmasq_rs::read_hosts_with_notices::read<<dnsmasq_rs::SinglePoll>::reload_hosts_data::{closure#2}>::{closure#2}, dnsmasq_rs::read_hosts_with_notices::read<<dnsmasq_rs::SinglePoll>::reload_hosts_data::{closure#2}>::{closure#3}>::{closure#0}"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+      "delta": 2588,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+        "address": 1254200,
+        "bytes": 2340,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file"
+      },
+      "use": {
+        "section": ".text.hot._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+        "address": 1262104,
+        "bytes": 4928,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp11persistence11update_file",
+        "hash": "0x021d066db81fde39",
+        "max_counter": 729492,
+        "sum_counters": 5151486
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dhcp::persistence::update_file"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+      "delta": 2576,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "address": 437608,
+        "bytes": 1760,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "address": 153328,
+        "bytes": 4336,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "hash": "0x072d1d0610a002a1",
+        "max_counter": 112266,
+        "sum_counters": 704892
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_udp"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+      "symbol": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+      "delta": 2440,
+      "E": {
+        "section": ".text._RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+        "address": 1183176,
+        "bytes": 13064,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply"
+      },
+      "use": {
+        "section": ".text._RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+        "address": 1628972,
+        "bytes": 15504,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply"
+      },
+      "profile": {
+        "profile_name": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcpNtB5_10DhcpConfig5apply",
+        "hash": "0x089327ae38c3fb3c",
+        "max_counter": 381,
+        "sum_counters": 6466
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::dhcp::DhcpConfig>::apply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper6packet10extra_data",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper6packet10extra_data",
+      "delta": 2328,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper6packet10extra_data",
+        "address": 640000,
+        "bytes": 2328,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper6packet10extra_data",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper6packet10extra_data"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper6packet10extra_data",
+        "hash": "0x0e6b97f5e10057c8",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "dnsmasq_rs::helper::packet::extra_data"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+      "delta": 2296,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+        "address": 386256,
+        "bytes": 5004,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+        "address": 1024720,
+        "bytes": 7300,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17reload_hosts_data",
+        "hash": "0x0f09e5e079e77716",
+        "max_counter": 90,
+        "sum_counters": 1142
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::reload_hosts_data"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtCs8vV02h2nfPS_10dnsmasq_rs4tftp13parse_request",
+      "symbol": "_RNvNtCs8vV02h2nfPS_10dnsmasq_rs4tftp13parse_request",
+      "delta": 2120,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RNvNtCs8vV02h2nfPS_10dnsmasq_rs4tftp13parse_request",
+        "address": 608240,
+        "bytes": 2120,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtCs8vV02h2nfPS_10dnsmasq_rs4tftp13parse_request",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtCs8vV02h2nfPS_10dnsmasq_rs4tftp13parse_request"
+      },
+      "profile": {
+        "profile_name": "_RNvNtCs8vV02h2nfPS_10dnsmasq_rs4tftp13parse_request",
+        "hash": "0x01cda2cf157fb4c2",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "dnsmasq_rs::tftp::parse_request"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+      "symbol": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+      "delta": 2084,
+      "E": {
+        "section": ".text._RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+        "address": 1511204,
+        "bytes": 148,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options"
+      },
+      "use": {
+        "section": ".text.hot._RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+        "address": 1376148,
+        "bytes": 2232,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options"
+      },
+      "profile": {
+        "profile_name": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider16selected_options",
+        "hash": "0x0a4d0ad3efffffff",
+        "max_counter": 5156,
+        "sum_counters": 5156
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::daemon::EventProvider as dnsmasq_rs::dhcp::runtime::OutcomeProvider>::selected_options"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+      "delta": 2036,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+        "address": 1401532,
+        "bytes": 1940,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options"
+      },
+      "use": {
+        "section": ".text.hot._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+        "address": 1320196,
+        "bytes": 3976,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtime14vendor_options",
+        "hash": "0x0cb8fca02e7ce5e9",
+        "max_counter": 5156,
+        "sum_counters": 15468
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dhcp::runtime::vendor_options"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts7reverse",
+      "symbol": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts7reverse",
+      "delta": 1868,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts7reverse",
+        "address": 576436,
+        "bytes": 1868,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts7reverse",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts7reverse"
+      },
+      "profile": {
+        "profile_name": "_RNvMs5_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5Hosts7reverse",
+        "hash": "0x002a5bdca75274d6",
+        "max_counter": 737340,
+        "sum_counters": 1474680
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::hosts::Hosts>::reverse"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+      "delta": 1808,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+        "address": 1369428,
+        "bytes": 5096,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot"
+      },
+      "use": {
+        "section": ".text.hot._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+        "address": 1296488,
+        "bytes": 6904,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp5reply21build_reply_with_boot",
+        "hash": "0x09dbd5da218e3d34",
+        "max_counter": 15468,
+        "sum_counters": 257332
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dhcp::reply::build_reply_with_boot"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6config12synth_domain5parse",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6config12synth_domain5parse",
+      "delta": 1796,
+      "E": null,
+      "use": {
+        "section": ".text.unlikely._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6config12synth_domain5parse",
+        "address": 321392,
+        "bytes": 1796,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6config12synth_domain5parse",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6config12synth_domain5parse"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6config12synth_domain5parse",
+        "hash": "0x02be677753ef9661",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "dnsmasq_rs::config::synth_domain::parse"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": 1688,
+      "E": {
+        "section": ".text._RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 467676,
+        "bytes": 2696,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 1034640,
+        "bytes": 4384,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver16consume_releasesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x08d4d6fc99bfc10c",
+        "max_counter": 68574,
+        "sum_counters": 160974
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::consume_releases"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+      "symbol": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+      "delta": 1624,
+      "E": {
+        "section": ".text._RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+        "address": 1159156,
+        "bytes": 528,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet"
+      },
+      "use": {
+        "section": ".text.hot._RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+        "address": 1241352,
+        "bytes": 2152,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "hot",
+        "symbol": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet"
+      },
+      "profile": {
+        "profile_name": "_RNvMs1_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns15forward_serviceNtB5_17ForwardDispatcher15upstream_packet",
+        "hash": "0x0f9bab17ac771ef0",
+        "max_counter": 8400,
+        "sum_counters": 8400
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::forward_service::ForwardDispatcher>::upstream_packet"
+    }
+  ],
+  "largest_decreases": [
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+      "delta": -17600,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+        "address": 419392,
+        "bytes": 17600,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+        "hash": "0x096c8acf2323ecf5",
+        "max_counter": 112266,
+        "sum_counters": 945808
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+      "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+      "delta": -13524,
+      "E": {
+        "section": ".text._RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+        "address": 896792,
+        "bytes": 13524,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext23answer_records_filtered",
+        "hash": "0x03f12cf56b018206",
+        "max_counter": 19620,
+        "sum_counters": 419860
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::cache_engine::CacheContext>::answer_records_filtered"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtimeINtB5_13StateProviderNCNvMs4_NtB7_6daemonNtB1f_13LocalProvider14resolve_eventssF_0ENtB5_15OutcomeProvider7resolveB9_",
+      "symbol": "_RNvXs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtimeINtB5_13StateProviderNCNvMs4_NtB7_6daemonNtB1f_13LocalProvider14resolve_eventssF_0ENtB5_15OutcomeProvider7resolveB9_",
+      "delta": -13372,
+      "E": {
+        "section": ".text._RNvXs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtimeINtB5_13StateProviderNCNvMs4_NtB7_6daemonNtB1f_13LocalProvider14resolve_eventssF_0ENtB5_15OutcomeProvider7resolveB9_",
+        "address": 1464772,
+        "bytes": 13372,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvXs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtimeINtB5_13StateProviderNCNvMs4_NtB7_6daemonNtB1f_13LocalProvider14resolve_eventssF_0ENtB5_15OutcomeProvider7resolveB9_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtimeINtB5_13StateProviderNCNvMs4_NtB7_6daemonNtB1f_13LocalProvider14resolve_eventssF_0ENtB5_15OutcomeProvider7resolveB9_"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvXs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7runtimeINtB5_13StateProviderNCNvMs4_NtB7_6daemonNtB1f_13LocalProvider14resolve_eventssF_0ENtB5_15OutcomeProvider7resolveB9_",
+        "hash": "0x0e2e2ba85193552b",
+        "max_counter": 5156,
+        "sum_counters": 27184
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::runtime::StateProvider<<dnsmasq_rs::dhcp::daemon::LocalProvider>::resolve_events::{closure#43}> as dnsmasq_rs::dhcp::runtime::OutcomeProvider>::resolve"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_",
+      "symbol": "_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_",
+      "delta": -10404,
+      "E": {
+        "section": ".text._RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_",
+        "address": 124308,
+        "bytes": 10404,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RINvMs0_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_",
+        "hash": "0x0420b5b92440df6c",
+        "max_counter": 20624,
+        "sum_counters": 350608
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::service::SocketListener>::process_once_on_listener::<dnsmasq_rs::dhcp::daemon::EventProvider, <dnsmasq_rs::SinglePoll>::step_dhcp::{closure#8}>"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+      "delta": -9840,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+        "address": 368548,
+        "bytes": 10612,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+        "address": 143668,
+        "bytes": 772,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors",
+        "hash": "0x082dde69d972ead0",
+        "max_counter": 47071,
+        "sum_counters": 47071
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::advance_neighbors"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+      "symbol": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+      "delta": -9360,
+      "E": {
+        "section": ".text._RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+        "address": 1511352,
+        "bytes": 9360,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvXs6_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13EventProviderNtNtB7_7runtime15OutcomeProvider17lease_query_reply",
+        "hash": "0x0a4d0ad3efffffff",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::dhcp::daemon::EventProvider as dnsmasq_rs::dhcp::runtime::OutcomeProvider>::lease_query_reply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider12new_with_log",
+      "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider12new_with_log",
+      "delta": -9004,
+      "E": {
+        "section": ".text._RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider12new_with_log",
+        "address": 1278260,
+        "bytes": 9004,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider12new_with_log",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider12new_with_log"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider12new_with_log",
+        "hash": "0x06b707d1c34b8321",
+        "max_counter": 154,
+        "sum_counters": 792
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::daemon::LocalProvider>::new_with_log"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll16step_hosts_files",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll16step_hosts_files",
+      "delta": -8708,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll16step_hosts_files",
+        "address": 352280,
+        "bytes": 8708,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll16step_hosts_files",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll16step_hosts_files"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll16step_hosts_files",
+        "hash": "0x014821ce0ba05e58",
+        "max_counter": 189084,
+        "sum_counters": 378168
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_hosts_files"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsi_NtCsiKaSbYLw9fL_3std7processNtB5_7Command5spawn",
+      "symbol": "_RNvMsi_NtCsiKaSbYLw9fL_3std7processNtB5_7Command5spawn",
+      "delta": -8276,
+      "E": {
+        "section": ".text._RNvMsi_NtCsiKaSbYLw9fL_3std7processNtB5_7Command5spawn",
+        "address": 1721172,
+        "bytes": 8276,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMsi_NtCsiKaSbYLw9fL_3std7processNtB5_7Command5spawn",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsi_NtCsiKaSbYLw9fL_3std7processNtB5_7Command5spawn"
+      },
+      "use": null,
+      "profile": null,
+      "activity": "not_matched",
+      "name": "<std::process::Command>::spawn"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+      "delta": -7296,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "address": 331108,
+        "bytes": 7296,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "hash": "0x037cfefc9798fa7b",
+        "max_counter": 414614,
+        "sum_counters": 4181446
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::wait_for_files"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsa_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon3new",
+      "symbol": "_RNvMsa_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon3new",
+      "delta": -6964,
+      "E": {
+        "section": ".text._RNvMsa_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon3new",
+        "address": 1326248,
+        "bytes": 6964,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMsa_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon3new",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsa_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon3new"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMsa_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon3new",
+        "hash": "0x0e758a866be22478",
+        "max_counter": 93,
+        "sum_counters": 643
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::daemon::DnsDaemon>::new"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMNtNtCs8vV02h2nfPS_10dnsmasq_rs6config7recordsNtB2_12RecordConfig5apply",
+      "symbol": "_RNvMNtNtCs8vV02h2nfPS_10dnsmasq_rs6config7recordsNtB2_12RecordConfig5apply",
+      "delta": -6688,
+      "E": {
+        "section": ".text._RNvMNtNtCs8vV02h2nfPS_10dnsmasq_rs6config7recordsNtB2_12RecordConfig5apply",
+        "address": 777384,
+        "bytes": 6688,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMNtNtCs8vV02h2nfPS_10dnsmasq_rs6config7recordsNtB2_12RecordConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMNtNtCs8vV02h2nfPS_10dnsmasq_rs6config7recordsNtB2_12RecordConfig5apply"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMNtNtCs8vV02h2nfPS_10dnsmasq_rs6config7recordsNtB2_12RecordConfig5apply",
+        "hash": "0x02376a5ce7816264",
+        "max_counter": 381,
+        "sum_counters": 627
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::records::RecordConfig>::apply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11step_helper",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11step_helper",
+      "delta": -6420,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11step_helper",
+        "address": 322452,
+        "bytes": 6420,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11step_helper",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11step_helper"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll11step_helper",
+        "hash": "0x046a766e0754a6ad",
+        "max_counter": 47121,
+        "sum_counters": 193623
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_helper"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15step_dhcp_files",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15step_dhcp_files",
+      "delta": -6420,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15step_dhcp_files",
+        "address": 343904,
+        "bytes": 6420,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15step_dhcp_files",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15step_dhcp_files"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15step_dhcp_files",
+        "hash": "0x0bdc48d538abd75e",
+        "max_counter": 47271,
+        "sum_counters": 64603
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_dhcp_files"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+      "delta": -6192,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "address": 962252,
+        "bytes": 17320,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "address": 437840,
+        "bytes": 11128,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5local26add_local_records_for_name",
+        "hash": "0x092941f5202e8feb",
+        "max_counter": 56248,
+        "sum_counters": 452208
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dns::local::add_local_records_for_name"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+      "delta": -6092,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+        "address": 442036,
+        "bytes": 15448,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+        "address": 157664,
+        "bytes": 9356,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9step_tftp",
+        "hash": "0x0d2ef205f05f789c",
+        "max_counter": 47071,
+        "sum_counters": 47071
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_tftp"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.2714",
+      "symbol": "_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.2714",
+      "delta": -5448,
+      "E": {
+        "section": ".text._RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.2714",
+        "address": 1029356,
+        "bytes": 5448,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.2714",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXsX_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB5_9DnsConfigNtNtCs2kXltWtc1W_4core5clone5Clone5clone.2714"
+      },
+      "use": null,
+      "profile": null,
+      "activity": "not_matched",
+      "name": "<dnsmasq_rs::config::dns::DnsConfig as core::clone::Clone>::clone (.2714)"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+      "symbol": "_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+      "delta": -4356,
+      "E": {
+        "section": ".text._RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+        "address": 1101560,
+        "bytes": 11188,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+        "address": 496392,
+        "bytes": 6832,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvNtNtNtCs8vV02h2nfPS_10dnsmasq_rs6config4dhcp16ordinary_options5parse",
+        "hash": "0x0ba1c4b3f2a88311",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "dnsmasq_rs::config::dhcp::ordinary_options::parse"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+      "delta": -4148,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+        "address": 800224,
+        "bytes": 15356,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+        "address": 348804,
+        "bytes": 11208,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs6helper7process5child",
+        "hash": "0x009f8e804ef68247",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "dnsmasq_rs::helper::process::child"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtCs7YTTomAqFzA_9owrt_ubus4connNtB5_10Connection16add_object_bytes",
+      "symbol": "_RNvMs1_NtCs7YTTomAqFzA_9owrt_ubus4connNtB5_10Connection16add_object_bytes",
+      "delta": -4060,
+      "E": {
+        "section": ".text._RNvMs1_NtCs7YTTomAqFzA_9owrt_ubus4connNtB5_10Connection16add_object_bytes",
+        "address": 1549316,
+        "bytes": 4060,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs1_NtCs7YTTomAqFzA_9owrt_ubus4connNtB5_10Connection16add_object_bytes",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtCs7YTTomAqFzA_9owrt_ubus4connNtB5_10Connection16add_object_bytes"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMs1_NtCs7YTTomAqFzA_9owrt_ubus4connNtB5_10Connection16add_object_bytes",
+        "hash": "0x0209aa3e3852da94",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<owrt_ubus::conn::Connection>::add_object_bytes"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": -3812,
+      "E": {
+        "section": ".text._RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 508312,
+        "bytes": 9236,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text._RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 1448404,
+        "bytes": 5424,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMsb_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon16send_loop_probesCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x099e730b373e9cf6",
+        "max_counter": 50,
+        "sum_counters": 50
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::daemon::DnsDaemon>::send_loop_probes"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+      "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+      "delta": -3636,
+      "E": {
+        "section": ".text._RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+        "address": 1243876,
+        "bytes": 4064,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance"
+      },
+      "use": {
+        "section": ".text._RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+        "address": 1653788,
+        "bytes": 428,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvMs3_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance",
+        "hash": "0x0a28b967a68273e7",
+        "max_counter": 26466,
+        "sum_counters": 52932
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dhcp::daemon::LocalProvider>::queue_script_from_maintenance"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6scalarNtB4_12ScalarConfig5apply",
+      "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6scalarNtB4_12ScalarConfig5apply",
+      "delta": -3584,
+      "E": {
+        "section": ".text._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6scalarNtB4_12ScalarConfig5apply",
+        "address": 1317832,
+        "bytes": 3584,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6scalarNtB4_12ScalarConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6scalarNtB4_12ScalarConfig5apply"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config6scalarNtB4_12ScalarConfig5apply",
+        "hash": "0x08505b6f0aa38d26",
+        "max_counter": 1026,
+        "sum_counters": 6433
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::scalar::ScalarConfig>::apply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+      "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+      "delta": -3564,
+      "E": {
+        "section": ".text._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+        "address": 1202340,
+        "bytes": 5168,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+        "address": 546424,
+        "bytes": 1604,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service"
+      },
+      "profile": {
+        "profile_name": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config8dhcp_pxeNtB4_9PxeConfig11add_service",
+        "hash": "0x0144f1d77374550b",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::config::dhcp_pxe::PxeConfig>::add_service"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs7startup10lease_init10initialize",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs7startup10lease_init10initialize",
+      "delta": -3536,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs7startup10lease_init10initialize",
+        "address": 1411580,
+        "bytes": 3536,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs7startup10lease_init10initialize",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs7startup10lease_init10initialize"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs7startup10lease_init10initialize",
+        "hash": "0x035b1a29c2411f37",
+        "max_counter": 50,
+        "sum_counters": 50
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::startup::lease_init::initialize"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles3new",
+      "symbol": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles3new",
+      "delta": -3512,
+      "E": {
+        "section": ".text._RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles3new",
+        "address": 1096136,
+        "bytes": 3512,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles3new",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles3new"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles3new",
+        "hash": "0x042b8babfe655ea7",
+        "max_counter": 50,
+        "sum_counters": 200
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::files::runtime::DnsFiles>::new"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig6domain",
+      "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig6domain",
+      "delta": -3460,
+      "E": {
+        "section": ".text._RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig6domain",
+        "address": 1084984,
+        "bytes": 3460,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig6domain",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig6domain"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvMs_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config3dnsNtB4_9DnsConfig6domain",
+        "hash": "0x036216d9545b4c0b",
+        "max_counter": 45,
+        "sum_counters": 225
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::dns::DnsConfig>::domain"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": -3456,
+      "E": {
+        "section": ".text._RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 488892,
+        "bytes": 5092,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 184024,
+        "bytes": 1636,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs_NtCs8vV02h2nfPS_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE8dispatchCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x04f1033e951efa40",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::tftp_listener::TftpListener<dnsmasq_rs::tftp_runtime::RealFileOpener>>::dispatch"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+      "symbol": "_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+      "delta": -3452,
+      "E": {
+        "section": ".text._RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+        "address": 1482320,
+        "bytes": 3744,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_"
+      },
+      "use": {
+        "section": ".text.unlikely._RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+        "address": 679404,
+        "bytes": 292,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNCNvMs4_NtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp6daemonNtB7_13LocalProvider14resolve_eventssO_0Bb_",
+        "hash": "0x09a4e9b7df23a59e",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::dhcp::daemon::LocalProvider>::resolve_events::{closure#52}"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17step_route_events",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17step_route_events",
+      "delta": -3060,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17step_route_events",
+        "address": 391260,
+        "bytes": 3060,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17step_route_events",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17step_route_events"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll17step_route_events",
+        "hash": "0x051f031975c68d84",
+        "max_counter": 47071,
+        "sum_counters": 141229
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::step_route_events"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXsB_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5HostsNtNtCs2kXltWtc1W_4core5clone5Clone5clone",
+      "symbol": "_RNvXsB_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5HostsNtNtCs2kXltWtc1W_4core5clone5Clone5clone",
+      "delta": -3052,
+      "E": {
+        "section": ".text._RNvXsB_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5HostsNtNtCs2kXltWtc1W_4core5clone5Clone5clone",
+        "address": 567364,
+        "bytes": 3052,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvXsB_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5HostsNtNtCs2kXltWtc1W_4core5clone5Clone5clone",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvXsB_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5HostsNtNtCs2kXltWtc1W_4core5clone5Clone5clone"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvXsB_NtCs8vV02h2nfPS_10dnsmasq_rs5hostsNtB5_5HostsNtNtCs2kXltWtc1W_4core5clone5Clone5clone",
+        "hash": "0x043aa6c7120e1cbd",
+        "max_counter": 50,
+        "sum_counters": 134
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::hosts::Hosts as core::clone::Clone>::clone"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+      "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+      "delta": -3008,
+      "E": {
+        "section": ".text._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+        "address": 1137668,
+        "bytes": 5844,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+        "address": 522108,
+        "bytes": 2836,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs"
+      },
+      "profile": {
+        "profile_name": "_RNvNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5reply10filter_rrs",
+        "hash": "0x03191199cb85455a",
+        "max_counter": 13400,
+        "sum_counters": 13400
+      },
+      "activity": "positive_counter",
+      "name": "dnsmasq_rs::dns::reply::filter_rrs"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4tftpNtB5_10TftpConfig5apply",
+      "symbol": "_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4tftpNtB5_10TftpConfig5apply",
+      "delta": -2984,
+      "E": {
+        "section": ".text._RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4tftpNtB5_10TftpConfig5apply",
+        "address": 1248756,
+        "bytes": 2984,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4tftpNtB5_10TftpConfig5apply",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4tftpNtB5_10TftpConfig5apply"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "_RNvMs2_NtNtCs8vV02h2nfPS_10dnsmasq_rs6config4tftpNtB5_10TftpConfig5apply",
+        "hash": "0x09d1a80074968627",
+        "max_counter": 381,
+        "sum_counters": 1860
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::config::tftp::TftpConfig>::apply"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+      "symbol": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+      "delta": -2924,
+      "E": {
+        "section": ".text._RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+        "address": 1047168,
+        "bytes": 9072,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness"
+      },
+      "use": {
+        "section": ".text._RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+        "address": 1572532,
+        "bytes": 6148,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness"
+      },
+      "profile": {
+        "profile_name": "_RNvMs0_NtNtNtCs8vV02h2nfPS_10dnsmasq_rs3dns5files7runtimeNtB5_8DnsFiles25step_with_watch_readiness",
+        "hash": "0x0391ca72129238f2",
+        "max_counter": 140,
+        "sum_counters": 2006
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::files::runtime::DnsFiles>::step_with_watch_readiness"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": -2796,
+      "E": {
+        "section": ".text._RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 305300,
+        "bytes": 5472,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 137216,
+        "bytes": 2676,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs6_NtCs8vV02h2nfPS_10dnsmasq_rs12tftp_runtimeINtB5_15TransferRuntimeNtB5_14RealFileOpenerE9start_rrqCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x010c95207e378e7c",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::tftp_runtime::TransferRuntime<dnsmasq_rs::tftp_runtime::RealFileOpener>>::start_rrq"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+      "symbol": "_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+      "delta": -2776,
+      "E": {
+        "section": ".text._RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+        "address": 1119288,
+        "bytes": 3324,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+        "address": 509280,
+        "bytes": 548,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one"
+      },
+      "profile": {
+        "profile_name": "_RNvMs1_NtCs8vV02h2nfPS_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one",
+        "hash": "0x0475cdc73c530a1b",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "<dnsmasq_rs::ubus_service::UbusService>::process_one"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+      "delta": -2700,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+        "address": 339880,
+        "bytes": 4024,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs"
+      },
+      "use": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+        "address": 1431696,
+        "bytes": 1324,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll15scan_hosts_dirs",
+        "hash": "0x0a2435ae3700b864",
+        "max_counter": 360,
+        "sum_counters": 810
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::scan_hosts_dirs"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+      "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+      "delta": -2668,
+      "E": {
+        "section": ".text._RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+        "address": 439368,
+        "bytes": 2668,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9admit_udp"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+        "hash": "0x09c3de4e95d0a255",
+        "max_counter": 18124,
+        "sum_counters": 54372
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::SinglePoll>::admit_udp"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+      "symbol": "_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+      "delta": -2560,
+      "E": {
+        "section": ".text._RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+        "address": 1387152,
+        "bytes": 3044,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options"
+      },
+      "use": {
+        "section": ".text.unlikely._RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+        "address": 635228,
+        "bytes": 484,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "unlikely",
+        "symbol": "_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options"
+      },
+      "profile": {
+        "profile_name": "dnsmasq_rs.632d6ee7b1f64f96-cgu.0;_RNvNvNtNtCs8vV02h2nfPS_10dnsmasq_rs4dhcp7logging13reply_details7options",
+        "hash": "0x07284a6450185ded",
+        "max_counter": 0,
+        "sum_counters": 0
+      },
+      "activity": "all_zero_counters",
+      "name": "dnsmasq_rs::dhcp::logging::reply_details::options"
+    },
+    {
+      "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver10run_timersCs9mSXZWz6i5m_10dnsmasq_rs",
+      "symbol": "_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver10run_timersCs9mSXZWz6i5m_10dnsmasq_rs",
+      "delta": -2480,
+      "E": {
+        "section": ".text._RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver10run_timersCs9mSXZWz6i5m_10dnsmasq_rs",
+        "address": 458132,
+        "bytes": 2480,
+        "object": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o",
+        "output": ".text",
+        "temperature": "ordinary",
+        "symbol": "_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver10run_timersCs9mSXZWz6i5m_10dnsmasq_rs",
+        "key": "dnsmasq_rs-77cf8d445698bc78.dnsmasq_rs.6d20ce5edfbecc16-cgu.0.rcgu.o::_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver10run_timersCs9mSXZWz6i5m_10dnsmasq_rs"
+      },
+      "use": null,
+      "profile": {
+        "profile_name": "dnsmasq_rs.6d20ce5edfbecc16-cgu.0;_RNvMs8_NtNtCs8vV02h2nfPS_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver10run_timersCs9mSXZWz6i5m_10dnsmasq_rs",
+        "hash": "0x0d7d35190236a070",
+        "max_counter": 42000,
+        "sum_counters": 42000
+      },
+      "activity": "positive_counter",
+      "name": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::run_timers"
+    }
+  ],
+  "full_comparisons_sha256": "7cbe775dcab7ffed7db0194f2c78f16ec685da0c050ad517babb0d4cb71eb4e7",
+  "file_growth_bytes": 151560,
+  "mapped_output_section_growth_bytes": 153044,
+  "file_growth_minus_mapped_section_growth": -1484
+}
