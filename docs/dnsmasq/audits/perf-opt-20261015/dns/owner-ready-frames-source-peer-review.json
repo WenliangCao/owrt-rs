@@ -1,0 +1,43 @@
+{
+  "status": "PASS_LIGHTWEIGHT_DUMP_REQUEST_FUNCTION_EXTRACTION_REVIEW",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "direct_parent_commit": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "inherited_base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "scope": "Includes025 DHCPready extraction; this isnotindependent6ab singlechange.",
+  "source_file": "components/dnsmasq/src/main.rs",
+  "source_sha256": "3cd3c5b793b2551d37ae963b546fac5794e43f4c697b19d0b16b862c3753b431",
+  "changed_files": 1,
+  "inserted_lines_vs025": 9,
+  "total_inserted_lines_vs6ab": 17,
+  "removing_nine_inserted_lines_restores_entire025_main": true,
+  "original_signal_prefix_byte_identical": true,
+  "original_Linux_dump_block_byte_identical": true,
+  "new_private_helper_callers": 1,
+  "findings": [],
+  "preserved_behavior": [
+    "ALARM_REQUESTED providerborrow/swap/request andnonLinux64clear remainbeforethecachedump gate; no borrowguard movesacrosscall boundary.",
+    "CACHE_DUMP_REQUESTED fetch_update usesidenticalAcqRel/Acquire andchecked_sub1. Zero returns beforehelper; successfulconsumption performsoneLinuxdump; signalsarrivingduringdump remainqueuedasbefore.",
+    "Mutableparent_events borrow isacquiredinsideidenticalmovedblock; metrics obtainsandreleasesits originalprovider/service borrows beforesharedserviceborrow. Blockdrop orderandRefCellfailure boundariesunchanged.",
+    "dump_cache receivesoriginalnow_seconds,metric snapshot,highwater,tcplimit andrelaxedDEBUG flag; loggeremit closure andoutputordering unchanged.",
+    "tcp_high_water reset totcp_active remainsonlyinsideSome(daemon)/Some(logger) branch afterdumpcompletes; no resetaddedwhenoneismissing orbeforecallback.",
+    "NonLinux stillhandlesALARMclear andconsumesonecache-dumprequest withoutbody. Linux32 retainsdump behavior whileLinux64 retainssameprovideralarm path.",
+    "SinglePoll.step diagnosticcall position isunchanged; helper hasonlyinline-never,no coldattribute,newtimer/callback/state orallocation."
+  ],
+  "local_existing_validation": {
+    "Mac_bin_passed": 23,
+    "Mac_bin_failed": 0,
+    "Mac_log_sha256": "328bacb9bc2f656d7e103e08674c1a83877f38a7ade9b9edeaac491857b75f63",
+    "musl_all_targets_log_sha256": "4c2f6b21a980859dfe22e1a870e9e249b372e2b524d88fa82734b5925013a608",
+    "musl_compile_completed": true,
+    "reviewer_reran_tests_or_build": false,
+    "limitation": "Macbin23 cannotruntimevalidateLinuxdumpbody; muslcheck establishescompilationonly."
+  },
+  "limits": [
+    "Sourceequivalence only; actualcodegen andsignalruntime behaviorneedtheirseparateevidence beforeanyselection.",
+    "Anactivedump addsafunctioncall andnestedframe; source reviewdoesnotclaimoverallstackorCPUreduction."
+  ],
+  "source_modified": false,
+  "remote_accessed": false,
+  "execution_preparation_created": false,
+  "803_audit_then_bare1df_priority_preserved": true
+}
