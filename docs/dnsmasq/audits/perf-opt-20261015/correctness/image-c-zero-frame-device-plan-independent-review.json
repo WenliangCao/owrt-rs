@@ -1,0 +1,50 @@
+{
+  "schema": "dnsmasq-image-c185-device-ten-plan-independent-review-v1",
+  "status": "PASS_LOCAL_PLAN_AND_WRAPPER_REVIEW_NOT_LAUNCH_RELEASE",
+  "author_commit": "8e56ce33c73ed03440be967fac572d0d3790f5a0",
+  "plan_sha256": "8b970b1c562eb560c7d3f0f22004fe7f083f1e4d1f9d4817ba955214ec759f91",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "exact_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "entry_sha256": "0d1473497e37850aa82e967602b67c16a854a75d4b4fe4daba37f07b6876a7fd",
+  "unchanged_tools": {
+    "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+  },
+  "verified": [
+    "New15-line entry only configures prefix, artifact roles, experiment role and one exactC/185group before invoking the existing sharedrunner. No timing, stage mode, comparator or health logic is changed.",
+    "Pure schedule equals the committed ten rows exactly: five alternating pairs, exactC always c and185alwaysrust. Both modeNone. E/F appear only as restoration roles, never as measured controls.",
+    "Originalmeasurement artifacts, workload, slots and shared41ef+controller7c93+health0926+analyzer10added match the already reviewed185ten plan byte hashes. This full-ten wrapper is separate from d2bb/8e33full110tools.",
+    "ExactC localELF hash/269305bytes independently match097a.185shippingELF/map/build/source identity matches fullqualified185. Runtime C loader and fourlibrary hashes remain an explicit freshpreflight requirement.",
+    "Existing sharedrunner checks taskslot/tool identities and actual caseELF, validates6000totalfixture responses with5000observed operations, restores E/F, captures pre-stop guardbytes after allwindowCPUendpoints/archives, and rejects invalid finaltail beforecomplete.",
+    "FrozenW,>=4/5direction andCPUall>=10ticks/medianabsdelta>8rules remain. All results are directC/185freshpairs; no historicalE/C percentage composition. Diagnostic completes without automatic promotion."
+  ],
+  "independent_mock_tests": {
+    "count": 14,
+    "argv": [
+      "python3",
+      "-m",
+      "unittest",
+      "test_udp_stage_device_run",
+      "-v"
+    ],
+    "cwd": "/Users/USER/Developer/owrt-perf-f-e-device-20261015/tools/dnsmasq",
+    "exit": 0,
+    "stdout_sha256": "5c85f8312ae80ce1cc21fe3059591e68649640e19ec40ffe2ebaa79416957aca",
+    "stderr_sha256": "dbb5c5c1ac2194c04cc3dfe7d9570755ecaf9e0a6a9f2499c8fac2c81e3aaee9"
+  },
+  "pending_before_launch": [
+    "Completeoriginal E185full110+allarchives+independentaudit+postflight restoringE/F; no productfailure.",
+    "Fresh original125s baseline using7c93+0926 prefixproducer; liveprod/idle/taskroot/offlinerestore/9helpers and C imageinterpreter/library identities reverified.",
+    "Freeze newlaunchreceipt and instantiate exactimageC/185 taskslots only; original10windowtraffic/W/pairedirection/>8ticks/allattempts and originaltool-invalidrule retained."
+  ],
+  "additional_launch_binding": "Launchreceipt must pin exactplan/entry/sharedbundle and --experiment-hash9109; sharedrunner intentionally retains its existing generichash argument. Currentfull110allarchives/independentaudit/postflight and no-productfailure gate must be satisfied before fresh125shealth and originaldevicepreflight.",
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "old_failed_health_preserved": true,
+  "new_framework_or_statistical_rules": false,
+  "router_or_Oracle_accessed": false,
+  "execution_started": false,
+  "performance_accepted": false
+}
