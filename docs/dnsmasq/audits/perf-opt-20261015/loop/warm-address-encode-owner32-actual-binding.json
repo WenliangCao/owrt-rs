@@ -1,0 +1,62 @@
+{
+  "status": "ORIGINAL_WARM_OWNER32_LAUNCHED_AFTER_ACTUAL_REMOTE_AUDITS_AND_FRESH_QUIET",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "final_plan_commit": "fb224fe6",
+  "final_plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+  "preparation_plan_preserved_sha256": "ee3e6e3c14b6116ccb5385539906129e30ac9755c62bc218da7b86b8e5c0da9d",
+  "pretransfer_sha256": "899a036e9bd1156f183aebcbbab6f24e13cdaadb8066aec57dba041056c572ee",
+  "independent_related_commit": "7f189cf6",
+  "independent_SDK_commit": "7db02ead",
+  "independent_owner32_preparation_commit": "adb0be99",
+  "metadata_template_peer_commit": "c0b8a5b0",
+  "explicit_quiet_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+  "final_ready_metadata_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+  "final_ready_script_sha256": "4494caacee82188731de39e1e255d42f8a2c82fa72f9ae92908bb75d9d478eff",
+  "final_ready_schema_adaptation": "Original quiet6978 has performance_timing_released, owner32_input_pretransfer_sha256 and accepted_G_triple_rehashed. Adapter checks these fields instead of absent legacy dependencies; DNS independently verified exact single predicate substitution and actual fields. No new quiet authority or controller change.",
+  "unused_derived_quiet_metadata": "Correctness local fc305a65 metadata copy is unused and was never uploaded; original6978 remains the authority.",
+  "launch_sha256": "6a1532d6f1cdcc21dae0c3a6dc0db0251adb0ddde97bdf74ab1b50d801db87ab",
+  "launch_script_sha256": "4a814953d55eca5c3711e6bfa4a81e0a33164410b5daa681a043def18e2a02a4",
+  "launch": {
+    "scope": "Original exact-SDK G185/warm6dad owner32 after actual961/SDK independent remote audits, owner plan peer, input pretransfer and correctness fresh quiet; bulk download audit deferred until device50 restoration. Root authorized simultaneous device50; no bulk during either measurement, no native240 or isolated-writer attribution.",
+    "pid": 1053371,
+    "starttime_ticks": 187338855,
+    "epoch": 1792148771.3366027,
+    "utc": "2026-10-16 11:06:11 UTC",
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/run_warm_address_encode_owner32.py",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/plan.json"
+    ],
+    "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+    "controller_sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+    "explicit_release_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+    "final_metadata_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+    "windows": 32,
+    "stat_windows": 12,
+    "plain_windows": 20,
+    "no_measurement_retries": true,
+    "transfers_held_during_both_measurement_slots": true
+  },
+  "parallel_device_observation": {
+    "owner": "DHCP",
+    "role": "a53-g-stage",
+    "original_windows": 50,
+    "host": "separate physical device",
+    "author_declared_start_utc": "2026-10-16 10:55:18 UTC",
+    "Oracle_owner32_overlap_authorized_by": "root",
+    "all_bulk_transfers_held": true,
+    "scope": "No devices accessed by loop. Different-host timing overlap is recorded, not pooled or used as a correction."
+  },
+  "raw_download_audit_deferred": true,
+  "measurement_complete": false,
+  "performance_accepted": false,
+  "native240_run": false,
+  "scope_limits": [
+    "Original 32 windows,12 stat and20 plain; no modified probes, counters, thresholds, order, analysis or retries.",
+    "G185 versus6dad includes inherited6ab; no isolated-writer attribution.",
+    "Independent original remote raw/ELF audits passed; local bulk archive completeness audit remains due after DHCP device50 restoration."
+  ]
+}
