@@ -35,7 +35,7 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "ACTUALBARE1DF SDK179/963 LOCALLY VERIFIED; actualindependentreview andmeasurementquiet pending; no device action",
+  "status": "ACTUALBARE1DF963 AND CANONICALSDK INDEPENDENT REVIEWS BOUND; originalfreshhealth/fourcopy staging next, finalDNSquiet stillrequired",
   "scope": "Fresh acceptedG185 versus bare1df product A53ten UDP-hit exploratory comparison, not fullqualification or deployment.1df parentis6ab; versusG includes inherited6ab changes anddoesnot isolate addressinline alone.",
   "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
   "forbidden_substitution": "Onlyexact1df135dc; no210/849/2b/803 overlay, noinstrumentedcountELF, no reconstructedcombination.",
@@ -46,7 +46,7 @@
   "elf_bytes": 2145051,
   "map_sha256": "ea0bf7b17e529c33df54bd36dd90bbd52387f64551a4b0a5ba0c2bec43bb61bb",
   "build_receipt_sha256": "04e582299d5e7a13002c36d37be421af3c651c4ec66eef15d80dfd8753a669f6",
-  "related_linux_report_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
+  "related_linux_report_sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560",
   "related_linux_verified_receipt_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
   "entry_sha256": "5405f8c84b0dbfede1baba2688d85b6676a13fc9d03f5e69461aa5208f34d0be",
   "artifacts": {
@@ -153,7 +153,6 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Actualindependentreview ofbare1df963 andcanonicalSDK beforefreshdevicehealth/staging.",
     "Originalfresh125shealth+prod/slots/helper/offline/idle gates andfourimmutablecopies beforemeasurement.",
     "DNSactualfinalmeasurementquiet+alltransfers+loopfinalready metadata thenoriginalten,unchangedfailure/archive/restore."
   ],
@@ -173,7 +172,12 @@
   "source_parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "anticipated_related_gate_passes": 963,
   "actual_related_linux_tests_passed": 963,
-  "actual_SDK_review": null,
+  "actual_SDK_review": {
+    "commit": "9d2a8d09",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/inline-address-details-sdk-independent-audit.json",
+    "sha256": "e35b50bbda5ec42741ea67cebd7cacd9564c8694dc60c0e0236ddc94cae2c471",
+    "status": "PASS_ACTUAL_BARE1DF_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL963_CHAIN"
+  },
   "source_interaction_review": {
     "commit": "5ec04eed",
     "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/inline-address-details-peer-review.json",
@@ -229,7 +233,7 @@
   ],
   "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-inline-address-details/dnsmasq-rs",
   "related_linux_tests_passed": 963,
-  "related_linux_report_path": "private/perf-opt-20261015/sdk-inline-address-details/related-verified.json",
+  "related_linux_report_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/inline-address-details-related-independent-audit.json",
   "related_linux_group_passed": {
     "lib": 842,
     "bin": 82,
@@ -281,6 +285,13 @@
       "report-a53-inline-address-details.py": "a9967871deb6058b4f03e982ae883e4dcdedbb066ff04dd8e50e2d28d964a2ed"
     },
     "phase_boundary": "Afteractualindependentreview,fresh125health and4immutablecopies whileE/F slotsunchanged; stopbeforePopen. DNSfinalquiet+loopfinalmetadata then originalten.",
-    "preflight_or_windows_started": false
+    "preflight_or_windows_started": false,
+    "phase_peer_review": "looplocalread/AST PASS: stageprefix/startlocalgates+suffix byte-identical topriorreviewed1df operator; finalDNSquiet receiptbeforefirstSSH, recheckall4copies/originalslots/helpers/idle. Nopeerremoteexecution ornewmeasurement."
+  },
+  "actual_related_independent_review": {
+    "commit": "0022f006",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/inline-address-details-related-independent-audit.json",
+    "sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560",
+    "status": "PASS_FRESH_1DF_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_SOURCE_AND_SUPPLEMENTAL_WRAPPERS"
   }
 }
