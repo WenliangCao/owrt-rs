@@ -30,9 +30,9 @@ def cpu_ticks(process):
     return sum(process[k] for k in ('user_ticks','system_ticks','waited_child_user_ticks','waited_child_system_ticks'))
 
 
-def traffic(folder, row):
+def traffic(folder, row, warmup_seconds=5, measurement_seconds=20):
     load = json.loads((folder/'client.json').read_text())
-    for phase, seconds in (('warmup',5), ('measurement',20)):
+    for phase, seconds in (('warmup',warmup_seconds), ('measurement',measurement_seconds)):
         counts=load[phase]
         expected=load['rate']*seconds
         if row['valid']:
