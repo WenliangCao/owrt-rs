@@ -1,0 +1,28 @@
+{
+  "status": "PREPARED_NOT_EXECUTED_REVIEW_PENDING",
+  "original_f_audit_sha256": "f84dac49f0590850c2178b9cb1275d3f52a9b8575f607a126da7baae504a0f30",
+  "adapted_audit_sha256": "5e5f74d11bdfe97c0e4c8fbee707387f3360eaeb439c29ded1613beceb96db51",
+  "substitutions": {
+    "output_and_summary_path": {
+      "old": "oracle-f-vs-e",
+      "new": "oracle-cached-zero-frame-vs-e"
+    },
+    "candidate_elf": {
+      "old": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "new": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    }
+  },
+  "reverse_substitution_is_byte_identical": true,
+  "ast_parse_passed_without_import_or_execution": true,
+  "scope": "Original full110 all-valid audit only; 110 archive/member/raw checks, independent quantile/count/CPU/resource/33primary rederivation unchanged. Does not automatically choose supplemental or mixed pairs.",
+  "post_timing_owner": "Independent reviewer after author original analyzer and quiet handoff; no timing overlap",
+  "apk_delivery": {
+    "filename": "dnsmasq-2.93-r4.apk",
+    "bytes": 1167095,
+    "sha256": "5bb29803bceaf70eecc9a88d582e67a4440c53aa8ec498d3990b06eab82fe032",
+    "local_existing_artifact_found": false,
+    "local_private_roots_checked": 61,
+    "download_status": "WAIT_FOR_FULL44_PASS_NON_TIMING_GAP_BEFORE_FULL110",
+    "scope": "Retain original SDK package as immutable local candidate artifact; no install or upload to router"
+  }
+}

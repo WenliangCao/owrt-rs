@@ -32,13 +32,14 @@ baseline/candidate paths, `inputs-fe`, CPU2 and a fresh
 selection is used. The original case path rewrite and private `/tmp` runtime
 directory, nice10 helper and isolated network namespace remain unchanged.
 
-The Oracle runner imports `SCENES`, `validate` and `write` from the companion
-device-runner snapshot. The pending generic tail-capture repair must therefore
-be bound explicitly even when its changed health path is device-only. The
-final source snapshot and independent review must demonstrate that the Oracle
-driver, case script, scene tuples, traffic validator and statistics remain
-unchanged. Current local preparation copies the original source bytes only;
-it does not import or execute a controller and does not stage anything remotely.
+The Oracle runner imports `SCENES`, `validate` and `write` from its original
+companion snapshot `7c93cfb1…8e21df`. The generic device tail-capture repair
+`da49cb69` changes no Oracle path or these exports; its author explicitly
+confirms that Oracle keeps this original bundle and does not load the device
+prefix consumer. Its independent review still precedes the final binding. The
+Oracle controller remains `1e80a915…0ecb3`, and the analyzer `10addedf…d2283`.
+Current preparation copies original source bytes only; it does not import or
+execute a controller and does not stage anything remotely.
 
 All 33 p50/p95/CPU comparisons are reported under the original median/full-range
 W and at-least-4-of-5 direction rule. CPU additionally needs every window at
@@ -63,3 +64,17 @@ After all windows, recheck the full order, artifact/tool/source identities,
 archives and members, analyze the original raw records and obtain independent
 review before any result is considered for acceptance. Historical owner/native/
 device observations are never pooled into these new E/185 pairs.
+
+The [prepared raw audit](audit_cached_zero_frame_oracle_full.py) is the existing
+F/E 110-window auditor with only the output/summary paths and candidate ELF
+identity changed. Reversing those substitutions restores the original
+`f84dac49…0f30` bytes. Its [preparation receipt](cached-zero-frame-oracle-audit-preparation.json)
+records that boundary; it retains the original all-valid-path assumptions and
+does not choose supplemental pairs. Independent review/run remains pending.
+
+The same receipt records the additional final-delivery artifact: original SDK
+`dnsmasq-2.93-r4.apk`, 1,167,095 bytes, SHA256
+`5bb29803bceaf70eecc9a88d582e67a4440c53aa8ec498d3990b06eab82fe032`.
+It was not found among the shared local private APKs. Download and hash it in
+the explicitly released non-timing gap after full44 and before full110, retain
+it privately without overwriting an earlier artifact, and do not install it.
