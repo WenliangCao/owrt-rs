@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL965_CANONICAL_SDK_ORIGINAL_SIGNALS_INDEPENDENT_PASS_ALL_TRANSFERS_COMPLETE_FINAL_QUIET_RELEASED_TO_NATIVE240_DEVICE10",
+  "status": "ORIGINAL965_SDK_SIGNALS_NATIVE240_OWNER32_DEVICE10_AND_ALL_RAW_AUDITS_CLOSED_NOT_PROMOTED",
   "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "source_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
   "git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
@@ -197,7 +197,7 @@
   "runtime_hardening_verified": false,
   "actual_independent_gate_SDK_audits_pending": false,
   "candidate_promoted": false,
-  "scope": "Original fresh965, canonicalSDK, original archive transport and freshquiet only. Correctness owns original actual audits and unchangedstandalone signals next. No newtests/tools/thresholds or native/device/owner timing initiated by DNS. Retain all previous adverse results; future screens need actual audit/signal PASS and root scheduling.",
+  "scope": "Original fresh965, canonicalSDK and original standalone12+3+3 qualified before original native240/device10/owner32. Original statistics/full raw audits completed. G185 versus whole9e only; no isolated component attribution or pooled historical controls. High-load send-lag regressions retained; three physical primary metrics indistinguishable. No promotion or full110 authorization.",
   "independent_actual_reviews": {
     "related": {
       "commit": "7ffb1476",
@@ -216,6 +216,21 @@
       "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
       "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
       "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+    },
+    "native": {
+      "commit": "33855b34",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-native-independent-audit.json",
+      "sha256": "9516d584e740430ab7c73ab62b225769dfbe46d3edfc47958c121b111b68a670"
+    },
+    "owner32": {
+      "commit": "2437818d",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-owner32-independent-audit.json",
+      "sha256": "995b69134808c693762a364b5bb16e03c6bd2914eec2e3bea204ab5f98647078"
+    },
+    "device10": {
+      "commit": "61331c36",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-device-independent-audit.json",
+      "sha256": "11f2dda717ca2c4a5c6ea0a99db6519e5f2b2853fa34b5d5b1dbe00fd6cca411"
     }
   },
   "correctness_release_to_screens": {
@@ -224,7 +239,7 @@
     "sha256": "d8bb694a874ece98b76d4e28957afe680bb36dab1b13dfb703a723a2813ab2ab",
     "scope": "Actual original gates/SDK/signals complete; original screen coordination only, not full44/two110, candidate promotion or deployment."
   },
-  "next_boundary": "Loop fixes exact original native-ready metadata and informs DHCP, then original native240/device10 may start under root existing authorization. Owner32 follows native raw/postflight and fresh quiet; native statistics/full archive review follows both timing phases under original1df order. No bulk during measurements.",
+  "next_boundary": "9e is closed without promotion. Correctness final freshquiet released the sole non-timing Oracle slot to DNS for separately frozen exactc95 original gates and canonicalSDK layout validation.",
   "final_original_screen_release": {
     "local": "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016/private/perf-opt-20261015/cached-hit-9e-preparation/execution/release-to-measurements.json",
     "remote": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/cached-hit-9e-execution-20261016/release-to-measurements.json",
@@ -288,5 +303,119 @@
     "handoff_via_followup_task": true,
     "DNS_stopped_all_Oracle_and_bulk": true
   },
-  "performance_timing_started_by_DNS": false
+  "performance_timing_started_by_DNS": false,
+  "completed_screens": {
+    "native_original_windows": 240,
+    "native_original_commands": 244,
+    "native_original_raw_command_files_verified": 578,
+    "native_all_required_local_files_verified": 592,
+    "native_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+    "native_result_counts": {
+      "faster": 12,
+      "slower": 0,
+      "within_variation_or_resolution": 3
+    },
+    "owner32_original_full_bin_replay_sha256": "b13f139bfd9a73c7b588c3cb17f1be416ea0ad26c1b7d3c3a189887ec4975545",
+    "owner32_result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+    "owner32_original_windows": 32,
+    "full_owner_raw_files_rehashed": 1264,
+    "owner_raw_bin_bytes_rehashed": 3707613744,
+    "device10_restoration_evidence_audited": true,
+    "retained_high_unpaced_send_lag_regressions": {
+      "p50": {
+        "left": {
+          "median": 2.76,
+          "min": 2.76,
+          "max": 2.8,
+          "rounds": [
+            2.76,
+            2.8,
+            2.76,
+            2.8,
+            2.76
+          ]
+        },
+        "right": {
+          "median": 4.6,
+          "min": 4.6,
+          "max": 4.64,
+          "rounds": [
+            4.6,
+            4.6,
+            4.6,
+            4.6,
+            4.64
+          ]
+        },
+        "relative_change_pct": 66.66666666666666,
+        "W_pct": 1.449275362318842,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "p95": {
+        "left": {
+          "median": 5.36,
+          "min": 5.32,
+          "max": 6.48,
+          "rounds": [
+            5.32,
+            6.441,
+            5.36,
+            6.48,
+            5.32
+          ]
+        },
+        "right": {
+          "median": 8.72,
+          "min": 8.56,
+          "max": 8.72,
+          "rounds": [
+            8.72,
+            8.72,
+            8.56,
+            8.64,
+            8.72
+          ]
+        },
+        "relative_change_pct": 62.68656716417911,
+        "W_pct": 21.64179104477612,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      }
+    },
+    "low_load_all_original_metrics_uncertain": true,
+    "device_three_primary_indistinguishable": true,
+    "retained_plan_scope_text_note_sha256": "68b8bd8345b0e0d1911256b88d73f9e0ce16e4d4cb73e5ddddb573d8652a6a53",
+    "performance_promotion": false,
+    "accepted_source_unchanged": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "full110_authorized": false
+  },
+  "final_screen_audit_release": {
+    "local": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-hit-9e-owner32-review/release-to-dns-c95.json",
+    "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-hit-9e-release-to-dns-c95.json",
+    "sha256": "f085b0ea462f568970b63c1def92b3d2268fde74ba5748054534d75cccae0591",
+    "epoch": 1792157666.5615404,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "all_required_transfers_complete": true,
+    "next_source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61"
+  },
+  "phase_peers": {
+    "native_owner": {
+      "commit": "0b0abb3d",
+      "sha256": "f905a90b31b53bfa4cbecb4adfa6e3e0284658e7db3d17b2a37930ba70d55e76"
+    },
+    "device_health": {
+      "commit": "3495f891",
+      "sha256": "1478351d0b7aaf91c20f64cef33fbfccc4f5784b572a9c2fa5880ca1179f71c2"
+    }
+  }
 }
