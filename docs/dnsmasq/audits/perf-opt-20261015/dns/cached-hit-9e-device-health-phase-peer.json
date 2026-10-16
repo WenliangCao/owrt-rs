@@ -1,0 +1,75 @@
+{
+  "status": "PASS_LOCAL_9E_TEN_FROZEN_HEALTH_PREFIX_TAIL_RECOVERY_AND_PHASE_BINDINGS",
+  "public_result_sha256": "ea3ad82e348cc49053acd5f4744aa1405d407bdd4f0a4f1e0d920c7643a9fbe9",
+  "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "pure_original_validation_functions_only": [
+    "complete_prefix",
+    "validate_baseline",
+    "validate_guard_evidence"
+  ],
+  "health": {
+    "baseline": {
+      "raw_sha256": "a3dde7e1b6aa0a93f4b9c9df6f654925076d09b3db00ca48e4d2f24286916d68",
+      "prefix_sha256": "2aa4d0b29a46b149288e1e7dec5bce83cf720d4b994d4a0c79a4ad42b84a854d",
+      "capture_sha256": "2aa4d0b29a46b149288e1e7dec5bce83cf720d4b994d4a0c79a4ad42b84a854d",
+      "external_sha256": "df6543fb6c2ebd66a07ca6f9227af762176cda2cc59e74136306923e57b79925",
+      "stop_request_sha256": "4c203a7555ff0f33816a467b1a5071af796b9c019d21c38f22e182aefbfdd463",
+      "qualified_samples": 126,
+      "final_samples": 126,
+      "final_tail_samples": 0,
+      "qualified_elapsed_seconds": 125.0,
+      "final_elapsed_seconds": 125.891,
+      "dns_samples": 49,
+      "http_samples": 22,
+      "external_checks": 10,
+      "max_dns_ms": 0.749,
+      "max_http_ms": 140.71,
+      "minimum_memory_all_final_samples_kib": 91096,
+      "start_epoch": 1792153182,
+      "end_epoch": 1792153308,
+      "maximum_recorded_epoch_gap_seconds": 1
+    },
+    "runtime": {
+      "raw_sha256": "c3ef32430a980d8aff8be053fc48cb06ac34380bdf7985ddaf8f7408e202f0c0",
+      "prefix_sha256": "4f9da33c834656a986ebec02a55258dc749b6f4b5fefb6fcb7ea5a28af79142f",
+      "capture_sha256": "4f9da33c834656a986ebec02a55258dc749b6f4b5fefb6fcb7ea5a28af79142f",
+      "external_sha256": "14cac0bde84fd06000e2d79f4eb67971d6039701925c92e113cda9f18afc00fe",
+      "stop_request_sha256": "d6bf7c8267c22d1e6a684ee9893a666136808b7675ce9df79c5719151ce7340a",
+      "qualified_samples": 428,
+      "final_samples": 428,
+      "final_tail_samples": 0,
+      "qualified_elapsed_seconds": 427.0,
+      "final_elapsed_seconds": 427.752,
+      "dns_samples": 168,
+      "http_samples": 78,
+      "external_checks": 30,
+      "max_dns_ms": 2.446,
+      "max_http_ms": 81.205,
+      "minimum_memory_all_final_samples_kib": 77860,
+      "start_epoch": 1792153795,
+      "end_epoch": 1792154223,
+      "maximum_recorded_epoch_gap_seconds": 1
+    }
+  },
+  "all10_window_intervals_inside_guard": true,
+  "all40_external_checks_passed": true,
+  "original17_postflight_predicates_and_four_only_prune_verified": true,
+  "postflight_shell_sha256": "1cc058956e14a934a416ed88793b75af7cf26687dbd345970e9517b28a44c56b",
+  "postflight_sha256": "0a8105f02be0920b0959919c38d42e19f90d5afe83d397433c16cdd4fadacb23",
+  "baseline_stage_launch_archive_restore_order_verified": true,
+  "production_identity_stable_and_E_F_restored": true,
+  "concurrency_receipts_rehashed_and_phase_order_verified": true,
+  "retained_signal_binding_error": {
+    "description": {
+      "failure": "Initial local binding expected SIGHUP/SIGUSR2/SIGTERM/SIGINT and failed assertion before any binding-directory creation, plan write or device call.",
+      "correction": "Read the unchanged frozen tool; original order is SIGHUP/SIGUSR2/SIGUSR1/SIGALRM, each c-image/c-native/rust. Exact result bytes and all original tests remained unchanged.",
+      "signal_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+      "audit_or_measurement_rerun": false
+    },
+    "successful_binding_sha256": "acba1381b65685089f2fe32c99f70e8e5f113182cb4ce28d2fac270ebb6f8121",
+    "unchanged_signal_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+    "evidence_limit": "Initial wrong SIGTERM/INT assertion was an inline tool command; no separate failed script/stdout/stderr bytes exist. Its before-mkdir/plan-write/SSH stopping point is an author/session explanation, not independently replayed or byte-audited here. Successful original USR1/ALRM result bytes are unchanged; no audit/measurement rerun claimed."
+  },
+  "script_sha256": "7de67f1372bd364ff1a089d7b2da34abf4d7031f42bd5bfa7580af149ed1ebf5",
+  "scope": "Local retained health/recovery/phase only. Executed only three frozen pure0926 validators, no collector/controller import, network/Oracle/router or cases rerun. Main correctness reviewer owns original archive/workload/statistical and source/SDK/signal content audits; concurrency proves recorded intervals only."
+}
