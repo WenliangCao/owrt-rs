@@ -1,0 +1,28 @@
+{
+  "status": "EXPLICIT_QUIET_RELEASE_TO_CORRECTNESS_803_OWNER32_RAW_AUDIT",
+  "epoch": 1792138394.085525,
+  "controller_exited": true,
+  "analysis_exited_zero": true,
+  "windows": 32,
+  "no_measurement_retries": true,
+  "analysis_sha256": "ed6e11976297ee7692c79f5ad035bee555f201706d2ed177899377b8119db3d6",
+  "postflight_sha256": "b182eebf4b411d7ad5f36f9868cdb72676c1715ea69b684a0d440eed5d28d16d",
+  "collection_sha256": "fe534fae9ceac86e8d716ecb254a0f69953c59bf970a2657c2038bc98d036725",
+  "local_transfer_receipt_sha256": "3ec7c86f696ff3c8927e6956f938b5d1de0e17c185d7ca9241623f8f98272924",
+  "local_transferred_files_rehashed": 1172,
+  "full128_bins_and64_repeated_artifacts_retained_remote": true,
+  "retained_collection_preflight_failure_sha256": "a51da01f8f88344b0c1f7a8a467e6ffae4b31ceffe71314d8e6eb9d4e00bc1f1",
+  "research_including_exact_image_C": [],
+  "idle_SDK_background": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "device10_completed_archived_restored_and_independently_audited": true,
+  "device_independent_audit_commit": "d6d779dc",
+  "device_independent_audit_sha256": "850659e89daff764b6d8945177bfbef4ce9939d096d21fe7e7d962a813447a1c",
+  "all_requested_transfers_complete": true,
+  "loop_stops_Oracle_access_after_handoff": true,
+  "next": "correctness original full-bin replay and raw audit; then explicit quiet followup to DNS bare1df related+canonical SDK. No803 promotion/full110;025 stays after1df."
+}

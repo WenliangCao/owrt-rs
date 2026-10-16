@@ -1,0 +1,10 @@
+{
+  "stage": "post-measurement smallraw collection preflight",
+  "error": "AssertionError at expected bin count: expected192 but original32 windows have128 bins plus64 repeated ELF/map copies =192 omitted files total.",
+  "measurement_windows_rerun": 0,
+  "failure_before_archive_creation": true,
+  "source_script_sha256": "2453f2302984a841e0e789678e8e60ac4d24144384a7378bf37e9d96c1166764",
+  "remote_raw_mutated": false,
+  "tool_chunk": "9fb9a5",
+  "epoch": 1792138282.732744
+}
