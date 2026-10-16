@@ -25,8 +25,8 @@ builds reproduce77096845 and5,022,240 bytes; final117 is9f001802 and5,022,816.
 
 Each committed step passes the existing725Mac library tests with8ignored;
 final musl all-target compilation passes. No new test names, state, clocks,
-unsafe code or benchmark framework were introduced. Source peer review is
-pending. This prototype is unselected for remote preparation; G-stage and
+unsafe code or benchmark framework were introduced. Source-only independent peer66a23ce1 passes; it did not rerun local
+checks or attest codegen. This prototype is unselected for remote preparation; G-stage and
 warm6dad retain their existing queue positions, and no measured source changes.
 
 A private analysis script initially shadowed Python's inspect module, failing

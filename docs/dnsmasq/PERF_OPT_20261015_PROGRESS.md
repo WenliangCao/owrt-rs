@@ -11,7 +11,7 @@ separate direct C/G comparison remains82→114us.6ab has full functional PASS
 but no discernible performance increment.803opt2 is closed with no device
 gain and an owner32 high-p95 regression. Bare1df and5c physical screens are
 inconclusive.5c owner32 retains a high-load send-lag regression; its independent
-full-bin audit is closing. Next: original four-mode/50-window G A53 diagnostic,
+full-bin audit passed and the screen is closed without promotion. Next: original four-mode/50-window G A53 diagnostic,
 plus local preparation of warm writer6dad for a separate Oracle experiment.
 See the latest section at the end for exact evidence and execution boundaries.
 Production remains v0.2.0 SHA256
@@ -1513,3 +1513,50 @@ native240 is cold fallback/layout evidence only. Root's local report869285f8
 retains all four codegen variants, final725Mac/8ignored, muslcheck and18432
 existing-test comparisons. It is not SDK or runtime qualification. No5c/1df
 source overlay is authorized by either new experiment. AcceptedG stays185/9109.
+
+
+## Actual G-stage87/SDK; warm execution handoff; local integration
+
+G-stage exacta34 ran the original diagnostic selections once:1 synthetic,
+82normalbin,4ignoredbin,87total. The858filtered library tests are not claimed
+as coverage. Verified receipt72a76027 rehashes8logs/2testELFs/source180.
+Canonicalf454/f280 SDK exits0 once: ELF686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6
+(2149147B), APK1169636B, build3180d00b; all27gate and45SDK files downloaded.
+Author126c68e6 binds actuals/postflight27652efd and explicitquiet
+29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7.
+Setup archive-mode/tracked-private failures remain separate, before any test
+or build; neither reran measurement. Correctness actual review and DHCP
+original50device preparation remain prerequisites, not assumed passes.
+
+Warm6dad source179/fullarchive/10inputs were pretransferred under6b8b3a38;
+local originalfive/SDK preparation peer c05b2607 passes. Root successfully
+woke DNS after loop's followup hit a thread limit, and passed the actual
+29f0quiet slot for original fivegroups/canonicalSDK. G-stage ready device50
+must not wait for warm. Bulk only outside device health/timing; if warm
+artifacts are not ready beforehand, retain them remotely until a safe gap.
+Loop prepares only the original G/warm owner32, disabled until actual gates,
+SDK, audits and quiet. No native240 is queued: its hot15 cannot recycle and
+exercise the new warm branch. Later full candidate qualification still needs
+the ordinary complete scenes and all correct gates; cold fallback/layout
+limitations remain recorded.
+
+Root independent117d3e61 contains two original-body outlines after existing
+empty-event and no-timer/socket boundaries. Sourcepeer66a23ce1 passes;
+725Mac/8ignored+muslalltargets pass. Localpoll_inner12448→528B/frame1520→224,
+wholeELF+576B; active helpers add call/nested-frame costs. Existing185 sampling
+places only2.019% of selfcycles in that range (49940187); no whole-gap claim.
+No remote source preparation or timing was selected for117.
+
+Root local integration15e69b7a (worktree owrt-perf-cached-hit-integration-20261016)
+combines independent6ab+1df+025/5c+warm6dad+4f/117+215canonicalhosts+86emptyECS,
+each original step separately committed. Separate15e adapts warm RDATA to
+1df's inline positive bytes. Both pre/post variants pass728Maclib+23Macbin/
+8ignored+muslalltargets; final localELF9dea4eb4 is5025496B, +3256Bvs6ab.
+Warmrange952→1028B versusplaincombination is retained. Reportbeea1580 binds
+all identities and prior6ab/1df/5c adverse context. This is LOCAL ONLY, no
+nextcandidate/remote selection and no addition of previous medians. Current
+a34 diagnostic and6dad experiment remain immutable; acceptedG stays185/9109.
+
+Five completed attribution branches were retired under durable archive refs
+(6ef69cf9). All clean sameHEAD worktrees remain detached, and allprivate data
+are intact. Active G-stage/warm/integration/agent branches were not touched.
