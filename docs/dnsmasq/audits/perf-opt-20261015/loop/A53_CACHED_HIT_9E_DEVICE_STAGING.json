@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "ORIGINAL_FRESH_HEALTH_AND_FOUR_IMMUTABLE_COPIES_COMPLETE_BEFORE_ANY_TIMING",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "source_parent": "8bf21ff256c5211ca4a3353b75c7564fb0ec5c0a",
+  "source_base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "comparison_scope": "Fresh accepted G185 versus exact 9e product artifact for one original ten-window A53 UDP-hit screen. The combined source includes inherited 6ab, warm writer, 1df, ready-frame, empty-upstream, small OPT and lease-iterator work. It is not an isolated-component comparison, accepted candidate, full qualification or deployment.",
+  "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+  "source_files_verified": 179,
+  "standalone_runtime_signals_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+  "standalone_runtime_signals_independent_review": {
+    "commit": "b019256e",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+    "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+    "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+  },
+  "original_slots_unchanged": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "stage_receipt_sha256": "c0a4881e5e787b07a55039a69f2187a34acddbf2752187eabc670626929cd38b",
+  "stage_receipt": {
+    "scope": "Original operator preflight and four immutable source copies complete; no windows or slot changes started.",
+    "plan_sha256": "b5d6fecfb1da7faf25278f81f02efc6306c2a7fb70649ebf86cd851c759779fa",
+    "health_summary_sha256": "af0bb3800ae79445dda35a5dd813ac1198a909ebd2ebd8da80b91263fb931899",
+    "preflight_sha256": "23723936cc9f1266ab00a7a111542f41d7c1af0dfa317101f36fc83de9473eb1",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "original_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "script_sha256": "8b0f83efdd0448a31326f07197a820c307dd0cd31fb40ac0f1913e2a274d2793",
+    "epoch": 1792153358.12255
+  },
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.891,
+    "dns_samples": 49,
+    "dns_p95_ms": 0.623,
+    "dns_max_ms": 0.749,
+    "http_samples": 22,
+    "http_max_ms": 140.71,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "2aa4d0b29a46b149288e1e7dec5bce83cf720d4b994d4a0c79a4ad42b84a854d",
+    "raw_sha256": "a3dde7e1b6aa0a93f4b9c9df6f654925076d09b3db00ca48e4d2f24286916d68"
+  },
+  "available_memory_before_staging_kib": 93460,
+  "immutable_sources": {
+    "e": {
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "f": {
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "g": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    },
+    "cached-hit-9e": {
+      "sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    }
+  },
+  "staged_bytes": 8563820,
+  "measurement_started_at_this_checkpoint": false,
+  "pending_before_start": "Fresh finalquiet/all necessary transfers receipt and loop original native readiness, then original start rechecks all production/slot/identity/idle/memory gates."
+}
