@@ -424,7 +424,7 @@
   "runner_change": "Only baseline label E to G and scope docstring; original workload/build/PMU/checksum/stop/cardinality logic unchanged.",
   "source_directory_note": "Reuse canonical G and6ab source directories; locally rebound to Git blobs only. Remote contents not inspected in preparation.",
   "protocol_commit": "b17f4010",
-  "reused_runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "reused_runner_sha256": "119d49a162d47c9dc7b8f7b88de6f4a0119b6a0126cca4ce19fb81ca138d94be",
   "mechanism_limit": "Original public hot15 omits SinglePoll and owner reply recycling. It cannot measure owner-clock or private socket Rc changes; cache/lease regressions still require all15 original scenes.",
   "status": "PREPARED_ONLY_NOT_AUTHORIZED_TO_RUN",
   "linux_gate": null,

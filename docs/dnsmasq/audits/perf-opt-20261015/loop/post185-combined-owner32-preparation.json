@@ -402,7 +402,7 @@
     "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs-fe/m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
     "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs-fe/m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68"
   },
-  "controller_sha256": "8fc501e26b0c613535ebce133787e37e91d3b4e79709359527cc30ce05c69a15",
+  "controller_sha256": "4b2f8e5993a7a78948bfd508f80f464a41aadeb5a961dc894d4bed220d7d54f6",
   "analysis_sha256": "6a00ac084e86ed95a8f95796c80ff50a33867f07b173481be9c65d88d90bab3f",
   "execution_order": "stat: low 3 pairs then high 3 pairs; none: low 5 pairs then high 5 pairs; G first on odd pair, variant first on even pair",
   "window_count": 32,

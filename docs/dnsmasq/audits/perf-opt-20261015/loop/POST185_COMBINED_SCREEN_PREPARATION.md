@@ -40,8 +40,18 @@ Canonical directories match DNS's existing queue:
 under `/home/ubuntu/dnsmasq-perf-20261015`. Both manifests were rebound from
 Git locally:162 native inputs and179 SDK inputs per side. All four adapted
 scripts parse; exact declared substitutions reproduce their bytes; protocol
-fields and nine original analysis-input hashes were compared unchanged.
-The original72d836d1 hot15 probe is copied privately without regeneration.
+fields and eight original analysis-module hashes were compared unchanged.
+The ninth unchanged input is the original72d836d1 hot15 probe, copied privately
+without regeneration. DNS independently reproduced the four substitutions,
+both source manifests and the32-window matrix from the original inputs.
+
+The subsequently available961 gate receipt has a different identity schema
+from the old940 receipt. Its local SHA is
+`ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255`.
+The preparation wrapper now checks its actual status
+`PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET`, `research=[]` and
+`wrapper_exited`, retaining the source/count checks. The runtime gate binding
+and candidate SDK remain null; this schema correction does not enable a run.
 
 Preserve every failure/partial capture and stop. No replacement windows,
 historical E/G pooling, new threshold, scene, observer or estimator is added.

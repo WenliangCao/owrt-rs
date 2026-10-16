@@ -56,9 +56,9 @@ def verify():
     gate = plan['linux_gate']
     assert sha(gate['path']) == gate['sha256']
     verified = json.loads(Path(gate['path']).read_text())
-    assert verified['status'] == 'PASS_RELATED_LINUX_GATES_VERIFIED'
+    assert verified['status'] == 'PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET'
     assert verified['source_commit'] == plan['artifacts']['post185-combined']['source']
-    assert verified['total_passed'] == gate['expected_passes'] == 961 and verified['owned_processes'] == []
+    assert verified['total_passed'] == gate['expected_passes'] == 961 and verified['research'] == [] and verified['wrapper_exited']
     for side, row in plan['artifacts'].items():
         directory = Path(row['directory'])
         assert sha(directory / 'build.json') == row['build_receipt_sha256']
