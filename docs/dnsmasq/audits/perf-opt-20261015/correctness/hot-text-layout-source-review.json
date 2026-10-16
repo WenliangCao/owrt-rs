@@ -1,0 +1,189 @@
+{
+  "status": "PASS_SOURCE_ONLY_LINUX_UNIQUE_HOT_SECTION_ATTRIBUTE_SCOPE",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "common_section_predecessor": "ffc3ac37cffc9fb4b522a3ee73934ab971a2d44b",
+  "base_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "changed_files": {
+    "components/dnsmasq/src/dns/cache.rs": {
+      "added_attributes": 3,
+      "source_sha256": "3f7f203190320a45668dd6dc6e41df65bcf88ce78a8197566094a3fd8a3c3eb7",
+      "base_source_sha256_after_removal": "0204d6723d0bd2979084119bffebb2d03461ff9f66468af297532684439cac68"
+    },
+    "components/dnsmasq/src/dns/cache_engine.rs": {
+      "added_attributes": 3,
+      "source_sha256": "a21b9ef7f018a16a78667ec0093df48a3dbc4752d1dc07a7ed961215b5ea7dd5",
+      "base_source_sha256_after_removal": "fe1a39b5515cd93c664de6fe037fa1ff438a0c0157d69418e8d75d471802daa9"
+    },
+    "components/dnsmasq/src/dns/daemon.rs": {
+      "added_attributes": 3,
+      "source_sha256": "c9ff696d48216151b15a36f0c083d52acdf9f1e11e9bc1cf9e6389fdce22c0ca",
+      "base_source_sha256_after_removal": "ba1bb4257116d74fe0e329644b209d46cf893df6dda825342248e3ce221b4193"
+    },
+    "components/dnsmasq/src/dns/local.rs": {
+      "added_attributes": 3,
+      "source_sha256": "63f2b2e6c05856d94fdb6d051b81ed9a1bcc70719576cdbc0b8ec6fe95d41091",
+      "base_source_sha256_after_removal": "9a410c969f6a12bb3ec6e2e053cc1a323cfb854d1f3c4c1828a699a76357e119"
+    },
+    "components/dnsmasq/src/dns/wire.rs": {
+      "added_attributes": 1,
+      "source_sha256": "90ab2433ea678e3418f34631f64d29ddf68d8c7c50826258cee8181762a6bf58",
+      "base_source_sha256_after_removal": "13f9a954c09ff296d40f27c4925528aad15e3ba8a30e7c2e0e2d4a5ccf4082ea"
+    },
+    "components/dnsmasq/src/hosts.rs": {
+      "added_attributes": 1,
+      "source_sha256": "142538d17d828c13c8d2656b718503e3ef82eca6e6d88a3138b4da3f3a86bb1a",
+      "base_source_sha256_after_removal": "0dac900d6933503bc166bcec4ecf2226e43bbbc2793adfecb82b1e06ed783638"
+    },
+    "components/dnsmasq/src/main.rs": {
+      "added_attributes": 6,
+      "source_sha256": "3a71a03acfc3d4130da40cf613af84865185d9dfe6a756e198b5a127eefe00b1",
+      "base_source_sha256_after_removal": "3cd3c5b793b2551d37ae963b546fac5794e43f4c697b19d0b16b862c3753b431"
+    },
+    "components/dnsmasq/src/net.rs": {
+      "added_attributes": 2,
+      "source_sha256": "956cf4ce7144b01f12725ac2097d5a3f9308fc255ee000ee4ef77311f38da9b9",
+      "base_source_sha256_after_removal": "b0ebaba5a387523ae4ce577cd2e9b38609d143d375d9eaff0f0141949a99d390"
+    }
+  },
+  "attribute_count": 22,
+  "distinct_source_section_names": 22,
+  "all_attributes_target_linux_only": true,
+  "each_suffix_matches_its_attached_function_identifier": true,
+  "removing_exact22_attribute_lines_restores_every_changed_file_to9e_bytes_and_modes": true,
+  "only8_files22_added_lines_zero_other_edits": true,
+  "replacing_unique_section_names_with_old_common_name_restores_exactFFC_sources": true,
+  "annotated_functions": [
+    {
+      "path": "components/dnsmasq/src/dns/cache.rs",
+      "function": "names_for",
+      "section": ".text.hot.dnsmasq.names_for"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache.rs",
+      "function": "inspect_name",
+      "section": ".text.hot.dnsmasq.inspect_name"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache.rs",
+      "function": "single_fresh_address_id_with_hint",
+      "section": ".text.hot.dnsmasq.single_fresh_address_id_with_hint"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_engine.rs",
+      "function": "answer_from_cache",
+      "section": ".text.hot.dnsmasq.answer_from_cache"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_engine.rs",
+      "function": "answer_records_filtered",
+      "section": ".text.hot.dnsmasq.answer_records_filtered"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_engine.rs",
+      "function": "answer_fresh_address",
+      "section": ".text.hot.dnsmasq.answer_fresh_address"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon.rs",
+      "function": "answer_udp_prepared_with_local",
+      "section": ".text.hot.dnsmasq.answer_udp_prepared_with_local"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon.rs",
+      "function": "poll_inner",
+      "section": ".text.hot.dnsmasq.poll_inner"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon.rs",
+      "function": "answer_local_or_cached",
+      "section": ".text.hot.dnsmasq.answer_local_or_cached"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/local.rs",
+      "function": "answer_parsed_with_query_events",
+      "section": ".text.hot.dnsmasq.answer_parsed_with_query_events"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/local.rs",
+      "function": "cached_address_is_unclaimed",
+      "section": ".text.hot.dnsmasq.cached_address_is_unclaimed"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/local.rs",
+      "function": "query_dotted_name",
+      "section": ".text.hot.dnsmasq.query_dotted_name"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/wire.rs",
+      "function": "find_pseudoheader",
+      "section": ".text.hot.dnsmasq.find_pseudoheader"
+    },
+    {
+      "path": "components/dnsmasq/src/hosts.rs",
+      "function": "name_exists_canonical",
+      "section": ".text.hot.dnsmasq.name_exists_canonical"
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "function": "wait_for_files",
+      "section": ".text.hot.dnsmasq.wait_for_files"
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "function": "step",
+      "section": ".text.hot.dnsmasq.step"
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "function": "admit_udp",
+      "section": ".text.hot.dnsmasq.admit_udp"
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "function": "step_udp",
+      "section": ".text.hot.dnsmasq.step_udp"
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "function": "process_admitted_udp",
+      "section": ".text.hot.dnsmasq.process_admitted_udp"
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "function": "process_udp",
+      "section": ".text.hot.dnsmasq.process_udp"
+    },
+    {
+      "path": "components/dnsmasq/src/net.rs",
+      "function": "receive",
+      "section": ".text.hot.dnsmasq.receive"
+    },
+    {
+      "path": "components/dnsmasq/src/net.rs",
+      "function": "send_with_interface",
+      "section": ".text.hot.dnsmasq.send_with_interface"
+    }
+  ],
+  "source_scope": [
+    "Function bodies, signatures, visibility, symbols naming directives, cfg logic, existing inline attributes, Cargo flags/profiles/linker options and tests are unchanged.",
+    "Linux compilation requests .text.hot.dnsmasq.<function> for each of22 function definitions. Non-Linux compilation omits these cfg_attr payloads; non-Linux test success does not establish Linux linker behavior.",
+    "Final per-definition names avoid deliberately placing all22 unrelated definitions in one requested common input-section name. They do not guarantee22 emitted ELF sections or per-monomorphization garbage collection: LTO, inlining, elimination, coalescing and linker placement remain actual artifact behavior."
+  ],
+  "linkage_limits": [
+    "Source equivalence after attribute removal does not imply machine-code/layout equivalence. Placement, alignment, code retention, address offsets and size may change and remain unqualified here.",
+    "No export_name, no_mangle, ABI or linker-script changes were added. This source-only review does not attest actual section flags, PT_LOAD mapping, garbage collection, map attribution or security enforcement.",
+    "If separately selected, the unchanged canonical SDK/static ELF/payload/budget and original functional/runtime gates still apply. No parser, new runner, gate waiver or framework change is proposed.",
+    "No performance improvement, additive function cost or isolated causality is inferred from section names or source annotations."
+  ],
+  "retained_reviewer_token_normalization_failure": {
+    "failure": "Unquoted string replacement normalized the step prefix inside step_udp while reconstructing the historical common-section predecessor.",
+    "correction": "Replace only exact quoted section-name tokens; direct22-attribute removal check and source are unchanged.",
+    "failed_script_sha256": "55703ba14d3803e0bca6d1dd7594d5b82f49ad8feb60098e603c2f8d29e40aff",
+    "product_or_binary_rerun": false
+  },
+  "independent_prototypes_not_combined": true,
+  "selected9e_sources_or_running_measurements_changed": false,
+  "reviewer_test_build_codegen_binary_or_remote_execution": false,
+  "candidate_runtime_or_SDK_qualified": false,
+  "reviewer_script_sha256": "033dd99db8922dd33c84b130a2535e21801ed48f8e54e932176c559ab980dbaa"
+}
