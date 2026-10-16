@@ -1,0 +1,68 @@
+{
+  "status": "PASS_CURRENT_CACHE_SOURCE_SEMANTICS_AND_LOCAL_COUNT_AUDIT",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_files": {
+    "components/dnsmasq/src/dns/cache.rs": "0204d6723d0bd2979084119bffebb2d03461ff9f66468af297532684439cac68",
+    "components/dnsmasq/src/dns/cache_engine.rs": "fe673cb8a81bf2c24967ab9b7626272536af1030895d7419d946ae6b53564430",
+    "components/dnsmasq/src/dns/cache_tests.rs": "d44de37b06786a6afb9eb4166c36aa4e2645338eb0920325889a6658bdf16b50"
+  },
+  "findings": [],
+  "immutable_record_boundary": [
+    "Record stillownsplainName/Kind/bool/Vec data withnointerior mutability; publicRecord andArc<Record> are unchanged.",
+    "UniqueEntry constructor derivesDetails from the sameownedRecord immediately beforeArc::new; no internalRecord mutation orpublicmutableEntry access exists.",
+    "Cache.get/entries returnshared references; externalEntry/Arc clones cannot mutatecache payload. Arc::make_mut affects theexternalcopy while anycacheowns theoriginal. Ifallcachesdrop, nointernalfastpath can observe latercaller mutation.",
+    "Newpositive_address helper ispub(super) and its two production usesread directlyfromCache.get. It is not ageneral mutableEntry cache; any futureRecordmutator wouldneed an invariant review."
+  ],
+  "preserved_cases": [
+    "Only nonnegative forwardKindIpv4 with4bytes andKindIpv6 with16bytes inline. Malformed lengths,reverse/generic/NXDOMAIN,negative andwrong-family cases reject or retainexisting fallback.",
+    "EveryCNAME andnegative record usesOther, retaining independenttarget plusauthority fields. Both setters changeonly their originalfield, and generation/negative/kind rejection gates remain.",
+    "is_cname discriminator is equivalent for allcache-ownedEntries byconstruction; dynamic/local target lifetime and leasegeneration invalidation unchanged.",
+    "ContentBlock COW derivesClone forRecordArc andDetails together; parent/child metadata independence anddrop ownership are preserved.",
+    "Transfer preserves original serialization: originaldata for non-CNAME, emptydata for CNAME, andnegativeauthority via theexistinggetter. CNAMEtarget remainsreconstructed from preceding insertion; import rederivesDetails through originalinsert after thatrewrite.",
+    "Freshhint owner/namepointer/roots/revision/generation andexactstale/expiry predicates unchanged. Writer emits identicalselected4/16 bytes; logging andTTL/wirelimit paths unchanged."
+  ],
+  "existing_tests": {
+    "raw_logs_rehashed": true,
+    "Mac_lib_passed": 727,
+    "failed": 0,
+    "ignored": 8,
+    "musl_all_targets_check": true,
+    "new_address_cases": 48,
+    "original_40cc86fe_dual_metadata_test_byte_identical": true,
+    "all_preexisting_cache_tests_unchanged": true,
+    "fresh_hint_and_general_writer_parity_tests_observed_pass": true,
+    "reviewer_reran_tests": false
+  },
+  "local_count_evidence": {
+    "rows_sha256": "0f233b49f3b9aa2ef791c7ed2ac03a7f52643d1bf766ebd203cb76709376dd16",
+    "commands_sha256": "bb74ea4cd1ffdc0f0b7f94423899c847bb44b2213912d38f368f789b178ce163",
+    "probe_sha256": "c43d5a931411a15c592943e684b9449e55bc825d7d2bdaca85c030c84759bc07",
+    "command_count": 20,
+    "count_runs": 16,
+    "paired_conditions": 8,
+    "all_fields_except_side_exact_equal": true,
+    "all_raw_stdout_stderr_hashes_checked": true,
+    "layout_Cache_Entry_OptionEntry_Record": [
+      224,
+      72,
+      72,
+      56
+    ],
+    "all_completed": 20,
+    "errors": 0,
+    "all_snapshot_live_deltas_zero_after_drop": true,
+    "all_population_live_bytes_released_on_drop": true,
+    "scope": "Existing local count-onlyfixture, timings disabled/zero; identical requestedallocation counts/bytes inthese8conditions, not SDK memory,RSS,CPU or latency evidence."
+  },
+  "limits": [
+    "This is local source/retainedtest/count evidence only; no fresh Linux/exactC matrix, SDK artifact, timing or productqualification.",
+    "Localcodegen+976B is reported separately byauthor andnot used to inferCPU,SDK budget oracceptance here.",
+    "DerivedDebug representation/opaqueinternal layout is not thewirecontract; productionreply/logging callers readoriginalfields/getters."
+  ],
+  "product_changes_required": false,
+  "reviewer_product_changes": false,
+  "remote_accessed": false,
+  "SDK_or_timing_run": false,
+  "mixed_with_current6ab_or803": false
+}
