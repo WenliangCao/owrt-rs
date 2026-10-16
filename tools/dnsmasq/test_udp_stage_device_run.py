@@ -96,17 +96,21 @@ class StageGateTests(unittest.TestCase):
             self.assertTrue(all(row['mode'] is None for row in rows))
             self.assertEqual(stage.ARTIFACT_ROLES, {'exact-c', 'e', 'f', 'cached-zero-frame'})
 
-    def test_thread_local_handles_compares_only_new_g_controls(self):
-        import udp_thread_local_handles_device_run as entry
-        with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
-                            ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
-            entry.configure()
-            rows = schedule()
-            self.assertEqual(len(rows), 10)
-            self.assertEqual([row['side'] for row in rows], ['c', 'rust', 'rust', 'c', 'c', 'rust', 'rust', 'c', 'c', 'rust'])
-            self.assertEqual({row['artifact'] for row in rows if row['side'] == 'c'}, {'g'})
-            self.assertEqual({row['artifact'] for row in rows if row['side'] == 'rust'}, {'udp-thread-local-handles'})
-            self.assertTrue(all(row['mode'] is None for row in rows))
+    def test_g_based_prototypes_compare_only_new_g_controls(self):
+        import udp_thread_local_handles_device_run as handles
+        import opt2_codegen_device_run as opt2
+        for entry, role in ((handles, 'udp-thread-local-handles'), (opt2, 'opt2-codegen')):
+            with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
+                                ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
+                entry.configure()
+                rows = schedule()
+                self.assertEqual(len(rows), 10)
+                self.assertEqual([row['side'] for row in rows], ['c', 'rust', 'rust', 'c', 'c', 'rust', 'rust', 'c', 'c', 'rust'])
+                self.assertEqual({row['artifact'] for row in rows if row['side'] == 'c'}, {'g'})
+                self.assertEqual({row['artifact'] for row in rows if row['side'] == 'rust'}, {role})
+                self.assertTrue(all(row['mode'] is None for row in rows))
+                self.assertEqual(stage.ARTIFACT_ROLES, {'e', 'f', 'g', role})
+                self.assertEqual(stage.EXPERIMENT_ROLE, role)
 
     def test_cached_local_name_uses_accepted_e_and_preserves_f_restore_role(self):
         import cached_local_name_device_run as names

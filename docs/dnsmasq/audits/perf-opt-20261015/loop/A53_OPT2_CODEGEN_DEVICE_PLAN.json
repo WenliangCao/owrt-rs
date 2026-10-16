@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "status": "LOCAL PREPARATION ONLY; exact803 relatedLinux/SDK/artifactreview pending; no device action",
+  "scope": "Independent freshG185/803 opt-level2 UDP-hit A53ten exploratory comparison. Shipping compilerprofile is the only product variable; knowncfg(test) hostsfixture repair is separately recorded. Not fullqualification or deployment.",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "forbidden_substitution": "Only exact803 source and actual independentlyreviewedopt2 SDK. Never6ab,210,a15,instrumentedcountELF orcombinedsource.",
+  "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "related_linux_report_sha256": null,
+  "related_linux_verified_receipt_sha256": null,
+  "entry_sha256": "88c67afbad2d69551f56f28894e63cb03c12442e7e67534dbd825038f997cb31",
+  "artifacts": {
+    "e": {
+      "name": "a53-opt2-codegen-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-opt2-codegen-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "g": {
+      "name": "a53-opt2-codegen-artifact-g",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    },
+    "opt2-codegen": {
+      "name": "a53-opt2-codegen-artifact-opt2-codegen",
+      "sha256": null
+    }
+  },
+  "schedule": [
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r1-c"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 1,
+      "side": "rust",
+      "artifact": "opt2-codegen",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r1-rust"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 2,
+      "side": "rust",
+      "artifact": "opt2-codegen",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r2-rust"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r2-c"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r3-c"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 3,
+      "side": "rust",
+      "artifact": "opt2-codegen",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r3-rust"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 4,
+      "side": "rust",
+      "artifact": "opt2-codegen",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r4-rust"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r4-c"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r5-c"
+    },
+    {
+      "group": "g-vs-opt2-codegen",
+      "round": 5,
+      "side": "rust",
+      "artifact": "opt2-codegen",
+      "mode": null,
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r5-rust"
+    }
+  ],
+  "execution_started": false,
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "pending_before_launch": [
+    "Bind actualoriginalrelated803Linux gates andsource/builder/artifact reviews; never inferpass fromG or6ab.",
+    "Exact803 SDK ELF/map/build receipt delivered,179 source identities andactualeffectiveopt2flags verified withindependentopt2builder; originalbudget unchanged.",
+    "Prior6abten alreadycomplete/archived/restored; nohistoricalpooling orcountinstrumentation in either timedside.",
+    "Newfresh125shealth, originalprod/slot/tool/offline/idle/recovery gates; sameoriginalten/W/direction/>8ticks andallraw."
+  ],
+  "count_diagnostic_not_a_performance_control": true,
+  "statistics": {
+    "W": "maxrelativefullranges",
+    "paired_direction_minimum": 4,
+    "pairs": 5,
+    "CPU": "everywindow>=10ticks andmediandelta>8ticks",
+    "measurement_seconds": 20,
+    "CPU_denominator": 5000
+  },
+  "restore_only": [
+    "e",
+    "f"
+  ],
+  "compiler_profile": {
+    "baseline_release_opt_level": 3,
+    "experiment_release_opt_level": 2,
+    "actual_effective_compiler_arguments_verified": null,
+    "other_release_settings_unchanged": [
+      "lto=true",
+      "codegen-units=1",
+      "panic=abort",
+      "strip=true"
+    ],
+    "source_and_artifact_combination": "Independent803 only, no6ab or210 overlay."
+  },
+  "independent_opt2_builder": {
+    "commit": "08ccde52",
+    "path": "tools/dnsmasq/perf_opt_sdk_build_opt2.py",
+    "sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
+    "review_commit": "f26d9261",
+    "review_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/185-opt2-sdk-builder-independent-review.json",
+    "review_sha256": "9994d56c0c4100f301480f6a6690051c489cc0cf497882070b5d4e1160cde6fe",
+    "review_status": "PASS_LOCAL_ISOLATED_OPT2_BUILDER_COPY_AND_ORIGINAL_CONTROL_REVIEW",
+    "original_opt3_builder_unchanged": true,
+    "actual_SDK_run_completed": false
+  },
+  "source_difference": {
+    "files": [
+      "components/dnsmasq/Cargo.toml",
+      "components/dnsmasq/src/hosts.rs"
+    ],
+    "Cargo": "releaseopt-level3 to2 only",
+    "hosts": "Knownprocess-seededcollisionfixture repair onlyinsidecfg(test) modtests; shippingprefixbyteidentical.",
+    "shipping_hosts_prefix_sha256": "97926a9ae4eda08d1fdf071d245bc7ca45b0ac9e064a3d8272cc86186221996e",
+    "source_parent": "f8adb0168dff72e1ee3d4ed6de16c9b13a50c261"
+  },
+  "source_interaction_review": null,
+  "actual_related_linux_tests_passed": null,
+  "actual_SDK_review": null,
+  "required_reviews": [
+    "Exact803 source/builder plus actualoriginalrelatedLinux receipt",
+    "Actual803 opt2SDK/compiler flags/artifact identities and unchanged releasebudgets",
+    "This fixedA53ten plan/tool identity beforefreshdevicegates"
+  ]
+}

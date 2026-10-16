@@ -15,3 +15,5 @@ CPU 中位 tick 差为 3；门限要求严格大于 8，并同时满足 W 与同
 归档：10 份 tar / 430 个原始文件，314 次单线程观察。全部失败、异常与极值保留规则未改变；本轮未补跑。
 
 [完整结果](A53_UDP_THREAD_LOCAL_HANDLES_DEVICE_RESULT.json) · [固定计划](A53_UDP_THREAD_LOCAL_HANDLES_DEVICE_PLAN.json)
+
+独立审计通过：`5a2263a1`，[十窗、原始计数与恢复复核](../correctness/udp-thread-local-handles-device-independent-audit.json)。
