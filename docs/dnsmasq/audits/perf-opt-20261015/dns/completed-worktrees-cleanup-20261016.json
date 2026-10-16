@@ -1826,11 +1826,63 @@
         }
       ],
       "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-d2-udp-fast-dispatch-20261016",
+      "status": "removed",
+      "head": "2f7fe9aa48391d8933fc1e4579cc2cb37223f1c5",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-d2-udp-fast-dispatch-20261016-20261016",
+      "original_branch": "perf/d2-udp-fast-dispatch-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Explicitly retired after replacement by the local-rule-aware D2/combined prototypes; no active process/open file or current batch input reference.",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d2-udp-fast-dispatch-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d2-udp-fast-dispatch-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d2-udp-fast-dispatch-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d2-udp-fast-dispatch-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "private_contents_rehashed_after_move": true,
+      "private_regular_files": 16,
+      "private_regular_bytes": 176864,
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-d1-d2-combined-20261016",
+      "status": "removed",
+      "head": "57087ce1e49978c86c10308291ff89b9ea925e0a",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-d1-d2-combined-20261016-20261016",
+      "original_branch": "perf/dnsmasq-d1-d2-combined-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Explicitly retired after replacement by the local-rule-aware D2/combined prototypes; no active process/open file or current batch input reference.",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-d2-combined-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-d2-combined-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-d2-combined-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-d2-combined-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "private_contents_rehashed_after_move": true,
+      "private_regular_files": 9,
+      "private_regular_bytes": 104180,
+      "obsolete_branch_deleted": true
     }
   ],
-  "removed_worktrees": 88,
-  "removed_obsolete_branches": 37,
-  "preserved_tags": 88,
+  "removed_worktrees": 90,
+  "removed_obsolete_branches": 39,
+  "preserved_tags": 90,
   "preserved_active_worktrees": [
     "/Users/USER/Developer/owrt-control-plane-rs",
     "/Users/USER/Developer/owrt-perf-opt-20261015",
@@ -1896,10 +1948,11 @@
     }
   ],
   "latest_batch": {
-    "worktrees_before": 102,
-    "removed": 76,
-    "skipped_candidates": 8,
-    "explicitly_preserved": 18,
-    "worktrees_after": 26
+    "worktrees_before": 34,
+    "removed": 2,
+    "skipped_candidates": 0,
+    "explicitly_preserved": 32,
+    "worktrees_after": 32,
+    "scope": "Only the two explicitly retired old D2 and D1+D2 prototypes; all other worktrees and branches preserved."
   }
 }
