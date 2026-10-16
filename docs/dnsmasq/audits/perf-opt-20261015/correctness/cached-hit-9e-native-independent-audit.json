@@ -1,0 +1,2807 @@
+{
+  "status": "PASS_EXACT_G9E_NATIVE240_FULL_RAW_AND_DERIVED_STATISTICS",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "summary_sha256": "9d9168cf8711e2b2633966072df423d1ed74044a55def55cb43f0ccf9b3a761d",
+  "plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+  "archive_sha256": "9cb6efe5e7e0597be6f7705e9c9a921fbc9f57ec17aab8ac319d48294965f913",
+  "collection_sha256": "f772b6079fc8ecfc2e5fa091d837dc818f3b52c9ada0020b0ad68706bd0b5eaf",
+  "native_directory_files_verified": 592,
+  "original_command_log_and_CSV_files_verified": 578,
+  "probe_JSON_rows_reparsed": 240,
+  "stat_windows": 90,
+  "plain_windows": 150,
+  "commands": 244,
+  "all180_user_PMU_events_unscaled_same_group_same_window": true,
+  "source_files_rehashed_against_Git_each": 162,
+  "both_native_probe_ELFs_independently_rehashed": {
+    "G": {
+      "elf_sha256": "1edf4fb912e10441f3ab075e922fff9d9b6ee4539af48ba8f816452444dfee63",
+      "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+    },
+    "cached-hit-9e": {
+      "elf_sha256": "de2a75019a5dc93b598ae1a2e8d4434561677f9faa49b403bbf3a02452c08f68",
+      "rlib_sha256": "891d02c0c3428c1609cdd8204c86f7e4d561070c4ca7ceb6b603da870e7b52f9"
+    }
+  },
+  "all15_CPU_and_PMU_IPC_statistics_independently_recomputed": true,
+  "counts": {
+    "faster": 12,
+    "slower": 0,
+    "within_variation_or_resolution": 3
+  },
+  "summaries": [
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 426.976,
+          "min": 426.733,
+          "max": 438.169,
+          "rounds": [
+            426.8395,
+            431.267,
+            438.169,
+            426.976,
+            426.733
+          ]
+        },
+        "right": {
+          "median": 389.376,
+          "min": 388.4145,
+          "max": 393.1005,
+          "rounds": [
+            389.2975,
+            390.0325,
+            393.1005,
+            389.376,
+            388.4145
+          ]
+        },
+        "relative_change_pct": -8.8061155662145,
+        "W_pct": 2.678370681256084,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.81011,
+          "cycles:u": 1287.2345,
+          "ipc": 2.601388880580811
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3089.634055,
+          "cycles:u": 1182.58361,
+          "ipc": 2.61261362737811
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.739347603677649,
+        "cycles:u": -8.129900962101322,
+        "ipc": 0.43149053496349676
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 442.4235,
+          "min": 441.7175,
+          "max": 442.904,
+          "rounds": [
+            442.904,
+            442.169,
+            441.7175,
+            442.4235,
+            442.582
+          ]
+        },
+        "right": {
+          "median": 410.9035,
+          "min": 410.08,
+          "max": 411.9005,
+          "rounds": [
+            410.08,
+            410.5995,
+            410.9035,
+            411.9005,
+            411.8245
+          ]
+        },
+        "relative_change_pct": -7.124395516965077,
+        "W_pct": 0.44304806359644977,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3484.539725,
+          "cycles:u": 1333.187685,
+          "ipc": 2.613631088258965
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3206.385305,
+          "cycles:u": 1238.908035,
+          "ipc": 2.5880401001677256
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.982529744297873,
+        "cycles:u": -7.071746241040334,
+        "ipc": -0.9791354336960545
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 555.406,
+          "min": 552.751,
+          "max": 555.8535,
+          "rounds": [
+            552.751,
+            555.491,
+            555.406,
+            553.8045,
+            555.8535
+          ]
+        },
+        "right": {
+          "median": 430.558,
+          "min": 429.5115,
+          "max": 435.741,
+          "rounds": [
+            429.5115,
+            435.741,
+            430.558,
+            430.038,
+            431.103
+          ]
+        },
+        "relative_change_pct": -22.47869126368818,
+        "W_pct": 1.4468433985665052,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 4584.536385,
+          "cycles:u": 1662.261625,
+          "ipc": 2.758011323879296
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3465.168175,
+          "cycles:u": 1297.60858,
+          "ipc": 2.670356140832546
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -24.416170273234737,
+        "cycles:u": -21.93716317068921,
+        "ipc": -3.178202434769495
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 427.561,
+          "min": 426.6355,
+          "max": 429.411,
+          "rounds": [
+            429.411,
+            427.2175,
+            428.5005,
+            426.6355,
+            427.561
+          ]
+        },
+        "right": {
+          "median": 389.8235,
+          "min": 389.1535,
+          "max": 390.5035,
+          "rounds": [
+            390.358,
+            389.8235,
+            389.658,
+            389.1535,
+            390.5035
+          ]
+        },
+        "relative_change_pct": -8.826225965417791,
+        "W_pct": 0.6491471392386168,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.879185,
+          "cycles:u": 1285.64277,
+          "ipc": 2.6048286998106014
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3089.82705,
+          "cycles:u": 1176.89521,
+          "ipc": 2.625332347983641
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.735487627034232,
+        "cycles:u": -8.4586140518645,
+        "ipc": 0.7871399825458925
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 387.3195,
+          "min": 386.3925,
+          "max": 389.162,
+          "rounds": [
+            386.746,
+            389.162,
+            386.3925,
+            387.3195,
+            388.9675
+          ]
+        },
+        "right": {
+          "median": 378.678,
+          "min": 377.384,
+          "max": 379.738,
+          "rounds": [
+            379.674,
+            377.384,
+            379.738,
+            378.678,
+            378.4755
+          ]
+        },
+        "relative_change_pct": -2.2311037786633534,
+        "W_pct": 0.7150427489449908,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 2977.223865,
+          "cycles:u": 1160.90529,
+          "ipc": 2.56457122785615
+        },
+        "cached-hit-9e": {
+          "instructions:u": 2870.4063,
+          "cycles:u": 1132.0013,
+          "ipc": 2.535691699293985
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.587824424482766,
+        "cycles:u": -2.4897801955920174,
+        "ipc": -1.1260957874157707
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 486.2355,
+          "min": 485.414,
+          "max": 488.84,
+          "rounds": [
+            485.414,
+            488.84,
+            487.002,
+            485.835,
+            486.2355
+          ]
+        },
+        "right": {
+          "median": 407.0985,
+          "min": 405.5,
+          "max": 411.271,
+          "rounds": [
+            407.735,
+            411.271,
+            407.0985,
+            405.5,
+            405.542
+          ]
+        },
+        "relative_change_pct": -16.27544677424828,
+        "W_pct": 1.4175930395223797,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3862.863535,
+          "cycles:u": 1455.245195,
+          "ipc": 2.654446740846308
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3136.471535,
+          "cycles:u": 1218.467335,
+          "ipc": 2.57410462300165
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -18.804495510090547,
+        "cycles:u": -16.270650527727724,
+        "ipc": -3.026699183990511
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 880.649,
+          "min": 874.091,
+          "max": 898.0115,
+          "rounds": [
+            880.8375,
+            880.649,
+            879.4375,
+            898.0115,
+            874.091
+          ]
+        },
+        "right": {
+          "median": 863.38,
+          "min": 853.4665,
+          "max": 892.365,
+          "rounds": [
+            863.38,
+            871.27,
+            892.365,
+            853.4665,
+            862.627
+          ]
+        },
+        "relative_change_pct": -1.960940170260797,
+        "W_pct": 4.5053742268757695,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6932.15378,
+          "cycles:u": 2671.40399,
+          "ipc": 2.5949477525486513
+        },
+        "cached-hit-9e": {
+          "instructions:u": 6628.494935,
+          "cycles:u": 2604.91423,
+          "ipc": 2.5425726455621156
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.380440114818107,
+        "cycles:u": -2.48894439960764,
+        "ipc": -2.0183491916203278
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1713.216,
+          "min": 1594.9905,
+          "max": 1810.219,
+          "rounds": [
+            1594.9905,
+            1764.651,
+            1810.219,
+            1713.216,
+            1624.4145
+          ]
+        },
+        "right": {
+          "median": 1624.094,
+          "min": 1594.9275,
+          "max": 1655.0445,
+          "rounds": [
+            1609.2575,
+            1594.9275,
+            1655.0445,
+            1624.094,
+            1629.903
+          ]
+        },
+        "relative_change_pct": -5.2020293996787235,
+        "W_pct": 12.56283504239979,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12997.193245,
+          "cycles:u": 4908.642975,
+          "ipc": 2.656305273236114
+        },
+        "cached-hit-9e": {
+          "instructions:u": 12806.31403,
+          "cycles:u": 4894.838505,
+          "ipc": 2.6024570914938856
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.4686187348443958,
+        "cycles:u": -0.2812278275341473,
+        "ipc": -2.0271834824401203
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6707.215,
+          "min": 6698.795,
+          "max": 6718.12,
+          "rounds": [
+            6707.215,
+            6698.795,
+            6713.02,
+            6700.525,
+            6718.12
+          ]
+        },
+        "right": {
+          "median": 6673.71,
+          "min": 6666.215,
+          "max": 6702.23,
+          "rounds": [
+            6693.385,
+            6673.71,
+            6702.23,
+            6666.215,
+            6667.14
+          ]
+        },
+        "relative_change_pct": -0.4995366929493107,
+        "W_pct": 0.5396548546460578,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 58286.085605,
+          "cycles:u": 19964.90961,
+          "ipc": 2.919426470922049
+        },
+        "cached-hit-9e": {
+          "instructions:u": 57969.16135,
+          "cycles:u": 19850.42825,
+          "ipc": 2.9234343669802665
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.5437391303779959,
+        "cycles:u": -0.5734128640515146,
+        "ipc": 0.13728367876830738
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 827.9905,
+          "min": 826.7345,
+          "max": 834.4125,
+          "rounds": [
+            827.062,
+            832.1795,
+            826.7345,
+            827.9905,
+            834.4125
+          ]
+        },
+        "right": {
+          "median": 809.2215,
+          "min": 806.199,
+          "max": 821.495,
+          "rounds": [
+            809.492,
+            809.2215,
+            808.395,
+            821.495,
+            806.199
+          ]
+        },
+        "relative_change_pct": -2.2668134477388335,
+        "W_pct": 1.890211765258344,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6590.617365,
+          "cycles:u": 2494.105425,
+          "ipc": 2.642477458626273
+        },
+        "cached-hit-9e": {
+          "instructions:u": 6388.81461,
+          "cycles:u": 2411.288015,
+          "ipc": 2.649544380537221
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.061970431961192,
+        "cycles:u": -3.3205256349578716,
+        "ipc": 0.2674354662091094
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 720.418,
+          "min": 719.321,
+          "max": 724.4075,
+          "rounds": [
+            720.2045,
+            724.4075,
+            720.9985,
+            720.418,
+            719.321
+          ]
+        },
+        "right": {
+          "median": 633.216,
+          "min": 631.823,
+          "max": 633.9155,
+          "rounds": [
+            631.823,
+            633.9155,
+            631.873,
+            633.216,
+            633.862
+          ]
+        },
+        "relative_change_pct": -12.104361634495527,
+        "W_pct": 0.7060484329930681,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 5818.721205,
+          "cycles:u": 2173.02784,
+          "ipc": 2.677702097456791
+        },
+        "cached-hit-9e": {
+          "instructions:u": 4894.897445,
+          "cycles:u": 1886.808845,
+          "ipc": 2.5942604588542726
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -15.876748987495104,
+        "cycles:u": -13.17143709488785,
+        "ipc": -3.116165860338571
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1515.1165,
+          "min": 1514.8335,
+          "max": 1520.943,
+          "rounds": [
+            1514.9475,
+            1515.7835,
+            1520.943,
+            1514.8335,
+            1515.1165
+          ]
+        },
+        "right": {
+          "median": 1449.608,
+          "min": 1446.756,
+          "max": 1452.4755,
+          "rounds": [
+            1452.4755,
+            1451.3485,
+            1446.756,
+            1448.1905,
+            1449.608
+          ]
+        },
+        "relative_change_pct": -4.323660919803865,
+        "W_pct": 0.4032363187913289,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12758.66796,
+          "cycles:u": 4527.505655,
+          "ipc": 2.818035211266898
+        },
+        "cached-hit-9e": {
+          "instructions:u": 12161.68382,
+          "cycles:u": 4319.78327,
+          "ipc": 2.815345830995822
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.67904754533639,
+        "cycles:u": -4.58800939918429,
+        "ipc": -0.09543458720185916
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1083.6255,
+          "min": 1081.8265,
+          "max": 1090.0905,
+          "rounds": [
+            1083.6255,
+            1081.8265,
+            1081.8745,
+            1090.0905,
+            1087.99
+          ]
+        },
+        "right": {
+          "median": 1057.5365,
+          "min": 1054.329,
+          "max": 1057.9285,
+          "rounds": [
+            1054.774,
+            1054.329,
+            1057.712,
+            1057.5365,
+            1057.9285
+          ]
+        },
+        "relative_change_pct": -2.407566082562672,
+        "W_pct": 0.7626250951089766,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 8731.33523,
+          "cycles:u": 3231.355865,
+          "ipc": 2.702181495878047
+        },
+        "cached-hit-9e": {
+          "instructions:u": 8531.77492,
+          "cycles:u": 3164.172925,
+          "ipc": 2.6963680943575485
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -2.2855646329364543,
+        "cycles:u": -2.0790944361060104,
+        "ipc": -0.21513734474780666
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1345.69,
+          "min": 1341.2215,
+          "max": 1346.578,
+          "rounds": [
+            1345.69,
+            1346.5645,
+            1344.852,
+            1346.578,
+            1341.2215
+          ]
+        },
+        "right": {
+          "median": 1096.783,
+          "min": 1094.916,
+          "max": 1099.9,
+          "rounds": [
+            1096.783,
+            1094.916,
+            1098.446,
+            1099.9,
+            1096.592
+          ]
+        },
+        "relative_change_pct": -18.49660768824916,
+        "W_pct": 0.45441988068744243,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 11226.185635,
+          "cycles:u": 4028.23162,
+          "ipc": 2.7868768963687347
+        },
+        "cached-hit-9e": {
+          "instructions:u": 8935.600755,
+          "cycles:u": 3284.1304,
+          "ipc": 2.7206809266769674
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -20.40394622425109,
+        "cycles:u": -18.47215577936405,
+        "ipc": -2.3752742641061753
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 23002.775,
+          "min": 22959.425,
+          "max": 23046.31,
+          "rounds": [
+            22999.74,
+            23002.775,
+            23044.17,
+            23046.31,
+            22959.425
+          ]
+        },
+        "right": {
+          "median": 22875.81,
+          "min": 22849.77,
+          "max": 22896.9,
+          "rounds": [
+            22875.81,
+            22864.02,
+            22888.21,
+            22849.77,
+            22896.9
+          ]
+        },
+        "relative_change_pct": -0.5519551445423438,
+        "W_pct": 0.37771529739347554,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 220043.51008,
+          "cycles:u": 68422.54175,
+          "ipc": 3.2154868944195574
+        },
+        "cached-hit-9e": {
+          "instructions:u": 219911.368465,
+          "cycles:u": 68084.470545,
+          "ipc": 3.2299783886789717
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.06005249368725707,
+        "cycles:u": -0.4940933153802396,
+        "ipc": 0.4506780694570445
+      }
+    }
+  ],
+  "postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+  "limits": [
+    "Native probe measures whole-process CPU including setup/teardown; original W and direction test has no daemon100Hz tick gate.",
+    "Zero allocation counters reflect allocation_tracking disabled in original probe build; they do not prove zero allocations.",
+    "Native library screen omits SinglePoll, owner recycling, socket Rc and clock costs; no SDK/device/full qualification inference.",
+    "Native rlib bytes were not in this directory transfer; their hashes remain in the original build receipt.",
+    "The source maps are independently rehashed against local Git; remote contents are bound by recorded runner/postflight checks, not reviewer live remote reads.",
+    "Library build logs are not verbose; actual probe rustc argv and library cargo argv/profile are verified, not individual library rustc command lines."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "reviewer_remote_capture_or_build": false,
+  "audit_script_sha256": "78182c7fafe8fa3573b6814c60a1758caa054db221518d48b1001cbc61fd277f",
+  "original_audit_script_sha256": "0032b6a777fd23129ac99d08f7f7845cdfc6bb150c6f6ccb95ef20005cd21d30",
+  "archive_bytes": 1541825,
+  "comparison_scope": "Direct G185 versus combined9e includes inherited6ab and multiple independently developed changes; no isolated component attribution.",
+  "rule": {
+    "formula": "abs(delta) > W and same_direction_pairs >= 4 of 5",
+    "strict_width_comparison": true,
+    "daemon_tick_gate_applicable": false
+  },
+  "observations": [
+    {
+      "label": "cached-hit-9e-hit-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082285,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669762022,
+          "enabled_ns": 89607800,
+          "running_ns": 89607800,
+          "per_operation": 3348.81011
+        },
+        "cycles:u": {
+          "raw_count": 257466047,
+          "enabled_ns": 89607800,
+          "running_ns": 89607800,
+          "per_operation": 1287.330235
+        }
+      },
+      "ipc": 2.601360566972157
+    },
+    {
+      "label": "cached-hit-9e-hit-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082291,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 617910572,
+          "enabled_ns": 82054840,
+          "running_ns": 82054840,
+          "per_operation": 3089.55286
+        },
+        "cycles:u": {
+          "raw_count": 234841872,
+          "enabled_ns": 82054840,
+          "running_ns": 82054840,
+          "per_operation": 1174.20936
+        }
+      },
+      "ipc": 2.631177169291173
+    },
+    {
+      "label": "cached-hit-9e-hit-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082296,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 617966652,
+          "enabled_ns": 81789240,
+          "running_ns": 81789240,
+          "per_operation": 3089.83326
+        },
+        "cycles:u": {
+          "raw_count": 236544931,
+          "enabled_ns": 81789240,
+          "running_ns": 81789240,
+          "per_operation": 1182.724655
+        }
+      },
+      "ipc": 2.612470490859937
+    },
+    {
+      "label": "cached-hit-9e-hit-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082309,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669719503,
+          "enabled_ns": 88665600,
+          "running_ns": 88665600,
+          "per_operation": 3348.597515
+        },
+        "cycles:u": {
+          "raw_count": 257446900,
+          "enabled_ns": 88665600,
+          "running_ns": 88665600,
+          "per_operation": 1287.2345
+        }
+      },
+      "ipc": 2.601388880580811
+    },
+    {
+      "label": "cached-hit-9e-hit-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082315,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669774396,
+          "enabled_ns": 88216720,
+          "running_ns": 88216720,
+          "per_operation": 3348.87198
+        },
+        "cycles:u": {
+          "raw_count": 256705722,
+          "enabled_ns": 88216720,
+          "running_ns": 88216720,
+          "per_operation": 1283.52861
+        }
+      },
+      "ipc": 2.6091136215498927
+    },
+    {
+      "label": "cached-hit-9e-hit-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082320,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 617926811,
+          "enabled_ns": 81235920,
+          "running_ns": 81235920,
+          "per_operation": 3089.634055
+        },
+        "cycles:u": {
+          "raw_count": 236516722,
+          "enabled_ns": 81235920,
+          "running_ns": 81235920,
+          "per_operation": 1182.58361
+        }
+      },
+      "ipc": 2.61261362737811
+    },
+    {
+      "label": "cached-hit-9e-hit-upper-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082393,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 696907945,
+          "enabled_ns": 91701280,
+          "running_ns": 91701280,
+          "per_operation": 3484.539725
+        },
+        "cycles:u": {
+          "raw_count": 265998056,
+          "enabled_ns": 91701280,
+          "running_ns": 91701280,
+          "per_operation": 1329.99028
+        }
+      },
+      "ipc": 2.6199738279290283
+    },
+    {
+      "label": "cached-hit-9e-hit-upper-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082420,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641268735,
+          "enabled_ns": 86119760,
+          "running_ns": 86119760,
+          "per_operation": 3206.343675
+        },
+        "cycles:u": {
+          "raw_count": 247781607,
+          "enabled_ns": 86119760,
+          "running_ns": 86119760,
+          "per_operation": 1238.908035
+        }
+      },
+      "ipc": 2.5880401001677256
+    },
+    {
+      "label": "cached-hit-9e-hit-upper-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082425,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641281993,
+          "enabled_ns": 85471920,
+          "running_ns": 85471920,
+          "per_operation": 3206.409965
+        },
+        "cycles:u": {
+          "raw_count": 248343003,
+          "enabled_ns": 85471920,
+          "running_ns": 85471920,
+          "per_operation": 1241.715015
+        }
+      },
+      "ipc": 2.5822430479347953
+    },
+    {
+      "label": "cached-hit-9e-hit-upper-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082430,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 696925555,
+          "enabled_ns": 92778640,
+          "running_ns": 92778640,
+          "per_operation": 3484.627775
+        },
+        "cycles:u": {
+          "raw_count": 266885609,
+          "enabled_ns": 92778640,
+          "running_ns": 92778640,
+          "per_operation": 1334.428045
+        }
+      },
+      "ipc": 2.6113268437789765
+    },
+    {
+      "label": "cached-hit-9e-hit-upper-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082435,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 696892156,
+          "enabled_ns": 91625400,
+          "running_ns": 91625400,
+          "per_operation": 3484.46078
+        },
+        "cycles:u": {
+          "raw_count": 266637537,
+          "enabled_ns": 91625400,
+          "running_ns": 91625400,
+          "per_operation": 1333.187685
+        }
+      },
+      "ipc": 2.613631088258965
+    },
+    {
+      "label": "cached-hit-9e-hit-upper-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082440,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641277061,
+          "enabled_ns": 85353480,
+          "running_ns": 85353480,
+          "per_operation": 3206.385305
+        },
+        "cycles:u": {
+          "raw_count": 247728163,
+          "enabled_ns": 85353480,
+          "running_ns": 85353480,
+          "per_operation": 1238.640815
+        }
+      },
+      "ipc": 2.5886320442298683
+    },
+    {
+      "label": "cached-hit-9e-hit-leases-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082497,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 916907277,
+          "enabled_ns": 114250760,
+          "running_ns": 114250760,
+          "per_operation": 4584.536385
+        },
+        "cycles:u": {
+          "raw_count": 332452325,
+          "enabled_ns": 114250760,
+          "running_ns": 114250760,
+          "per_operation": 1662.261625
+        }
+      },
+      "ipc": 2.758011323879296
+    },
+    {
+      "label": "cached-hit-9e-hit-leases-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082502,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 693093606,
+          "enabled_ns": 89250760,
+          "running_ns": 89250760,
+          "per_operation": 3465.46803
+        },
+        "cycles:u": {
+          "raw_count": 259238294,
+          "enabled_ns": 89250760,
+          "running_ns": 89250760,
+          "per_operation": 1296.19147
+        }
+      },
+      "ipc": 2.6735772532124438
+    },
+    {
+      "label": "cached-hit-9e-hit-leases-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082507,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 693015408,
+          "enabled_ns": 89207960,
+          "running_ns": 89207960,
+          "per_operation": 3465.07704
+        },
+        "cycles:u": {
+          "raw_count": 259521716,
+          "enabled_ns": 89207960,
+          "running_ns": 89207960,
+          "per_operation": 1297.60858
+        }
+      },
+      "ipc": 2.670356140832546
+    },
+    {
+      "label": "cached-hit-9e-hit-leases-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082512,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 916890998,
+          "enabled_ns": 113767000,
+          "running_ns": 113767000,
+          "per_operation": 4584.45499
+        },
+        "cycles:u": {
+          "raw_count": 332114608,
+          "enabled_ns": 113767000,
+          "running_ns": 113767000,
+          "per_operation": 1660.57304
+        }
+      },
+      "ipc": 2.760766843474708
+    },
+    {
+      "label": "cached-hit-9e-hit-leases-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082517,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 916953470,
+          "enabled_ns": 113817000,
+          "running_ns": 113817000,
+          "per_operation": 4584.76735
+        },
+        "cycles:u": {
+          "raw_count": 332621640,
+          "enabled_ns": 113817000,
+          "running_ns": 113817000,
+          "per_operation": 1663.1082
+        }
+      },
+      "ipc": 2.7567462838557346
+    },
+    {
+      "label": "cached-hit-9e-hit-leases-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082522,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 693033635,
+          "enabled_ns": 89207360,
+          "running_ns": 89207360,
+          "per_operation": 3465.168175
+        },
+        "cycles:u": {
+          "raw_count": 259698307,
+          "enabled_ns": 89207360,
+          "running_ns": 89207360,
+          "per_operation": 1298.491535
+        }
+      },
+      "ipc": 2.6686105235179682
+    },
+    {
+      "label": "cached-hit-9e-hit-typed-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082544,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669807663,
+          "enabled_ns": 88566200,
+          "running_ns": 88566200,
+          "per_operation": 3349.038315
+        },
+        "cycles:u": {
+          "raw_count": 256615660,
+          "enabled_ns": 88566200,
+          "running_ns": 88566200,
+          "per_operation": 1283.0783
+        }
+      },
+      "ipc": 2.610158955225102
+    },
+    {
+      "label": "cached-hit-9e-hit-typed-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082549,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 617991906,
+          "enabled_ns": 81720440,
+          "running_ns": 81720440,
+          "per_operation": 3089.95953
+        },
+        "cycles:u": {
+          "raw_count": 236724626,
+          "enabled_ns": 81720440,
+          "running_ns": 81720440,
+          "per_operation": 1183.62313
+        }
+      },
+      "ipc": 2.610594074821772
+    },
+    {
+      "label": "cached-hit-9e-hit-typed-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082554,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 617965410,
+          "enabled_ns": 81460960,
+          "running_ns": 81460960,
+          "per_operation": 3089.82705
+        },
+        "cycles:u": {
+          "raw_count": 235357527,
+          "enabled_ns": 81460960,
+          "running_ns": 81460960,
+          "per_operation": 1176.787635
+        }
+      },
+      "ipc": 2.625645407975416
+    },
+    {
+      "label": "cached-hit-9e-hit-typed-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082559,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669775837,
+          "enabled_ns": 88622520,
+          "running_ns": 88622520,
+          "per_operation": 3348.879185
+        },
+        "cycles:u": {
+          "raw_count": 257128554,
+          "enabled_ns": 88622520,
+          "running_ns": 88622520,
+          "per_operation": 1285.64277
+        }
+      },
+      "ipc": 2.6048286998106014
+    },
+    {
+      "label": "cached-hit-9e-hit-typed-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082564,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669767859,
+          "enabled_ns": 89184000,
+          "running_ns": 89184000,
+          "per_operation": 3348.839295
+        },
+        "cycles:u": {
+          "raw_count": 258153364,
+          "enabled_ns": 89184000,
+          "running_ns": 89184000,
+          "per_operation": 1290.76682
+        }
+      },
+      "ipc": 2.594457219623913
+    },
+    {
+      "label": "cached-hit-9e-hit-typed-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082569,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 617948213,
+          "enabled_ns": 80911040,
+          "running_ns": 80911040,
+          "per_operation": 3089.741065
+        },
+        "cycles:u": {
+          "raw_count": 235379042,
+          "enabled_ns": 80911040,
+          "running_ns": 80911040,
+          "per_operation": 1176.89521
+        }
+      },
+      "ipc": 2.625332347983641
+    },
+    {
+      "label": "cached-hit-9e-miss-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082642,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 595444861,
+          "enabled_ns": 80038160,
+          "running_ns": 80038160,
+          "per_operation": 2977.224305
+        },
+        "cycles:u": {
+          "raw_count": 232181058,
+          "enabled_ns": 80038160,
+          "running_ns": 80038160,
+          "per_operation": 1160.90529
+        }
+      },
+      "ipc": 2.56457122785615
+    },
+    {
+      "label": "cached-hit-9e-miss-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082647,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 574080768,
+          "enabled_ns": 78518320,
+          "running_ns": 78518320,
+          "per_operation": 2870.40384
+        },
+        "cycles:u": {
+          "raw_count": 228106160,
+          "enabled_ns": 78518320,
+          "running_ns": 78518320,
+          "per_operation": 1140.5308
+        }
+      },
+      "ipc": 2.516726282183699
+    },
+    {
+      "label": "cached-hit-9e-miss-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082652,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 574081472,
+          "enabled_ns": 78070240,
+          "running_ns": 78070240,
+          "per_operation": 2870.40736
+        },
+        "cycles:u": {
+          "raw_count": 225673908,
+          "enabled_ns": 78070240,
+          "running_ns": 78070240,
+          "per_operation": 1128.36954
+        }
+      },
+      "ipc": 2.5438539930810258
+    },
+    {
+      "label": "cached-hit-9e-miss-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082657,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 595444773,
+          "enabled_ns": 79727280,
+          "running_ns": 79727280,
+          "per_operation": 2977.223865
+        },
+        "cycles:u": {
+          "raw_count": 231614922,
+          "enabled_ns": 79727280,
+          "running_ns": 79727280,
+          "per_operation": 1158.07461
+        }
+      },
+      "ipc": 2.5708394254494538
+    },
+    {
+      "label": "cached-hit-9e-miss-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082685,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 595444501,
+          "enabled_ns": 80146440,
+          "running_ns": 80146440,
+          "per_operation": 2977.222505
+        },
+        "cycles:u": {
+          "raw_count": 233124349,
+          "enabled_ns": 80146440,
+          "running_ns": 80146440,
+          "per_operation": 1165.621745
+        }
+      },
+      "ipc": 2.554192659643631
+    },
+    {
+      "label": "cached-hit-9e-miss-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082690,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 574081260,
+          "enabled_ns": 77746200,
+          "running_ns": 77746200,
+          "per_operation": 2870.4063
+        },
+        "cycles:u": {
+          "raw_count": 226400260,
+          "enabled_ns": 77746200,
+          "running_ns": 77746200,
+          "per_operation": 1132.0013
+        }
+      },
+      "ipc": 2.535691699293985
+    },
+    {
+      "label": "cached-hit-9e-miss-leases-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082749,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 772572707,
+          "enabled_ns": 100028440,
+          "running_ns": 100028440,
+          "per_operation": 3862.863535
+        },
+        "cycles:u": {
+          "raw_count": 292123143,
+          "enabled_ns": 100028440,
+          "running_ns": 100028440,
+          "per_operation": 1460.615715
+        }
+      },
+      "ipc": 2.6446816197647167
+    },
+    {
+      "label": "cached-hit-9e-miss-leases-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082754,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 627297814,
+          "enabled_ns": 83339840,
+          "running_ns": 83339840,
+          "per_operation": 3136.48907
+        },
+        "cycles:u": {
+          "raw_count": 242821449,
+          "enabled_ns": 83339840,
+          "running_ns": 83339840,
+          "per_operation": 1214.107245
+        }
+      },
+      "ipc": 2.583370688970726
+    },
+    {
+      "label": "cached-hit-9e-miss-leases-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082759,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 627294307,
+          "enabled_ns": 84451880,
+          "running_ns": 84451880,
+          "per_operation": 3136.471535
+        },
+        "cycles:u": {
+          "raw_count": 245352769,
+          "enabled_ns": 84451880,
+          "running_ns": 84451880,
+          "per_operation": 1226.763845
+        }
+      },
+      "ipc": 2.556703596852416
+    },
+    {
+      "label": "cached-hit-9e-miss-leases-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082764,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 772529777,
+          "enabled_ns": 99490040,
+          "running_ns": 99490040,
+          "per_operation": 3862.648885
+        },
+        "cycles:u": {
+          "raw_count": 290807983,
+          "enabled_ns": 99490040,
+          "running_ns": 99490040,
+          "per_operation": 1454.039915
+        }
+      },
+      "ipc": 2.6564943954788203
+    },
+    {
+      "label": "cached-hit-9e-miss-leases-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082769,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 772574173,
+          "enabled_ns": 99703480,
+          "running_ns": 99703480,
+          "per_operation": 3862.870865
+        },
+        "cycles:u": {
+          "raw_count": 291049039,
+          "enabled_ns": 99703480,
+          "running_ns": 99703480,
+          "per_operation": 1455.245195
+        }
+      },
+      "ipc": 2.654446740846308
+    },
+    {
+      "label": "cached-hit-9e-miss-leases-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082774,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 627292480,
+          "enabled_ns": 83836840,
+          "running_ns": 83836840,
+          "per_operation": 3136.4624
+        },
+        "cycles:u": {
+          "raw_count": 243693467,
+          "enabled_ns": 83836840,
+          "running_ns": 83836840,
+          "per_operation": 1218.467335
+        }
+      },
+      "ipc": 2.57410462300165
+    },
+    {
+      "label": "cached-hit-9e-host-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082789,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1386430756,
+          "enabled_ns": 181953440,
+          "running_ns": 181953440,
+          "per_operation": 6932.15378
+        },
+        "cycles:u": {
+          "raw_count": 534280798,
+          "enabled_ns": 181953440,
+          "running_ns": 181953440,
+          "per_operation": 2671.40399
+        }
+      },
+      "ipc": 2.5949477525486513
+    },
+    {
+      "label": "cached-hit-9e-host-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082794,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1329308139,
+          "enabled_ns": 179513960,
+          "running_ns": 179513960,
+          "per_operation": 6646.540695
+        },
+        "cycles:u": {
+          "raw_count": 528054820,
+          "enabled_ns": 179513960,
+          "running_ns": 179513960,
+          "per_operation": 2640.2741
+        }
+      },
+      "ipc": 2.5173676835295247
+    },
+    {
+      "label": "cached-hit-9e-host-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082799,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1325698987,
+          "enabled_ns": 177018880,
+          "running_ns": 177018880,
+          "per_operation": 6628.494935
+        },
+        "cycles:u": {
+          "raw_count": 520982846,
+          "enabled_ns": 177018880,
+          "running_ns": 177018880,
+          "per_operation": 2604.91423
+        }
+      },
+      "ipc": 2.544611587844871
+    },
+    {
+      "label": "cached-hit-9e-host-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082804,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1388560910,
+          "enabled_ns": 182328240,
+          "running_ns": 182328240,
+          "per_operation": 6942.80455
+        },
+        "cycles:u": {
+          "raw_count": 537027567,
+          "enabled_ns": 182328240,
+          "running_ns": 182328240,
+          "per_operation": 2685.137835
+        }
+      },
+      "ipc": 2.585641772091748
+    },
+    {
+      "label": "cached-hit-9e-host-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082809,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1362917670,
+          "enabled_ns": 178058160,
+          "running_ns": 178058160,
+          "per_operation": 6814.58835
+        },
+        "cycles:u": {
+          "raw_count": 524530128,
+          "enabled_ns": 178058160,
+          "running_ns": 178058160,
+          "per_operation": 2622.65064
+        }
+      },
+      "ipc": 2.5983591737556018
+    },
+    {
+      "label": "cached-hit-9e-host-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082814,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318004056,
+          "enabled_ns": 176432280,
+          "running_ns": 176432280,
+          "per_operation": 6590.02028
+        },
+        "cycles:u": {
+          "raw_count": 518374198,
+          "enabled_ns": 176432280,
+          "running_ns": 176432280,
+          "per_operation": 2591.87099
+        }
+      },
+      "ipc": 2.5425726455621156
+    },
+    {
+      "label": "cached-hit-9e-host-localise-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1082949,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2643011804,
+          "enabled_ns": 336864440,
+          "running_ns": 336864440,
+          "per_operation": 13215.05902
+        },
+        "cycles:u": {
+          "raw_count": 994367106,
+          "enabled_ns": 336864440,
+          "running_ns": 336864440,
+          "per_operation": 4971.83553
+        }
+      },
+      "ipc": 2.657983945820509
+    },
+    {
+      "label": "cached-hit-9e-host-localise-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082954,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2565293073,
+          "enabled_ns": 330991600,
+          "running_ns": 330991600,
+          "per_operation": 12826.465365
+        },
+        "cycles:u": {
+          "raw_count": 978967701,
+          "enabled_ns": 330991600,
+          "running_ns": 330991600,
+          "per_operation": 4894.838505
+        }
+      },
+      "ipc": 2.620406240552772
+    },
+    {
+      "label": "cached-hit-9e-host-localise-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082959,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2525172456,
+          "enabled_ns": 330717600,
+          "running_ns": 330717600,
+          "per_operation": 12625.86228
+        },
+        "cycles:u": {
+          "raw_count": 977293479,
+          "enabled_ns": 330717600,
+          "running_ns": 330717600,
+          "per_operation": 4886.467395
+        }
+      },
+      "ipc": 2.5838425306836617
+    },
+    {
+      "label": "cached-hit-9e-host-localise-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1082964,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2599165136,
+          "enabled_ns": 332063280,
+          "running_ns": 332063280,
+          "per_operation": 12995.82568
+        },
+        "cycles:u": {
+          "raw_count": 981728595,
+          "enabled_ns": 332063280,
+          "running_ns": 332063280,
+          "per_operation": 4908.642975
+        }
+      },
+      "ipc": 2.6475394006425983
+    },
+    {
+      "label": "cached-hit-9e-host-localise-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1082969,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2599438649,
+          "enabled_ns": 330876440,
+          "running_ns": 330876440,
+          "per_operation": 12997.193245
+        },
+        "cycles:u": {
+          "raw_count": 978591834,
+          "enabled_ns": 330876440,
+          "running_ns": 330876440,
+          "per_operation": 4892.95917
+        }
+      },
+      "ipc": 2.656305273236114
+    },
+    {
+      "label": "cached-hit-9e-host-localise-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1082974,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2561262806,
+          "enabled_ns": 332793720,
+          "running_ns": 332793720,
+          "per_operation": 12806.31403
+        },
+        "cycles:u": {
+          "raw_count": 984171003,
+          "enabled_ns": 332793720,
+          "running_ns": 332793720,
+          "per_operation": 4920.855015
+        }
+      },
+      "ipc": 2.6024570914938856
+    },
+    {
+      "label": "cached-hit-9e-raw-address-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083151,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11644510299,
+          "enabled_ns": 1342218200,
+          "running_ns": 1342218200,
+          "per_operation": 58222.551495
+        },
+        "cycles:u": {
+          "raw_count": 3982993660,
+          "enabled_ns": 1342218200,
+          "running_ns": 1342218200,
+          "per_operation": 19914.9683
+        }
+      },
+      "ipc": 2.923557327229087
+    },
+    {
+      "label": "cached-hit-9e-raw-address-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083158,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11624678242,
+          "enabled_ns": 1340249120,
+          "running_ns": 1340249120,
+          "per_operation": 58123.39121
+        },
+        "cycles:u": {
+          "raw_count": 3976377364,
+          "enabled_ns": 1340249120,
+          "running_ns": 1340249120,
+          "per_operation": 19881.88682
+        }
+      },
+      "ipc": 2.9234343669802665
+    },
+    {
+      "label": "cached-hit-9e-raw-address-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083163,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11593832270,
+          "enabled_ns": 1335152240,
+          "running_ns": 1335152240,
+          "per_operation": 57969.16135
+        },
+        "cycles:u": {
+          "raw_count": 3962209501,
+          "enabled_ns": 1335152240,
+          "running_ns": 1335152240,
+          "per_operation": 19811.047505
+        }
+      },
+      "ipc": 2.926102788626875
+    },
+    {
+      "label": "cached-hit-9e-raw-address-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1083168,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11657217121,
+          "enabled_ns": 1345079320,
+          "running_ns": 1345079320,
+          "per_operation": 58286.085605
+        },
+        "cycles:u": {
+          "raw_count": 3992981922,
+          "enabled_ns": 1345079320,
+          "running_ns": 1345079320,
+          "per_operation": 19964.90961
+        }
+      },
+      "ipc": 2.919426470922049
+    },
+    {
+      "label": "cached-hit-9e-raw-address-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1083173,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11669227572,
+          "enabled_ns": 1347684680,
+          "running_ns": 1347684680,
+          "per_operation": 58346.13786
+        },
+        "cycles:u": {
+          "raw_count": 4000532929,
+          "enabled_ns": 1347684680,
+          "running_ns": 1347684680,
+          "per_operation": 20002.664645
+        }
+      },
+      "ipc": 2.9169182654164323
+    },
+    {
+      "label": "cached-hit-9e-raw-address-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083178,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11593399956,
+          "enabled_ns": 1338292160,
+          "running_ns": 1338292160,
+          "per_operation": 57966.99978
+        },
+        "cycles:u": {
+          "raw_count": 3970085650,
+          "enabled_ns": 1338292160,
+          "running_ns": 1338292160,
+          "per_operation": 19850.42825
+        }
+      },
+      "ipc": 2.920188877033421
+    },
+    {
+      "label": "cached-hit-9e-synth-address-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083342,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318123613,
+          "enabled_ns": 169714720,
+          "running_ns": 169714720,
+          "per_operation": 6590.618065
+        },
+        "cycles:u": {
+          "raw_count": 499137944,
+          "enabled_ns": 169714720,
+          "running_ns": 169714720,
+          "per_operation": 2495.68972
+        }
+      },
+      "ipc": 2.640800261420318
+    },
+    {
+      "label": "cached-hit-9e-synth-address-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083347,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1277762922,
+          "enabled_ns": 164193400,
+          "running_ns": 164193400,
+          "per_operation": 6388.81461
+        },
+        "cycles:u": {
+          "raw_count": 482257603,
+          "enabled_ns": 164193400,
+          "running_ns": 164193400,
+          "per_operation": 2411.288015
+        }
+      },
+      "ipc": 2.649544380537221
+    },
+    {
+      "label": "cached-hit-9e-synth-address-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083352,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1277763134,
+          "enabled_ns": 164032680,
+          "running_ns": 164032680,
+          "per_operation": 6388.81567
+        },
+        "cycles:u": {
+          "raw_count": 482252104,
+          "enabled_ns": 164032680,
+          "running_ns": 164032680,
+          "per_operation": 2411.26052
+        }
+      },
+      "ipc": 2.649575032232519
+    },
+    {
+      "label": "cached-hit-9e-synth-address-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1083357,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318123025,
+          "enabled_ns": 168428160,
+          "running_ns": 168428160,
+          "per_operation": 6590.615125
+        },
+        "cycles:u": {
+          "raw_count": 495347004,
+          "enabled_ns": 168428160,
+          "running_ns": 168428160,
+          "per_operation": 2476.73502
+        }
+      },
+      "ipc": 2.6610093820210126
+    },
+    {
+      "label": "cached-hit-9e-synth-address-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1083362,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318123473,
+          "enabled_ns": 169603280,
+          "running_ns": 169603280,
+          "per_operation": 6590.617365
+        },
+        "cycles:u": {
+          "raw_count": 498821085,
+          "enabled_ns": 169603280,
+          "running_ns": 169603280,
+          "per_operation": 2494.105425
+        }
+      },
+      "ipc": 2.642477458626273
+    },
+    {
+      "label": "cached-hit-9e-synth-address-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083367,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1277762322,
+          "enabled_ns": 164806120,
+          "running_ns": 164806120,
+          "per_operation": 6388.81161
+        },
+        "cycles:u": {
+          "raw_count": 484511277,
+          "enabled_ns": 164806120,
+          "running_ns": 164806120,
+          "per_operation": 2422.556385
+        }
+      },
+      "ipc": 2.637218951665391
+    },
+    {
+      "label": "cached-hit-9e-lease-address-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083388,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1163580836,
+          "enabled_ns": 147750000,
+          "running_ns": 147750000,
+          "per_operation": 5817.90418
+        },
+        "cycles:u": {
+          "raw_count": 433177601,
+          "enabled_ns": 147750000,
+          "running_ns": 147750000,
+          "per_operation": 2165.888005
+        }
+      },
+      "ipc": 2.686151900084049
+    },
+    {
+      "label": "cached-hit-9e-lease-address-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083393,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 978974716,
+          "enabled_ns": 128981560,
+          "running_ns": 128981560,
+          "per_operation": 4894.87358
+        },
+        "cycles:u": {
+          "raw_count": 377361769,
+          "enabled_ns": 128981560,
+          "running_ns": 128981560,
+          "per_operation": 1886.808845
+        }
+      },
+      "ipc": 2.5942604588542726
+    },
+    {
+      "label": "cached-hit-9e-lease-address-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083398,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 978979489,
+          "enabled_ns": 130416080,
+          "running_ns": 130416080,
+          "per_operation": 4894.897445
+        },
+        "cycles:u": {
+          "raw_count": 381985521,
+          "enabled_ns": 130416080,
+          "running_ns": 130416080,
+          "per_operation": 1909.927605
+        }
+      },
+      "ipc": 2.562870672262994
+    },
+    {
+      "label": "cached-hit-9e-lease-address-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1083403,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1163893863,
+          "enabled_ns": 148381080,
+          "running_ns": 148381080,
+          "per_operation": 5819.469315
+        },
+        "cycles:u": {
+          "raw_count": 435339256,
+          "enabled_ns": 148381080,
+          "running_ns": 148381080,
+          "per_operation": 2176.69628
+        }
+      },
+      "ipc": 2.6735329905557608
+    },
+    {
+      "label": "cached-hit-9e-lease-address-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1083408,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1163744241,
+          "enabled_ns": 148048040,
+          "running_ns": 148048040,
+          "per_operation": 5818.721205
+        },
+        "cycles:u": {
+          "raw_count": 434605568,
+          "enabled_ns": 148048040,
+          "running_ns": 148048040,
+          "per_operation": 2173.02784
+        }
+      },
+      "ipc": 2.677702097456791
+    },
+    {
+      "label": "cached-hit-9e-lease-address-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083413,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 979012409,
+          "enabled_ns": 128699280,
+          "running_ns": 128699280,
+          "per_operation": 4895.062045
+        },
+        "cycles:u": {
+          "raw_count": 376861680,
+          "enabled_ns": 128699280,
+          "running_ns": 128699280,
+          "per_operation": 1884.3084
+        }
+      },
+      "ipc": 2.5978030162153924
+    },
+    {
+      "label": "cached-hit-9e-rrset-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083526,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2551732885,
+          "enabled_ns": 306638200,
+          "running_ns": 306638200,
+          "per_operation": 12758.664425
+        },
+        "cycles:u": {
+          "raw_count": 905127916,
+          "enabled_ns": 306638200,
+          "running_ns": 306638200,
+          "per_operation": 4525.63958
+        }
+      },
+      "ipc": 2.8191958726417186
+    },
+    {
+      "label": "cached-hit-9e-rrset-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083531,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2432336545,
+          "enabled_ns": 291625760,
+          "running_ns": 291625760,
+          "per_operation": 12161.682725
+        },
+        "cycles:u": {
+          "raw_count": 861324939,
+          "enabled_ns": 291625760,
+          "running_ns": 291625760,
+          "per_operation": 4306.624695
+        }
+      },
+      "ipc": 2.8239476588521257
+    },
+    {
+      "label": "cached-hit-9e-rrset-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083536,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2432336764,
+          "enabled_ns": 292880960,
+          "running_ns": 292880960,
+          "per_operation": 12161.68382
+        },
+        "cycles:u": {
+          "raw_count": 863956654,
+          "enabled_ns": 292880960,
+          "running_ns": 292880960,
+          "per_operation": 4319.78327
+        }
+      },
+      "ipc": 2.815345830995822
+    },
+    {
+      "label": "cached-hit-9e-rrset-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1083541,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2551733592,
+          "enabled_ns": 308540240,
+          "running_ns": 308540240,
+          "per_operation": 12758.66796
+        },
+        "cycles:u": {
+          "raw_count": 910071385,
+          "enabled_ns": 308540240,
+          "running_ns": 308540240,
+          "per_operation": 4550.356925
+        }
+      },
+      "ipc": 2.8038828976036863
+    },
+    {
+      "label": "cached-hit-9e-rrset-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1083546,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2551734071,
+          "enabled_ns": 306605400,
+          "running_ns": 306605400,
+          "per_operation": 12758.670355
+        },
+        "cycles:u": {
+          "raw_count": 905501131,
+          "enabled_ns": 306605400,
+          "running_ns": 306605400,
+          "per_operation": 4527.505655
+        }
+      },
+      "ipc": 2.818035211266898
+    },
+    {
+      "label": "cached-hit-9e-rrset-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083551,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2432337584,
+          "enabled_ns": 293273800,
+          "running_ns": 293273800,
+          "per_operation": 12161.68792
+        },
+        "cycles:u": {
+          "raw_count": 865356037,
+          "enabled_ns": 293273800,
+          "running_ns": 293273800,
+          "per_operation": 4326.780185
+        }
+      },
+      "ipc": 2.810794031590029
+    },
+    {
+      "label": "cached-hit-9e-cname-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083693,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1746342005,
+          "enabled_ns": 219385480,
+          "running_ns": 219385480,
+          "per_operation": 8731.710025
+        },
+        "cycles:u": {
+          "raw_count": 646271173,
+          "enabled_ns": 219385480,
+          "running_ns": 219385480,
+          "per_operation": 3231.355865
+        }
+      },
+      "ipc": 2.702181495878047
+    },
+    {
+      "label": "cached-hit-9e-cname-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083698,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1706314979,
+          "enabled_ns": 214210720,
+          "running_ns": 214210720,
+          "per_operation": 8531.574895
+        },
+        "cycles:u": {
+          "raw_count": 630651997,
+          "enabled_ns": 214210720,
+          "running_ns": 214210720,
+          "per_operation": 3153.259985
+        }
+      },
+      "ipc": 2.7056363685787232
+    },
+    {
+      "label": "cached-hit-9e-cname-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083703,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1706354984,
+          "enabled_ns": 214855880,
+          "running_ns": 214855880,
+          "per_operation": 8531.77492
+        },
+        "cycles:u": {
+          "raw_count": 632834585,
+          "enabled_ns": 214855880,
+          "running_ns": 214855880,
+          "per_operation": 3164.172925
+        }
+      },
+      "ipc": 2.6963680943575485
+    },
+    {
+      "label": "cached-hit-9e-cname-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1083708,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1746267046,
+          "enabled_ns": 219255280,
+          "running_ns": 219255280,
+          "per_operation": 8731.33523
+        },
+        "cycles:u": {
+          "raw_count": 646013172,
+          "enabled_ns": 219255280,
+          "running_ns": 219255280,
+          "per_operation": 3230.06586
+        }
+      },
+      "ipc": 2.703144644239545
+    },
+    {
+      "label": "cached-hit-9e-cname-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1083713,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1746254287,
+          "enabled_ns": 220074840,
+          "running_ns": 220074840,
+          "per_operation": 8731.271435
+        },
+        "cycles:u": {
+          "raw_count": 648739061,
+          "enabled_ns": 220074840,
+          "running_ns": 220074840,
+          "per_operation": 3243.695305
+        }
+      },
+      "ipc": 2.691766831965125
+    },
+    {
+      "label": "cached-hit-9e-cname-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083718,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1706416856,
+          "enabled_ns": 214789720,
+          "running_ns": 214789720,
+          "per_operation": 8532.08428
+        },
+        "cycles:u": {
+          "raw_count": 633408716,
+          "enabled_ns": 214789720,
+          "running_ns": 214789720,
+          "per_operation": 3167.04358
+        }
+      },
+      "ipc": 2.6940217475630694
+    },
+    {
+      "label": "cached-hit-9e-cname-leases-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083864,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2245326935,
+          "enabled_ns": 274221520,
+          "running_ns": 274221520,
+          "per_operation": 11226.634675
+        },
+        "cycles:u": {
+          "raw_count": 810002494,
+          "enabled_ns": 274221520,
+          "running_ns": 274221520,
+          "per_operation": 4050.01247
+        }
+      },
+      "ipc": 2.7720000267060905
+    },
+    {
+      "label": "cached-hit-9e-cname-leases-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083869,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1787132772,
+          "enabled_ns": 222552320,
+          "running_ns": 222552320,
+          "per_operation": 8935.66386
+        },
+        "cycles:u": {
+          "raw_count": 656045716,
+          "enabled_ns": 222552320,
+          "running_ns": 222552320,
+          "per_operation": 3280.22858
+        }
+      },
+      "ipc": 2.7240979224685615
+    },
+    {
+      "label": "cached-hit-9e-cname-leases-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083874,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1787120151,
+          "enabled_ns": 223709160,
+          "running_ns": 223709160,
+          "per_operation": 8935.600755
+        },
+        "cycles:u": {
+          "raw_count": 658248888,
+          "enabled_ns": 223709160,
+          "running_ns": 223709160,
+          "per_operation": 3291.24444
+        }
+      },
+      "ipc": 2.7149611394406183
+    },
+    {
+      "label": "cached-hit-9e-cname-leases-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1083879,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2245237127,
+          "enabled_ns": 272993000,
+          "running_ns": 272993000,
+          "per_operation": 11226.185635
+        },
+        "cycles:u": {
+          "raw_count": 805646324,
+          "enabled_ns": 272993000,
+          "running_ns": 272993000,
+          "per_operation": 4028.23162
+        }
+      },
+      "ipc": 2.7868768963687347
+    },
+    {
+      "label": "cached-hit-9e-cname-leases-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1083884,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2245215254,
+          "enabled_ns": 272876320,
+          "running_ns": 272876320,
+          "per_operation": 11226.07627
+        },
+        "cycles:u": {
+          "raw_count": 805147145,
+          "enabled_ns": 272876320,
+          "running_ns": 272876320,
+          "per_operation": 4025.735725
+        }
+      },
+      "ipc": 2.7885775512499644
+    },
+    {
+      "label": "cached-hit-9e-cname-leases-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1083889,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1787014188,
+          "enabled_ns": 222944640,
+          "running_ns": 222944640,
+          "per_operation": 8935.07094
+        },
+        "cycles:u": {
+          "raw_count": 656826080,
+          "enabled_ns": 222944640,
+          "running_ns": 222944640,
+          "per_operation": 3284.1304
+        }
+      },
+      "ipc": 2.7206809266769674
+    },
+    {
+      "label": "cached-hit-9e-cname-config-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 1083987,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44008702016,
+          "enabled_ns": 4601495040,
+          "running_ns": 4601495040,
+          "per_operation": 220043.51008
+        },
+        "cycles:u": {
+          "raw_count": 13672848729,
+          "enabled_ns": 4601495040,
+          "running_ns": 4601495040,
+          "per_operation": 68364.243645
+        }
+      },
+      "ipc": 3.2186929650335343
+    },
+    {
+      "label": "cached-hit-9e-cname-config-stat-r1-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1084092,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44027070110,
+          "enabled_ns": 4585734880,
+          "running_ns": 4585734880,
+          "per_operation": 220135.35055
+        },
+        "cycles:u": {
+          "raw_count": 13637167927,
+          "enabled_ns": 4585734880,
+          "running_ns": 4585734880,
+          "per_operation": 68185.839635
+        }
+      },
+      "ipc": 3.228461389173887
+    },
+    {
+      "label": "cached-hit-9e-cname-config-stat-r2-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1084097,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 43971125028,
+          "enabled_ns": 4575357360,
+          "running_ns": 4575357360,
+          "per_operation": 219855.62514
+        },
+        "cycles:u": {
+          "raw_count": 13603589484,
+          "enabled_ns": 4575357360,
+          "running_ns": 4575357360,
+          "per_operation": 68017.94742
+        }
+      },
+      "ipc": 3.2323178437365434
+    },
+    {
+      "label": "cached-hit-9e-cname-config-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 1084102,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44155276955,
+          "enabled_ns": 4620950040,
+          "running_ns": 4620950040,
+          "per_operation": 220776.384775
+        },
+        "cycles:u": {
+          "raw_count": 13739850237,
+          "enabled_ns": 4620950040,
+          "running_ns": 4620950040,
+          "per_operation": 68699.251185
+        }
+      },
+      "ipc": 3.213665083196787
+    },
+    {
+      "label": "cached-hit-9e-cname-config-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 1084107,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44002357256,
+          "enabled_ns": 4601987080,
+          "running_ns": 4601987080,
+          "per_operation": 220011.78628
+        },
+        "cycles:u": {
+          "raw_count": 13684508350,
+          "enabled_ns": 4601987080,
+          "running_ns": 4601987080,
+          "per_operation": 68422.54175
+        }
+      },
+      "ipc": 3.2154868944195574
+    },
+    {
+      "label": "cached-hit-9e-cname-config-stat-r3-cached-hit-9e",
+      "operations": 200000,
+      "group_pid": 1084117,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 43982273693,
+          "enabled_ns": 4579107200,
+          "running_ns": 4579107200,
+          "per_operation": 219911.368465
+        },
+        "cycles:u": {
+          "raw_count": 13616894109,
+          "enabled_ns": 4579107200,
+          "running_ns": 4579107200,
+          "per_operation": 68084.470545
+        }
+      },
+      "ipc": 3.2299783886789717
+    }
+  ],
+  "original_protocol_plan_sha256": "968af9c4c26abecb78e9a78b91040df606cdacca73b680f6fb3ffbf6cc16ab8e",
+  "original_protocol_runner_sha256": "241dd797e8fa14b9ff3ffadba51a1535ac394f179b79e8c51a4550bef15aa3f1",
+  "original_protocol_keys_compared": [
+    "probe",
+    "scenes",
+    "stat_pairs",
+    "plain_pairs",
+    "stat_event",
+    "cpu",
+    "nice",
+    "build_cpu",
+    "native_target",
+    "build_lock",
+    "stat_operations",
+    "plain_operations",
+    "expected_checksum_per_2000000_operations"
+  ],
+  "runner_only_scope_docstring_changed": true,
+  "all244_command_argv_exactly_verified": true,
+  "protocol_peer": "Original frozen6ab protocol/runner bytes checked directly; exact9e phase/qualification binding reviewed separately.",
+  "retained_scope_text_note": "Frozen plan scope prose still says Disabled/actualunset; actual ready status/flags/source/qualification/launch and identity are verified separately without rewriting original evidence.",
+  "native_probe_recycles_reply_buffer": false,
+  "native_warm_writer_scope": "Original probe does not recycle cached reply buffer; warm writer is not independently isolated or exercised as a warmed owner path by this library screen.",
+  "author_result_commit": "656fb836",
+  "independent_phase_peer": {
+    "commit": "0b0abb3d",
+    "receipt_sha256": "f905a90b31b53bfa4cbecb4adfa6e3e0284658e7db3d17b2a37930ba70d55e76",
+    "value": {
+      "status": "PASS_LOCAL_9E_NATIVE_TO_OWNER_PHASE_SOURCE_AND_RETAINED_SCOPE_BINDINGS",
+      "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+      "owner_plan_sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+      "native_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+      "native_postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+      "owner_result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+      "owner_postflight_sha256": "214a9497e5e0bd812c8bc74d037f39d11d8f0110ebe09492174b0cf98fe389b8",
+      "author_release_sha256": "43e664dfe1792416f9ca25b86d40b50529d591ce68d952a73a15adb48185bdc2",
+      "original965_SDK_signals_and_G_identity_bound": true,
+      "native162_each_subset_of_fullSDK179_each_verified_against358_Git_blobs": true,
+      "four_original_builds_then240commands_then_rawpostflight_then_owner32_verified": true,
+      "SDK_owner32_then_originalanalysis_postflight_release_verified": true,
+      "original8imports_probe_and_runners_bound": true,
+      "review_refs_rehashed": {
+        "native:source_review": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+        "native:sdk_independent_review": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+        "native:screen_plan_independent_review": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+        "native:source_preparation_peer": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06",
+        "owner:source_review": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+        "owner:sdk_independent_review": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+        "owner:screen_plan_independent_review": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+        "owner:source_preparation_peer": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06"
+      },
+      "scope_text_clarification": {
+        "native_scope_retained": "Disabled original G185/9e complete native hot15/240 screen. Original cold/general library-path coverage; no warm-buffer, owner or device acceptance inference.",
+        "owner_scope_retained": "Disabled original exact-SDK G185/9e owner32; actual gates/SDK/signals/native prerequisite and reviews unset.",
+        "plans_unchanged": true,
+        "meaning": "Preparation scope prose and prospective actual_native240/actual_device10 fields were frozen before execution. Actual ready status/flags, qualificationrefs, launch, completed rawresults and phase chain bind real runs. No plans rewritten, no tests or timings rerun to repair prose."
+      },
+      "scope": "Local retained control/source/phase identity only. No Oracle/router or measurement, originalnative statistics or full-bin owner analysis rerun. Maincorrectness audit owns archive/filemanifest and PMU/CPU/math/full-bin replay. Remote quiet is receipt-bound, not freshly observed by this peer.",
+      "script_sha256": "d8f9315bc065b6e7314b3c753b257ba2bfa45d3221b73157c319978319fd3e97"
+    }
+  },
+  "all_original_native_transports_independently_verified": true
+}
