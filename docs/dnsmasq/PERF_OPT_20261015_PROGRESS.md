@@ -5,10 +5,12 @@ Branch: `perf/dnsmasq-20261015`; worktree:
 Starting main: `51b03959`. Do not merge main, push, or deploy.
 Original main worktree has user prompt edits; leave them intact.
 
-Current research status, 2026-10-16: E is accepted; F completed correctness and
-both 110-window matrices but did not demonstrate the required CPU improvement.
-No G has been selected. Direct A53 attribution and allocation counting now
-guide the next independent prototypes; see the latest section at the end.
+Current research status, 2026-10-16: G is accepted after complete correctness
+and both110-window matrices. Its A53 UDP-hit CPU is138→116us versus E; a
+separate direct C/G comparison remains82→114us.6ab has full functional PASS
+but no discernible performance increment.803opt2 has actual957/SDK independent
+PASS and awaits final quiet handoff to owner32/A53ten; bare1df is next.
+See the latest section at the end for exact evidence and execution boundaries.
 Production remains v0.2.0 SHA256
 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
 The following sections retain the chronological evidence and superseded plans.
