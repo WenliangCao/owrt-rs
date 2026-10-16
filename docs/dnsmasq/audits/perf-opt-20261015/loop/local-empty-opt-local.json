@@ -1,0 +1,219 @@
+{
+  "status": "LOCAL_ONLY_NOT_SELECTED_REMOTE",
+  "source": "3b11c9bb76887150c9b2de86fcd6e153e88201b8",
+  "base": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "scope": "Only LocalDnsService::lookup_local_parsed discarding scan errors/signed state; no global wire scanner or cache error propagation change. Checks actual packet ARCOUNT bytes, not a caller-provided Header.",
+  "tests": {
+    "Mac_library_passed": 725,
+    "ignored": 8,
+    "failed": 0,
+    "musl_all_targets_exit": 0,
+    "new_tests": 0,
+    "logs_sha256": {
+      "mac-tests.log": "de89e025a92a0e0c6d0b90a85b7504b5bbe30b968126fafd1ab5a4c3de889995",
+      "musl-check.log": "5cfc9742c512faee1e1aaf5730c8b6a48b8a28c643e92f560ccc5325e9c7b305"
+    }
+  },
+  "codegen": {
+    "receipt": "/Users/USER/Developer/owrt-perf-local-empty-opt-20261016/private/local-empty-opt/cross-daemon/inspection-v3.json",
+    "receipt_sha256": "e2151e02658a8ff36e195b650a77eb738178fb7fc81882d55ec327051b57302f",
+    "outputs": {
+      "parent": {
+        "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+        "bytes": 5022240
+      },
+      "emptyopt": {
+        "sha256": "053e6d8f364f91e9dfe4d58abeb62d831ce773d6b2ee239e20c926e4096dad82",
+        "bytes": 5022248
+      }
+    },
+    "functions": {
+      "parent": [
+        {
+          "name": "answer_local_or_cached",
+          "symbol": "_RNvMsb_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2ac920",
+          "bytes": 4060,
+          "code_sha256": "de1b1f135aa433e664c7c2196f1b7f4f11c95dfd689835ea1ac3686f179bbd47",
+          "asm_sha256": "c9c201c7edeffce26e74cf8622677ecc556bb9c6ed1a9c0bac2fca2b394873c0",
+          "entry": [
+            "2ac920: stp x29, x30, [sp, #-0x60]!",
+            "2ac924: stp x28, x27, [sp, #0x10]",
+            "2ac928: mov x29, sp",
+            "2ac92c: stp x26, x25, [sp, #0x20]",
+            "2ac930: stp x24, x23, [sp, #0x30]",
+            "2ac934: stp x22, x21, [sp, #0x40]",
+            "2ac938: stp x20, x19, [sp, #0x50]",
+            "2ac93c: sub sp, sp, #0x210",
+            "2ac940: ldrb w25, [x29, #0x68]",
+            "2ac944: mov x27, x7",
+            "2ac948: mov x20, x6",
+            "2ac94c: mov x28, x2"
+          ],
+          "static_call_sites": 56,
+          "pseudoheader_calls": [
+            {
+              "pc": "0x2ac988",
+              "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader"
+            },
+            {
+              "pc": "0x2acabc",
+              "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader"
+            },
+            {
+              "pc": "0x2acf48",
+              "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader"
+            }
+          ]
+        },
+        {
+          "name": "find_pseudoheader",
+          "symbol": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader",
+          "address": "0x2e26c0",
+          "bytes": 1264,
+          "code_sha256": "e6615f9cb386ee0a63f1b4554e02dcca2f7573568ec6960062633e0f7cfb6f50",
+          "asm_sha256": "7b820049c06343c438c5942fa0bf0f4b1b30f15d38274738b0502e4816bd322f",
+          "entry": [
+            "2e26c0: sub sp, sp, #0x120",
+            "2e26c4: stp x29, x30, [sp, #0xc0]",
+            "2e26c8: stp x28, x27, [sp, #0xd0]",
+            "2e26cc: stp x26, x25, [sp, #0xe0]",
+            "2e26d0: stp x24, x23, [sp, #0xf0]",
+            "2e26d4: stp x22, x21, [sp, #0x100]",
+            "2e26d8: stp x20, x19, [sp, #0x110]",
+            "2e26dc: add x29, sp, #0xc0",
+            "2e26e0: cmp x2, #0xb",
+            "2e26e4: b.hi #0x2e26f0",
+            "2e26e8: strb wzr, [x0]",
+            "2e26ec: b #0x2e2918"
+          ],
+          "static_call_sites": 7,
+          "pseudoheader_calls": []
+        },
+        {
+          "name": "process_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+          "address": "0x278f50",
+          "bytes": 4660,
+          "code_sha256": "2008af3e8faf8ade5dc0e76f54252045f1d0ea060a900a60570bd109fb26439e",
+          "asm_sha256": "d0f27f26e1583d0997a33644d1c889c8cfb0f01f30980fffd405cacf8ea65a0b",
+          "entry": [
+            "278f50: stp x29, x30, [sp, #-0x60]!",
+            "278f54: stp x28, x27, [sp, #0x10]",
+            "278f58: mov x29, sp",
+            "278f5c: stp x26, x25, [sp, #0x20]",
+            "278f60: stp x24, x23, [sp, #0x30]",
+            "278f64: stp x22, x21, [sp, #0x40]",
+            "278f68: stp x20, x19, [sp, #0x50]",
+            "278f6c: sub sp, sp, #0x3c0",
+            "278f70: ldr x9, [x0, #0x1bf8]",
+            "278f74: mov x20, x5",
+            "278f78: mov x21, x4",
+            "278f7c: mov x19, x2"
+          ],
+          "static_call_sites": 73,
+          "pseudoheader_calls": []
+        }
+      ],
+      "emptyopt": [
+        {
+          "name": "answer_local_or_cached",
+          "symbol": "_RNvMsb_NtNtCsiHnoRPFb5qU_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2ac90c",
+          "bytes": 4124,
+          "code_sha256": "afb330b3889f32d849745bf3394b591ea6362b0fbdbe9c65afbac4691825876b",
+          "asm_sha256": "eabf6340e8cde3ec1b69b6aa84f038d4d1c9f6965b4868e54c073d6dbdaee596",
+          "entry": [
+            "2ac90c: stp x29, x30, [sp, #-0x60]!",
+            "2ac910: stp x28, x27, [sp, #0x10]",
+            "2ac914: mov x29, sp",
+            "2ac918: stp x26, x25, [sp, #0x20]",
+            "2ac91c: stp x24, x23, [sp, #0x30]",
+            "2ac920: stp x22, x21, [sp, #0x40]",
+            "2ac924: stp x20, x19, [sp, #0x50]",
+            "2ac928: sub sp, sp, #0x200",
+            "2ac92c: ldrb w24, [x29, #0x68]",
+            "2ac930: mov x20, x6",
+            "2ac934: mov x23, x3",
+            "2ac938: mov x27, x1"
+          ],
+          "static_call_sites": 56,
+          "pseudoheader_calls": [
+            {
+              "pc": "0x2ac990",
+              "callee": "_RNvNtNtCsiHnoRPFb5qU_10dnsmasq_rs3dns4wire17find_pseudoheader"
+            },
+            {
+              "pc": "0x2acad8",
+              "callee": "_RNvNtNtCsiHnoRPFb5qU_10dnsmasq_rs3dns4wire17find_pseudoheader"
+            },
+            {
+              "pc": "0x2acf7c",
+              "callee": "_RNvNtNtCsiHnoRPFb5qU_10dnsmasq_rs3dns4wire17find_pseudoheader"
+            }
+          ]
+        },
+        {
+          "name": "find_pseudoheader",
+          "symbol": "_RNvNtNtCsiHnoRPFb5qU_10dnsmasq_rs3dns4wire17find_pseudoheader",
+          "address": "0x2e2700",
+          "bytes": 1264,
+          "code_sha256": "352c1c0be2976c185e20445dc8a7c3999dd901b6bef8fcdc76dab57e8029adfa",
+          "asm_sha256": "b7cc827c63560bb9141c3c60ed712aa6d7b272ed4033e410f16fcdde7ad4eb6a",
+          "entry": [
+            "2e2700: sub sp, sp, #0x120",
+            "2e2704: stp x29, x30, [sp, #0xc0]",
+            "2e2708: stp x28, x27, [sp, #0xd0]",
+            "2e270c: stp x26, x25, [sp, #0xe0]",
+            "2e2710: stp x24, x23, [sp, #0xf0]",
+            "2e2714: stp x22, x21, [sp, #0x100]",
+            "2e2718: stp x20, x19, [sp, #0x110]",
+            "2e271c: add x29, sp, #0xc0",
+            "2e2720: cmp x2, #0xb",
+            "2e2724: b.hi #0x2e2730",
+            "2e2728: strb wzr, [x0]",
+            "2e272c: b #0x2e2958"
+          ],
+          "static_call_sites": 7,
+          "pseudoheader_calls": []
+        },
+        {
+          "name": "process_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+          "address": "0x278f3c",
+          "bytes": 4660,
+          "code_sha256": "4a1a6ad6fd79a0d327076ea8d183ea4ab7ee3f9fa3ac2e43db6064d162b565b0",
+          "asm_sha256": "dc628343560dd4608371b1036471fa87fa1292f3dde9167ceff14b280b5c647c",
+          "entry": [
+            "278f3c: stp x29, x30, [sp, #-0x60]!",
+            "278f40: stp x28, x27, [sp, #0x10]",
+            "278f44: mov x29, sp",
+            "278f48: stp x26, x25, [sp, #0x20]",
+            "278f4c: stp x24, x23, [sp, #0x30]",
+            "278f50: stp x22, x21, [sp, #0x40]",
+            "278f54: stp x20, x19, [sp, #0x50]",
+            "278f58: sub sp, sp, #0x3c0",
+            "278f5c: ldr x9, [x0, #0x1bf8]",
+            "278f60: mov x20, x5",
+            "278f64: mov x21, x4",
+            "278f68: mov x19, x2"
+          ],
+          "static_call_sites": 73,
+          "pseudoheader_calls": []
+        }
+      ]
+    }
+  },
+  "local_machine_branch": {
+    "ARCOUNT_zero_decision": "0x2ac954..0x2ac978",
+    "zero_branches_to": "0x2ac9b0",
+    "avoided_local_scan_call": "0x2ac990",
+    "cache_answer_scan_retained": "0x2acf7c"
+  },
+  "limits": [
+    "Local bundled-musl ELF is not canonical SDK or budget evidence.",
+    "No Linux runtime, C corpus, allocation/resource or timing result.",
+    "Three scan call sites remain statically emitted; the new branch only avoids the local projection for ARCOUNT zero.",
+    "No CPU benefit or addition to independently timed G-stage/warm sources."
+  ]
+}
