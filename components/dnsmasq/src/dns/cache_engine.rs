@@ -299,6 +299,38 @@ impl CacheContext<'_> {
         limit: usize,
         id: super::cache::EntryId,
     ) -> Result<CachedAnswer, CacheError> {
+        if !local.query_logging {
+            if let Some(entry) = cache.get(id) {
+                let data = &entry.record.data;
+                let name = question.name.as_wire();
+                let length = 12 + name.len() + 4 + 12 + data.len();
+                // Keep the original writer for logging, overflow and any
+                // buffer growth. A warm, complete address reply has only one
+                // question and one fixed-owner RR, so write that layout once.
+                if matches!((question.rrtype, data.len()), (1, 4) | (28, 16))
+                    && length <= limit
+                    && local.cached_reply_buffer.capacity() >= length.max(limit.min(128))
+                {
+                    let mut packet = std::mem::take(&mut local.cached_reply_buffer);
+                    packet.clear();
+                    packet.extend_from_slice(&header.id.to_be_bytes());
+                    packet.extend_from_slice(&((header.flags & 0x0110) | 0x8080).to_be_bytes());
+                    packet.extend_from_slice(&[0, 1, 0, 1, 0, 0, 0, 0]);
+                    packet.extend_from_slice(name);
+                    packet.extend_from_slice(&question.rrtype.to_be_bytes());
+                    packet.extend_from_slice(&question.class.to_be_bytes());
+                    packet.extend_from_slice(&[0xc0, 12]);
+                    packet.extend_from_slice(&question.rrtype.to_be_bytes());
+                    packet.extend_from_slice(&1u16.to_be_bytes());
+                    packet.extend_from_slice(&entry.reply_ttl(now, cache.policy()).to_be_bytes());
+                    packet.extend_from_slice(&(data.len() as u16).to_be_bytes());
+                    packet.extend_from_slice(data);
+                    return Ok(CachedAnswer {
+                        packet: Some(packet), stale: false, filtered: false, forward_name: None,
+                    });
+                }
+            }
+        }
         let mut writer = PacketWriter::with_buffer(header.id, (header.flags & 0x0110) | 0x8080,
             limit, std::mem::take(&mut local.cached_reply_buffer))?;
         writer.question(&question.name, question.rrtype, question.class)?;
@@ -2077,20 +2109,27 @@ mod tests {
 
     #[test]
     fn fresh_address_reply_matches_general_flags_ttl_limits_and_logging() {
+        let binary = super::super::wire::decode_name(&[3, 0xff, 0, b'A', 0], 0, 0).unwrap().0;
+        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        for name in [Name::root(), Name::from_ascii("HiT.test").unwrap(), binary,
+                     Name::from_ascii(&longest).unwrap()] {
+        for logging in [false, true] {
+        for capacity in [0, 64, 128, 512] {
         for rrtype in [1,28] {
             for now in [100,159,160] {
                 for flags in [0,0x0100,0x0110] {
                     for dnssec in [false,true] {
                         for filtered in [false,true] {
                             for limit in [12,25,26,41,42,53,54,512] {
-                                let name = Name::from_ascii("HiT.test").unwrap();
+                                let name = name.clone();
                                 let kind = if rrtype==1 { Kind::Ipv4 } else { Kind::Ipv6 };
                                 let question = super::super::forward::Question { name, rrtype, class: 1 };
                                 let header = Header { id: 7, flags, questions: 1, ..Header::default() };
                                 let make = || {
-                                    let mut cache = Cache::new(4,Default::default());
+                                    let capacity = if question.name.dnsmasq_bytes_len() >= 75 { 16 } else { 4 };
+                                    let mut cache = Cache::new(capacity,Default::default());
                                     cache.start_insert();
-                                    cache.insert(Record { name: Name::from_ascii("hit.test").unwrap(),
+                                    cache.insert(Record { name: super::super::wire::decode_name(&question.name.canonical_wire(), 0, 0).unwrap().0,
                                         kind, negative: false, data: if rrtype==1 { vec![192,0,2,7] } else { vec![7;16] } },100,60).unwrap();
                                     assert!(cache.commit());
                                     cache
@@ -2100,10 +2139,10 @@ mod tests {
                                 let (_, right_hint) = candidate.inspect_name(&question.name,now);
                                 let mut left = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
                                 let mut right = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
-                                left.query_logging=true;right.query_logging=true;
+                                left.query_logging=logging;right.query_logging=logging;
                                 // Previous packet contents must not survive a
                                 // reused writer, including error/TC boundaries.
-                                right.recycle_cached_reply(vec![0xff; 128]);
+                                right.recycle_cached_reply(vec![0xff; capacity]);
                                 let a = CacheContext::answer_records_general(&mut reference,&question,header,now,
                                     &mut left,limit,dnssec,filtered,left_hint.as_ref());
                                 let b = CacheContext::answer_records_filtered(&mut candidate,&question,header,now,
@@ -2120,6 +2159,9 @@ mod tests {
                     }
                 }
             }
+        }
+        }
+        }
         }
     }
     use super::*;
