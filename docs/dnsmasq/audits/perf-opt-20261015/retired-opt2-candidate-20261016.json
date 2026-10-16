@@ -1,0 +1,11 @@
+{
+  "status": "CLOSED_CANDIDATE_REF_ARCHIVED_WORKTREE_RETAINED",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "retired_branch": "perf/dnsmasq-185-opt2-20261016",
+  "durable_ref": "refs/archive/perf-opt-20261015/retired-20261016/g-opt2-candidate",
+  "worktree": "/Users/USER/Developer/owrt-perf-185-opt2-20261016",
+  "worktree_clean_before": true,
+  "worktree_after": "detached at exact source",
+  "private_artifacts_and_evidence": "preserved in place; no files removed",
+  "basis": "Actualdeviceindependentd6d779dc hasno discerniblegain; originalowner32independentc5f79e95 retainshighp95regression. Explicitcloseout03d9c6c6; no promotion/full110/parametersweep. Only finished source branch retired, activeprep/reviewerbranches untouched."
+}
