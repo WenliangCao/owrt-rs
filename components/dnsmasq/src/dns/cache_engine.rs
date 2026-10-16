@@ -134,16 +134,18 @@ impl CacheContext<'_> {
         if header.flags != 0x0100 || header.questions != 1 || header.answers != 0
             || header.authorities != 0 || header.additionals != 0
         { return None; }
-        let question = super::forward::Question::parse_with_header_reusing(query, header, scratch).ok()?;
+        let fixed = query_len.checked_sub(4)?;
+        let question = super::forward::Question {
+            name: Name::from_uncompressed_reusing(query.get(12..fixed)?, scratch)?,
+            rrtype: u16::from_be_bytes([query[fixed], query[fixed + 1]]),
+            class: u16::from_be_bytes([query[fixed + 2], query[fixed + 3]]),
+        };
         let result = (|| {
             let (kind, data_len) = match question.rrtype {
                 1 => (Kind::Ipv4, 4), 28 => (Kind::Ipv6, 16), _ => return None,
             };
-            let name = question.name.as_wire();
             let answer_len = query_len.checked_add(12 + data_len)?;
-            if question.class != 1 || query_len != 12 + name.len() + 4
-                || packet.get(12..12 + name.len()) != Some(name)
-                || local.config.filter_rr.contains(&question.rrtype)
+            if question.class != 1 || local.config.filter_rr.contains(&question.rrtype)
                 || answer_len > local.max_udp.min(512) || answer_len > packet.len()
             { return None; }
             let (_, lookup) = cache.inspect_name(&question.name, now);
