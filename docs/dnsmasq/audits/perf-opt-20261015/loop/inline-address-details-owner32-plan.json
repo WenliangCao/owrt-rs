@@ -12,7 +12,12 @@
     "sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
     "expected_passes": 963
   },
-  "source_review": null,
+  "source_review": {
+    "commit": "0022f006",
+    "path": "correctness/inline-address-details-related-independent-audit.json",
+    "sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560",
+    "scope": "Fresh963 originalfivegroups actualraw/source audit, not full44."
+  },
   "sources": {
     "G": {
       "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
@@ -417,7 +422,7 @@
   "analysis": "Original actual warmup+measurement N CPU/PMU denominator, 20s measurement throughput/latency; grouped unscaled same-window user/kernel instructions/cycles. Low original >8tick/W/direction; high variable-N pipeline diagnostic with no invented precision pass.",
   "reservation": "PREPARATION ONLY. After complete803 quiet release, fresh original1df five related groups PASS, canonical SDK, independent actual audit, exact source/artifact/pretransfer binding and original1df native240 raw/postflight quiet release, acquire the original owner32 slot. No running/staging now.",
   "failure_policy": "Retain every failed/partial original window and stop; no replacements, selective reruns or historical E/G controls pooled.",
-  "status": "ACTUAL_BOUND_PENDING_INDEPENDENT_SDK_REVIEW_PRETRANSFER_AND_QUIET",
+  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
   "artifact_transfer": {
     "candidate_elf_bytes": 2145051,
     "local_three_hashes_verified": {
@@ -461,16 +466,25 @@
     "helper": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py",
     "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
   },
-  "sdk_independent_review": null,
+  "sdk_independent_review": {
+    "commit": "9d2a8d09",
+    "path": "correctness/inline-address-details-sdk-independent-audit.json",
+    "sha256": "e35b50bbda5ec42741ea67cebd7cacd9564c8694dc60c0e0236ddc94cae2c471"
+  },
   "screen_plan_independent_review": {
-    "commit": "7efb9c2b",
-    "path": "correctness/inline-address-details-screen-root-review.json",
-    "sha256": "7e9c1fafcbbdb38b95bd73b5467fc485b33be25b9dc2733b7f328e696a4b87d7",
-    "scope": "Original disabled preparation protocol only; actual identity delta review pending."
+    "commit": "baa4d567",
+    "path": "correctness/inline-address-details-actual-screen-root-review.json",
+    "sha256": "61a54290f1021d8b650445ce1a387f23e95d924b4483acf084eb4095384f01a4"
   },
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "execution_enabled": false,
   "queue": "803 original owner32 and routerten plus complete raw audits/transfers and explicit quiet release first; then fresh 1df original five related groups and canonical SDK, actual independent review, exact source/artifact bindings and pretransfer, native240 then owner32 with separate quiet boundary. Current preparation remains disabled.",
-  "comparison_interpretation": "Direct frozenG185 versus bare1df includes all changes inherited from6ab plus the1df change. It is not an isolated inline-address-only comparison; no1df/6ab control or attribution inferred."
+  "comparison_interpretation": "Direct frozenG185 versus bare1df includes all changes inherited from6ab plus the1df change. It is not an isolated inline-address-only comparison; no1df/6ab control or attribution inferred.",
+  "protocol_preparation_review": {
+    "commit": "7efb9c2b",
+    "path": "correctness/inline-address-details-screen-root-review.json",
+    "sha256": "7e9c1fafcbbdb38b95bd73b5467fc485b33be25b9dc2733b7f328e696a4b87d7",
+    "scope": "Original disabled preparation protocol only; actual identity delta review pending."
+  }
 }
