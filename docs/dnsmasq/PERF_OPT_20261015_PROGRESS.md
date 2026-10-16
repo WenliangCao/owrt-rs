@@ -1263,3 +1263,60 @@ unmodified. Separate803opt2 reduces local.text5.15% but grows selected frames;
 its SDK/timing are pending. LTO/CGU1 already apply, and failed PGO size results
 remain retired. Root is also examining conditional UBus doctor-metrics capture
 in an isolated child of6ab; it is not part of the frozen SDK sequence.
+
+## Exact6ab screening active; G allocation count complete, 2026-10-16
+
+The canonical SDK sequence completed once with all six commands successful.
+Independent94608544 verifies7c/6ab inputs, artifacts and original controls.
+6ab ELFfeac49a0 is2145051B; APK37b2be86 is1167196B, both within original
+budgets. Excluded7c count ELF92ba1353 is2366235B and APK1264206B: both
+original budget failures remain, with no product promotion. Final quiet
+receiptb596f6a0 explicitly released Oracle from DNS to loop.
+
+Loop started original G/6ab native240 at05:20:33UTC, controller834343,
+nativeplan968af9c4/runner241dd797/probe72d836d1. Independent original-protocol
+and ready-binding reviews5aa27e67/800e726a pass. It then runs original owner32,
+verifies raw/source/artifacts and releases to correctness for the prepared
+original44families/67jobs and boundary corpora. Preparation1128afb4 and peer
+reviewa052ce31 retain the same-source961receipt without rerunning those groups;
+only the original fresh release-probe build precedes the remaining full gates.
+No other Oracle workload or bulk transfer may overlap its measured windows.
+
+The fixed G allocation three windows are complete and independently audited
+by14c7e7e7:3archives/132files/95single-thread observations. Each window has
+5200cached queries and exactly one128B allocation, with zero dealloc/realloc
+in that classification; histogram0=5199/1=1. Cached-only whole-turn results
+match this condition. All-owner totals remain separately reported, not a
+process-lifetime allocation or leak conclusion. Instrumented timing is excluded.
+All18000queries and health passed; E/F slots and production3086/2115 restored
+and verified. The one prehealth stat-not-found tool failure remains retained.
+
+DHCP started the independent exact G/6ab A53ten at05:24:20UTC, controller92747,
+after fresh125s health and actual SDK/961/plan binding. It uses uninstrumented
+9109/feac artifacts and original thresholds. Partial windows are not a result.
+Keep transfers out of its windows; archive and restore precede release.
+
+Root locally annotated existing G sample PCs without new profiling: original
+cache-content/Record dependent-load sites and lease iterator state are concrete
+code locations, not proven A53 cache stalls. Same-source child210801cf keeps
+LeaseNames::lookup's API and original predicates but returns a direct slice
+iterator. Mac726/8ignored and musl checks pass; independentb0d63b76 verifies
+source/tests/codegen. The iterator is64→32B, its advancement code816→240B,
+ownership frame368→336B, whole local ELF−888B; lookup/name_exists code growth
+remains explicit. Linux/SDK/runtime qualification is pending. DNS is preparing
+only original source/related/SDK inputs locally; execution awaits current
+results and queue release.
+
+Another isolated6ab child84912e54 moves the original conservative lease-expiry
+guard to its sole caller and keeps the traversal in a separate non-inlined
+frame. Mac725/8ignored+musl checks pass; codegen/source review is pending.
+No current measured source changes. Local boolean-presence530 and conditional
+metricsa2 prototypes were not selected: code-growth costs and evidence remain
+under durable archive refs with detached worktrees/private files intact.
+
+Separate803opt2 now has reviewed metadata-only builder copy08ccde52,
+independentf26d9261. It verifies actual profile/compiler flags and rejects
+ambient release-profile overrides; originalf454 builder stays unchanged.
+No803 product SDK or timing has run. Its build remains after the active
+native→owner32→full44 queue. AcceptedG and the original stopping rule remain;
+this checkpoint is not task completion.
