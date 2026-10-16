@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "status": "ORIGINAL_FRESH_HEALTH_AND_FIVE_IMMUTABLE_COPIES_COMPLETE_BEFORE_ANY_TIMING",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+  "source_files_verified": 180,
+  "original_stage_related_passed": 87,
+  "original_slots_unchanged": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "stage_receipt_sha256": "391946806a31d3ad2aa2de5117baac654316c06393062bc5b36ecb88527188e7",
+  "stage_receipt": {
+    "scope": "Original operator preflight and five immutable source copies complete; no windows or slot changes started.",
+    "plan_sha256": "8293e1d84a80c4035c1b9ab0c1969ac23df421c6eb89324fa1bf733ae4e47442",
+    "health_summary_sha256": "7681caa3314f7c6e3e9a3e882b48b7f1aac5824414f49dd10f6e269352c256e0",
+    "preflight_sha256": "e8fdd9334f3827e17e5b232c4ec39a72f059192fca0c611cb864823f68731241",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "original_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "script_sha256": "4282672cb9fa78968a5199c3847506a87004bdf2b1f7b6ffed4b29e812c53de7",
+    "epoch": 1792147991.0176241
+  },
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 126.18,
+    "dns_samples": 49,
+    "dns_p95_ms": 1.506,
+    "dns_max_ms": 9.299,
+    "http_samples": 23,
+    "http_max_ms": 74.188,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 127,
+    "final_tail_samples": 1,
+    "pre_stop_prefix_sha256": "4b559da41ef2a30b3f13cea9d83e74075b8abbf3186870949184914f76c2a34e",
+    "raw_sha256": "0a7d29a5533a3fd3f4332031976f228679779fbb5cf86e5f7865205599fae1ab"
+  },
+  "image_C_runtime_reverified": {
+    "interpreter": "/lib/ld-musl-aarch64.so.1",
+    "interpreter_link": "libc.so",
+    "needed": [
+      "libubox.so.20260213",
+      "libubus.so.20251202",
+      "libgcc_s.so.1",
+      "libc.so"
+    ],
+    "libraries_sha256": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "historical_reference_receipt_sha256": "8d07ca0b3008da5141386398d4739ae871b4fbe7496516e8ed862b4d40b0fa00",
+    "fresh_device_reverification_pending": true
+  },
+  "available_memory_before_staging_kib": 93372,
+  "immutable_sources": {
+    "exact-c": {
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305,
+      "verified_before_rename": true
+    },
+    "e": {
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "f": {
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "g": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    },
+    "stage": {
+      "sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "bytes": 2149147,
+      "verified_before_rename": true
+    }
+  },
+  "staged_bytes": 8837221,
+  "measurement_started_at_this_checkpoint": false,
+  "scope": "Excluded50stage diagnosticonly; noactualallocationcounter/zeroallocationtarget. Oraclewarmnon-timingbuildmaycontinue; allbulk deferredthroughrouterobservations."
+}
