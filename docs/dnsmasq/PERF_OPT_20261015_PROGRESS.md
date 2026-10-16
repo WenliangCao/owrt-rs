@@ -1,5 +1,14 @@
 # Performance research continuation
 
+最新研究转向（2026-10-16）：现有同源E/PGO五对A53命中CPU配对中位改善45.25µs，
+5/5同向，正在独立九对确认；G/c95五对改善8.25µs，保留待组合。已验证sub-tick CPUclock，
+速率扫描绝对差缩小但G/C比例基本不变，Oracle PMU支持缓存/分支关联而非已证因果。
+用户授权的新PGO限额为ELF2,500,000B/APK1,400,000B，基于实际分区/UBI/可用闪存，
+不涉及部署。G仍是已完成接受的交付；当前PGO完整44与条件118矩阵未完成。
+后续以[统一计划](audits/perf-opt-20261015/FROZEN_RESEARCH_SUPPLEMENT_20261016.md)和
+[统一结果](audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md)为准，下面保留旧阶段事实。
+
+
 Branch: `perf/dnsmasq-20261015`; worktree:
 `/Users/USER/Developer/owrt-perf-opt-20261015`.
 Starting main: `51b03959`. Do not merge main, push, or deploy.

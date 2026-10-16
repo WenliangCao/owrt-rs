@@ -50,10 +50,11 @@ SHA256 `ca7a412fb9e9bab1ea8612ee2f40ef11f6f3169f70d0782ce2c017cc6a90ddd5`。
 raw保留Oracle的`loop/private/cg-pmu-20261016`；固定argv矩阵SHA320a68775d1c9a63a9a69d8690360c995cabb64a21c3417f57642aafb4adcc8f。
 捕获和summary结束后，本机挂起SSH单独终止退出255；未终止远端任务或改变任何窗口。
 
-## 已有PGO与c95：运行资格已齐，真机结果待测
+## 已有PGO与c95：产物身份与运行资格
 
 现有PGO0910b49和同源E8b8082b9一次最小启动/A+AAAA/live身份/RELRO/NX/noWX/正常TERM均PASS，
-无强制清理或残留。未重训/重建。原ELF超预算88419B、APK超93382B保留，仍不可发布。
+无强制清理或残留。未重训/重建。原ELF超预算88419B、APK超93382B的历史结果保留。用户后来授权的新PGO预算见下节；
+完整候选资格仍未全部完成。
 最小smoke raw本机`owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/pgo-existing-runtime-20261016/raw/runtime/result.json`，
 SHA4a35a3a0dfcf71f8127cc82f7b59b37034cf279e34365668be2ec5de5db43067。
 
@@ -125,7 +126,7 @@ C匹配骨架诊断补丁/原SDK构建命令亦已在correctness/private/c-recei
 固定批次直接进入原E/PGO五对。E/PGO和G/c95结果尚待完成。
 
 
-## 现有E/PGO真机五对：强CPU信号，发布预算仍失败
+## 现有E/PGO真机五对：强CPU信号
 
 | 配对 | E CPUclock µs/query | PGO CPUclock µs/query | PGO−E µs |
 | --- | ---: | ---: | ---: |
@@ -142,12 +143,51 @@ p50每对少0.0327–0.0518ms；p95配对差−0.070787/−0.365936/+0.149345/+0
 
 在源和输入匹配的前提下，这证明现有profile驱动的编译变换有大幅实际潜力；PGO同时改变
 内联、分支选择、代码生成与布局，尚不能分解为纯地址排列或缓存缺失因果。c95五对正在
-本批后续运行。42窗安全闭合后，原E/PGO依d81f做九对5+45确认；预算+88419/+93382B仍失败。
+本批后续运行。42窗已安全闭合，原E/PGO依d81f做九对5+45确认；原预算失败不改写，新PGO限额另行记录。
 
 事前追加ff5e959f只选择一个体积变量：同E、同profile、opt-level2。原因是已有O2 actualSDK
 缩ELF98304B/ APK40449B，量级比HCS更有依据，但APK很可能仍超，不能承诺成功。LLVM22
 [SizeOpts.cpp](https://github.com/llvm/llvm-project/blob/release/22.x/llvm/lib/Transforms/Utils/SizeOpts.cpp)
 的pgso默认true；actualprofile99%集合2336未达large>12500，关闭lwss限制确非空操作，但会
 扩大到中温/非热点代码，且目前没有实际尺寸证据，因此本轮不与O2并试或叠加。若O2尺寸或
-收益不符合目标，先读实际结果再改模型，不做参数遍历。DNS正在独立原SDK构建，当前计时
-产物不改。正式资格/完整矩阵/可发布状态尚未达成。
+收益不符合目标，先读实际结果再改模型，不做参数遍历。O2结果见下节，当前计时产物不改。正式资格/完整矩阵/可发布状态尚未达成。
+
+
+## 固定42窗闭合、c95小收益与后续执行
+
+42/42有效，所有ns列有效，无补测/新增DNS错误；1890raw files、1762guard、118external
+检查完整保留。最低MemAvailable74464KiB，结束80020KiB；E/F精确恢复，production未改变。
+原结果`private/perf-opt-20261015/research-reset-20261016/windows/result.json` SHA
+`b511bf8703c2184794f7342d0f18e57521d8fa2b59cbf9b97e65efd1a56ea868`。
+
+G/c95五对CPUclock差−15.3494352/−7.8849252/−12.7045032/−8.2526460/−7.7322480µs，
+中位−8.252646、5/5，达到新筛选门。原tick中位116→106只5ticks仍未分辨，说明旧门确会
+挡住值得后续确认的小收益。p50五对改善，p95差−.035470/+.001386/−.143728/−.026930/+.015080ms。
+c95保留作后续组合方向，没有已接受或叠加PGO收益的声明。
+
+原E/原PGO九对确认15:13:39UTC开始，200qps/5+45+1、实际CPU N10000，artifact不变。
+此前fresh125s health通过；结果尚未完成。条件完整矩阵3d4a91e2已事前固定：若九对通过，
+直接G/PGO的11场景118窗（hit9对，其余10scene各5对），不另叠重复18+110漏斗。
+只有3UDP加入有效CPUclock，fork TCP和DHCP/lifecycle保留原口径；33primary与全resources保持。
+Oracle原44/67并行，本次actualPGO F10 13/704、protocol368pairs/366exact、TCP13/50
+已经通过，仅原C差异/预期timeout保留；完整44结果待完成，不继承旧machine-code PASS。
+
+## 新PGO预算与O2失败
+
+用户授权后，依据本批live mtd/UBI/df，d29c289a固定PGO ELF2500000B、APK1400000B。
+当前overlay available56504320B=53.887MiB；rootfs74LEB、data525LEB，共599个126976B LEB；
+其余25个PEB保留。UBI未分配0不意味着UBIFS满，也不能直接在线扩rootfs。未来整镜像
+rootfs上限82LEB=10412032B，仅增8LEB；data至少517LEB且保留配置后必须有≥16MiB实际用户
+可用空间。APK压缩大小不能推算squashfs；kernel34MiB空余不借用。预算理由和raw SHA详见协议。
+现有PGO符合新组件数字；未安装、扩容或刷机，未声称新完整固件已通过集成。
+
+单次同E/profile的O2产物为ELF2063131B、APK1142122B，虽然都符合旧尺寸，profile校验失败：
+2817条missing-profile warnings，crate标识随opt-level改变，原profile名字无法匹配。
+实际-Copt-level2与71adfc95profile身份和静态保护均核对；零hash-mismatch警告不能抵消
+missing profile。停止该方向，没有把它当有效PGO，也未通过改profile名字/重训/重建掩盖失败。
+原日志/产物在pgo-sdk-smoke树`private/perf-opt-20261015/pgo-opt2-20261016/`，sourceefcc85b2。
+
+用户更正G+PGO仅可选。当前优先完整确认/验收现有E+PGO；G新训练只保留可行性，不启动。
+如将来选择，必须锁同source/opt3/Cargo/CGU/LTO/buildslot并生成新profile，不能套E的profile。
+旧E训练和评估后缀不同，但seed原为同0x293001，不能宣称完全seed隔离；将来新训练可事前
+另定种子。不存在把G与PGO历史收益相加的决定。
