@@ -1,0 +1,326 @@
+{
+  "status": "PASS_RAW_TEN_SCREEN_WITH_NO_DISCERNIBLE_PRIMARY_GAIN_OR_REGRESSION",
+  "author_commit": "69e2b4e9",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "author_result_sha256": "ebbcc065996b5ae8675cb4eb398a8aefc98fca3438c2ae3faa4ff78924012898",
+  "plan_sha256": "691bace9192ee5ae0e68130f04ec26a75cdbb879c8c63e6356ea9735cdb0e7ec",
+  "verified_archives": 10,
+  "verified_raw_files": 430,
+  "single_thread_observations": 315,
+  "wire_samples": 600,
+  "all_raw_latency_send_lag_and_scheduled_latency_bins_recomputed": true,
+  "all_CPU_ticks_actual_denominator_and_three_primary_comparisons_recomputed": true,
+  "original_full_field_verifier_result_byte_identical": true,
+  "comparisons": {
+    "g-vs-opt2-codegen": {
+      "p50": {
+        "left_median": 0.177044,
+        "right_median": 0.181199,
+        "relative_change_pct": 2.346874223356901,
+        "W_pct": 6.9636145894845,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "p95": {
+        "left_median": 0.411333,
+        "right_median": 0.37794,
+        "relative_change_pct": -8.118239966158807,
+        "W_pct": 221.66079551117951,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "cpu": {
+        "left_median": 122.0,
+        "right_median": 126.0,
+        "relative_change_pct": 3.278688524590164,
+        "W_pct": 6.557377049180328,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false
+      }
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r1-c",
+      "artifact": "g",
+      "cpu_ticks": 57,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 114.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.091176,
+        "p50": 0.168504,
+        "p95": 0.251371,
+        "p99": null,
+        "max": 8.930758
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r1-rust",
+      "artifact": "opt2-codegen",
+      "cpu_ticks": 60,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088407,
+        "p50": 0.177275,
+        "p95": 0.365784,
+        "p99": null,
+        "max": 22.42711
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r2-rust",
+      "artifact": "opt2-codegen",
+      "cpu_ticks": 63,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092562,
+        "p50": 0.1862,
+        "p95": 0.404408,
+        "p99": null,
+        "max": 20.284116
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r2-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086637,
+        "p50": 0.177275,
+        "p95": 0.469502,
+        "p99": null,
+        "max": 20.213483
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r3-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087945,
+        "p50": 0.177044,
+        "p95": 0.411333,
+        "p99": null,
+        "max": 11.349896
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r3-rust",
+      "artifact": "opt2-codegen",
+      "cpu_ticks": 63,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087791,
+        "p50": 0.181199,
+        "p95": 0.37794,
+        "p99": null,
+        "max": 7.262727
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r4-rust",
+      "artifact": "opt2-codegen",
+      "cpu_ticks": 62,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090638,
+        "p50": 0.173582,
+        "p95": 0.288302,
+        "p99": null,
+        "max": 5.82083
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r4-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088714,
+        "p50": 0.178659,
+        "p95": 1.163135,
+        "p99": null,
+        "max": 53.36264
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r5-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089253,
+        "p50": 0.172043,
+        "p95": 0.375862,
+        "p99": null,
+        "max": 16.555497
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-opt2-codegen-g-vs-opt2-codegen-r5-rust",
+      "artifact": "opt2-codegen",
+      "cpu_ticks": 63,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090253,
+        "p50": 0.183584,
+        "p95": 0.394714,
+        "p99": null,
+        "max": 12.381921
+      },
+      "thread_samples": 32
+    }
+  ],
+  "primary_gains": 0,
+  "primary_regressions": 0,
+  "primary_indistinguishable": 3,
+  "absolute_median_cpu_tick_difference": 2,
+  "retained_G_all_rounds_p95_ms": [
+    0.251371,
+    0.469502,
+    0.411333,
+    1.163135,
+    0.375862
+  ],
+  "health": {
+    "fresh": {
+      "qualified": 126,
+      "final": 126,
+      "tail": 0,
+      "DNS": 50,
+      "HTTP": 23,
+      "HTTPS": 10,
+      "minimum_available_memory_kib": 89548,
+      "raw_sha256": "caf31f36dfa5ddd28968221c68cda97ce57f927323a89174ddc23853f6f6a1ed",
+      "elapsed_seconds": 125.0
+    },
+    "run": {
+      "qualified": 415,
+      "final": 415,
+      "tail": 0,
+      "DNS": 161,
+      "HTTP": 76,
+      "HTTPS": 28,
+      "minimum_available_memory_kib": 77740,
+      "raw_sha256": "d4be24990ca300424faa387f3522ccbf5cddeb034e6800201ccd41178f68ec67",
+      "elapsed_seconds": 414.001
+    }
+  },
+  "fresh_health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.447,
+    "dns_samples": 50,
+    "dns_p95_ms": 0.668,
+    "dns_max_ms": 1.948,
+    "http_samples": 23,
+    "http_max_ms": 158.782,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "11958d42ee08d829347679d27d2aa3a62695ee088cf46ee774933c9ac84c7836",
+    "raw_sha256": "caf31f36dfa5ddd28968221c68cda97ce57f927323a89174ddc23853f6f6a1ed"
+  },
+  "postflight_sha256": "a73e7ec962df6fd7c7a261c7989135fc24bd8ac9b753794e65c2deb1c36d5580",
+  "postflight_shell_reconstructed_exactly": true,
+  "postflight_available_memory_kib": 84264,
+  "scope_limits": [
+    "Fresh exactG185 control and exact803opt2 product artifact only. Neither side contains allocationmeter instrumentation; no olda15/E/F/timing subtraction or historical pooling.",
+    "Original200/s UDP-hit,1000prewarm,5s warmup+20s measurement,800names,A/AAAA70/30 and unchangedtools. CPU denominator5000 correctwarmup+measurement; separate count3 cached5200 denominators are not reused.",
+    "Five alternating pairs; absolute relative median change strictly greater thanW, >=4/5 same direction. CPU requires eachwindow>=10ticks and absolute median difference strictly>8ticks.",
+    "All fullranges and everyoriginalwindow retained; no selective replacement, discarded outlier or extra favorable repeat.",
+    "p99 is unavailable for4000 latency samples. RSS/RssAnon/file/shmem ranges are descriptive and are not privateheap/PSS/USS attribution.",
+    "This ten-window UDP screen doesnot complete full44 or full110 qualification and cannot establish otherworkload performance. Production/kernel/drivers/configuration were unchanged."
+  ],
+  "retained_restoration_limit": "Retained exact controller/shell, receipts and local artifacts checked; no new live router observation. /proc/1 namespace is not an independently queried production-PID namespace.",
+  "candidate_eligible_from_screen": false,
+  "full_functional_qualification_complete": false,
+  "full110_eligible": false,
+  "deployment_authorized": false,
+  "reviewer_remote_access": false,
+  "reviewer_repeated_windows": 0,
+  "schema": "opt2-codegen-device-independent-audit-v1",
+  "identity_and_phase_review": {
+    "status": "PASS_LOCAL_ACTUAL803_IDENTITY_ORIGINAL957_PROFILE2_AND_HEALTH_STAGE_QUIET_READY_START_CHAIN",
+    "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+    "source179_git_bytes_rehashed": true,
+    "actual957_independent_report_sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
+    "actualSDK_independent_report_sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2",
+    "shipping_compile_log_reparsed_identically": true,
+    "profile2_verified": true,
+    "entry_and_original_shared_tools_rehashed": true,
+    "original_measurement_artifact_hash_map_bound": true,
+    "four_immutable_staging_artifacts_rehashed": true,
+    "original_EF_slots_and_production_identity_bound_through_postflight": true,
+    "phase_epochs": {
+      "fresh_health_end": 1792136698,
+      "preflight": 1792136733.243624,
+      "stage_complete": 1792136733.244939,
+      "DNS_quiet": 1792136867.3528123,
+      "loop_ready": 1792136957.1262572,
+      "operator_release_binding": 1792137032.116745,
+      "device_launch": 1792137033.664093,
+      "guard_start": 1792137035,
+      "guard_end": 1792137450,
+      "postflight": 1792137485.50299
+    },
+    "plan_sha256": "691bace9192ee5ae0e68130f04ec26a75cdbb879c8c63e6356ea9735cdb0e7ec",
+    "stage_sha256": "28baa946a11d628874534ba5e0360cabdf0c81c62276f8e03aa018becc2497e7",
+    "DNS_quiet_sha256": "f9533ce806a75c35b6475e88a5fa9b0b0f36e5b201f3a45684824d6ba59c4b28",
+    "loop_finalready_sha256": "86307ea61be6ce9c15236d59ee0edc120f10a03f8f146bda891adc4125e5c306",
+    "device_queue_release_sha256": "73c5391ad15400559dae6a047a609b4d33d24080fe279bf86f2776207c458684",
+    "launch_sha256": "5a2d727ce63a7a6cee8e4b333f82de4cf2c333bbaab81a6371bd17206932b3bf",
+    "scope_limits": [
+      "All observations are retained local receipts/raw bytes; no fresh router or Oracle inspection.",
+      "Stage/start scripts were read and hash-verified, never executed by reviewer. Actual loop-ready content was independently checked; start script itself only hashes the DNS quiet receipt, so this is a verified operator binding rather than a claim of an additional script assertion.",
+      "Preparation plan retains execution_started=false/pending prose; actual launch, raw windows and postflight receipts are authority."
+    ],
+    "reviewer_script_sha256": "6d9874aa7dfc2c4c708cb02de0d666019a3113f98735dcaab48202004aa00778"
+  },
+  "reviewer_scripts": {
+    "raw_audit_sha256": "43248bf92ba1a9a89797d920738f3096b9357c4a4674495b41bc5b71506da4ce",
+    "binding_audit_sha256": "6d9874aa7dfc2c4c708cb02de0d666019a3113f98735dcaab48202004aa00778",
+    "adapted_original_verifier_sha256": "d7c08c0b98b2f0b5b49529d2d266ac81b7e6fbd0551396ae26644a6f9b982057"
+  },
+  "reviewer_raw_result_sha256": "4395b108e5cab124454c15a01a9329983bc15b65f5ad868dc4c340a3187ae5b0",
+  "reviewer_bindings_result_sha256": "d8cbd15cd3793cff8e629e8fa11af6b6ad2de677c6268912836e33a490756239",
+  "original_verifier_adaptation": "Original frozen verifier output redirected to reviewer private file; injected SSH-denial sentinel. All validation logic kept and output byte-identical to original author result.",
+  "retained_G_round4_p95_ms": 1.163135,
+  "reviewer_test_build_or_capture_rerun": false
+}
