@@ -1,0 +1,55 @@
+{
+  "schema": "inline-address-details-device-operator-peer-review-v1",
+  "status": "PASS_LOCAL_ORIGINAL_OPERATOR_PROTOCOL_AND_PRE_SSH_METADATA_GATES",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "files": {
+    "launch-a53-inline-address-details.py": {
+      "sha256": "7ef193e66f3202e31bfff37574d05a697d6407d3c0e8d4d85c465aa1a676bd25",
+      "parent": "launch-a53-udp-thread-local-handles.py",
+      "parent_sha256": "8fccf57c1eeb2f2ff69779db399e884d622ce616a791aee2f16729e2e38f5400"
+    },
+    "verify-a53-inline-address-details.py": {
+      "sha256": "656f7fa64b95b9bc0cf727426ebe889d65825380b81f63fea9829fc4203a4644",
+      "parent": "verify-a53-udp-thread-local-handles.py",
+      "parent_sha256": "8059e8d51f9ec234e8d8b1b7292d8bf0fa5c92b0dc7b803a766aa0e26368510e"
+    },
+    "postflight-a53-inline-address-details.py": {
+      "sha256": "ab15f11a25e29ec398ef5f27cfc27b2536ad50c15db89ec2395d3e3ed0abd65b",
+      "parent": "postflight-a53-udp-thread-local-handles.py",
+      "parent_sha256": "42f59047c1009158842ef6588b721e7eb2b11a56e53339831d6433a0e0574fda"
+    },
+    "report-a53-inline-address-details.py": {
+      "sha256": "a9967871deb6058b4f03e982ae883e4dcdedbb066ff04dd8e50e2d28d964a2ed",
+      "parent": "report-a53-udp-thread-local-handles.py",
+      "parent_sha256": "483059e6a56419059aced6a19bd7ea8663a9e3c8b71793fd521c12cfa0c04bc7"
+    },
+    "stage-a53-inline-address-details.py": {
+      "sha256": "c58b3263ca9124dc607fb9b2933a340e8969bf5aedb284cf58589d9d6079a947",
+      "parent": "stage-a53-opt2-codegen.py",
+      "parent_sha256": "795baccd5b0006d1fee46c6ee45d8ec2d77bfce2c563eff3c57f4a3ba9fdb0b0"
+    },
+    "start-a53-inline-address-details.py": {
+      "sha256": "1c4135fcb38513bdee5d70015777b3d86d4debca59c6cfb80ae046ea10491c63",
+      "parent": "start-a53-opt2-codegen.py",
+      "parent_sha256": "712330e13dc113c2b0c74c0df75acb1ef45e9d3010d1b8c61ad12377ceccd43f"
+    }
+  },
+  "exact_identity_and_declared_metadata_substitutions_restore_all_four_6ab_scripts": true,
+  "unchanged_shared_tools": {
+    "udp_stage_device_run.py": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+  },
+  "launch_delta": "Candidate names/source/expected963/prior803 completion and current review keys replace predecessor metadata. Adds local hash-bound build/source/budget/canonical-builder/opt3-empty-features checks and required actualSDK/queue release before the first production_identity SSH call.",
+  "unchanged_execution_behavior": [
+    "Original freshhealth requirement,179source count,original schedule,tool checks,productionPID guard,idle/memory gate,four immutablecopies,slot checks and Popen command shape.",
+    "Original10-window completeness/failure/cleanup checks; all raw archive/local hashes, original stage_report/traffic/comparison functions, pre-stop health prefix evidence and restoration.",
+    "Original postflight checks and hash-before-prune handling; unchanged failure boundaries and no automatic replacement/retry.",
+    "Report keeps actual metric formulas,CPU denominator/tick requirements,W/direction and scope; metadata schema/labels adapt tobare1df and explicitly state directG comparison does not isolateinline-address change."
+  ],
+  "metadata_scope": "A pending null/missing actual963/SDK/queue binding stops this launch before SSH (or earlier missing local health/artifacts stop local reads). Actual source/SDK/review/release values must come from completed evidence at the existing launch gate; no placeholder values or additional approval are requested. explicit_queue_release is a truthiness guard here; actual receipt content/hash binding remains the existing operator coordination responsibility.",
+  "concurrent_phase_metadata_update": "During review the author updated only report evidence paths from launch to original803 stage/start plus stage-complete/queue-release; initial normalization failed because that additional delta was not yet listed. Retained first reviewer script; verified exact added metadata substitution and independently normalized both stage/start scripts to original803. No operator or measurement rerun.",
+  "execution_scope": "Read-only byte normalization and AST parsing. No operator imports/execution, tests, builds, Oracle/router access, capture, or new framework.",
+  "reviewer_script_sha256": "162885e0f90d208f05c79b1a5379e3c95b79561a47c52f8ea818171c0d539241"
+}
