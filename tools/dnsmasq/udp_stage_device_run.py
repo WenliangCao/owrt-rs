@@ -11,6 +11,7 @@ import time
 
 import perf_opt_analyze as analyze
 import perf_opt_device_run as run
+import device_health_baseline as health_evidence
 
 MODES = ('full', 'receive', 'before-answer', 'skip-local')
 PREFIX = 'a53-stage'
@@ -124,6 +125,7 @@ def main():
     assert plan['schedule'] == schedule()
     assert hashlib.sha256(Path(run.__file__).read_bytes()).hexdigest() == plan['controller_sha256']
     assert hashlib.sha256(Path(analyze.__file__).read_bytes()).hexdigest() == plan['analyzer_sha256']
+    assert hashlib.sha256(Path(health_evidence.__file__).read_bytes()).hexdigest() == plan['health_evidence_sha256']
     health = json.loads(args.health_baseline.read_text())
     assert health['valid'] and health['elapsed_seconds'] >= 120 and 1 <= health['threshold_ms'] <= 700
     assert len(args.stage_hash) == 64 and all(c in '0123456789abcdef' for c in args.stage_hash)
@@ -145,6 +147,7 @@ def main():
         'plan_sha256': hashlib.sha256(args.plan.read_bytes()).hexdigest(),
         'driver_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'controller_sha256': plan['controller_sha256'], 'analyzer_sha256': plan['analyzer_sha256'],
+        'health_evidence_sha256': plan['health_evidence_sha256'],
         'health_summary_sha256': hashlib.sha256(args.health_baseline.read_bytes()).hexdigest()})
     finished, failed = threading.Event(), threading.Event()
     monitor = threading.Thread(target=run.external_health, args=(args.out, finished, failed), daemon=True)
@@ -207,6 +210,9 @@ def main():
             raise RuntimeError('external health failed or did not finish')
         if not run.guard_check(guard):
             raise RuntimeError('guard unavailable at final completion')
+        # All windows, CPU endpoints and archives are already complete. Retain
+        # a capture-time qualification boundary before SIGTERM can cancel probes.
+        health_evidence.capture_before_stop(args.out, guard_label)
         run.guard_stop(guard)
         guard = None
         run.write(args.out / 'summary.json', {'scope': plan['scope'], 'windows': results, 'comparisons': comparisons(results)})
@@ -263,6 +269,25 @@ def main():
         run.write(args.out / 'cleanup.json', {'errors': cleanup_errors})
     if cleanup_errors:
         raise RuntimeError('diagnostic cleanup incomplete; see cleanup.json')
+    try:
+        qualified, samples, end = health_evidence.validate_guard_evidence(
+            (args.out / 'pre-stop-prefix.jsonl').read_bytes(),
+            (args.out / (guard_label + '.jsonl')).read_bytes(),
+            [json.loads(line) for line in (args.out / 'external-health.jsonl').read_text().splitlines()], identity)
+    except Exception as error:
+        failure = {'error': repr(error),
+                  'scope': 'Final guard evidence gate; original windows retained, no complete marker',
+                  'results': results}
+        run.write(args.out / 'failure.json', failure)
+        try:
+            run.stop_owned(PREFIX.replace('-', '_') + '_final_guard_evidence_failed')
+        except Exception as stop_error:
+            failure['stop_owned_error'] = repr(stop_error)
+            run.write(args.out / 'failure.json', failure)
+        raise
+    run.write(args.out / 'guard-verification.json', {'qualified_samples': len(qualified),
+              'final_samples': len(samples), 'final_tail_samples': len(samples) - len(qualified),
+              'pre_stop_elapsed_seconds': qualified[-1]['elapsed_s'], 'final_elapsed_seconds': end['elapsed_s']})
     run.write(args.out / 'complete.json', {'complete': True, 'windows': len(schedule()),
               'valid': len(results), 'candidate_eligible': False})
 

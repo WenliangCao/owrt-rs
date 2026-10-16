@@ -1,4 +1,5 @@
 import json
+import hashlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -147,6 +148,10 @@ class StageGateTests(unittest.TestCase):
         health = root / 'health.json'
         health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
         plan = Path(__file__).resolve().parents[2] / 'docs/dnsmasq/audits/perf-opt-20261015/loop/A53_UDP_STAGE_DEVICE_PLAN.json'
+        data = json.loads(plan.read_text())
+        data['health_evidence_sha256'] = hashlib.sha256(Path(stage.health_evidence.__file__).read_bytes()).hexdigest()
+        plan = root / 'plan.json'
+        plan.write_text(json.dumps(data))
         def archived(destination, label):
             (destination / (label + '.tar.gz')).write_bytes(b'first archive bytes')
             if partial_archive:
@@ -199,6 +204,85 @@ class StageGateTests(unittest.TestCase):
 
     def test_cleanup_timeouts_preserve_original_failure_and_attempt_restore(self):
         self.run_controller_failure(partial_archive=False, cleanup_fault=True)
+
+    def run_guard_tail(self, unsafe_tail=False):
+        import cached_zero_frame_device_run as entry
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            out = root / 'out'
+            health = root / 'health.json'
+            health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
+            plan = Path(__file__).resolve().parents[2] / 'docs/dnsmasq/audits/perf-opt-20261015/loop/A53_CACHED_ZERO_FRAME_DEVICE_PLAN.json'
+            data = json.loads(plan.read_text())
+            data['health_evidence_sha256'] = hashlib.sha256(Path(stage.health_evidence.__file__).read_bytes()).hexdigest()
+            plan = root / 'plan.json'
+            plan.write_text(json.dumps(data))
+            (root / 'COMPLETE').write_text('complete\n')
+            start = dict(event='start', production_pid=3086, production_starttime=2115, ipv4_default_initial=1)
+            sample = dict(event='sample', elapsed_s=0, production_pid=3086, production_starttime=2115,
+                          mem_available_kib=90000, ipv4_default=1, dns_ok=1, dns_rtt_ms=.5,
+                          http_status=403, http_rtt_ms=50)
+            prefix = [start, sample, {**sample, 'elapsed_s': 400}]
+            tail = {**sample, 'elapsed_s': 401, 'http_status': 0, 'dns_ok': 0}
+            if unsafe_tail:
+                tail['mem_available_kib'] = 1
+            final = prefix + [tail, dict(event='monitor_stopped', elapsed_s=401.1)]
+            encode = lambda rows: b''.join((json.dumps(row) + '\n').encode() for row in rows)
+            stopped = False
+            def ssh(command, **kwargs):
+                if command.startswith('cat ') and command.endswith('.jsonl'):
+                    return SimpleNamespace(stdout=encode(final if stopped else prefix), returncode=0)
+                return SimpleNamespace(stdout=b'', returncode=0)
+            def stop(identity):
+                nonlocal stopped
+                self.assertEqual(validate.call_count, 10)
+                self.assertEqual((out / 'pre-stop-prefix.jsonl').read_bytes(), encode(prefix))
+                self.assertTrue((out / 'stop-request.json').exists())
+                stopped = True
+            def external(destination, finished, failed):
+                (destination / 'external-health.jsonl').write_bytes(encode([
+                    dict(ip_version=version, exit=0, result='200 0.08') for version in (4, 6)]))
+            argv = ['stage', '--plan', str(plan), '--health-baseline', str(health),
+                    '--experiment-hash', '0' * 64, '--out', str(out)]
+            with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
+                                ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE), \
+                 patch('sys.argv', argv), patch.object(stage, 'verify_files'), patch.object(stage, 'set_slots'), \
+                 patch.object(stage.run, 'production_identity', return_value=[3086, 2115]), \
+                 patch.object(stage.run, 'ssh', side_effect=ssh), \
+                 patch.object(stage.run, 'guard_start', return_value=(3, 4)), \
+                 patch.object(stage.run, 'guard_check', return_value=True), \
+                 patch.object(stage.run, 'guard_stop', side_effect=stop), \
+                 patch.object(stage.run, 'stop_owned') as emergency_stop, \
+                 patch.object(stage.run, 'external_health', side_effect=external), \
+                 patch.object(stage.run, 'archive_run', return_value=root), \
+                 patch.object(stage.run, 'validate', return_value=[]) as validate, \
+                 patch.object(stage, 'stage_report', return_value={}), \
+                 patch.object(stage.analyze, 'traffic', return_value={}), \
+                 patch.object(stage, 'comparisons', return_value={}), \
+                 patch.object(stage.subprocess, 'Popen') as launch:
+                entry.configure()
+                launch.return_value.poll.return_value = 0
+                launch.return_value.returncode = 0
+                if unsafe_tail:
+                    with self.assertRaises(AssertionError):
+                        stage.main()
+                else:
+                    stage.main()
+            self.assertTrue(stopped)
+            self.assertEqual(launch.call_count, 10)
+            self.assertEqual((out / 'complete.json').exists(), not unsafe_tail)
+            self.assertEqual((out / 'failure.json').exists(), unsafe_tail)
+            self.assertEqual(emergency_stop.call_count, int(unsafe_tail))
+            self.assertTrue((out / 'restored.json').exists())
+            guards = list(out.glob('a53-cached-zero-frame-guard-*.jsonl'))
+            self.assertEqual(len(guards), 1)
+            self.assertEqual(guards[0].read_bytes(), encode(final))
+
+    def test_all_ten_windows_finish_before_guard_prefix_then_cancelled_tail(self):
+        self.run_guard_tail()
+
+    def test_unsafe_shutdown_tail_prevents_complete_without_replacing_windows(self):
+        self.run_guard_tail(unsafe_tail=True)
 
 
 if __name__ == '__main__':
