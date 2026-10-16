@@ -1,7 +1,7 @@
 {
   "schema": "dnsmasq-cached-zero-frame-full-qualification-preparation-v1",
-  "status": "PREPARED_FINAL_SDK_BOUND_NOT_EXECUTED_SCREENS_PENDING",
-  "authorization": "Local preparation only. Progress requires supportive185directE screens and completion/release of the reserved Oracle owner32 work. No full gate runs or transfers during timing.",
+  "status": "FULL_QUALIFICATION_STARTED_SHORT_GATES_RUNNING_NOT_PASSED",
+  "authorization": "Root explicitly authorized original full qualification after independent A53 CPU screening passed and DNS owner32 released Oracle. Functional slot is exclusive; no performance overlap.",
   "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
   "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame",
@@ -164,8 +164,8 @@
     "historical_references": "All exact-C baselines, source-a lease comparisons and historical E inventory/protocol comparisons remain unchanged."
   },
   "prepared_only": true,
-  "uploaded": false,
-  "executed": false,
+  "uploaded": true,
+  "executed": true,
   "new_framework_comparators_expectations_or_waivers": false,
   "performance_accepted": false,
   "deployment_authorized": false,
@@ -174,7 +174,7 @@
     "tests": 940,
     "receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501"
   },
-  "screen_results_pending": true,
+  "screen_results_pending": false,
   "sdk_binding": {
     "local_directory": "/Users/USER/Developer/owrt-perf-cached-zero-frame-owner32-20261016/private/perf-opt-20261015/cached-zero-frame-owner32-inputs/sdk-cached-zero-frame",
     "source_files_rehashed_against_commit": 179,
@@ -207,7 +207,8 @@
     "performance_recipe_sha256": "6eb536c9f8235402bb230e18d0fdf2378fde93a80eccce79f48b92f0104e3cb4"
   },
   "local_preparation_directory": "private/cached-zero-frame-full-qualification",
-  "prepared_recipe_sha256": "2e9924dfabd3dd0b3fc3a9b2e417070591335fbe7f882c0616feaa98b1f4e717",
+  "prepared_recipe_sha256": "e677a4a8ffbbd3bba26cddfd5c8fe5ae7f1628ef6984cb0d4478554f4aa37ff0",
   "unit_command_manifest_sha256": "f206d48f4a093bd1bd58351ed5fcf487ebe5c8acff2c43bd1b2c601bd4aec6bf",
-  "verification": "Seven original wrappers parsed without imports/execution; candidate179source and finalSDK identities checked; canonical44families/67jobs and original comparators remain unchanged."
+  "verification": "Seven original wrappers parsed without imports/execution; candidate179source and finalSDK identities checked; canonical44families/67jobs and original comparators remain unchanged.",
+  "launch_receipt_sha256": "1dccec1f146960fa2ad4345ddb8af4c8e26747e2316038d425521e35b5cbf4cb"
 }
