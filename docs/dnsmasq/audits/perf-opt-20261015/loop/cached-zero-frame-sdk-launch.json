@@ -1,0 +1,26 @@
+{
+  "scope": "One exact185 canonical SDK build after940relatedgates; no timing",
+  "launched_utc": "2026-10-16T01:04:02.713658+00:00",
+  "pid": 654260,
+  "starttime_ticks": 183725992,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-zero-frame-sdk-inputs/build-sdk.py"
+  ],
+  "controller_sha256": "2861183d36e75c85c88492884f58957862b83a553adebaf72ff44f67d82ffcfb",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+  "gate_receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501",
+  "related_passes": 940,
+  "source_files_rechecked": 179,
+  "research_processes_before_launch": [],
+  "locks_available_before_launch": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+  ],
+  "DNS0161timing_and_analysis_released": true,
+  "prior54bd578raw_transfer_finished": true
+}
