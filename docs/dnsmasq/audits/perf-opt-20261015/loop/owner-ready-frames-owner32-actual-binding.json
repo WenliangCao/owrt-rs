@@ -1,0 +1,39 @@
+{
+  "status": "ACTUAL_BOUND_PENDING_STANDALONE_SIGNALS_FULL_AUDIT_PRETRANSFER_AND_QUIET",
+  "candidate_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "actual_gate": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-related-verified.json",
+    "sha256": "671ac4f17b2755064149705902c77f289cd289818c527028d7777309f4fd66f8",
+    "expected_passes": 961
+  },
+  "artifacts": {
+    "dnsmasq-rs": {
+      "sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+      "bytes": 2145051
+    },
+    "link.map": {
+      "sha256": "b9a3bf7fc440fa2dba745d5e8cebc7e4c4f668cc4801fb8956985a59efad92c4",
+      "bytes": 3023638
+    },
+    "build.json": {
+      "sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+      "bytes": 43982
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "sha256": "98144d551bcb44b93a47152ae91a28bbf4b0a7f135d702f0c94177c65efbde48",
+      "bytes": 1167379
+    }
+  },
+  "source179_matches_frozen_plan": true,
+  "sdk_postflight_sha256": "35eb839874b059bdeea2d5ecf9cd3c2d8e83a35bc247cb355b9eca2c6e24048a",
+  "plan_sha256": "bba07fc6768e0ca6d59e821bb798b557de6991d9d21c92bdb116787db0f5b167",
+  "original32_protocol_and_scripts_unchanged": true,
+  "standalone_signal_actual": null,
+  "actualSDK_independent_review": null,
+  "explicit_slot_release": null,
+  "pretransfer_complete": false,
+  "executed": false,
+  "remote_accessed": false,
+  "no_native240": true
+}
