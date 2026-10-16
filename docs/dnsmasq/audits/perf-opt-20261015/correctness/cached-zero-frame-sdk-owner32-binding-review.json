@@ -79,5 +79,16 @@
   "full44_qualified": false,
   "selected_G": false,
   "performance_accepted": false,
-  "deployment": false
+  "deployment": false,
+  "A53_fixed10_binding": {
+    "plan_commit": "578f53e4",
+    "plan_sha256": "76a3485034f89f3a9e78e42592bd1e031235d0cff707c750a075efab5a792443",
+    "exact_ten_E_185_schedule_verified": true,
+    "modes_all_None": true,
+    "F_role": "Restoration only",
+    "actual_SDK_ELF_map_receipt_hashes_match": true,
+    "source_inputs": 179,
+    "entry_and_shared_runner_controller_analyzer_hashes_match": true,
+    "runtime_result_pending": true
+  }
 }
