@@ -398,7 +398,16 @@
       ]
     },
     "result": "#[inline(always)] removes standalone704B conversion and its call; cached function528\u2192860B, ELF5022240\u21925021736(-504B), but retains all9zero stores onNone. Cached frame368\u2192464B(+96B), with additional callee-saved registers also paid onSome. It does not achieve elimination of None scratch initialization and is not retained.",
-    "final_attribute_absent": true
+    "final_attribute_absent": true,
+    "durable_source_archive": {
+      "ref": "refs/archive/perf/lazy-query-scratch-inline-rejected-20261016",
+      "commit": "b2e479805578811135dd4e1a98cbe2599f74edb4",
+      "parent": "45b674b67d36147c4c72499a77a415f0fa0595d0",
+      "local_rs_sha256": "cfd6b7c627c978c04057d6a5dbf7aba1d2ed7ca637d8ef5670f248746baffaea",
+      "matches_original_private_experimental_source": true,
+      "preservation_time_note": "Source committed after the earlier local experiment. The earlier compiler consumed identical uncommitted bytes, not this then-nonexistent commit. No rebuilding, runtime or timing was performed for archival.",
+      "current_conditional_product_source_unchanged": true
+    }
   },
   "decision": "Retain45b674b6 only as a narrow low-priority local mechanism for existingSome names. No CPU gain inferred, no remote run scheduled; preserve negative inline experiment privately."
 }
