@@ -1,6 +1,6 @@
 {
   "schema": "185-opt2-actual-gates-and-sdk-result-v1",
-  "status": "ACTUAL957_AND_PROFILE2_SDK_DOWNLOADED_PENDING_INDEPENDENT_AUDIT_AND_FINAL_HANDOFF",
+  "status": "ACTUAL957_AND_PROFILE2_SDK_INDEPENDENTLY_VERIFIED_QUIET_RELEASED_TO_OWNER32_DEVICE10",
   "source_commit": "8035114257c8706047d2038c2bb8126391331925",
   "base_source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "source_files_verified": 179,
@@ -272,10 +272,59 @@
     ],
     "accepted_G_unchanged": true
   },
-  "independent_actual_review": null,
-  "final_quiet_release": null,
-  "performance_timing_started": false,
+  "independent_actual_review": {
+    "commit": "3ce1e7e5",
+    "related_report_sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
+    "SDK_report_sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2",
+    "static_peer_receipt_sha256": "566ae8edab219caa7316a9b89feb3be3431a43639ce3450c2788c6e3a89231f2",
+    "scope": "Actual source/binaries/gates/SDK/codegen/static/budgets only; runtime hardening and performance not inherited."
+  },
+  "final_quiet_release": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/execution/release-to-measurements.json",
+    "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/185-opt2-execution-20261016/release-to-measurements.json",
+    "sha256": "f9533ce806a75c35b6475e88a5fa9b0b0f36e5b201f3a45684824d6ba59c4b28",
+    "epoch": 1792136867.3528123,
+    "source_files_rehashed": 179,
+    "SDK_and_G_rehashed_unchanged": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "dependencies": {
+      "independent_actual_review": {
+        "status": "PASS",
+        "commit": "3ce1e7e5",
+        "related_report_sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
+        "SDK_report_sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2"
+      },
+      "loop_pretransfer_complete": true,
+      "loop_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/185-opt2-owner32-preparation/pretransfer-receipt.json",
+        "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs/pretransfer.json",
+        "sha256": "b77cc84b863b9b3416dd57b10cc801776aa238114e7720c13b751af2337ba889",
+        "ready_metadata_pending_final_release": true
+      },
+      "device_pretransfer_complete": true,
+      "device_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-opt2-codegen-device-stage-complete.json",
+        "sha256": "28baa946a11d628874534ba5e0360cabdf0c81c62276f8e03aa018becc2497e7",
+        "preflight_sha256": "ccef87fd59a75d9d64deb71bdae4287b7049facb97e65962fa78f074d24b07c6",
+        "health_summary_sha256": "02fa8c7587266238e0922dc9f0adc6f10cd850c966f957a72afb18787712878c",
+        "no_workload_started": true
+      },
+      "metadata_order": "Afterthisrelease,loopbinds/uploadsfinalready metadataandnotifiesDHCP; onlythenbothoriginalscreensmaystart. Noadditionalbulk."
+    },
+    "next_owners": [
+      "loop original exact-SDK owner32",
+      "DHCP original fresh G/803 device ten"
+    ],
+    "DNS_stopped_Oracle_access_and_bulk": true,
+    "handoff_via_followup_task": true
+  },
   "runtime_hardening_verified": false,
   "qualification": "Freshoriginaldev/test gates and actualprofile2shippingSDK build/staticbudget evidence only. No owner32/device10/fullperformance or deploymentacceptance.",
-  "next_queue": "Independentactualrelated/SDK audits, allnecessaryowner/devicepretransfers, finalquiet release; originalexactSDKowner32 inparallelwithDHCPG803ten. No native240. Bare1df staysbehindthese screens andtheircloseout."
+  "next_queue": "Loop completes final ready metadata binding under its new slot and notifies DHCP; then original exact-SDK owner32 and original freshG/803ten run. No native240. Bare1df waits for803screen/audit/quiet release.",
+  "performance_timing_started_by_DNS": false
 }
