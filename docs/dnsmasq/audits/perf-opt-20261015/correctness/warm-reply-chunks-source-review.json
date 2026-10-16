@@ -1,0 +1,64 @@
+{
+  "status": "PASS_SOURCE_ONLY_WARM_REPLY_CHUNKS_BYTE_CAPACITY_AND_LIFETIME_EQUIVALENCE",
+  "source_commit": "4348b6d39490777cfbab2da41ff192141730cddb",
+  "base_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "changed_files": [
+    "components/dnsmasq/src/dns/cache_engine.rs"
+  ],
+  "source_sha256": "8b0da536c34178ca19d1f704aaeeeeb2a427cf9cd3414c28ea19f9a22a051d17",
+  "exact_serialization_block_reverse_restores_entire_base_file": true,
+  "all_guards_fallback_error_mapping_tests_and_buffer_ownership_code_outside_block_unchanged": true,
+  "byte_layout": [
+    {
+      "offset": "0..12",
+      "bytes": "Same Header::write: id; same flags mask; qd=1/an=1/ns=0/ar=0."
+    },
+    {
+      "offset": "12..12+n",
+      "bytes": "Same original Name::as_wire bytes, including root terminator and original case/binary labels."
+    },
+    {
+      "offset": "12+n..28+n",
+      "bytes": "Same16bytes: questiontype BE2, class BE2, C00C owner, rrtype BE2, 0001 class, TTL BE4, RDLEN BE2."
+    },
+    {
+      "offset": "28+n..28+n+d",
+      "bytes": "Same original immutable selected A4 orAAAA16 data bytes."
+    }
+  ],
+  "capacity_proof": {
+    "unchanged_length_expression": "12 + name.len() + 4 + 12 + data.len()",
+    "unchanged_guard": "capacity >= length.max(limit.min(128)), length<=limit, A4/AAAA16, nonzero warmbuffer and loggingoff",
+    "append_prefix_lengths": [
+      "12",
+      "12+n",
+      "28+n",
+      "28+n+d = length"
+    ],
+    "argument": "After clear, every prefix is at most length<=existingcapacity. In the inspected1.98.1 u8 slice specialization each append reserves only its count and grows only when count exceeds remainingcapacity, so this path does not grow or change allocation/capacity. This is an implementation/source proof, not a new observed allocation measurement.",
+    "local_toolchain": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "inspected_standard_library_source_sha256": {
+      "alloc/src/vec/mod.rs": "09171c3c4c767a5c0716a85786f7670e5e149f75325fc1b27f5dbce14f16711f",
+      "alloc/src/vec/spec_extend.rs": "a0816ad0f39b947889771bf06930bf8e0c4ce794846d83863349697ec7c415ec",
+      "alloc/src/raw_vec/mod.rs": "a262b9e494236a00270be0dd0c57be5259d62bc1e538c56506f7f0ce8debccc0",
+      "core/src/clone.rs": "fd3467602106e2a2ec416485d8d058b6d2b434ceac7689b4e2f4c792079e500f"
+    }
+  },
+  "failure_and_lifetime_proof": [
+    "Both Header::write destinations are exactly12 initializedbytes; its only error guard is the same12-byte bounds check, which cannot fail on either destination. All six header fields are completely written.",
+    "All fixed chunks are initialized; append length becomes exactly the original length, so neither old stale capacity bytes nor holes are exposed. No new unsafe code or uninitialized length manipulation is introduced.",
+    "TTL computation moves before the appends but remains the same pure immutable expiry/policy calculation; no cache mutation, query event or clock read is reordered.",
+    "The original mem::take then clear and successful ownedpacket return remain; fallback still takes the originalbuffer only in its unchanged code. The UDP owner still sends before the unchanged <=512 capacity recycling policy.",
+    "The original selected-address/type/logging/limit guards and general PacketWriter error/truncation path are unchanged. Original18432-tuple matrix is byte-identical in the source, not rerun here."
+  ],
+  "qualification_scope": {
+    "source_only": true,
+    "reviewer_test_or_build_or_codegen_run": false,
+    "only_compiler_version_query": true,
+    "remote_or_device_access": false,
+    "current_selected9e_source_modified": false,
+    "whole_bundle_runtime_qualification": false,
+    "performance_or_allocation_measurement_claim": false
+  },
+  "reviewer_script_sha256": "4360e6d9f83c449a8d53857966309b1721e74e0f0fbe5131c2d0f4c21a62440a"
+}
