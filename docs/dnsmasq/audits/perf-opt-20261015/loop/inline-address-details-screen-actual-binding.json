@@ -1,0 +1,50 @@
+{
+  "status": "ACTUAL963_AND_CANONICAL_SDK_BOUND_NOT_READY",
+  "candidate_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "actual_gate": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/inline-address-details-related-verified.json",
+    "sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
+    "passed": 963
+  },
+  "artifacts": {
+    "dnsmasq-rs": {
+      "sha256": "f7cde2e91c19d3aa535ef87078144acde965999163cbdd689bfff73ffa08b53d",
+      "bytes": 2145051
+    },
+    "link.map": {
+      "sha256": "ea0bf7b17e529c33df54bd36dd90bbd52387f64551a4b0a5ba0c2bec43bb61bb",
+      "bytes": 3027158
+    },
+    "build.json": {
+      "sha256": "04e582299d5e7a13002c36d37be421af3c651c4ec66eef15d80dfd8753a669f6",
+      "bytes": 44010
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "sha256": "7f928a01bdeffa807c89130e77d647d030066eac9bc2d8f97fbfcc6a463e5e86",
+      "bytes": 1167447
+    }
+  },
+  "source179_matches_frozen_plan": true,
+  "native162_subset_matches": true,
+  "source_manifest_sha256": "cbba1df59b5655cbf22de35003a579d95884895b50eb03437e200e6981d3ebd0",
+  "git_identity_sha256": "d1adeb59ceae6e7c0d62ee220c3d69c435d5e706e1a8d2d7ddf0d5698e340362",
+  "sdk_postflight_sha256": "2d79becfc39108e30d2d2b395809bc960d563364d5b2a550adf166f368a688e1",
+  "plans": {
+    "native": {
+      "path": "loop/inline-address-details-native-plan.json",
+      "sha256": "1e6b67670c6d86824a3c6b8fcd8b0bfeeba4a882203592f8458f07e7b0058b43"
+    },
+    "owner32": {
+      "path": "loop/inline-address-details-owner32-plan.json",
+      "sha256": "3868f8688e2cd496a056b00c33c42f7a632b8749e719f04b0680d2c9f7df84c3"
+    }
+  },
+  "four_adapted_scripts_unchanged": true,
+  "original15scenes_240windows_32windows_unchanged": true,
+  "SDK_independent_review": null,
+  "explicit_slot_release": null,
+  "pretransfer_complete": false,
+  "executed": false,
+  "remote_accessed": false
+}
