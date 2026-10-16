@@ -21,15 +21,17 @@ def lifecycle_source(original, fragment):
     return original[:begin] + fragment + '\n' + original[end:]
 
 
-def training_case(original, out, runtime):
+def training_case(original, out, runtime, seed=0x293001):
     assert original.count('--name-prefix m6a.test') == 2
     assert original.count('out=$root/runs/$label') == 1
+    assert original.count('--seed 0x293001') == 2
     return original.replace('/tmp/dnsmasq-perf-20261015', str(out)).replace(
         'out=$root/runs/$label', 'out=' + str(runtime) + '/$label').replace(
-        '--name-prefix m6a.test', '--name-prefix pgo.test')
+        '--name-prefix m6a.test', '--name-prefix pgo.test').replace(
+        '--seed 0x293001', '--seed ' + hex(seed))
 
 
-def profile_rows(folder, scene, directory):
+def profile_rows(folder, scene, directory, seed=0x293001):
     if scene[1].startswith('life-'):
         rows = [json.loads(line) for line in (folder / 'lifecycle.jsonl').read_text().splitlines()]
         exits = [json.loads(line.split(' ', 1)[1]) for line in (folder / 'lifecycle.stderr').read_text().splitlines()
@@ -46,10 +48,11 @@ def profile_rows(folder, scene, directory):
         # The unchanged set-e case reaches COMPLETE only after wait(daemon)==0.
         exits = [{'pid': next(iter(pids)), 'exit_code': 0, 'basis': 'case exit0 and COMPLETE after daemon wait'}]
         load = json.loads((folder / 'client.json').read_text())
-        assert load['name_prefix'] == 'pgo.test'
+        assert load['name_prefix'] == 'pgo.test' and load['seed'] == seed
         if (folder / 'prewarm.json').exists():
             prewarm = json.loads((folder / 'prewarm.json').read_text())
             assert prewarm['name_prefix'] == 'pgo.test' and not prewarm['interrupted'] and not prewarm['output_failed']
+            assert prewarm['seed'] == seed
             assert all(prewarm['measurement'][key] == 1000 for key in ('scheduled', 'sent', 'correct'))
             assert not any(prewarm['measurement'][key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
     paths = sorted(directory.glob('*.profraw'))
@@ -80,7 +83,8 @@ def collect(plan, inputs):
         shutil.copy2(plan['generate_elf']['path'], out / 'dnsmasq-rust')
         assert sha(out / 'dnsmasq-rust') == plan['generate_elf']['sha256']
         original = (inputs / 'perf_opt_device_case.sh').read_text()
-        (out / 'device_perf_case.sh').write_text(training_case(original, out, runtime))
+        seed = plan.get('training_seed', 0x293001)
+        (out / 'device_perf_case.sh').write_text(training_case(original, out, runtime, seed))
         assert sha(out / 'device_perf_case.sh') == plan['training_case_sha256']
         (out / 'guard.pid').write_text(str(os.getpid()) + '\n')
         result['tools'] = {p.name: sha(p) for p in out.iterdir() if p.is_file()}
@@ -112,7 +116,7 @@ def collect(plan, inputs):
                     result['active'] = None
                     folder = archive_window(out, runtime / label, label)
                     row['errors'].extend(validate(folder, scene, plan['generate_elf']['sha256']))
-                    row['exits'], row['profiles'] = profile_rows(folder, scene, profiles)
+                    row['exits'], row['profiles'] = profile_rows(folder, scene, profiles, seed)
                 except Exception as error:
                     row['errors'].append('cleanup/archive/validation: ' + repr(error))
                 row['valid'] = not row['errors']
@@ -220,12 +224,17 @@ def execute(plan, inputs):
         stage, = plan['stages']
         run('use-build', stage['argv'], stage['environment'])
         built = json.loads((Path(plan['outputs']['use']) / 'build.json').read_text())
-        assert built['status'] == 'built-unqualified' and built['source_unchanged'] and built['within_existing_budget']
+        assert built['status'] == 'built-unqualified' and built['source_unchanged']
         for key in ('source_commit', 'source_date_epoch', 'source_digest', 'builder_sha256', 'build_helper_sha256'):
             assert built[key] == plan[key]
         assert built['source_files'] == baseline['source_files'] and built['sdk'] == baseline['sdk']
         assert built['elf_layout'] == baseline['elf_layout']
         artifact, = built['artifacts']
+        budget = plan.get('budget', built['budget'])
+        state['budget'] = budget
+        state['within_budget'] = (artifact['bytes'] <= budget['elf_max_bytes']
+                                  and built['artifact']['bytes'] <= budget['apk_max_bytes'])
+        assert state['within_budget'], 'declared ELF/APK budget exceeded'
         assert sha(Path(plan['outputs']['use']) / artifact['path']) == artifact['sha256']
         output = Path(plan['outputs']['use'])
         assert sha(output / 'link.map') == built['link_map']['sha256']
@@ -240,7 +249,7 @@ def execute(plan, inputs):
         assert invocation['effective_rustflags'] == plan['recipe_rustflags'] + ' -Cprofile-use=' + plan['merged_profile'] + ' -Cllvm-args=-pgo-warn-missing-function'
         log = (Path(plan['outputs']['use']) / 'compile.log').read_text()
         diagnostics = [line for line in log.splitlines() if re.search('profile|mismatch', line, re.I)]
-        assert not re.search('hash mismatch|control flow change|profile data may be out of date', log, re.I)
+        assert not re.search('no profile data available|hash mismatch|control flow change|profile data may be out of date', log, re.I)
         state.update(status='trained-use-built-unqualified', artifacts=built['artifacts'],
                      use_build_sha256=sha(Path(plan['outputs']['use']) / 'build.json'),
                      profile_receipt_sha256=sha(plan['profile_receipt']), profile_diagnostics=diagnostics)

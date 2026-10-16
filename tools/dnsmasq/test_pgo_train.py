@@ -50,6 +50,7 @@ class TrainingGates(unittest.TestCase):
             store()
             with self.assertRaises(AssertionError):
                 train.profile_rows(folder, scene, profiles)
+
             exits.insert(0, initial)
             exits[0]['exit_code'] = 7
             store()
@@ -60,6 +61,13 @@ class TrainingGates(unittest.TestCase):
             (profiles / '100.profraw').unlink()
             with self.assertRaises(AssertionError):
                 train.profile_rows(folder, scene, profiles)
+
+    def test_distinct_training_seed_changes_both_load_and_prewarm_only(self):
+        source = (ROOT / 'tools/dnsmasq/perf_opt_device_case.sh').read_text()
+        old = train.training_case(source, Path('/training'), Path('/runtime'))
+        new = train.training_case(source, Path('/training'), Path('/runtime'), 0x20261016)
+        self.assertEqual(new, old.replace('--seed 0x293001', '--seed 0x20261016'))
+        self.assertEqual(new.count('--seed 0x20261016'), 2)
 
     def test_use_wrapper_rejects_modified_or_foreign_profile(self):
         with tempfile.TemporaryDirectory() as directory:
