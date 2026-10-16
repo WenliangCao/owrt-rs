@@ -1,0 +1,11 @@
+{
+  "status": "PASS_ORIGINAL_REVIEWER_DIRECTORY_ARCHIVE_AND_ALL_LOCAL_BYTES",
+  "archive_sha256": "2dd0a28e4a1560fe318be33f52cab241c9bceccdfc90af7d7ba1cd8123ebd354",
+  "archive_bytes": 68249,
+  "collection_sha256": "e2ac68039bbf534934d4258fa5612ff0d5bb69ba95634efd03823b27ad7b47a1",
+  "files": 21,
+  "original_replay_result_exit_stdout_stderr_script_and_quiet_bound": true,
+  "original_author_and_replay_result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+  "no_analysis_or_measurement_rerun": true,
+  "root_authorized_parallel_DNS_transport": true
+}

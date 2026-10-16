@@ -1,5 +1,5 @@
 {
-  "status": "ORIGINAL32_AND_AUTHOR_ANALYSIS_COMPLETE_REMOTE_INDEPENDENT_REPLAY_PENDING",
+  "status": "ORIGINAL32_ANALYSIS_INDEPENDENT_FULL_BIN_AUDIT_AND_AUTHOR_TRANSPORT_COMPLETE",
   "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
   "final_plan_commit": "fb224fe6",
   "final_plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
@@ -50,7 +50,7 @@
     "all_bulk_transfers_held": true,
     "scope": "No devices accessed by loop. Different-host timing overlap is recorded, not pooled or used as a correction."
   },
-  "raw_download_audit_deferred": true,
+  "raw_download_audit_deferred": false,
   "measurement_complete": true,
   "performance_accepted": false,
   "native240_run": false,
@@ -67,5 +67,13 @@
     "commit": "87cb6e9f",
     "sha256": "5feeca85fcebfeff0ab9feabd5929e9650f4c98309c3190c2fac0b5977603417"
   },
-  "retained_local_release_adapter_failure_sha256": "552b29566ae324cc0fff6602d445e876205ff54b0fbf3f8f2a434bcca0f54322"
+  "retained_local_release_adapter_failure_sha256": "552b29566ae324cc0fff6602d445e876205ff54b0fbf3f8f2a434bcca0f54322",
+  "independent_full_bin_audit": {
+    "commit": "813f6a86",
+    "sha256": "705ecac6a8de3527e6cca304e8e66ff8e0a7c9fc16edba81bd240dff541d6629"
+  },
+  "author_local_transport_verified": true,
+  "owner32_download_receipt_sha256": "e89bcef192ebcdddacf8b69786339dc8b6ed88a1d138999207fe6f59b3a4dd28",
+  "reviewer_download_receipt_sha256": "29479cef33854dedceda6b70f7dcc7d1b385e13c4cded8d09add5cbd7764bc7c",
+  "independent_transport_audit_pending": true
 }
