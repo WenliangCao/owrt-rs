@@ -62,8 +62,13 @@ The [explicit quiet handoff](inline-address-details-screen-release-to-correctnes
 SHA-256 `6e16bb543c80b85bcfcae75f259bb866c5308c73deb75a2e7159cbfed093f163`,
 binds completed native240/owner32 controllers, full raw verification and all
 transfers, no research processes including exact C, and three free build
-locks. Correctness now owns the original native raw/statistics audit and
-owner full-bin replay; those independent audits are pending.
+locks. Independent review passed in `08d5c527`: the
+[audit](../correctness/inline-address-details-owner32-independent-audit.json),
+SHA-256 `351baca731cee287e7091d5397c96df34c462c957e0e1ae95d452ffa39359550`,
+rechecks all 1,264 raw files and 128 bins totaling 3,613,555,056 bytes. One
+original analyzer replay as root on CPU0 exited zero and reproduced the
+author's result `a67bafe3…` byte-for-byte. All diagnostic conclusions and
+limitations remain unchanged.
 
 The separate device ten-window independent audit has SHA-256
 `911deed4702fe53b9ef78274c9696ddc0cdb805411af65a161d38b01d119878e`
@@ -72,4 +77,9 @@ is retained in [its result](INLINE_ADDRESS_DETAILS_NATIVE_RESULT.md). These
 host results do not establish physical-device performance acceptance or
 complete functional qualification. After independent review and quiet release,
 the selected 5c queue remains original five groups/canonical SDK plus the
-existing standalone signal audit, with no repeated native240.
+existing standalone signal audit, with no repeated native240. The completed
+[closeout and quiet handoff](../correctness/inline-address-details-screen-closeout-and-5c-handoff.json)
+in `689338b0`, SHA-256
+`01adfa9d7039a2e033b48eabbff736718f79ff182c36f50fae5bb69f7cd036a5`,
+released the host to DNS for that queue. Loop performs no Oracle access
+during the new DNS slot.
