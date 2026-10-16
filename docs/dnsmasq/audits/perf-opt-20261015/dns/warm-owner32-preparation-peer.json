@@ -1,0 +1,76 @@
+{
+  "status": "PASS_DISABLED_ORIGINAL_WARM_OWNER32_PREPARATION_LOCAL_PEER",
+  "scope": "Local read and AST only; no script imported/executed, Oracle access, upload or workload. Actual related/SDK audits, ready binding and new quiet release remain separate.",
+  "reviewed_preparation_commit": "e34e462d",
+  "plan_sha256": "ee3e6e3c14b6116ccb5385539906129e30ac9755c62bc218da7b86b8e5c0da9d",
+  "binding_sha256": "d6539714674d40b147d46a0316f847f16b97d9d23f1c3b996e9c7ccf8eb65dc4",
+  "candidate_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "source179_against_named_Git": true,
+  "G_source_and_artifact_identical_to_original": true,
+  "adapted_tools": {
+    "run_warm_address_encode_owner32.py": {
+      "sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+      "exact_declared_replacements": [
+        {
+          "from": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+          "to": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+          "occurrences": 1
+        },
+        {
+          "from": "post185-combined",
+          "to": "warm-address-encode",
+          "occurrences": 4
+        },
+        {
+          "from": "Frozen exact-SDK 6ab/G owner32 screen",
+          "to": "Frozen exact-SDK warm6dad/G owner32 screen",
+          "occurrences": 1
+        }
+      ]
+    },
+    "analyze_warm_address_encode_owner32.py": {
+      "sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+      "exact_declared_replacements": [
+        {
+          "from": "Independent accepted-G/6ab UDP owner diagnostic",
+          "to": "Independent accepted-G/warm6dad UDP owner diagnostic",
+          "occurrences": 1
+        }
+      ]
+    }
+  },
+  "unchanged_protocol_fields": [
+    "driver",
+    "tools",
+    "loadgen_sha256",
+    "tool_sha256",
+    "execution_order",
+    "window_count",
+    "pmu_window_count",
+    "plain_window_count",
+    "workload",
+    "placement",
+    "analysis",
+    "failure_policy",
+    "analysis_inputs_sha256"
+  ],
+  "imports8_rehashed": {
+    "loop_owner_profile.py": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620",
+    "loop_hit_syscalls.py": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+    "elf_size_report.py": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+    "perf_link_map_profile.py": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d",
+    "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "elf_link_map_report.py": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+    "loop_owner_profile_analyze.py": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a",
+    "r121_symbolize.py": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12"
+  },
+  "windows32_exact_reconstruction": true,
+  "stat_windows": 12,
+  "plain_windows": 20,
+  "original_cpu_N_PMU_precision_and_failure_logic_unchanged": true,
+  "disabled_status_and_null_actual_artifacts": true,
+  "native240_prepared": false,
+  "pretransfer_sha256": "899a036e9bd1156f183aebcbbab6f24e13cdaadb8066aec57dba041056c572ee",
+  "pretransfer_scope": "Small input-only receipt binding, no audit of remote bytes in this peer.",
+  "remaining": "Actual related/SDK independent audit; exact ready metadata; explicit fresh quiet release. Bulk archive validation after DHCP window. No timing acceptance implied."
+}
