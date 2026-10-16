@@ -1,0 +1,100 @@
+{
+  "schema": "dnsmasq-lease-expiry-bound-independent-source-review-v1",
+  "status": "NO_SOURCE_BLOCKER_RELATED_LINUX_SDK_AND_PERFORMANCE_PENDING",
+  "source_commit": "f3e0a145efad148c4fbf8893aaaa20fabb4c52cc",
+  "product_commit": "5e67562f8dd80ee0ca59897cedcc6e2997ad3c58",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "scope": "Read-only local source and retained author log review. No Oracle, router, SDK, Linux or timing work performed by reviewer. Frozen185 source, artifacts and accepted functional receipts remain unchanged.",
+  "identity_checks": {
+    "source_commit": "f3e0a145efad148c4fbf8893aaaa20fabb4c52cc",
+    "source_worktree_clean": true,
+    "files_sha256": {
+      "components/dnsmasq/src/dns/lease_names.rs": "65c55788b6c6e2e78b59470c8d6a36d80fcd1f2bdd0141dda7fd0d11686d9291",
+      "components/dnsmasq/src/dns/local.rs": "c9f8e89af02d1d66eb43bda6d3b9d077d201b6b13b724aa087312a0a957b1a3f",
+      "components/dnsmasq/src/hosts.rs": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1",
+      "docs/dnsmasq/audits/perf-opt-20261015/correctness/hosts-collision-pair-fixture-repair.json": "8798df61c633afaf64f85e7e70af2a28117cf391fab4f9ad65fbc46f665f44d6"
+    },
+    "hosts_product_prefix_unchanged": true,
+    "local_only_guard_changed": true,
+    "daemon_service_cache_sources_unchanged": true,
+    "retained_author_local_logs": {
+      "lease-expiry-bound-lib.stdout": {
+        "sha256": "62030d7a714a7abb7ccbfecdcddfcdf9ec996401acab2d4802a2219fc46d96d0",
+        "bytes": 67981
+      },
+      "lease-expiry-bound-lib.stderr": {
+        "sha256": "5237b2a96846cae978495b436cf1da049b35efa9fe70729598157673f47d5fbe",
+        "bytes": 842
+      },
+      "lease-expiry-bound-lib-fixed.stdout": {
+        "sha256": "2ccd54106ce7cbeee8bb0720c3e47e2b3b73d9606dd861ab8b2cec52bb086540",
+        "bytes": 67492
+      },
+      "lease-expiry-bound-lib-fixed.stderr": {
+        "sha256": "9ab36a242aa9621cf2cf5cfe8caba00c1513cbc72790c62e29415861cff7f96d",
+        "bytes": 688
+      },
+      "lease-expiry-bound-musl-fixed.stdout": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "lease-expiry-bound-musl-fixed.stderr": {
+        "sha256": "b06b48a6f54b07f40f7d81fe419e920b75132571bd70f8ccff6cd6916d729225",
+        "bytes": 19584
+      }
+    },
+    "author_fixed_library_summary": "723 passed;0 failed;8 ignored",
+    "author_tests_not_independently_rerun": true
+  },
+  "proof": [
+    "For a built generation with a known bound, every accepted finite expiry is nonnegative and the bound is no greater than each such original expiry. Zero expiry retains the existing immortal normalization; any accepted negative expiry makes the bound unknown permanently for that generation.",
+    "If0<=now<bound<=expiry<=i64::MAX, mathematical now-expiry is negative and representable in i64, so wrapping_sub equals ordinary subtraction. Disabled andSeconds0 live predicates succeed; positive stale intervals also succeed. Forever is live for every expiry and clock. Negative now, unknown bound and now>=bound use the original path.",
+    "Only accepted records update the bound: static-suppressed records return before entry or parent creation. All actual forward entries and reverse owners are among accepted records. Every synthetic nonterminal is derived from an accepted record. Parent extension only takes max or becomes immortal, never shortens a finite expiry.",
+    "Name and reverse expiry only deactivate entries or remove nonterminals. Leaving the old bound early cannot skip a necessary removal. Inactive entries stay inactive after rollback. Derived Clone copies the bound with the data; Arc copy-on-write preserves the same state. Rebuild calls build with retained inputs and current hosts, recalculating the bound for the new published view.",
+    "LeasePolicy is private immutable generation state; policy() returns a copy. No external field setter can change expiry, active entries, parent data or policy without the reviewed construction/mutation paths.",
+    "The only production local.rs edit adds the guard before wire_to_dotted. Whenever it skips, has_expired_name and has_expired_reverse would both be false for every possible CNAME/PTR target. No sticky removal or COW mutation is lost. ReturningNone discards only the converted-name cache: owned local paths still use dotted_name.or_else(wire_to_dotted), and eligible cache ownership still uses the unchanged checked stack converter."
+  ],
+  "preserved_interfaces_and_failure_boundaries": {
+    "entry": "LocalAnswerer::answer_parsed_with_query_events calls expire_lease_lookups after existing header/interface checks and before CNAME/cache ownership. Only class-IN enters it.",
+    "fallback": "Original100-hop configured-CNAME traversal, TYPE_CNAME early stop, PTR/ANY reverse scan conditions and Arc::make_mut removal remain byte-identical.",
+    "publication": "Daemon publish_lease_names uses build; rebuild_lease_names delegates rebuild. Both source files unchanged.",
+    "conversion": "wire_to_dotted and query_dotted_name are unchanged, including malformed/literal-dot rejection and lowercasing.",
+    "lookup": "Forward/reverse lookup, parent presence, TTL narrowing, hosts rotation, cache lookup and answer assembly are unchanged."
+  },
+  "coverage_review": {
+    "new_tests": [
+      "expiry_bound_never_skips_expirable_entries_or_parent_names",
+      "expiry_bound_stays_conservative_after_extension_and_sticky_removal"
+    ],
+    "assertion_quality": "Checks the actual live predicate across constructed entries and all parent names, expiry/removal/clone states, clock and stale boundaries. Explicit49 skip/50 fallback and sticky-removal assertions prevent a trivially always-fallback implementation from satisfying all tests.",
+    "existing_tests": [
+      "expiry_detaches_only_the_reader_that_touched_the_name: actual UDP/TCP shared Arc before/at expiry and rollback",
+      "actual_local_answer_keeps_lease_ttl_and_wrong_type_forwarding",
+      "daemon cache lease/cached-address coexistence and fallback",
+      "additional_lease_expiry_is_sticky_after_clock_rollback"
+    ],
+    "limits": [
+      "New invariant uses direct clone; actual Arc COW remains covered by the existing integration test.",
+      "No new old/new wire differential specifically combines rebuilt shadowed leases, suppressed negative expiry and TXT/PTR/CNAME target paths. Structural proof covers the bound invariant; original related/full qualification must still run on this exact candidate."
+    ],
+    "peer_check": "Loop independently inspected the same test and mutation boundaries; no source blocker identified."
+  },
+  "fixture_repair": {
+    "commit": "f3e0a145efad148c4fbf8893aaaa20fabb4c52cc",
+    "original_independent_commit": "7c2708f6",
+    "identical_patch_id": "6ffd442fdce5d2290acd129a4b379d4263e07f74",
+    "report_sha256": "8798df61c633afaf64f85e7e70af2a28117cf391fab4f9ad65fbc46f665f44d6",
+    "hosts_product_prefix_unchanged": true,
+    "original_failed_source_and_logs_preserved": true,
+    "prior_independent_evidence": "24hosts tests,256/256 target runs and16/16 per-alias negative-control rejections remain the separate fixture evidence. They are not new candidate runtime qualification."
+  },
+  "performance_claim_limits": [
+    "The new field is per-generation metadata; exact SDK layout, image budgets and runtime resources remain to be measured.",
+    "The retained64-live-lease prepared-query allocation control showed185one allocation/21bytes per operation and product5ezero, after warmup with explicit reply recycling. This does not prove CPU benefit or zero allocations for expired, negative-time or configured-owner paths.",
+    "No185full functional or device/Oracle performance result transfers to f3e0a145."
+  ],
+  "full_qualification_passed": false,
+  "related_Linux_tests_independently_run": false,
+  "performance_accepted": false,
+  "deployment": false
+}
