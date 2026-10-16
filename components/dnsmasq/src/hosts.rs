@@ -1497,7 +1497,17 @@ impl Hosts {
         } else {
             name
         };
-        self.records.forward.contains_key(key) || self.records.non_terminals.contains(key)
+        self.name_exists_canonical(key)
+    }
+
+    /// Query-local dotted converters already fold ASCII case. Reuse that
+    /// spelling without another uppercase scan.
+    pub(crate) fn name_exists_canonical(&self, name: &[u8]) -> bool {
+        debug_assert!(!name.iter().any(u8::is_ascii_uppercase));
+        if self.records.forward.is_empty() && self.records.non_terminals.is_empty() {
+            return false;
+        }
+        self.records.forward.contains_key(name) || self.records.non_terminals.contains(name)
     }
 
     /// Return current static bucket order, then apply C's first matching
