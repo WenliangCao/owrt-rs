@@ -1,0 +1,26 @@
+{
+  "status": "PASS_ACTUAL_BINDING_DELTA_ONLY_NOT_EXECUTION_RELEASE",
+  "plan_commit": "62677425",
+  "plan_sha256": "a858c763fa49f7b34bab8c7681ae9b4f138248ba74b2cf5b8872ebbb571f5eea",
+  "checks": {
+    "sources": true,
+    "execution_order": true,
+    "window_count": true,
+    "pmu_window_count": true,
+    "plain_window_count": true,
+    "workload": true,
+    "placement": true,
+    "analysis": true,
+    "failure_policy": true,
+    "tool_sha256": true,
+    "controller_sha256": true,
+    "analysis_sha256": true,
+    "analysis_inputs_sha256": true,
+    "G_identity_unchanged": true,
+    "dnsmasq-rs_actual_hash": true,
+    "build.json_actual_hash": true,
+    "link.map_actual_hash": true,
+    "957_actual_hash": true
+  },
+  "scope": "Local original-to-actual plan and actual downloaded three artifacts/957 receipt review. Full raw957/SDK audit, all pretransfers and final quiet still required. No measurement, source edit or remote access."
+}
