@@ -423,6 +423,11 @@ impl SocketListener {
         Ok(())
     }
 
+    /// A deferred send is runnable owner state even without readable input.
+    pub fn has_pending_reply(&self) -> bool {
+        self.pending_reply.is_some()
+    }
+
     /// Observe readiness without consuming the queued packet. The owner can
     /// complete its kernel address dump before borrowing packet/state buffers.
     pub fn has_input(&self) -> io::Result<bool> {
@@ -941,6 +946,21 @@ mod tests {
         );
     }
 
+    #[test]
+    fn device_binding_success_does_not_remove_the_per_turn_rebind() {
+        let mut binding = device_binding(true);
+        binding.did_bind = true;
+        let mut attempts = 0;
+        assert!(binding.retry(false, |_, _| { attempts += 1; Ok(()) }).is_none());
+        assert!(binding.retry(false, |_, _| {
+            attempts += 1;
+            Err(io::Error::from_raw_os_error(19))
+        }).is_some(), "a removed interface must still be detected after startup success");
+        assert!(binding.retry(false, |_, _| { attempts += 1; Ok(()) }).is_none());
+        assert_eq!(attempts, 3, "D2 must retain binding retry on every owner turn");
+        assert!(binding.did_bind, "the startup notice bit is not current binding state");
+    }
+
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
     #[ignore = "requires an isolated Linux network namespace with CAP_NET_ADMIN"]
@@ -1074,12 +1094,14 @@ mod tests {
             bytes: b"deferred reply".to_vec(), destination,
             listener: Listener::Dhcp, would_block_count: 1,
         });
+        assert!(listener.has_pending_reply());
         let mut fds = Vec::new();
         listener.append_poll_fds(&mut fds);
         assert_eq!(poll_fds(&mut fds, 1000).unwrap(), 1);
         assert_ne!(fds[0].revents & POLLOUT, 0,
             "an unread packet cannot be the wakeup for a deferred send");
         assert!(listener.flush_pending_reply().unwrap());
+        assert!(!listener.has_pending_reply());
         let mut bytes = [0; 64];
         let (length, _) = peer.recv_from(&mut bytes).unwrap();
         assert_eq!(&bytes[..length], b"deferred reply");
