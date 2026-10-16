@@ -47,3 +47,12 @@ reruns, historical-control pooling or full110 is added.
 Local validation parsed both scripts, reproduced their exact declared
 substitutions, reconstructed every original argv, verified both source
 manifests and checked the eight unchanged imports. No execution was needed.
+
+Independent local review passed in `0f43a8d1`; the
+[review](185-opt2-owner32-preparation-independent-review.json) has SHA-256
+`ec3b9a9cc8283e118364f096f7963daba66eed1806408b0a0ec33a96664f00c5`.
+It independently reproduces the substitutions, all 32 argv, both Git source
+manifests, eight import hashes and DNS's builder2 metadata. Added preparation
+metadata is not all consumed by the unchanged runner: actual independent
+review, quiet release and pretransfer evidence must be bound before changing
+the existing status to ready. This review does not enable execution.
