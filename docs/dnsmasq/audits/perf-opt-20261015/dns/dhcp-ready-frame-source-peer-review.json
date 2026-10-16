@@ -1,0 +1,39 @@
+{
+  "status": "PASS_LIGHTWEIGHT_FUNCTION_EXTRACTION_SOURCE_REVIEW",
+  "source_commit": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_file": "components/dnsmasq/src/main.rs",
+  "source_sha256": "4e7a032b82085fc4693513bb0760caa2da0575d06c0e6e575e0e08202a7a849d",
+  "changed_files": 1,
+  "inserted_lines": 8,
+  "removing_exact_inserted_span_restores_entire_base_file": true,
+  "original_gates_prefix_byte_identical": true,
+  "original_ready_body_byte_identical": true,
+  "new_helper_callers": 1,
+  "review_findings": [],
+  "preserved_behavior": [
+    "step_helper remainsfirst, thenoriginalreload/admission gate, thenexactoriginalready/has_input computation andmaintenance deadline check.",
+    "input_pending iscomputedonce andpassedbyvalue. Onlybool crossesnewcall; maintenance RefCell borrowtemporaries remain insideoriginal completedexpression andno borrowedguard crosses theboundary.",
+    "dhcp_ready clearing anddhcp.take occuronlyafterthe samegate; everyearlyreturn inhelper returns tostep_dhcp finalstatement andthen exits, matchingformercontrolflow.",
+    "Originalprovider borrow/tick/now_seconds/interfaceprep/metrics/events/waitclosures/PXEselection/errorreporting/drop/restoration body isbyte-identical.",
+    "SinglePoll.step stillcallsstep_dhcp once atoriginal position afterTCPclients andbeforeneighbors/EDNS/TFTP; no callback/workorder orclockread added orremoved.",
+    "Helper usesidenticalLinux64 cfg andonly inline-never. No coldattribute,newsideeffect,index,unsafe,allocation,dependency orstate field."
+  ],
+  "local_existing_validation": {
+    "mac_bin_log_sha256": "b47616ed886faa3e549ccca614df522d8718c63d0069fa8eaae75488b7b7fc6f",
+    "mac_bin_passed": 23,
+    "mac_bin_failed": 0,
+    "scope": "ExistingMac tests donotexecuteLinux-onlyextractedDHCPbody.",
+    "musl_all_targets_log_sha256": "d21571fd5595da2e07d6c808c4249cf362bc4f9466d68dfbf5afc7cac3572366",
+    "musl_typecheck_completed": true,
+    "reviewer_reran_tests_or_build": false
+  },
+  "limitations": [
+    "Read-onlysourceequivalence review; no freshLinuxruntime/DHCPacceptance,SDKbuild orperformanceclaim.",
+    "Noinlinechangescode/frameplacement andcalloverhead; actualcodegen/costs mustbe measuredseparately."
+  ],
+  "source_mutated": false,
+  "remote_accessed": false,
+  "execution_preparation_created": false,
+  "current803_and1df_queue_unchanged": true
+}
