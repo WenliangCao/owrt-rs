@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "status": "FAILED_HEALTH_BASELINE_RETAINED_NO_PERFORMANCE_WINDOW",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "candidate_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "health_directory": "private/perf-opt-20261015/health-a53-cached-zero-frame",
+  "failure": {
+    "error": "AssertionError()",
+    "label": "a53-cached-zero-frame-health-1792113109982192000",
+    "epoch": 1792113237.334358
+  },
+  "guard_events": {
+    "start": {
+      "event": "start",
+      "epoch": 1792113110,
+      "production_pid": 3086,
+      "production_starttime": 2115,
+      "deadline_s": 3600,
+      "min_memory_kib": 65536,
+      "cpu_policy": "record_only",
+      "dns_limit_ms": 200,
+      "dns_slow_samples_limit": 3,
+      "probe_timeout_ms": 700,
+      "ipv4_default_initial": 1
+    },
+    "end": {
+      "event": "monitor_stopped",
+      "epoch": 1792113236,
+      "elapsed_s": 126.044
+    },
+    "stop_events": []
+  },
+  "observations": {
+    "guard_samples": 127,
+    "dns_checks": 48,
+    "dns_failed": 0,
+    "http_checks": 24,
+    "http_statuses": [
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      403,
+      0
+    ],
+    "http_anomaly": [
+      {
+        "event": "sample",
+        "epoch": 1792113236,
+        "elapsed_s": 126.0,
+        "cpu_pct": 5.67,
+        "mem_available_kib": 98420,
+        "production_pid": 3086,
+        "production_starttime": 2115,
+        "dns_ok": 1,
+        "dns_rtt_ms": 0.505,
+        "slow_dns_probes": 0,
+        "http_status": 0,
+        "http_rtt_ms": 43.009,
+        "ipv4_default": 1
+      }
+    ],
+    "last_prior_http": {
+      "event": "sample",
+      "epoch": 1792113230,
+      "elapsed_s": 120.0,
+      "cpu_pct": 1.005,
+      "mem_available_kib": 98476,
+      "production_pid": 3086,
+      "production_starttime": 2115,
+      "dns_ok": -1,
+      "dns_rtt_ms": -1.0,
+      "slow_dns_probes": 0,
+      "http_status": 403,
+      "http_rtt_ms": 53.374,
+      "ipv4_default": 1
+    },
+    "minimum_available_memory_kib": 95228,
+    "external_https_checks": 10,
+    "external_failed": 0
+  },
+  "http_target": "GET /cgi-bin/luci/ HTTP/1.0 to127.0.0.1:80, Host:localhost; original guard timeout700ms",
+  "source_interaction": {
+    "guard_source": "tools/dnsmasq/device_perf_guard.c",
+    "wait_fd": "Loops while !interrupted; SIGTERM sets interrupted=1 and a poll interruption leads to return-1. HTTP status defaults0 and remains0 on that failure path.",
+    "guard_main": "After cancelled HTTP, luci_http_failed and stop_test are gated by !interrupted; sample is printed before monitor_stopped.",
+    "collector": "At >=125s unconditionally calls existing guard_stop, then requires all printed HTTP statuses in original accepted set. It does not distinguish cancelled shutdown probe.",
+    "inference": "The single last status0 atelapsed126.000 immediately before monitor_stopped126.044 is consistent with shutdown SIGTERM interrupting an active HTTP probe.",
+    "limit": "No signal-delivery timestamp or socket trace was captured, so existing evidence alone cannot prove cancellation was the sole cause or exclude a coincident HTTP/transport failure. Original baseline remains failed and no sample is removed."
+  },
+  "device_readonly_postflight": {
+    "epoch": 1792113306.404623,
+    "scope": "Read-only after failed health; STOP retained, no clear/retry/staging/workload",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "stdout": "a53_cached_zero_frame_health_preflight_failed\n8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n97476\n",
+    "stderr": "",
+    "exit": 0,
+    "no_active_group_or_owned_live_executable": true
+  },
+  "performance_started": false,
+  "performance_windows": 0,
+  "candidate_stage_started": false,
+  "zero_workload_basis": "Health command was the only active device operation; setup/launch helper has not been invoked, no a53-cached-zero-frame-device output exists; captured slot hashes remain originalE/F.",
+  "performance_output_exists": false,
+  "launch_receipt_exists": false,
+  "STOP_retained": true,
+  "retry_or_threshold_change": false,
+  "files": {
+    "collect.py": "075635061302521db0208999696a86d5f5d18f5d56287549ecd3d498b1f0f8aa",
+    "external-health.jsonl": "a8a0be308e0087e88184ade8d62bdc34e9074969c65400e8f3ebce862c590ca5",
+    "failed-guard.jsonl": "0c87d217eb5cbbe261e6e862ab08d43736007283b61eae5e1b6828a952dff3db",
+    "failed-guard.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "failure.json": "c016559b362bcd5b9ca45f40c31e0c650bce2a77f08feddf5f6e651cf95812b6",
+    "health-baseline.jsonl": "0c87d217eb5cbbe261e6e862ab08d43736007283b61eae5e1b6828a952dff3db",
+    "health-baseline.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "start.json": "30e46168579f62bab0aecf8ec207a89200ac9bdfc0acc8444393a0b938ca8ea7"
+  },
+  "postflight_sha256": "41da0890cfa20cd59b9eee6032d1bbb93656e9d08791c0802cdc191852b607f7"
+}
