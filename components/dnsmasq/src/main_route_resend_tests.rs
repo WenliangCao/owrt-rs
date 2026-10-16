@@ -40,6 +40,11 @@ impl PendingCaller {
                 .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
                 .unwrap();
         }
+        // Diagnostic fixture only: model the one local rule already known to
+        // exist in OpenWrt without importing any private production names.
+        if std::env::var_os("D1_DIAGNOSTIC_LOCAL_RULE").is_some() {
+            config.apply(&lex_line(b"local=/lan/").unwrap().unwrap()).unwrap();
+        }
         let mut daemon = DnsDaemon::new(
             config.clone(),
             read_hosts(&config, 37),
