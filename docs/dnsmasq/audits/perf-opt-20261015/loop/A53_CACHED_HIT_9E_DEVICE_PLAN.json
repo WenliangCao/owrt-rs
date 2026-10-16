@@ -35,19 +35,19 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "LOCAL DISABLED PREPARATION ONLY; exact 9e source selected for research; actual five-group, SDK and standalone signal audits pending; no device action",
+  "status": "AUTHOR ACTUAL965 AND CANONICAL SDK LOCALLY BOUND; read-only device preflight passed; independent actual reviews and original standalone signals remain pending; no health/stage/windows",
   "scope": "Fresh accepted G185 versus exact 9e product artifact for one original ten-window A53 UDP-hit screen. The combined source includes inherited 6ab, warm writer, 1df, ready-frame, empty-upstream, small OPT and lease-iterator work. It is not an isolated-component comparison, accepted candidate, full qualification or deployment.",
   "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "forbidden_substitution": "Exact 9e8459dd only. No diagnostic-stage or allocation-meter overlay, rebuilt G, replacement artifact or historical median pooling.",
   "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
+  "source_files_verified": 179,
+  "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+  "elf_bytes": 2145051,
+  "map_sha256": "346acb9555f6956c7f271e627bd635fe8c32983923a82dffc88052be853f89c0",
+  "build_receipt_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
   "related_linux_report_sha256": null,
-  "related_linux_verified_receipt_sha256": null,
+  "related_linux_verified_receipt_sha256": "5c00ebbf355f0a4f5caa7f2c01bd938e2e396548f8cf307f342a742155fdbf33",
   "entry_sha256": "ede37748877fb75897f8eac964be0a2a1f76c6d99ef34a8c26c635c1f4f44351",
   "artifacts": {
     "e": {
@@ -64,7 +64,7 @@
     },
     "cached-hit-9e": {
       "name": "a53-cached-hit-9e-artifact-cached-hit-9e",
-      "sha256": null
+      "sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087"
     }
   },
   "schedule": [
@@ -153,11 +153,10 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Exact 9e source preparation and interaction review; actual original five groups (projected 844/82/17/18/4), raw names and independent PASS. Projections and local tests are not actual Linux qualification.",
-    "Exact canonical opt3 SDK, source179/ELF/map/build/APK identities, unchanged original budgets and independent actual SDK PASS, with all local bytes verified.",
-    "Original standalone runtime-signals audit on exact 9e and its shipping SDK ELF, original native C visibility and bytes, plus independent actual PASS. Source equivalence, old 5c signals or a full44 result cannot substitute.",
-    "Actual all-transfer and explicit quiet release, original owner32 input pretransfer, then fresh original 125-second health, production/slot/helper/offline-backup/idle/recovery gates and four immutable copies; stage stops before Popen.",
-    "After all gates are bound, explicit root scheduling release for the fixed ten and original owner32. Keep original workload/statistics/fail-stop/all-raw rules, no selective retry, and exact E/F restoration."
+    "Independent actual965, canonical SDK and transport audits for exact9e; author receipts and local179source/artifact hashes are bound but do not substitute for these reviews.",
+    "Actual original standalone runtime-signals18 result, native C visibility and original schema, and independent PASS bound to exact9e and exact shipping ELF.",
+    "Exact source interaction review, all required transfers, correctness explicit quiet, root scheduling and loop original build/timing coordination.",
+    "Fresh original125s health/production/slots/helpers/offline/idle/recovery, four immutable artifact copies with stage stopping before Popen, then fixed original ten and exact E/F restoration."
   ],
   "count_diagnostic_not_a_performance_control": true,
   "statistics": {
@@ -175,11 +174,17 @@
   "source_parent": "8bf21ff256c5211ca4a3353b75c7564fb0ec5c0a",
   "source_base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "anticipated_related_gate_passes": 965,
-  "actual_related_linux_tests_passed": null,
+  "actual_related_linux_tests_passed": 965,
   "actual_SDK_review": null,
   "standalone_runtime_signals_result": null,
   "standalone_runtime_signals_independent_review": null,
-  "source_interaction_review": null,
+  "source_interaction_review": {
+    "commit": "d5f5c1ad",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-composition-source-review.json",
+    "sha256": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+    "status": "NO_BLOCKER_FOUND_IN_SCOPED_EXACT9E_COMPOSITION_SOURCE_REVIEW",
+    "scope": "Exact9e source-only composition review, including preserved signal/DHCP/upstream ordering; no new tests and no substitute for actual Linux/SDK/signals evidence."
+  },
   "device_plan_independent_review": {
     "commit": "aac5dad2",
     "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/cached-hit-9e-device-preparation-peer.json",
@@ -191,11 +196,19 @@
   "explicit_queue_release": null,
   "execution_selected": true,
   "execution_enabled": false,
-  "native240_prepared": false,
-  "native240_authorized": false,
-  "native240_excluded_reason": "This task prepares only the original device ten; the original owner32 is coordinated separately. No native240 or new probe is prepared.",
-  "queue": "G-stage50 original raw independent audit and exact E/F restoration are closed. Complete exact 9e original five groups, canonical SDK and original standalone signals with independent actual PASS, all required artifact transfers and explicit quiet, then original fresh health/recovery and staging. Device ten and original owner32 may overlap only under root coordination after all prerequisites; record actual timing overlap and hold all bulk through archive verification and restoration.",
-  "source_preparation": null,
+  "native240_excluded_reason": "This device task prepares only the original ten. Root separately coordinates original native240 then owner32; their inputs, build and timing are owned by loop. No new probe is introduced.",
+  "queue": "After exact original965/SDK/transport and standalone signals18 receive independent PASS and explicit quiet, complete required device artifact staging and coordinate all bulk with loop. Root separately authorizes original native240 concurrent with device10, then owner32. Keep original fresh health/recovery and all raw/restore gates; record actual overlap without assuming Oracle idle.",
+  "source_preparation": {
+    "source_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
+    "git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
+    "prepared_source_files_verified_against_git": 179,
+    "independent_preparation_review": {
+      "commit": "e2681a8a",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-preparation-independent-review.json",
+      "sha256": "0117ddc7c816bb8be516b7c1bbd3daacfb69d9cc9aa2aa58c29a7d0ccb808c36"
+    },
+    "actual_Linux_or_SDK_PASS_inherited": false
+  },
   "canonical_sdk_builder": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
     "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
@@ -218,7 +231,12 @@
     "lib-ignored-live": 18,
     "bin-ignored-live": 4
   },
-  "projected_added_tests": "Four additional lib tests relative to the previous 961 cohort; exact names and actual pass counts must be bound by the new source review.",
+  "projected_added_tests": [
+    "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+    "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent",
+    "dns::edns_policy::tests::ecs_absence_uses_declared_additional_count_and_accepts_bad_questions",
+    "dns::lease_names::tests::direct_slice_lookup_keeps_order_and_expiry_across_retained_views"
+  ],
   "standalone_runtime_signals_requirement": {
     "original_tool": "tools/dnsmasq/audit_20261011_runtime_signals.py",
     "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
@@ -263,20 +281,35 @@
       "status": "PASS_LOCAL_DISABLED_PREPARATION_ONLY",
       "scope": "Local disabled preparation only; six operator identity/path/cohort/prior-closure adaptations and four unchanged shared helper files. Actual source/Linux/SDK/standalone signal contents and independent reviews, fresh health/recovery/quiet and root scheduling release remain required."
     },
-    "disabled_before_first_SSH": "Actual source_files_verified, Linux pass counts, source/SDK reviews, standalone signal result/review and artifact path are null or false. Stage/start/launch require these before the first production_identity SSH; no health file, queue release or launch receipt exists. execution_enabled remains false.",
+    "disabled_before_first_SSH": "Actual independent SDK/related reviews and standalone signal result/review remain absent; the source-only interaction review is bound. Original stage/start/launch require them before their first production_identity SSH. A separately root-authorized read-only preflight has completed; no health, queue-release, staging or launch receipt exists. execution_enabled remains false.",
     "staging": "Original fresh health and four immutable copies, preserving slots; stage stops before Popen. Only after actual gates, transfers and root scheduling release may start execute.",
     "preflight_or_windows_started": false,
     "actual_signal_binding_requirement": "Before enable, rehash original actual signal result and independent review; verify exact 9e source, exact shipping SDK ELF, original schema and PASS. Nonempty references alone are not proof."
   },
-  "artifact_local": null,
-  "related_linux_tests_passed": null,
-  "related_linux_group_passed": null,
+  "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-hit-9e/dnsmasq-rs",
+  "related_linux_tests_passed": 965,
+  "related_linux_group_passed": {
+    "lib": 844,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
   "actual_related_independent_review": null,
-  "source_interaction_review_sha256": null,
-  "sdk_local_verification_sha256": null,
-  "release_budget": null,
+  "source_interaction_review_sha256": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+  "sdk_local_verification_sha256": "57c34547192e6519848f56779dfa0dca9d8fce60afbcdce7ba1cf0272fc3cb47",
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2145051,
+    "APK_bytes": 1168103,
+    "gate_unchanged": true
+  },
   "signals_local_binding_sha256": null,
-  "source_interaction_review_PASS": false,
+  "source_interaction_review_PASS": true,
   "preceding_G_stage50_archived_restored": true,
   "preceding_G_stage50": {
     "result_commit": "e8303c4c",
@@ -298,5 +331,45 @@
     "initial_invocation_failure_retained": "The first unittest module invocation could not import sibling udp_stage_device_run because tools/dnsmasq was absent from sys.path. The original file was then invoked directly, unchanged, and all 16 tests passed. No product or device execution occurred.",
     "remote_calls": 0,
     "new_measurement_windows": 0
-  }
+  },
+  "actual_author_result": {
+    "commit": "eb40e0f2",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/cached-hit-9e-execution-result.json",
+    "sha256": "4a0ebf1d5039a5076bca337c5add34569e8e87d6bfa7690af1f7d943a1168aaa",
+    "actual_independent_review_pending": true
+  },
+  "readonly_device_preflight": {
+    "sha256": "f1dc0c9dd18bd3abb2f8d5f9d5c0a1a9d0f86a44091e5497a6ddc17806b0c748",
+    "scope": "Root-authorized read-only preflight only. No health collection, artifact staging, workload, process signal or production mutation. Final original fresh gates will be rechecked after exact actual SDK/reviews/signals and quiet are bound.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "available_memory_kib": 94600,
+    "measurement_artifacts_and_original_slots_verified": true,
+    "offline_E_F_G": {
+      "e": {
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "bytes": 2136859
+      },
+      "f": {
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+        "bytes": 2136859
+      },
+      "g": {
+        "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+        "bytes": 2145051
+      }
+    },
+    "health_staging_or_workloads_started": false
+  },
+  "original_screen_input_pretransfer": {
+    "commit": "4204d0c5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-original-input-pretransfer.json",
+    "sha256": "09a3919824ca94736e592eaa3dcc439394aabf31767febd5e2dee784896ffbfb",
+    "scope": "Existing original native240 and owner32 inputs transferred before any device health; no timing run or shared-host build is implied."
+  },
+  "native240_prepared_by_this_device_task": false,
+  "native240_authorized_by_this_device_plan": false
 }
