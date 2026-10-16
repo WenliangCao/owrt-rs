@@ -56,13 +56,12 @@ for window in plan['windows']:
         raw = re.findall(r'^'+re.escape(event)+r': (\d+) (\d+) (\d+)\s*$', text, re.M)
         assert len(raw) == 1, event
         count, enabled, running = map(int,raw[0])
-        assert 0 < running <= enabled
+        assert 0 < running == enabled, 'retain invalid multiplexed window; no replacement'
         assert abs(float(fields[4])-100*running/enabled) <= .011
         assert float(fields[0]) == count, ('expected --no-scale', fields, count)
         events[event] = {'raw_count':count,'raw_per_query':count/operations,
             'time_enabled_ns':enabled,'time_running_ns':running,
             'running_fraction':running/enabled,'multiplexed':running!=enabled,
-            'scaled_estimate_per_query':count*enabled/running/operations,
             'reported_count':fields[0],'csv_runtime_ns':fields[3],'csv_running_percent':fields[4]}
     assert set(events) == set(expected), (window['id'], events.keys(), expected)
     assert len({(e['time_enabled_ns'], e['time_running_ns']) for e in events.values()}) == 1, 'one group must share scheduling interval'
@@ -84,12 +83,12 @@ for group in plan['groups']:
             summary.append({'group':group,'side':side,'rate':rate,
                 'actual_N':stats([r['actual_N'] for r in matching]),
                 'IPC':stats([r['IPC'] for r in matching]),
-                'events':{event:stats([r['events'][event]['scaled_estimate_per_query'] for r in matching])
+                'events':{event:stats([r['events'][event]['raw_per_query'] for r in matching])
                           for event in plan['groups'][group]['events']}})
 result = {'scope':'Oracle UDP-hit association diagnostic; no physical A53 or causal inference',
     'plan_sha256':sha(args.plan),'events':plan['event_semantics'],
     'windows':rows,'summary':summary,
-    'uncertainty':'Three windows per cell; report all observations and full range, not a confidence interval. Multiplexed rows use explicitly labeled full-interval estimates; raw observed counts remain separately retained. Misses/refills are events, not working-set bytes. Low IPC does not by itself prove cache stalls.',
+    'uncertainty':'Three windows per cell; report all observations and full range, not a confidence interval. All admitted event groups must have time_running == time_enabled; multiplexed/uncounted rows are invalid and retained without replacement. Misses/refills are events, not working-set bytes. Low IPC does not by itself prove cache stalls.',
     'raw_files':{str(p.relative_to(Path(plan['raw_root']))):sha(p)
                  for p in sorted(Path(plan['raw_root']).rglob('*')) if p.is_file()}}
 with args.output.open('x') as output:
