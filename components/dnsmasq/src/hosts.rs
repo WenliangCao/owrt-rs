@@ -1805,6 +1805,21 @@ mod tests {
             .expect("bounded name pool has a matching bucket")
     }
 
+    fn colliding_pair(capacity: usize) -> (Vec<u8>, Vec<u8>) {
+        let mut names = vec![None; name_hash_size(capacity)];
+        // A fixed pool need not cover a preselected name's process-seeded
+        // bucket. One more distinct name than buckets guarantees some pair.
+        for id in 0..=names.len() {
+            let name = format!("pair{id}.test").into_bytes();
+            let bucket = name_hash_bucket(&name, capacity);
+            if let Some(first) = names[bucket].take() {
+                return (first, name);
+            }
+            names[bucket] = Some(name);
+        }
+        unreachable!("more distinct names than buckets must collide")
+    }
+
     fn crossed_hosts(y: &[u8]) -> Hosts {
         let mut hosts = Hosts::new();
         hosts.begin_bulk(1497, 0, 0).unwrap();
@@ -1969,13 +1984,16 @@ mod tests {
 
     #[test]
     fn staged_alias_line_rehashes_only_after_the_same_boundary_as_streaming_read() {
-        let y = colliding_name(b"x.test", 2100);
+        let (x, y) = colliding_pair(2100);
         let mut seed = Hosts::new();
         seed.begin_bulk(1497, 1000, 1000).unwrap();
-        let mut initial =
-            b"192.0.2.1 x.test\n10.0.63.213 a.test\n192.0.4.2 a.test\n192.0.2.1 ".to_vec();
+        let mut initial = b"192.0.2.1 ".to_vec();
+        initial.extend_from_slice(&x);
+        initial.extend_from_slice(b"\n10.0.63.213 a.test\n192.0.4.2 a.test\n192.0.2.1 ");
         initial.extend_from_slice(&y);
-        initial.extend_from_slice(b"\n192.0.4.1 x.test\n");
+        initial.extend_from_slice(b"\n192.0.4.1 ");
+        initial.extend_from_slice(&x);
+        initial.push(b'\n');
         assert!(
             !seed
                 .read(&initial, 2, 37, false, |_| None)
@@ -1985,7 +2003,9 @@ mod tests {
         for i in 0..1001 {
             input.extend_from_slice(format!(" extra{i:04}.test").as_bytes());
         }
-        input.extend_from_slice(b" x.test\n");
+        input.push(b' ');
+        input.extend_from_slice(&x);
+        input.push(b'\n');
         let mut records = Vec::new();
         let mut ends = Vec::new();
         let mut parser = HostsParser::default();
@@ -2022,11 +2042,11 @@ mod tests {
         let address = "192.0.2.1".parse().unwrap();
         assert_eq!(
             staged
-                .addresses(b"x.test")
+                .addresses(&x)
                 .map(|host| host.address)
                 .collect::<Vec<_>>(),
             streaming
-                .addresses(b"x.test")
+                .addresses(&x)
                 .map(|host| host.address)
                 .collect::<Vec<_>>()
         );
