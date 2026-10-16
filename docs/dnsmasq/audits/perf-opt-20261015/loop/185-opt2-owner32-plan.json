@@ -12,7 +12,12 @@
     "sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
     "expected_passes": 957
   },
-  "source_review": null,
+  "source_review": {
+    "commit": "3ce1e7e5",
+    "path": "correctness/185-opt2-related-independent-audit.json",
+    "sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
+    "scope": "Fresh actual957 names/source identity independently audited; no full44 inheritance."
+  },
   "sources": {
     "G": {
       "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
@@ -417,7 +422,7 @@
   "analysis": "Original actual warmup+measurement N CPU/PMU denominator, 20s measurement throughput/latency; grouped unscaled same-window user/kernel instructions/cycles. Low original >8tick/W/direction; high variable-N pipeline diagnostic with no invented precision pass.",
   "reservation": "Actual artifact/source binding only. DNS owns host. Both owner inputs and all device artifact pretransfers complete before DNS final quiet release. No native240. Execute original32 only after actual independent audit and release are bound.",
   "failure_policy": "Retain every failed/partial original window and stop; no replacements, selective reruns or historical E/G controls pooled.",
-  "status": "ACTUAL_BOUND_PENDING_INDEPENDENT_SDK_REVIEW_PRETRANSFER_AND_QUIET",
+  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
   "artifact_transfer": {
     "candidate_elf_bytes": 2046747,
     "local_three_hashes_verified": {
@@ -470,17 +475,30 @@
       "features": "",
       "allocator_linker_LTO_codegen1_panic_strip_hardening_unchanged": true
     },
-    "effective_flags_independent_verification_pending": true,
+    "effective_flags_independent_verification_pending": false,
     "actual_receipt_effective_profile2_verified": true
   },
-  "sdk_independent_review": null,
+  "sdk_independent_review": {
+    "commit": "3ce1e7e5",
+    "path": "correctness/185-opt2-sdk-independent-audit.json",
+    "sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2"
+  },
   "screen_plan_independent_review": {
+    "commit": "dd4fd1bd",
+    "path": "correctness/185-opt2-owner32-actual-binding-root-review.json",
+    "sha256": "31e117a742c4013ebf98be50c79afcb793ea1f238656b0c16809adb50b4a2509"
+  },
+  "explicit_slot_release": null,
+  "pretransfer_complete": false,
+  "execution_enabled": false,
+  "protocol_preparation_review": {
     "commit": "0f43a8d1",
     "path": "loop/185-opt2-owner32-preparation-independent-review.json",
     "sha256": "ec3b9a9cc8283e118364f096f7963daba66eed1806408b0a0ec33a96664f00c5",
     "scope": "Disabled original protocol preparation; actual identity delta needs separate review."
   },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "execution_enabled": false
+  "owner_input_pretransfer": {
+    "path": "loop/185-opt2-owner32-pretransfer.json",
+    "sha256": "b77cc84b863b9b3416dd57b10cc801776aa238114e7720c13b751af2337ba889"
+  }
 }

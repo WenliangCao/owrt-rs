@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_LOCAL_BINDING_PASS_PENDING_INDEPENDENT_REVIEW_RELEASE_AND_PRETRANSFER",
+  "status": "ACTUAL_INDEPENDENT_AUDIT_PASS_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
   "candidate_commit": "8035114257c8706047d2038c2bb8126391331925",
   "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "candidate_sdk": {
@@ -29,15 +29,19 @@
   "build_source_files_equal_frozen_plan": true,
   "sdk_builder_sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
   "actual_receipt_effective_profile2_verified": true,
-  "SDK_independent_review": null,
+  "SDK_independent_review": {
+    "commit": "3ce1e7e5",
+    "path": "correctness/185-opt2-sdk-independent-audit.json",
+    "sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2"
+  },
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "executed": false,
   "remote_accessed": true,
-  "owner32_plan_sha256": "a858c763fa49f7b34bab8c7681ae9b4f138248ba74b2cf5b8872ebbb571f5eea",
+  "owner32_plan_sha256": "d72d4c8b31bc3180b11e93ad11f7a46a57871fd527e1ad02159397814fd751dc",
   "sdk_postflight_sha256": "6b3e3cdf4214607f37ca09330901fd0453681a4368d418d2ec311ce5852be81c",
   "original32_protocol_and_scripts_unchanged": true,
-  "full_independent_review_pending": true,
+  "full_independent_review_pending": false,
   "owner_input_pretransfer": {
     "path": "loop/185-opt2-owner32-pretransfer.json",
     "sha256": "b77cc84b863b9b3416dd57b10cc801776aa238114e7720c13b751af2337ba889",
@@ -45,5 +49,15 @@
     "remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs",
     "pending_plan_uploaded_not_ready": true
   },
-  "pretransfer_remaining": "DHCP four immutable device artifact copies, actual independent audit and DNS finalquiet. Ready-plan release metadata is filled/self-checked before any measurement."
+  "pretransfer_remaining": "DHCP four immutable device artifact copies, actual independent audit and DNS finalquiet. Ready-plan release metadata is filled/self-checked before any measurement.",
+  "related_independent_review": {
+    "commit": "3ce1e7e5",
+    "path": "correctness/185-opt2-related-independent-audit.json",
+    "sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610"
+  },
+  "screen_plan_independent_review": {
+    "commit": "dd4fd1bd",
+    "path": "correctness/185-opt2-owner32-actual-binding-root-review.json",
+    "sha256": "31e117a742c4013ebf98be50c79afcb793ea1f238656b0c16809adb50b4a2509"
+  }
 }
