@@ -1,0 +1,56 @@
+{
+  "status": "PASS_C95_ORIGINAL_QUALIFICATION_RELEASE_TO_NON_TIMING_CPUCLOCK_HELPER",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "related_passed": 965,
+  "related_result_sha256": "957e81458eb7e57f02bc5bb9605098fe41eb0ee4691b260db3bc0f144e8f78d5",
+  "related_independent_result_sha256": "4356fa8e6749cbcd9ec079064d4867cdc999b39a866a24fca54088ed17e67ca4",
+  "SDK_shipping_ELF_sha256": "dc2dddfe0a627946506e7fd6d5dcf86c0803da1f40987a96d5130f6b2ba51b70",
+  "SDK_shipping_ELF_bytes": 2145051,
+  "SDK_independent_chain_sha256": "4f204cffde12207fe9832dbaab7700f8c680685a77374722ce948a447658446c",
+  "SDK_build_sha256": "54f0bb07563ec23a808f2af6862c72169c04fd7da8bb2feeb7c88449fca520dd",
+  "SDK_link_map_sha256": "b0995e7a1d2716670ea4a8a80305bb2e0ebb6499de0bec14893e6dcadca54474",
+  "SDK_original_archive_sha256": "3f773835cd3d8965648ca5150d5413dbba79ffaa13b2b3abbd4ea93db6af0669",
+  "SDK_archive_regular_files": 39,
+  "SDK_static_chain_layout_passed": true,
+  "SDK_download_raw_false_meaning": "Related-only field is not applicable to SDK; actual six-file controller/plan/gate/argv/postflight hashes matched. Original false receipt retained.",
+  "actual_GNU_grouping": {
+    "surviving_input_ranges": 19,
+    "contiguous_bytes": 40708,
+    "gaps": [],
+    "non_target_interleaving": [],
+    "receipt_sha256": "da5a8f21ed05b0e459e398fe86c155e48a21db73a8f69b32de54fa35c80d1678"
+  },
+  "runtime_signals_passed": true,
+  "runtime_case_counts": {
+    "signals": 12,
+    "cache_dumps": 3,
+    "alarm_maintenance": 3
+  },
+  "runtime_audit_invocations": 1,
+  "runtime_audit_retries": 0,
+  "runtime_original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+  "runtime_result_sha256": "393a45f3130b5ea30814a792aea8fadca3f330cdee102bd2bd2d2e651c15e0bd",
+  "runtime_independent_audit_sha256": "549a5ba607812a565522d1d98d680455c85f7393b52cc23be1e93c1d0c901a92",
+  "runtime_signal_archive_sha256": "8bef60b896eac0c6138f331d29fbcab0c24f020c62ff32ea50d9f981b2e86a74",
+  "runtime_regular_archive_files": 32,
+  "all_required_raw_transfers_complete": true,
+  "original_predicates_and_dump_parser_recomputed": true,
+  "performance_measured": false,
+  "performance_accepted": false,
+  "next_owner": "DHCP: build the small CPU-clock helper without timing; then hand off to loop for PMU capability work. New measurements wait for the root supplemental protocol commit.",
+  "retired_prerequisites": [
+    "native240 before A53 exploration",
+    "owner32 before A53 exploration"
+  ],
+  "reporting_scope": "One combined result closes the already-started qualification. Existing raw evidence remains unchanged; no further qualification review round. Accepted source remains 185db90c.",
+  "final_quiet_epoch": 1792159440.065365,
+  "research_including_exact_image_C": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "source179_SDK_native3_image5_tools5_rehashed": true,
+  "host_compat_path_empty_and_unmounted": true,
+  "reviewer_stops_Oracle_after_handoff": true
+}
