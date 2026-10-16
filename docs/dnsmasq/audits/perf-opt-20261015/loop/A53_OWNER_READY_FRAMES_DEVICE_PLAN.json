@@ -179,7 +179,14 @@
   "standalone_runtime_signals_result": null,
   "standalone_runtime_signals_independent_review": null,
   "source_interaction_review": null,
-  "device_plan_independent_review": null,
+  "device_plan_independent_review": {
+    "commit": "3a78b589",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/owner-ready-frames-device-plan-peer-review.json",
+    "sha256": "9f44b5f0d63aaae8af9bf8f9d9c7636b1a4466580016fce651854896ededb61c",
+    "reviewed_preparation_plan_sha256": "50aa132726fc3390b5d24ce01c4d9ca75fa0c37011adad9ec8579717826a7601",
+    "status": "PASS_LOCAL_DISABLED_G5C_DEVICE_PLAN_AND_OPERATOR_ADAPTATION",
+    "scope": "Localpreparedbindings/operators only; actualsource961/SDK/signalreceipts andindependentreviews stillrequired beforeanydeviceaction."
+  },
   "explicit_queue_release": null,
   "execution_selected": true,
   "execution_enabled": false,
@@ -241,9 +248,17 @@
       "postflight-a53-owner-ready-frames.py": "c3650d59b16b7db4f5dd2fac7bca2f85263545fa60794e881884919d8472306e",
       "report-a53-owner-ready-frames.py": "acbd191874ddc1344d3b7777ce2281b6ca9f83e12f80b78e2a85241447bcd8e3"
     },
-    "peer_review": null,
+    "peer_review": {
+      "commit": "3a78b589",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/owner-ready-frames-device-plan-peer-review.json",
+      "sha256": "9f44b5f0d63aaae8af9bf8f9d9c7636b1a4466580016fce651854896ededb61c",
+      "reviewed_preparation_plan_sha256": "50aa132726fc3390b5d24ce01c4d9ca75fa0c37011adad9ec8579717826a7601",
+      "status": "PASS_LOCAL_DISABLED_G5C_DEVICE_PLAN_AND_OPERATOR_ADAPTATION",
+      "scope": "Localpreparedbindings/operators only; actualsource961/SDK/signalreceipts andindependentreviews stillrequired beforeanydeviceaction."
+    },
     "disabled_before_first_SSH": "ActualSDK/related/source/standalone signalresult+independentreview fields aremissing/null untilactualbindings; stage/start requirethembeforeanyproduction_identity SSH.",
     "staging": "Originalfresh125health+fourimmutablecopies,originalslotsunchanged,stopbeforePopen. StartonlyafterverifiedfinalDNSquiet andallloopready metadata/pretransfers.",
-    "preflight_or_windows_started": false
+    "preflight_or_windows_started": false,
+    "actual_signal_binding_requirement": "Beforeenable, rehashactualstandalone signalresult andindependentreview; confirmtheirPASS/source5c/exactshippingSDKELF/schema. Nonemptyreference assertsalone do notestablishactualPASS."
   }
 }
