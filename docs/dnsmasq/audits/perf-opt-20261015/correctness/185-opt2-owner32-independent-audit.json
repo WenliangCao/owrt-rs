@@ -1,0 +1,611 @@
+{
+  "status": "PASS_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "collection_sha256": "fe534fae9ceac86e8d716ecb254a0f69953c59bf970a2657c2038bc98d036725",
+  "archive_sha256": "6c2082f5fb0a674afc9bb6c0f10d0c1e9be4ca3e7ea643d502cb150bbd0da821",
+  "result_sha256": "ed6e11976297ee7692c79f5ad035bee555f201706d2ed177899377b8119db3d6",
+  "plan_sha256": "715d64768c4616c10ce41983b48f0d801f404b4da6807aed5e756cdd21dd6c31",
+  "small_files_rehashed": 1172,
+  "remote_retained_files": 192,
+  "full_raw_inventory_files_bound": 1264,
+  "remote_raw_bin_bytes": 3557698944,
+  "ordered_windows": 32,
+  "PMU_windows": 12,
+  "plain_windows": 20,
+  "all_CPU_starttime_PID_actualN_ticks_recomputed": true,
+  "all48_actual_PMU_events_reparsed_unscaled_same_group_same_window": true,
+  "all_count_health_and_exit_receipts_checked": true,
+  "all_published_row_and_group_math_recomputed": true,
+  "summaries": {
+    "high": {
+      "cpu": {
+        "left": {
+          "median": 4.281916735403601,
+          "min": 4.258456077067319,
+          "max": 4.297442153487987,
+          "rounds": [
+            4.297442153487987,
+            4.285104578509017,
+            4.281916735403601,
+            4.258456077067319,
+            4.269361503143399
+          ]
+        },
+        "right": {
+          "median": 4.3721377337198275,
+          "min": 4.309701830372965,
+          "max": 4.403243311274224,
+          "rounds": [
+            4.388113727681532,
+            4.3721377337198275,
+            4.35997369331029,
+            4.309701830372965,
+            4.403243311274224
+          ]
+        },
+        "relative_change_pct": 2.1070236506530895,
+        "W_pct": 2.1394907159448975,
+        "same_direction_pairs": 5,
+        "precision_ok": null,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "scope": "Variable-query saturation diagnostic; W/direction only, not fixed-cohort acceptance or a tick precision pass"
+      },
+      "throughput": {
+        "left": {
+          "median": 233491.3,
+          "min": 232692.9,
+          "max": 234755.2,
+          "rounds": [
+            232692.9,
+            233138.35,
+            233491.3,
+            234755.2,
+            233927.95
+          ]
+        },
+        "right": {
+          "median": 228255.25,
+          "min": 227013.45,
+          "max": 232166.0,
+          "rounds": [
+            227626.0,
+            228255.25,
+            228709.2,
+            232166.0,
+            227013.45
+          ]
+        },
+        "relative_change_pct": -2.2425032538685548,
+        "W_pct": 2.25736319317956,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          99.90257629748552,
+          99.82894892611495,
+          99.82201345523619,
+          99.82499369883209,
+          99.85107766418857
+        ],
+        "185-opt2": [
+          99.90083120929715,
+          99.87158549966092,
+          99.63378607081559,
+          99.87990902756546,
+          99.83079655787783
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 131.121,
+            "min": 130.281,
+            "max": 131.601,
+            "rounds": [
+              131.601,
+              131.201,
+              131.121,
+              130.281,
+              130.761
+            ]
+          },
+          "right": {
+            "median": 134.361,
+            "min": 131.801,
+            "max": 135.281,
+            "rounds": [
+              134.761,
+              134.361,
+              133.721,
+              131.801,
+              135.281
+            ]
+          },
+          "relative_change_pct": 2.4710000686388756,
+          "W_pct": 2.590037287605792,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 145.042,
+            "min": 144.921,
+            "max": 145.921,
+            "rounds": [
+              145.921,
+              145.921,
+              144.921,
+              144.961,
+              145.042
+            ]
+          },
+          "right": {
+            "median": 149.282,
+            "min": 146.721,
+            "max": 150.242,
+            "rounds": [
+              150.001,
+              149.282,
+              148.841,
+              146.721,
+              150.242
+            ]
+          },
+          "relative_change_pct": 2.9232911846223915,
+          "W_pct": 2.3586232767513744,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.8,
+            "rounds": [
+              2.76,
+              2.76,
+              2.76,
+              2.8,
+              2.76
+            ]
+          },
+          "right": {
+            "median": 2.721,
+            "min": 2.72,
+            "max": 2.76,
+            "rounds": [
+              2.76,
+              2.72,
+              2.721,
+              2.76,
+              2.72
+            ]
+          },
+          "relative_change_pct": -1.4130434782608587,
+          "W_pct": 1.470047776552723,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 5.4,
+            "min": 5.28,
+            "max": 6.6,
+            "rounds": [
+              5.32,
+              5.4,
+              5.28,
+              6.6,
+              6.32
+            ]
+          },
+          "right": {
+            "median": 5.08,
+            "min": 5.04,
+            "max": 5.28,
+            "rounds": [
+              5.08,
+              5.04,
+              5.12,
+              5.28,
+              5.08
+            ]
+          },
+          "relative_change_pct": -5.925925925925931,
+          "W_pct": 24.444444444444432,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 5501.4897006946185,
+          "instructions:k": 13002.754842656483,
+          "cycles:u": 3493.7426460161737,
+          "cycles:k": 9256.099638730786,
+          "user_ipc": 1.5746777191331727
+        },
+        "185-opt2": {
+          "instructions:u": 5584.425367342393,
+          "instructions:k": 13004.596160859435,
+          "cycles:u": 3598.7272447948926,
+          "cycles:k": 9213.57490696226,
+          "user_ipc": 1.5517627155089542
+        }
+      }
+    },
+    "low": {
+      "cpu": {
+        "left": {
+          "median": 26.0,
+          "min": 22.0,
+          "max": 28.0,
+          "rounds": [
+            28.0,
+            26.0,
+            26.0,
+            22.0,
+            28.0
+          ]
+        },
+        "right": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            26.0,
+            28.0,
+            24.0,
+            24.0,
+            26.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 23.076923076923077,
+        "same_direction_pairs": 0,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "throughput": {
+        "left": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "right": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 0.0,
+        "same_direction_pairs": 0,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          0.8942671317059847,
+          0.7964177988572535,
+          0.8190220519972924,
+          0.7687694816442814,
+          0.8449515866450851
+        ],
+        "185-opt2": [
+          0.8146045800013795,
+          0.7773319964111314,
+          0.7776561275708896,
+          0.6926846099146775,
+          0.8294995257111507
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 54.161,
+            "min": 49.76,
+            "max": 65.52,
+            "rounds": [
+              65.52,
+              50.88,
+              54.161,
+              49.76,
+              64.4
+            ]
+          },
+          "right": {
+            "median": 49.28,
+            "min": 46.36,
+            "max": 56.6,
+            "rounds": [
+              55.161,
+              49.28,
+              47.28,
+              46.36,
+              56.6
+            ]
+          },
+          "relative_change_pct": -9.012019718985986,
+          "W_pct": 29.098428758700905,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 78.481,
+            "min": 76.761,
+            "max": 102.68,
+            "rounds": [
+              102.68,
+              76.761,
+              78.361,
+              78.481,
+              81.521
+            ]
+          },
+          "right": {
+            "median": 79.641,
+            "min": 72.161,
+            "max": 85.0,
+            "rounds": [
+              79.641,
+              85.0,
+              75.24,
+              72.161,
+              80.241
+            ]
+          },
+          "relative_change_pct": 1.4780647545265873,
+          "W_pct": 33.025827907391616,
+          "same_direction_pairs": 1,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 70.62,
+            "min": 70.138,
+            "max": 74.328,
+            "rounds": [
+              70.138,
+              70.62,
+              70.691,
+              70.44,
+              74.328
+            ]
+          },
+          "right": {
+            "median": 70.286,
+            "min": 69.527,
+            "max": 71.465,
+            "rounds": [
+              71.004,
+              70.286,
+              69.689,
+              69.527,
+              71.465
+            ]
+          },
+          "relative_change_pct": -0.4729538374398232,
+          "W_pct": 5.9331634097989205,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 81.789,
+            "min": 81.7,
+            "max": 82.704,
+            "rounds": [
+              82.704,
+              81.789,
+              81.7,
+              81.771,
+              82.116
+            ]
+          },
+          "right": {
+            "median": 81.806,
+            "min": 79.924,
+            "max": 82.239,
+            "rounds": [
+              81.806,
+              81.917,
+              81.078,
+              79.924,
+              82.239
+            ]
+          },
+          "relative_change_pct": 0.020785191162620776,
+          "W_pct": 2.8298657800161333,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 7691.2858,
+          "instructions:k": 25733.9894,
+          "cycles:u": 17044.1244,
+          "cycles:k": 39682.0008,
+          "user_ipc": 0.4512573142214334
+        },
+        "185-opt2": {
+          "instructions:u": 7784.0756,
+          "instructions:k": 25821.4088,
+          "cycles:u": 17085.4932,
+          "cycles:k": 39962.6666,
+          "user_ipc": 0.4555956043457967
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks_plain": {
+    "low": {
+      "G": [
+        14,
+        13,
+        13,
+        11,
+        14
+      ],
+      "185-opt2": [
+        13,
+        14,
+        12,
+        12,
+        13
+      ]
+    },
+    "high": {
+      "G": [
+        2499,
+        2498,
+        2498,
+        2499,
+        2498
+      ],
+      "185-opt2": [
+        2498,
+        2497,
+        2494,
+        2499,
+        2498
+      ]
+    }
+  },
+  "postflight_sha256": "b182eebf4b411d7ad5f36f9868cdb72676c1715ea69b684a0d440eed5d28d16d",
+  "release_sha256": "49261583a2f2b239eaa16a48bb611d6b29c9f023a26c54d4a11f8073cc707a86",
+  "retained_collection_failure_sha256": "a51da01f8f88344b0c1f7a8a467e6ffae4b31ceffe71314d8e6eb9d4e00bc1f1",
+  "no_measurement_retries": true,
+  "limits": [
+    "High unpaced variable-N pipeline is diagnostic; precision_ok remains None, not a fixed-cohort CPU acceptance.",
+    "Original low CPU precision requires every window >=10ticks and absolute median delta strictly >8ticks, plus strictabsdelta>W and >=4/5 direction.",
+    "Oracle owner32 does not override nondiscernible physicalA53 screen or complete full44/full110.",
+    "All32 original full raw windows remain on Oracle;1172smallraw files and complete replay outputs are locally archived. Original20 plain latency/sendlag streams were decoded by unchanged analyzer; all128bin files were rehashed. No new measured window, build or originaltest execution."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "schema": "g803-owner32-independent-audit-v1",
+  "author_result_commit": "8a5ac828",
+  "review_script_sha256": "efc91a832ef830748a50542116dfec7184d4da70e2884fdf1c53afa77a21b678",
+  "binding_script_sha256": "14ce4dd347ac69caa626d2e6f45f408a9dce3ed2f45f59f5a195e816d749bb1f",
+  "identity_and_phase_review": {
+    "status": "PASS_OWNER32_PHASE_IDENTITY_ORIGINAL_ANALYZER_AND_RETAINED_COLLECTION_CORRECTION",
+    "plan_sha256": "715d64768c4616c10ce41983b48f0d801f404b4da6807aed5e756cdd21dd6c31",
+    "source": "8035114257c8706047d2038c2bb8126391331925",
+    "original_analyzer_only_scope_text_changed_from_6ab": true,
+    "eight_original_analysis_imports_byte_identical": true,
+    "source179_maps_and_exact_G_803_SDK_triples_bound": true,
+    "actual957_andSDK_independent_reviews_and_root_plan_review_rehashed": true,
+    "launch_after_real_DNS_quiet_and_loopready": true,
+    "original_32_controller_argv_bound": true,
+    "local_transfer_receipt_sha256": "3ec7c86f696ff3c8927e6956f938b5d1de0e17c185d7ca9241623f8f98272924",
+    "release_sha256": "49261583a2f2b239eaa16a48bb611d6b29c9f023a26c54d4a11f8073cc707a86",
+    "retained_collection_correction": {
+      "first_script_sha256": "2453f2302984a841e0e789678e8e60ac4d24144384a7378bf37e9d96c1166764",
+      "corrected_script_sha256": "1d57c60c2a70b91ae75f37f8220dcb083e441e60b9a953cd052ed73b987afa3e",
+      "failure_sha256": "a51da01f8f88344b0c1f7a8a467e6ffae4b31ceffe71314d8e6eb9d4e00bc1f1",
+      "exact_changes": "Only bin count192\u2192128 and total omitted256\u2192192. Original32\u00d74bin plus32\u00d72ELF/map copies.",
+      "failure_before_archive_creation": true,
+      "remote_raw_mutated": false,
+      "measurement_windows_rerun": 0
+    },
+    "device_independent_audit_sha256": "850659e89daff764b6d8945177bfbef4ce9939d096d21fe7e7d962a813447a1c",
+    "scope": "Local hashes, Git refs and retained receipts only; original full-bin replay is a separate gate.",
+    "reviewer_script_sha256": "14ce4dd347ac69caa626d2e6f45f408a9dce3ed2f45f59f5a195e816d749bb1f"
+  },
+  "original_analyzer_replay": {
+    "status": "PASS_ORIGINAL_ANALYZER_FULL_RAW_BIN_REPLAY_BYTE_IDENTICAL",
+    "exit": 0,
+    "result_sha256": "ed6e11976297ee7692c79f5ad035bee555f201706d2ed177899377b8119db3d6",
+    "author_result_sha256": "ed6e11976297ee7692c79f5ad035bee555f201706d2ed177899377b8119db3d6",
+    "original_analyzer_sha256": "ba0aeea816976ff34a984e37adbc485017867c3376456b6e2e46b3a80de978b6",
+    "exit_receipt_sha256": "809c70a271a9e3a61135db9fc653b7ff76ec94e577ef0a985979dd0db7f0de5c",
+    "analysis_stdout_sha256": "8034a71c53e3f6e3ebe30167f0be59f83e8273fa76310bf06febd5b293907672",
+    "analysis_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "full_raw_files_rehashed_after_replay": 1264,
+    "all32_copied_ELFs_and_maps_rehashed": true,
+    "all128_raw_bin_bytes_rehashed": 3557698944,
+    "input_postflight_sha256": "b182eebf4b411d7ad5f36f9868cdb72676c1715ea69b684a0d440eed5d28d16d",
+    "scope": "Original unchanged analyzer CPU0 under root read privileges; output only in fresh reviewer directory. All retained raw bins and copied ELFs/maps rehashed, no build/capture/window retry.",
+    "finished_epoch": 1792138612.700942
+  },
+  "replay_receipt_sha256": "6d18b81f608a7c51d3941b4b0c3e5d459d2fbb7539b24f992eefd36b1268b211",
+  "replay_transfer_sha256": "851ac9bd20aa802fdbcb8c5e9885624add27406fcf129cb7c236ef4c880ddaec",
+  "original_plain_latency_sendlag_bins_independently_replayed": true,
+  "all128_bins_hash_verified_against_original_postflight": true,
+  "reviewer_measurement_retries": 0,
+  "retained_high_unpaced_p95_regression": {
+    "left": {
+      "median": 145.042,
+      "min": 144.921,
+      "max": 145.921,
+      "rounds": [
+        145.921,
+        145.921,
+        144.921,
+        144.961,
+        145.042
+      ]
+    },
+    "right": {
+      "median": 149.282,
+      "min": 146.721,
+      "max": 150.242,
+      "rounds": [
+        150.001,
+        149.282,
+        148.841,
+        146.721,
+        150.242
+      ]
+    },
+    "relative_change_pct": 2.9232911846223915,
+    "W_pct": 2.3586232767513744,
+    "same_direction_pairs": 5,
+    "precision_ok": true,
+    "discernible": true,
+    "direction": "slower"
+  }
+}
