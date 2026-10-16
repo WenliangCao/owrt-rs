@@ -1,0 +1,852 @@
+{
+  "status": "PASS_EXACT_G6AB_NATIVE240_FULL_RAW_AND_DERIVED_STATISTICS",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "result_sha256": "e32339dc5822cc05f1f9f543925338f7c2f57a55a204178dbd9402fdc6ed4862",
+  "summary_sha256": "ed7e1ac7ea658d1eb176e2fbf2fe271c4fda0e3b438ddf8c5a90c35318812615",
+  "plan_sha256": "968af9c4c26abecb78e9a78b91040df606cdacca73b680f6fb3ffbf6cc16ab8e",
+  "archive_sha256": "d8c808d3679ca3e96d680b4f20685dfd0ddf818b0b4f4f4ae67a8670fea82bde",
+  "collection_sha256": "d6948a57fa695d6330d9896e0e6ec4f2571c5d98261f4ff275fab7f48ea61bbc",
+  "native_directory_files_verified": 590,
+  "original_command_log_and_CSV_files_verified": 578,
+  "probe_JSON_rows_reparsed": 240,
+  "stat_windows": 90,
+  "plain_windows": 150,
+  "commands": 244,
+  "all180_user_PMU_events_unscaled_same_group_same_window": true,
+  "source_files_rehashed_against_Git_each": 162,
+  "both_native_probe_ELFs_independently_rehashed": {
+    "G": {
+      "elf_sha256": "4c7dbf23b13fbd238da2624c4bdff19744c47cf88cf0e5c210b07750ea04b088",
+      "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+    },
+    "post185-combined": {
+      "elf_sha256": "cfa5b2c41b9b8087048a9866729e5799ddc2cae15f4e7eb1a61a0e9907a6e84b",
+      "rlib_sha256": "e16d9a9fcd031fa6b951ec842481566f362df92c7086f8945f2e433e314d4c0f"
+    }
+  },
+  "all15_CPU_and_PMU_IPC_statistics_independently_recomputed": true,
+  "counts": {
+    "faster": 9,
+    "slower": 2,
+    "within_variation_or_resolution": 4
+  },
+  "summaries": [
+    {
+      "candidate": "post185-combined",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 427.064,
+          "min": 426.2455,
+          "max": 430.178,
+          "rounds": [
+            428.886,
+            426.8875,
+            430.178,
+            427.064,
+            426.2455
+          ]
+        },
+        "right": {
+          "median": 400.2965,
+          "min": 399.692,
+          "max": 407.199,
+          "rounds": [
+            401.8415,
+            407.199,
+            400.0845,
+            400.2965,
+            399.692
+          ]
+        },
+        "relative_change_pct": -6.267795927542485,
+        "W_pct": 1.8753598894819228,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.647755,
+          "cycles:u": 1284.12871,
+          "ipc": 2.607719716039991
+        },
+        "post185-combined": {
+          "instructions:u": 3174.074215,
+          "cycles:u": 1205.40955,
+          "ipc": 2.63311001227757
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -5.213254805296774,
+        "cycles:u": -6.130161204790752,
+        "ipc": 0.9736589435361376
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 442.7475,
+          "min": 442.0915,
+          "max": 445.814,
+          "rounds": [
+            442.0915,
+            443.474,
+            445.814,
+            442.622,
+            442.7475
+          ]
+        },
+        "right": {
+          "median": 418.526,
+          "min": 416.0,
+          "max": 420.7335,
+          "rounds": [
+            418.459,
+            420.7335,
+            418.526,
+            419.3725,
+            416.0
+          ]
+        },
+        "relative_change_pct": -5.4707254134693,
+        "W_pct": 1.1309930565842963,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3484.37614,
+          "cycles:u": 1330.636505,
+          "ipc": 2.6184571082393386
+        },
+        "post185-combined": {
+          "instructions:u": 3310.75829,
+          "cycles:u": 1254.711905,
+          "ipc": 2.6388095321371803
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.982752809230284,
+        "cycles:u": -5.705885845962122,
+        "ipc": 0.7772677976583875
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 554.638,
+          "min": 553.737,
+          "max": 555.7565,
+          "rounds": [
+            554.6215,
+            555.0285,
+            554.638,
+            553.737,
+            555.7565
+          ]
+        },
+        "right": {
+          "median": 438.6555,
+          "min": 438.46,
+          "max": 443.0165,
+          "rounds": [
+            443.0165,
+            440.102,
+            438.6555,
+            438.479,
+            438.46
+          ]
+        },
+        "relative_change_pct": -20.91138724717744,
+        "W_pct": 1.038742247618012,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 4584.70767,
+          "cycles:u": 1666.373955,
+          "ipc": 2.751307805936033
+        },
+        "post185-combined": {
+          "instructions:u": 3548.352425,
+          "cycles:u": 1336.07148,
+          "ipc": 2.6562739218114286
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -22.604609052424053,
+        "cycles:u": -19.821629713361666,
+        "ipc": -3.454134936104425
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 427.367,
+          "min": 421.6465,
+          "max": 431.7475,
+          "rounds": [
+            427.367,
+            421.6465,
+            427.349,
+            427.511,
+            431.7475
+          ]
+        },
+        "right": {
+          "median": 400.7695,
+          "min": 399.6975,
+          "max": 401.1035,
+          "rounds": [
+            400.605,
+            399.6975,
+            401.1035,
+            400.7695,
+            401.0885
+          ]
+        },
+        "relative_change_pct": -6.223573649813866,
+        "W_pct": 2.3635423418279835,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.836265,
+          "cycles:u": 1286.74454,
+          "ipc": 2.6025649698890505
+        },
+        "post185-combined": {
+          "instructions:u": 3174.4082,
+          "cycles:u": 1213.846635,
+          "ipc": 2.6150013835973605
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -5.2086172985826735,
+        "cycles:u": -5.665297402388802,
+        "ipc": 0.47785219013534164
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 387.466,
+          "min": 385.915,
+          "max": 388.7365,
+          "rounds": [
+            387.196,
+            385.915,
+            387.466,
+            387.563,
+            388.7365
+          ]
+        },
+        "right": {
+          "median": 387.1195,
+          "min": 386.213,
+          "max": 388.0015,
+          "rounds": [
+            388.0015,
+            387.534,
+            387.1195,
+            386.726,
+            386.213
+          ]
+        },
+        "relative_change_pct": -0.08942720135443931,
+        "W_pct": 0.7281929253147263,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 2977.22139,
+          "cycles:u": 1159.02806,
+          "ipc": 2.56872399620765
+        },
+        "post185-combined": {
+          "instructions:u": 2967.192105,
+          "cycles:u": 1158.90961,
+          "ipc": 2.560329817266767
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.336867289536702,
+        "cycles:u": -0.0102197698302664,
+        "ipc": -0.3267839967733277
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 486.005,
+          "min": 485.269,
+          "max": 486.8655,
+          "rounds": [
+            485.269,
+            486.005,
+            486.8365,
+            485.682,
+            486.8655
+          ]
+        },
+        "right": {
+          "median": 415.533,
+          "min": 413.8555,
+          "max": 415.596,
+          "rounds": [
+            415.596,
+            415.4835,
+            413.8555,
+            415.533,
+            415.581
+          ]
+        },
+        "relative_change_pct": -14.500262342980005,
+        "W_pct": 0.41885963329025544,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3862.6633,
+          "cycles:u": 1456.06373,
+          "ipc": 2.6527365872920963
+        },
+        "post185-combined": {
+          "instructions:u": 3232.454405,
+          "cycles:u": 1244.589185,
+          "ipc": 2.59706229489693
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -16.31539810886442,
+        "cycles:u": -14.523714906352348,
+        "ipc": -2.098749369306896
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 882.4135,
+          "min": 874.1385,
+          "max": 888.871,
+          "rounds": [
+            882.4135,
+            888.871,
+            879.2535,
+            874.1385,
+            887.557
+          ]
+        },
+        "right": {
+          "median": 890.9285,
+          "min": 885.6335,
+          "max": 900.1895,
+          "rounds": [
+            900.1895,
+            893.777,
+            888.7995,
+            885.6335,
+            890.9285
+          ]
+        },
+        "relative_change_pct": 0.9649671044243981,
+        "W_pct": 1.6695687452651118,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6862.379155,
+          "cycles:u": 2645.11512,
+          "ipc": 2.5943593543860577
+        },
+        "post185-combined": {
+          "instructions:u": 6877.972845,
+          "cycles:u": 2702.4197,
+          "ipc": 2.5388066036838546
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.2272344568521767,
+        "cycles:u": 2.1664304727878836,
+        "ipc": -2.141289741079422
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1625.179,
+          "min": 1606.7235,
+          "max": 1646.435,
+          "rounds": [
+            1606.7235,
+            1638.7255,
+            1646.435,
+            1607.1165,
+            1625.179
+          ]
+        },
+        "right": {
+          "median": 1658.0005,
+          "min": 1615.8915,
+          "max": 1665.8005,
+          "rounds": [
+            1658.0005,
+            1615.8915,
+            1625.266,
+            1662.2165,
+            1665.8005
+          ]
+        },
+        "relative_change_pct": 2.0195621528459338,
+        "W_pct": 3.010192095840749,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12935.009525,
+          "cycles:u": 4886.28195,
+          "ipc": 2.6472089939468186
+        },
+        "post185-combined": {
+          "instructions:u": 12914.85688,
+          "cycles:u": 4901.910875,
+          "ipc": 2.64292566631505
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.15579922814166203,
+        "cycles:u": 0.3198531144933181,
+        "ipc": -0.16180542003154663
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6709.79,
+          "min": 6689.205,
+          "max": 6719.215,
+          "rounds": [
+            6709.79,
+            6689.205,
+            6715.555,
+            6709.03,
+            6719.215
+          ]
+        },
+        "right": {
+          "median": 6709.825,
+          "min": 6702.6,
+          "max": 6723.74,
+          "rounds": [
+            6719.46,
+            6702.6,
+            6709.825,
+            6723.74,
+            6709.355
+          ]
+        },
+        "relative_change_pct": 0.0005216258631023398,
+        "W_pct": 0.44725691862189754,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 58259.80974,
+          "cycles:u": 19924.15314,
+          "ipc": 2.924079599801751
+        },
+        "post185-combined": {
+          "instructions:u": 58107.148685,
+          "cycles:u": 19916.641305,
+          "ipc": 2.917260423092206
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.262034935715183,
+        "cycles:u": -0.03770215450169534,
+        "ipc": -0.23320762916327897
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 828.965,
+          "min": 827.1295,
+          "max": 834.2245,
+          "rounds": [
+            827.95,
+            834.2245,
+            828.965,
+            832.139,
+            827.1295
+          ]
+        },
+        "right": {
+          "median": 850.696,
+          "min": 845.95,
+          "max": 858.976,
+          "rounds": [
+            850.696,
+            858.976,
+            848.4725,
+            854.2265,
+            845.95
+          ]
+        },
+        "relative_change_pct": 2.621461702243158,
+        "W_pct": 1.5312167918974526,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6590.616725,
+          "cycles:u": 2495.476085,
+          "ipc": 2.6410258706205956
+        },
+        "post185-combined": {
+          "instructions:u": 6516.319945,
+          "cycles:u": 2547.62026,
+          "ipc": 2.5578069884716648
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.1273114960269504,
+        "cycles:u": 2.0895481753334666,
+        "ipc": -3.15100594336003
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 721.71,
+          "min": 720.28,
+          "max": 724.4865,
+          "rounds": [
+            724.4865,
+            721.71,
+            722.111,
+            720.28,
+            720.959
+          ]
+        },
+        "right": {
+          "median": 655.1785,
+          "min": 653.642,
+          "max": 655.617,
+          "rounds": [
+            655.617,
+            655.297,
+            655.1785,
+            653.943,
+            653.642
+          ]
+        },
+        "relative_change_pct": -9.218591955217475,
+        "W_pct": 0.5828518379958717,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 5817.65027,
+          "cycles:u": 2163.530575,
+          "ipc": 2.6891483934771756
+        },
+        "post185-combined": {
+          "instructions:u": 5050.469085,
+          "cycles:u": 1966.40082,
+          "ipc": 2.5681570454186446
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -13.187131391450935,
+        "cycles:u": -9.111484592724095,
+        "ipc": -4.499244011673309
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1516.905,
+          "min": 1516.556,
+          "max": 1519.314,
+          "rounds": [
+            1516.905,
+            1519.314,
+            1518.453,
+            1516.615,
+            1516.556
+          ]
+        },
+        "right": {
+          "median": 1472.2865,
+          "min": 1468.915,
+          "max": 1472.947,
+          "rounds": [
+            1468.915,
+            1472.2865,
+            1470.265,
+            1472.947,
+            1472.71
+          ]
+        },
+        "relative_change_pct": -2.941416898223688,
+        "W_pct": 0.27385974129355434,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12758.666455,
+          "cycles:u": 4525.827675,
+          "ipc": 2.819079923320324
+        },
+        "post185-combined": {
+          "instructions:u": 12329.055305,
+          "cycles:u": 4385.89231,
+          "ipc": 2.8110713153830265
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.367210448797653,
+        "cycles:u": -3.091928704510394,
+        "ipc": -0.2840858774895927
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1081.682,
+          "min": 1081.267,
+          "max": 1089.5785,
+          "rounds": [
+            1081.682,
+            1087.349,
+            1081.267,
+            1081.5075,
+            1089.5785
+          ]
+        },
+        "right": {
+          "median": 1059.4035,
+          "min": 1054.5455,
+          "max": 1061.147,
+          "rounds": [
+            1057.7345,
+            1059.4035,
+            1061.147,
+            1061.1315,
+            1054.5455
+          ]
+        },
+        "relative_change_pct": -2.0596164122172804,
+        "W_pct": 0.7683866422848881,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 8731.587605,
+          "cycles:u": 3237.60249,
+          "ipc": 2.696930099346446
+        },
+        "post185-combined": {
+          "instructions:u": 8628.98157,
+          "cycles:u": 3166.28433,
+          "ipc": 2.7253877860046765
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.175113159733343,
+        "cycles:u": -2.2028077943565094,
+        "ipc": 1.055188143924335
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1345.919,
+          "min": 1344.7535,
+          "max": 1347.6435,
+          "rounds": [
+            1345.362,
+            1344.7535,
+            1346.739,
+            1345.919,
+            1347.6435
+          ]
+        },
+        "right": {
+          "median": 1095.5555,
+          "min": 1093.1625,
+          "max": 1100.2445,
+          "rounds": [
+            1095.5555,
+            1093.1665,
+            1093.1625,
+            1100.2445,
+            1099.2265
+          ]
+        },
+        "relative_change_pct": -18.601676623927602,
+        "W_pct": 0.6464300530644141,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 11226.267325,
+          "cycles:u": 4029.234725,
+          "ipc": 2.7863777779786707
+        },
+        "post185-combined": {
+          "instructions:u": 9031.95121,
+          "cycles:u": 3282.22613,
+          "ipc": 2.7517878346182076
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -19.546266372202226,
+        "cycles:u": -18.539714014799667,
+        "ipc": -1.2413946031954004
+      }
+    },
+    {
+      "candidate": "post185-combined",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 22986.89,
+          "min": 22965.855,
+          "max": 22992.07,
+          "rounds": [
+            22986.89,
+            22990.71,
+            22992.07,
+            22965.855,
+            22966.585
+          ]
+        },
+        "right": {
+          "median": 24082.3,
+          "min": 24054.315,
+          "max": 24133.46,
+          "rounds": [
+            24056.18,
+            24082.3,
+            24054.315,
+            24112.115,
+            24133.46
+          ]
+        },
+        "relative_change_pct": 4.7653684339203775,
+        "W_pct": 0.32864385876764446,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 220079.93946,
+          "cycles:u": 68401.698085,
+          "ipc": 3.217463098452843
+        },
+        "post185-combined": {
+          "instructions:u": 220097.77868,
+          "cycles:u": 71433.975445,
+          "ipc": 3.0797840803610206
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.008105791033830023,
+        "cycles:u": 4.433043981206319,
+        "ipc": -4.279117238610364
+      }
+    }
+  ],
+  "postflight_sha256": "3113d90f98feb1178ad80b15ea6b890b8f5d0e09edea8922518e9229e3b6e3df",
+  "limits": [
+    "Native probe measures whole-process CPU including setup/teardown; original W and direction test has no daemon100Hz tick gate.",
+    "Zero allocation counters reflect allocation_tracking disabled in original probe build; they do not prove zero allocations.",
+    "Native library screen omits SinglePoll, owner recycling, socket Rc and clock costs; no SDK/device/full qualification inference.",
+    "Native rlib bytes were not in this directory transfer; their hashes remain in the original build receipt."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "reviewer_remote_capture_or_build": false,
+  "schema": "g6ab-native240-independent-audit-v1",
+  "review_script_sha256": "d3f50acded782c23b89666f0e8229db38671bd7495c8c5a36db04a419b4a5cc1",
+  "retained_reviewer_report_correction": {
+    "initial_script_sha256": "4d330d5957f8443a9920b4723e323274ea6e5a3e41bf3673de47e68ac8c959f3",
+    "initial_report_sha256": "a0b1be1ad556e8351438ff45b00786c95abbb9bbe4126544fd9d94f317ba6fd8",
+    "cause": "CSV regex count variable shadowed the final native direction-count dictionary in the reviewer report. Renamed report variable; all raw and statistical assertions unchanged, no capture rerun."
+  },
+  "retained_regression_scenes": [
+    "synth-address",
+    "cname-config"
+  ]
+}
