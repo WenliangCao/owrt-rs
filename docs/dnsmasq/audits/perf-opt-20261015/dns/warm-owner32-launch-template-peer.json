@@ -1,0 +1,27 @@
+{
+  "status": "PASS_LOCAL_WARM_OWNER32_READY_AND_LAUNCH_TEMPLATE_PEER",
+  "scope": "Read and AST only, no remote/script execution. Review covers disabled templates; final concrete quiet/plan/metadata SHA binding still required.",
+  "files": {
+    "final-ready-metadata-command": {
+      "original_sha256": "0780b3479fffe9d5b0fa9332adfc4c69004ce686f0f4f0e108bbcbe1844061d8",
+      "template_sha256": "1446d3c9ccc74ad52bbafff91941dde3a3951f6b690d5c6598dad00842c1991e",
+      "exact_name_hash_scope_only_change": true
+    },
+    "launch-command": {
+      "original_sha256": "d950097413ddb4fdb2a77a585befe7fb105f9df1feb0f2de72b3efd6045f6e16",
+      "template_sha256": "13c6f3b1697a19bcd6f0b4981baf44742c1e04bf9b8357cb0b47a205b9a47127",
+      "exact_name_hash_scope_only_change": true
+    }
+  },
+  "preserved": [
+    "uid1001 and fresh output checks",
+    "original input-manifest per-file rehash and frozen controller/analyzer",
+    "plan-before-ready preservation and exact stdin SHA",
+    "artifact/G/build/map/source manifests before launch",
+    "original original32 tasksetCPU0 launch, detached process and startticks",
+    "fresh lock availability checks",
+    "exclusive create for controller logs and launch receipt"
+  ],
+  "dependency_scope_note": "The inherited device_pretransfer_complete field must explicitly describe the existing G-stage device staging/no-bulk coordination. It must not claim warm candidate router transfer or all bulk downloads completed. Correctness and loop were notified before final binding.",
+  "remaining": "Replace placeholders using actual reviewed receipts; explicit fresh quiet; follow root scheduling and preserve all bulk for device/archive gap."
+}
