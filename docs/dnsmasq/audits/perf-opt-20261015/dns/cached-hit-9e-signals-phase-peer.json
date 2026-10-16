@@ -1,0 +1,28 @@
+{
+  "status": "PASS_LOCAL_ORIGINAL9E_SIGNALS_IDENTITY_PHASE_AND_SCHEMA_BINDING",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+  "plan_sha256": "bc0143a4070e4bfc9b65db5251968c3721e4ecf1e774f851d45622b82a2e0cd6",
+  "adapter_sha256": "b2dd2239280c6ce41525083fbe72b9d878ead174fa6866fbfd19f7e40694fb69",
+  "adapter_only_one_source_literal_change_from_original5c": true,
+  "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+  "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+  "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+  "preflight_sha256": "9808f295e727d80a5230e5fd6d9365b8a00e0fd8007b38258f6ce491a76a84fb",
+  "mapping_sha256": "1e83d5cbf6fd767e0b9aef1181c442a47f9e9588bb4e95232b0aacc4bc538e74",
+  "launch_sha256": "a1ccee610764dff15688ffa33ebcbc6946f5b60433983d9a7cf716b562220a91",
+  "exit_sha256": "3622cddb94dae3f5727598ce2a5a8f01d4b6b91448039b0380289af416865f00",
+  "postflight_sha256": "1b50c7cb97f2c73ce942211b5ce8c1fc71844e279a3d21face6a2b44bc92dae8",
+  "transfer_sha256": "e16dbd2ad9c47e4b478eeae3bc5ee9ef892230850f2bad574fb0b050cf4c81e9",
+  "manifest_payload_files_rehashed": 31,
+  "schema_counts": [
+    12,
+    3,
+    3
+  ],
+  "recorded_order": "DNSquiet < actualpreflight <= launch == started < exit < postflight",
+  "native3_and_image5_and5tools_original_identity_bound": true,
+  "current_private_mount_distinct_and_host_path_restored": true,
+  "scope": "Local bytes/identity/phase only. No network/Oracle/router, adapter/audit import or execution, and no cases rerun. Main correctness reviewer separately recomputes original passed predicates/dump summaries/rawlogs; this peer does not claim that recomputation.",
+  "script_sha256": "2070b8b4c111b15ba4b71b7bc4e04cb5a9aea3e51bc08a6834891e359b18fcf5"
+}
