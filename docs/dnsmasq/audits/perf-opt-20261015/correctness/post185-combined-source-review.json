@@ -1,0 +1,161 @@
+{
+  "schema": "dnsmasq-post185-combined-differential-source-review-v1",
+  "status": "NO_ADDITIONAL_COMBINATION_SOURCE_BLOCKER_RELATED_LINUX_NOT_RUN",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "reviewed_parent": "a15d3ca27a44527f2e5d443d4069cf8af2e316c0",
+  "new_patch_identity_checks": [
+    {
+      "original": "b65e9a9c",
+      "applied": "e74ee52f",
+      "stable_patch_id": "d129fc5e32d16405ea93f6215d69c89024227586"
+    },
+    {
+      "original": "c95610c6",
+      "applied": "6ab0f064",
+      "stable_patch_id": "9907ba33cd96107cafc358b71bebf31eeef84a74"
+    }
+  ],
+  "changed_from_a15_sha256": {
+    "components/dnsmasq/src/dns/wire.rs": "13f9a954c09ff296d40f27c4925528aad15e3ba8a30e7c2e0e2d4a5ccf4082ea",
+    "components/dnsmasq/src/dns/wire_tests.rs": "f89cbb4e8a2a19b5df6c9cb995598ea5cb26362cc97b912b9f9d5f1a8a301d1f",
+    "components/dnsmasq/src/main.rs": "fe010726f45d7a392d05da5d9eaf928fe66c2128b668931a07fd2e0033661cb3",
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": "ad59a1ff6d2e03500222cd928b448a8a397ab850d9dbaa4841e472a500c37e2c",
+    "components/dnsmasq/src/main_newaddress_tests.rs": "fd7edd0476df25866a0173200e55fbfbe8a0bacf6a6846851aac5a7212d229ea",
+    "components/dnsmasq/src/main_route_resend_tests.rs": "18d92809cc0efb46b36b598aff0ab896b993511486b4ad8738be9a47ca49b556",
+    "components/dnsmasq/src/main_stale_refresh_log_tests.rs": "72b4e732e8e8df239985fd0fe3e1c02f988a00c293775eca676eca684403021c",
+    "components/dnsmasq/src/main_udp_acl_tests.rs": "8ee4ad94ab8caf27be60b024525a79290ff3762c2b277d00f449bdc066b91814"
+  },
+  "source_checks": {
+    "wire_and_wire_tests_equal_b65": true,
+    "five_private_socket_fixtures_equal_c956": true,
+    "main_only_Rc_tokens_and_comment_over_a15": true,
+    "a15_cache_lease_local_hosts_unchanged": true,
+    "Cargo_profile_unchanged_no_opt2": true
+  },
+  "interaction_review": [
+    "Writtenquestion shortcut remains local toPacketWriter with its own privatebuffer/header invariant. a15changes noName constructor orWriter mutation API; cachedreply recycling still clears/reinitializesbuffer beforequestion. Multiplequestions,otheroffsets,bounds andappendfailure behavior stay as independently reviewed.",
+    "Rc conversion touches only the same privateUDPsocket handles on top of the alreadydeferred clone. It changes noName lifetime,querybuffer ownership,cache/lease Arc,wallclock source,waitdeadline or fairnessbudget. Bothinterface pendingrecords retain owningRc; MAC/EDNS remains tokenlookup atresume.",
+    "Wholemain normalization confirms no extra controlflow change from mergingRc with the separatewaitclock patch. Signal atomics,startupfork and unchanged singleowner boundaries still apply.",
+    "The newwire andRc edits do not change one another's invariant: outputconstruction does not store a socket handle, and socketreference ownership does not mutatewrittenquestion bytes. Prior a15review remains sourcecontext only, not executionqualification."
+  ],
+  "independent_reference_reports": {
+    "post185-small-source-review.json": "01950c4a9d45fb085db5ac212b524f2aec23b55c59de9ae195d683753f1a94e5",
+    "written-question-owner-source-review.json": "a550adfb3672ce73d5585df9bbff577e74ebe93f7328ad14df04a4d173b8d8a6",
+    "udp-local-owner-source-review.json": "c93b9a5b9b05d6e79b33181c978eed7a14bcc90aff3ca49f85503b42613f0384"
+  },
+  "author_local_checks_rehashed": [
+    {
+      "label": "lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/mac",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "77ea8c68d2c9bda8702bf13db9906bf560f437dc1e2e1a8c0499ee6c19ce9f8d",
+      "stderr_sha256": "01578f58df4566f19837b1bee558afb4524ac7f79a562858afa0e46d7c42b948",
+      "result": [
+        "test result: ok. 725 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.90s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.52s"
+      ]
+    },
+    {
+      "label": "bin",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/mac",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "4933593235be1aa98a50682697b78353d16d9b8508e8fff4bf2de48837a2c400",
+      "stderr_sha256": "13ef1eba1f841d5d262345d134dfc601c81845398054e3a5b4361118038edd7e",
+      "result": [
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.31s"
+      ]
+    },
+    {
+      "label": "musl",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/musl",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e76071030563058f3247b192d30efa8281bbea740b2d94b8d6992bb55ee21934",
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.75s"
+      ]
+    },
+    {
+      "label": "diagnostics",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--features",
+        "m6b-diagnostics",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/musl",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "197e21bcb980ffc1cc9cf92b3241cdc8bcee8556a3dce7003b2591a923915760",
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.29s"
+      ]
+    }
+  ],
+  "reviewer_tests_or_builds": false,
+  "related_preparation": "post185-combined-related-linux-preparation.json",
+  "old_a15_preparation_preserved": {
+    "plan_sha256": "d780a3d9885c00db27876575779b868e7e8044f4fbf423e77cff073e111d67fe",
+    "private_files_sha256": {
+      "commands.json": "989c022a5a76e89f2e1d970285cf139d21d33e0e3a36697d1308003d02749955",
+      "source-files.json": "afb7f3f2a7de2d7316dd370d16d22c3690fb86210d71bec58c6f46da2971a37b",
+      "build_post185_small_allocations.py": "bc15e5baf4485dce7e13ff1e7b9e613c1c5d182652b803cfad6d5ac4e77f620f",
+      "run_post185_small_related.py": "35648e5fce3930cb76fd13af49d0388ae6fa1a181e43b3e7c4ec64bc384a4c92"
+    }
+  },
+  "selection_gate": "Current110/rawaudits and subsequentC/185profile havepriority; choose screening only fromprofile and explicitOracleownershiprelease.",
+  "full44_prepared": false,
+  "full_qualification_passed": false,
+  "performance_accepted": false,
+  "remote_accessed": false
+}

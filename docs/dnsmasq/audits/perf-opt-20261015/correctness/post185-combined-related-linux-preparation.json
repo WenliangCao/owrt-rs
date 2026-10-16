@@ -1,0 +1,165 @@
+{
+  "schema": "dnsmasq-post185-combined-related-linux-preparation-v1",
+  "status": "LOCAL_PREPARATION_ONLY_PROFILE_DECISION_AND_ORACLE_RELEASE_REQUIRED",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_review_sha256": "57f01b67c884fd699fe75bde09e1235118b1b49229e0232c3f9a2c6f79608374",
+  "local_source": "/Users/USER/Developer/owrt-perf-post185-combined-20261016",
+  "planned_remote_source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+  "planned_remote_private": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private",
+  "source_files": 179,
+  "source_manifest_sha256": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+  "source_manifest_local": "private/post185-combined-related-preparation/source-files.json",
+  "original185reference": {
+    "actual_passed": 957,
+    "groups": {
+      "lib": 836,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "verified_receipt_sha256": "4ec0100ae7ad2360fd3ddbf041cb4e37f69bbbc8d2e3cf67a002de78e3a4a08c"
+  },
+  "new_test_inventory": {
+    "ordinary_lib_added": [
+      "dns::lease_names::tests::expiry_bound_never_skips_expirable_entries_or_parent_names",
+      "dns::lease_names::tests::expiry_bound_stays_conservative_after_extension_and_sticky_removal",
+      "dns::cache::tests::fresh_address_hint_keeps_exact_expiry_and_stale_policy_boundaries",
+      "dns::wire::tests::written_first_question_owner_preserves_binary_names_and_offset_fallbacks"
+    ],
+    "projected_total": 961,
+    "projected_groups": {
+      "lib": 840,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "authority": "Projection only; reconcile fresh binary listings, named testoutput and group summaries. Do not use hardcoded totals as evidence."
+  },
+  "private_preparation_directory": "private/post185-combined-related-preparation",
+  "private_files_sha256": {
+    "run_post185_combined_related.py": "17ad9066a85ad6fdaf631f8f4bdaf6853f39f652328dce3f309d674e221deff9",
+    "commands.json": "7f8153fcc020fa8a925b8b8ca40257b9c4ac72274df521167c7d128215637cb0",
+    "source-files.json": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+    "build_post185_combined_allocations.py": "caee13e2a700485dd4c0548ed9681a29ef5aae21559e4d4e00f694cabc050511"
+  },
+  "entry": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_post185_combined_related.py"
+  ],
+  "wrapper_scope": {
+    "original_short_wrapper_sha256": "02284f0a2043610ea0080eb8dde1e6026d0b55a7320a704e295670d16f99da94",
+    "changes": "Candidate/source/output identifiers and completion label substituted; retain firstfive original build/test groups. Later release-probe build used only for fullcorpora is omitted. No gate argv/check/ignoredskip changed.",
+    "allocation_builder": "Original allocation builder with only candidate paths renamed; same17testtarget, toolchain,lock andcopy boundary.",
+    "builds": "Fresh original oracle_build.sh tests then hosts_allocations; sequential jobs1/incremental0."
+  },
+  "gates": [
+    {
+      "gate": "lib",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ]
+    },
+    {
+      "gate": "bin",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ]
+    },
+    {
+      "gate": "allocations",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-allocation-build/hosts_allocations",
+        "--test-threads=1"
+      ]
+    },
+    {
+      "gate": "lib-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/lib-dnsmasq_rs",
+        "--ignored",
+        "--skip",
+        "exact_c_oracle_driver",
+        "--skip",
+        "exact_c_stale_driver",
+        "--skip",
+        "exact_c_transfer_probe",
+        "--skip",
+        "exact_c_lease_cache_driver",
+        "--test-threads=1"
+      ]
+    },
+    {
+      "gate": "bin-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/bin-dnsmasq-rs",
+        "--ignored",
+        "--test-threads=1"
+      ]
+    }
+  ],
+  "before_execution": [
+    "Current110andrawaudits plusC/185profile must releaseOracle; root chooses screening from newprofile first. No upload/build/test before release.",
+    "Bind extracted source to exact6ab0f064and179source hashes; rehash originaloracle_build.sh/run_isolated.sh and exactCimage/runner. OriginalEunit receipt must hash5d49a0aaa38f4b5c72501769f199347db463709f24fb96b2d36bbed9821908dc before its5argv are used.",
+    "Fresh post185-combined-tests/allocation-build/unit-run paths andlogs; no overwrite. Check no researchprocesses and originalbuildlocks. Preserve failures and stop on originalnonzeroexit.",
+    "Rehash fresh testELFs/buildreceipts/logs/179sourcefiles and independently reconcile names/listings/counts/ignoredskips. ShippingSDK/full44/corpora/performance are not run and cannot inherit185PASS."
+  ],
+  "full44_or_full_corpora_prepared": false,
+  "shipping_SDK_built": false,
+  "prepared_only": true,
+  "uploaded": false,
+  "executed": false,
+  "new_framework_or_expectations": false,
+  "supersedes_for_future_selection_only": {
+    "a15_plan_sha256": "d780a3d9885c00db27876575779b868e7e8044f4fbf423e77cff073e111d67fe",
+    "old_files_unchanged": true
+  }
+}
