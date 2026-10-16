@@ -1,0 +1,15 @@
+{
+  "status": "FINAL_NATIVE_READY_METADATA_WITH_ORIGINAL_OWNER_STILL_DISABLED",
+  "epoch": 1792153723.5954394,
+  "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+  "owner_prerequisites_sha256": "cd144a6af4dd4c1047f26877305c44cb1dd56348ac7acaa14a8628d7495d48bf",
+  "original_owner_disabled_plan_sha256": "1ca73b0ed6886de563f42d2bcab74157f2ea956122937ea0c9d470c24dec2c73",
+  "original_native_before_ready_sha256": "f2343f484571e5d2c2a3a998ac4ec4fb2bd083c9cb3538f57cba9866b02580ee",
+  "release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba",
+  "device_bulk_complete": true,
+  "device_stage_receipt_sha256": "c0a4881e5e787b07a55039a69f2187a34acddbf2752187eabc670626929cd38b",
+  "all_original_inputs_rehashed": true,
+  "controllers_started": false,
+  "native_result_created": false,
+  "owner_output_created": false
+}

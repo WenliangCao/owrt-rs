@@ -1,0 +1,25 @@
+{
+  "scope": "Original G185/integrated9e native240 after actual965/canonicalSDK/originalstandalone signals independent gates, all bulk complete and fresh release. Original hot15 does not cover warm recycling or main owner; no isolated component attribution.",
+  "pid": 1082050,
+  "starttime_ticks": 187837183,
+  "epoch": 1792153754.620194,
+  "utc": "2026-10-16 12:29:14 UTC",
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-native-screen1/run_cached_hit_9e_native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-native-screen1"
+  ],
+  "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+  "owner32_plan_sha256": "1ca73b0ed6886de563f42d2bcab74157f2ea956122937ea0c9d470c24dec2c73",
+  "owner_prerequisites_sha256": "cd144a6af4dd4c1047f26877305c44cb1dd56348ac7acaa14a8628d7495d48bf",
+  "controller_sha256": "045a9ee0baefc926508322acbc2a0634805a37a5c4ce849f3ba575311afd7b32",
+  "explicit_release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba",
+  "preflight_sha256": "7143c986657af153cf516c8b1e7e1cf9e7177da8f42bb1f2d061ec771fed3323",
+  "windows": 240,
+  "commands": 244,
+  "owner32_not_started": true,
+  "transfers_held_during_measurement": true
+}
