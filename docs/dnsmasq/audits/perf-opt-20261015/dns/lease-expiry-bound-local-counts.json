@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "scope": "Local Mac prepared-UDP allocation control with64 unrelated live DHCP names; not performance timing or whole-query A53 counting",
+  "source": "5e67562f8dd80ee0ca59897cedcc6e2997ad3c58",
+  "parent": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "probe_sha256": "89ebd83b5fbfda6e54e3dcdb59729f517d09995212131cdfb451b88b295e30a8",
+  "controller_sha256": "96a50953d6f10886e74904fababe7271db0ee19dd1f2273240649b0e9fb3be93",
+  "commands": [
+    {
+      "label": "parent-185-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a759225db42e4d00e6a1e3ca802126b5ff933fb94e5411ce1a3d789d90c764e1"
+    },
+    {
+      "label": "parent-185-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "--cfg",
+        "recycle_reply",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/parent-185"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "parent-185-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/parent-185",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "702332b7d6ea2b12aa3898d7c92eaff8971e6416097a3a0ae96499bc06a35798",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "expiry-bound-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-lease-expiry-bound-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "32b6f3a8498f4b9bbf37bcb7d648773bfb7dc1c3c54e3adfc7123e71357635ca"
+    },
+    {
+      "label": "expiry-bound-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "--cfg",
+        "recycle_reply",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/expiry-bound"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "expiry-bound-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/lease-expiry-bound-count/expiry-bound",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "2f986662ec4a82ea470773e31664a0aab43f75e8994247ca111b89a59781e428",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rows": [
+    {
+      "side": "parent-185",
+      "operations": 8000,
+      "allocations": 8000,
+      "reallocations": 0,
+      "requested_bytes": 168000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "expiry-bound",
+      "operations": 8000,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    }
+  ],
+  "executables": {
+    "parent-185": "0e3dbb80bc9839efdc6e4c90da3c6dc779cc06b7b269da683a61d73583d03a75",
+    "expiry-bound": "59c90e279b9555951108a2ffd1da9439a5aab2bebb15bf281ac2f93a9e4d0847"
+  },
+  "local_validation": {
+    "library_result": "722 passed,1 existing hosts collision-generator fixture panic,8 ignored; not an all-pass result",
+    "new_bound_and_existing_sticky_expiry_tests": "passed in the retained library run",
+    "musl_all_target_check": "passed",
+    "initial_failure": {
+      "base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "binary_sha256": "e831d2723fe133c455c8a7b83b318756f0bc7a2d2c6d63ecb26d9995d8162080",
+      "patch_sha256": "eb467b4111abadbeb57ff52d585098d072d58d225a2c5845e87de985477b8e5f",
+      "stdout_sha256": "62030d7a714a7abb7ccbfecdcddfcdf9ec996401acab2d4802a2219fc46d96d0",
+      "stderr_sha256": "5237b2a96846cae978495b436cf1da049b35efa9fe70729598157673f47d5fbe",
+      "failure": "hosts::tests::staged_alias_line_rehashes_only_after_the_same_boundary_as_streaming_read"
+    },
+    "logs": {
+      "private/lease-expiry-bound-musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "private/lease-expiry-bound-musl.stderr": "e48b17de996a14f56bc7eb3b9133c057e49c9e7845e0ee557f19ccdb19b15733",
+      "private/lease-expiry-bound-lib.stdout": "62030d7a714a7abb7ccbfecdcddfcdf9ec996401acab2d4802a2219fc46d96d0",
+      "private/lease-expiry-bound-lib.stderr": "5237b2a96846cae978495b436cf1da049b35efa9fe70729598157673f47d5fbe"
+    }
+  },
+  "result": "After1000 prewarm,8000 actual prepared queries with explicit reply recycling:185one allocation/21requested bytes per call; boundzero. Both checksum468800/realloc0/netlive0.",
+  "limits": [
+    "Counts do not establish CPU/latency or zero allocations for expired/negative-time/fallback/configured-owner paths.",
+    "No related Linux or SDK run yet. Frozen185 and its qualification inputs remain unchanged.",
+    "The retained fixture failure is being repaired independently for a subsequent candidate; it is not hidden by rerunning the failed source."
+  ]
+}
