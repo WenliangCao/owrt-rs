@@ -1,0 +1,24 @@
+{
+  "schema": "combined-warm-inline-selected-address-source-review-v1",
+  "status": "PASS_LOCAL_SOURCE_ONLY_THREE_LINE_INLINE_ADDRESS_REUSE",
+  "source_commit": "15e69b7a776dd2f9d26ecfdccd871085a7bfb9a6",
+  "parent_commit": "dfe87a8e3b3ef9fea897ebdfeceffe9d69e9c034",
+  "changed_file": "components/dnsmasq/src/dns/cache_engine.rs",
+  "source_sha256": "fe1a39b5515cd93c664de6fe037fa1ff438a0c0157d69418e8d75d471802daa9",
+  "cache_invariants_source_sha256": "0204d6723d0bd2979084119bffebb2d03461ff9f66468af297532684439cac68",
+  "exact_reverse_three_line_replacement_restores_complete_parent_file": true,
+  "findings": [
+    "The sole answer_fresh_address caller first restricts qtype to A/AAAA, then obtains the ID through single_fresh_address_with_hint. Its eligibility method requires positive_address(kind).is_some(), live generation/hint identity and nonstale/unexpired data.",
+    "Selection only unlinks/relinks LRU slot links, preserving entry details and generation. The call immediately borrows Cache immutably; no intervening cache mutation or callback can invalidate the selected data.",
+    "EntryDetails::new copies only positive, correctly sized A/AAAA Record bytes into [u8;4]/[u8;16]; Record is immutable after insertion. The getter therefore yields the same bytes and length as the former Arc<Record>.data read for every eligible caller.",
+    "The existing fallback writer already uses the same kind choice and positive_address(...).expect invariant. Warm-path length/capacity/limit checks, packet bytes, TTL, logging fallback, take/resize and buffer ownership remain byte-identical.",
+    "No new public API, buffer allocation, record mutation or test name is added. Only committed Git objects were read; the rest of the combined bundle was not re-reviewed."
+  ],
+  "scope_limits": [
+    "Source-only review of15e relative todfe, not independent qualification of the entire combination.",
+    "Author728lib/23bin/8ignored, musl and local codegen reports were not rerun or independently attested here.",
+    "Local combined tree is not current G-stage or standalone warm6dad; no remote selection, build, test, timing, acceptance or summed historical medians."
+  ],
+  "blocking_findings": [],
+  "reviewer_script_sha256": "18850caae7bc9db462aa900a6fcf83946152d3bb354d75ced9293f5abbb45691"
+}
