@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "ACTUALa34_SOURCE180_ORIGINAL87GATES_AND_SDK_LOCALLY_BOUND; actualindependentreview/quiet pending,nohealth/staging/window yet",
+  "status": "ACTUALa34_ORIGINAL87_SDK180_AND_INDEPENDENT_REVIEWS_BOUND; originalfreshhealth/fivecopy staging next,networkquiet before50",
   "scope": "Excluded cumulative-path diagnostic onacceptedG185. Fiveindependentgroups: exactC/G, G/diagnosticfull calibration, ownfull/receive,ownfull/before-answer,ownfull/skip-local. Notproductcandidate,additivefunctioncost,IPCorallocationCPU attribution; nohistoricalE/G pooling.",
   "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
@@ -501,8 +501,18 @@
     "actual_passes": 87,
     "scope": "Originaldiagnosticfixture/bin/ignoredbin only,not961orproductfullqualification."
   },
-  "actual_Linux_gate_independent_review": null,
-  "actual_SDK_independent_review": null,
+  "actual_Linux_gate_independent_review": {
+    "commit": "ad9f1c3d",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-related-independent-audit.json",
+    "sha256": "d53677fa512d625625fe0c0004a5004e7d6992bc2075c319d7ae2e844fd04791",
+    "status": "PASS_FRESH_G_STAGE_ORIGINAL_THREE_RELATED_SELECTIONS_RAW_NAMES_ELFS_AND_SOURCE"
+  },
+  "actual_SDK_independent_review": {
+    "commit": "ef762db0",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-sdk-independent-audit.json",
+    "sha256": "e6e4535e95e858f5755341c4ce29c20bdff622b82b6bc8072c6c5ef7bab60913",
+    "status": "PASS_ACTUAL_G_STAGE_ORIGINAL87_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_AND_BUDGETS"
+  },
   "actual_queue_release": null,
   "actual_release_budget": {
     "original_limits": {
@@ -628,8 +638,24 @@
       "verify-a53-g-stage.py": "9094a871b2f83d942c78d33fde3bdcb78b68d5f362367d262d3318ec1eccc793",
       "postflight-a53-g-stage.py": "56780c955221b8bebe12810eebc9ef95d6269c3ae1949d0fbe07f9cc1f9ef5de"
     },
-    "peer_review": null,
+    "peer_review": {
+      "reviewer": "loop",
+      "scope": "Sessionlocalread/AST PASS; no separatepeerreceipt. Foursharedtools byteidentical. Stage/start retainactualgates+C4libs+originalchecks; verifier onlyidentity50 substitutions; original58postflightpredicates complete in2shortreadonlybatches2725/2295B beforeprune.",
+      "scripts_sha256": {
+        "stage-a53-g-stage.py": "4282672cb9fa78968a5199c3847506a87004bdf2b1f7b6ffed4b29e812c53de7",
+        "start-a53-g-stage.py": "36287e7982bb58ce65a117cd37609962925894a00f31f256d7c112ffae2c3f39",
+        "verify-a53-g-stage.py": "9094a871b2f83d942c78d33fde3bdcb78b68d5f362367d262d3318ec1eccc793",
+        "postflight-a53-g-stage.py": "56780c955221b8bebe12810eebc9ef95d6269c3ae1949d0fbe07f9cc1f9ef5de"
+      },
+      "remote_or_operator_execution": false
+    },
     "postflight_command_size": "Reusepreviousfull110 short-command approach: alloriginalreadonlypredicates pass in<=2800B batches beforeanyimmutablecopyprune, withperbatchreceipts. No predicateweakened orretry.",
     "actual_independent_review_required_before_start": true
-  }
+  },
+  "stage_SDK_handoff": {
+    "local_path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/g-udp-stage-execution-preparation/release-to-dns-warm.json",
+    "sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
+    "scope": "GstageSDK/gates completedandOracle released toDNSwarm non-timing builds. Thisisnot claimOracle remainsidle duringrouter50."
+  },
+  "parallel_work_boundary": "RootallowsOraclewarm non-timing gates/SDKduringrouterdiagnostic. DNSexplicitlywillretainallwarmraw/artifacts remote,nobulk fromfreshhealth through50/archive/restore; remainingwarmowner~50KBinputs pretransfer completesbeforehealth. Device networkquiet isnotOracleCPUidle."
 }
