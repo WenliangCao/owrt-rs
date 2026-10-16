@@ -1,0 +1,14 @@
+{
+  "epoch": 1792154194.2816913,
+  "status": "complete",
+  "commands": 244,
+  "windows": 240,
+  "active": null,
+  "controller_exists": false,
+  "all_recorded_commands_exit0": true,
+  "result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "first_window_started_epoch": 1792153802.3786392,
+  "last_command_started_epoch": 1792154122.2049572,
+  "last_command_elapsed_ns": 4613934340,
+  "error": null
+}

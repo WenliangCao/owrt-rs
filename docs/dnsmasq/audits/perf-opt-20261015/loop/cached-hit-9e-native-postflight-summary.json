@@ -1,0 +1,28 @@
+{
+  "status": "PASS_NATIVE240_RAW_IDENTITY_AND_QUIET_READY_FOR_OWNER32",
+  "epoch": 1792154220.406933,
+  "windows": 240,
+  "commands": 244,
+  "stat_windows": 90,
+  "plain_windows": 150,
+  "all180_PMU_events_unscaled": true,
+  "raw_command_file_count": 578,
+  "source_files_verified_each": 162,
+  "artifact_hashes": {
+    "G": {
+      "elf_sha256": "1edf4fb912e10441f3ab075e922fff9d9b6ee4539af48ba8f816452444dfee63",
+      "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+    },
+    "cached-hit-9e": {
+      "elf_sha256": "de2a75019a5dc93b598ae1a2e8d4434561677f9faa49b403bbf3a02452c08f68",
+      "rlib_sha256": "891d02c0c3428c1609cdd8204c86f7e4d561070c4ca7ceb6b603da870e7b52f9"
+    }
+  },
+  "result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "controller_exited": true,
+  "no_measurement_retries": true,
+  "cross_window_statistics": "Original local analyzer after both measurement slots and transfer; no selection or replacement.",
+  "comparison_scope": "G185 versus9e includes inherited6ab and integrated changes; no isolated component attribution. Preserve all previous adverse screens. No runtime/product promotion from local preparation.",
+  "full_postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+  "scope_limit": "Small author postflight summary; complete578 file-hash map remains remote until both timing slots end."
+}
