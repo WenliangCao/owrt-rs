@@ -20,7 +20,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def schedule():
+def schedule(confirmation=None):
     windows = []
 
     def pair(group, number, rate, left, right):
@@ -31,6 +31,11 @@ def schedule():
                             'measurement_seconds': 20,
                             'label': f'research-reset-{group}-r{number}-{side}'})
 
+    if confirmation:
+        left, right = {'e-pgo': ('e', 'pgo'), 'g-c95': ('g', 'c95')}[confirmation]
+        for number in range(1, 10):
+            pair('confirm-' + confirmation, number, 200, left, right)
+        return [{**row, 'measurement_seconds': 45} for row in windows]
     for number in (1, 2):
         pair('g-aa', number, 200, 'g', 'g')
     for number, rates in enumerate(((200, 1000, 2000), (2000, 1000, 200),
@@ -120,6 +125,12 @@ def comparisons(rows):
                                  cpu=([row['cpu_ticks'] for row in left], [row['cpu_ticks'] for row in right])) if len(left) == len(right) and left else None
         output[group] = {'pairs': pairs, 'cpu_delta': analyze.spread(deltas) if len(deltas) == len(pairs) and deltas else None,
                          'legacy_resource_tick_W_comparison': legacy}
+        if group.startswith('confirm-') and len(deltas) == len(pairs) == 9:
+            ordered = sorted(deltas)
+            output[group]['confirmation'] = {
+                'order_statistic_interval_d2_d8': [ordered[1], ordered[7]],
+                'three_pair_block_medians': [statistics.median(deltas[i:i + 3]) for i in (0, 3, 6)],
+                'scope': 'Fixed nine pairs. Nominal 96.09% coverage requires continuous approximately independent differences; this output does not establish those assumptions.'}
     aa = output.get('g-aa', {}).get('cpu_delta')
     noise = max(abs(v) for v in aa['rounds']) if aa else None
     for name in ('e-pgo', 'g-c95'):
@@ -191,7 +202,7 @@ def prepare(bindings, out):
     run.write(out / 'staging.json', {'epoch': time.time(), 'records': records, 'production_unchanged': True})
 
 
-def execute(bindings, out, health_path):
+def execute(bindings, out, health_path, confirmation=None):
     baseline = json.loads(health_path.read_text())
     assert baseline['valid'] and baseline['elapsed_seconds'] >= 120
     artifacts = bindings['artifacts']
@@ -200,7 +211,8 @@ def execute(bindings, out, health_path):
                          **{v['name']: v['sha256'] for v in artifacts.values()},
                          **{v['name']: v['sha256'] for v in bindings['new_tools'].values()}})
     assert not (out / 'progress.json').exists()
-    run.write(out / 'launch.json', {'epoch': time.time(), 'schedule': schedule(), 'bindings': bindings,
+    original_schedule = schedule(confirmation)
+    run.write(out / 'launch.json', {'epoch': time.time(), 'schedule': original_schedule, 'bindings': bindings,
                                    'health_sha256': sha(health_path), 'controller_sha256': sha(Path(__file__))})
     finished, failed = threading.Event(), threading.Event()
     monitor = threading.Thread(target=run.external_health, args=(out, finished, failed), daemon=True)
@@ -209,7 +221,7 @@ def execute(bindings, out, health_path):
     try:
         guard = run.guard_start(identity[0], guard_label, baseline['threshold_ms']); monitor.start()
         previous_pair = None
-        queue = schedule(); pending = set(); at = 0
+        queue = list(original_schedule); original_count = len(queue); pending = set(); at = 0
         while at < len(queue):
             window = queue[at]; at += 1
             label = window['label']
@@ -245,8 +257,8 @@ def execute(bindings, out, health_path):
                 if window.get('attempt', 0): raise RuntimeError('one allowed replacement pair also invalid')
                 pending.add(pair)
             run.ssh('rm -rf -- ' + shlex.quote(run.ROOT + '/runs/' + label))
-            if at == 42:
-                for retry in schedule():
+            if at == original_count:
+                for retry in original_schedule:
                     if (retry['group'], retry['round']) in pending:
                         queue.append({**retry, 'label': retry['label'] + '-repeat1', 'attempt': 1})
         finished.set(); monitor.join(timeout=12)
@@ -288,12 +300,13 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--health', type=Path)
     parser.add_argument('--prepare', action='store_true')
+    parser.add_argument('--confirmation', choices=('e-pgo', 'g-c95'))
     args = parser.parse_args(); bindings = json.loads(args.bindings.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     if args.prepare: prepare(bindings, args.out)
     else:
         if not args.health: parser.error('--health required for execution')
-        execute(bindings, args.out, args.health)
+        execute(bindings, args.out, args.health, args.confirmation)
 
 
 if __name__ == '__main__':
