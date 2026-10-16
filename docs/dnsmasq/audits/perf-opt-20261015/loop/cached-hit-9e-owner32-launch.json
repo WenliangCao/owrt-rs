@@ -1,0 +1,27 @@
+{
+  "scope": "Original exact-SDK G185/integrated9e owner32 after actual965/canonicalSDK/originalsignals independent audits, originalnative240 complete raw/postflight and fresh quiet; no isolated component attribution.",
+  "pid": 1085860,
+  "starttime_ticks": 187903258,
+  "epoch": 1792154415.366088,
+  "utc": "2026-10-16 12:40:15 UTC",
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-owner32-inputs/run_cached_hit_9e_owner32.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-owner32-inputs/plan.json"
+  ],
+  "plan_sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+  "controller_sha256": "1deaae97c98e5e2526d454b7b46ade42f50ad33e4420eb3d243047cb89a80147",
+  "explicit_release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba",
+  "final_metadata_sha256": "aa18dfb79d207beea2950dea8063ab577e9afaeea5fa9db445d72b8f44bb16d5",
+  "native_postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+  "native_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "research": [],
+  "windows": 32,
+  "stat_windows": 12,
+  "plain_windows": 20,
+  "no_measurement_retries": true,
+  "transfers_held_during_both_measurement_slots": true
+}
