@@ -1,0 +1,280 @@
+{
+  "candidate": "I: G185+PGO (proposed)",
+  "status": "proposed-not-accepted",
+  "scope": "Exact6ccff2e9 artifact from unchangedG185 source and one freshG-specific training profile. Artifact/training/build/reproduction metadata only; no H qualification,screen result or I acceptance inherited.",
+  "decision_record": "docs/dnsmasq/audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md",
+  "source": {
+    "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "local_checkout": "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016",
+    "build_source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+    "source_date_epoch": "1792111445",
+    "sdk_input_files": 179,
+    "source_digest_sha256": "4116339b41acfee6c331db99c223300067c2e1848f79ed07dfa6468ba41901c7",
+    "git_identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+    "inventory": "Actual use build.json.source_files; generation and use verified the same179 inputs against frozenG. Product source was not modified for this experiment."
+  },
+  "artifacts": {
+    "remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/use",
+    "local_directory": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/use",
+    "elf": {
+      "path": "dnsmasq-rs",
+      "bytes": 2288419,
+      "sha256": "6ccff2e9fa87ba69f50a6e583a26f48b58bcfec2f22fd199774ad2c2cfb49182"
+    },
+    "apk": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1295290,
+      "sha256": "a6fd7a67f020cd744c6d7b18a96f129914eb2d76e3de5033c3f73c1b119208d5",
+      "local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/use/dnsmasq-2.93-r4.apk"
+    },
+    "link_map": {
+      "path": "link.map",
+      "sha256": "437b2c65460a63c6b06ecbd709433fe6330a8d9b2774ffa8733059fdb22fa8e7"
+    },
+    "prestrip": {
+      "sha256": "b76660899ad928f52e604739419580d488f6c58976583174a34e6e9eaac0ffc8",
+      "bytes": 2290152,
+      "local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/use/dnsmasq-prestrip"
+    },
+    "build_receipt_sha256": "766a46b21c4390f7315064d4756bc387e437ae576f0581c43d427629b11b9478",
+    "profile_invocation_sha256": "f3953fd8c2263b7218cb239cb8235e4703ad83ba93b2bb9dd7a5df33d7098c3e",
+    "compile_log_sha256": "36a08af2818ce49b87029af030f66138cccfb74e85fdae9f4a3b4f7d38997519",
+    "local_availability": "ELF,APK,map,prestrip,build,invocation and compile log were downloaded and rehashed in the original546-file transfer."
+  },
+  "training_profile": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/training.profdata",
+    "local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/training.profdata",
+    "sha256": "f36b6e61a105225ffbc2aa1592b168a494d1e72533df944a2acabab62c2f9c60",
+    "bytes": 931832,
+    "profile_receipt_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/training-profile.json",
+    "profile_receipt_local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/training-profile.json",
+    "profile_receipt_sha256": "e172ec1ae7826f8c6b5fbca432e3cf4082733bb97f52221c68401922fbe9c071",
+    "collection_sha256": "26a0513870ac4ba56ae4ecba3325cb004fae30191f181c97210625d054a505d3",
+    "generate_elf": {
+      "path": "dnsmasq-rs",
+      "bytes": 4281881,
+      "sha256": "ef402b884cd50612d41d8400f7b0d6cb13b80b000e7fcae117f61935d26cfca5",
+      "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/generate-stage/generate/dnsmasq-rs",
+      "local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/generate-stage/generate/dnsmasq-rs"
+    },
+    "generate_build_sha256": "6e0853c344c5169476b20daf78b0ba4ed150dfc24d5ce08b59745c06d1001cbe",
+    "scene_order": [
+      "udp-hit",
+      "udp-miss",
+      "udp-mixed",
+      "tcp-hit",
+      "tcp-miss",
+      "dhcp-home6",
+      "dhcp",
+      "startup-small",
+      "config-small",
+      "hup-small",
+      "hup-large"
+    ],
+    "passes": 1,
+    "raw_profiles": 50,
+    "raw_profile_directory": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/training/profiles",
+    "raw_profile_inventory_local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/training-profile.json",
+    "raw_profile_bytes_locally_available": true,
+    "merge": "Exact50 normal-exit PID/path records, unit weights. Generate smoke and evaluation traffic excluded. No retraining or reweighting.",
+    "observed_functions": 2844,
+    "observed_blocks": 42606,
+    "training_domain": "pgo.test",
+    "evaluation_domain": "m6a.test",
+    "training_seed": "0x20261016",
+    "evaluation_seed": "0x293001",
+    "relationship_to_H_training": "G uses the same pgo.test training domain and original11-scene workload family as H, but a different predeclared seed; H training used0x293001. G profile was collected anew from G and never reused E/H profile71adfc95.",
+    "limits": [
+      "Training and evaluation DNS suffixes and seeds differ; workload generators,scenario families and distributions remain related, so this is not proof of independent real-world workload coverage.",
+      "Internal _exit children bypass profiler atexit output.",
+      "Exact artifact reconstruction requires the preserved merged profile. Retraining is not known to reproduce identical counts,profile or ELF bytes."
+    ]
+  },
+  "toolchain": {
+    "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "cargo_binary": "/home/ubuntu/.cargo/bin/cargo",
+    "cargo_sha256": "15f6e4ce9f583b929c996c91562bad6d4454f3281de858b02cdfdef615fac433",
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+    "rustc_binary": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc",
+    "rustc_sha256": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f",
+    "llvm_profdata": {
+      "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+      "version": "LLVM 22.1.8-rust-1.98.1-stable",
+      "sha256": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e"
+    },
+    "sdk_directory": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+    "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+    "sdk_file_manifest": "Actual use build.json.sdk.files (106 files)"
+  },
+  "build_inputs": {
+    "release_profile": {
+      "opt_level": 3,
+      "fat_lto": true,
+      "codegen_units": 1,
+      "panic": "abort",
+      "strip": true,
+      "features": []
+    },
+    "canonical_build_slot": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+    "cargo_generate_target": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/generate-stage/cargo-generate",
+    "cargo_use_target": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/cargo-use",
+    "recipe_rustflags": "-Cforce-unwind-tables=no --remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot=/build --remap-path-prefix=/home/ubuntu/.cargo=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "added_rustflags": "-Cprofile-use=/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/training.profdata -Cllvm-args=-pgo-warn-missing-function",
+    "static_pie_linker_sha256": "9b04b7a13281414e4b79253a0a9ae8650abafa1645484dd6945e269d0335af58",
+    "map_wrapper_sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5",
+    "recipe_makefile_sha256": "0438d7ad8dcf6f2b986cdffb9afdba4dee2857078e3b23a49f33fe1386f244ab",
+    "identity_constraint": "Generate/use keep exactG source,canonical prepared source path,opt3,CGU1,fatLTO,compiler and Cargo conditions. NewG profile path is distinct from E/H. Do not rename profile symbols or substitute opt2/c95/D1 outputs."
+  },
+  "reproduction": {
+    "canonical_builder": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+      "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+      "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+      "local_frozen_bundle": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/canonical-builder"
+    },
+    "generate_plan": {
+      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/generate-stage/inputs/plan.json",
+      "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/generate-stage/inputs/plan.json",
+      "sha256": "3d9c53aaee6f5a4e47331aacaa4413e1d15e12171c7c3f6b24286044acc3aee4",
+      "entry": "python3 tools/dnsmasq/pgo_generate.py PLAN",
+      "control": "Existing exactG control rehashed; no additional control build."
+    },
+    "training_plan": {
+      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/inputs/plan.json",
+      "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/inputs/plan.json",
+      "sha256": "816567437979bc535e372158b3f8e81482baefe96dbce13a99daac03525d1b2e",
+      "entry": "python3 tools/dnsmasq/pgo_train.py PLAN",
+      "normal_exit_fragment": "tools/dnsmasq/pgo_lifecycle_exit.c"
+    },
+    "generate_input_script_sha256": {
+      "pgo_generate.py": "48607b37b314e7c7437146d5a2a83471ebbbd1685f7b4156e5a80075851f143a",
+      "pgo_sdk_smoke.py": "4157e50ae1d53a422c6365d426c3ae3f23c957d086e17d1913c4980d0e49ae66",
+      "pgo_smoke_cargo.py": "93604cb7a67141a3d1c3941d9f9ad05fa7249db85d469272e744f2ac5f5a8ca5"
+    },
+    "training_input_script_sha256": {
+      "pgo_train.py": "10d5fc63b9fc55d639b5182c9f9b0afb53a4b77da6824ddb9888bfaadc72ee0a",
+      "pgo_train_cargo.py": "fd5c7494c8f390f312bf4ae8904507f7a4bde2c69e3c22216b9f094c7e2c6b35",
+      "pgo_sdk_smoke.py": "4157e50ae1d53a422c6365d426c3ae3f23c957d086e17d1913c4980d0e49ae66",
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+      "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "device_perf_lifecycle.c": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+      "pgo_lifecycle_exit.c": "2e3ad050bb5d33a97796068618f2fd6b0b87861a83a06e67cf1b8b444127cc2d"
+    },
+    "use_runtime_script_sha256": "5cc079a7e0277648abc65d3d6a8aef548f50efc2f04bbed1d062fa3932984018",
+    "tool_adapter_commits": [
+      "4ce98b6a",
+      "2a59c494"
+    ],
+    "generate_build_argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+      "--commit",
+      "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "--epoch",
+      "1792111445",
+      "--sdk",
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/generate-stage/generate",
+      "--cargo",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/generate-stage/wrapper/cargo",
+      "--build-slot",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+      "--cargo-target",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/generate-stage/cargo-generate"
+    ],
+    "use_build_argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+      "--commit",
+      "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "--epoch",
+      "1792111445",
+      "--sdk",
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/use",
+      "--cargo",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/wrapper/cargo",
+      "--build-slot",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+      "--cargo-target",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/cargo-use"
+    ],
+    "use_build_environment": {
+      "PGO_SMOKE_PLAN": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/g-pgo-20261016/train-stage/inputs/plan.json",
+      "PGO_SMOKE_MODE": "use"
+    },
+    "archive": {
+      "archive": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw.tar.gz",
+      "archive_bytes": 23084131,
+      "archive_sha256": "ac6e53bf1c816d91b1eff9d65291de14658b8338bbe72a823804810f09c4f3af",
+      "manifest_sha256": "2ef360723d9a61ff4b9720b98b43639b44872c23393b332e6f95ecf2e1a55b00",
+      "verified_files": 546,
+      "all50_raw_profiles_downloaded_and_rehashed": true
+    },
+    "note": "Actual scripts are retained under the stage inputs directories with these hashes. Exclusive historical outputs must not be overwritten. Replay requires a fresh isolated environment restoring canonical paths,source/profile/toolchain inputs. No byte-identical second use build or deterministic retraining has been demonstrated."
+  },
+  "existing_validation": {
+    "training": "One11-scene pass completed,50 expected normal-exit profiles,merge/show succeeded; actual client and prewarm seed checked.",
+    "build": "Single generate and single use canonicalSDK builds completed; source179/SDK106 unchanged and recipe restored. New declared2.5M/1.4M caps checked against actual ELF/APK; original builder legacy budget fields retained.",
+    "original_build_static_hardening": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "original_build_static_hardening_note": "runtime_protections_verified=false is the original static build field; the later actualuse runtime smoke separately verified live mappings.",
+    "runtime_smoke": {
+      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/use-smoke/runtime/result.json",
+      "sha256": "7d2b1a1416ca4440f39a7e364666709c9c93a2e5412d5fdaff4ad44b39a5734b",
+      "control_G_ELF_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "candidate_ELF_sha256": "6ccff2e9fa87ba69f50a6e583a26f48b58bcfec2f22fd199774ad2c2cfb49182",
+      "queries_equal": true,
+      "normal_exit_zero_both": true,
+      "no_forced_cleanup": true,
+      "runtime_protections_verified": true
+    },
+    "compile_warning_lines": 31,
+    "profile_missing_or_mismatch_warnings": [],
+    "warning_record": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/raw/train-stage/use/compile.log",
+    "retained_launcher_failure": "Initial stdin launcher passed a string to Path-only sha helper before opening any controller files or starting training. Corrected launcher started the only training pass; initial stdout/stderr remain local. No product build/training retry.",
+    "scope": "Only artifact-generation/training/runtime facts. Current44/67 and H/I118 qualification belong to the root acceptance task and are not asserted by this manifest."
+  },
+  "budgets": {
+    "legacy_builder_fields": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000,
+      "passed": false,
+      "note": "Unmodified canonicalbuilder retains older caps; actual GPGO controller applied the authorized PGO limits below."
+    },
+    "authorized_PGO_caps": {
+      "basis_commit": "d29c289a",
+      "experiment_commit": "ff878699",
+      "elf_max_bytes": 2500000,
+      "apk_max_bytes": 1400000,
+      "artifact_numeric_fit": true
+    },
+    "firmware_pending": "Actual integrated rootfs <=82LEB/10412032B,rootfs_data >=517LEB and >=16MiB actual available user space remain separately unverified; component caps do not prove these."
+  },
+  "not_verified_here": [
+    "Byte-identical repeat use build or deterministic retraining.",
+    "I full correctness,physical fullmatrix and independent acceptance; root will fill actual qualification after completion.",
+    "Integrated firmware/install/rollback/free-space validation or deployment authorization."
+  ],
+  "offline_reproduction_inputs_not_locally_available": [
+    "Pinned Rust1.98.1/LLVM22.1.8 toolchain and original SDK archive; exact hashes are recorded. AllG merged/raw profiles and useELF/APK/map/prestrip are already local."
+  ]
+}
