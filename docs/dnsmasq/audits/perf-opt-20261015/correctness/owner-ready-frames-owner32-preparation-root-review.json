@@ -1,0 +1,32 @@
+{
+  "status": "PASS_DISABLED_ORIGINAL_OWNER32_PREPARATION",
+  "candidate_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "preparation_commit": "c0f84dea",
+  "plan_sha256": "fb7cede04e4216603706f7d00a071fceb792145a57d150a6f22ed7923c0ce315",
+  "both_source_manifests_Git_verified": {
+    "G": 179,
+    "owner-ready-frames": 179
+  },
+  "original_protocol_fields_equal": [
+    "driver",
+    "tools",
+    "loadgen_sha256",
+    "tool_sha256",
+    "execution_order",
+    "window_count",
+    "pmu_window_count",
+    "plain_window_count",
+    "workload",
+    "placement",
+    "analysis",
+    "failure_policy",
+    "analysis_inputs_sha256"
+  ],
+  "exact_declared_script_replacements_verified": [
+    "run_owner_ready_frames_owner32.py",
+    "analyze_owner_ready_frames_owner32.py"
+  ],
+  "mandatory_original_standalone_signal_actual_null": true,
+  "execution_disabled_actual_gate_artifacts_release_null": true,
+  "scope": "Local source/metadata/script review only; no measurement inheritance. Gcomparisonincludes6ab+twoframeextractions, notframe-only effect. No native240 for uncompiledmain; old6abnativeadverseretained. ActualSDK/gates/signal/rawaudits/alltransfers/quiet mustbebound beforeexecution."
+}
