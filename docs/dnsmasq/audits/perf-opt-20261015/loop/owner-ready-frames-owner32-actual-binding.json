@@ -41,7 +41,7 @@
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "executed": false,
-  "remote_accessed": false,
+  "remote_accessed": true,
   "no_native240": true,
   "related_independent_review": {
     "commit": "c1e9ff9d",
@@ -57,5 +57,12 @@
     "commit": "bec86c7a",
     "path": "correctness/owner-ready-frames-owner32-actual-root-review.json",
     "sha256": "5b78e338534462b21d3d3d3d3055c45e57ffc022f06c462ad862b21e20dc988c"
-  }
+  },
+  "owner_input_pretransfer": {
+    "path": "loop/owner-ready-frames-owner32-pretransfer.json",
+    "sha256": "8835ed0990781dbee950057ef446083ad169229da47527ff9ab5bf6ca6f549a4",
+    "complete": true,
+    "uploaded_plan_still_disabled": true
+  },
+  "pretransfer_remaining": "Original devicefreshhealth/fourartifactstage, DNSfinalquiet then finalreadymetadata; no bulk duringhealth/timing."
 }
