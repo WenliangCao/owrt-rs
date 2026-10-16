@@ -1,0 +1,1051 @@
+{
+  "schema": 1,
+  "status": "LOCAL PREPARATION; exact185 full qualification and generic full-tail repair independent review/binding pending",
+  "execution_started": false,
+  "conditional_execution_authorization": "Root explicitly permits freshhealth/recovery/fullE185110 after actual exact-source complete qualification PASS and reviewed generic-full-tail repair hashes bound. No additional approval is required then. These conditions are not yet met.",
+  "scope": "PhysicalA53 acceptedE/185 complete11-scene matrix, separate from exploratoryten and all Oracle/historical controls. No installation/restart/configuration/flash change.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+  "artifact": {
+    "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "elf_bytes": 2145051,
+    "map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+    "build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10"
+  },
+  "baseline_E": {
+    "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "elf_bytes": 2136859
+  },
+  "baseline_side": "c",
+  "candidate_side": "rust",
+  "original_restore_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "source_recipe": {
+    "commit": "893eed29",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-zero-frame-full11-preparation.json",
+    "sha256": "824f8c16fe8cb0b0f23ee8c7462a94628b52ba7d547c75a949c158e51a7cb096"
+  },
+  "supporting_ten": {
+    "author_commit": "29518d65",
+    "result_sha256": "b7fa4f017942645520a1ef5062258fdd477e24cfb8843226685eeaf88dc8e498",
+    "independent_audit_commit": null,
+    "cpu_gate_passed_in_exploratory_only": true,
+    "p50_gate_passed_in_exploratory_only": true,
+    "p95_gate_passed": false,
+    "samples_must_not_be_pooled": true
+  },
+  "full_qualification": {
+    "actual_PASS": false,
+    "receipt_sha256": null,
+    "required": [
+      "All ordinary and relevant ignored namespace/config/frozen-clock tests; explicit16 hosts_allocations and all original allocation-failure families",
+      "Canonical44 C differential families,68 registered/67 executed procedural steps with190 semantic requirements, frozen exactC",
+      "Daemon368 pairs/366 identical plus original2 C-invalid qualifiers,8 lifecycles and5 negative controls",
+      "F10all13/704observations plus original24 checker controls and approved PTR manifest",
+      "TCP upstream13conditions/50pairs plus7 original tool tests",
+      "Independent exact-source review and affected historical DNS regressions",
+      "Fresh same-source cache-answer corpus:764commands/164queries/382metric snapshots, original expectations",
+      "Fresh same-source transfer307 and stale1100 corpora with all cases/controls retained",
+      "Fresh same-source lease corpus:269commands/95queries/43dynamic lookups; preserve only the two already user-authorized UID/layout cases and raw comparator exit1, reject new/unclassified differences"
+    ],
+    "complete_44_families": 44,
+    "registered_steps": 68,
+    "executed_steps": 67,
+    "related_Linux940_not_a_substitute": true
+  },
+  "tools": {
+    "historical_generic_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "new_full_tail_controller_sha256": null,
+    "new_health_evidence_sha256": null,
+    "repair_commit": null,
+    "independent_repair_review_commit": null,
+    "health_collector_sha256": null,
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "measurement_artifacts": {
+      "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+    },
+    "required_tail_boundary": "Each completed scene/guard segment preserves capture.raw and complete JSONL prefix before SIGTERM; final must begin with entire captured bytes. PrefixDNS/HTTP qualification; allfinal PID/memory/route/no-stop gates. Segment naming/new receipt/hash final binding pending loop review."
+  },
+  "matrix": {
+    "prefix": "cached-zero-frame-vs-e",
+    "scenes": [
+      [
+        "udp-hit",
+        "udp",
+        "hit",
+        200,
+        5,
+        20,
+        150
+      ],
+      [
+        "udp-miss",
+        "udp",
+        "miss",
+        200,
+        5,
+        20,
+        150
+      ],
+      [
+        "udp-mixed",
+        "udp",
+        "mixed",
+        200,
+        5,
+        20,
+        150
+      ],
+      [
+        "tcp-hit",
+        "tcp",
+        "hit",
+        200,
+        5,
+        20,
+        150
+      ],
+      [
+        "tcp-miss",
+        "tcp",
+        "miss",
+        200,
+        5,
+        20,
+        150
+      ],
+      [
+        "dhcp-home6",
+        "dhcp",
+        "hit",
+        100,
+        5,
+        20,
+        6
+      ],
+      [
+        "dhcp",
+        "dhcp",
+        "hit",
+        100,
+        5,
+        20,
+        150
+      ],
+      [
+        "startup-small",
+        "life-startup",
+        7,
+        6,
+        20,
+        1000,
+        150
+      ],
+      [
+        "config-small",
+        "life-config",
+        7,
+        6,
+        20,
+        1000,
+        150
+      ],
+      [
+        "hup-small",
+        "life-hup",
+        7,
+        6,
+        20,
+        1000,
+        150
+      ],
+      [
+        "hup-large",
+        "life-hup",
+        999,
+        150,
+        20,
+        1000,
+        150
+      ]
+    ],
+    "schedule": [
+      {
+        "scene": "udp-hit",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-hit-r1-c"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-hit-r1-rust"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-hit-r2-rust"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-hit-r2-c"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-hit-r3-c"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-hit-r3-rust"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-hit-r4-rust"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-hit-r4-c"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-hit-r5-c"
+      },
+      {
+        "scene": "udp-hit",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-hit-r5-rust"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-miss-r1-c"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-miss-r1-rust"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-miss-r2-rust"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-miss-r2-c"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-miss-r3-c"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-miss-r3-rust"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-miss-r4-rust"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-miss-r4-c"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-miss-r5-c"
+      },
+      {
+        "scene": "udp-miss",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-miss-r5-rust"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r1-c"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r1-rust"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r2-rust"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r2-c"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r3-c"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r3-rust"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r4-rust"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r4-c"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r5-c"
+      },
+      {
+        "scene": "udp-mixed",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-udp-mixed-r5-rust"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r1-c"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r1-rust"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r2-rust"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r2-c"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r3-c"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r3-rust"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r4-rust"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r4-c"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r5-c"
+      },
+      {
+        "scene": "tcp-hit",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-hit-r5-rust"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r1-c"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r1-rust"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r2-rust"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r2-c"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r3-c"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r3-rust"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r4-rust"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r4-c"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r5-c"
+      },
+      {
+        "scene": "tcp-miss",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-tcp-miss-r5-rust"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r1-c"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r1-rust"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r2-rust"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r2-c"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r3-c"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r3-rust"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r4-rust"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r4-c"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r5-c"
+      },
+      {
+        "scene": "dhcp-home6",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-home6-r5-rust"
+      },
+      {
+        "scene": "dhcp",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-r1-c"
+      },
+      {
+        "scene": "dhcp",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-r1-rust"
+      },
+      {
+        "scene": "dhcp",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-r2-rust"
+      },
+      {
+        "scene": "dhcp",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-r2-c"
+      },
+      {
+        "scene": "dhcp",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-r3-c"
+      },
+      {
+        "scene": "dhcp",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-r3-rust"
+      },
+      {
+        "scene": "dhcp",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-r4-rust"
+      },
+      {
+        "scene": "dhcp",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-r4-c"
+      },
+      {
+        "scene": "dhcp",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-dhcp-r5-c"
+      },
+      {
+        "scene": "dhcp",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-dhcp-r5-rust"
+      },
+      {
+        "scene": "startup-small",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-startup-small-r1-c"
+      },
+      {
+        "scene": "startup-small",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-startup-small-r1-rust"
+      },
+      {
+        "scene": "startup-small",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-startup-small-r2-rust"
+      },
+      {
+        "scene": "startup-small",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-startup-small-r2-c"
+      },
+      {
+        "scene": "startup-small",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-startup-small-r3-c"
+      },
+      {
+        "scene": "startup-small",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-startup-small-r3-rust"
+      },
+      {
+        "scene": "startup-small",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-startup-small-r4-rust"
+      },
+      {
+        "scene": "startup-small",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-startup-small-r4-c"
+      },
+      {
+        "scene": "startup-small",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-startup-small-r5-c"
+      },
+      {
+        "scene": "startup-small",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-startup-small-r5-rust"
+      },
+      {
+        "scene": "config-small",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-config-small-r1-c"
+      },
+      {
+        "scene": "config-small",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-config-small-r1-rust"
+      },
+      {
+        "scene": "config-small",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-config-small-r2-rust"
+      },
+      {
+        "scene": "config-small",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-config-small-r2-c"
+      },
+      {
+        "scene": "config-small",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-config-small-r3-c"
+      },
+      {
+        "scene": "config-small",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-config-small-r3-rust"
+      },
+      {
+        "scene": "config-small",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-config-small-r4-rust"
+      },
+      {
+        "scene": "config-small",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-config-small-r4-c"
+      },
+      {
+        "scene": "config-small",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-config-small-r5-c"
+      },
+      {
+        "scene": "config-small",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-config-small-r5-rust"
+      },
+      {
+        "scene": "hup-small",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-small-r1-c"
+      },
+      {
+        "scene": "hup-small",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-small-r1-rust"
+      },
+      {
+        "scene": "hup-small",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-small-r2-rust"
+      },
+      {
+        "scene": "hup-small",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-small-r2-c"
+      },
+      {
+        "scene": "hup-small",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-small-r3-c"
+      },
+      {
+        "scene": "hup-small",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-small-r3-rust"
+      },
+      {
+        "scene": "hup-small",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-small-r4-rust"
+      },
+      {
+        "scene": "hup-small",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-small-r4-c"
+      },
+      {
+        "scene": "hup-small",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-small-r5-c"
+      },
+      {
+        "scene": "hup-small",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-small-r5-rust"
+      },
+      {
+        "scene": "hup-large",
+        "round": 1,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-large-r1-c"
+      },
+      {
+        "scene": "hup-large",
+        "round": 1,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-large-r1-rust"
+      },
+      {
+        "scene": "hup-large",
+        "round": 2,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-large-r2-rust"
+      },
+      {
+        "scene": "hup-large",
+        "round": 2,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-large-r2-c"
+      },
+      {
+        "scene": "hup-large",
+        "round": 3,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-large-r3-c"
+      },
+      {
+        "scene": "hup-large",
+        "round": 3,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-large-r3-rust"
+      },
+      {
+        "scene": "hup-large",
+        "round": 4,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-large-r4-rust"
+      },
+      {
+        "scene": "hup-large",
+        "round": 4,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-large-r4-c"
+      },
+      {
+        "scene": "hup-large",
+        "round": 5,
+        "side": "c",
+        "artifact": "acceptedE",
+        "label": "cached-zero-frame-vs-e-hup-large-r5-c"
+      },
+      {
+        "scene": "hup-large",
+        "round": 5,
+        "side": "rust",
+        "artifact": "candidate185",
+        "label": "cached-zero-frame-vs-e-hup-large-r5-rust"
+      }
+    ],
+    "windows": 110,
+    "pairs_per_scene": 5,
+    "scenes_count": 11,
+    "scene_filter": null,
+    "order": "odd c/rust; even rust/c"
+  },
+  "paths": {
+    "out": "private/perf-opt-20261015/cached-zero-frame-vs-e",
+    "health": "private/perf-opt-20261015/health-cached-zero-frame-vs-e-prefix-v1",
+    "tools": "private/perf-opt-20261015/tools-cached-zero-frame-full-prefix-v1",
+    "summary": "private/perf-opt-20261015/cached-zero-frame-vs-e-summary.json"
+  },
+  "prepared_command": [
+    "python3",
+    "private/perf-opt-20261015/tools-cached-zero-frame-full-prefix-v1/perf_opt_device_run.py",
+    "--out",
+    "private/perf-opt-20261015/cached-zero-frame-vs-e",
+    "--prefix",
+    "cached-zero-frame-vs-e",
+    "--c-hash",
+    "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "--rust-hash",
+    "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "--health-baseline",
+    "private/perf-opt-20261015/health-cached-zero-frame-vs-e-prefix-v1/summary.json"
+  ],
+  "analysis_command": [
+    "python3",
+    "private/perf-opt-20261015/tools-cached-zero-frame-full-prefix-v1/perf_opt_analyze.py",
+    "private/perf-opt-20261015/cached-zero-frame-vs-e",
+    "private/perf-opt-20261015/cached-zero-frame-vs-e-summary.json"
+  ],
+  "accepted_increment_rule": "F_E_NEXT_ROUND later user-targeted increment: UDP-hit CPU/query distinguishably lower than acceptedE; report TCP hit; no discernible p50/p95/CPU regression anywhere across11scenes. Original resource/correctness gates remain; no repeat demand for majority11-scene improvements for this E-relative increment.",
+  "statistics": {
+    "metric": "median[min,max]",
+    "W": "max of each side full-range/median",
+    "discernibility": "abs(relative median delta)>W and>=4/5same direction",
+    "cpu": "all windows>=10ticks and median absolute tick delta>8",
+    "lifecycle_latency_resolution_ms": 1,
+    "p99_min_samples": 10000
+  },
+  "resource_gates": [
+    "Production exact file/live/PID-start and unchanged config; same netns/nice10/affinity, no production mutation/deployment",
+    "Available memory>=65536KiB; fresh>=120s guard health, thresholdceil(max(200,10*p95))<=700; HTTPSv4/v6 every30s",
+    "Retain RSS/RssAnon/RssFile/RssShmem/treeRSS/process/thread/treeFD/parentFD and all ranges; no RSS-to-USS claim, lifecycle values are readiness snapshots",
+    "No newly invented numeric relative-memory/FD allowance; retain frozen qualitative growth/resource review requirement",
+    "ELF2145051bytes<=2200000; +8192bytes versus acceptedE2136859 and+20480 versus deployedB2124571. Final185SDK binding verified; original feature/allocator/toolchain and static hardening receipt retained. Runtime protections, size growth and retained buffers still require original full resource review."
+  ],
+  "tool_invalid_supplement": "Only after original110; exact evidence-based tool-invalid whole pair may be repeated once with original order/all tools/identities, both sides valid required. Product wrong/timeout/crash or unknown cause ineligible; no cherry-picking/favorable retries. Preserve original failures and selection map.",
+  "recovery": "No automatic health bypass or restart. Preserve STOP/failed attempt. Resume only unstarted schedule after independent ownership/identity/health recovery; no valid re-runs. Archive+manifest+hash+durable progress before remote pruning. Restore exact original stagedE/F only after no owned executables.",
+  "original_failed_health": {
+    "status": "FAILED remains immutable",
+    "attempt": "private/perf-opt-20261015/health-a53-cached-zero-frame",
+    "report_commit": "32042372",
+    "reviewed_repair_commit": "d2c0373c",
+    "guarded_recovery_commit": "d91816bf",
+    "do_not_reuse_passed_ten_health_for_full110": true
+  },
+  "offline_artifacts_verified_locally": {
+    "exact_image_C": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/inputs/dnsmasq-c",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    },
+    "deployed_v020": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/inputs/dnsmasq-v020",
+      "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "bytes": 2124571
+    },
+    "acceptedE": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-e/dnsmasq-rs",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859
+    },
+    "restoreF": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-f/dnsmasq-rs",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "bytes": 2136859
+    },
+    "candidate185": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-zero-frame/dnsmasq-rs",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051
+    }
+  },
+  "prelaunch_sequence": [
+    "Recheck independentten audit and actual185fullqualification success against exactsource/ELF, including original allowed raw corpus exits only.",
+    "Bind loop new generic controller/health helper/collector/verifier hashes and independentrepair review, retain old7c93 snapshot/history.",
+    "Create new original125s healthattempt with actualprestopcapture; recheck productionfile/live/[PID,start], idle-owned state, root0700, originalslots/offline restore, >=65536KiB.",
+    "Atomic .new stage candidate185 into task rustslot only after freshhealth; acceptedE taskc; allnine helperhashes match. No production action.",
+    "Persist launchreceipt before new110 with fullqualification/health/source/ELF/map/build/tools/plan and fullcommand, no--scenes.",
+    "Finish alloriginal attempts. Evidence-based tool-invalidwholepairs only afteroriginal110 under frozenonce-only symmetricrule; no performance cherry-picking.",
+    "Verifytar/member/manifests/bytes and durableprogress before validremoteprune. Retainfailedattempts/STOP; no automatic healthbypass/resume without completeexistinggate.",
+    "Independent raw/stat/healthaudit, original33primary/allresource tables, no pooling; postflightprod/idle and restoreexactE/F; noG claim until complete gates."
+  ],
+  "optional_deployed_comparison": "Not part of this newly authorized E-relative110. A future direct v0.2.0 baseline claim requires a separately requested freshB/185whole11scene110; historicalE/B cannot substitute."
+}
