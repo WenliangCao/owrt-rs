@@ -18,7 +18,7 @@ Author postflight passed static AArch64 PIE/RELRO/BIND_NOW/NX/no-WX, source and
 artifact identities, unchanged SDK inputs and canonical recipe restoration.
 No individual verbose rustc proof or runtime-hardening acceptance is claimed.
 Original loader warnings remain in the compile log. Independent actual SDK
-review is pending at this checkpoint.
+review passed at `3c427195`.
 
 Both immutable evidence archives were downloaded and rehashed:46 related
 payload entries plus manifest, and39 SDK/payload entries plus manifest. This
@@ -32,11 +32,20 @@ research/exactC processes were absent and three locks were free. DNS explicitly
 handed Oracle to correctness through followup and stopped all Oracle access
 and bulk transfers.
 
-Correctness must verify the original nativeC ELF, both libraries and actual
-private compatibility-mount visibility, then run the frozen249ae standalone
-runtime-signals audit. This audit is outside the44-family registry. Its result
-and independent review remain pending; device health and performance have not
-been released. Only actual gate/SDK/signals acceptance and subsequent quiet
-may precede originalG/5c owner32 and device ten. Native240 is excluded. The
-G comparison includes inherited6ab changes and both outlines, not a single
-dump/frame effect.
+Correctness verified the original nativeC ELF, both libraries and actual
+private compatibility-mount visibility, then completed the frozen249ae
+standalone runtime-signals audit once:12 signal cases,3 repeated-dump cases
+and3 alarm-maintenance cases all passed. Independent review `80f13a76` verified
+the raw outputs, exact5c ELF and host-path restoration. This audit is outside
+the44-family registry and no earlier pass was inherited.
+
+After correctness's quiet handback, the original125-second device health,
+preflight, four artifact copies and loop's original owner-tool pretransfer
+completed. Final quiet receipt `14480426…` rehashed source179, SDK/G and the
+actual signal chain, observed no research/exactC processes and free locks,
+then released the machines through followup. DNS stopped all remote access
+and bulk transfer. Loop completes final ready metadata before notifying DHCP.
+
+OriginalG/5c owner32 and device ten may now proceed. Native240 is excluded;
+performance acceptance is still pending. The G comparison includes inherited
+6ab changes and both outlines, not a single dump/frame effect.
