@@ -1,0 +1,159 @@
+{
+  "schema": "cached-hit-9e-original-runtime-signals-independent-audit-v1",
+  "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+  "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+  "SDK_independent_review_commit": "6c8ad70d",
+  "SDK_independent_review_sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+  "related_independent_review_commit": "7ffb1476",
+  "related_independent_review_sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+  "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+  "result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-hit-9e-signals-20261016/signals/result.json",
+  "result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+  "actual_result_passed": true,
+  "original_signal_cases": 12,
+  "original_cache_dump_cases": 3,
+  "original_alarm_maintenance_cases": 3,
+  "all_original_comparators": {
+    "c-image": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "c-native": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "rust": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087"
+  },
+  "signal_case_order_and_binary_identities_verified": true,
+  "raw_dump_summaries_recomputed_by_original_pure_parser": true,
+  "common_dump_summary": {
+    "cache": [
+      [
+        150,
+        0,
+        2
+      ],
+      [
+        150,
+        0,
+        2
+      ]
+    ],
+    "queries": [
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "tcp": [
+      [
+        0,
+        0,
+        30
+      ],
+      [
+        0,
+        0,
+        30
+      ]
+    ],
+    "server": [
+      [
+        3,
+        0,
+        0,
+        2
+      ],
+      [
+        3,
+        0,
+        0,
+        2
+      ]
+    ],
+    "host_rows": 2,
+    "cached_rows": 2
+  },
+  "all_three_maintenance_lease_and_dump_logs_checked": true,
+  "original_passed_predicates_recomputed": true,
+  "actual_original_argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-hit-9e/tools/dnsmasq/audit_20261011_runtime_signals.py",
+    "--image-root",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--rust",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-hit-9e/dnsmasq-rs",
+    "--c-native",
+    "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-hit-9e-signals-20261016/signals"
+  ],
+  "actual_elapsed_seconds": 8.511451721191406,
+  "exit": 0,
+  "stderr_empty": true,
+  "audit_invocations": 1,
+  "audit_or_measurement_retries": 0,
+  "native_compatibility": {
+    "files": {
+      "c-native-01/dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "c-native-01/deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+      "c-native-01/deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+    },
+    "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "preflight_host_namespace": "mnt:[4026531832]",
+    "actual_private_namespace": "mnt:[4026532710]",
+    "inside_namespace_hashes_rechecked": true,
+    "host_path_after_exit_empty_unmounted": true,
+    "mapping_receipt_sha256": "1e83d5cbf6fd767e0b9aef1181c442a47f9e9588bb4e95232b0aacc4bc538e74"
+  },
+  "preflight_sha256": "9808f295e727d80a5230e5fd6d9365b8a00e0fd8007b38258f6ce491a76a84fb",
+  "launch_sha256": "a1ccee610764dff15688ffa33ebcbc6946f5b60433983d9a7cf716b562220a91",
+  "exit_receipt_sha256": "3622cddb94dae3f5727598ce2a5a8f01d4b6b91448039b0380289af416865f00",
+  "postflight_sha256": "1b50c7cb97f2c73ce942211b5ce8c1fc71844e279a3d21face6a2b44bc92dae8",
+  "archive_sha256": "ccb21e700ccdc7698c40d1c7a5ca7178aaccb271ef8258a9cd7418d7a1b81f56",
+  "manifest_sha256": "6f3950a42db16ba64fecfa86e22a82b924c1837a67d9c96bb876c904b146f205",
+  "verified_regular_archive_files": 32,
+  "transfer_receipt_sha256": "e16dbd2ad9c47e4b478eeae3bc5ee9ef892230850f2bad574fb0b050cf4c81e9",
+  "all_raw_downloaded_and_rehashed": true,
+  "scope_limits": [
+    "This is the unchanged standalone249ae audit, outside44-family registry. It does not inherit full44/110 or performance acceptance.",
+    "DNS queries, DHCP ACK and live-process observations are the unchanged original tool raw result observations. No extra independent wire capture or new tests were added.",
+    "Nativefile byte pins and visibility in the isolated mount namespace were verified; no claim of separately sampled native process library maps.",
+    "Static SDK protections do not prove runtimeASLR/RELRO; this functional signal audit does not measure them.",
+    "Gates preserve original foreground/logging mode and all comparators/cases. No normal-debug expansion, artifacts rebuilt, or physical router change."
+  ],
+  "performance_timing_started": false,
+  "original_auditor_sha256": "a988945fbb1cf37ef1f63ef75809233159be372c256d0c0c75983585904a4279",
+  "reviewer_script_sha256": "10367b27bc9ab02b279db0256dd5b0272a192cccffd79d5e1699e3d14e94babb",
+  "independent_identity_phase_peer_receipt_sha256": "23054264afd13b75f4387f8a015782c4cb616158f2623984d4ed892ce9ee170e",
+  "independent_identity_phase_peer": {
+    "status": "PASS_LOCAL_ORIGINAL9E_SIGNALS_IDENTITY_PHASE_AND_SCHEMA_BINDING",
+    "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+    "result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+    "plan_sha256": "bc0143a4070e4bfc9b65db5251968c3721e4ecf1e774f851d45622b82a2e0cd6",
+    "adapter_sha256": "b2dd2239280c6ce41525083fbe72b9d878ead174fa6866fbfd19f7e40694fb69",
+    "adapter_only_one_source_literal_change_from_original5c": true,
+    "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+    "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+    "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+    "preflight_sha256": "9808f295e727d80a5230e5fd6d9365b8a00e0fd8007b38258f6ce491a76a84fb",
+    "mapping_sha256": "1e83d5cbf6fd767e0b9aef1181c442a47f9e9588bb4e95232b0aacc4bc538e74",
+    "launch_sha256": "a1ccee610764dff15688ffa33ebcbc6946f5b60433983d9a7cf716b562220a91",
+    "exit_sha256": "3622cddb94dae3f5727598ce2a5a8f01d4b6b91448039b0380289af416865f00",
+    "postflight_sha256": "1b50c7cb97f2c73ce942211b5ce8c1fc71844e279a3d21face6a2b44bc92dae8",
+    "transfer_sha256": "e16dbd2ad9c47e4b478eeae3bc5ee9ef892230850f2bad574fb0b050cf4c81e9",
+    "manifest_payload_files_rehashed": 31,
+    "schema_counts": [
+      12,
+      3,
+      3
+    ],
+    "recorded_order": "DNSquiet < actualpreflight <= launch == started < exit < postflight",
+    "native3_and_image5_and5tools_original_identity_bound": true,
+    "current_private_mount_distinct_and_host_path_restored": true,
+    "scope": "Local bytes/identity/phase only. No network/Oracle/router, adapter/audit import or execution, and no cases rerun. Main correctness reviewer separately recomputes original passed predicates/dump summaries/rawlogs; this peer does not claim that recomputation.",
+    "script_sha256": "2070b8b4c111b15ba4b71b7bc4e04cb5a9aea3e51bc08a6834891e359b18fcf5"
+  },
+  "related_actual_passes": 965,
+  "actual_result_schema_bound_by_original_frozen_tool_and_exact_case_order": true
+}
