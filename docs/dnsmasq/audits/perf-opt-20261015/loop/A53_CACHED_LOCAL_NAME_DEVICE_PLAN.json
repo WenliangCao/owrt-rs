@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "status": "preregistered acceptedE exploratory fixed10; exact0161 SDK identities pending, no launch with old artifact",
+  "status": "frozen exact0161/acceptedE exploratory10; SDK179source and Linux939 verified; fresh health pending",
   "scope": "Exploratory acceptedE/cached-local-name0161 A53 UDP-hit comparison; not full44 or full11-scene acceptance and not G selection.",
   "reason": "Rootb25e8ad6 fixed direct acceptedE baseline for independent0161 narrowed cache plus synchronous decoded-name reuse combination. No oldF controls or8d572 artifact reuse.",
   "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
+  "source_files_verified": 179,
+  "elf_sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
+  "elf_bytes": 2140955,
+  "map_sha256": "b9a67ea66d81d3141e2ee8a4ffc5f0b860ef92177a5d96a15ada55739bfab96f",
+  "build_receipt_sha256": "972a6f3c1b9d6121fef854d18cae24bc12be776b097e96d21b843571fe1b2165",
   "prior_gate_scope": "Exact0161 Linux939 and interaction/source review pass; full44/67 and complete11-scene gates remain required for acceptance.",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
@@ -25,7 +25,7 @@
     },
     "cached-local-name": {
       "name": "a53-cached-local-name-artifact-cached-local-name",
-      "sha256": null
+      "sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff"
     }
   },
   "measurement_artifacts": {
@@ -153,11 +153,9 @@
   "automatic_replacement": false,
   "source_inputs_expected": 179,
   "pending_before_launch": [
-    "Loop provides precise new0161 SDK artifact/receipt and a transfer interval before Oracle timing.",
-    "Download/verify immutable ELF,map,build and all179source files; bind identities in new commit.",
-    "Fresh>=120s original health; verify production/currentE-F slots/offline restore copies/idle-owned state and all frozen helper hashes."
+    "Fresh>=120s original health plus contemporaneous production/currentE-F slots/offline restore copies/idle-owned state and helper hash checks."
   ],
-  "artifact_verification_receipt_sha256": null,
+  "artifact_verification_receipt_sha256": "70ef0d422d92904c88cd36dc60c0f3aa1f622b016baa18a37095b8c00052f4c4",
   "baseline_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
   "baseline_E_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
   "restore_only_F_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
