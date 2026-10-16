@@ -1,0 +1,218 @@
+{
+  "scope": "Mac library prepared UDP cache-answer allocation scope, includes admission and query_metadata; no receive/send/owner loop or performance timing",
+  "source_commits": {
+    "F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "cached-only": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+    "cached-name": "0161ad9c103459c7f59c44ebce9600db1f1697c6"
+  },
+  "probe_sha256": "3b0fd2e5400414f0418c812c909ecf5477060bbdca040c8fd2bc550e5c27490a",
+  "counter_implementation": "Unchanged GlobalAlloc counter block from existing hotpath_probe_v2.rs; setup/import/1000 priming calls excluded; 800 fresh real A/AAAA records 70/30, then8000 operations",
+  "commands": [
+    {
+      "label": "F-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-hit-f-20261015/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2daa78d7f96a4311b40dedc0208eae6ddba89520e923c79d2afd8923a8211bf7"
+    },
+    {
+      "label": "F-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/F"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "F-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/F",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "c8a63bd013707131840798b574770edcc874ad5f8858dd2712d5af33938d2d9f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "cached-only-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "8ede4b18a9597a1e62dd6481984e580d6939e8cfdddc18fca5d736ad18ce26a1"
+    },
+    {
+      "label": "cached-only-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cached-only"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "cached-only-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cached-only",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e386fc40488e4010198a3b44b46fd4a26d86e9db5a1986d3f36cfa65917e72c9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "cached-name-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-local-name-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "c8976661ed69ef9ceb7e0e267f91bc249b9fe203ba77be88d1caf4c31cacf10f"
+    },
+    {
+      "label": "cached-name-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cached-name"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "cached-name-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/prepared-hit-count/cached-name",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "9ff36a361a123f16cb6a0cc2ca855e8478d3528435f6778aaa59c70c1cb5acf2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rows": [
+    {
+      "side": "F",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "cached-only",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 1280000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "cached-name",
+      "operations": 8000,
+      "allocations": 8000,
+      "reallocations": 0,
+      "requested_bytes": 1024000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    }
+  ],
+  "all_checksums_match": true,
+  "all_live_byte_deltas_zero": true,
+  "interpretation": "4/245 -> 2/160 -> 1/128 allocation requests/bytes per call. Requested size is not allocator overhead, RSS or CPU cost; library results are not whole-owner or A53 counts."
+}
