@@ -1,0 +1,17 @@
+{
+  "status": "PASS_REMOTE_ORIGINAL_WARM_OWNER32_PHASE_IDENTITY_BINDINGS",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+  "author_result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+  "postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+  "release_sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+  "controller_sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+  "analyzer_sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+  "local_before_phase_receipt_sha256": "9672babe27ae23205ddeae818fbda0f6e10db712943c46b122bce7b81a3c61a0",
+  "pretransfer12_and_source358_and_both_SDK_triples_rehashed": true,
+  "original32_sequential_completion_and_analysis_chain_verified": true,
+  "recorded_order": "pretransfer < fresh correctness quiet < ready < launch < 32 sequential windows < original analysis < postflight < release",
+  "bulk_download_and_archive_audit_pending": true,
+  "scope": "Existing raw phase/identity read only; no timing/workload. Original full-bin math independently checked by main reviewer; local input archive/Git/ref checks in the pinned before-phase receipt. No5c signals or5c-only metadata failure inherited. Remote quiet is receipt-bound, not a new observation.",
+  "script_sha256": "7101ff010afdbbc862635dd4375d7640a61ddcb9ac029a4b9c35cb21a3dd22cf"
+}
