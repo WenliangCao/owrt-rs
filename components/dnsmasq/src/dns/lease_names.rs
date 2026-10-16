@@ -158,6 +158,9 @@ pub struct LeaseNames {
     non_terminals: HashMap<Vec<u8>, Option<i64>>,
     warnings: Vec<PublicationWarning>,
     policy: LeasePolicy,
+    // Conservative generation bound. Expiry removal/extension may leave it
+    // early; negative timestamps disable it to preserve wrapping-time rules.
+    no_expiry_before: Option<i64>,
 }
 
 #[derive(Clone)]
@@ -209,6 +212,7 @@ impl LeaseNames {
                 })
                 .collect(),
             policy,
+            no_expiry_before: Some(i64::MAX),
             ..Self::default()
         };
         for (index, record) in records.iter().enumerate() {
@@ -242,6 +246,11 @@ impl LeaseNames {
     /// removed by a later lookup in this reader.
     pub fn entries(&self) -> &[LeaseName] {
         &self.entries
+    }
+
+    pub(crate) fn may_have_expired(&self, now: i64) -> bool {
+        !matches!(self.policy.stale, StalePolicy::Forever)
+            && (now < 0 || self.no_expiry_before.is_none_or(|bound| now >= bound))
     }
     pub fn active_entries(&self) -> impl Iterator<Item = &LeaseName> {
         self.entries
@@ -433,6 +442,10 @@ impl LeaseNames {
         }
         let id = self.entries.len();
         let expires = record.expires.filter(|&expires| expires != 0);
+        if let Some(expires) = expires {
+            self.no_expiry_before = self.no_expiry_before
+                .and_then(|bound| (expires >= 0).then_some(bound.min(expires)));
+        }
         let immortal = expires.is_none();
         // Borrowed canonical bytes are identical to the retained input. Mixed
         // case keeps its original spelling and gets a separate lowercase key.
@@ -523,6 +536,54 @@ mod tests {
             address: Ipv4Addr::new(192, 0, 2, address),
             expires,
         }
+    }
+
+    #[test]
+    fn expiry_bound_never_skips_expirable_entries_or_parent_names() {
+        for stale in [StalePolicy::Disabled, StalePolicy::Seconds(0),
+                      StalePolicy::Seconds(60), StalePolicy::Forever] {
+            for expiry in [None, Some(0), Some(i64::MIN), Some(-1), Some(1),
+                           Some(100), Some(i64::MAX)] {
+                let policy = LeasePolicy { stale, ..LeasePolicy::default() };
+                let mut names = LeaseNames::build(&[
+                    input(b"parent.test", 1, Some(50)),
+                    input(b"child.parent.test", 2, expiry),
+                    input(b"other.branch.test", 3, Some(200)),
+                ], &mut Hosts::new(), &[], policy, &mut ());
+                // Include name/reverse removals, inherited views and rollback.
+                let snapshot = names.clone();
+                names.expire_name(b"parent.test", 150);
+                names.expire_name(b"branch.test", 250);
+                names.expire_reverse(250);
+                for generation in [&names, &snapshot] {
+                    for now in [i64::MIN, -100, -1, 0, 1, 49, 50, 99, 100,
+                                150, 200, 250, i64::MAX - 1, i64::MAX] {
+                        if !generation.may_have_expired(now) {
+                            assert!(generation.active_entries().all(|entry| policy.live(entry.expires, now)));
+                            assert!(generation.non_terminals.values().all(|&expiry| policy.live(expiry, now)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn expiry_bound_stays_conservative_after_extension_and_sticky_removal() {
+        let mut names = LeaseNames::build(&[
+            input(b"parent.test", 1, Some(50)),
+            input(b"child.parent.test", 2, Some(100)),
+        ], &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        assert!(!names.may_have_expired(49));
+        assert!(names.may_have_expired(50), "parent extension need not advance the conservative bound");
+        assert!(!names.has_expired_name(b"parent.test", 50));
+        names.expire_name(b"parent.test", 100);
+        assert!(names.lookup(b"parent.test", 49).next().is_none(), "rollback cannot revive a removed lease");
+        assert!(!names.may_have_expired(49));
+        let immortal = LeaseNames::build(&[input(b"immortal.test", 3, None)],
+            &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        assert!(!immortal.may_have_expired(100));
+        assert!(immortal.may_have_expired(i64::MAX), "unknown boundary falls back conservatively");
     }
 
     #[test]

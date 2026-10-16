@@ -885,7 +885,7 @@ fn expire_lease_lookups(
     qtype: u16,
     now: i64,
 ) -> Option<Vec<u8>> {
-    if leases.entries().is_empty() {
+    if leases.entries().is_empty() || !leases.may_have_expired(now) {
         return None;
     }
     let query_name = wire_to_dotted(query)?;
