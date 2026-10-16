@@ -204,6 +204,14 @@ pub(super) fn decode_name_reusing(
             return Ok((Name(std::mem::take(scratch)), next));
         }
     }
+    decode_name_reusing_general(packet, start, extra, scratch)
+}
+
+// Keep pointer traversal and per-label growth out of the ordinary UDP entry.
+#[inline(never)]
+fn decode_name_reusing_general(
+    packet: &[u8], start: usize, extra: usize, scratch: &mut Vec<u8>,
+) -> Result<(Name, usize), WireError> {
     let next = walk_name(packet, start, extra, |label| scratch.extend_from_slice(label))?;
     Ok((Name(std::mem::take(scratch)), next))
 }
