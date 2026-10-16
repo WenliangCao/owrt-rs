@@ -1,0 +1,45 @@
+{
+  "status": "ACTUAL_LOCAL_BINDING_PASS_PENDING_INDEPENDENT_SDK_REVIEW_RELEASE_AND_PRETRANSFER",
+  "candidate_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "candidate_sdk": {
+    "dnsmasq-rs": {
+      "sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+      "bytes": 2145051
+    },
+    "link.map": {
+      "sha256": "3c92b784b606b5eb50a968e8605b6e88d17d04436a25dfec3fd6e2cdf4698cf5",
+      "bytes": 3023894
+    },
+    "build.json": {
+      "sha256": "3d77809b0552a91f384248b9cc21aba17fab0d1d0776f2d401becc27d4e0859c",
+      "bytes": 43968
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "sha256": "37b2be86f7bd6955078400dbf089bb8e996a9a5705e86241774dbea56890fb76",
+      "bytes": 1167196
+    }
+  },
+  "linux_gate": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "expected_passes": 961
+  },
+  "git_identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+  "source_files_verified": 179,
+  "product_budget": {
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000
+  },
+  "within_existing_budget": true,
+  "source_unchanged": true,
+  "flags_unchanged": true,
+  "native_plan_sha256": "271cddd4cc9c4fabb84c8b91e4122917767a8850fac15d2d5bdbf7bc20996dcc",
+  "owner32_plan_sha256": "0c778100e6a53022d40473eec30e2979c2b3e89d30df30c2a92b8836bdd782e8",
+  "sdk_postflight_sha256": "3ec8ca2c030e07814db881d0f2420806db9fcd98366d26904bb0f6ecb514fee6",
+  "sdk_independent_review": null,
+  "explicit_slot_release": null,
+  "pretransfer_complete": false,
+  "executed": false,
+  "remote_accessed": false
+}
