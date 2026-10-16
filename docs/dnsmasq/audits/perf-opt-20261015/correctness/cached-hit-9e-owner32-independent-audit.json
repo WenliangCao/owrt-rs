@@ -1,0 +1,663 @@
+{
+  "status": "PASS_9E_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "collection_sha256": "d174f54bab283ace475baddc345681a994def45fc6634e4f3226be8b8d7ec25c",
+  "archive_sha256": "4ea775918183678d7868f1574dde25e06cd5218b94e50a1e11c06b9bbae9679f",
+  "result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+  "plan_sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+  "small_files_rehashed": 1172,
+  "remote_retained_files": 192,
+  "full_raw_inventory_files_bound": 1264,
+  "remote_raw_bin_bytes": 3707613744,
+  "ordered_windows": 32,
+  "PMU_windows": 12,
+  "plain_windows": 20,
+  "all_CPU_starttime_PID_actualN_ticks_recomputed": true,
+  "all48_actual_PMU_events_reparsed_unscaled_same_group_same_window": true,
+  "all_count_health_and_exit_receipts_checked": true,
+  "all_published_row_and_group_math_recomputed": true,
+  "summaries": {
+    "high": {
+      "cpu": {
+        "left": {
+          "median": 4.294092751715832,
+          "min": 4.283675990287365,
+          "max": 4.308479543263208,
+          "rounds": [
+            4.303470099152089,
+            4.293338484881192,
+            4.308479543263208,
+            4.283675990287365,
+            4.294092751715832
+          ]
+        },
+        "right": {
+          "median": 3.985394936535605,
+          "min": 3.981213895854376,
+          "max": 4.003618155759491,
+          "rounds": [
+            3.988994335883543,
+            3.981213895854376,
+            4.003618155759491,
+            3.985394936535605,
+            3.9828154026420775
+          ]
+        },
+        "relative_change_pct": -7.188894908170708,
+        "W_pct": 0.5776203358889315,
+        "same_direction_pairs": 5,
+        "precision_ok": null,
+        "discernible": true,
+        "direction": "faster",
+        "scope": "Variable-query saturation diagnostic; W/direction only, not fixed-cohort acceptance or a tick precision pass"
+      },
+      "throughput": {
+        "left": {
+          "median": 232635.15,
+          "min": 231962.6,
+          "max": 233475.3,
+          "rounds": [
+            232299.85,
+            233028.25,
+            231962.6,
+            233475.3,
+            232635.15
+          ]
+        },
+        "right": {
+          "median": 250489.2,
+          "min": 247703.5,
+          "max": 251083.9,
+          "rounds": [
+            250489.2,
+            251060.75,
+            249616.85,
+            247703.5,
+            251083.9
+          ]
+        },
+        "relative_change_pct": 7.67470006144816,
+        "W_pct": 1.349519260710639,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "higher"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          99.89554665661171,
+          99.86208592640486,
+          99.74441142888345,
+          99.84067902988997,
+          99.89826812840518
+        ],
+        "cached-hit-9e": [
+          99.91697108630895,
+          99.86722252077524,
+          99.87848563559464,
+          98.94379956479008,
+          99.85692634620251
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 131.561,
+            "min": 131.161,
+            "max": 131.761,
+            "rounds": [
+              131.761,
+              131.241,
+              131.761,
+              131.161,
+              131.561
+            ]
+          },
+          "right": {
+            "median": 119.801,
+            "min": 119.601,
+            "max": 120.361,
+            "rounds": [
+              119.841,
+              119.601,
+              120.361,
+              119.801,
+              119.601
+            ]
+          },
+          "relative_change_pct": -8.93881925494638,
+          "W_pct": 0.6343853557148982,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95": {
+          "left": {
+            "median": 146.201,
+            "min": 145.122,
+            "max": 146.561,
+            "rounds": [
+              146.201,
+              146.241,
+              146.561,
+              145.122,
+              145.842
+            ]
+          },
+          "right": {
+            "median": 135.001,
+            "min": 134.721,
+            "max": 135.641,
+            "rounds": [
+              135.242,
+              134.721,
+              135.641,
+              135.001,
+              134.761
+            ]
+          },
+          "relative_change_pct": -7.660686315415072,
+          "W_pct": 0.9842613935609148,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.8,
+            "rounds": [
+              2.76,
+              2.8,
+              2.76,
+              2.8,
+              2.76
+            ]
+          },
+          "right": {
+            "median": 4.6,
+            "min": 4.6,
+            "max": 4.64,
+            "rounds": [
+              4.6,
+              4.6,
+              4.6,
+              4.6,
+              4.64
+            ]
+          },
+          "relative_change_pct": 66.66666666666666,
+          "W_pct": 1.449275362318842,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95": {
+          "left": {
+            "median": 5.36,
+            "min": 5.32,
+            "max": 6.48,
+            "rounds": [
+              5.32,
+              6.441,
+              5.36,
+              6.48,
+              5.32
+            ]
+          },
+          "right": {
+            "median": 8.72,
+            "min": 8.56,
+            "max": 8.72,
+            "rounds": [
+              8.72,
+              8.72,
+              8.56,
+              8.64,
+              8.72
+            ]
+          },
+          "relative_change_pct": 62.68656716417911,
+          "W_pct": 21.64179104477612,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 5501.372917328837,
+          "instructions:k": 12991.31683235397,
+          "cycles:u": 3493.6869971287088,
+          "cycles:k": 9264.935045004733,
+          "user_ipc": 1.5746610734877358
+        },
+        "cached-hit-9e": {
+          "instructions:u": 4728.677457819976,
+          "instructions:k": 12998.000918966734,
+          "cycles:u": 2868.505193202408,
+          "cycles:k": 9010.623730105617,
+          "user_ipc": 1.6484814003564223
+        }
+      }
+    },
+    "low": {
+      "cpu": {
+        "left": {
+          "median": 26.0,
+          "min": 26.0,
+          "max": 28.0,
+          "rounds": [
+            26.0,
+            28.0,
+            28.0,
+            26.0,
+            26.0
+          ]
+        },
+        "right": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            26.0,
+            26.0,
+            24.0,
+            28.0,
+            24.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 15.384615384615385,
+        "same_direction_pairs": 0,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "throughput": {
+        "left": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "right": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 0.0,
+        "same_direction_pairs": 0,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          0.7896396207370603,
+          0.8057151462022094,
+          0.823989079229386,
+          0.8132497796288536,
+          0.8153416886383614
+        ],
+        "cached-hit-9e": [
+          0.8084815883254962,
+          0.8293994728443888,
+          0.7783714844118658,
+          0.8789686259045745,
+          0.8082777319585542
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 53.281,
+            "min": 49.24,
+            "max": 53.841,
+            "rounds": [
+              53.161,
+              53.281,
+              53.841,
+              49.24,
+              53.8
+            ]
+          },
+          "right": {
+            "median": 53.96,
+            "min": 49.52,
+            "max": 56.16,
+            "rounds": [
+              53.96,
+              56.16,
+              49.52,
+              55.88,
+              50.36
+            ]
+          },
+          "relative_change_pct": 1.2743754809406769,
+          "W_pct": 12.30541141586359,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 79.24,
+            "min": 77.401,
+            "max": 82.041,
+            "rounds": [
+              78.641,
+              79.24,
+              82.041,
+              77.401,
+              80.641
+            ]
+          },
+          "right": {
+            "median": 77.401,
+            "min": 76.2,
+            "max": 96.561,
+            "rounds": [
+              78.521,
+              77.04,
+              77.401,
+              96.561,
+              76.2
+            ]
+          },
+          "relative_change_pct": -2.3207975769813207,
+          "W_pct": 26.30586168137363,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 70.487,
+            "min": 69.893,
+            "max": 70.914,
+            "rounds": [
+              70.876,
+              70.487,
+              69.893,
+              70.184,
+              70.914
+            ]
+          },
+          "right": {
+            "median": 70.939,
+            "min": 69.923,
+            "max": 71.623,
+            "rounds": [
+              71.623,
+              70.939,
+              70.32,
+              69.923,
+              71.053
+            ]
+          },
+          "relative_change_pct": 0.6412529970065377,
+          "W_pct": 2.3964250976190855,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 82.02,
+            "min": 81.344,
+            "max": 82.718,
+            "rounds": [
+              82.02,
+              81.729,
+              81.344,
+              82.718,
+              82.295
+            ]
+          },
+          "right": {
+            "median": 82.157,
+            "min": 81.596,
+            "max": 87.684,
+            "rounds": [
+              87.684,
+              82.157,
+              81.596,
+              81.774,
+              82.169
+            ]
+          },
+          "relative_change_pct": 0.1670324311143629,
+          "W_pct": 7.410202417322924,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 7690.6404,
+          "instructions:k": 25695.3928,
+          "cycles:u": 17146.1458,
+          "cycles:k": 38937.5018,
+          "user_ipc": 0.4485552432430617
+        },
+        "cached-hit-9e": {
+          "instructions:u": 6634.7354,
+          "instructions:k": 25639.9172,
+          "cycles:u": 14710.8962,
+          "cycles:k": 37223.5384,
+          "user_ipc": 0.451004174715066
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks_plain": {
+    "low": {
+      "G": [
+        13,
+        14,
+        14,
+        13,
+        13
+      ],
+      "cached-hit-9e": [
+        13,
+        13,
+        12,
+        14,
+        12
+      ]
+    },
+    "high": {
+      "G": [
+        2498,
+        2498,
+        2497,
+        2500,
+        2498
+      ],
+      "cached-hit-9e": [
+        2498,
+        2499,
+        2499,
+        2475,
+        2499
+      ]
+    }
+  },
+  "postflight_sha256": "214a9497e5e0bd812c8bc74d037f39d11d8f0110ebe09492174b0cf98fe389b8",
+  "release_sha256": "43e664dfe1792416f9ca25b86d40b50529d591ce68d952a73a15adb48185bdc2",
+  "no_measurement_retries": true,
+  "limits": [
+    "High unpaced variable-N pipeline is diagnostic; precision_ok remains None, not a fixed-cohort CPU acceptance.",
+    "Original low CPU precision requires every window >=10ticks and absolute median delta strictly >8ticks, plus strictabsdelta>W and >=4/5 direction.",
+    "Oracle owner32 does not override this same9e nondiscernible physicalA53 screen or complete full44/full110.",
+    "Original full-bin replay result is byte-identical. All1172 smallraw files and9 replay files are locally archived;128bins and64 repeated artifact copies remain remote and were independently decoded/hashed in the original replay. No new original measured window or product test."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "original_auditor_sha256": "217fec22855bfd786b76e85fc27a2da341dea3f224f0406b22ae258c42af1925",
+  "reviewer_script_sha256": "e0f5e64e02607fcf66824e9edd29013c5b75cf3dc14174f405192d69881ef2d0",
+  "frozen_plan_scope_text_not_rewritten": "Legacy Disabled/actualunset prose preserved; actual status/flags/qualification/launch evidence reviewed separately.",
+  "schema": "cached-hit-9e-owner32-independent-audit-v1",
+  "author_result_commit": "656fb836",
+  "independent_phase_peer": {
+    "commit": "0b0abb3d",
+    "receipt_sha256": "f905a90b31b53bfa4cbecb4adfa6e3e0284658e7db3d17b2a37930ba70d55e76",
+    "value": {
+      "status": "PASS_LOCAL_9E_NATIVE_TO_OWNER_PHASE_SOURCE_AND_RETAINED_SCOPE_BINDINGS",
+      "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+      "owner_plan_sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+      "native_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+      "native_postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+      "owner_result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+      "owner_postflight_sha256": "214a9497e5e0bd812c8bc74d037f39d11d8f0110ebe09492174b0cf98fe389b8",
+      "author_release_sha256": "43e664dfe1792416f9ca25b86d40b50529d591ce68d952a73a15adb48185bdc2",
+      "original965_SDK_signals_and_G_identity_bound": true,
+      "native162_each_subset_of_fullSDK179_each_verified_against358_Git_blobs": true,
+      "four_original_builds_then240commands_then_rawpostflight_then_owner32_verified": true,
+      "SDK_owner32_then_originalanalysis_postflight_release_verified": true,
+      "original8imports_probe_and_runners_bound": true,
+      "review_refs_rehashed": {
+        "native:source_review": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+        "native:sdk_independent_review": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+        "native:screen_plan_independent_review": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+        "native:source_preparation_peer": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06",
+        "owner:source_review": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+        "owner:sdk_independent_review": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+        "owner:screen_plan_independent_review": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+        "owner:source_preparation_peer": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06"
+      },
+      "scope_text_clarification": {
+        "native_scope_retained": "Disabled original G185/9e complete native hot15/240 screen. Original cold/general library-path coverage; no warm-buffer, owner or device acceptance inference.",
+        "owner_scope_retained": "Disabled original exact-SDK G185/9e owner32; actual gates/SDK/signals/native prerequisite and reviews unset.",
+        "plans_unchanged": true,
+        "meaning": "Preparation scope prose and prospective actual_native240/actual_device10 fields were frozen before execution. Actual ready status/flags, qualificationrefs, launch, completed rawresults and phase chain bind real runs. No plans rewritten, no tests or timings rerun to repair prose."
+      },
+      "scope": "Local retained control/source/phase identity only. No Oracle/router or measurement, originalnative statistics or full-bin owner analysis rerun. Maincorrectness audit owns archive/filemanifest and PMU/CPU/math/full-bin replay. Remote quiet is receipt-bound, not freshly observed by this peer.",
+      "script_sha256": "d8f9315bc065b6e7314b3c753b257ba2bfa45d3221b73157c319978319fd3e97"
+    }
+  },
+  "original_analyzer_replay": {
+    "status": "PASS_ORIGINAL_ANALYZER_FULL_RAW_BIN_REPLAY_BYTE_IDENTICAL",
+    "exit": 0,
+    "result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+    "author_result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+    "original_analyzer_sha256": "4d8bfbc11d72bdd8393a5255110b4aa058f616ab03a747868a456db05d2471e0",
+    "exit_receipt_sha256": "5374008900e1fcf6be1e56df9dea8442f35794a02895b179aa3b589ed2214cc0",
+    "analysis_stdout_sha256": "37b9aa8fce4bb4a4d7e31cf19fe38f82447c4e8dedb2e75baebe7d4c5f2693d9",
+    "analysis_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "full_raw_files_rehashed_after_replay": 1264,
+    "all32_copied_ELFs_and_maps_rehashed": true,
+    "all128_raw_bin_bytes_rehashed": 3707613744,
+    "input_postflight_sha256": "214a9497e5e0bd812c8bc74d037f39d11d8f0110ebe09492174b0cf98fe389b8",
+    "scope": "Original unchanged analyzer CPU0 under root read privileges; output only in fresh reviewer directory. All retained raw bins and copied ELFs/maps rehashed, no build/capture/window retry.",
+    "finished_epoch": 1792156502.882527,
+    "original_worker_sha256": "4cbdfb4766ba0b17122c4048b2ddb13355bc4645d32f6183a02cfd35405e8238",
+    "reviewer_script_sha256": "19b054a4fbef2e93428f6bfaa4d27829038ce19a027a5b0ab5975ab7738efd66"
+  },
+  "replay_receipt_sha256": "b13f139bfd9a73c7b588c3cb17f1be416ea0ad26c1b7d3c3a189887ec4975545",
+  "replay_transfer_sha256": "9790f9702058f992ff38827b98af8bdc9128ef14e358df28429003241e038814",
+  "all_original_required_transfers_complete": true,
+  "all128_bins_hash_verified_against_original_postflight": true,
+  "original_plain_latency_sendlag_bins_independently_replayed": true,
+  "reviewer_full_bin_replays": 1,
+  "reviewer_measurement_retries": 0,
+  "comparison_scope": "Direct G185 versus combined9e, including inherited6ab and multiple component changes; no isolated writer contribution or additive metric inference.",
+  "retained_high_unpaced_send_lag_regressions": {
+    "p50": {
+      "left": {
+        "median": 2.76,
+        "min": 2.76,
+        "max": 2.8,
+        "rounds": [
+          2.76,
+          2.8,
+          2.76,
+          2.8,
+          2.76
+        ]
+      },
+      "right": {
+        "median": 4.6,
+        "min": 4.6,
+        "max": 4.64,
+        "rounds": [
+          4.6,
+          4.6,
+          4.6,
+          4.6,
+          4.64
+        ]
+      },
+      "relative_change_pct": 66.66666666666666,
+      "W_pct": 1.449275362318842,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "slower"
+    },
+    "p95": {
+      "left": {
+        "median": 5.36,
+        "min": 5.32,
+        "max": 6.48,
+        "rounds": [
+          5.32,
+          6.441,
+          5.36,
+          6.48,
+          5.32
+        ]
+      },
+      "right": {
+        "median": 8.72,
+        "min": 8.56,
+        "max": 8.72,
+        "rounds": [
+          8.72,
+          8.72,
+          8.56,
+          8.64,
+          8.72
+        ]
+      },
+      "relative_change_pct": 62.68656716417911,
+      "W_pct": 21.64179104477612,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "slower"
+    }
+  }
+}
