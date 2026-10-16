@@ -299,7 +299,7 @@ impl CacheContext<'_> {
         limit: usize,
         id: super::cache::EntryId,
     ) -> Result<CachedAnswer, CacheError> {
-        if !local.query_logging {
+        if !local.query_logging && local.cached_reply_buffer.capacity() != 0 {
             if let Some(entry) = cache.get(id) {
                 let data = &entry.record.data;
                 let name = question.name.as_wire();
@@ -335,6 +335,21 @@ impl CacheContext<'_> {
                 }
             }
         }
+        Self::answer_address_with_writer(cache, question, header, now, local, limit, id)
+    }
+
+    // Growth, truncation and logging retain the original writer and its
+    // frame. An empty buffer reaches it without another entry inspection.
+    #[inline(never)]
+    fn answer_address_with_writer(
+        cache: &Cache,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        id: super::cache::EntryId,
+    ) -> Result<CachedAnswer, CacheError> {
         let mut writer = PacketWriter::with_buffer(header.id, (header.flags & 0x0110) | 0x8080,
             limit, std::mem::take(&mut local.cached_reply_buffer))?;
         writer.question(&question.name, question.rrtype, question.class)?;
