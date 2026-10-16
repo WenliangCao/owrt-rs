@@ -1,0 +1,279 @@
+{
+  "status": "PASS_RAW_TEN_SCREEN_WITH_NO_DISCERNIBLE_PRIMARY_GAIN_OR_REGRESSION",
+  "author_commit": "3831e7e3",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "author_result_sha256": "0a12d1be70da8ca3bda4499aad357c54431d75f6d2e992e4f29fac64e59fb6d1",
+  "plan_sha256": "db4d4c71fc76ae3dac92aef1702b93b86ddd8228ba97ba93da265a74646ab2a9",
+  "verified_archives": 10,
+  "verified_raw_files": 430,
+  "single_thread_observations": 314,
+  "wire_samples": 600,
+  "all_raw_latency_send_lag_and_scheduled_latency_bins_recomputed": true,
+  "all_CPU_ticks_actual_denominator_and_three_primary_comparisons_recomputed": true,
+  "original_full_field_verifier_result_byte_identical": true,
+  "comparisons": {
+    "g-vs-udp-thread-local-handles": {
+      "p50": {
+        "left_median": 0.172427,
+        "right_median": 0.169504,
+        "relative_change_pct": -1.6952101469027525,
+        "W_pct": 4.373444994113447,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "p95": {
+        "left_median": 0.319387,
+        "right_median": 0.258679,
+        "relative_change_pct": -19.007661551659893,
+        "W_pct": 192.02566165811385,
+        "same_direction_pairs": 2,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "cpu": {
+        "left_median": 122.0,
+        "right_median": 116.0,
+        "relative_change_pct": -4.918032786885246,
+        "W_pct": 6.896551724137931,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false
+      }
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r1-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088561,
+        "p50": 0.17312,
+        "p95": 0.38148,
+        "p99": null,
+        "max": 28.214857
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r1-rust",
+      "artifact": "udp-thread-local-handles",
+      "cpu_ticks": 57,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 114.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089099,
+        "p50": 0.169504,
+        "p95": 0.248061,
+        "p99": null,
+        "max": 63.778539
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r2-rust",
+      "artifact": "udp-thread-local-handles",
+      "cpu_ticks": 56,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 112.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088945,
+        "p50": 0.168503,
+        "p95": 0.239444,
+        "p99": null,
+        "max": 4.84205
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r2-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090637,
+        "p50": 0.176736,
+        "p95": 0.864599,
+        "p99": null,
+        "max": 47.625757
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r3-c",
+      "artifact": "g",
+      "cpu_ticks": 59,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090638,
+        "p50": 0.169195,
+        "p95": 0.319387,
+        "p99": null,
+        "max": 10.568933
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r3-rust",
+      "artifact": "udp-thread-local-handles",
+      "cpu_ticks": 58,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087484,
+        "p50": 0.172658,
+        "p95": 0.360935,
+        "p99": null,
+        "max": 9.400721
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r4-rust",
+      "artifact": "udp-thread-local-handles",
+      "cpu_ticks": 60,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086406,
+        "p50": 0.173427,
+        "p95": 0.346855,
+        "p99": null,
+        "max": 8.096396
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r4-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.093023,
+        "p50": 0.170888,
+        "p95": 0.304845,
+        "p99": null,
+        "max": 4.489192
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r5-c",
+      "artifact": "g",
+      "cpu_ticks": 59,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.093254,
+        "p50": 0.172427,
+        "p95": 0.251294,
+        "p99": null,
+        "max": 1.292629
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r5-rust",
+      "artifact": "udp-thread-local-handles",
+      "cpu_ticks": 58,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088407,
+        "p50": 0.168965,
+        "p95": 0.258679,
+        "p99": null,
+        "max": 5.576848
+      },
+      "thread_samples": 31
+    }
+  ],
+  "primary_gains": 0,
+  "primary_regressions": 0,
+  "primary_indistinguishable": 3,
+  "absolute_median_cpu_tick_difference": 3,
+  "retained_G_round2_p95_ms": 0.864599,
+  "health": {
+    "fresh": {
+      "qualified": 126,
+      "final": 126,
+      "tail": 0,
+      "DNS": 47,
+      "HTTP": 23,
+      "HTTPS": 10,
+      "minimum_available_memory_kib": 93492,
+      "raw_sha256": "cb39559eb766eeff7c25c49b7744d17496a9b91087193883543270e8cce25102",
+      "elapsed_seconds": 125.0
+    },
+    "run": {
+      "qualified": 423,
+      "final": 423,
+      "tail": 0,
+      "DNS": 163,
+      "HTTP": 76,
+      "HTTPS": 28,
+      "minimum_available_memory_kib": 78724,
+      "raw_sha256": "9a3f913698d03ec8e813aa487e20f82bbf6ba2bdb31dfa85a0959c166685b902",
+      "elapsed_seconds": 422.0
+    }
+  },
+  "fresh_health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.752,
+    "dns_samples": 47,
+    "dns_p95_ms": 0.621,
+    "dns_max_ms": 4.697,
+    "http_samples": 23,
+    "http_max_ms": 62.614,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "f3f7109bb52fe8a3a3a7aca68b388b0f949f080535a7b57531f0ee86a83869d6",
+    "raw_sha256": "cb39559eb766eeff7c25c49b7744d17496a9b91087193883543270e8cce25102"
+  },
+  "postflight_sha256": "0d78978c661695a226eea8bbd51332a6f295f3b4fffd166f680a26f33fc8d0cc",
+  "postflight_shell_reconstructed_exactly": true,
+  "postflight_available_memory_kib": 89336,
+  "scope_limits": [
+    "Fresh exactG185 control and exact6ab product artifact only. Neither side contains allocationmeter instrumentation; no olda15/E/F/timing subtraction or historical pooling.",
+    "Original200/s UDP-hit,1000prewarm,5s warmup+20s measurement,800names,A/AAAA70/30 and unchangedtools. CPU denominator5000 correctwarmup+measurement; separate count3 cached5200 denominators are not reused.",
+    "Five alternating pairs; absolute relative median change strictly greater thanW, >=4/5 same direction. CPU requires eachwindow>=10ticks and absolute median difference strictly>8ticks.",
+    "All fullranges and everyoriginalwindow retained; no selective replacement, discarded outlier or extra favorable repeat.",
+    "p99 is unavailable for4000 latency samples. RSS/RssAnon/file/shmem ranges are descriptive and are not privateheap/PSS/USS attribution.",
+    "This ten-window UDP screen doesnot complete full44 or full110 qualification and cannot establish otherworkload performance. Production/kernel/drivers/configuration were unchanged."
+  ],
+  "retained_restoration_limit": "Retained exact controller/shell, receipts and local artifacts checked; no new live router observation. /proc/1 namespace is not an independently queried production-PID namespace.",
+  "candidate_eligible_from_screen": false,
+  "full_functional_qualification_complete": false,
+  "full110_eligible": false,
+  "deployment_authorized": false,
+  "reviewer_remote_access": false,
+  "reviewer_repeated_windows": 0,
+  "schema": "a53-g6ab-udp-device-independent-audit-v1",
+  "review_verifier_sha256": "02b2f3092dd497dcddb0aa865fa1499009729e566fdae8fb00edef540b0bf13b",
+  "retained_reviewer_schema_failure": {
+    "source_sha256": "76a7804e4f16c20e25383cfa9fc93e27fdbfd87d724fd771e3c70490ba0f1bea",
+    "stderr_sha256": "6e3594c0ad95009e902134c841c66592759ca47bc613313b857366988441d988",
+    "cause": "Reviewer initially expected an rcode metadata field that wire-sample records do not contain. Restored original query/reply-hex header, qtype, class, TTL and A/AAAA payload checks for all600 samples. No measurement repeated or raw field changed."
+  }
+}
