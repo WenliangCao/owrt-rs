@@ -20,7 +20,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def schedule(confirmation=None, residual=False):
+def schedule(confirmation=None, residual=False, g_pgo_screen=False):
     windows = []
 
     def pair(group, number, rate, left, right):
@@ -31,6 +31,12 @@ def schedule(confirmation=None, residual=False):
                             'measurement_seconds': 20,
                             'label': f'research-reset-{group}-r{number}-{side}'})
 
+    if g_pgo_screen:
+        for number in (1, 2):
+            pair('h-aa', number, 200, 'pgo', 'pgo')
+        for number in range(1, 6):
+            pair('h-g-pgo', number, 200, 'pgo', 'g-pgo')
+        return windows
     if confirmation:
         left, right = {'e-pgo': ('e', 'pgo'), 'g-c95': ('g', 'c95')}[confirmation]
         for number in range(1, 10):
@@ -137,16 +143,19 @@ def comparisons(rows):
                 'order_statistic_interval_d2_d8': [ordered[1], ordered[7]],
                 'three_pair_block_medians': [statistics.median(deltas[i:i + 3]) for i in (0, 3, 6)],
                 'scope': 'Fixed nine pairs. Nominal 96.09% coverage requires continuous approximately independent differences; this output does not establish those assumptions.'}
-    aa = output.get('g-aa', {}).get('cpu_delta')
+    aa_group = 'h-aa' if 'h-aa' in output else 'g-aa'
+    aa = output.get(aa_group, {}).get('cpu_delta')
     noise = max(abs(v) for v in aa['rounds']) if aa else None
-    for name in ('e-pgo', 'g-c95'):
+    for name in ('e-pgo', 'g-c95', 'h-g-pgo'):
         result = output.get(name)
         if result and result['cpu_delta'] and noise is not None:
             values = result['cpu_delta']['rounds']
-            result['independent_confirmation_trigger'] = (len(values) == 5 and sum(v < 0 for v in values) >= 4
-                                                         and statistics.median(values) <= -5
-                                                         and -statistics.median(values) > noise)
+            key = 'cpu_screen_trigger' if name == 'h-g-pgo' else 'independent_confirmation_trigger'
+            result[key] = (len(values) == 5 and sum(v < 0 for v in values) >= 4
+                           and statistics.median(values) <= -5
+                           and -statistics.median(values) > noise)
     return {'groups': output, 'AA_max_absolute_pair_cpu_us': noise,
+            'AA_group': aa_group if aa else None,
             'scope': 'Fixed exploratory pairs and batch-local A/A noise; no significance claim and no historical pooling.'}
 
 
@@ -208,7 +217,7 @@ def prepare(bindings, out):
     run.write(out / 'staging.json', {'epoch': time.time(), 'records': records, 'production_unchanged': True})
 
 
-def execute(bindings, out, health_path, confirmation=None, residual=False):
+def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo_screen=False):
     baseline = json.loads(health_path.read_text())
     assert baseline['valid'] and baseline['elapsed_seconds'] >= 120
     artifacts = bindings['artifacts']
@@ -217,7 +226,7 @@ def execute(bindings, out, health_path, confirmation=None, residual=False):
                          **{v['name']: v['sha256'] for v in artifacts.values()},
                          **{v['name']: v['sha256'] for v in bindings['new_tools'].values()}})
     assert not (out / 'progress.json').exists()
-    original_schedule = schedule(confirmation, residual)
+    original_schedule = schedule(confirmation, residual, g_pgo_screen)
     if any(row['artifact'] == 'exact-c' for row in original_schedule):
         checks = [f'test "$(sha256sum {path} | cut -d " " -f 1)" = {digest}'
                   for path, digest in bindings['exact_C_runtime_libraries'].items()]
@@ -314,12 +323,14 @@ def main():
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument('--confirmation', choices=('e-pgo', 'g-c95'))
     selection.add_argument('--residual', action='store_true')
+    selection.add_argument('--g-pgo-screen', action='store_true',
+                           help='Fixed H/H two pairs followed by H/G+PGO five pairs')
     args = parser.parse_args(); bindings = json.loads(args.bindings.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     if args.prepare: prepare(bindings, args.out)
     else:
         if not args.health: parser.error('--health required for execution')
-        execute(bindings, args.out, args.health, args.confirmation, args.residual)
+        execute(bindings, args.out, args.health, args.confirmation, args.residual, args.g_pgo_screen)
 
 
 if __name__ == '__main__':
