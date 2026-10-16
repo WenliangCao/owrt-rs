@@ -1,5 +1,5 @@
 {
-  "status": "ORIGINAL_WARM_OWNER32_LAUNCHED_AFTER_ACTUAL_REMOTE_AUDITS_AND_FRESH_QUIET",
+  "status": "ORIGINAL32_AND_AUTHOR_ANALYSIS_COMPLETE_REMOTE_INDEPENDENT_REPLAY_PENDING",
   "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
   "final_plan_commit": "fb224fe6",
   "final_plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
@@ -51,12 +51,21 @@
     "scope": "No devices accessed by loop. Different-host timing overlap is recorded, not pooled or used as a correction."
   },
   "raw_download_audit_deferred": true,
-  "measurement_complete": false,
+  "measurement_complete": true,
   "performance_accepted": false,
   "native240_run": false,
   "scope_limits": [
     "Original 32 windows,12 stat and20 plain; no modified probes, counters, thresholds, order, analysis or retries.",
     "G185 versus6dad includes inherited6ab; no isolated-writer attribution.",
     "Independent original remote raw/ELF audits passed; local bulk archive completeness audit remains due after DHCP device50 restoration."
-  ]
+  ],
+  "completion_sha256": "65bf5eb769af539b28c6c41868942603f5315219722a9cfe154636942e4813aa",
+  "analysis_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+  "postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+  "release_to_correctness_sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+  "concrete_ready_schema_peer": {
+    "commit": "87cb6e9f",
+    "sha256": "5feeca85fcebfeff0ab9feabd5929e9650f4c98309c3190c2fac0b5977603417"
+  },
+  "retained_local_release_adapter_failure_sha256": "552b29566ae324cc0fff6602d445e876205ff54b0fbf3f8f2a434bcca0f54322"
 }
