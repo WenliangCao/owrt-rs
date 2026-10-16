@@ -17,15 +17,29 @@ inherited `RUSTFLAGS` and `CARGO_ENCODED_RUSTFLAGS`; it does not inject
 Any future run must also exclude Cargo profile environment overrides and verify
 the prepared manifest and effective compiler invocation. No such run occurred.
 
-There is a reporting caveat: the existing builder hardcodes `opt_level: '3'`
-in its receipt metadata. That field is not a compiler argument. Before any803
-build is selected, its final receipt must accurately bind profile2 and actual
-compiler flags, through a separately reviewed receipt or a minimal metadata-only
-builder copy. The canonical builder used for7c and6ab stays byte-identical.
-This preparation neither alters a builder nor claims the hardcoded field is
-evidence of the actual optimization level.
+The canonical builder hardcodes `opt_level: '3'` in its receipt metadata;
+that field is not a compiler argument. A separate
+[`perf_opt_sdk_build_opt2.py`](../../../../../tools/dnsmasq/perf_opt_sdk_build_opt2.py)
+copy is now prepared for803. It checks the exact source release profile,
+rejects ambient `CARGO_PROFILE_RELEASE_*`, and records level2. It enables
+Cargo's documented verbose log output, then retains both actual lib/bin rustc
+commands and rejects missing, conflicting or wrong optimization settings before
+claiming `built-unqualified`. Target, codegen1, panicabort, strip and binary fat
+LTO are also checked. Compiler/linker/package commands and original budgets
+are unchanged. The original7c/6ab builder remains exactly `f4540b1c…`.
+
+Four rejection/parser tests and a tiny real local Rust1.98.1 Cargo logging
+fixture passed. This is tooling validation; no803 product or SDK build ran.
+The [builder preparation](185-opt2-sdk-builder-preparation.json) binds exact
+tool/control hashes. It requires Python3.11+ for stdlib TOML parsing and still
+awaits independent local review. No remote upload or build is authorized while
+the original native240/owner32/full44 queue owns Oracle. Cargo's
+[verbosity configuration](https://doc.rust-lang.org/cargo/reference/config.html#termverbose)
+and [profile precedence](https://doc.rust-lang.org/cargo/reference/profiles.html)
+were checked against its official documentation using `find-docs`.
 
 The existing local rust-lld text reduction of about5.15% remains local codegen
 evidence. It is not an original SDK size or performance result. This compiler
 experiment stays behind6ab's actual related gates and the authorized sequential
-7c/6ab SDK work. There was no upload, build, test run or Oracle access here.
+7c/6ab SDK work. Only local tooling controls ran; no803 product test, SDK build,
+upload or Oracle access occurred in this preparation.
