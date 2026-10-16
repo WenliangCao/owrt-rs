@@ -1,7 +1,7 @@
 {
-  "candidate": "H: existing E+PGO (proposed)",
-  "status": "proposed-not-accepted",
-  "scope": "Artifact0910b49 only; no source change, rebuild, retraining, remote access or acceptance inferred. G/c95/D1 and failed opt2 are excluded.",
+  "candidate": "H: existing E+PGO",
+  "status": "ACCEPTED_DEVICE_PERFORMANCE_CANDIDATE",
+  "scope": "Original0910b49 artifact, exactE source and original merged profile. Accepted under the research supplement after fresh actual-ELF correctness, complete G/H device matrix and one independent review. No rebuild, retraining, firmware integration or deployment. G/c95/D1 and failed opt2 are excluded.",
   "decision_record": "docs/dnsmasq/audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md",
   "source": {
     "commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
@@ -241,12 +241,87 @@
   "not_verified_here": [
     "Byte-identical repeat use build or deterministic retraining.",
     "Original50 raw profile contents,prestrip,SDK/compiler binary bytes are not locally rehashed; their original pinned identities remain in the receipt/build evidence.",
-    "This artifact manifest does not certify full44/67,shipping-ELF boundaries,independent9-pair confirmation or the118-window matrix; root owns final acceptance from the unified result.",
     "Integrated firmware/install/rollback/free-space validation or deployment authorization."
   ],
   "offline_reproduction_inputs_not_locally_available": [
     "Original50 Oracle pgo-train1/training/profiles/*/*.profraw contents; the exact merged profile needed for profile-use and full50-entry SHA256 inventory are now local.",
     "Oracle pgo-train1/use/dnsmasq-prestrip for optional offline companion revalidation; original APK is now local.",
     "Pinned Rust1.98.1/LLVM22.1.8 toolchain and original SDK archive; hashes recorded above."
-  ]
+  ],
+  "qualification": {
+    "protocol": "FROZEN_RESEARCH_SUPPLEMENT_20261016.md",
+    "actual_shipping_elf": {
+      "families": 44,
+      "jobs": 67,
+      "passed": true,
+      "family_result_sha256": "cb7dcb2cacf70a80eeea62c13efe5e025e1a649a1674e40de455136203c36faf",
+      "F10": "13 cases/704 observations; original35 PTR-order qualifications retained",
+      "protocol_boundary": "368 pairs,366 exact; original2 C forward-pointer defects retained",
+      "TCP_boundary": "13 conditions/50 pairs; original expected timeout on both sides retained"
+    },
+    "source_level_only": "Same-E cache764commands/164queries/382metrics,transfer307,stale1100,lease36/269 reused with source identity; original UID2/raw exit1 retained. These are not fresh PGO machine-code probes.",
+    "device": {
+      "control_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "control_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "scenes": 11,
+      "windows": 118,
+      "valid_windows": 118,
+      "failed_windows": 0,
+      "replacement_windows": 0,
+      "primary_metrics": {
+        "improved": 13,
+        "discernible_regressions": 0,
+        "unresolved": 20
+      },
+      "result_sha256": "f6ee48ea3cc33ea56bef35e0b05faf79606c30c2e4c3e9c642e5fc6e61e8de99",
+      "udp_hit_cpu_clock_us_per_query_medians": [
+        115.3187851,
+        94.6739073
+      ],
+      "udp_hit_paired_median_difference_us": -21.1329182,
+      "udp_hit_d2_d8_us": [
+        -29.3940802,
+        -16.316644
+      ],
+      "udp_hit_three_pair_block_medians_us": [
+        -21.2760389,
+        -20.7657938,
+        -25.0887021
+      ]
+    },
+    "same_source_E_control": {
+      "windows": 18,
+      "paired_median_cpu_difference_us": -47.9043808,
+      "paired_median_percent": -31.777098185664833,
+      "result_sha256": "739ecea262d3061f7e3832d7dae02a092fe2e464f8d18fd4c934fc529c617974",
+      "interpretation": "Single-source PGO comparison; do not add historical G and PGO improvements."
+    },
+    "independent_review": {
+      "path": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/e-pgo-qualification/review-h-118-progress.json",
+      "sha256": "1235abbf49cbfda53eeb4bf6fe2d04969f87a44901c25ab17637e58e668c09b9",
+      "reviewed_artifact_manifest_sha256": "7241d412f268e59c4a0fff4cb6b5b90dfb36e110807b0657e977831291673117",
+      "result": "No blocking issue for software qualification/performance acceptance;118 archives/3850raw files and all33 primaries match."
+    },
+    "correctness_raw_archive_sha256": "39ecec02bfd0a15444479f1b7df72f89a19cf1ed282803e3392dd04594510c3c",
+    "device_restore": {
+      "closure_sha256": "cbd23bf5a5874d5039723cbb6bdd5bfcbaf5b168fac323a7e366c500d9761a0c",
+      "minimum_MemAvailable_KiB": 67564,
+      "original_reserve_KiB": 65536,
+      "E_F_restored": true,
+      "production_pid_start": [
+        3086,
+        2115
+      ],
+      "production_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7"
+    },
+    "resource_decision": "Retain full ranges. RSS medians fall12..328KiB and Anon peak medians fall8..36KiB across11 scenes. TCP-miss RSS peak median rises28KiB. FD medians match; UDP-miss peak range G12..13/H13..15, with15 observed once then12 and allH endpoints12. These measured small transient increases do not show persistent growth; no new resource limit is introduced.",
+    "limits": [
+      "TCP-hit p95 median rises18.125%,3/5 pairs rising,W65.389%: unresolved, not universal tail improvement.",
+      "CPUclock resolves sub-tick accumulation, not nanosecond accuracy. Pair interval independence is not established.",
+      "Traffic sampling cannot rule out short unobserved children; lifecycle resources are readiness snapshots. RSS/Anon/Shmem are not USS or unique cache footprint.",
+      "Oracle complete performance matrix not repeated under3d4 supplement; its PMU diagnostics are separate from A53 acceptance.",
+      "Full integrated firmware, installation/rollback and final rootfs/user-free-space envelope remain unverified."
+    ],
+    "behavior_fixes": "Approvedb1136023 expired-CNAME repair is common toE/G/H and is not a varying factor in these performance numbers. Its independent v0.2.0 cost is not measured here. No new behavioral repair inH; UBus count/tool repairs do not change the timedELF."
+  }
 }
