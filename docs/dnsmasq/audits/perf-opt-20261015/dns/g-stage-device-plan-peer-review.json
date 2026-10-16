@@ -1,0 +1,25 @@
+{
+  "status": "PASS_LOCAL_DISABLED_ORIGINAL_G_STAGE_FIFTY_WINDOW_PLAN",
+  "plan_commit": "28d60cb4",
+  "plan_sha256": "86af9d612a85962a3bdd72c1c99ea4cb58c8571eca6201ac117b7a15d87b53f1",
+  "entry_sha256": "260a43b024fdcbe987d73bcbff1abc5eede23c03094b86c5ab4e65e204f6e69e",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "original_E_plan_sha256": "6b403edb27d555de7588504a68acc4bc6206c6c677baaeee792b5c1c191ed30c",
+  "checks": [
+    "All50schedule rows exactly equaloriginalE plan afteronlyEtoGcontrol/prefix/group substitutions;5separategroups with5freshABpairs each.",
+    "OriginaloneELF4mode contract:20full,15cut,15normalwindows. ExactC/Gcalibration,G/fullcalibration,andownfullcontrols stayseparate.",
+    "E/Fartifactrolesaddedonlyforrestore; neitheris timed.5immutable rolesC/E/F/G/stage areconsistent.",
+    "Originalcontroller/analyzer/sharedrunner/health hashes,workload,helpers/slots,5000CPUdenominator,W/direction/strict>8ticks andarchive/recovery retained.",
+    "a34Gbufferreuse caveataccurately replacesoldEforcedallocation description; noallocationzero assertion,meter,additivecost orCwireequivalence claim.",
+    "Actualgate/SDK/budget/reviews/quiet remainnull; noold86/957/961 countassumed; exactCfourruntime librarypins retainedforfreshdeviceverification."
+  ],
+  "health_tool_scope": "Usescurrentalreadyreviewed41ef/0926capture-boundary helper, not historical59b pre-boundary frozenrunner. No healthgateweakened.",
+  "limitations": [
+    "Read-onlysource/metadata review, no mocktest reexecution/device/Oracle/build/workload.",
+    "Entrypreservesoriginalsharedrunner: disabledmetadata isnotaruntimeauthorizationguard; actualgate/artifact/health/restorebindings requiredbyoperator beforelaunch.",
+    "OldE/full absenceofdiscernibledifference doesnotqualifyG/full; same-run50-windowcalibration mustoccurfresh."
+  ],
+  "remote_accessed": false,
+  "files_or_measurement_tools_changed": false
+}
