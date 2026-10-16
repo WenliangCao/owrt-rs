@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "status": "local preparation; root concept bound and0161 audit complete; exact185 Linux/source review and SDK identities pending",
+  "status": "frozen exact185/acceptedE exploratory10; prior0161 independent audit and newLinux940/source/SDK179identity passed; fresh health pending",
   "scope": "Exploratory acceptedE/cached-zero-frame185 A53 UDP-hit comparison; not full44/complete11-scene acceptance or G selection.",
   "reason": "Exact185db90c combination of reviewed03ace reply reuse plusa8dcdacc entry-frame split; independent experiment, no additive estimate from separate prototypes.",
   "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
-  "prior_gate_scope": "New exact185 Linux/source review and unchanged SDK build must pass before any device load. No previous0161,8d572 or standalone gate/artifact substitutes.",
+  "source_files_verified": 179,
+  "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "elf_bytes": 2145051,
+  "map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+  "build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "prior_gate_scope": "Exact185 Linux940 and interaction/source review pass; canonical SDK179source/size/hardening pass. Full44/67 and full11-scene acceptance remain pending.",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
   "entry_sha256": "f02b123d48ca95997032e45ab7de847874bbe03b35e6ca6a87aa9816e148a82b",
@@ -25,7 +25,7 @@
     },
     "cached-zero-frame": {
       "name": "a53-cached-zero-frame-artifact-cached-zero-frame",
-      "sha256": null
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
     }
   },
   "measurement_artifacts": {
@@ -153,19 +153,17 @@
   "automatic_replacement": false,
   "source_inputs_expected": 179,
   "pending_before_launch": [
-    "New185 exact-source related Linux gates and interaction/source review pass.",
-    "Loop provides immutable185 ELF/map/build and transfer interval before Oracle timing; verify179source and all full hashes then commit binding.",
-    "Fresh>=120s original health/recovery and all original identity/tool gates before isolated10."
+    "Fresh>=120s original health plus contemporaneous production/currentE-F slots/offline restore copies/idle-owned state and helper hash checks."
   ],
-  "artifact_verification_receipt_sha256": null,
+  "artifact_verification_receipt_sha256": "2e10751784d548f29f80979100bce8f2061b1ada320f2fe362863aac6504cd92",
   "baseline_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
   "baseline_E_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
   "restore_only_F_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
   "concept_plan_commit": "b17f4010",
   "concept_plan_sha256": "8d1d25e8999aa2fd583e23dbd3308c0885cd982ec6aa168f908aa1fb3b02931d",
-  "related_linux_verified_receipt_sha256": null,
-  "related_linux_report_sha256": null,
-  "source_review_report_sha256": null,
+  "related_linux_verified_receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501",
+  "related_linux_report_sha256": "a39b21bc6f00eafff5a1f3c2b4b98e941d25ea054691cba9a49b931c807fc913",
+  "source_review_report_sha256": "f15a285ca6d69f25698e77ac04e2c07d320c5661cf1983e9067e86a870b8ee4c",
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
   "comparison_policy": "Exactly five alternating acceptedE/185 pairs. F is restoration-only. No earlier0161/8d572/F/E-B/prototype control pooling or summing of standalone gains. Original strictW,>8ticks,direction,20s and all observations remain.",
   "prior_0161_audit_commit": "a8bc7e1b"
