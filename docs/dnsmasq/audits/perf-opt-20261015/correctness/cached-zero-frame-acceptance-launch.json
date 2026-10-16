@@ -1,0 +1,47 @@
+{
+  "status": "FULL_QUALIFICATION_STARTED_SHORT_GATES_RUNNING_NOT_PASSED",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+  "shipping_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "shipping_elf_bytes": 2145051,
+  "same_build_map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+  "same_build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "source_files_verified": 179,
+  "script_sha256": {
+    "run_cached_zero_frame_short.py": "02284f0a2043610ea0080eb8dde1e6026d0b55a7320a704e295670d16f99da94",
+    "build_cached_zero_frame_allocations.py": "b589d505642b8547be6ffa4486ac36ae00141b35aa32005a21248a47a7f0253e",
+    "run_cached_zero_frame_tcp.py": "8bdbdffea2a6dc5fa4bd4d1ac214086cddec016f8398112e1ed033055470bac7",
+    "run_cached_zero_frame_corpus.py": "21f299db45ea241550db77da241966e631e9c92b02823f2aa10cc7f753ddd3b0",
+    "run_cached_zero_frame_remaining.py": "5dc87be76486dae9132eacd88fda53f59005ca9cfc7ce2bbbf4cb53c34e6a697",
+    "audit_cached_zero_frame_families_final.py": "da5f83dac597e0aad6665cab88065e36d3804512b6f3376198ff7094b5cc6a58",
+    "audit_cached_zero_frame_boundary.py": "898447ac61580dcb79693cb2b6a7a192058af765b6d947c9b8b5175c58c1b572"
+  },
+  "family_argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame/docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+    "--elf",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/dnsmasq-rs",
+    "--link-map",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/link.map",
+    "--commit",
+    "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "--base-identity",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-zero-frame-families-attempt1",
+    "--jobs",
+    "3"
+  ],
+  "short_argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_cached_zero_frame_short.py"
+  ],
+  "short_pid": 673162,
+  "short_process_start_ticks": "184017974",
+  "start_epoch": 1792115562.527681,
+  "preflight_sha256": "b5d322036df000dee11e38a4376b311e0e670efff5d12cd04451d8008f853171",
+  "A53_independent_report_sha256": "63881d0d8df7e862bdf2d51f68301f6af590646083bb07230a33ab5605f9b878",
+  "scope": "Root authorized original full qualification after exact A53 CPU screen passed; fresh short/probe builds then original44/67 and serial boundary/corpora, no timing overlap."
+}
