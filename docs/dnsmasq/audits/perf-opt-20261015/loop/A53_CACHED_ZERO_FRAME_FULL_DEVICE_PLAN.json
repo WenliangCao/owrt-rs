@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "LOCAL PREPARATION; reviewed generic full-tail tool binding complete; actual exact185 fullqualification and quiet still pending",
+  "status": "Full originalfunctional qualificationPASS and reviewed generic runtimebindingPASS; fresh originalhealth/live recovery and DNSpretransfer completion remain before authorizedfull110",
   "execution_started": false,
   "conditional_execution_authorization": "Root explicitly permits freshhealth/recovery/fullE185110 after actual exact-source complete qualification PASS and reviewed generic-full-tail repair hashes bound. No additional approval is required then. These conditions are not yet met.",
   "scope": "PhysicalA53 acceptedE/185 complete11-scene matrix, separate from exploratoryten and all Oracle/historical controls. No installation/restart/configuration/flash change.",
@@ -38,8 +38,8 @@
     "samples_must_not_be_pooled": true
   },
   "full_qualification": {
-    "actual_PASS": false,
-    "receipt_sha256": null,
+    "actual_PASS": true,
+    "receipt_sha256": "d76634eab46459a2a38e672da8e1eb86d79a250cf5b4b0c367ee79392fe2d4be",
     "required": [
       "All ordinary and relevant ignored namespace/config/frozen-clock tests; entire original hosts_allocations target (17 existing cases, not16) and all original allocation-failure families",
       "Canonical44 C differential families,68 registered/67 executed procedural steps with190 semantic requirements, frozen exactC",
@@ -55,7 +55,12 @@
     "registered_steps": 68,
     "executed_steps": 67,
     "related_Linux940_not_a_substitute": true,
-    "hosts_allocations_count_clarification": "Derived text corrected from16 to the actual complete original target17; no frozen test selection, expectation or rule changed. Current185 short groups957 passed, still not fullqualification."
+    "hosts_allocations_count_clarification": "Derived text corrected from16 to the actual complete original target17; no frozen test selection, expectation or rule changed. Current185 short groups957 passed, still not fullqualification.",
+    "commit": "3c8d46e9",
+    "quiet_receipt_sha256": "2c0b9adda89eaaaccf377a00f64b4f3d194655e1bc497703d6ebef0498cece3b",
+    "quiet_epoch": 1792118277.5376084,
+    "source179_and_shipping_artifacts_rechecked": true,
+    "short_total_passed": 957
   },
   "tools": {
     "historical_generic_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
@@ -88,7 +93,8 @@
     "fresh_health_bundle_files": {
       "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
       "device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
-    }
+    },
+    "author_offline_verifier_sha256": "14030660e2bd77420cc9cd2eb9ad42f12bd6d682aa7e43bde1fe440120aecc3b"
   },
   "matrix": {
     "prefix": "cached-zero-frame-vs-e",
