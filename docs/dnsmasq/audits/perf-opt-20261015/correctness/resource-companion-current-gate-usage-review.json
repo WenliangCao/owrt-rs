@@ -1,0 +1,69 @@
+{
+  "schema": "resource-companion-selected-gate-usage-review-v1",
+  "status": "NOT_CALLED_BY_SELECTED_FULL44_OR_GENERIC_RESOURCE_PHASES",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "generator": {
+    "path": "tools/dnsmasq/m6b_resource_companion.py",
+    "sha256": "0e3bd355f49f83395f681112a2e87329591385189b9bb1d65b63bcf62f34c109",
+    "scope": "Separate diagnostic source-copy generator; no product runtime caller."
+  },
+  "selected_full_qualification": {
+    "preparation_commit": "1128afb4",
+    "family_registry_families": 44,
+    "registry_steps_including_procedural_archive_job": 68,
+    "selected_jobs": 67,
+    "call_chain": [
+      "run_family_gates.py",
+      "audit_20261011_families.py",
+      "m5_final_validation.commands(spec, families, output)",
+      "Original registry step argv only; no broad Python unittest discovery."
+    ],
+    "remaining_worker": "Only fresh release-probe orchestration, F10/protocol/TCP and four original corpora; the two Python unittest invocations select test_f10_contract_check.py and test_tcp_upstream_parity.py explicitly.",
+    "calls_resource_companion": false
+  },
+  "original_generic_resource_phases": {
+    "resources": [
+      "m3_soak.py pair mixed-300",
+      "cache_full_resource.py pair full-cache-300"
+    ],
+    "full-cache-600": [
+      "cache_full_resource.py pair full-cache-600"
+    ],
+    "pressure": [
+      "m3_soak.py pressure enospc/emfile"
+    ],
+    "calls_resource_companion": false
+  },
+  "separate_explicit_companion_recipes": [
+    "docs/dnsmasq/audits/M6B_TCP_A_SERVICE_RESOURCE_GATE.md:142",
+    "docs/dnsmasq/audits/M6B_TCP_A_INTERNAL_RUNPLAN.md:25",
+    "docs/dnsmasq/audits/M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE.md:311"
+  ],
+  "separate_recipe_scope": "These explicitly prepare/bind the instrumented TCP A companion and would require its generator if selected. They are not part of the current full44/67, generic resources/full-cache/pressure paths or queued803 five-groups/SDK execution.",
+  "code_reference_search": "Exact6ab tracked tools reference the module only in its own test_m6b_resource_companion.py import; historical manifests listing its hash do not execute it.",
+  "static_anchor_observation": {
+    "185db90c9cabd26c0af09765636ef15bf6d35f79": {
+      "main_rs_sha256": "48fa89d6cfcec4627c358163fb7b51322fa5e9ec7ac008a6ccfd37b87750ec01",
+      "old_Instant_now_anchor_occurrences": 0,
+      "current_started_anchor_occurrences": 1
+    },
+    "6ab0f064b69087add3be1cb2bf5604fbaf42dffa": {
+      "main_rs_sha256": "fe010726f45d7a392d05da5d9eaf928fe66c2128b668931a07fd2e0033661cb3",
+      "old_Instant_now_anchor_occurrences": 0,
+      "current_started_anchor_occurrences": 1
+    }
+  },
+  "failure_evidence_scope": "No generator prepare was invoked by reviewer and no new actual failed gate is claimed. Static old-anchor count0 is recorded as tool/source drift.",
+  "decision": "Leave generator, current acceptance scripts and source unchanged. If a future selected gate actually invokes companion generation, preserve its fail-closed attempt before a narrow separately reviewed adapter; clamp the sampler deadline before the started-time timeout decision.",
+  "reviewed_path_sha256": {
+    "tools/dnsmasq/m5_final_families.draft.json": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+    "tools/dnsmasq/m5_final_validation.py": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+    "tools/dnsmasq/audit_20261011_families.py": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860",
+    "tools/dnsmasq/m3_soak.py": "8ece6074d7544f118c8f4bd15e1741d988c0b8e71133257c3e1e73ecf9e4d7b7",
+    "tools/dnsmasq/cache_full_resource.py": "95f1e991f80201271ac40c1cea586c9f01ca9fb3a08d13042b59164ffda95d26",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py": "6c56077e3ccf8d2ea605271da14751d2c4ea7f318c52b59818dcf68af2b41db3"
+  },
+  "new_test_or_gate_added": false,
+  "tool_or_product_modified": false,
+  "remote_accessed": false
+}
