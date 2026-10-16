@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "status": "SOURCE_INTERACTION_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
+  "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "base_commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+  "scope": "Composition-only review of unchanged cached-address local eligibility with previously reviewed synchronous UDP name-buffer reuse; no product edit or extra test framework.",
+  "composition": {
+    "three_exact_cherry_picks": [
+      {
+        "original": "f0a96480",
+        "applied": "149c48fa",
+        "stable_patch_id": "8d59c0dc0ea00ebeb6148b970684dfea7748a55e"
+      },
+      {
+        "original": "8955d17c",
+        "applied": "a5285d8d",
+        "stable_patch_id": "49c967bb746a978080de46b43c634f7e2151eec2"
+      },
+      {
+        "original": "f404ed75",
+        "applied": "0161ad9c",
+        "stable_patch_id": "ef7f7345742bd2ec5be202463a76570f31a68c17"
+      }
+    ],
+    "source_file_identity": {
+      "components/dnsmasq/src/dns/cache.rs": {
+        "sha256": "8230a92b160eadffe8a73419a6760030090a1512ae64a9b7704fa2696c010018",
+        "byte_identical_to": "54bd1e56f3388bb704cead10bf2d02433ffbd369"
+      },
+      "components/dnsmasq/src/dns/local.rs": {
+        "sha256": "19fc0c2267c0b6e298c253e416631336b9e061025e6119f1400bd92d8c50444a",
+        "byte_identical_to": "54bd1e56f3388bb704cead10bf2d02433ffbd369"
+      },
+      "components/dnsmasq/src/hosts.rs": {
+        "sha256": "cf3973555a7d693279618e5158722df2a0bfb88c8e529981c2a37784a4d19d2f",
+        "byte_identical_to": "54bd1e56f3388bb704cead10bf2d02433ffbd369"
+      },
+      "components/dnsmasq/src/dns/daemon.rs": {
+        "sha256": "4be13c9bc5be8a08545f1642de402cfe7567a195b24459eaf98e8b0c3a2ab652",
+        "byte_identical_to": "f404ed754a26f9385c733e7474f28e4595520957"
+      },
+      "components/dnsmasq/src/dns/forward.rs": {
+        "sha256": "4a4237e1aefbd3f16238d1b1c7d2bbd792816364a27b96232218bafe8116dd19",
+        "byte_identical_to": "f404ed754a26f9385c733e7474f28e4595520957"
+      },
+      "components/dnsmasq/src/dns/wire.rs": {
+        "sha256": "6575d520d6a900a2cf95e6d43797b472e1703ee3c75ace4c064a90c2cb535153",
+        "byte_identical_to": "f404ed754a26f9385c733e7474f28e4595520957"
+      }
+    },
+    "existing_54bd_tests_unchanged_and_original_name_buffer_test_appended_byte_identically": true,
+    "appended_test_sha256": "4dca2bd45d63c0180abbd85f3cad7027bf25557f6cc3c5e0677eb6eebc7ed267",
+    "manual_product_edits": false
+  },
+  "interaction_review": [
+    "The owned Question is created before the synchronous answer closure. LocalAnswerer and CacheContext borrow this same Question; NameLookup remains local to answer_local_or_cached and expires before the closure returns. Reusing underlying Vec capacity across requests cannot preserve an old hint.",
+    "54bd read-only selection and owner/root/revision/generation/type/fresh checks are unchanged. Its mutable cache-answer helper still performs LRU promotion only in the original answer path.",
+    "Lease expiry runs before cached-CNAME/local eligibility. The same-name host/raw/rule/CNAME fallback and lease160\u2192100sticky behavior retained from54bd remain exercised by the original coexistence tests.",
+    "Header parse failures precede taking the stored buffer. Question-count/decode failures restore scratch, including partial data; the next decode clears it. All Result paths inside local/cache/stale/policy/upstream work reach the final owned-Name-to-Vec recovery.",
+    "Reply packets and QueryResult are owned. Normal forwarding still parses and owns a separate Question, recipient question_name, canonical key and packet. Pending/coalesced requests retain no reference to the reusable scratch.",
+    "walk_name validation, extra4footer bounds, compression and invalid-name semantics are unchanged. TCP and other parsing entrypoints retain their original behavior.",
+    "One per-daemon buffer retains amortized capacity after warmup. Valid names fit255wire bytes; uneven label growth can retain380bytes. The original greater-than256/at-most512 fixture and partial/overlong error recovery remain, with no shrink or new reserve policy."
+  ],
+  "regression_evidence": {
+    "related_linux_required_names": [
+      "dns::daemon::cache_tests::cached_local_shortcut_keeps_same_name_hosts_raw_and_rule_precedence",
+      "dns::daemon::cache_tests::cached_local_shortcut_expires_live_lease_before_cache_and_clock_rollback",
+      "dns::local::tests::query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names",
+      "dns::cache::tests::fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback",
+      "hosts::tests::retained_finite_and_immortal_lease_links_follow_exact_c_counterexample",
+      "dns::daemon::cache_tests::prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned"
+    ],
+    "local_lib": "720passed/8ignored on finalsource, retained logs inspected.",
+    "local_musl_all_target_check": "Retained final log ends successfully; not rerun by reviewer.",
+    "local_log_sha256": {
+      "lib.stdout": "8b40e5e07d097858de0de48723933c3aa73eda59cfe5899df02fa805309e035b",
+      "lib.stderr": "172fe385d3444b364725cf237e3618ae621df219a7a14fd551eac96241462ddf",
+      "check.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "check.stderr": "dc2834ffaac6716d721e209c673eb2fb9fc37b0cc03451ecdff5395f816b253c"
+    },
+    "original_source_reviews": [
+      "cached-local-miss-source-review.json",
+      "udp-name-buffer-source-review.json"
+    ]
+  },
+  "allocation_diagnostic": {
+    "probe_sha256": "3b0fd2e5400414f0418c812c909ecf5477060bbdca040c8fd2bc550e5c27490a",
+    "runner_sha256": "f2c331c5aa3a0aa8e9809fcf111c3eeb5c66c56a536bb8e27c46df935130811b",
+    "command_receipt_sha256": "76fc34faf3419ec48c08b3ff7350dba2b9084ff01afe97fb3599bb0bd062ddd6",
+    "rows_sha256": "9952eb7df2ac67d7242f0a58170102f6d2cd1ac1bcd1456594611e45575a484e",
+    "all_18_command_log_hashes_checked": true,
+    "GlobalAlloc_block_identical_to_existing_probe": true,
+    "rows": [
+      {
+        "side": "F",
+        "operations": 8000,
+        "allocations": 32000,
+        "reallocations": 0,
+        "requested_bytes": 1960000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "allocation_calls_per_operation": 4.0,
+        "requested_bytes_per_operation": 245.0,
+        "binary_sha256": "d0e27c61a8d6a2ce0cbffbba0f803a2178fb2e48551aab8b488f30519329ea51"
+      },
+      {
+        "side": "cached-only",
+        "operations": 8000,
+        "allocations": 16000,
+        "reallocations": 0,
+        "requested_bytes": 1280000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "allocation_calls_per_operation": 2.0,
+        "requested_bytes_per_operation": 160.0,
+        "binary_sha256": "a7ec28cbc3309148863f9ab974b1c976a6577eeb85978a57036a5401ac92aeef"
+      },
+      {
+        "side": "cached-name",
+        "operations": 8000,
+        "allocations": 8000,
+        "reallocations": 0,
+        "requested_bytes": 1024000,
+        "live_bytes_delta": 0,
+        "checksum": 468800,
+        "allocation_calls_per_operation": 1.0,
+        "requested_bytes_per_operation": 128.0,
+        "binary_sha256": "99c74a4739064ad211969cba6af9a21a2a2f45aaf3d8f994b03ebde48b348541"
+      }
+    ],
+    "scope": "Retained local public prepared UDP path allocation counts only: real800cachednames70/30A/AAAA,1000warmup,8000counted calls. Not wholeowner,SDK,networktimingorA53performance.",
+    "checksum_limit": "The checksum sums response lengths; matching checksum/header checks are not a new byte-for-byte protocol oracle.",
+    "retained_capacity": "The per-daemon scratch is retained after priming; live_delta0 is steady-state balance, not zero retained memory."
+  },
+  "historical_evidence_retained": {
+    "name_buffer_device_report": "udp-name-buffer-device-independent-audit.json",
+    "name_buffer_device_report_sha256": "85a0a47cca0d278bf5a69e9dbc0ce0ab01555ab9e45c4688ac431395b87ae9f0",
+    "name_buffer_device_result": "Original standalone F comparison had no discernible primary metric improvement, including CPU. Do not add its result to this combination or infer A53/E-relative CPU gain from allocation counts.",
+    "fixture_repair_report_sha256": "a1724aa901fb3248160dfbe6d92ea7e7485d9673305b00edaef13e34f4f16f0f",
+    "original_failed_binary_sha256": "63f7cf063cb74d8ac75b7565139ed810ed35d06e217b4570ec3a2898571ffc6a",
+    "original_716pass_1fail_8ignored_and_initial_Arc_import_error_preserved": true
+  },
+  "related_linux": {
+    "report": "cached-local-name-linux-gates.json",
+    "report_sha256": "9bb66eb95167ad3ec4beffd9871940970961c01f84b5d685ec80f758cf92bedd",
+    "verified_receipt_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea",
+    "total_passes": 939,
+    "groups": {
+      "lib": 835,
+      "lib-ignored-live": 18,
+      "bin": 82,
+      "bin-ignored-live": 4
+    },
+    "source_identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
+    "candidate_F_and_previous54bd_source_inputs_rehashed_each": 179,
+    "all_processes_exited": true
+  },
+  "review_result": "No new interaction blocker found in the composed source or original related gates. Exact source is ready for separate SDK/device screening; no full44 or performance acceptance follows.",
+  "full44_qualified": false,
+  "selected_G": false,
+  "performance_accepted": false,
+  "deployment": false
+}
