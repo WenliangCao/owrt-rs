@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "status": "NO_SOURCE_REVIEW_BLOCKER_LOCAL_COMPILE_CHECKS_ONLY",
+  "source_commit": "722d2762a275c7d29c2caf80088d9ecb2c5738d5",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_sha256": "8dd446eb68419523a57877745dfb098da4a90f5da0d998f8e95b5eb2a81eeacf",
+  "scope": "Read-only review of two wait_for_files clock-read guards. Independent185child, not included in185or0161 qualification. No compilation/test/Oracle/router operation by reviewer.",
+  "changed_files": [
+    "components/dnsmasq/src/main.rs"
+  ],
+  "timeout_helper_byte_identical": true,
+  "branch_review": [
+    {
+      "deadline": "None",
+      "diagnostics_enabled": false,
+      "started": "Earliernow reused",
+      "waited": "DurationZERO",
+      "semantic_basis": "owner_poll_timeout returns0if runnable or\u22121otherwise without reading timestamp. Originaldisabledrecord_wait isnoop."
+    },
+    {
+      "deadline": "Some",
+      "diagnostics_enabled": false,
+      "started": "FreshInstant::now unchanged",
+      "waited": "DurationZERO",
+      "semantic_basis": "Originaldeadline calculation remainsfresh, includingceilms/saturation/hourcap; disabledrecord_wait ignoreselapsed. Some+runnable still obtainsfreshclock although timeouthelperignoresit."
+    },
+    {
+      "deadline": "Any",
+      "diagnostics_enabled": true,
+      "started": "FreshInstant::now unchanged",
+      "waited": "started.elapsed unchanged",
+      "semantic_basis": "Real waitduration/counters remain measured at same positions."
+    }
+  ],
+  "diagnostics_review": [
+    "Withoutfeature,m6b.enabled isconstantfalse and record_wait noop. Withfeature but absentoutputpath, enabledfalse and record_wait returns before recording anything.",
+    "Withfeature+outputpath, bothclockcalls remain. enabled reads constructor-setpath; no pathmutations occur acrosspoll.",
+    "Querywaitfd reconstruction, pollerrorfds restoration, readinessflags, signaldrain and record_wait order remain unchanged. Upstream separateidleclock guard untouched."
+  ],
+  "existing_test_boundaries": "Originalowner_poll_timeout tests retain None/Some,runnable,ceil1ns,expireddeadline,longdeadline andi32maxclamp cases; no newtestorframework.",
+  "author_checks": {
+    "default_musl_all_targets": "success",
+    "m6b_feature_musl_all_targets": "success",
+    "log_sha256": {
+      "owner-clock-default.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "owner-clock-default.stderr": "b8e15d5f9fb207226ab1c702c86d3193d36385ca6544c2d297f5ce3c44aa28f5",
+      "owner-clock-diagnostics.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "owner-clock-diagnostics.stderr": "afc8fd09a28f43425366c1ba55812f516a67d9310d1f6ff7bbca47f33b279601"
+    },
+    "reviewer_ran_tests": false
+  },
+  "cross_ELF_receipt": {
+    "path": "private/owner-clock/cross-daemon-final/result.json",
+    "sha256": "6f5bd027243f1529b194ce70b8d650168e44036e9947b5f1583e066beb55f867",
+    "scope": "Localcross-linkedLinuxELFonly, notSDK/runtimesampling. No actualcallfrequencyorcost claim made here."
+  },
+  "remaining_source_blockers": [],
+  "related_Linux_gates_run": false,
+  "full44_qualified": false,
+  "included_in_185_qualification": false,
+  "performance_accepted": false,
+  "deployment": false
+}
