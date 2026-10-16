@@ -27,3 +27,10 @@ All actual gate/SDK/signal/review/release fields remain null; execution is
 disabled and nothing was transferred or run. The original runner rejects its
 preparation status. Added signal/audit/quiet metadata is an owner prerequisite
 before enabling a ready plan, not an automatic check added to that runner.
+
+Root independently reviewed this disabled preparation in `9364e070`:
+[receipt](../correctness/owner-ready-frames-owner32-preparation-root-review.json),
+SHA-256 `f4081a521e4b1c089bb5da9c3303eefb1dc10e9455a1fd854325d04938a82744`.
+The review rechecks the exact script substitutions, original protocol fields,
+both source manifests and mandatory standalone signal prerequisite. It does
+not release an execution slot or replace actual gate/artifact evidence.
