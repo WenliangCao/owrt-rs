@@ -1,0 +1,6888 @@
+{
+  "scope": "Independent F/cached-local-miss native hot15 screen, whole-process counts/CPU; prior integration results separate; not SDK or device acceptance",
+  "raw_result_sha256": "dd81b34e96a63ac9b7e7d7438dc369778744b2ba3d56da29f5f75acf3aa67c6a",
+  "plan_sha256": "4164adeed24c9a0291a39cdb0ee7dfb6fe6bd86aa9680de2f52411632e69475d",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "artifacts": {
+    "F": {
+      "elf_sha256": "4f555d8d8e73adf0d3d375940302ac1fc84f7bed92482a6a16f1cbc91ab8fd04",
+      "rlib_sha256": "0166df8c53409f7589eaf5743749d4e6a89487df797a4bd6e278a080a5dcdfe1"
+    },
+    "cached-local-miss": {
+      "elf_sha256": "67b175d9b971b438ea11a297e1647e04cb007ba2b38edc5acaf398a018df44b2",
+      "rlib_sha256": "278c87ca07d8e8052fd2fc9115eaa70d62c07e3ef6c3f0c138bddfaa0c68626b"
+    }
+  },
+  "rows": [
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-stat-r1-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905109543,
+            "enabled_ns": 118896680,
+            "running_ns": 118896680,
+            "per_operation": 4525.547715
+          },
+          "cycles:u": {
+            "raw_count": 344038781,
+            "enabled_ns": 118896680,
+            "running_ns": 118896680,
+            "per_operation": 1720.193905
+          }
+        },
+        "user_ipc": 2.6308358039438584,
+        "csv_sha256": "8c256f401b8b642e8580dece9bcf64f8090f9fa50d57eca59d016bf2bac0dd4f"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 658738654,
+            "enabled_ns": 89464840,
+            "running_ns": 89464840,
+            "per_operation": 3293.69327
+          },
+          "cycles:u": {
+            "raw_count": 256078607,
+            "enabled_ns": 89464840,
+            "running_ns": 89464840,
+            "per_operation": 1280.393035
+          }
+        },
+        "user_ipc": 2.5724079872083965,
+        "csv_sha256": "7b34a55e61968e9d3c024f389c41c9a298834bc3cd11d74fa5e8c81f80b30a8b"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 658704761,
+            "enabled_ns": 87956800,
+            "running_ns": 87956800,
+            "per_operation": 3293.523805
+          },
+          "cycles:u": {
+            "raw_count": 255989949,
+            "enabled_ns": 87956800,
+            "running_ns": 87956800,
+            "per_operation": 1279.949745
+          }
+        },
+        "user_ipc": 2.5731664995956542,
+        "csv_sha256": "808d50e0b5da89cc25d4e576bb4d1c079500e1d1016eb4d3eeb0756658b533cb"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-stat-r2-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905116550,
+            "enabled_ns": 118303200,
+            "running_ns": 118303200,
+            "per_operation": 4525.58275
+          },
+          "cycles:u": {
+            "raw_count": 345242902,
+            "enabled_ns": 118303200,
+            "running_ns": 118303200,
+            "per_operation": 1726.21451
+          }
+        },
+        "user_ipc": 2.6216804017016404,
+        "csv_sha256": "e7bcc07b354148b6774102ba38a3e8d1600857490d191f1d17b0fe6be2535d73"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-stat-r3-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905115080,
+            "enabled_ns": 118110440,
+            "running_ns": 118110440,
+            "per_operation": 4525.5754
+          },
+          "cycles:u": {
+            "raw_count": 344825772,
+            "enabled_ns": 118110440,
+            "running_ns": 118110440,
+            "per_operation": 1724.12886
+          }
+        },
+        "user_ipc": 2.6248475418478874,
+        "csv_sha256": "a083ce4b639bea814c42733e95800d2b7bf4dcf905e62f92cff6d4af5ef70c15"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 658732196,
+            "enabled_ns": 87960560,
+            "running_ns": 87960560,
+            "per_operation": 3293.66098
+          },
+          "cycles:u": {
+            "raw_count": 256173673,
+            "enabled_ns": 87960560,
+            "running_ns": 87960560,
+            "per_operation": 1280.868365
+          }
+        },
+        "user_ipc": 2.571428157646785,
+        "csv_sha256": "fa87cdb78a569b8a6ec32a1ad3324064a3367a924d6c2501466095710e122b61"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-plain-r1-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1146516000,
+      "wall_ns": 1166238931
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 851428000,
+      "wall_ns": 865954586
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 850938000,
+      "wall_ns": 865937465
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-plain-r2-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1149497000,
+      "wall_ns": 1166900337
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-plain-r3-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1148397000,
+      "wall_ns": 1166877217
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 851055000,
+      "wall_ns": 866712872
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 850875000,
+      "wall_ns": 866620631
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-plain-r4-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1147560000,
+      "wall_ns": 1167297940
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-plain-r5-F",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1148962000,
+      "wall_ns": 1167299380
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 853905000,
+      "wall_ns": 866596790
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-upper-stat-r1-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 928021319,
+            "enabled_ns": 121282360,
+            "running_ns": 121282360,
+            "per_operation": 4640.106595
+          },
+          "cycles:u": {
+            "raw_count": 354681817,
+            "enabled_ns": 121282360,
+            "running_ns": 121282360,
+            "per_operation": 1773.409085
+          }
+        },
+        "user_ipc": 2.6164896944801654,
+        "csv_sha256": "84aba5aad231665fbeebff09cfed5a8b677b34a0efe6be275a998a1f0b1507b6"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-upper-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 681896280,
+            "enabled_ns": 92040520,
+            "running_ns": 92040520,
+            "per_operation": 3409.4814
+          },
+          "cycles:u": {
+            "raw_count": 265937174,
+            "enabled_ns": 92040520,
+            "running_ns": 92040520,
+            "per_operation": 1329.68587
+          }
+        },
+        "user_ipc": 2.5641254652123213,
+        "csv_sha256": "dd04d5b346213591e14b29850af37d2fd3136ff4d21440ebba4b06ebebab4cde"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-upper-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 681815091,
+            "enabled_ns": 93089480,
+            "running_ns": 93089480,
+            "per_operation": 3409.075455
+          },
+          "cycles:u": {
+            "raw_count": 271134901,
+            "enabled_ns": 93089480,
+            "running_ns": 93089480,
+            "per_operation": 1355.674505
+          }
+        },
+        "user_ipc": 2.514671067742769,
+        "csv_sha256": "e21767a2d7f73571b163c60065686787a26ef47ccba164e6ded687f695e87f22"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-upper-stat-r2-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 928034220,
+            "enabled_ns": 121567760,
+            "running_ns": 121567760,
+            "per_operation": 4640.1711
+          },
+          "cycles:u": {
+            "raw_count": 354896249,
+            "enabled_ns": 121567760,
+            "running_ns": 121567760,
+            "per_operation": 1774.481245
+          }
+        },
+        "user_ipc": 2.6149451356979543,
+        "csv_sha256": "ea9b65355b4e5c27316a524fde9af488713a2689ce09e04438f60cd6b21ebbbd"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-upper-stat-r3-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 928120495,
+            "enabled_ns": 122101240,
+            "running_ns": 122101240,
+            "per_operation": 4640.602475
+          },
+          "cycles:u": {
+            "raw_count": 357301139,
+            "enabled_ns": 122101240,
+            "running_ns": 122101240,
+            "per_operation": 1786.505695
+          }
+        },
+        "user_ipc": 2.5975861638661053,
+        "csv_sha256": "d116c7f2d2ef14f23275dc1e6c8cafcf6ee3cd5a5f4f5b374437da1a9fb73bb1"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-upper-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 681876062,
+            "enabled_ns": 91822960,
+            "running_ns": 91822960,
+            "per_operation": 3409.38031
+          },
+          "cycles:u": {
+            "raw_count": 266571763,
+            "enabled_ns": 91822960,
+            "running_ns": 91822960,
+            "per_operation": 1332.858815
+          }
+        },
+        "user_ipc": 2.557945576553808,
+        "csv_sha256": "f315f68ab880283621a4fa1f1227b03001ad3ad87beac456e660e3ac76e913d2"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-upper-plain-r1-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1183710000,
+      "wall_ns": 1203284880
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-upper-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 886114000,
+      "wall_ns": 916911411
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-upper-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 886777000,
+      "wall_ns": 916649528
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-upper-plain-r2-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1180670000,
+      "wall_ns": 1203571442
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-upper-plain-r3-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1181513000,
+      "wall_ns": 1203334121
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-upper-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 884141000,
+      "wall_ns": 916742129
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-upper-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 884842000,
+      "wall_ns": 916727528
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-upper-plain-r4-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1183271000,
+      "wall_ns": 1203433800
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-upper-plain-r5-F",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1182715000,
+      "wall_ns": 1203554962
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-upper-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 884794000,
+      "wall_ns": 916957691
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-leases-stat-r1-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1080240517,
+            "enabled_ns": 137937480,
+            "running_ns": 137937480,
+            "per_operation": 5401.202585
+          },
+          "cycles:u": {
+            "raw_count": 402564996,
+            "enabled_ns": 137937480,
+            "running_ns": 137937480,
+            "per_operation": 2012.82498
+          }
+        },
+        "user_ipc": 2.6833940549565316,
+        "csv_sha256": "be1decd60de3740c9c7c072413ef57ad46a8dffd181988c4d20f6ccdd6b57232"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-leases-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905916522,
+            "enabled_ns": 114315040,
+            "running_ns": 114315040,
+            "per_operation": 4529.58261
+          },
+          "cycles:u": {
+            "raw_count": 333517927,
+            "enabled_ns": 114315040,
+            "running_ns": 114315040,
+            "per_operation": 1667.589635
+          }
+        },
+        "user_ipc": 2.71624536092778,
+        "csv_sha256": "81a3f7433c3ebce1147e5a7e79ac630b702fc4988a4868cc02f29f9d675d606f"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-leases-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905976795,
+            "enabled_ns": 113923120,
+            "running_ns": 113923120,
+            "per_operation": 4529.883975
+          },
+          "cycles:u": {
+            "raw_count": 332508675,
+            "enabled_ns": 113923120,
+            "running_ns": 113923120,
+            "per_operation": 1662.543375
+          }
+        },
+        "user_ipc": 2.7246711533165264,
+        "csv_sha256": "aa8eb0004840ce7a6f2048cda219aad7887b197af4bbbfdfdb3c2b609f2c26c5"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-leases-stat-r2-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1080164004,
+            "enabled_ns": 137287560,
+            "running_ns": 137287560,
+            "per_operation": 5400.82002
+          },
+          "cycles:u": {
+            "raw_count": 401867187,
+            "enabled_ns": 137287560,
+            "running_ns": 137287560,
+            "per_operation": 2009.335935
+          }
+        },
+        "user_ipc": 2.6878631521612637,
+        "csv_sha256": "77bb292a86da7bcff6673fcbe23d992dce44fdbc445e67ef4a1c7131d62a8e48"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-leases-stat-r3-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1080203079,
+            "enabled_ns": 137667720,
+            "running_ns": 137667720,
+            "per_operation": 5401.015395
+          },
+          "cycles:u": {
+            "raw_count": 403089656,
+            "enabled_ns": 137667720,
+            "running_ns": 137667720,
+            "per_operation": 2015.44828
+          }
+        },
+        "user_ipc": 2.6798084816148195,
+        "csv_sha256": "c7caf5b8ce903e6a9abf4eeaa65a8b209faf095ba4104d6cd9b59d3941bcdc20"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-leases-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905795000,
+            "enabled_ns": 113948960,
+            "running_ns": 113948960,
+            "per_operation": 4528.975
+          },
+          "cycles:u": {
+            "raw_count": 332527389,
+            "enabled_ns": 113948960,
+            "running_ns": 113948960,
+            "per_operation": 1662.636945
+          }
+        },
+        "user_ipc": 2.7239711072341173,
+        "csv_sha256": "39339db458203ab121fc00b9d8909954fb127e5331291dec45cda771b067f123"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-leases-plain-r1-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1339829000,
+      "wall_ns": 1367626570
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-leases-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1107959000,
+      "wall_ns": 1117315161
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-leases-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1106174000,
+      "wall_ns": 1117206801
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-leases-plain-r2-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1340029000,
+      "wall_ns": 1367812691
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-leases-plain-r3-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1344176000,
+      "wall_ns": 1367591330
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-leases-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1107145000,
+      "wall_ns": 1117240681
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-leases-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1106050000,
+      "wall_ns": 1117462563
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-leases-plain-r4-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1340100000,
+      "wall_ns": 1367690770
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-leases-plain-r5-F",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1342174000,
+      "wall_ns": 1368140894
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-leases-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1108157000,
+      "wall_ns": 1117557923
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-typed-stat-r1-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905158874,
+            "enabled_ns": 117646120,
+            "running_ns": 117646120,
+            "per_operation": 4525.79437
+          },
+          "cycles:u": {
+            "raw_count": 344155001,
+            "enabled_ns": 117646120,
+            "running_ns": 117646120,
+            "per_operation": 1720.775005
+          }
+        },
+        "user_ipc": 2.6300907189199902,
+        "csv_sha256": "26f102ce62e793f805525f1e1cb22a44cc0b9b882f63681c32251258373ff2da"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-hit-typed-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 658770556,
+            "enabled_ns": 88516560,
+            "running_ns": 88516560,
+            "per_operation": 3293.85278
+          },
+          "cycles:u": {
+            "raw_count": 257214287,
+            "enabled_ns": 88516560,
+            "running_ns": 88516560,
+            "per_operation": 1286.071435
+          }
+        },
+        "user_ipc": 2.56117404551482,
+        "csv_sha256": "2ee0cf69b9f1568ad5b1e16c1a8548fdaa6ba11caf84a7e7881ce38978cce1f5"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-typed-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 658731524,
+            "enabled_ns": 90090000,
+            "running_ns": 90090000,
+            "per_operation": 3293.65762
+          },
+          "cycles:u": {
+            "raw_count": 256275264,
+            "enabled_ns": 90090000,
+            "running_ns": 90090000,
+            "per_operation": 1281.37632
+          }
+        },
+        "user_ipc": 2.5704061863731025,
+        "csv_sha256": "1d6a221fed35fdcb882145a3521210b6af3d5637dfd1925dea09e913fcdef61d"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-hit-typed-stat-r2-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905110774,
+            "enabled_ns": 117833760,
+            "running_ns": 117833760,
+            "per_operation": 4525.55387
+          },
+          "cycles:u": {
+            "raw_count": 344561331,
+            "enabled_ns": 117833760,
+            "running_ns": 117833760,
+            "per_operation": 1722.806655
+          }
+        },
+        "user_ipc": 2.626849540466861,
+        "csv_sha256": "131e32c45423f25179a1e89ebb5ce8e022da82ea6e811aba59555a6057372215"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-typed-stat-r3-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 905216297,
+            "enabled_ns": 117718560,
+            "running_ns": 117718560,
+            "per_operation": 4526.081485
+          },
+          "cycles:u": {
+            "raw_count": 344702944,
+            "enabled_ns": 117718560,
+            "running_ns": 117718560,
+            "per_operation": 1723.51472
+          }
+        },
+        "user_ipc": 2.6260764892103734,
+        "csv_sha256": "2343a87fa917c6c3289c40b44ed77f648beed63afc46f211f5f8e15f13b7f19e"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-hit-typed-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 658767716,
+            "enabled_ns": 88077560,
+            "running_ns": 88077560,
+            "per_operation": 3293.83858
+          },
+          "cycles:u": {
+            "raw_count": 255909108,
+            "enabled_ns": 88077560,
+            "running_ns": 88077560,
+            "per_operation": 1279.54554
+          }
+        },
+        "user_ipc": 2.5742253612950736,
+        "csv_sha256": "2dc4f0f702f4ee725f61cd8b402ecc7fc335d9949e12d34a46fe1e0fd662c49b"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-typed-plain-r1-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1146921000,
+      "wall_ns": 1167861503
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-hit-typed-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 850510000,
+      "wall_ns": 867685719
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-typed-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 853800000,
+      "wall_ns": 867887281
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-hit-typed-plain-r2-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1146619000,
+      "wall_ns": 1167943384
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-typed-plain-r3-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1148197000,
+      "wall_ns": 1167848102
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-hit-typed-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 858907000,
+      "wall_ns": 867777199
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-typed-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 851270000,
+      "wall_ns": 867960681
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-hit-typed-plain-r4-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1147151000,
+      "wall_ns": 1168292706
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-typed-plain-r5-F",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1149517000,
+      "wall_ns": 1168351627
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-hit-typed-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 850984000,
+      "wall_ns": 867639077
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-miss-stat-r1-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 576711097,
+            "enabled_ns": 75914880,
+            "running_ns": 75914880,
+            "per_operation": 2883.555485
+          },
+          "cycles:u": {
+            "raw_count": 219582178,
+            "enabled_ns": 75914880,
+            "running_ns": 75914880,
+            "per_operation": 1097.91089
+          }
+        },
+        "user_ipc": 2.626402116295613,
+        "csv_sha256": "199bc0f7dabf853264344020e1121950cba835b936ee9a0e8c24b8e8da0bf0a8"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-miss-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 580627028,
+            "enabled_ns": 76856800,
+            "running_ns": 76856800,
+            "per_operation": 2903.13514
+          },
+          "cycles:u": {
+            "raw_count": 223290071,
+            "enabled_ns": 76856800,
+            "running_ns": 76856800,
+            "per_operation": 1116.450355
+          }
+        },
+        "user_ipc": 2.600326227671807,
+        "csv_sha256": "0115c6fb167a9e48470b32b426c5ad699d8c650cb686ad7d7833b332a291e8e5"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-miss-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 580627084,
+            "enabled_ns": 76872760,
+            "running_ns": 76872760,
+            "per_operation": 2903.13542
+          },
+          "cycles:u": {
+            "raw_count": 223068063,
+            "enabled_ns": 76872760,
+            "running_ns": 76872760,
+            "per_operation": 1115.340315
+          }
+        },
+        "user_ipc": 2.602914447685862,
+        "csv_sha256": "eea9d77bb6c6abe933bdd2e1db8130da61e3b27094e466b5bf293b2b80b298d3"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-miss-stat-r2-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 576711749,
+            "enabled_ns": 76047200,
+            "running_ns": 76047200,
+            "per_operation": 2883.558745
+          },
+          "cycles:u": {
+            "raw_count": 220753038,
+            "enabled_ns": 76047200,
+            "running_ns": 76047200,
+            "per_operation": 1103.76519
+          }
+        },
+        "user_ipc": 2.612474800913046,
+        "csv_sha256": "9a76af23d8457b0b422edee002a8208ccae0a094e1c9ee9bb9bae40db8057c26"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-miss-stat-r3-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 576711990,
+            "enabled_ns": 75597800,
+            "running_ns": 75597800,
+            "per_operation": 2883.55995
+          },
+          "cycles:u": {
+            "raw_count": 219590503,
+            "enabled_ns": 75597800,
+            "running_ns": 75597800,
+            "per_operation": 1097.952515
+          }
+        },
+        "user_ipc": 2.6263066121762106,
+        "csv_sha256": "a2aaab7faf6ce85849e1b2fd49482273faf7d5e23d1e5551b44fd4b244506eee"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-miss-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 580627292,
+            "enabled_ns": 77102960,
+            "running_ns": 77102960,
+            "per_operation": 2903.13646
+          },
+          "cycles:u": {
+            "raw_count": 223853016,
+            "enabled_ns": 77102960,
+            "running_ns": 77102960,
+            "per_operation": 1119.26508
+          }
+        },
+        "user_ipc": 2.593788113178694,
+        "csv_sha256": "426bb591c5bc3dbc62f4212a6640512acf34d0b226172716ac9b76daae15198a"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-miss-plain-r1-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 735159000,
+      "wall_ns": 767873845
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-miss-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 748550000,
+      "wall_ns": 768166048
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-miss-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 756360000,
+      "wall_ns": 768232928
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-miss-plain-r2-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 735581000,
+      "wall_ns": 768119967
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-miss-plain-r3-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 732070000,
+      "wall_ns": 768128128
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-miss-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 748873000,
+      "wall_ns": 768162168
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-miss-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 746881000,
+      "wall_ns": 768330169
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-miss-plain-r4-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 732418000,
+      "wall_ns": 768286328
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-miss-plain-r5-F",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 732894000,
+      "wall_ns": 768316249
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-miss-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 749083000,
+      "wall_ns": 768297369
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-miss-leases-stat-r1-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 751868741,
+            "enabled_ns": 95048120,
+            "running_ns": 95048120,
+            "per_operation": 3759.343705
+          },
+          "cycles:u": {
+            "raw_count": 276952428,
+            "enabled_ns": 95048120,
+            "running_ns": 95048120,
+            "per_operation": 1384.76214
+          }
+        },
+        "user_ipc": 2.7147938237248455,
+        "csv_sha256": "8dcfb9266f976d189ac178e33f6fc2b664da97eb9d367231d8812822ebbd7be4"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-miss-leases-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 757062367,
+            "enabled_ns": 96641080,
+            "running_ns": 96641080,
+            "per_operation": 3785.311835
+          },
+          "cycles:u": {
+            "raw_count": 282683706,
+            "enabled_ns": 96641080,
+            "running_ns": 96641080,
+            "per_operation": 1413.41853
+          }
+        },
+        "user_ipc": 2.6781252365497146,
+        "csv_sha256": "cc8d5836598df78a75e0d66221e412881937c4105ed5ac1223b2833b3fcbe9ae"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-miss-leases-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 757144164,
+            "enabled_ns": 97034920,
+            "running_ns": 97034920,
+            "per_operation": 3785.72082
+          },
+          "cycles:u": {
+            "raw_count": 283124515,
+            "enabled_ns": 97034920,
+            "running_ns": 97034920,
+            "per_operation": 1415.622575
+          }
+        },
+        "user_ipc": 2.674244453893369,
+        "csv_sha256": "c490c892af73843f7b7c0d4aac8d7c0cd6e0232face513a6d7d2211fa890bf5e"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-miss-leases-stat-r2-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 751811301,
+            "enabled_ns": 94796920,
+            "running_ns": 94796920,
+            "per_operation": 3759.056505
+          },
+          "cycles:u": {
+            "raw_count": 276236845,
+            "enabled_ns": 94796920,
+            "running_ns": 94796920,
+            "per_operation": 1381.184225
+          }
+        },
+        "user_ipc": 2.721618475623699,
+        "csv_sha256": "9e3c94af2a934652baf316f4d1573e04c270dc1e9d6694b4cb7cc3e27c483a11"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-miss-leases-stat-r3-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 751883124,
+            "enabled_ns": 94812040,
+            "running_ns": 94812040,
+            "per_operation": 3759.41562
+          },
+          "cycles:u": {
+            "raw_count": 276795603,
+            "enabled_ns": 94812040,
+            "running_ns": 94812040,
+            "per_operation": 1383.978015
+          }
+        },
+        "user_ipc": 2.7163839159684917,
+        "csv_sha256": "772419b7d244593bbb02f8e0cdfb01ba5694f541ca08c74973ca962f0fdca251"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-miss-leases-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 757156884,
+            "enabled_ns": 97344080,
+            "running_ns": 97344080,
+            "per_operation": 3785.78442
+          },
+          "cycles:u": {
+            "raw_count": 283865234,
+            "enabled_ns": 97344080,
+            "running_ns": 97344080,
+            "per_operation": 1419.32617
+          }
+        },
+        "user_ipc": 2.6673110804403755,
+        "csv_sha256": "9aac38a3dd08656ce672a02046edf97d8a99bc284c0375b7868525647570b4ea"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-miss-leases-plain-r1-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 922856000,
+      "wall_ns": 968776681
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-miss-leases-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 942242000,
+      "wall_ns": 968737400
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-miss-leases-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 942927000,
+      "wall_ns": 968833882
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-miss-leases-plain-r2-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 923482000,
+      "wall_ns": 968888522
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-miss-leases-plain-r3-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 923822000,
+      "wall_ns": 968872922
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-miss-leases-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 941160000,
+      "wall_ns": 968882001
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-miss-leases-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 943856000,
+      "wall_ns": 968900881
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-miss-leases-plain-r4-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 923484000,
+      "wall_ns": 969050203
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-miss-leases-plain-r5-F",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 925920000,
+      "wall_ns": 969141284
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-miss-leases-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 942889000,
+      "wall_ns": 969040163
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-host-stat-r1-F",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1328922874,
+            "enabled_ns": 173168440,
+            "running_ns": 173168440,
+            "per_operation": 6644.61437
+          },
+          "cycles:u": {
+            "raw_count": 508223062,
+            "enabled_ns": 173168440,
+            "running_ns": 173168440,
+            "per_operation": 2541.11531
+          }
+        },
+        "user_ipc": 2.614841736560156,
+        "csv_sha256": "1a4c42bdc81146c2cbea3436cd7b7348fe0ba31747e1241f7e160995dc9ff9dd"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-host-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1362223950,
+            "enabled_ns": 177844840,
+            "running_ns": 177844840,
+            "per_operation": 6811.11975
+          },
+          "cycles:u": {
+            "raw_count": 523085431,
+            "enabled_ns": 177844840,
+            "running_ns": 177844840,
+            "per_operation": 2615.427155
+          }
+        },
+        "user_ipc": 2.6042093112702274,
+        "csv_sha256": "78401f35d14865855e73294daf3377e333ea788727a957d94c31fc7005f137bc"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-host-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1354100559,
+            "enabled_ns": 176178960,
+            "running_ns": 176178960,
+            "per_operation": 6770.502795
+          },
+          "cycles:u": {
+            "raw_count": 517933821,
+            "enabled_ns": 176178960,
+            "running_ns": 176178960,
+            "per_operation": 2589.669105
+          }
+        },
+        "user_ipc": 2.614427759101679,
+        "csv_sha256": "dda0e2831e96530217450753b0ca86d439344d5fa6f8b417d0cc1798ff908866"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-host-stat-r2-F",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1338876699,
+            "enabled_ns": 174451840,
+            "running_ns": 174451840,
+            "per_operation": 6694.383495
+          },
+          "cycles:u": {
+            "raw_count": 512915469,
+            "enabled_ns": 174451840,
+            "running_ns": 174451840,
+            "per_operation": 2564.577345
+          }
+        },
+        "user_ipc": 2.6103262231695337,
+        "csv_sha256": "df85c29843f16142de1ea116222a243749c34a4b7e2a3f5a75434946cbc175a5"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-host-stat-r3-F",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1361859975,
+            "enabled_ns": 176727640,
+            "running_ns": 176727640,
+            "per_operation": 6809.299875
+          },
+          "cycles:u": {
+            "raw_count": 519998441,
+            "enabled_ns": 176727640,
+            "running_ns": 176727640,
+            "per_operation": 2599.992205
+          }
+        },
+        "user_ipc": 2.618969342256163,
+        "csv_sha256": "d3fb50bff8162211222a6318358d451e3567be8edee9ee635c8ccaf33451bf83"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-host-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1354956997,
+            "enabled_ns": 176903000,
+            "running_ns": 176903000,
+            "per_operation": 6774.784985
+          },
+          "cycles:u": {
+            "raw_count": 520050670,
+            "enabled_ns": 176903000,
+            "running_ns": 176903000,
+            "per_operation": 2600.25335
+          }
+        },
+        "user_ipc": 2.605432653322031,
+        "csv_sha256": "a687eb8efa8b10905fc7e6dfdc8aca07eb92cf9cea1424dd869adbf416d76e5b"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-host-plain-r1-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1701669000,
+      "wall_ns": 1720107227
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-host-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1728931000,
+      "wall_ns": 1769701241
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-host-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1725843000,
+      "wall_ns": 1770061404
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-host-plain-r2-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1699831000,
+      "wall_ns": 1720067707
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-host-plain-r3-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1730437000,
+      "wall_ns": 1770160604
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-host-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1770322000,
+      "wall_ns": 1806558347
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-host-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1738639000,
+      "wall_ns": 1770486767
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-host-plain-r4-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1707760000,
+      "wall_ns": 1720238187
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-host-plain-r5-F",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1699794000,
+      "wall_ns": 1720071746
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-host-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1712653000,
+      "wall_ns": 1720362509
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-host-localise-stat-r1-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2546379106,
+            "enabled_ns": 322046720,
+            "running_ns": 322046720,
+            "per_operation": 12731.89553
+          },
+          "cycles:u": {
+            "raw_count": 950861802,
+            "enabled_ns": 322046720,
+            "running_ns": 322046720,
+            "per_operation": 4754.30901
+          }
+        },
+        "user_ipc": 2.677969711943482,
+        "csv_sha256": "91730c3206b3bdd500659a466217cff36b239086d4fbf1d76e4c99e653b177b6"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-host-localise-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2536791852,
+            "enabled_ns": 323050520,
+            "running_ns": 323050520,
+            "per_operation": 12683.95926
+          },
+          "cycles:u": {
+            "raw_count": 953609258,
+            "enabled_ns": 323050520,
+            "running_ns": 323050520,
+            "per_operation": 4768.04629
+          }
+        },
+        "user_ipc": 2.660200528380357,
+        "csv_sha256": "79cb22c147a1928f2daab1fb473c85c54b5eee999ed4f8a2ae516f3cdd64bb7a"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-host-localise-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2540468457,
+            "enabled_ns": 321584960,
+            "running_ns": 321584960,
+            "per_operation": 12702.342285
+          },
+          "cycles:u": {
+            "raw_count": 949903080,
+            "enabled_ns": 321584960,
+            "running_ns": 321584960,
+            "per_operation": 4749.5154
+          }
+        },
+        "user_ipc": 2.674450173379794,
+        "csv_sha256": "82fa474b29ad84135a10b625196cac9ac880a34a8fdb198eb8d368408ea263eb"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-host-localise-stat-r2-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2566799156,
+            "enabled_ns": 324559480,
+            "running_ns": 324559480,
+            "per_operation": 12833.99578
+          },
+          "cycles:u": {
+            "raw_count": 958009956,
+            "enabled_ns": 324559480,
+            "running_ns": 324559480,
+            "per_operation": 4790.04978
+          }
+        },
+        "user_ipc": 2.6793032159260775,
+        "csv_sha256": "84c153764b4e1fabf3ee48b23c8af1513dbd9e30ab48ae6973f9ec16b0e33bf8"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-host-localise-stat-r3-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2553372598,
+            "enabled_ns": 324162120,
+            "running_ns": 324162120,
+            "per_operation": 12766.86299
+          },
+          "cycles:u": {
+            "raw_count": 956762678,
+            "enabled_ns": 324162120,
+            "running_ns": 324162120,
+            "per_operation": 4783.81339
+          }
+        },
+        "user_ipc": 2.6687627524701587,
+        "csv_sha256": "adc75456d56d397d67cdc8f2fa388c40236b34d169cab2310714f524362c6a45"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-host-localise-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2567075199,
+            "enabled_ns": 325138600,
+            "running_ns": 325138600,
+            "per_operation": 12835.375995
+          },
+          "cycles:u": {
+            "raw_count": 959408229,
+            "enabled_ns": 325138600,
+            "running_ns": 325138600,
+            "per_operation": 4797.041145
+          }
+        },
+        "user_ipc": 2.675686033749873,
+        "csv_sha256": "44ed837d0a4e0ef139df56d7e860919394b54a0fab1bd2a12881d6e7448c6685"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-host-localise-plain-r1-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3197847000,
+      "wall_ns": 3208288157
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-host-localise-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3201904000,
+      "wall_ns": 3208181916
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-host-localise-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3326821000,
+      "wall_ns": 3372433845
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-host-localise-plain-r2-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3200798000,
+      "wall_ns": 3208582558
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-host-localise-plain-r3-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3186198000,
+      "wall_ns": 3208474597
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-host-localise-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3217860000,
+      "wall_ns": 3223851724
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-host-localise-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3325776000,
+      "wall_ns": 3372152681
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-host-localise-plain-r4-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3176827000,
+      "wall_ns": 3208625317
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-host-localise-plain-r5-F",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3217115000,
+      "wall_ns": 3224038885
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-host-localise-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3243216000,
+      "wall_ns": 3272016284
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-raw-address-stat-r1-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11638432761,
+            "enabled_ns": 1341665120,
+            "running_ns": 1341665120,
+            "per_operation": 58192.163805
+          },
+          "cycles:u": {
+            "raw_count": 3980499019,
+            "enabled_ns": 1341665120,
+            "running_ns": 1341665120,
+            "per_operation": 19902.495095
+          }
+        },
+        "user_ipc": 2.923862738175944,
+        "csv_sha256": "181b72ad76af356981a395abc0cfbf32dd85e9cc264ac5a341856c7848f0c140"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-raw-address-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11646943850,
+            "enabled_ns": 1341127840,
+            "running_ns": 1341127840,
+            "per_operation": 58234.71925
+          },
+          "cycles:u": {
+            "raw_count": 3981772178,
+            "enabled_ns": 1341127840,
+            "running_ns": 1341127840,
+            "per_operation": 19908.86089
+          }
+        },
+        "user_ipc": 2.925065355158047,
+        "csv_sha256": "8cf28ca69f671b7518cbc39253e9fdbd8ac1d905ea0bd8c201c15314df83e962"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-raw-address-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11638147020,
+            "enabled_ns": 1340732440,
+            "running_ns": 1340732440,
+            "per_operation": 58190.7351
+          },
+          "cycles:u": {
+            "raw_count": 3978808264,
+            "enabled_ns": 1340732440,
+            "running_ns": 1340732440,
+            "per_operation": 19894.04132
+          }
+        },
+        "user_ipc": 2.9250333888418805,
+        "csv_sha256": "d062883e8005ddc34e3c5897e7f6553e8c90914d27e1dbf6f1a3b22277af135d"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-raw-address-stat-r2-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11633518295,
+            "enabled_ns": 1338737120,
+            "running_ns": 1338737120,
+            "per_operation": 58167.591475
+          },
+          "cycles:u": {
+            "raw_count": 3973774515,
+            "enabled_ns": 1338737120,
+            "running_ns": 1338737120,
+            "per_operation": 19868.872575
+          }
+        },
+        "user_ipc": 2.927573834671895,
+        "csv_sha256": "5124fe265ca420fe65469e91d5808fadca5212ef5dfbd9fa0c619efe3c70148e"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-raw-address-stat-r3-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11612481399,
+            "enabled_ns": 1335014400,
+            "running_ns": 1335014400,
+            "per_operation": 58062.406995
+          },
+          "cycles:u": {
+            "raw_count": 3961698928,
+            "enabled_ns": 1335014400,
+            "running_ns": 1335014400,
+            "per_operation": 19808.49464
+          }
+        },
+        "user_ipc": 2.9311872532581305,
+        "csv_sha256": "fea49d1691136b5cc4c64be5acc7dfa374995de31fb3c6bc4712163f0d407f01"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-raw-address-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11632846311,
+            "enabled_ns": 1340121640,
+            "running_ns": 1340121640,
+            "per_operation": 58164.231555
+          },
+          "cycles:u": {
+            "raw_count": 3979343843,
+            "enabled_ns": 1340121640,
+            "running_ns": 1340121640,
+            "per_operation": 19896.719215
+          }
+        },
+        "user_ipc": 2.923307653211007,
+        "csv_sha256": "6737727236b9b15e982f3a32479fe55b6b4999befa4db8a16883bb94658f0f84"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-raw-address-plain-r1-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338459000,
+      "wall_ns": 1372130921
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-raw-address-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1340363000,
+      "wall_ns": 1371651397
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-raw-address-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338933000,
+      "wall_ns": 1371576916
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-raw-address-plain-r2-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338117000,
+      "wall_ns": 1371839319
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-raw-address-plain-r3-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338740000,
+      "wall_ns": 1371587716
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-raw-address-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338294000,
+      "wall_ns": 1372031320
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-raw-address-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1339447000,
+      "wall_ns": 1371887919
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-raw-address-plain-r4-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1336511000,
+      "wall_ns": 1371779518
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-raw-address-plain-r5-F",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1337209000,
+      "wall_ns": 1372107201
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-raw-address-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1341101000,
+      "wall_ns": 1372569804
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-synth-address-stat-r1-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1294228328,
+            "enabled_ns": 164095720,
+            "running_ns": 164095720,
+            "per_operation": 6471.14164
+          },
+          "cycles:u": {
+            "raw_count": 480937762,
+            "enabled_ns": 164095720,
+            "running_ns": 164095720,
+            "per_operation": 2404.68881
+          }
+        },
+        "user_ipc": 2.691051587668843,
+        "csv_sha256": "5ec35c12a27034d2d082bff9de4675b75353d401ef639141e427fd2fe0136f74"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-synth-address-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1293425599,
+            "enabled_ns": 164967480,
+            "running_ns": 164967480,
+            "per_operation": 6467.127995
+          },
+          "cycles:u": {
+            "raw_count": 484829364,
+            "enabled_ns": 164967480,
+            "running_ns": 164967480,
+            "per_operation": 2424.14682
+          }
+        },
+        "user_ipc": 2.6677955071219657,
+        "csv_sha256": "d48ab02069d36d3792dd3478ccdd226d924bf6627193c817e37f612b891bf942"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-synth-address-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1293425944,
+            "enabled_ns": 164924320,
+            "running_ns": 164924320,
+            "per_operation": 6467.12972
+          },
+          "cycles:u": {
+            "raw_count": 484671586,
+            "enabled_ns": 164924320,
+            "running_ns": 164924320,
+            "per_operation": 2423.35793
+          }
+        },
+        "user_ipc": 2.668664682150358,
+        "csv_sha256": "3cfaf09962682323973a9adedaf36fbee6d0e78a6ab91574bdf6af78f455d7cb"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-synth-address-stat-r2-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1294228596,
+            "enabled_ns": 163242880,
+            "running_ns": 163242880,
+            "per_operation": 6471.14298
+          },
+          "cycles:u": {
+            "raw_count": 480156459,
+            "enabled_ns": 163242880,
+            "running_ns": 163242880,
+            "per_operation": 2400.782295
+          }
+        },
+        "user_ipc": 2.695430982424835,
+        "csv_sha256": "3487958cd43f4cfaf6d005c9c6cccabda03399bb0c72bee50f2cef09a351fe96"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-synth-address-stat-r3-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1294228276,
+            "enabled_ns": 163863360,
+            "running_ns": 163863360,
+            "per_operation": 6471.14138
+          },
+          "cycles:u": {
+            "raw_count": 481545061,
+            "enabled_ns": 163863360,
+            "running_ns": 163863360,
+            "per_operation": 2407.725305
+          }
+        },
+        "user_ipc": 2.6876576686558518,
+        "csv_sha256": "eb823191c999f5d60dfbc8cb9576a7707dbe9cb2bce884ddc1462a41e49d5a7e"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-synth-address-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1293425559,
+            "enabled_ns": 165107240,
+            "running_ns": 165107240,
+            "per_operation": 6467.127795
+          },
+          "cycles:u": {
+            "raw_count": 485759052,
+            "enabled_ns": 165107240,
+            "running_ns": 165107240,
+            "per_operation": 2428.79526
+          }
+        },
+        "user_ipc": 2.6626895652785487,
+        "csv_sha256": "9aee58f45ad7a647bbf22d51d94140fa4c47fa41a89d9113af24fba4e3625736"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-synth-address-plain-r1-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1607929000,
+      "wall_ns": 1609119496
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-synth-address-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1619478000,
+      "wall_ns": 1624586825
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-synth-address-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1618997000,
+      "wall_ns": 1624456064
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-synth-address-plain-r2-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1607740000,
+      "wall_ns": 1609350098
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-synth-address-plain-r3-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1605514000,
+      "wall_ns": 1609225137
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-synth-address-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1618008000,
+      "wall_ns": 1623549576
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-synth-address-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1619892000,
+      "wall_ns": 1623678057
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-synth-address-plain-r4-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1606247000,
+      "wall_ns": 1608387410
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-synth-address-plain-r5-F",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1606122000,
+      "wall_ns": 1608463130
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-synth-address-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1619049000,
+      "wall_ns": 1623956819
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-lease-address-stat-r1-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1138552517,
+            "enabled_ns": 143372960,
+            "running_ns": 143372960,
+            "per_operation": 5692.762585
+          },
+          "cycles:u": {
+            "raw_count": 419003668,
+            "enabled_ns": 143372960,
+            "running_ns": 143372960,
+            "per_operation": 2095.01834
+          }
+        },
+        "user_ipc": 2.71728532218959,
+        "csv_sha256": "57c69c8dc4a09784c5dde9594b78bad3f9452a04a11c66e944e0810b4794e713"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-lease-address-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1139253970,
+            "enabled_ns": 143921040,
+            "running_ns": 143921040,
+            "per_operation": 5696.26985
+          },
+          "cycles:u": {
+            "raw_count": 422047847,
+            "enabled_ns": 143921040,
+            "running_ns": 143921040,
+            "per_operation": 2110.239235
+          }
+        },
+        "user_ipc": 2.6993479011871373,
+        "csv_sha256": "b7cf0d0698ff9693bac3e70c7bc640e94ab0e07b22567b4f2d73d0af5ca4f6b1"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-lease-address-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1139107820,
+            "enabled_ns": 143637120,
+            "running_ns": 143637120,
+            "per_operation": 5695.5391
+          },
+          "cycles:u": {
+            "raw_count": 421643277,
+            "enabled_ns": 143637120,
+            "running_ns": 143637120,
+            "per_operation": 2108.216385
+          }
+        },
+        "user_ipc": 2.7015913264520046,
+        "csv_sha256": "df5a0f2d3bf25317bef12c2bd54968581cbbebb25f4222b7124b0b9caad6cbf9"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-lease-address-stat-r2-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1138791548,
+            "enabled_ns": 143077840,
+            "running_ns": 143077840,
+            "per_operation": 5693.95774
+          },
+          "cycles:u": {
+            "raw_count": 420218016,
+            "enabled_ns": 143077840,
+            "running_ns": 143077840,
+            "per_operation": 2101.09008
+          }
+        },
+        "user_ipc": 2.710001724438202,
+        "csv_sha256": "3c0795e61d735f526bed805a78b08660e9ab518106fd1b708cd6fbce9c2e0061"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-lease-address-stat-r3-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1138564925,
+            "enabled_ns": 145367600,
+            "running_ns": 145367600,
+            "per_operation": 5692.824625
+          },
+          "cycles:u": {
+            "raw_count": 426793258,
+            "enabled_ns": 145367600,
+            "running_ns": 145367600,
+            "per_operation": 2133.96629
+          }
+        },
+        "user_ipc": 2.667720034602796,
+        "csv_sha256": "26c3e92541cc78d120cb360206f5326d4134a6c0d8ab67ee140628180389e04b"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-lease-address-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1139161937,
+            "enabled_ns": 143570600,
+            "running_ns": 143570600,
+            "per_operation": 5695.809685
+          },
+          "cycles:u": {
+            "raw_count": 422169148,
+            "enabled_ns": 143570600,
+            "running_ns": 143570600,
+            "per_operation": 2110.84574
+          }
+        },
+        "user_ipc": 2.698354302763972,
+        "csv_sha256": "3229688f594a750cc4fc5f6b8a3adea934bd3fbe2c8edd2156ae1730b414cb2a"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-lease-address-plain-r1-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1394438000,
+      "wall_ns": 1409061907
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-lease-address-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1403117000,
+      "wall_ns": 1408658544
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-lease-address-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1404533000,
+      "wall_ns": 1409410310
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-lease-address-plain-r2-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1397177000,
+      "wall_ns": 1409677152
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-lease-address-plain-r3-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1397010000,
+      "wall_ns": 1408548183
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-lease-address-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1402940000,
+      "wall_ns": 1408890986
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-lease-address-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1408437000,
+      "wall_ns": 1409129187
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-lease-address-plain-r4-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1391424000,
+      "wall_ns": 1408550702
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-lease-address-plain-r5-F",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1392571000,
+      "wall_ns": 1408581102
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-lease-address-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1400869000,
+      "wall_ns": 1408289660
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-rrset-stat-r1-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2519657394,
+            "enabled_ns": 300577240,
+            "running_ns": 300577240,
+            "per_operation": 12598.28697
+          },
+          "cycles:u": {
+            "raw_count": 887816116,
+            "enabled_ns": 300577240,
+            "running_ns": 300577240,
+            "per_operation": 4439.08058
+          }
+        },
+        "user_ipc": 2.838039711817982,
+        "csv_sha256": "4cf0ae812cbb3aec1a6da6924d080ea46cfe0d61af3138fdd88b5c14a3d11303"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-rrset-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2524760927,
+            "enabled_ns": 302915080,
+            "running_ns": 302915080,
+            "per_operation": 12623.804635
+          },
+          "cycles:u": {
+            "raw_count": 895058388,
+            "enabled_ns": 302915080,
+            "running_ns": 302915080,
+            "per_operation": 4475.29194
+          }
+        },
+        "user_ipc": 2.820777907731311,
+        "csv_sha256": "d443fb679dc6a132cf1298abf874d380ea07126d468163842d4e7fc31ec663a8"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-rrset-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2524760836,
+            "enabled_ns": 303341680,
+            "running_ns": 303341680,
+            "per_operation": 12623.80418
+          },
+          "cycles:u": {
+            "raw_count": 895770696,
+            "enabled_ns": 303341680,
+            "running_ns": 303341680,
+            "per_operation": 4478.85348
+          }
+        },
+        "user_ipc": 2.8185347514426837,
+        "csv_sha256": "3d7e0b0f13168d32fcd079881c6226fce7709f1078a0e81d687748dc223346b6"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-rrset-stat-r2-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2519657234,
+            "enabled_ns": 300658640,
+            "running_ns": 300658640,
+            "per_operation": 12598.28617
+          },
+          "cycles:u": {
+            "raw_count": 887687426,
+            "enabled_ns": 300658640,
+            "running_ns": 300658640,
+            "per_operation": 4438.43713
+          }
+        },
+        "user_ipc": 2.8384509684380728,
+        "csv_sha256": "f87b3ec62229f2250f9badc2ef38aef09aea3505b69d1fe079b13ec68aa5b0ef"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-rrset-stat-r3-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2519657445,
+            "enabled_ns": 300739000,
+            "running_ns": 300739000,
+            "per_operation": 12598.287225
+          },
+          "cycles:u": {
+            "raw_count": 888520146,
+            "enabled_ns": 300739000,
+            "running_ns": 300739000,
+            "per_operation": 4442.60073
+          }
+        },
+        "user_ipc": 2.8357910131167694,
+        "csv_sha256": "5b6e8d6e02e7e0c8410dfc458bdd08fc5007ad81756cff238aad5267f90bcd3b"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-rrset-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2525230405,
+            "enabled_ns": 303860480,
+            "running_ns": 303860480,
+            "per_operation": 12626.152025
+          },
+          "cycles:u": {
+            "raw_count": 897236327,
+            "enabled_ns": 303860480,
+            "running_ns": 303860480,
+            "per_operation": 4486.181635
+          }
+        },
+        "user_ipc": 2.814454039598867,
+        "csv_sha256": "2362c84b5dcc90b88e8ec21106efee2ba21d94d04e3f3c39bf99f000c75e651d"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-rrset-plain-r1-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2973943000,
+      "wall_ns": 3010240254
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-rrset-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2993876000,
+      "wall_ns": 3010246414
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-rrset-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2997222000,
+      "wall_ns": 3010177293
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-rrset-plain-r2-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3012236000,
+      "wall_ns": 3013711322
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-rrset-plain-r3-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2960663000,
+      "wall_ns": 2974118111
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-rrset-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2998690000,
+      "wall_ns": 3010389214
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-rrset-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3002659000,
+      "wall_ns": 3010304373
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-rrset-plain-r4-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2972573000,
+      "wall_ns": 2974871917
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-rrset-plain-r5-F",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2975000000,
+      "wall_ns": 3011673983
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-rrset-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3003720000,
+      "wall_ns": 3011778864
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-cname-stat-r1-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1859300957,
+            "enabled_ns": 238652720,
+            "running_ns": 238652720,
+            "per_operation": 9296.504785
+          },
+          "cycles:u": {
+            "raw_count": 703146912,
+            "enabled_ns": 238652720,
+            "running_ns": 238652720,
+            "per_operation": 3515.73456
+          }
+        },
+        "user_ipc": 2.6442567339327234,
+        "csv_sha256": "2097c388ee592181d708accd45e5f6f6dfc435d6a837dcefc450483fbf3fb31b"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-cname-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1741989803,
+            "enabled_ns": 219986880,
+            "running_ns": 219986880,
+            "per_operation": 8709.949015
+          },
+          "cycles:u": {
+            "raw_count": 648173227,
+            "enabled_ns": 219986880,
+            "running_ns": 219986880,
+            "per_operation": 3240.866135
+          }
+        },
+        "user_ipc": 2.687537421227057,
+        "csv_sha256": "3e15a82159d63dc4377ebb561b5c213904f20909e1a91b4f97ba4e9a8bf7f127"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-cname-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1742170394,
+            "enabled_ns": 220350520,
+            "running_ns": 220350520,
+            "per_operation": 8710.85197
+          },
+          "cycles:u": {
+            "raw_count": 649884436,
+            "enabled_ns": 220350520,
+            "running_ns": 220350520,
+            "per_operation": 3249.42218
+          }
+        },
+        "user_ipc": 2.680738755220782,
+        "csv_sha256": "5a7ed6c8d8529840d28522663ebbc72640b2858336ade606250f5c3844d4fde1"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-cname-stat-r2-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1859281175,
+            "enabled_ns": 236618760,
+            "running_ns": 236618760,
+            "per_operation": 9296.405875
+          },
+          "cycles:u": {
+            "raw_count": 697499161,
+            "enabled_ns": 236618760,
+            "running_ns": 236618760,
+            "per_operation": 3487.495805
+          }
+        },
+        "user_ipc": 2.665639299600534,
+        "csv_sha256": "8a96d7e79fb8ef46177449efdd1475c4ed4c41ade00a1b16b98d5d147970a055"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-cname-stat-r3-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1859267518,
+            "enabled_ns": 237395080,
+            "running_ns": 237395080,
+            "per_operation": 9296.33759
+          },
+          "cycles:u": {
+            "raw_count": 699908603,
+            "enabled_ns": 237395080,
+            "running_ns": 237395080,
+            "per_operation": 3499.543015
+          }
+        },
+        "user_ipc": 2.656443298497361,
+        "csv_sha256": "465f91ebf01c4383102ee40aa2f3fbd17dfe19730677139591cbc5f7ed9d90bf"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-cname-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1741964945,
+            "enabled_ns": 219807440,
+            "running_ns": 219807440,
+            "per_operation": 8709.824725
+          },
+          "cycles:u": {
+            "raw_count": 648117163,
+            "enabled_ns": 219807440,
+            "running_ns": 219807440,
+            "per_operation": 3240.585815
+          }
+        },
+        "user_ipc": 2.687731546772817,
+        "csv_sha256": "0de78d5dd1690f298c80c3579c722dd4bf9ea18e29485957b0b8a9fe0ba8ea58"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-cname-plain-r1-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2330079000,
+      "wall_ns": 2373713065
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-cname-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2171380000,
+      "wall_ns": 2173632357
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-cname-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2170720000,
+      "wall_ns": 2174872647
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-cname-plain-r2-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2334123000,
+      "wall_ns": 2375078596
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-cname-plain-r3-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2331553000,
+      "wall_ns": 2374758993
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-cname-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2171429000,
+      "wall_ns": 2174903408
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-cname-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2168880000,
+      "wall_ns": 2174430843
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-cname-plain-r4-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2330737000,
+      "wall_ns": 2373892425
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-cname-plain-r5-F",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2326999000,
+      "wall_ns": 2373800664
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-cname-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2168640000,
+      "wall_ns": 2173993078
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-cname-leases-stat-r1-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2284803535,
+            "enabled_ns": 282186040,
+            "running_ns": 282186040,
+            "per_operation": 11424.017675
+          },
+          "cycles:u": {
+            "raw_count": 833145423,
+            "enabled_ns": 282186040,
+            "running_ns": 282186040,
+            "per_operation": 4165.727115
+          }
+        },
+        "user_ipc": 2.7423826284406054,
+        "csv_sha256": "09ea1317cbfe822c50bfd9c3e6e6a877d84042ffadddc1ad76512c30eeb83fb3"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-cname-leases-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2240996982,
+            "enabled_ns": 272725000,
+            "running_ns": 272725000,
+            "per_operation": 11204.98491
+          },
+          "cycles:u": {
+            "raw_count": 805239147,
+            "enabled_ns": 272725000,
+            "running_ns": 272725000,
+            "per_operation": 4026.195735
+          }
+        },
+        "user_ipc": 2.7830204112021395,
+        "csv_sha256": "34b5e1acf8dbb6950db77316584e654dbca7e60fd3f87093eb2981453fa2acf7"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-cname-leases-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2240958856,
+            "enabled_ns": 273002800,
+            "running_ns": 273002800,
+            "per_operation": 11204.79428
+          },
+          "cycles:u": {
+            "raw_count": 805803034,
+            "enabled_ns": 273002800,
+            "running_ns": 273002800,
+            "per_operation": 4029.01517
+          }
+        },
+        "user_ipc": 2.7810255874514365,
+        "csv_sha256": "b52f41ba2572fcfed718db85d33f088978a4a4f11f0970c94da3a67759fed1ee"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-cname-leases-stat-r2-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2284908076,
+            "enabled_ns": 283520560,
+            "running_ns": 283520560,
+            "per_operation": 11424.54038
+          },
+          "cycles:u": {
+            "raw_count": 837635531,
+            "enabled_ns": 283520560,
+            "running_ns": 283520560,
+            "per_operation": 4188.177655
+          }
+        },
+        "user_ipc": 2.727807013239031,
+        "csv_sha256": "6b7dea60074143cbf40d7123cc29e874b6f580741e54de0627a28b0dc756fa68"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-cname-leases-stat-r3-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2284840132,
+            "enabled_ns": 282606240,
+            "running_ns": 282606240,
+            "per_operation": 11424.20066
+          },
+          "cycles:u": {
+            "raw_count": 833643416,
+            "enabled_ns": 282606240,
+            "running_ns": 282606240,
+            "per_operation": 4168.21708
+          }
+        },
+        "user_ipc": 2.740788313261266,
+        "csv_sha256": "99a1030ae0b874b689f1c598e3545c0dbd7729a8a26d9824a351ad82ac11d8bb"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-cname-leases-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2240995444,
+            "enabled_ns": 273808280,
+            "running_ns": 273808280,
+            "per_operation": 11204.97722
+          },
+          "cycles:u": {
+            "raw_count": 807657839,
+            "enabled_ns": 273808280,
+            "running_ns": 273808280,
+            "per_operation": 4038.289195
+          }
+        },
+        "user_ipc": 2.7746841989111184,
+        "csv_sha256": "ad0c1fdfaeb961037c5c289ce1ddee91391637518c7a7f62461aff905858fff9"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-cname-leases-plain-r1-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2788863000,
+      "wall_ns": 2811125228
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-cname-leases-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2692019000,
+      "wall_ns": 2724776069
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-cname-leases-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2697015000,
+      "wall_ns": 2724670827
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-cname-leases-plain-r2-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2789424000,
+      "wall_ns": 2811695192
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-cname-leases-plain-r3-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2831558000,
+      "wall_ns": 2843346096
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-cname-leases-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2696973000,
+      "wall_ns": 2725543194
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-cname-leases-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2697119000,
+      "wall_ns": 2724966789
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-cname-leases-plain-r4-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2806117000,
+      "wall_ns": 2811987274
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-cname-leases-plain-r5-F",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2809246000,
+      "wall_ns": 2811747191
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-cname-leases-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2696869000,
+      "wall_ns": 2725301431
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-cname-config-stat-r1-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43969061989,
+            "enabled_ns": 4515866920,
+            "running_ns": 4515866920,
+            "per_operation": 219845.309945
+          },
+          "cycles:u": {
+            "raw_count": 13429081932,
+            "enabled_ns": 4515866920,
+            "running_ns": 4515866920,
+            "per_operation": 67145.40966
+          }
+        },
+        "user_ipc": 3.274167378800977,
+        "csv_sha256": "2da172e8738fafc2c855fe9647a7fc3bcea95ccd099485398a0e986efa011741"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-local-miss-cname-config-stat-r1-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44023608571,
+            "enabled_ns": 4516623560,
+            "running_ns": 4516623560,
+            "per_operation": 220118.042855
+          },
+          "cycles:u": {
+            "raw_count": 13428352682,
+            "enabled_ns": 4516623560,
+            "running_ns": 4516623560,
+            "per_operation": 67141.76341
+          }
+        },
+        "user_ipc": 3.2784072338233514,
+        "csv_sha256": "263612313c41904097551b739e4fa208a6e00e11d321d8d281326d6baf051f59"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-cname-config-stat-r2-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43990927959,
+            "enabled_ns": 4508220200,
+            "running_ns": 4508220200,
+            "per_operation": 219954.639795
+          },
+          "cycles:u": {
+            "raw_count": 13407741221,
+            "enabled_ns": 4508220200,
+            "running_ns": 4508220200,
+            "per_operation": 67038.706105
+          }
+        },
+        "user_ipc": 3.281009622269469,
+        "csv_sha256": "0b5406347f627d3f756362c1bd17c73bb197b0b10d9509d6eebd1090ca0db37c"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-local-miss-cname-config-stat-r2-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43979237349,
+            "enabled_ns": 4515718160,
+            "running_ns": 4515718160,
+            "per_operation": 219896.186745
+          },
+          "cycles:u": {
+            "raw_count": 13429851874,
+            "enabled_ns": 4515718160,
+            "running_ns": 4515718160,
+            "per_operation": 67149.25937
+          }
+        },
+        "user_ipc": 3.2747373360195557,
+        "csv_sha256": "aeec330eb513ec6c9b5e8663948e645f701f99ba321e1a3a7f6ebd25b96bfb06"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-cname-config-stat-r3-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44018921130,
+            "enabled_ns": 4521543080,
+            "running_ns": 4521543080,
+            "per_operation": 220094.60565
+          },
+          "cycles:u": {
+            "raw_count": 13445436094,
+            "enabled_ns": 4521543080,
+            "running_ns": 4521543080,
+            "per_operation": 67227.18047
+          }
+        },
+        "user_ipc": 3.2738931502298656,
+        "csv_sha256": "f6ce243e81826cced93399735d692355debf2a493da5da84f6b6dbe5450f5b79"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-local-miss-cname-config-stat-r3-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43996402342,
+            "enabled_ns": 4507211080,
+            "running_ns": 4507211080,
+            "per_operation": 219982.01171
+          },
+          "cycles:u": {
+            "raw_count": 13402482580,
+            "enabled_ns": 4507211080,
+            "running_ns": 4507211080,
+            "per_operation": 67012.4129
+          }
+        },
+        "user_ipc": 3.282705430086073,
+        "csv_sha256": "d7a18ea5cf4cebd22780091c1cb49231a5d8ef81094c5b3fffc3367916cde9fb"
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-cname-config-plain-r1-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4518348000,
+      "wall_ns": 4527295523
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-local-miss-cname-config-plain-r1-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4501525000,
+      "wall_ns": 4527504804
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-cname-config-plain-r2-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4508174000,
+      "wall_ns": 4527846206
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-local-miss-cname-config-plain-r2-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4516125000,
+      "wall_ns": 4528735333
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-cname-config-plain-r3-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4518383000,
+      "wall_ns": 4527895406
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-local-miss-cname-config-plain-r3-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4513062000,
+      "wall_ns": 4527198479
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-cname-config-plain-r4-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4509302000,
+      "wall_ns": 4527590002
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-local-miss-cname-config-plain-r4-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4512265000,
+      "wall_ns": 4527563841
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "F",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-cname-config-plain-r5-F",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4519788000,
+      "wall_ns": 4527469639
+    },
+    {
+      "candidate": "cached-local-miss",
+      "side": "cached-local-miss",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-local-miss-cname-config-plain-r5-cached-local-miss",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4512250000,
+      "wall_ns": 4527756481
+    }
+  ],
+  "summaries": [
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 574.1985,
+          "min": 573.258,
+          "max": 574.7485,
+          "rounds": [
+            573.258,
+            574.7485,
+            574.1985,
+            573.78,
+            574.481
+          ]
+        },
+        "right": {
+          "median": 425.5275,
+          "min": 425.4375,
+          "max": 426.9525,
+          "rounds": [
+            425.714,
+            425.469,
+            425.5275,
+            425.4375,
+            426.9525
+          ]
+        },
+        "relative_change_pct": -25.89191716801768,
+        "W_pct": 0.356028693797695,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4525.5754,
+          "cycles:u": 1724.12886,
+          "ipc": 2.6248475418478874
+        },
+        "cached-local-miss": {
+          "instructions:u": 3293.66098,
+          "cycles:u": 1280.393035,
+          "ipc": 2.5724079872083965
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -27.221166616735626,
+        "cycles:u": -25.736813256521906,
+        "ipc": -1.997813351192712
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 591.3575,
+          "min": 590.335,
+          "max": 591.855,
+          "rounds": [
+            591.855,
+            590.335,
+            590.7565,
+            591.6355,
+            591.3575
+          ]
+        },
+        "right": {
+          "median": 442.421,
+          "min": 442.0705,
+          "max": 443.3885,
+          "rounds": [
+            443.057,
+            443.3885,
+            442.0705,
+            442.421,
+            442.397
+          ]
+        },
+        "relative_change_pct": -25.185526521604945,
+        "W_pct": 0.2979062928748953,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4640.1711,
+          "cycles:u": 1774.481245,
+          "ipc": 2.6149451356979543
+        },
+        "cached-local-miss": {
+          "instructions:u": 3409.38031,
+          "cycles:u": 1332.858815,
+          "ipc": 2.557945576553808
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -26.52468547980913,
+        "cycles:u": -24.887410404836363,
+        "ipc": -2.1797611875681855
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 670.05,
+          "min": 669.9145,
+          "max": 672.088,
+          "rounds": [
+            669.9145,
+            670.0145,
+            672.088,
+            670.05,
+            671.087
+          ]
+        },
+        "right": {
+          "median": 553.5725,
+          "min": 553.025,
+          "max": 554.0785,
+          "rounds": [
+            553.9795,
+            553.087,
+            553.5725,
+            553.025,
+            554.0785
+          ]
+        },
+        "relative_change_pct": -17.383404223565403,
+        "W_pct": 0.324378777703155,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 5401.015395,
+          "cycles:u": 2012.82498,
+          "ipc": 2.6833940549565316
+        },
+        "cached-local-miss": {
+          "instructions:u": 4529.58261,
+          "cycles:u": 1662.636945,
+          "ipc": 2.7239711072341173
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -16.134610277295824,
+        "cycles:u": -17.397838285969613,
+        "ipc": 1.5121540648357357
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 573.5755,
+          "min": 573.3095,
+          "max": 574.7585,
+          "rounds": [
+            573.4605,
+            573.3095,
+            574.0985,
+            573.5755,
+            574.7585
+          ]
+        },
+        "right": {
+          "median": 425.635,
+          "min": 425.255,
+          "max": 429.4535,
+          "rounds": [
+            425.255,
+            426.9,
+            429.4535,
+            425.635,
+            425.492
+          ]
+        },
+        "relative_change_pct": -25.792681172748843,
+        "W_pct": 0.9864085425305776,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4525.79437,
+          "cycles:u": 1722.806655,
+          "ipc": 2.626849540466861
+        },
+        "cached-local-miss": {
+          "instructions:u": 3293.83858,
+          "cycles:u": 1281.37632,
+          "ipc": 2.5704061863731025
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -27.220763677780603,
+        "cycles:u": -25.62274377794298,
+        "ipc": -2.14870906095852
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 366.447,
+          "min": 366.035,
+          "max": 367.7905,
+          "rounds": [
+            367.5795,
+            367.7905,
+            366.035,
+            366.209,
+            366.447
+          ]
+        },
+        "right": {
+          "median": 374.4365,
+          "min": 373.4405,
+          "max": 378.18,
+          "rounds": [
+            374.275,
+            378.18,
+            374.4365,
+            373.4405,
+            374.5415
+          ]
+        },
+        "relative_change_pct": 2.18026071983125,
+        "W_pct": 1.2657686950924978,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 2883.558745,
+          "cycles:u": 1097.952515,
+          "ipc": 2.6263066121762106
+        },
+        "cached-local-miss": {
+          "instructions:u": 2903.13542,
+          "cycles:u": 1116.450355,
+          "ipc": 2.600326227671807
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.6789067513864877,
+        "cycles:u": 1.6847577420048943,
+        "ipc": -0.9892365340723019
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 461.742,
+          "min": 461.428,
+          "max": 462.96,
+          "rounds": [
+            461.428,
+            461.741,
+            461.911,
+            461.742,
+            462.96
+          ]
+        },
+        "right": {
+          "median": 471.4445,
+          "min": 470.58,
+          "max": 471.928,
+          "rounds": [
+            471.121,
+            471.4635,
+            470.58,
+            471.928,
+            471.4445
+          ]
+        },
+        "relative_change_pct": 2.1012816681176902,
+        "W_pct": 0.33178701525959997,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 3759.343705,
+          "cycles:u": 1383.978015,
+          "ipc": 2.7163839159684917
+        },
+        "cached-local-miss": {
+          "instructions:u": 3785.72082,
+          "cycles:u": 1415.622575,
+          "ipc": 2.674244453893369
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.7016414850527619,
+        "cycles:u": 2.2864929686039925,
+        "ipc": -1.5513073033381786
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 850.8345,
+          "min": 849.897,
+          "max": 865.2185,
+          "rounds": [
+            850.8345,
+            849.9155,
+            865.2185,
+            853.88,
+            849.897
+          ]
+        },
+        "right": {
+          "median": 864.4655,
+          "min": 856.3265,
+          "max": 885.161,
+          "rounds": [
+            864.4655,
+            862.9215,
+            885.161,
+            869.3195,
+            856.3265
+          ]
+        },
+        "relative_change_pct": 1.6020741989188225,
+        "W_pct": 3.3355292952697284,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 6694.383495,
+          "cycles:u": 2564.577345,
+          "ipc": 2.614841736560156
+        },
+        "cached-local-miss": {
+          "instructions:u": 6774.784985,
+          "cycles:u": 2600.25335,
+          "ipc": 2.605432653322031
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 1.2010290426303083,
+        "cycles:u": 1.3911066113702963,
+        "ipc": -0.3598337561531606
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1598.9235,
+          "min": 1588.4135,
+          "max": 1608.5575,
+          "rounds": [
+            1598.9235,
+            1600.399,
+            1593.099,
+            1588.4135,
+            1608.5575
+          ]
+        },
+        "right": {
+          "median": 1621.608,
+          "min": 1600.952,
+          "max": 1663.4105,
+          "rounds": [
+            1600.952,
+            1663.4105,
+            1608.93,
+            1662.888,
+            1621.608
+          ]
+        },
+        "relative_change_pct": 1.4187357931758362,
+        "W_pct": 3.8516398537747696,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 12766.86299,
+          "cycles:u": 4783.81339,
+          "ipc": 2.677969711943482
+        },
+        "cached-local-miss": {
+          "instructions:u": 12702.342285,
+          "cycles:u": 4768.04629,
+          "ipc": 2.674450173379794
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.5053763406918099,
+        "cycles:u": -0.3295927059562831,
+        "ipc": -0.13142562994612472
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6690.585,
+          "min": 6682.555,
+          "max": 6693.7,
+          "rounds": [
+            6692.295,
+            6690.585,
+            6693.7,
+            6682.555,
+            6686.045
+          ]
+        },
+        "right": {
+          "median": 6697.235,
+          "min": 6691.47,
+          "max": 6705.505,
+          "rounds": [
+            6701.815,
+            6694.665,
+            6691.47,
+            6697.235,
+            6705.505
+          ]
+        },
+        "relative_change_pct": 0.09939340132439295,
+        "W_pct": 0.20956409622776945,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 58167.591475,
+          "cycles:u": 19868.872575,
+          "ipc": 2.927573834671895
+        },
+        "cached-local-miss": {
+          "instructions:u": 58190.7351,
+          "cycles:u": 19896.719215,
+          "ipc": 2.9250333888418805
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.039787834450644155,
+        "cycles:u": 0.14015208912778743,
+        "ipc": -0.0867764904825763
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 803.1235,
+          "min": 802.757,
+          "max": 803.9645,
+          "rounds": [
+            803.9645,
+            803.87,
+            802.757,
+            803.1235,
+            803.061
+          ]
+        },
+        "right": {
+          "median": 809.5245,
+          "min": 809.004,
+          "max": 809.946,
+          "rounds": [
+            809.739,
+            809.4985,
+            809.004,
+            809.946,
+            809.5245
+          ]
+        },
+        "relative_change_pct": 0.7970131617366387,
+        "W_pct": 0.15035047536276744,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 6471.14164,
+          "cycles:u": 2404.68881,
+          "ipc": 2.691051587668843
+        },
+        "cached-local-miss": {
+          "instructions:u": 6467.127995,
+          "cycles:u": 2424.14682,
+          "ipc": 2.6677955071219657
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.0620237544360136,
+        "cycles:u": 0.8091695656869513,
+        "ipc": -0.8642004729096597
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 697.219,
+          "min": 695.712,
+          "max": 698.5885,
+          "rounds": [
+            697.219,
+            698.5885,
+            698.505,
+            695.712,
+            696.2855
+          ]
+        },
+        "right": {
+          "median": 701.5585,
+          "min": 700.4345,
+          "max": 704.2185,
+          "rounds": [
+            701.5585,
+            702.2665,
+            701.47,
+            704.2185,
+            700.4345
+          ]
+        },
+        "relative_change_pct": 0.6224012828106993,
+        "W_pct": 0.5393705585492858,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 5692.824625,
+          "cycles:u": 2101.09008,
+          "ipc": 2.710001724438202
+        },
+        "cached-local-miss": {
+          "instructions:u": 5695.809685,
+          "cycles:u": 2110.239235,
+          "ipc": 2.6993479011871373
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.05243548144608923,
+        "cycles:u": 0.4354480127763072,
+        "ipc": -0.39312975910645864
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1486.9715,
+          "min": 1480.3315,
+          "max": 1506.118,
+          "rounds": [
+            1486.9715,
+            1506.118,
+            1480.3315,
+            1486.2865,
+            1487.5
+          ]
+        },
+        "right": {
+          "median": 1499.345,
+          "min": 1496.938,
+          "max": 1501.86,
+          "rounds": [
+            1496.938,
+            1498.611,
+            1499.345,
+            1501.3295,
+            1501.86
+          ]
+        },
+        "relative_change_pct": 0.8321275828084076,
+        "W_pct": 1.734162356171583,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 12598.28697,
+          "cycles:u": 4439.08058,
+          "ipc": 2.838039711817982
+        },
+        "cached-local-miss": {
+          "instructions:u": 12623.804635,
+          "cycles:u": 4478.85348,
+          "ipc": 2.8185347514426837
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.2025486882523353,
+        "cycles:u": 0.8959715707616223,
+        "ipc": -0.6872687613945994
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1165.3685,
+          "min": 1163.4995,
+          "max": 1167.0615,
+          "rounds": [
+            1165.0395,
+            1167.0615,
+            1165.7765,
+            1165.3685,
+            1163.4995
+          ]
+        },
+        "right": {
+          "median": 1085.36,
+          "min": 1084.32,
+          "max": 1085.7145,
+          "rounds": [
+            1085.69,
+            1085.36,
+            1085.7145,
+            1084.44,
+            1084.32
+          ]
+        },
+        "relative_change_pct": -6.865510780495623,
+        "W_pct": 0.30565439172245734,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 9296.405875,
+          "cycles:u": 3499.543015,
+          "ipc": 2.656443298497361
+        },
+        "cached-local-miss": {
+          "instructions:u": 8709.949015,
+          "cycles:u": 3240.866135,
+          "ipc": 2.687537421227057
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -6.308425728023625,
+        "cycles:u": -7.391733117473908,
+        "ipc": 1.1705170875389914
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1403.0585,
+          "min": 1394.4315,
+          "max": 1415.779,
+          "rounds": [
+            1394.4315,
+            1394.712,
+            1415.779,
+            1403.0585,
+            1404.623
+          ]
+        },
+        "right": {
+          "median": 1348.4865,
+          "min": 1346.0095,
+          "max": 1348.5595,
+          "rounds": [
+            1346.0095,
+            1348.5075,
+            1348.4865,
+            1348.5595,
+            1348.4345
+          ]
+        },
+        "relative_change_pct": -3.8895028254345854,
+        "W_pct": 1.52149749992606,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 11424.20066,
+          "cycles:u": 4168.21708,
+          "ipc": 2.740788313261266
+        },
+        "cached-local-miss": {
+          "instructions:u": 11204.97722,
+          "cycles:u": 4029.01517,
+          "ipc": 2.7810255874514365
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.9189389833423998,
+        "cycles:u": -3.339603176329775,
+        "ipc": 1.4680912785377531
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 22591.74,
+          "min": 22561.325,
+          "max": 22598.94,
+          "rounds": [
+            22591.74,
+            22580.625,
+            22591.915,
+            22561.325,
+            22598.94
+          ]
+        },
+        "right": {
+          "median": 22546.51,
+          "min": 22507.625,
+          "max": 22565.31,
+          "rounds": [
+            22507.625,
+            22540.87,
+            22565.31,
+            22546.51,
+            22561.25
+          ]
+        },
+        "relative_change_pct": -0.20020591596753146,
+        "W_pct": 0.2558489096538724,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 219896.186745,
+          "cycles:u": 67149.25937,
+          "ipc": 3.274167378800977
+        },
+        "cached-local-miss": {
+          "instructions:u": 219982.01171,
+          "cycles:u": 67038.706105,
+          "ipc": 3.281009622269469
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.03902976503158406,
+        "cycles:u": -0.16463810031147608,
+        "ipc": 0.20897659395158197
+      }
+    }
+  ],
+  "independent_audit": {
+    "status": "PASS",
+    "candidate": "cached-local-miss",
+    "checked_at_utc": "2026-10-16T00:39:40.509006+00:00",
+    "raw_result_sha256": "dd81b34e96a63ac9b7e7d7438dc369778744b2ba3d56da29f5f75acf3aa67c6a",
+    "raw_result_bytes": 361222,
+    "plan_sha256": "4164adeed24c9a0291a39cdb0ee7dfb6fe6bd86aa9680de2f52411632e69475d",
+    "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+    "launch": {
+      "scope": "Independent fixed native240 after exact related gates, SDK build, prior workloads exited and both transfer owners released; no qualification claim",
+      "candidate": "cached-local-miss",
+      "launched_utc": "2026-10-16T00:32:59.651639+00:00",
+      "pid": 641270,
+      "starttime_ticks": 183539686,
+      "argv": [
+        "taskset",
+        "-c",
+        "0",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-native-screen1/run-native.py",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-native-screen1"
+      ],
+      "plan_commit": "a60d358b",
+      "plan_sha256": "4164adeed24c9a0291a39cdb0ee7dfb6fe6bd86aa9680de2f52411632e69475d",
+      "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+      "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+      "gate_receipt_sha256": "cb9ceed13e8e9441a8b3465cd51af23bb67c80fd2405df9b26f2b6a72aac2fa4",
+      "related_test_passes": 938,
+      "sdk_elf_sha256": "36e4cdde1fd0ea25d55599a37cf8fc7eb78e933c953b719c8a09af715d1b1b3f",
+      "sdk_build_receipt_sha256": "2d8d21b716331c68e9446b87c1dea1f32f80765232c71d9bb5ffb906fb619f41",
+      "both_sdk_builds_complete": true,
+      "hot250_build_postflight_released_by_DNS": true,
+      "DNS_owner32_pretransfer_complete": true,
+      "dhcp_gate": "DHCP directly confirmed both SDK bundles (six files) downloaded and 358 source inputs verified before timing; DNS owner32 input/artifact pretransfer also complete",
+      "locks_available_before_launch": [
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+      ],
+      "root_readable_research_process_inventory": [],
+      "sources_reverified": {
+        "F": 162,
+        "cached-local-miss": 162
+      },
+      "previous_round": null,
+      "windows": 240,
+      "planned_build_commands": 4,
+      "planned_commands": 244,
+      "SDK32_not_authorized": true
+    },
+    "launch_sha256": "907d637e54c87034247dfbc38335c1cef6085ac83f45354d9b1d9da10f4c9888",
+    "windows": 240,
+    "commands": 244,
+    "plain_windows": 150,
+    "stat_windows": 90,
+    "all_four_build_commands_preceded_measurement": true,
+    "all_planned_labels_order_checksums_match": true,
+    "raw_stdout_stderr_csv_files_rehashed": 578,
+    "all_recorded_unscaled_event_fields_and_same_window_ipc_match": true,
+    "source_files_rehashed": {
+      "F": 162,
+      "cached-local-miss": 162
+    },
+    "all_two_probe_ELF_hashes_match": true,
+    "failed_commands": 0,
+    "controller_stderr_bytes": 0,
+    "scope": "Independent check of native metadata, all small raw stdout/stderr/CSV hashes, recorded PMU fields and CPU derivation; no new measurement or counter parser"
+  },
+  "analysis_script_sha256": "f58b58c30d09356ecd7a34d4b95b653ab9e987b222601bd78dbf48da12642fd7",
+  "unchanged_compare_module_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "prior_results_pooled": false,
+  "candidate_selected": false,
+  "performance_acceptance": false,
+  "deployment": false
+}
