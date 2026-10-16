@@ -1,0 +1,75 @@
+{
+  "status": "LOCAL_TOOL_FIX_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "scope": "Per-scene guard evidence boundary after all original timed windows/endpoints/archives; no product,workload,CLI or statistical change; not a formal110 launch",
+  "old_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "controller_sha256": "c4f196805889abf996e006d52ef53539423f4ad8d88d9d512180dadf76791a2c",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "changes": [
+    "Lazy execution-time import and exact helper hash binding recorded in identity",
+    "Per-segment unique output directory captures complete raw bytes/newline prefix/stop-request before guard_stop",
+    "Retain complete final guard log and stderr; validate every final safety sample and all prefix DNS/HTTP outcomes using unchanged0926",
+    "External monitor remains continuous across scenes; whole-line snapshots validated per scene, full final external log and monitor exit required before complete",
+    "Resume binds exact controller/helper versions; old7c93 logs cannot be resumed as captured-prefix evidence"
+  ],
+  "unchanged_functions": [
+    "ssh",
+    "write",
+    "production_identity",
+    "stop_owned",
+    "archive_run",
+    "validate",
+    "external_health",
+    "guard_start",
+    "guard_check",
+    "guard_stop"
+  ],
+  "timed_window_loop_byte_identical": true,
+  "SCENES_identical": true,
+  "unchanged_files": {
+    "tools/dnsmasq/device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "tools/dnsmasq/perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "tools/dnsmasq/m6a_loadgen.c": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+    "tools/dnsmasq/perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "tools/dnsmasq/perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+    "tools/dnsmasq/udp_stage_device_run.py": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "tools/dnsmasq/cached_zero_frame_device_run.py": "f02b123d48ca95997032e45ab7de847874bbe03b35e6ca6a87aa9816e148a82b"
+  },
+  "tests": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "test_perf_opt_device_guard_boundary",
+      "test_perf_opt_device_prune",
+      "test_device_health_baseline",
+      "test_udp_stage_device_run",
+      "test_perf_opt_miss_cohort",
+      "-v"
+    ],
+    "passed": 42,
+    "exit_code": 0,
+    "stdout_sha256": "481f50ad4b97b5148a8753ed4c10a1d64bb09b849fc893df432ba2f31232e1f8",
+    "stderr_sha256": "586589da5a871a76934a3ef4680100a2ae2571661020e5f0270e12544c7ce55a",
+    "scope": "All SSH/process/guard/timing calls are mocked; actual local Python imports exercised in both orders and two tool directories; original7c93 baseline producer runs only mocked with actual frozen file hash"
+  },
+  "initial_test_fixture_failure": "Five existing ten-wrapper tests initially rejected the new controller hash in their temporary plans before windows. Only their generated mock plan controller hash was rebound; frozen production ten plans/privatecopies unchanged. Subsequent full42 pass retained.",
+  "bundles": {
+    "fresh_health": {
+      "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+      "instruction": "Standalone0926 baseline producer must run with frozen7c93 controller alongside it; do not run it from the newfullcontroller directory or relax its pin"
+    },
+    "full110": {
+      "controller_sha256": "c4f196805889abf996e006d52ef53539423f4ad8d88d9d512180dadf76791a2c",
+      "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+      "instruction": "New full-run directory must contain new controller and exact0926 helper; onlycapture/validation functions run, not baseline.main"
+    }
+  },
+  "oracle_integration": "Oracle controller unchanged; imports only identicalSCENES/validate/write. Existing frozen7c93 bundle remains valid for Oracle110; this repair is device full-run tail only.",
+  "no_new_gate": "Original0926qualification/safety/120s coverage rules unchanged; no first-sample/time-window padding or status filter introduced. A short resumed segment cannot manufacture120s coverage and fails rather than silently borrowing old evidence.",
+  "device_accessed": false,
+  "Oracle_accessed": false,
+  "formal110_executed": false,
+  "private185ten_snapshot_modified": false,
+  "independent_review_passed": false
+}

@@ -1,7 +1,10 @@
 import copy
+import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -96,6 +99,16 @@ class PrefixHealthTests(unittest.TestCase):
         prefix, final, external = self.fixture()
         with tempfile.TemporaryDirectory() as temporary:
             out = Path(temporary) / 'new-attempt'
+            # The standalone producer remains frozen to its original controller;
+            # the new full-run consumer must not silently widen that identity.
+            frozen = subprocess.check_output(['git', 'show',
+                'df511ea2:tools/dnsmasq/perf_opt_device_run.py'], cwd=Path(__file__).resolve().parents[2])
+            self.assertEqual(hashlib.sha256(frozen).hexdigest(), health.CONTROLLER_SHA)
+            frozen_path = Path(temporary) / 'perf_opt_device_run.py'
+            frozen_path.write_bytes(frozen)
+            spec = importlib.util.spec_from_file_location('frozen_baseline_run', frozen_path)
+            frozen_run = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(frozen_run)
             stopped = False
             def ssh(command, **kwargs):
                 if command.startswith('cat ') and command.endswith('.jsonl'):
@@ -109,7 +122,8 @@ class PrefixHealthTests(unittest.TestCase):
                 stopped = True
             def external_health(destination, finished, failed):
                 (destination / 'external-health.jsonl').write_bytes(encode(external))
-            with patch('sys.argv', ['health', '--out', str(out), '--label-prefix', 'test-health']), \
+            with patch.object(health, 'run', frozen_run), \
+                 patch('sys.argv', ['health', '--out', str(out), '--label-prefix', 'test-health']), \
                  patch.object(health.run, 'ssh', side_effect=ssh), \
                  patch.object(health.run, 'production_identity', return_value=[3086, 2115]), \
                  patch.object(health.run, 'guard_start', return_value=(99, 1)), \

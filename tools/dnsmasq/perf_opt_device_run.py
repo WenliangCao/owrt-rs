@@ -17,6 +17,7 @@ import time
 
 ROOT = '/tmp/dnsmasq-perf-20261015'
 PRODUCTION = '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'
+HEALTH_EVIDENCE_SHA = '0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad'
 SCENES = [
     ('udp-hit', 'udp', 'hit', 200, 5, 20, 150),
     ('udp-miss', 'udp', 'miss', 200, 5, 20, 150),
@@ -198,6 +199,12 @@ def main():
     parser.add_argument('--health-baseline', required=True, type=Path)
     parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
+    # The helper also imports this module for its unchanged guard primitives.
+    # Import only at execution time; its standalone baseline still pins 7c93.
+    import device_health_baseline as health_evidence
+    helper_sha = hashlib.sha256(Path(health_evidence.__file__).read_bytes()).hexdigest()
+    if helper_sha != HEALTH_EVIDENCE_SHA:
+        raise RuntimeError('health evidence helper identity differs')
     health = json.loads(args.health_baseline.read_text())
     assert health['valid'] and health['elapsed_seconds'] >= 120
     threshold = health['threshold_ms']
@@ -211,12 +218,14 @@ def main():
     identity = production_identity()
     run_identity = {'production_pid_start':identity, 'production_sha256':PRODUCTION,
           'comparison':{'c':args.c_hash, 'rust':args.rust_hash}, 'controller_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+          'health_evidence_sha256':helper_sha,
           'scenes':selected, 'threshold_ms':threshold, 'health_baseline_sha256':hashlib.sha256(args.health_baseline.read_bytes()).hexdigest()}
     results = []
     if args.resume:
         previous = json.loads((args.out / 'identity.json').read_text())
-        for key in ('production_pid_start', 'comparison', 'threshold_ms', 'health_baseline_sha256'):
-            if previous[key] != run_identity[key]:
+        for key in ('production_pid_start', 'comparison', 'threshold_ms', 'health_baseline_sha256',
+                    'controller_sha256', 'health_evidence_sha256'):
+            if previous.get(key) != run_identity[key]:
                 raise RuntimeError('resume identity differs: ' + key)
         results = json.loads((args.out / 'progress.json').read_text())
         for row in results:
@@ -277,9 +286,46 @@ def main():
                         # archive_run verified every local copy before progress
                         # was committed. Retain failed windows on the device.
                         ssh('rm -rf -- ' + shlex.quote(ROOT + '/runs/' + label))
+            if failed.is_set() or not guard_check(guard) or production_identity() != identity:
+                raise RuntimeError('health or guard changed at scene completion')
+            # All scene windows, CPU endpoints and archives are complete. Each
+            # segment keeps its own immutable capture boundary, including resume.
+            guard_out = args.out / guard_label
+            guard_out.mkdir()
+            prefix = health_evidence.capture_before_stop(guard_out, guard_label)
             guard_stop(guard); guard = None
-            for suffix in ('jsonl', 'stderr'):
-                (args.out / (guard_label + '.' + suffix)).write_bytes(ssh(f'cat {ROOT}/{guard_label}.{suffix}').stdout)
+            final_path = args.out / (guard_label + '.jsonl')
+            for _ in range(10):
+                final = ssh(f'cat {ROOT}/{guard_label}.jsonl').stdout
+                final_path.write_bytes(final)
+                if final.endswith(b'\n'):
+                    rows = [json.loads(line) for line in final.splitlines()]
+                    if rows and rows[-1].get('event') == 'monitor_stopped':
+                        break
+                time.sleep(.2)
+            (args.out / (guard_label + '.stderr')).write_bytes(ssh(f'cat {ROOT}/{guard_label}.stderr').stdout)
+            # The existing external monitor spans scenes. Snapshot whole lines
+            # now; its complete final log is checked again after joining below.
+            external_capture = (args.out / 'external-health.jsonl').read_bytes()
+            (guard_out / 'external-health-capture.raw').write_bytes(external_capture)
+            external_prefix = health_evidence.complete_prefix(external_capture)
+            qualified, samples, end = health_evidence.validate_guard_evidence(
+                prefix, final, [json.loads(line) for line in external_prefix.splitlines()], identity,
+                (guard_out / 'pre-stop-capture.raw').read_bytes())
+            write(guard_out / 'guard-verification.json', {
+                'health_evidence_sha256':helper_sha,
+                'qualified_samples':len(qualified), 'final_samples':len(samples),
+                'final_tail_samples':len(samples)-len(qualified),
+                'pre_stop_elapsed_seconds':qualified[-1]['elapsed_s'],
+                'final_elapsed_seconds':end['elapsed_s'],
+                'final_sha256':hashlib.sha256(final).hexdigest()})
+        finished.set(); monitor.join(timeout=12)
+        if monitor.is_alive() or failed.is_set():
+            raise RuntimeError('external health failed or did not finish')
+        external = [json.loads(line) for line in (args.out / 'external-health.jsonl').read_text().splitlines()]
+        if ({row['ip_version'] for row in external} != {4, 6}
+                or any(row['exit'] != 0 or not row['result'].startswith('200 ') for row in external)):
+            raise RuntimeError('final external health evidence failed')
         write(args.out / 'complete.json', {'complete':True, 'windows':len(results), 'valid':sum(r['valid'] for r in results)})
     except BaseException as error:
         recovery = {}

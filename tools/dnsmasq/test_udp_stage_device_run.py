@@ -149,6 +149,7 @@ class StageGateTests(unittest.TestCase):
         health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
         plan = Path(__file__).resolve().parents[2] / 'docs/dnsmasq/audits/perf-opt-20261015/loop/A53_UDP_STAGE_DEVICE_PLAN.json'
         data = json.loads(plan.read_text())
+        data['controller_sha256'] = hashlib.sha256(Path(stage.run.__file__).read_bytes()).hexdigest()
         data['health_evidence_sha256'] = hashlib.sha256(Path(stage.health_evidence.__file__).read_bytes()).hexdigest()
         plan = root / 'plan.json'
         plan.write_text(json.dumps(data))
@@ -214,6 +215,7 @@ class StageGateTests(unittest.TestCase):
             health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
             plan = Path(__file__).resolve().parents[2] / 'docs/dnsmasq/audits/perf-opt-20261015/loop/A53_CACHED_ZERO_FRAME_DEVICE_PLAN.json'
             data = json.loads(plan.read_text())
+            data['controller_sha256'] = hashlib.sha256(Path(stage.run.__file__).read_bytes()).hexdigest()
             data['health_evidence_sha256'] = hashlib.sha256(Path(stage.health_evidence.__file__).read_bytes()).hexdigest()
             plan = root / 'plan.json'
             plan.write_text(json.dumps(data))
