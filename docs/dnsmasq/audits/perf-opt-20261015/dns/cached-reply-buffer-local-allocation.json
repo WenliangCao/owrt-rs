@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "scope": "Mac prepared UDP synchronous API allocation counts, not owner-loop/A53 CPU or full-query counts",
+  "source": "03ace8ecaaf513847c43943bfd61c8826789bedf",
+  "parent": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "probe_sha256": "7d62b8237323bd29e5f2e76255ac2cfec48cc2c50be390427422c4db447d7ae4",
+  "controller_sha256": "8e10d34dce8bc36c3510606107b0be81c02d74c902ff0d792c95e1c491393ad2",
+  "commands": [
+    {
+      "label": "cached-name-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-local-name-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0bc989d00e902f851bba9f7b732cec3a55647ec296fcaa849b4fc9bf14beb09b"
+    },
+    {
+      "label": "cached-name-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cached-name"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "cached-name-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cached-name",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "9ff36a361a123f16cb6a0cc2ca855e8478d3528435f6778aaa59c70c1cb5acf2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "recycled-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-reply-buffer-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "d89f1a35399e3a4ed277bcf000122760414ef2aa32cba9d5f6d439cec1ea15a5"
+    },
+    {
+      "label": "recycled-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "--cfg",
+        "recycle_reply",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/recycled"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "recycled-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-reply-buffer-count/recycled",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "2f986662ec4a82ea470773e31664a0aab43f75e8994247ca111b89a59781e428",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rows": [
+    {
+      "side": "cached-name",
+      "operations": 8000,
+      "allocations": 8000,
+      "reallocations": 0,
+      "requested_bytes": 1024000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "recycled",
+      "operations": 8000,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    }
+  ],
+  "elf_note": "Local Mac executables, not OpenWrt SDK artifacts",
+  "executables": {
+    "cached-name": "33a7a78e28eff0cf3a3adf14cc6607747d96c497eb62f13549e8c386a9502a4c",
+    "recycled": "afa39b6a87cf2e25875196be3d0c318e2f5336299b35f3546369b4e698214e42"
+  },
+  "local_checks": {
+    "library_tests": "721 passed, 8 ignored",
+    "musl_all_target_check": "passed; original warnings retained",
+    "logs": {
+      "private/cached-reply-buffer-musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "private/cached-reply-buffer-musl.stderr": "7edb353106eb9fd74cd702191c1cc9766fe23ed17f04a1b2aa5706b10828a3c0",
+      "private/cached-reply-buffer-test.stdout": "97cd3e112e9c7781827e6465496a2d7c67e5c44481b4559909284299b448ac43",
+      "private/cached-reply-buffer-test.stderr": "471109106395383a8c3a68ba15e1c86eac100bff4125d9c9877d42a2d69918e6"
+    }
+  },
+  "retention": "One Vec per LocalDnsService, at most 512 capacity bytes; returned owned replies remain independent until explicitly recycled after send. TCP owner never recycles.",
+  "result": "Same checksum468800, zero reallocations and net live bytes. Parent one allocation/128requested bytes per call; prototype zero after prewarm.",
+  "limits": [
+    "No steady-state allocation does not prove no allocator cost during startup/fallbacks.",
+    "No CPU improvement is claimed from allocation counts.",
+    "Related Linux gates, SDK budget/hardening and runtime comparisons remain pending."
+  ]
+}

@@ -947,3 +947,55 @@ worktrees: read-one, reply layout, address dispatch, cold metadata, UDP name
 buffer, adaptive idle batching, original fresh-address parent. All private
 artifacts remain in place; active refinements/integration branches are intact.
 E remains the only accepted optimization candidate; production is unchanged.
+
+## Continuation through the cached-only and PGO screens, 2026-10-16
+
+The complete A53 stage experiment passed50 windows. Independent exactC/E
+controls measured80/140us; E/full diagnostic140/140; full/receive136/70;
+full/before-answer136/98; full/skip-local138/120. These interventions are not
+additive function costs. E's allocation diagnostic counted exactly5allocations,
+5frees and270requested bytes per real cached hit. All physical work through
+the standalone bounded local-miss round totals140 valid windows; production
+and prior E/F slots were independently verified unchanged/restored.
+
+The broad integration8d572 is not selected: native240 had7 gains and8
+regressions, including hosts+14.25% and lease-address+29.77%. Its A53
+138→126us is6ticks and belowW; the standalone bounded local-miss132→126us
+is3ticks. Both CPU results are inconclusive despite distinguishable p50 gains.
+The cold-metadata, writer-frame and hosts-index results remain independently
+recorded. None is added to an expected combined speedup; no G is selected.
+
+The narrowed54bd1e56 prototype checks local ownership only after finding an
+eligible single fresh positive address, retaining original lease expiry and
+the read-only cache hint. RelatedLinux938 pass. Child0161ad9c adds only the
+previously reviewed synchronous decoded-name buffer; interaction review and
+Linux939 pass. Both use the separate existing-fixture repair16a95086, whose
+original intermittent failure was reproduced in F and traced to the intended
+fixture's missing different-bucket precondition. No product or C expectation
+changed. Reports and failed executables remain retained.
+
+Local prepared-UDP counts are F4/245B,54bd2/160B,0161one/128B per call,
+with equal checksums and no live-byte delta. This excludes socket/owner work.
+Loop now owns sequential canonical SDK builds for54bd then0161. After all
+postflight and artifact transfers, it will run54bd's frozen native240 vsF;
+DNS will run0161's independent owner32 vsacceptedE in a separate CPU slot.
+DHCP has frozen an independent A53ten comparison of0161 vsacceptedE and
+completed read-only recovery checks; no new device windows have started.
+Correctness is preparing exact0161 full44/67 and both full11-scene matrices,
+without reusing old8d572 artifact bindings. Actual qualification remains open.
+
+PGO smoke3 reproduced the exact E control and completed the fixed one-pass
+11-scene training with50 normal-exit profiles. Default profile-use passed
+hardening/CFG gates but failed original ELF/APK budgets. The one predeclared
+hot-callsite250 build also fails: ELF2,267,939B andAPK1,282,729B. Its source,
+50profiles and merged profile are unchanged; all failures are retained. No
+parameter sweep, retraining, timing or qualification follows. SDK reservation
+was explicitly released. E already had fatLTO/codegen-units1 before this work.
+
+Root's next independent source03ace8ec recycles one<=512B cached UDP reply
+after its final send. Mac721/8 and musl all-target checking pass; local prepared
+counts reach zero steady allocations versus0161'sone/128B, same checksum.
+This is not A53 CPU evidence and is not mixed into active builds. See
+`dns/CACHED_REPLY_BUFFER_PLAN.md` for ownership bounds and the conditional
+incremental screen. Existing no-subscriber metrics and upstream idle-clock
+directions were already rejected/removed; do not reopen them as new findings.
