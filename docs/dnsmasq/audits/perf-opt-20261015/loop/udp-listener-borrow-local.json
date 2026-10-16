@@ -1,0 +1,276 @@
+{
+  "schema": 1,
+  "scope": "Local final aarch64 Linux-musl code generation; no SDK, Oracle or router execution and no measured performance claim",
+  "sources": {
+    "parent": {
+      "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "main_rs_sha256": "48fa89d6cfcec4627c358163fb7b51322fa5e9ec7ac008a6ccfd37b87750ec01"
+    },
+    "borrow": {
+      "commit": "99b519dca413754d19afd9baad825924b06bbf13",
+      "main_rs_sha256": "e03b4e947f9410e1bc53468b46d427dda4bf209b8e1631381af17cbf87c3db0c"
+    }
+  },
+  "build": {
+    "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+    "target": "aarch64-unknown-linux-musl",
+    "codegen_flags": [
+      "-Cforce-unwind-tables=no",
+      "-Crelocation-model=pie",
+      "-Ctarget-feature=+crt-static"
+    ],
+    "sources": {
+      "parent": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "borrow": "99b519dca413754d19afd9baad825924b06bbf13"
+    },
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/parent-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-620fe96dc5800825.rlib"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/borrow-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private/udp-listener-borrow/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-80a1ae5deb778b64.rlib"
+        ],
+        "returncode": 0
+      }
+    ],
+    "outputs": {
+      "parent": {
+        "sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+        "bytes": 5022408
+      },
+      "borrow": {
+        "sha256": "eefa59d1813f932ddcab9420d0a607def15dfade8f1d50e35b8d91f9b386ff5d",
+        "bytes": 5022360
+      }
+    }
+  },
+  "checks": {
+    "scope": "Local host bin tests and Linux-musl compile checks; no device or Oracle workload",
+    "commands": [
+      {
+        "label": "host-bin-tests",
+        "argv": [
+          "cargo",
+          "test",
+          "--frozen",
+          "--manifest-path",
+          "components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "7fd0d2e87aca840a34aabac8692fc9117c50dd76b8983426b2ad7e4e7b3a8d16",
+        "stderr_sha256": "fb15289dbe71efdf514f5a37121852ed30c972f560ee862663ffa0dd478870c0"
+      },
+      {
+        "label": "linux-all-targets",
+        "argv": [
+          "cargo",
+          "check",
+          "--frozen",
+          "--manifest-path",
+          "components/dnsmasq/Cargo.toml",
+          "--all-targets",
+          "--target",
+          "aarch64-unknown-linux-musl"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "85649289ea13fffd263df133c7fed78f4e2e40ebb84dbe70fb3facfcdeac8479"
+      },
+      {
+        "label": "linux-diagnostic-targets",
+        "argv": [
+          "cargo",
+          "check",
+          "--frozen",
+          "--manifest-path",
+          "components/dnsmasq/Cargo.toml",
+          "--all-targets",
+          "--features",
+          "m6b-diagnostics",
+          "--target",
+          "aarch64-unknown-linux-musl"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "a123763d577a8ffe3bc0f06d60895d51705f33648c582342cd11b4a123687c0a"
+      }
+    ],
+    "host_bin_tests": {
+      "passed": 23,
+      "failed": 0
+    }
+  },
+  "inspection": {
+    "elf_parser": "tools/dnsmasq/elf_size_report.py",
+    "elf_parser_sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+    "disassembler": "capstone",
+    "disassembler_version": "5.0.7"
+  },
+  "functions": {
+    "parent": {
+      "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+      "address": "0x2963a4",
+      "bytes": 1764,
+      "stack_frame_bytes": 384,
+      "instructions": 441,
+      "calls": [
+        {
+          "address": "0x296460",
+          "target": "__aarch64_ldadd8_relax"
+        },
+        {
+          "address": "0x2966c0",
+          "target": "_RNvMs4_NtCshAPcPKfzgL5_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+        },
+        {
+          "address": "0x296764",
+          "target": "__aarch64_ldadd8_rel"
+        },
+        {
+          "address": "0x29683c",
+          "target": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9admit_udp"
+        },
+        {
+          "address": "0x296958",
+          "target": "__aarch64_ldadd8_rel"
+        },
+        {
+          "address": "0x296988",
+          "target": "__aarch64_ldadd8_rel"
+        }
+      ],
+      "static_release_atomic_calls": 3,
+      "assembly_sha256": "326634ecbafba952ca27c3857bd2ef59b743cc681868aea49277900101cb5809"
+    },
+    "borrow": {
+      "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+      "address": "0x2963b4",
+      "bytes": 1700,
+      "stack_frame_bytes": 384,
+      "instructions": 425,
+      "calls": [
+        {
+          "address": "0x296690",
+          "target": "_RNvMs4_NtCsgKoFaadHkje_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+        },
+        {
+          "address": "0x2967f8",
+          "target": "__aarch64_ldadd8_relax"
+        },
+        {
+          "address": "0x296810",
+          "target": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9admit_udp"
+        },
+        {
+          "address": "0x29683c",
+          "target": "__aarch64_ldadd8_rel"
+        }
+      ],
+      "static_release_atomic_calls": 1,
+      "assembly_sha256": "de4e1b0a01c07913fd47ff4c02c3392c5725518adb72d8a72bdfb5ddc6be90e6"
+    }
+  },
+  "private_receipts": {
+    "private/udp-listener-borrow/derive.py": "fcd9890a34ace335f06b47d07fdde0a735e47c0154a503fc46c3d1954dba1376",
+    "private/udp-listener-borrow/cross-daemon-final.py": "b3751d494b90f2e34a4772426d9c99b15997dbe103fc7ac3ac33eefeec61d74a",
+    "private/udp-listener-borrow/checks.json": "d2145a1449b0e28ff287507463eb645c012f00717cc25a3665ffd4db8eb82f3d",
+    "private/udp-listener-borrow/cross-daemon-final/result.json": "a358bd81968dd2a22e8840a7cb7f0ad3139428fe54165f02476f40e58d2aeca2"
+  },
+  "limitations": [
+    "Only static sites and inspected control flow; never 3-to-1 atomic operations per query.",
+    "The clone remains before admit_udp, including a subsequent rejected admission.",
+    "The historical exact-C/E empty-receive pattern was not remeasured on185.",
+    "Generated musl ELF is not the pinned OpenWrt SDK candidate.",
+    "No timing, CPU/cycles saving, full behavior acceptance or deployment claim."
+  ]
+}
