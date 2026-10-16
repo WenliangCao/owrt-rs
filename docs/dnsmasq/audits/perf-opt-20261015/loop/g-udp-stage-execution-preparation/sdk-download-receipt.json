@@ -1,0 +1,8 @@
+{
+  "archive_sha256": "47ac16337c885d43d3d43e024ed84675dff307ad3b7a5bc3caf8845515d1c23b",
+  "archive_bytes": 4844637,
+  "collection_sha256": "6d984bb1f96b12ba0d0d0dca6d45c73be0e469093e8ba80a3003722f0e5b7d0b",
+  "files_rehashed": 45,
+  "all_members_safe_unique_regular": true,
+  "local_directory": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/g-udp-stage-execution-preparation/sdk-downloaded"
+}
