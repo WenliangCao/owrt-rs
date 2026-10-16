@@ -1560,3 +1560,54 @@ a34 diagnostic and6dad experiment remain immutable; acceptedG stays185/9109.
 Five completed attribution branches were retired under durable archive refs
 (6ef69cf9). All clean sameHEAD worktrees remain detached, and allprivate data
 are intact. Active G-stage/warm/integration/agent branches were not touched.
+
+
+## Both machines measuring; raw audit location changed only
+
+G-stage actual87/SDK independently PASS ad9f1c3d/ef762db0. Original device50
+started10:55:18UTC/PID35820, launch1a78e207 after fresh125 health and five
+immutable artifacts/C4libs/restore checks. No failed window reported at this
+checkpoint; the round is unfinished and no partial metric is selected.
+Allbulk remains prohibited through device collection/restoration.
+
+Warm actual840/82/17/18/4=961 and canonical SDK completed once. ELF
+ba8268ed05529bbeeafbaa4e43371316204862e178eb853d64f7acf836a9026d
+is2145051B, APK1167812B; original budgets hold. To avoid leaving Oracle idle
+for35min, correctness reused the original961/staticSDK assertions directly
+on its immutable remote raw evidence (small control/receipt traffic only).
+Raw independent PASS7f189cf6/7db02ead; bulk archive download and transfer
+integrity staypending until safe gap, never claimed complete. The original
+source179 SHA256+Git blobs, lists/ELFs/logs,21warning/20ALLOC/TLS/payload and
+canonicalSDK106/toolchain chain all remain checked. Only reading location/
+identity parameters changed; no test, build or measured window was repeated.
+
+Freshquiet6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1
+released Oracle to loop. OriginalG/warm owner32 launched11:06:11UTC/PID1053371,
+launch6a1532d6/commit14ed286a, plan a26e73f2; it may run concurrently with
+G-stage on the independent router. Original protocol32, lowfixedprecision,
+highvariableN/pipeline caveat and all adverse controls remain. Owner plan
+peeradb0be99, templatec0b8a5b0 and actualready-schema87cb6e9f pass. The old
+device_pretransfer_complete field is explicitly G-stage/no-bulk coordination,
+not a claim thatwarm was staged on the router. No native240 is queued.
+After completion, loop authoranalyzes/postflights/packs remotely, then explicit
+quiet may go directly to correctness for original fullbin replay using small
+receipts. Downloads/transfer integrity waitforDHCPsafe gap. Do not access
+Oracle during owner timing or restart/supplement successful windows.
+
+Local root3b11c9bb safely skips discarded local OPT scans only when actual
+ARCOUNT0; sourcepeere193df18,725Mac/8ignored+musl PASS. Localsharedframe624→608
+butcode4060→4124 andwholeELF+8B; actualcall bypass is observed inlocalcode,
+not runtime. DNS45b674b6 initializes253Bscratch onlyinNone;Some skips9stores,
+ordinaryNone unchanged. Its forced-inline alternative is rejected:zeroing
+remains/frame+96B, despiteELF−504B. Rejected source isdurablyarchived under
+refs/archive/perf/lazy-query-scratch-inline-rejected-20261016 atb2e47980,
+createdafterthelocalexperiment fromthepreservedexactsource, withoutrebuild.
+
+LOCAL integration48f921ce adds only3b and45 after15e.728Maclib+23Macbin/
+8ignored+muslpass; localELF25424e92 5025528B(+3288Bvs6ab);sharedanswer
+3848B/frame592,step4692/640,empty-poll528/224,warm1028/160. Thelastcontrol
+is exactprevious6ab77096845 reusedwithoutrebuild, boundin8bf21ff2. Root's
+complete-file substitution proofcovers45 bothindependentlyandintegration.
+DNS mayfreeze onlylocal48source179/archive andexistinggateinputreferences;
+no newrunner/upload/remoteexecution/source-selection isauthorizedyet. Decide
+nextproductaftercompleteG-stage andwarm results, not byaddingoldmedians.

@@ -14,7 +14,7 @@ propagation and the global scanner remain untouched. This is separate from
 
 Existing725Mac library tests pass with8ignored; musl all-target compilation
 passes. No new API, state, allocation buffer, unsafe code or test framework
-is introduced. Source peer is pending and there is no Linux/C-corpus result.
+is introduced. Source-only peer e193df18 passes; there is no Linux/C-corpus result.
 
 The local shared answer function changes4060→4124B but frame624→608B. The
 wire scanner remains1264B/frame288, and process_udp remains4660B/frame1056.
