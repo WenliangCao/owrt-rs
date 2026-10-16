@@ -1,0 +1,115 @@
+{
+  "schema": "dnsmasq-full110-runtime-boundary-independent-review-v1",
+  "status": "PASS_TOOL_REVIEW_ONLY_FULL_QUALIFICATION_STILL_RUNNING",
+  "reviewed_commit": "52a92e8003a48e1cf9b37d24eb18a7a15a6e9d2f",
+  "approved_controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+  "approved_helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+  "review": {
+    "runtime": "Full captured bytes, including incomplete final-line bytes, must prefix final evidence. Every final sample retains production PID/start, memory, route, no-stop and terminal/elapsed validation; every actually observed complete pre-stop probe and external result retains original success conditions. Runtime imposes no fresh-baseline duration or observation-presence minimum.",
+    "baseline": "Original 125-second producer, >=120-second qualification, nonempty DNS/HTTP, both external IP families and p95/threshold formula retained. Four original helper functions are byte-identical.",
+    "resume": "Completed-scene skip already existed in original7c93. Only pending windows execute, with new segment capture; no padding or borrowing old evidence. Old controller/helper identities cannot resume as new captured evidence.",
+    "failure": "Validation failure retains evidence, records failure and attempts task STOP; cannot publish complete. Final external log is checked after monitor joins.",
+    "scope": "No measurement/statistical/source/SDK changes. Tool repair is separate from frozen185 product and current successful ten-window snapshot. No device operations by reviewer."
+  },
+  "structural_recheck": {
+    "checked_commit": "52a92e8003a48e1cf9b37d24eb18a7a15a6e9d2f",
+    "controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+    "helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+    "non_main_controller_functions_unchanged": [
+      "ssh",
+      "write",
+      "production_identity",
+      "stop_owned",
+      "archive_run",
+      "validate",
+      "external_health",
+      "guard_start",
+      "guard_check",
+      "guard_stop"
+    ],
+    "timed_loop_byte_identical": true,
+    "baseline_helper_functions_unchanged": [
+      "complete_prefix",
+      "capture_before_stop",
+      "validate_baseline",
+      "main"
+    ],
+    "unchanged_files": {
+      "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+      "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "m6a_loadgen.c": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+      "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "udp_stage_device_run.py": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+      "cached_zero_frame_device_run.py": "f02b123d48ca95997032e45ab7de847874bbe03b35e6ca6a87aa9816e148a82b"
+    },
+    "bundle_imports": {
+      "baseline-tools": {
+        "stdout": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df 0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad 7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+        "exit": 0
+      },
+      "full-tools": {
+        "stdout": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69 8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e 7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+        "exit": 0
+      }
+    }
+  },
+  "tests": {
+    "count": 48,
+    "groups": [
+      {
+        "count": 36,
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "test_device_health_baseline",
+          "test_udp_stage_device_run",
+          "test_perf_opt_device_prune",
+          "test_perf_opt_device_guard_boundary",
+          "-v"
+        ],
+        "cwd": "/Users/USER/Developer/owrt-perf-full110-guard-boundary-20261016/tools/dnsmasq",
+        "exit": 0,
+        "epoch": 1792118005.441232,
+        "stdout_sha256": "481f50ad4b97b5148a8753ed4c10a1d64bb09b849fc893df432ba2f31232e1f8",
+        "stderr_sha256": "d14857e5cff4bbf2947c3f428e695e6e08b22194762ffb8ffa853e373b7cc2c8"
+      },
+      {
+        "count": 12,
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "test_perf_opt_miss_cohort",
+          "-v"
+        ],
+        "cwd": "/Users/USER/Developer/owrt-perf-full110-guard-boundary-20261016/tools/dnsmasq",
+        "exit": 0,
+        "epoch": 1792118061.6973429,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "1f1b6d593d4267099903819dc3bdbad9a59a1d96042da69c52baf46601562b71"
+      }
+    ],
+    "all_passed": true,
+    "real_device_or_performance_run": false
+  },
+  "bundle_rules": {
+    "fresh_health": {
+      "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+    },
+    "device_full110": {
+      "controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+      "helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e"
+    },
+    "oracle110": {
+      "controller_sha256": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+      "companion_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "prefix_consumer": false
+    }
+  },
+  "superseded_unapproved_attempt": "da49cb69 imposed baseline sufficiency on runtime. Retained as failed preparation; never deployed.",
+  "qualification_passed": false,
+  "formal_110_executed_by_reviewer": false,
+  "performance_accepted": false
+}
