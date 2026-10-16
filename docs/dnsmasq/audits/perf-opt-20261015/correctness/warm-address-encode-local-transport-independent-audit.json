@@ -1,0 +1,78 @@
+{
+  "schema": "warm-original-artifacts-local-transport-independent-audit-v1",
+  "status": "PASS_ALL_ORIGINAL_REQUIRED_WARM961_SDK_OWNER32_AND_REVIEWER_ARCHIVES_LOCALLY_VERIFIED",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "packages": {
+    "related": {
+      "archive_sha256": "01e90cdfc8d3f4e3e5845f40c444b8021a848bfc4bb1042bd8f3aa267148d0d0",
+      "archive_bytes": 37591774,
+      "regular_files": 47,
+      "raw_regular_bytes": 158780229,
+      "safe_exact_unique_regular_archive_and_local_bytes": true,
+      "manifest_sha256": "b3e0a03729cbc6181f6226d90360497f8c47170d10e8f6e1844bc190bf569524",
+      "author_transport_receipt_sha256": "77aef20404c793bee678d56b7c77d839af1de84699ca612748041bbfb1766225"
+    },
+    "sdk": {
+      "archive_sha256": "23fec483966492f980e923e1e56c5bb8aead4ecd49373d65e6968514819f9164",
+      "archive_bytes": 5043778,
+      "regular_files": 40,
+      "raw_regular_bytes": 10949834,
+      "safe_exact_unique_regular_archive_and_local_bytes": true,
+      "manifest_sha256": "83c20e27224ee3e5813b9b57feee3649ead14e7ab7ac1e2ed531b85e04db09bc",
+      "author_transport_receipt_sha256": "acb65b0ef0b69b62ea8205ac725906d389d4d76e5e05cfe9a142f679e7142c07"
+    },
+    "owner32": {
+      "archive_sha256": "2d213fad9c7c96e1e014ebbcbb19ed1eec58df39e449845e9aa79aa59d8b966b",
+      "archive_bytes": 964559,
+      "regular_files": 1172,
+      "raw_regular_bytes": 3534015,
+      "safe_exact_unique_regular_archive_and_local_bytes": true
+    },
+    "reviewer": {
+      "archive_sha256": "2dd0a28e4a1560fe318be33f52cab241c9bceccdfc90af7d7ba1cd8123ebd354",
+      "archive_bytes": 68249,
+      "regular_files": 21,
+      "raw_regular_bytes": 376064,
+      "safe_exact_unique_regular_archive_and_local_bytes": true
+    }
+  },
+  "related_actual961_prior_audit_commit": "7f189cf6",
+  "SDK_prior_audit_commit": "7db02ead",
+  "owner32_prior_audit_commit": "813f6a86",
+  "related_log_listing_three_ELF_bytes_equal_remote_audited_hashes": true,
+  "only_actual_two_related_wrappers_archived_and_exactly_bound": true,
+  "SDK_ELF_prestrip_APK_map_payload_bytes_equal_remote_audited_hashes": true,
+  "owner32_collection_sha256": "89c4a2003f1ce3d164ab16f7b866cdf24c0e8843a6eaf6990981c2eab46a196a",
+  "owner32_raw_inventory_1264_bound": true,
+  "owner32_local_smallraw_files": 1172,
+  "owner32_raw_bins_remaining_remote": 128,
+  "owner32_copied_ELF_map_files_remaining_remote": 64,
+  "all_omitted_files_bound_to_prior_independent_remote_full_bin_audit": true,
+  "reviewer_original21_files_locally_verified": true,
+  "reviewer_collection_sha256": "e2ac68039bbf534934d4258fa5612ff0d5bb69ba95634efd03823b27ad7b47a1",
+  "raw_bins_independently_decoded_again": false,
+  "tests_builds_measurements_or_original_analyzer_reexecuted": false,
+  "retained_author_transport_validator_failure": {
+    "sha256": "e73291eda8d4651032bd557706422451053ac4976b5a7103795176f7f85594f0",
+    "value": {
+      "status": "LOCAL_TRANSPORT_VALIDATOR_WRAPPER_SCOPE_ERROR_AFTER_ARCHIVE_EXTRACT_AND_MANIFEST_HASH_PASS",
+      "script_sha256": "a37c7a41b27f490722433a4d9749284e3c04d5a45613932ce853c346b1d362d6",
+      "archive_sha256": "01e90cdfc8d3f4e3e5845f40c444b8021a848bfc4bb1042bd8f3aa267148d0d0",
+      "archive_bytes": 37591774,
+      "manifest_entries_rehashed": 46,
+      "regular_files_including_manifest": 47,
+      "exception": "FileNotFoundError: related-downloaded/new/receipts/launch_related.py",
+      "cause": "The plan lists five control scripts, while original collector and actual preflight wrapper_hashes intentionally contain only the two executed runner/allocation wrappers. Validator incorrectly demanded all five inside the original archive.",
+      "archive_or_extracted_bytes_overwritten": false,
+      "remote_download_retried": false,
+      "product_or_content_test_rerun": false,
+      "resolution": "Rehash preserved archive and extracted bytes without extraction/writes, require both actual preflight wrappers against plan, separately bind three control scripts through existing frozen preparation/pretransfer. Continue original SDK collector once."
+    }
+  },
+  "all_required_original_transfers_and_local_transport_checks_complete": true,
+  "does_not_claim_all_remote_raw_bins_locally_downloaded": true,
+  "performance_acceptance_changed": false,
+  "prior_high_send_lag_p50_and_p95_regressions_retained": true,
+  "scope": "Local archive transport and pinned-content binding only. Existing raw functional/static/performance audits are not rerun. Prior receipts remain immutable records of the earlier pending-transfer state; this report discharges that transport debt.",
+  "reviewer_script_sha256": "e79e20f61f9ffe3524b19989786ea4c3410a2f6dbd3f95d7fce5e6f5fbd794e2"
+}
