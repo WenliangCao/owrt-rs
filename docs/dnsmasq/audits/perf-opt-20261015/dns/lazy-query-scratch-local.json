@@ -1,0 +1,404 @@
+{
+  "status": "LOCAL_SOME_BRANCH_ZERO_STORES_SKIPPED_NONE_CLEAR_UNCHANGED_INLINE_NOT_RETAINED",
+  "source_commit": "45b674b67d36147c4c72499a77a415f0fa0595d0",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_delta": "Declare scratch before the match and initialize [0;253] only in the None branch. Safe Rust definite initialization; lookup order, buffers returned and all failure exits unchanged.",
+  "local_rs_sha256": "26f3a4c10382ea1a0375cf99d22c04f8065e29796e6cd44f2a89a14470447826",
+  "scope": "Local existing tests and full-daemon aarch64 musl codegen only. No SDK build, Linux runtime, CPU timing, router access or candidate selection; current6dad/15e unchanged.",
+  "call_boundary": {
+    "sole_product_caller": "LocalAnswerer::answer_parsed_with_query_events after existing fresh address selection",
+    "Some_origin": "expire_lease_lookups returns a retained conversion only when leases are nonempty and may_have_expired(now); no benefit claimed for ordinary None/no-lease owner workload.",
+    "failure_and_compatibility": "All eligibility guards remain before scratch and all conversion/hosts/lease checks retain original order/results. The None branch retains exact zero initialization and conversion.",
+    "public_interfaces_changed": false,
+    "allocations_changed": false,
+    "unsafe_added": false
+  },
+  "validation": {
+    "existing_Mac_lib": {
+      "summary": [
+        "test result: ok. 725 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 1.01s"
+      ],
+      "stdout_sha256": "e07ec31ee1a9bd94d460b5851a2216b4fc75971e679e52399167524a4765fbc1",
+      "stderr_sha256": "4bfbc4f2bc929c596d5784629421c7f79655848e52ab781ae6ac2d0eef5b5849",
+      "exit": 0
+    },
+    "musl_all_targets": {
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9d66927cf827a7356127fcb331fd7ab1a97902232adc7bbc2635007bc0225049"
+    }
+  },
+  "conditional_codegen": {
+    "receipt": "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/inspection-v3.json",
+    "receipt_sha256": "b1d4556cd47896e3f431bc5e4335840b9cc4d9b8334c7bbcd9b285642ac1fa86",
+    "controller_sha256": "3474a1f9a1cb19d2a7e7883441870afcb0c5961c8efec16665b45215f7c43f94",
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-post185-combined-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/parent-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-post185-combined-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-8a68906ca58c7be9.rlib"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/conditional-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/conditional-cross-daemon/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-2066df81af2fcf6c.rlib"
+        ],
+        "returncode": 0
+      }
+    ],
+    "outputs": {
+      "parent": {
+        "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+        "bytes": 5022240
+      },
+      "conditional": {
+        "sha256": "4f0862c1fcb042516d8605fddeaca62087234be227f94b8c06452a0a52202c0d",
+        "bytes": 5022240
+      }
+    },
+    "functions": {
+      "parent": [
+        {
+          "name": "cached_address_is_unclaimed",
+          "address": "0x31dc70",
+          "bytes": 528,
+          "code_sha256": "0cf165aa7c3401999c409fd2e99d02c3cc715b510c2cd7cf99e2af35cab1bea7",
+          "asm_sha256": "59ddf28fe42a8e454da63544ee3a23b1411e005a9ed4fbce790d3ea337fffb43",
+          "entry": [
+            "31dc70: ldr x8, [x0, #0x10]",
+            "31dc74: cbz x8, #0x31dc80",
+            "31dc78: mov w0, wzr",
+            "31dc7c: ret ",
+            "31dc80: sub sp, sp, #0x170",
+            "31dc84: stp x29, x30, [sp, #0x140]",
+            "31dc88: stp x28, x21, [sp, #0x150]",
+            "31dc8c: stp x20, x19, [sp, #0x160]",
+            "31dc90: add x29, sp, #0x140",
+            "31dc94: ldr x10, [x0, #0xb8]",
+            "31dc98: cbz x10, #0x31dcfc",
+            "31dc9c: ldrh w8, [x2, #0x18]"
+          ]
+        },
+        {
+          "name": "query_dotted_name",
+          "address": "0x31de80",
+          "bytes": 704,
+          "code_sha256": "a5eb77b615b46b53215e012d1d9369f6eb78cc8940490ff99965e7fe98708fba",
+          "asm_sha256": "7af883acf7c6be390190b4a341068013737888c1cf5ecf8ccc9e369945305d4c",
+          "entry": [
+            "31de80: cbz x1, #0x31e110",
+            "31de84: stp x22, x21, [sp, #-0x20]!",
+            "31de88: stp x20, x19, [sp, #0x10]",
+            "31de8c: movi v0.8b, #0xbf",
+            "31de90: movi v1.8b, #0x1a",
+            "31de94: mov x16, #0xe0e0e0e0e0e0e0e",
+            "31de98: movi v2.8b, #0x20",
+            "31de9c: movi v3.16b, #0xbf",
+            "31dea0: mov x17, #0x101010101010101",
+            "31dea4: movi v4.16b, #0x1a",
+            "31dea8: movi v5.16b, #0x20",
+            "31deac: mov x4, xzr"
+          ]
+        },
+        {
+          "name": "answer_parsed_with_query_events",
+          "address": "0x318740",
+          "bytes": 3804,
+          "code_sha256": "de7a011359b4780fe65ded5c6c3d98e0fbddc5cfc42c349244ae3a8b68cbd859",
+          "asm_sha256": "bdf6738241cd0312a5797ec1a160801a93fc7d4af1cf64d68e5081b0ccef3465",
+          "entry": [
+            "318740: sub sp, sp, #0x190",
+            "318744: stp x29, x30, [sp, #0x130]",
+            "318748: stp x28, x27, [sp, #0x140]",
+            "31874c: stp x26, x25, [sp, #0x150]",
+            "318750: stp x24, x23, [sp, #0x160]",
+            "318754: stp x22, x21, [sp, #0x170]",
+            "318758: stp x20, x19, [sp, #0x180]",
+            "31875c: add x29, sp, #0x130",
+            "318760: ldrsh w22, [x4, #2]",
+            "318764: tst w22, #0x7800",
+            "318768: b.eq #0x31879c",
+            "31876c: mov w8, #7"
+          ]
+        }
+      ],
+      "conditional": [
+        {
+          "name": "cached_address_is_unclaimed",
+          "address": "0x31dc70",
+          "bytes": 528,
+          "code_sha256": "effcc1cdeed2af7d274f40d18a8712700c26d7430bec247f487bfa5a44abd648",
+          "asm_sha256": "22b42d94b9bacedd017d3fb8bb3f2e4f7562e21b97653516137bbe3bc0c3ae58",
+          "entry": [
+            "31dc70: ldr x8, [x0, #0x10]",
+            "31dc74: cbz x8, #0x31dc80",
+            "31dc78: mov w0, wzr",
+            "31dc7c: ret ",
+            "31dc80: sub sp, sp, #0x170",
+            "31dc84: stp x29, x30, [sp, #0x140]",
+            "31dc88: stp x28, x21, [sp, #0x150]",
+            "31dc8c: stp x20, x19, [sp, #0x160]",
+            "31dc90: add x29, sp, #0x140",
+            "31dc94: ldr x10, [x0, #0xb8]",
+            "31dc98: cbz x10, #0x31dcfc",
+            "31dc9c: ldrh w8, [x2, #0x18]"
+          ]
+        },
+        {
+          "name": "query_dotted_name",
+          "address": "0x31de80",
+          "bytes": 704,
+          "code_sha256": "a5eb77b615b46b53215e012d1d9369f6eb78cc8940490ff99965e7fe98708fba",
+          "asm_sha256": "7af883acf7c6be390190b4a341068013737888c1cf5ecf8ccc9e369945305d4c",
+          "entry": [
+            "31de80: cbz x1, #0x31e110",
+            "31de84: stp x22, x21, [sp, #-0x20]!",
+            "31de88: stp x20, x19, [sp, #0x10]",
+            "31de8c: movi v0.8b, #0xbf",
+            "31de90: movi v1.8b, #0x1a",
+            "31de94: mov x16, #0xe0e0e0e0e0e0e0e",
+            "31de98: movi v2.8b, #0x20",
+            "31de9c: movi v3.16b, #0xbf",
+            "31dea0: mov x17, #0x101010101010101",
+            "31dea4: movi v4.16b, #0x1a",
+            "31dea8: movi v5.16b, #0x20",
+            "31deac: mov x4, xzr"
+          ]
+        },
+        {
+          "name": "answer_parsed_with_query_events",
+          "address": "0x318740",
+          "bytes": 3804,
+          "code_sha256": "de7a011359b4780fe65ded5c6c3d98e0fbddc5cfc42c349244ae3a8b68cbd859",
+          "asm_sha256": "7131287cd1e46a8beea1140e49df66e9d5acbf9424438e85c135a156b9fb5027",
+          "entry": [
+            "318740: sub sp, sp, #0x190",
+            "318744: stp x29, x30, [sp, #0x130]",
+            "318748: stp x28, x27, [sp, #0x140]",
+            "31874c: stp x26, x25, [sp, #0x150]",
+            "318750: stp x24, x23, [sp, #0x160]",
+            "318754: stp x22, x21, [sp, #0x170]",
+            "318758: stp x20, x19, [sp, #0x180]",
+            "31875c: add x29, sp, #0x130",
+            "318760: ldrsh w22, [x4, #2]",
+            "318764: tst w22, #0x7800",
+            "318768: b.eq #0x31879c",
+            "31876c: mov w8, #7"
+          ]
+        }
+      ]
+    },
+    "source_binding_note": "The runner recorded HEAD6ab while candidate source was uncommitted; its actual two-line source delta is exactly the later45b674b6 local.rs bytes. No source edits occurred during these builds.",
+    "mechanism": "Parent cbnz x3 at31dde4 follows all9zero stores; conditional cbnz x3 at31ddbc precedes movi and all9stores31ddd0..31ddf0 and skips to31de0c forSome. Function528B, frame368B, query conversion704B and ELF5022240B unchanged. None still zeros253bytes."
+  },
+  "inline_experiment_not_retained": {
+    "source_snapshot": {
+      "parent": "45b674b67d36147c4c72499a77a415f0fa0595d0",
+      "local_rs_sha256": "cfd6b7c627c978c04057d6a5dbf7aba1d2ed7ca637d8ef5670f248746baffaea",
+      "diff": "diff --git a/components/dnsmasq/src/dns/local.rs b/components/dnsmasq/src/dns/local.rs\nindex ba9898c3..86f2f627 100644\n--- a/components/dnsmasq/src/dns/local.rs\n+++ b/components/dnsmasq/src/dns/local.rs\n@@ -987,6 +987,7 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {\n \n /// Query-scoped counterpart of wire_to_dotted. A valid 255-byte wire name\n /// needs at most 253 dotted bytes; no escaped-name expansion belongs here.\n+#[inline(always)]\n fn query_dotted_name(name: &Name, out: &mut [u8; 253]) -> Option<usize> {\n     let wire = name.as_wire();\n     let mut pos = 0;\n"
+    },
+    "controller_sha256": "4a780c3475a1afe67a872e9d7eccaffa05820484cdf80422f0586f259bdd177e",
+    "receipt": "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/inline-cross-daemon/inspection-v3.json",
+    "receipt_sha256": "2dde24b26c8a24ae6ac0d70f025542c09a9010ab9bb87276ab3c240ac3f908d7",
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/inline-cross-daemon/inlined-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/inline-cross-daemon/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/inline-cross-daemon/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-lazy-query-scratch-20261016/private/lazy-query-scratch/inline-cross-daemon/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-2066df81af2fcf6c.rlib"
+        ],
+        "returncode": 0
+      }
+    ],
+    "outputs": {
+      "inlined": {
+        "sha256": "9527feca63eb2301f403fb44112af230af8ce35c823a24d46a6569285f0fa574",
+        "bytes": 5021736
+      }
+    },
+    "functions": {
+      "inlined": [
+        {
+          "name": "cached_address_is_unclaimed",
+          "address": "0x31dc64",
+          "bytes": 860,
+          "code_sha256": "e5d4a82f4f6371346857bc4ec36bcb755e0cb4b8e85858cefaf1cfe8baa32f89",
+          "asm_sha256": "a4bb28f49db7c4152c44aabeff490bfa8797175ccf128c9ed4aa41eebb5a9e59",
+          "entry": [
+            "31dc64: ldr x8, [x0, #0x10]",
+            "31dc68: cbz x8, #0x31dc74",
+            "31dc6c: mov w0, wzr",
+            "31dc70: ret ",
+            "31dc74: sub sp, sp, #0x1d0",
+            "31dc78: str d10, [sp, #0x150]",
+            "31dc7c: stp d9, d8, [sp, #0x160]",
+            "31dc80: stp x29, x30, [sp, #0x170]",
+            "31dc84: stp x28, x27, [sp, #0x180]",
+            "31dc88: stp x26, x25, [sp, #0x190]",
+            "31dc8c: stp x24, x23, [sp, #0x1a0]",
+            "31dc90: stp x22, x21, [sp, #0x1b0]"
+          ]
+        },
+        {
+          "name": "answer_parsed_with_query_events",
+          "address": "0x318734",
+          "bytes": 3804,
+          "code_sha256": "ed1dbe9da4b03be5a586a2f6643dd2e0839e4efd6190a2fbc0a5ed7ff575a0d2",
+          "asm_sha256": "945bf73f49a130abc27a4527fa692d487f93e20b548b01bb80e8e72074e8cc68",
+          "entry": [
+            "318734: sub sp, sp, #0x190",
+            "318738: stp x29, x30, [sp, #0x130]",
+            "31873c: stp x28, x27, [sp, #0x140]",
+            "318740: stp x26, x25, [sp, #0x150]",
+            "318744: stp x24, x23, [sp, #0x160]",
+            "318748: stp x22, x21, [sp, #0x170]",
+            "31874c: stp x20, x19, [sp, #0x180]",
+            "318750: add x29, sp, #0x130",
+            "318754: ldrsh w22, [x4, #2]",
+            "318758: tst w22, #0x7800",
+            "31875c: b.eq #0x318790",
+            "318760: mov w8, #7"
+          ]
+        }
+      ]
+    },
+    "result": "#[inline(always)] removes standalone704B conversion and its call; cached function528\u2192860B, ELF5022240\u21925021736(-504B), but retains all9zero stores onNone. Cached frame368\u2192464B(+96B), with additional callee-saved registers also paid onSome. It does not achieve elimination of None scratch initialization and is not retained.",
+    "final_attribute_absent": true
+  },
+  "decision": "Retain45b674b6 only as a narrow low-priority local mechanism for existingSome names. No CPU gain inferred, no remote run scheduled; preserve negative inline experiment privately."
+}
