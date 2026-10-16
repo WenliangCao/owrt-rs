@@ -1,0 +1,93 @@
+{
+  "schema": "dnsmasq-fresh-validity-independent-source-review-v1",
+  "status": "NO_SOURCE_BLOCKER_RELATED_LINUX_SDK_AND_PERFORMANCE_PENDING",
+  "source_commit": "0958f89c18e5b808097db80a4ce0e5716f59c671",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "worktree_clean": true,
+  "changed_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "a562632c3d5e9f68ae2c832d021f5464d96e3695404a56cdcaea1c9b99c921a3",
+    "components/dnsmasq/src/dns/cache_tests.rs": "3aa1622ed597c5d6cd46b7dcc2fa5fb3f5c3d530e0234185aceaefa042e1d2c9",
+    "components/dnsmasq/src/hosts.rs": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/hosts-collision-pair-fixture-repair.json": "8798df61c633afaf64f85e7e70af2a28117cf391fab4f9ad65fbc46f665f44d6"
+  },
+  "product_scope": "Only single_fresh_address_id_with_hint replaces the redundant is_valid call with the same expiry predicate. All cache validity primitives and caller source files remain byte-identical to185. Separate hosts fixture cherry-pick changes no hosts product code.",
+  "equivalence_proof": [
+    "The hint must selectOne ID and pass existing borrowed-name pointer, cache owner/root, revision and saturation gates. A requested type other thanIpv4/Ipv6 returns before entry access.",
+    "get(id) checks slot bounds and exact generation, then returns only a present Entry. Those are exactly the first three conditions of is_valid; &self and immutable content provide no intervening mutable operation that could invalidate this result.",
+    "The existing ordered disjunction rejects mismatched record.kind, negative records, bad4/16-byte RDATA and stale entries before the substituted predicate. Reaching it establishes a positive A/AAAA entry with the requested kind.",
+    "invalid(slot,now) is exactly policy.expired(entry.expires,now) OR (kind==Cname AND outdated_cname). The establishedIpv4/Ipv6 kind makes the entire target-validity branch false, so !is_valid equals the substituted policy.expired. No referenced/committed/authority/target condition is dropped: the old non-CNAME validity path did not inspect those fields.",
+    "is_stale(now) remains strict now>expires. At exact expiry Disabled/Seconds0 reject, positiveSeconds andForever permit the fresh shortcut; after expiry every policy takes the existing fallback because is_stale is true. The original i128 arithmetic forSeconds is called unchanged, preserving negative and extreme signed times.",
+    "The selector still has no LRU promotion, pruning, cache mutation, Arc detachment or allocation. single_fresh_address_with_hint retains its original unlink/link promotion after successful selection; rejected entries remain for the original lookup and expiry-removal boundary."
+  ],
+  "callers_and_compatibility": {
+    "local_owner": "LocalAnswerer calls the read-only selector before the existing unclaimed-owner check; hosts/leases/configured records retain priority.",
+    "cache_answer": "Mutable address-hit helper uses the same selector then performs original single-slot promotion.",
+    "general_validity": "is_valid, invalid, outdated_cname and all generic/CNAME/negative/RRset lookup paths remain unchanged. No generic validity API is weakened.",
+    "publication_and_snapshots": "ID generations, hint revision invalidation, snapshot roots and COW behavior are unchanged. Lease-expiry-bound and owner-clock prototypes are not combined into this candidate."
+  },
+  "coverage": {
+    "new_test": "fresh_address_hint_keeps_exact_expiry_and_stale_policy_boundaries",
+    "matrix": "5 stale policies x2 address types x5 signed expiries x3 boundary times =150 assertions of eligibility, plus read-only state and retained-entry checks. MIN+1/MAX-1 expiries make +/-1 operations representable.",
+    "existing_regressions": "Fresh hint promotion/fallback, mismatched query/kind, changed members, cache replacement/movement, revision saturation, multi-record rotation/COW. Existing daemon A/AAAA UDP/TCP precedence tests remain unchanged.",
+    "limits": "No new product wire differential or Linux qualification is claimed. The one-line proof does not rely on new benchmark or timing evidence."
+  },
+  "independent_local_tests": {
+    "source": "0958f89c18e5b808097db80a4ce0e5716f59c671",
+    "mode": "Independent execution of retained author Mac test executable; no rebuild, Linux or runtime qualification claim.",
+    "binary": "/Users/USER/Developer/owrt-perf-fresh-validity-20261016/private/fresh-validity/target/debug/deps/dnsmasq_rs-9d07e4d165a82b90",
+    "binary_sha256": "83fe48639d010666e92bdc750041c3ba87c9aded069a3b455c9a89e1aee8af13",
+    "runs": [
+      {
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-fresh-validity-20261016/private/fresh-validity/target/debug/deps/dnsmasq_rs-9d07e4d165a82b90",
+          "fresh_address_hint",
+          "--test-threads=1"
+        ],
+        "exit": 0,
+        "summary": "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 728 filtered out; finished in 0.00s",
+        "stdout_sha256": "6d4144c1fddef5ad2e99f1d0d1f51c27d838e3b6921d4cce9b409219e2613ac0",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "argv": [
+          "/Users/USER/Developer/owrt-perf-fresh-validity-20261016/private/fresh-validity/target/debug/deps/dnsmasq_rs-9d07e4d165a82b90",
+          "name_hint_",
+          "--test-threads=1"
+        ],
+        "exit": 0,
+        "summary": "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 726 filtered out; finished in 0.00s",
+        "stdout_sha256": "405c3d00f75980b8594cd4ad2412fd8004d19a06d12c0cf649b1cd375160bf9b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "epoch": 1792118801.946838
+  },
+  "author_local_tests": {
+    "summary": "722 passed;0 failed;8 ignored; musl all-target check completed",
+    "retained_log_hashes": {
+      "lib.stdout": "8ac4a734aea7ebc8753c78a5234d34c21861078e7fa0a92510181edeb00843b5",
+      "lib.stderr": "8df6ee800ebce78df52f503fc2659dbb7f67f3685d2788d448fa1d4521eb39c0",
+      "musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "musl.stderr": "e831572b7830d79d1a6c098c239a24b62ef36226589a83451346f482c7b4e03a"
+    },
+    "whole_library_not_independently_rerun": true
+  },
+  "fixture": {
+    "commit": "bc5e008c",
+    "independent_original": "7c2708f6",
+    "same_patch_id": "6ffd442fdce5d2290acd129a4b379d4263e07f74",
+    "hosts_product_prefix_identical": true,
+    "report_sha256": "8798df61c633afaf64f85e7e70af2a28117cf391fab4f9ad65fbc46f665f44d6",
+    "original_failure_evidence_preserved": true
+  },
+  "limits": [
+    "Local final cross-ELF codegen is being assessed separately by the author; it is not the OpenWrt SDK artifact or runtime/performance evidence.",
+    "No measured CPU/latency/allocation improvement is inferred from eliminating a source-level validity call.",
+    "Exact-source related Linux gates, SDK identities/budgets and any authorized performance screen remain pending. Current185qualification and110 timing do not transfer to this candidate."
+  ],
+  "Oracle_or_router_accessed": false,
+  "frozen185_modified": false,
+  "full_qualification_passed": false,
+  "performance_accepted": false,
+  "deployment": false
+}
