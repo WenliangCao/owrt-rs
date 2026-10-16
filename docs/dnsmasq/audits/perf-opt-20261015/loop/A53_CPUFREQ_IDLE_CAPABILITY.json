@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "epoch": 1792115050.3453171,
+  "scope": "One read-only idle capability/value capture after all E185ten and original postflight completed; no timed-window query or CPUfreq/affinity/configuration change.",
+  "postflight_sha256": "f3eb66076a3d6c2da8907668a92d63c431cedcca06a5c29332391893659c0f7b",
+  "exit": 0,
+  "stdout": "NO_POLICY_DIRECTORY /sys/devices/system/cpu/cpufreq/policy*\n",
+  "stderr": "",
+  "files_sha256": {
+    "a53-cpufreq-idle-read.sh": "1f5e72ffbfd3c8f69de62b164fe6958641f72ed28530886df914d8a2576ebd5e",
+    "a53-cpufreq-idle-read.stdout": "8ba26b8263ed4625cb4b5f77260d473ac2a959ce2e0fde90f260efebacb48e1e",
+    "a53-cpufreq-idle-read.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "interpretation": "Availability and instantaneous idle readings only. No frequency trace exists for historical windows; this cannot establish their actual frequency or eliminate frequency policy as a performance confounder."
+}
