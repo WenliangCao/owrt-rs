@@ -1,0 +1,636 @@
+{
+  "status": "PASS_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "collection_sha256": "beef8889adb3f8f3fefa99b375d0ba1323e0afb97099c796baeef32e89a00e2e",
+  "archive_sha256": "4ecfa0706ac793d948a6faf2af453a554dc602085cb60b7d0b7a62a8423234e8",
+  "result_sha256": "c4b3b656878a7bc2424fe2fb8aeaf58a6950c8e0327101661f5752268f3daafa",
+  "plan_sha256": "c6c6db1fc43e5809ef78c7d605b1dc9026f8293c3e844e25bb7107d04b7858a3",
+  "small_files_rehashed": 1172,
+  "remote_retained_files": 192,
+  "full_raw_inventory_files_bound": 1264,
+  "remote_raw_bin_bytes": 3590643600,
+  "ordered_windows": 32,
+  "PMU_windows": 12,
+  "plain_windows": 20,
+  "all_CPU_starttime_PID_actualN_ticks_recomputed": true,
+  "all48_actual_PMU_events_reparsed_unscaled_same_group_same_window": true,
+  "all_count_health_and_exit_receipts_checked": true,
+  "all_published_row_and_group_math_recomputed": true,
+  "summaries": {
+    "high": {
+      "cpu": {
+        "left": {
+          "median": 4.30527390883367,
+          "min": 4.285997142897341,
+          "max": 4.325416484125756,
+          "rounds": [
+            4.325416484125756,
+            4.30527390883367,
+            4.285997142897341,
+            4.29858989731567,
+            4.3163180321183825
+          ]
+        },
+        "right": {
+          "median": 4.250316774509805,
+          "min": 4.2463169829730845,
+          "max": 4.264981344548174,
+          "rounds": [
+            4.250842595961325,
+            4.248254525207387,
+            4.2463169829730845,
+            4.264981344548174,
+            4.250316774509805
+          ]
+        },
+        "relative_change_pct": -1.2765072673100404,
+        "W_pct": 0.915605883926069,
+        "same_direction_pairs": 5,
+        "precision_ok": null,
+        "discernible": true,
+        "direction": "faster",
+        "scope": "Variable-query saturation diagnostic; W/direction only, not fixed-cohort acceptance or a tick precision pass"
+      },
+      "throughput": {
+        "left": {
+          "median": 232292.65,
+          "min": 230070.8,
+          "max": 233159.8,
+          "rounds": [
+            230070.8,
+            232292.65,
+            233159.8,
+            232399.25,
+            231625.2
+          ]
+        },
+        "right": {
+          "median": 235238.0,
+          "min": 234355.1,
+          "max": 235584.55,
+          "rounds": [
+            235238.0,
+            235271.8,
+            235584.55,
+            234355.1,
+            235192.45
+          ]
+        },
+        "relative_change_pct": 1.2679479957717155,
+        "W_pct": 1.3297880927356076,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          99.58291683088662,
+          99.84520938281119,
+          99.89050947445591,
+          99.86313895716457,
+          99.84718459057558
+        ],
+        "owner-ready-frames": [
+          99.87800567861956,
+          99.8677762661995,
+          99.90064009487162,
+          99.78154819789773,
+          99.83250059461285
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 131.641,
+            "min": 131.282,
+            "max": 132.521,
+            "rounds": [
+              132.521,
+              131.601,
+              131.282,
+              131.641,
+              132.001
+            ]
+          },
+          "right": {
+            "median": 130.001,
+            "min": 129.841,
+            "max": 130.481,
+            "rounds": [
+              130.001,
+              130.121,
+              129.841,
+              130.481,
+              129.961
+            ]
+          },
+          "relative_change_pct": -1.2458124748368566,
+          "W_pct": 0.9411961319041758,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95": {
+          "left": {
+            "median": 146.721,
+            "min": 145.401,
+            "max": 147.881,
+            "rounds": [
+              147.881,
+              146.721,
+              145.401,
+              146.041,
+              147.161
+            ]
+          },
+          "right": {
+            "median": 144.282,
+            "min": 144.121,
+            "max": 144.921,
+            "rounds": [
+              144.201,
+              144.121,
+              144.282,
+              144.921,
+              144.721
+            ]
+          },
+          "relative_change_pct": -1.6623387245179577,
+          "W_pct": 1.6902829179190366,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.76,
+            "rounds": [
+              2.76,
+              2.76,
+              2.76,
+              2.76,
+              2.76
+            ]
+          },
+          "right": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.8,
+            "rounds": [
+              2.8,
+              2.76,
+              2.76,
+              2.76,
+              2.76
+            ]
+          },
+          "relative_change_pct": 0.0,
+          "W_pct": 1.449275362318842,
+          "same_direction_pairs": 0,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 5.32,
+            "min": 5.28,
+            "max": 5.6,
+            "rounds": [
+              5.28,
+              5.32,
+              5.6,
+              5.32,
+              5.28
+            ]
+          },
+          "right": {
+            "median": 6.32,
+            "min": 5.52,
+            "max": 6.44,
+            "rounds": [
+              6.44,
+              6.32,
+              6.36,
+              5.52,
+              5.6
+            ]
+          },
+          "relative_change_pct": 18.796992481203006,
+          "W_pct": 14.556962025316466,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 5501.447656962438,
+          "instructions:k": 12987.46324783092,
+          "cycles:u": 3495.813574354881,
+          "cycles:k": 9258.581677287926,
+          "user_ipc": 1.5737245536549176
+        },
+        "owner-ready-frames": {
+          "instructions:u": 5291.847931995679,
+          "instructions:k": 12992.223869875586,
+          "cycles:u": 3293.346822551117,
+          "cycles:k": 9358.965208512787,
+          "user_ipc": 1.606829835157315
+        }
+      }
+    },
+    "low": {
+      "cpu": {
+        "left": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 30.0,
+          "rounds": [
+            24.0,
+            24.0,
+            26.0,
+            26.0,
+            30.0
+          ]
+        },
+        "right": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            26.0,
+            24.0,
+            28.0,
+            28.0,
+            26.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 23.076923076923077,
+        "same_direction_pairs": 0,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "throughput": {
+        "left": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "right": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 0.0,
+        "same_direction_pairs": 0,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          0.7626016844909327,
+          0.7723029376454297,
+          0.8364107213740941,
+          0.8195474331833175,
+          0.8943991311312423
+        ],
+        "owner-ready-frames": [
+          0.8153551470225452,
+          0.7991303052466204,
+          0.7878007326687185,
+          0.8479400222822876,
+          0.7990119075098522
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 52.32,
+            "min": 48.361,
+            "max": 56.96,
+            "rounds": [
+              48.361,
+              48.96,
+              56.12,
+              52.32,
+              56.96
+            ]
+          },
+          "right": {
+            "median": 51.201,
+            "min": 48.681,
+            "max": 54.16,
+            "rounds": [
+              52.56,
+              49.161,
+              51.201,
+              54.16,
+              48.681
+            ]
+          },
+          "relative_change_pct": -2.138761467889908,
+          "W_pct": 16.435397553516825,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 79.001,
+            "min": 77.8,
+            "max": 85.761,
+            "rounds": [
+              79.801,
+              77.881,
+              77.8,
+              79.001,
+              85.761
+            ]
+          },
+          "right": {
+            "median": 79.281,
+            "min": 75.601,
+            "max": 91.881,
+            "rounds": [
+              91.881,
+              76.401,
+              79.281,
+              80.081,
+              75.601
+            ]
+          },
+          "relative_change_pct": 0.3544258933431237,
+          "W_pct": 20.534554306832657,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 70.374,
+            "min": 69.785,
+            "max": 71.838,
+            "rounds": [
+              69.785,
+              70.121,
+              71.838,
+              70.725,
+              70.374
+            ]
+          },
+          "right": {
+            "median": 70.31,
+            "min": 68.425,
+            "max": 71.546,
+            "rounds": [
+              68.425,
+              70.31,
+              70.536,
+              71.546,
+              69.811
+            ]
+          },
+          "relative_change_pct": -0.09094267769345633,
+          "W_pct": 4.438913383586985,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 82.047,
+            "min": 81.595,
+            "max": 83.584,
+            "rounds": [
+              82.047,
+              81.838,
+              83.584,
+              83.142,
+              81.595
+            ]
+          },
+          "right": {
+            "median": 81.621,
+            "min": 80.658,
+            "max": 83.736,
+            "rounds": [
+              80.658,
+              82.188,
+              81.621,
+              83.736,
+              81.27
+            ]
+          },
+          "relative_change_pct": -0.5192145965117578,
+          "W_pct": 3.771088322858092,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 7691.146,
+          "instructions:k": 25685.7444,
+          "cycles:u": 17052.3412,
+          "cycles:k": 38285.3202,
+          "user_ipc": 0.45103248344573355
+        },
+        "owner-ready-frames": {
+          "instructions:u": 7197.8476,
+          "instructions:k": 25753.1386,
+          "cycles:u": 15829.8044,
+          "cycles:k": 37003.5204,
+          "user_ipc": 0.4546923776265991
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks_plain": {
+    "low": {
+      "G": [
+        12,
+        12,
+        13,
+        13,
+        15
+      ],
+      "owner-ready-frames": [
+        13,
+        12,
+        14,
+        14,
+        13
+      ]
+    },
+    "high": {
+      "G": [
+        2491,
+        2498,
+        2498,
+        2498,
+        2498
+      ],
+      "owner-ready-frames": [
+        2498,
+        2498,
+        2498,
+        2498,
+        2498
+      ]
+    }
+  },
+  "postflight_sha256": "a7b3210994a7e7ef6de15e5c232ec5201c2220fb05417664f2826be7f7bc83cd",
+  "release_sha256": "7ece1ca9db618742ef692cd111fbbedaadc5b6070af27492da0514ece7a7d04d",
+  "no_measurement_retries": true,
+  "limits": [
+    "High unpaced variable-N pipeline is diagnostic; precision_ok remains None, not a fixed-cohort CPU acceptance.",
+    "Original low CPU precision requires every window >=10ticks and absolute median delta strictly >8ticks, plus strictabsdelta>W and >=4/5 direction.",
+    "Oracle owner32 does not override nondiscernible physicalA53 screen or complete full44/full110.",
+    "All32 original full raw windows remain on Oracle;1172smallraw files and complete replay outputs are locally archived. Original20 plain latency/sendlag streams decoded by unchanged analyzer; all128bin files rehashed. No new measured window, build or originaltest execution."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "schema": "g5c-owner32-independent-audit-v1",
+  "author_result_commit": "730177d3",
+  "review_script_sha256": "217fec22855bfd786b76e85fc27a2da341dea3f224f0406b22ae258c42af1925",
+  "independent_phase_and_signal_review": {
+    "status": "PASS_LOCAL_OWNER32_PHASE_SIGNAL_IDENTITY_AND_UNCHANGED_ANALYSIS_BINDINGS",
+    "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+    "plan_sha256": "c6c6db1fc43e5809ef78c7d605b1dc9026f8293c3e844e25bb7107d04b7858a3",
+    "author_result_sha256": "c4b3b656878a7bc2424fe2fb8aeaf58a6950c8e0327101661f5752268f3daafa",
+    "postflight_sha256": "a7b3210994a7e7ef6de15e5c232ec5201c2220fb05417664f2826be7f7bc83cd",
+    "release_sha256": "7ece1ca9db618742ef692cd111fbbedaadc5b6070af27492da0514ece7a7d04d",
+    "original_analyzer_sha256": "1767512f8d791d815f4ac9a57cbe5a5294667b09adc4b39ae09e377a5af6e0bf",
+    "only_analyzer_scope_text_differs_from_6ab": true,
+    "eight_analysis_imports_byte_identical_to_6ab": true,
+    "pretransfer_12_files_exact_archive_and_original_plan_verified": true,
+    "final_plan_changed_fields": [
+      "device_pretransfer",
+      "execution_enabled",
+      "explicit_slot_release",
+      "pretransfer_complete",
+      "pretransfer_inputs_archive_sha256",
+      "reservation",
+      "status"
+    ],
+    "actual961_receipt_sha256": "671ac4f17b2755064149705902c77f289cd289818c527028d7777309f4fd66f8",
+    "both_SDK_triples_and_358_source_files_bound_to_named_Git_commits": true,
+    "original_signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+    "signal_review_sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a",
+    "signal_cases_dump_maintenance": [
+      12,
+      3,
+      3
+    ],
+    "retained_prelaunch_failure": {
+      "receipt_sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d",
+      "attempt1_script_sha256": "f17f133d94196590515ee193bdc0db1bf63287d55d482c1de8576c6e2c11a330",
+      "attempt1_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "attempt1_stderr_sha256": "e3d3dce8660cf8ac1fcfc4ea7f5d82ee5115e6f68cf6530a8d888c1128180b8a",
+      "corrected_script_sha256": "41d9eb9f55f583eb93d7c62ede3ac4ab308c2681c606c319024fc89a66d6cf77",
+      "only_two_old_filename_substitutions": true,
+      "failure_before_plan_rename_write_or_measurement": true,
+      "measurement_retries": 0
+    },
+    "recorded_order": "signals quiet < both pretransfers < DNS quiet < metadata failure < metadata success < launch < 32 sequential windows < original analysis < postflight < release",
+    "original32_argv_and_completed_chain_verified": true,
+    "device_independent_audit_sha256": "b4a08d198e4ac86427e78e779902726d4cadd7e642cb897ad3ddf6c8c228c22a",
+    "scope_limits": [
+      "Local retained artifacts and Git objects only; remote quiet/process/source claims are receipt-bound, not newly observed remotely.",
+      "Main reviewer separately checks archive/raw CPU/PMU/statistical math and full-bin original analyzer replay.",
+      "G185 versus 5c includes inherited 6ab, 025 and dump changes; no isolated frame-only attribution or performance promotion.",
+      "No Oracle/router/network access, target execution, capture, build or product test; no new measurement or modified thresholds."
+    ],
+    "reviewer_script_sha256": "e267660c540c95d403f2bc1b7a113373602d03d0f5b1d1503d0cf28db786f42d"
+  },
+  "independent_phase_receipt_sha256": "d8f2335f6d76d8861c161cab4d49e962f2516c6c475a97138b8a40b978e9b6ff",
+  "original_analyzer_replay": {
+    "status": "PASS_ORIGINAL_ANALYZER_FULL_RAW_BIN_REPLAY_BYTE_IDENTICAL",
+    "exit": 0,
+    "result_sha256": "c4b3b656878a7bc2424fe2fb8aeaf58a6950c8e0327101661f5752268f3daafa",
+    "author_result_sha256": "c4b3b656878a7bc2424fe2fb8aeaf58a6950c8e0327101661f5752268f3daafa",
+    "original_analyzer_sha256": "1767512f8d791d815f4ac9a57cbe5a5294667b09adc4b39ae09e377a5af6e0bf",
+    "exit_receipt_sha256": "8580491d2583f62ccc275a58f73b64bc23d1f93261ec7f543cb916ee8ba37ea5",
+    "analysis_stdout_sha256": "6fe1e7a747f090aac13a556fcbc6988b73ef8fbe64e810dddc2149e8bc1b4a34",
+    "analysis_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "full_raw_files_rehashed_after_replay": 1264,
+    "all32_copied_ELFs_and_maps_rehashed": true,
+    "all128_raw_bin_bytes_rehashed": 3590643600,
+    "input_postflight_sha256": "a7b3210994a7e7ef6de15e5c232ec5201c2220fb05417664f2826be7f7bc83cd",
+    "scope": "Original unchanged analyzer CPU0 under root read privileges; output only in fresh reviewer directory. All retained raw bins and copied ELFs/maps rehashed, no build/capture/window retry.",
+    "finished_epoch": 1792145517.096007
+  },
+  "replay_receipt_sha256": "f6e0e4c028c410f55741db6dd553251cc24310f45989e15e41043cc11c31602b",
+  "replay_transfer_sha256": "a14f95ddcfc00bb17c22d8d20811e5442e69989ab402f1c37825ac60197cf9d1",
+  "original_plain_latency_sendlag_bins_independently_replayed": true,
+  "all128_bins_hash_verified_against_original_postflight": true,
+  "reviewer_measurement_retries": 0,
+  "comparison_scope": "G185 versus5c includes inherited6ab plus025 anddump; not isolatedframe-only. No1dfoverlay.",
+  "retained_high_unpaced_send_lag_p95_regression": {
+    "left": {
+      "median": 5.32,
+      "min": 5.28,
+      "max": 5.6,
+      "rounds": [
+        5.28,
+        5.32,
+        5.6,
+        5.32,
+        5.28
+      ]
+    },
+    "right": {
+      "median": 6.32,
+      "min": 5.52,
+      "max": 6.44,
+      "rounds": [
+        6.44,
+        6.32,
+        6.36,
+        5.52,
+        5.6
+      ]
+    },
+    "relative_change_pct": 18.796992481203006,
+    "W_pct": 14.556962025316466,
+    "same_direction_pairs": 5,
+    "precision_ok": true,
+    "discernible": true,
+    "direction": "slower"
+  }
+}
