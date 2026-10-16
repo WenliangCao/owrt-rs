@@ -403,3 +403,52 @@ fn hostile_count_fields_do_not_allocate_count_sized_vectors() {
     packet[4..6].copy_from_slice(&[0, 0]);
     assert_eq!(Message::parse(&packet).unwrap_err(), WireError::Truncated);
 }
+#[test]
+fn contiguous_reused_name_matches_walk_and_retains_error_scratch() {
+    fn compare(packet: &[u8], start: usize, extra: usize) {
+        let mut expected = Vec::with_capacity(256);
+        let result = walk_name(packet, start, extra, |label| expected.extend_from_slice(label));
+        let mut scratch = Vec::with_capacity(256);
+        scratch.extend_from_slice(b"old name");
+        let allocation = scratch.as_ptr();
+        match (decode_name_reusing(packet, start, extra, &mut scratch), result) {
+            (Ok((name, end)), Ok(expected_end)) => {
+                assert_eq!(end, expected_end);
+                assert_eq!(name.as_wire(), expected);
+                assert_eq!(name.as_wire().as_ptr(), allocation);
+                assert!(scratch.is_empty());
+            }
+            (Err(error), Err(expected_error)) => {
+                assert_eq!(error, expected_error);
+                assert_eq!(scratch, expected);
+                assert_eq!(scratch.as_ptr(), allocation);
+            }
+            (actual, expected) => panic!("decode mismatch: {actual:?} / {expected:?}"),
+        }
+    }
+    for width in [1, 2, 3, 15, 63] {
+        let mut packet = vec![0; 12];
+        for count in 0..=260 / (width + 1) {
+            let mut terminated = packet.clone();
+            terminated.extend_from_slice(&[0, 0, 1, 0, 1]);
+            for cut in 12..=terminated.len() {
+                compare(&terminated[..cut], 12, 4);
+            }
+            if count < 260 / (width + 1) {
+                packet.push(width as u8);
+                packet.extend((0..width).map(|n| [0, 1, b'.', b'A', 255][n % 5]));
+            }
+        }
+    }
+    for byte in 0..=255 {
+        let mut packet = vec![0; 12];
+        packet.extend_from_slice(&[1, b'a', byte, 12, 0, 0, 1, 0, 1]);
+        for extra in [0, 4, 64, usize::MAX] {
+            for start in [0, 12, 14, packet.len(), usize::MAX] {
+                compare(&packet, start, extra);
+            }
+        }
+    }
+    let compressed = [1, b'A', 0, 0xc0, 0, 0, 1, 0, 1];
+    compare(&compressed, 3, 4);
+}

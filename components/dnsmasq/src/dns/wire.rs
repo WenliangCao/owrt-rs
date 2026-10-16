@@ -198,8 +198,33 @@ pub(super) fn decode_name_reusing(
 ) -> Result<(Name, usize), WireError> {
     scratch.clear();
     if scratch.capacity() < 32 { scratch.reserve(32); }
+    if let Some(next) = contiguous_name_end(packet, start, extra) {
+        if next - start <= scratch.capacity() {
+            scratch.extend_from_slice(&packet[start..next]);
+            return Ok((Name(std::mem::take(scratch)), next));
+        }
+    }
     let next = walk_name(packet, start, extra, |label| scratch.extend_from_slice(label))?;
     Ok((Name(std::mem::take(scratch)), next))
+}
+
+// Ordinary questions have consecutive labels. Validate their bounds once,
+// then copy the complete name instead of appending each label separately.
+// Growth, pointers and every rejected input retain walk_name's allocation,
+// errors and partial scratch, including its order of length checks.
+fn contiguous_name_end(packet: &[u8], start: usize, extra: usize) -> Option<usize> {
+    let mut remaining = packet.get(start..)?;
+    let mut length = 0;
+    loop {
+        let label = usize::from(*remaining.first()?);
+        if label == 0 {
+            return (extra < remaining.len()).then_some(start + length + 1);
+        }
+        if label > 63 { return None; }
+        length += label + 1;
+        if length >= MAX_NAME_LEN { return None; }
+        remaining = remaining.get(label + 1..)?;
+    }
 }
 
 /// Check the same expanded name and cursor as `decode_name` without keeping
