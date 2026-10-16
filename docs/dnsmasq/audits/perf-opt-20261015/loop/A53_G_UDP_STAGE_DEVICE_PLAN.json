@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "LOCAL DISABLED PREPARATION; originalG-stage gate/SDK/review/quiet identities pending; no device action",
+  "status": "ACTUALa34_SOURCE180_ORIGINAL87GATES_AND_SDK_LOCALLY_BOUND; actualindependentreview/quiet pending,nohealth/staging/window yet",
   "scope": "Excluded cumulative-path diagnostic onacceptedG185. Fiveindependentgroups: exactC/G, G/diagnosticfull calibration, ownfull/receive,ownfull/before-answer,ownfull/skip-local. Notproductcandidate,additivefunctioncost,IPCorallocationCPU attribution; nohistoricalE/G pooling.",
   "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
@@ -16,7 +16,7 @@
     },
     "stage": {
       "name": "a53-g-stage-artifact-stage",
-      "sha256": null
+      "sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6"
     },
     "f": {
       "name": "a53-g-stage-artifact-f",
@@ -484,16 +484,37 @@
   },
   "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "base_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
-  "diagnostic_ELF_sha256": null,
-  "diagnostic_ELF_bytes": null,
-  "diagnostic_build_receipt_sha256": null,
-  "diagnostic_map_sha256": null,
-  "actual_source_files_verified": null,
-  "actual_Linux_gate_receipt": null,
+  "diagnostic_ELF_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+  "diagnostic_ELF_bytes": 2149147,
+  "diagnostic_build_receipt_sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+  "diagnostic_map_sha256": "9f1a05017993363eabdb9f8832d6f3915ccb47ed42de8fb6457e3037ae28e153",
+  "actual_source_files_verified": 180,
+  "actual_Linux_gate_receipt": {
+    "local_path": "private/perf-opt-20261015/sdk-g-udp-stage/related-verified.json",
+    "sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+    "status": "PASS_FRESH_G_STAGE_ORIGINAL_THREE_RELATED_SELECTIONS",
+    "groups": {
+      "stage-fixture": 1,
+      "bin": 82,
+      "bin-ignored-live": 4
+    },
+    "actual_passes": 87,
+    "scope": "Originaldiagnosticfixture/bin/ignoredbin only,not961orproductfullqualification."
+  },
   "actual_Linux_gate_independent_review": null,
   "actual_SDK_independent_review": null,
   "actual_queue_release": null,
-  "actual_release_budget": null,
+  "actual_release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2149147,
+    "APK_bytes": 1169636,
+    "gate_unchanged": true,
+    "product_candidate_eligible": false
+  },
   "execution_enabled": false,
   "execution_started": false,
   "candidate_eligible": false,
@@ -571,5 +592,44 @@
     "reviewed_preparation_plan_sha256": "86af9d612a85962a3bdd72c1c99ea4cb58c8571eca6201ac117b7a15d87b53f1",
     "status": "PASS_LOCAL_DISABLED_ORIGINAL_G_STAGE_FIFTY_WINDOW_PLAN",
     "scope": "Localfixed50plan/identity/helper/protocol reviewonly; actualLinuxgates/SDK/independentaudits/quiet remainpending."
+  },
+  "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+  "elf_bytes": 2149147,
+  "map_sha256": "9f1a05017993363eabdb9f8832d6f3915ccb47ed42de8fb6457e3037ae28e153",
+  "build_receipt_sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+  "source_files_verified": 180,
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-g-udp-stage/dnsmasq-rs",
+  "original_stage_related_passed": 87,
+  "sdk_local_verification_sha256": "12b7534cf5e49b20a40a346aafb8e12eb5b1024b194dc8fca79d601a371fbec7",
+  "sdk_all_files_local_verification_sha256": "7b9936f782a310763ad699d44f482ecd3d62050db8ef67fc279c7ef30b437c27",
+  "correctness_preparation_review": {
+    "commit": "c442b729",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-device-plan-and-source-preparation-review.json",
+    "sha256": "1647d23d4d4cc520486c9b411cff1dfc1ab657d126c2045f18b3a9a457a3b9d2",
+    "status": "PASS_LOCAL_ORIGINAL_FIFTY_WINDOW_PROTOCOL_AND_EXACT_G_STAGE_SOURCE_ARCHIVE_PENDING_ACTUAL_GATES_SDK"
+  },
+  "preceding_G_5c_ten_archived_restored": true,
+  "preceding_G_5c_ten": {
+    "result_commit": "9d5acd46",
+    "report_sha256": "2b4d45a0c1f971c3909a4185fcd311a19d016fa244d4c525d4df1f78dc812260",
+    "postflight_sha256": "01d2331f8f2c591eb068b9e62e672e65049719c9a20e9d0938cd7c54ac4f1ccb",
+    "independent_review_commit": "e99b91a1"
+  },
+  "readonly_device_preflight": {
+    "receipt_sha256": "06b9c69d359030257d30f3f667c75138c3625385e73670652a317dc679b75e50",
+    "scope": "Authorizedreadonlyprod/E-F/helper/C4library/idle/space check only,notnewfreshhealth orartifactstage. Originalgates willberechecked."
+  },
+  "operator_local_preparation": {
+    "scope": "Originalstage/start/verify/postflight adaptedonlyforactuala34/180/87/50/fiveC-E-F-G-diagnosticcopies; reusedexactC4libraryidentityprecheck.",
+    "artifacts": {
+      "stage-a53-g-stage.py": "4282672cb9fa78968a5199c3847506a87004bdf2b1f7b6ffed4b29e812c53de7",
+      "start-a53-g-stage.py": "36287e7982bb58ce65a117cd37609962925894a00f31f256d7c112ffae2c3f39",
+      "verify-a53-g-stage.py": "9094a871b2f83d942c78d33fde3bdcb78b68d5f362367d262d3318ec1eccc793",
+      "postflight-a53-g-stage.py": "56780c955221b8bebe12810eebc9ef95d6269c3ae1949d0fbe07f9cc1f9ef5de"
+    },
+    "peer_review": null,
+    "postflight_command_size": "Reusepreviousfull110 short-command approach: alloriginalreadonlypredicates pass in<=2800B batches beforeanyimmutablecopyprune, withperbatchreceipts. No predicateweakened orretry.",
+    "actual_independent_review_required_before_start": true
   }
 }
