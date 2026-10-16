@@ -644,7 +644,7 @@ impl<'a> LocalAnswerer<'a> {
                 &scratch[..length]
             }
         };
-        !self.hosts.name_exists(name) && leases.names.lookup(name, leases.now).next().is_none()
+        !self.hosts.name_exists(name) && !leases.names.has_address(name, leases.now)
     }
 
     /// domain-match.c::is_local_answer/make_local_answer. Select by the

@@ -285,6 +285,20 @@ impl LeaseNames {
             })
     }
 
+    /// The cached-address ownership check needs only presence, not an
+    /// iterator retained by its caller. Keep lookup's active/expiry policy;
+    /// non-terminals alone do not own an address answer.
+    pub(crate) fn has_address(&self, name: &[u8], now: i64) -> bool {
+        if self.forward.is_empty() {
+            return false;
+        }
+        self.forward.get(name_key(name).as_ref()).is_some_and(|ids| {
+            ids.as_slice().iter().any(|&id| {
+                self.active[id] && self.policy.live(self.entries[id].expires, now)
+            })
+        })
+    }
+
     /// cache_scan_free checks matching local blockers before its expiry
     /// removal. A still-hashed expired lease therefore blocks insertion until
     /// an actual lookup (or publication) has removed it.
@@ -535,6 +549,36 @@ mod tests {
             name,
             address: Ipv4Addr::new(192, 0, 2, address),
             expires,
+        }
+    }
+
+    #[test]
+    fn address_presence_matches_lookup_across_expiry_and_retained_views() {
+        let records = [
+            input(b"MiXeD.Example", 1, Some(1000)),
+            input(b"mixed.example", 2, Some(1005)),
+            input(b"immortal.example", 3, None),
+        ];
+        let queries: &[&[u8]] = &[
+            b"mixed.example", b"MIXED.EXAMPLE", b"immortal.example",
+            b"example", b"absent.example", b"",
+        ];
+        for stale in [StalePolicy::Disabled, StalePolicy::Seconds(0),
+            StalePolicy::Seconds(2), StalePolicy::Forever]
+        {
+            let policy = LeasePolicy { stale, ..LeasePolicy::default() };
+            let parent = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
+            let mut child = parent.clone();
+            child.expire_name(b"mixed.example", 1008);
+            for names in [&LeaseNames::default(), &parent, &child] {
+                for &name in queries {
+                    for now in [i64::MIN, -1, 999, 1000, 1001, 1005, 1008, i64::MAX] {
+                        assert_eq!(names.has_address(name, now), names.lookup(name, now).next().is_some(),
+                            "name={name:?} now={now} stale={stale:?}");
+                    }
+                }
+            }
+            assert!(!parent.has_address(b"example", 999), "non-terminals are not addresses");
         }
     }
 
