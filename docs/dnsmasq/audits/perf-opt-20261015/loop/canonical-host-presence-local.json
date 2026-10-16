@@ -1,0 +1,198 @@
+{
+  "scope": "Local independent6ab prototype; not in803/1df/current timing and not scheduled remotely.",
+  "source": "2155eabadfacf5e46d478d8395dae3234ea4b616",
+  "parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--frozen",
+        "--release",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-canonical-host-presence-20261016/private/canonical-host-presence/final-check-0.log",
+      "log_sha256": "460002794a04ea9db551d4b7d8883ed2b3d5da6fe421d4a9363fac066c2553dd"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-canonical-host-presence-20261016/private/canonical-host-presence/final-check-1.log",
+      "log_sha256": "05d033e4f9004e10e5042966f418589a844ebe6aa212cc0d16854e037581c271"
+    }
+  ],
+  "debug_existing_guard_log_sha256": "33681757050cdfe381af19c724b310c8d0a11fe5c5851c7f054962d4ab865ff9",
+  "debug_existing_guard_tests_passed": 2,
+  "check_source_note": "Final release725/8ignored and musl checks cover final code; later edit clarifies only a comment. Initial checks before restoring explicit helper empty guard also retained privately.",
+  "codegen_receipt": "/Users/USER/Developer/owrt-perf-canonical-host-presence-20261016/private/canonical-host-presence/cross-daemon-final/inspection-v3.json",
+  "codegen_receipt_sha256": "a4722a1d5a1fe69481097cf3e402bb05e2052624ef19288a0ad62573cfd53512",
+  "outputs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "canonical": {
+      "sha256": "cd7ec2c2b5b2d2f94b8bed4f4a9e6769e2cdcca400a7c8180c1a99c7f4f720bf",
+      "bytes": 5022528
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "cached_address_is_unclaimed",
+        "bytes": 528,
+        "entry": [
+          "31dc70: ldr x8, [x0, #0x10]",
+          "31dc74: cbz x8, #0x31dc80",
+          "31dc78: mov w0, wzr",
+          "31dc7c: ret ",
+          "31dc80: sub sp, sp, #0x170",
+          "31dc84: stp x29, x30, [sp, #0x140]",
+          "31dc88: stp x28, x21, [sp, #0x150]",
+          "31dc8c: stp x20, x19, [sp, #0x160]",
+          "31dc90: add x29, sp, #0x140",
+          "31dc94: ldr x10, [x0, #0xb8]",
+          "31dc98: cbz x10, #0x31dcfc",
+          "31dc9c: ldrh w8, [x2, #0x18]"
+        ],
+        "code_sha256": "0cf165aa7c3401999c409fd2e99d02c3cc715b510c2cd7cf99e2af35cab1bea7",
+        "asm_sha256": "59ddf28fe42a8e454da63544ee3a23b1411e005a9ed4fbce790d3ea337fffb43"
+      },
+      {
+        "name": "name_exists",
+        "bytes": 844,
+        "entry": [
+          "2e49ec: stp d9, d8, [sp, #-0x70]!",
+          "2e49f0: stp x29, x30, [sp, #0x10]",
+          "2e49f4: str x27, [sp, #0x20]",
+          "2e49f8: stp x26, x25, [sp, #0x30]",
+          "2e49fc: stp x24, x23, [sp, #0x40]",
+          "2e4a00: stp x22, x21, [sp, #0x50]",
+          "2e4a04: stp x20, x19, [sp, #0x60]",
+          "2e4a08: add x29, sp, #0x10",
+          "2e4a0c: ldp x8, x9, [x0, #0x40]!",
+          "2e4a10: mov x19, x2",
+          "2e4a14: add x9, x9, #0x10",
+          "2e4a18: cmn x8, #1"
+        ],
+        "code_sha256": "3efd525d8825a5125aa4b33342511eca5e52b0eee0b242aa63e9720c875c7fd4",
+        "asm_sha256": "3ddc35fbe7df5226cf6e50dcb27331bb3b77ca2a9663643ebeb17c5a89d02f36"
+      },
+      {
+        "name": "answer_parsed_with_query_events",
+        "bytes": 3804,
+        "entry": [
+          "318740: sub sp, sp, #0x190",
+          "318744: stp x29, x30, [sp, #0x130]",
+          "318748: stp x28, x27, [sp, #0x140]",
+          "31874c: stp x26, x25, [sp, #0x150]",
+          "318750: stp x24, x23, [sp, #0x160]",
+          "318754: stp x22, x21, [sp, #0x170]",
+          "318758: stp x20, x19, [sp, #0x180]",
+          "31875c: add x29, sp, #0x130",
+          "318760: ldrsh w22, [x4, #2]",
+          "318764: tst w22, #0x7800",
+          "318768: b.eq #0x31879c",
+          "31876c: mov w8, #7"
+        ],
+        "code_sha256": "de7a011359b4780fe65ded5c6c3d98e0fbddc5cfc42c349244ae3a8b68cbd859",
+        "asm_sha256": "bdf6738241cd0312a5797ec1a160801a93fc7d4af1cf64d68e5081b0ccef3465"
+      }
+    ],
+    "canonical": [
+      {
+        "name": "cached_address_is_unclaimed",
+        "bytes": 528,
+        "entry": [
+          "31dd10: ldr x8, [x0, #0x10]",
+          "31dd14: cbz x8, #0x31dd20",
+          "31dd18: mov w0, wzr",
+          "31dd1c: ret ",
+          "31dd20: sub sp, sp, #0x170",
+          "31dd24: stp x29, x30, [sp, #0x140]",
+          "31dd28: stp x28, x21, [sp, #0x150]",
+          "31dd2c: stp x20, x19, [sp, #0x160]",
+          "31dd30: add x29, sp, #0x140",
+          "31dd34: ldr x10, [x0, #0xb8]",
+          "31dd38: cbz x10, #0x31dd9c",
+          "31dd3c: ldrh w8, [x2, #0x18]"
+        ],
+        "code_sha256": "f8d855c5d523d2181f565b5298941b3db13193e25bfe38b7ce63502866fa62c1",
+        "asm_sha256": "4fed4bb53431801afeb4f71d227a7573b509c223872371d34df0dcb869e8a176"
+      },
+      {
+        "name": "name_exists",
+        "bytes": 464,
+        "entry": [
+          "2e4a2c: stp x29, x30, [sp, #-0x30]!",
+          "2e4a30: stp x22, x21, [sp, #0x10]",
+          "2e4a34: stp x20, x19, [sp, #0x20]",
+          "2e4a38: mov x29, sp",
+          "2e4a3c: mov x8, x0",
+          "2e4a40: mov x19, x2",
+          "2e4a44: ldp x9, x10, [x8, #0x40]!",
+          "2e4a48: add x10, x10, #0x10",
+          "2e4a4c: cmn x9, #1",
+          "2e4a50: csel x8, x10, x8, eq",
+          "2e4a54: ldr x9, [x8, #0x60]",
+          "2e4a58: cbnz x9, #0x2e4a64"
+        ],
+        "code_sha256": "6c77783d1be5c4359981f38c3ad0c50239b3db381b3403e7662147e74a82b8ee",
+        "asm_sha256": "b0d1bfd842ff0a744761aae3e9d4694e2477cdd3c2451b3ce75f4e0eb1578d72"
+      },
+      {
+        "name": "name_exists_canonical",
+        "bytes": 476,
+        "entry": [
+          "2e4bfc: stp d9, d8, [sp, #-0x60]!",
+          "2e4c00: stp x29, x30, [sp, #0x10]",
+          "2e4c04: stp x26, x25, [sp, #0x20]",
+          "2e4c08: stp x24, x23, [sp, #0x30]",
+          "2e4c0c: stp x22, x21, [sp, #0x40]",
+          "2e4c10: stp x20, x19, [sp, #0x50]",
+          "2e4c14: add x29, sp, #0x10",
+          "2e4c18: ldp x8, x9, [x0, #0x40]!",
+          "2e4c1c: mov x19, x2",
+          "2e4c20: mov x20, x1",
+          "2e4c24: add x9, x9, #0x10",
+          "2e4c28: cmn x8, #1"
+        ],
+        "code_sha256": "0d872b8df42feae4ce73f0529066945a29686ae89d0ea40129cc4f92580c05e1",
+        "asm_sha256": "0d6facad28c172c8f1db6a60e334a651a680b05e6af171d4e874f001a11d2fe9"
+      },
+      {
+        "name": "answer_parsed_with_query_events",
+        "bytes": 3804,
+        "entry": [
+          "3187e0: sub sp, sp, #0x190",
+          "3187e4: stp x29, x30, [sp, #0x130]",
+          "3187e8: stp x28, x27, [sp, #0x140]",
+          "3187ec: stp x26, x25, [sp, #0x150]",
+          "3187f0: stp x24, x23, [sp, #0x160]",
+          "3187f4: stp x22, x21, [sp, #0x170]",
+          "3187f8: stp x20, x19, [sp, #0x180]",
+          "3187fc: add x29, sp, #0x130",
+          "318800: ldrsh w22, [x4, #2]",
+          "318804: tst w22, #0x7800",
+          "318808: b.eq #0x31883c",
+          "31880c: mov w8, #7"
+        ],
+        "code_sha256": "d4006271e084e5df9c4eefa857be29bcdf8a8f79dad653ed9a4aee128aa58703",
+        "asm_sha256": "6f269fab157e679e1eab8d682f4d8cc69bd63bb259886bc15fa051cfe0a6f677"
+      }
+    ]
+  },
+  "decision": "Retain lower priority local mechanism. Cached ownership calls folded-name helper directly; total ELF grows288B and public API may pay an extra helper call. No allocations are claimed removed from the already-lowercase cached path, and no CPU gain inferred."
+}
