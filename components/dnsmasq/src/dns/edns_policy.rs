@@ -211,6 +211,13 @@ pub fn source_subnet(config: &EdnsConfig, source: IpAddr) -> (Vec<u8>, bool, boo
 /// check_source's existence form. Malformed/trailing options stop its strict
 /// loop, and a client ECS with source mask zero remains globally cacheable.
 pub fn client_subnet_cacheable(packet: &[u8]) -> bool {
+    // Without Additional records there cannot be a client ECS option. This
+    // predicate already accepts malformed questions; leave their validation
+    // to the query owner instead of walking them again to find an absent OPT.
+    let Ok(header) = Header::parse(packet) else { return true };
+    if header.additionals == 0 {
+        return true;
+    }
     let Ok(scan) = find_pseudoheader(packet, false) else {
         return true;
     };
@@ -468,6 +475,22 @@ mod tests {
                 .unwrap()
         }
         writer.finish()
+    }
+    #[test]
+    fn ecs_absence_uses_declared_additional_count_and_accepts_bad_questions() {
+        let mut packet = query(Some(b"\0\x08\0\x07\0\x01\x18\0\xc0\0\x02"));
+        assert!(!client_subnet_cacheable(&packet));
+        packet[10..12].copy_from_slice(&0u16.to_be_bytes());
+        assert!(client_subnet_cacheable(&packet), "undeclared trailing OPT is ignored");
+        for questions in [0u16, 1, 2, u16::MAX] {
+            packet[4..6].copy_from_slice(&questions.to_be_bytes());
+            for end in 0..=packet.len() {
+                assert!(client_subnet_cacheable(&packet[..end]));
+            }
+        }
+        packet[4..6].copy_from_slice(&1u16.to_be_bytes());
+        packet[12] = 0xff;
+        assert!(client_subnet_cacheable(&packet));
     }
     #[test]
     fn exact_image_calibration_mac_and_ecs_bytes() {
