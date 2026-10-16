@@ -1,19 +1,15 @@
 # Performance research continuation
 
-接管检查点（2026-10-17）：旧五个直接子代理会话均已结束，原J118本地控制器81010/81023
-继续运行，输出`private/perf-opt-20261015/research-reset-20261016/i-j-full118/`；不重启。
-新device代理独占设备；Oracle由新oracle代理独占，K实际use/smoke/硬化与shipping/source
-边界已过，原44/67继续。已接受身份仍是I，J需118最终审阅，K需自己的14窗筛选。
-下一顺序：J118收尾→600秒被动查询统计（与最终审阅并行）→公开C/J16→v0.2.0/J10→K14。
-采样工具`query_shape_stats.c`已完成原SDK及隔离veth校验，只记聚合，不含名字/客户端地址。
-新12窗本机计数确认AD/CD/非DO空OPT的普通fresh路径均零分配；D1回退比例不等于J总收益
-损失。计划及具体新证据仍集中在下述统一文件；未部署/推送/合并main。
-
-最新结果（2026-10-16）：I（G+新PGO）通过实际44族/67任务、完整118窗及一次独立复核，接受为最新软件性能候选。
-直接H/I的UDP命中CPU中位97.52→85.16µs；配对中位−14.54µs，9/9，三个block均超过新A/A7.58µs。
-33项指标3改善、0可辨退化、30未分辨；UDP-miss CPU配对+4.90µs、DHCP150和HUP-large的小幅上升均保留。
-ELF2,288,419B/APK1,295,290B符合新PGO上限2,500,000/1,400,000B。H保留回退；不相加历史收益。
-直接C/I16全有效：低率配对I−C为−0.97µs，未见可辨正残余；不宣称等价。继续D1/D2及真实local规则覆盖研究，无部署。
+最新结果（2026-10-17）：**接受J（源23aece16，ELF9e3326ba）为最新性能候选，I保留回退。**
+公开local=/lan/及六条RFC6761规则下，I/J UDP命中CPU中位105.62→78.68µs（−25.51%），
+九对全部改善，配对中位−27.07µs，三个block均超过原AA5.893µs。
+实际44族/67任务、shipping/source边界、原118窗及一次最终独立审阅通过；原33项0改善/
+0可辨退化/33未分辨。未命中CPUclock配对+8.33µs与TCP-hit/HUP-large尾延迟上升仍保留。
+ELF2,288,419B/APK1,293,163B符合新PGO上限；生产未改，无部署、推送或产品合入main。
+正式身份和证据见[candidate-j-acceptance.json](audits/perf-opt-20261015/candidate-j-acceptance.json)。
+当前K（4ce24c62）已过实际44/67和运行资格；接续600秒真实查询采样、公开C/J16、
+v0.2.0/J10，再K14双栈筛选。采样只留聚合，AD/CD/OPT的普通fresh路径已证实仍零分配，
+不能按D1回退占比折减整个J的收益；实际覆盖及下一决定等待样本。
 后续以[统一计划](audits/perf-opt-20261015/FROZEN_RESEARCH_SUPPLEMENT_20261016.md)和
 [统一结果](audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md)为准，下面保留旧阶段事实。
 

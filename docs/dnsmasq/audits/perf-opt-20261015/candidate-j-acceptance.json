@@ -1,0 +1,96 @@
+{
+  "candidate": "J: D1 + local-rule coverage + D2 + dedicated PGO",
+  "status": "ACCEPTED_DEVICE_PERFORMANCE_CANDIDATE",
+  "date": "2026-10-17",
+  "scope": "Exact artifact only; no installation, deployment, push or product merge into main. I retained as fallback.",
+  "source_commit": "23aece16463b246eb194f25b84bd40d0446373fb",
+  "elf": {
+    "path": "dnsmasq-rs",
+    "bytes": 2288419,
+    "sha256": "9e3326bad7c6ac8c9261994af8d70095ae86186e6ea149511080d2662f8f94b8"
+  },
+  "apk": {
+    "name": "dnsmasq-2.93-r4.apk",
+    "bytes": 1293163,
+    "sha256": "7f14b54864541e5662d9b276e30f9f5996be80d3dcc540014794ad562af4832e"
+  },
+  "profile": {
+    "sha256": "732093b36c0fbcce9bde11f3fc1d20581ffa4e4faa27118b5bcabf6b5ec68f49",
+    "bytes": 936480,
+    "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/rules-next-pgo-preparation-20261016/j1-rules-d2/raw/train-stage/training.profdata",
+    "raw_profiles": 50,
+    "training_passes": 1
+  },
+  "caps_bytes": {
+    "elf": 2500000,
+    "apk": 1400000
+  },
+  "public_rule_confirmation": {
+    "control": "I",
+    "CPU_clock_medians_us": [
+      105.62458985,
+      78.6807272
+    ],
+    "paired_median_us": -27.07377310000001,
+    "d2_d8_us": [
+      -30.235242049999997,
+      -22.56886424999999
+    ],
+    "three_block_medians_us": [
+      -26.114225350000012,
+      -27.189163949999994,
+      -26.74208055000001
+    ],
+    "AA_max_absolute_us": 5.8929906,
+    "pairs_improved": 9,
+    "pairs": 9
+  },
+  "complete_qualification": {
+    "families": 44,
+    "jobs": 67,
+    "shipping_boundaries_passed": true,
+    "original_matrix_windows": 118,
+    "valid_windows": 118,
+    "replacement_windows": 0,
+    "primary_metrics": {
+      "improved": 0,
+      "discernible_regressions": 0,
+      "unresolved": 33
+    },
+    "independent_review": "correctness/j-final-review-20261017.json"
+  },
+  "evidence": {
+    "build_and_smoke": {
+      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/rules-next-pgo-preparation-20261016/j1-rules-d2/result-summary.json",
+      "sha256": "2616f68f2aa44aa9dec2ab208bb2bb6681fe19172b44d2e701be2eacbafc528b"
+    },
+    "reproduction_inputs": {
+      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/rules-next-pgo-preparation-20261016/j1-rules-d2/acceptance-inputs.json",
+      "sha256": "4b6a74c52e2acba924a14d4c9c0f77f5df0301ac01d868bc98fd8f9855a60b67"
+    },
+    "public_confirmation": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016/j-public-confirm18-result.json",
+      "sha256": "d2b045987cb6f0440c461be07953a5155cbe0b2bdb309d39e7850aa8fdabad88"
+    },
+    "full_matrix": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016/i-j-full118-result.json",
+      "sha256": "74fd80525d09a9458c143cd3128e178da81b145916cd394ad5fa190535c07667"
+    },
+    "restoration": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016/i-j-full118/closure.json",
+      "sha256": "d24aa858fab7fff3dce5e1a849294e947cfb6b17d0b20cfe7cde486367051dea"
+    },
+    "independent_review": {
+      "path": "/Users/USER/Developer/owrt-perf-opt-20261015/docs/dnsmasq/audits/perf-opt-20261015/correctness/j-final-review-20261017.json",
+      "sha256": "f8df5232243926367aa586d7c26492c8eea37d8a090a61ae11c99a05bf9339dd"
+    }
+  },
+  "adverse_observations": "UDP-miss CPUclock paired +8.3347486us (4/5 slower); TCP-hit p95 +24.1714%; large-HUP p95 +26.7020%; all unresolved under their frozen rules. Full ranges, DORA and FD observations retained in independent review.",
+  "limits": [
+    "Public-rule synthetic singleton hits are not real client traffic replay.",
+    "Code and new PGO profile change together; do not attribute the full gain to D1.",
+    "Original 118 ns columns are descriptive; the different-duration public AA is not applied there.",
+    "AD/CD/OPT and same-name dual-family coverage remain separate experiments.",
+    "Whole-image integration, installation and rollback are outside this acceptance."
+  ]
+}
