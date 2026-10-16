@@ -1,0 +1,61 @@
+{
+  "scope": "Completed diagnostic/evidence branches only; active185/full110/prototype work remains intact. All source/report commits retained under verified annotated tags before branch deletion.",
+  "records": [
+    {
+      "branch": "evidence/cached-child-sdk-prep-20261016",
+      "commit": "ed4dfa414d5024370036975b5cf4b37e8970f518",
+      "durable_tag": "archive/perf-20261016/completed-cached-child-sdk-prep-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-cached-child-sdk-prep-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "evidence/cached-local-miss-inputs-20261016",
+      "commit": "57f476cd2ff0d52d506510ba47bad92d21a1210e",
+      "durable_tag": "archive/perf-20261016/completed-cached-local-miss-inputs-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-cached-local-miss-inputs-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "evidence/fresh-address-native-20261016",
+      "commit": "a538fac3a2c65a413de092d828003994a28b2bfa",
+      "durable_tag": "archive/perf-20261016/completed-fresh-address-native-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-fresh-address-native-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "evidence/local-cache-inputs-20261016",
+      "commit": "f95562dc8cdd23ec6b5857c6fe747c5729247dac",
+      "durable_tag": "archive/perf-20261016/completed-local-cache-inputs-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-local-cache-inputs-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "evidence/name-buffer-review-20261016",
+      "commit": "e17b834e0288a45d17049fb288d7bf018be60457",
+      "durable_tag": "archive/perf-20261016/completed-name-buffer-review-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-name-buffer-review-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "evidence/next-cache-native-preparation-20261016",
+      "commit": "c8571ba7c92689cc58d4f264b8a94373f8cdf708",
+      "durable_tag": "archive/perf-20261016/completed-next-cache-native-preparation-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-next-cache-native-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "perf/dnsmasq-cached-local-name-owner32-20261016",
+      "commit": "c69f39fcebca54338ec581ce86265b690e801846",
+      "durable_tag": "archive/perf-20261016/completed-dnsmasq-cached-local-name-owner32-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-cached-local-name-owner32-20261016",
+      "private_evidence": "untouched; worktree retained"
+    },
+    {
+      "branch": "perf/dnsmasq-cached-zero-frame-owner32-20261016",
+      "commit": "9af84bce8ac39f6ba75194dfc9afd7e25a2d56d5",
+      "durable_tag": "archive/perf-20261016/completed-dnsmasq-cached-zero-frame-owner32-20261016",
+      "worktree": "/Users/USER/Developer/owrt-perf-cached-zero-frame-owner32-20261016",
+      "private_evidence": "untouched; worktree retained"
+    }
+  ]
+}
