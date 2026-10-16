@@ -1,0 +1,481 @@
+{
+  "schema": "owner-ready-frames-original-runtime-signals-independent-audit-v1",
+  "status": "PASS_EXACT5C_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "SDK_elf_sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+  "SDK_build_sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+  "SDK_independent_review_commit": "3c427195",
+  "SDK_independent_review_sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925",
+  "related_independent_review_commit": "c1e9ff9d",
+  "related_independent_review_sha256": "18b8d96c6d5751153c2ef8ea28f227d4232b631b78e1f71e69e4e16ee0eb34c5",
+  "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+  "result_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-signals-20261016/signals/result.json",
+  "result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+  "actual_result_passed": true,
+  "original_signal_cases": 12,
+  "original_cache_dump_cases": 3,
+  "original_alarm_maintenance_cases": 3,
+  "all_original_comparators": {
+    "c-image": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "c-native": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "rust": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45"
+  },
+  "signal_case_order_and_binary_identities_verified": true,
+  "raw_dump_summaries_recomputed_by_original_pure_parser": true,
+  "common_dump_summary": {
+    "cache": [
+      [
+        150,
+        0,
+        2
+      ],
+      [
+        150,
+        0,
+        2
+      ]
+    ],
+    "queries": [
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "tcp": [
+      [
+        0,
+        0,
+        30
+      ],
+      [
+        0,
+        0,
+        30
+      ]
+    ],
+    "server": [
+      [
+        3,
+        0,
+        0,
+        2
+      ],
+      [
+        3,
+        0,
+        0,
+        2
+      ]
+    ],
+    "host_rows": 2,
+    "cached_rows": 2
+  },
+  "all_three_maintenance_lease_and_dump_logs_checked": true,
+  "original_passed_predicates_recomputed": true,
+  "actual_original_argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-owner-ready-frames/tools/dnsmasq/audit_20261011_runtime_signals.py",
+    "--image-root",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--rust",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-owner-ready-frames/dnsmasq-rs",
+    "--c-native",
+    "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-signals-20261016/signals"
+  ],
+  "actual_elapsed_seconds": 8.782498598098755,
+  "exit": 0,
+  "stderr_empty": true,
+  "audit_invocations": 1,
+  "audit_or_measurement_retries": 0,
+  "native_compatibility": {
+    "files": {
+      "c-native-01/dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "c-native-01/deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+      "c-native-01/deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+    },
+    "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "preflight_host_namespace": "mnt:[4026531832]",
+    "actual_private_namespace": "mnt:[4026532710]",
+    "inside_namespace_hashes_rechecked": true,
+    "host_path_after_exit_empty_unmounted": true,
+    "mapping_receipt_sha256": "f0f7417fe52fc01122f0ecb05eb6914c14fba09d3ad7be21b4fd226590e9cc1e"
+  },
+  "preflight_sha256": "0a3601647f5a8ea03a912cbf100b241a29fd3a07512e8dd75c8bc925be035bd0",
+  "launch_sha256": "cf739391771efde7442e7c772c2006a60a30eeeda928c106894fe257b1146865",
+  "exit_receipt_sha256": "e641d6f996d03a0c49990806014189e24247a2f4da82f89f698e493d997a8e36",
+  "postflight_sha256": "9045891327742ee3ca3333d0ed4831f84cdba0130d75f53123690e9c219679a2",
+  "archive_sha256": "fd1f7fbd71e165bd8ef2218d7e883a0d158b776393a6af339e13f4abdf01fad6",
+  "manifest_sha256": "9f4363f80a3cd96731f7ec64b721bd130282c06c543eae5ae86b4a3383e558f6",
+  "verified_regular_archive_files": 32,
+  "transfer_receipt_sha256": "b7a9006509542480888e65b8fc208c8f15f5f875e1651a6a39793e470c7f4596",
+  "all_raw_downloaded_and_rehashed": true,
+  "scope_limits": [
+    "This is the unchanged standalone249ae audit, outside44-family registry. It does not inherit full44/110 or performance acceptance.",
+    "DNS queries, DHCP ACK and live-process observations are the unchanged original tool raw result observations. No extra independent wire capture or new tests were added.",
+    "Nativefile byte pins and visibility in the isolated mount namespace were verified; no claim of separately sampled native process library maps.",
+    "Static SDK protections do not prove runtimeASLR/RELRO; this functional signal audit does not measure them.",
+    "Gates preserve original foreground/logging mode and all comparators/cases. No normal-debug expansion, artifacts rebuilt, or physical router change."
+  ],
+  "performance_timing_started": false,
+  "reviewer_script_sha256": "a988945fbb1cf37ef1f63ef75809233159be372c256d0c0c75983585904a4279",
+  "independent_peer_receipt_sha256": "f746db3480b9222fa78b51cae11f3a8b64004a8cfa8d5874bf31dfc3c11eca2c",
+  "independent_peer_review": {
+    "status": "PASS_LOCAL_INDEPENDENT_ORIGINAL_SIGNALS_RAW_REVIEW",
+    "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+    "input_directory": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/owner-ready-frames-signals/downloaded/owner-ready-frames-signals-20261016",
+    "archive_manifest_sha256": "9f4363f80a3cd96731f7ec64b721bd130282c06c543eae5ae86b4a3383e558f6",
+    "manifest_payload_files_rehashed": 31,
+    "result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+    "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+    "adapter_sha256": "ce8e3b3da0f57d7282cd621e0a8c9f09f7c828ce673414b21c6020920d00d4ee",
+    "binary_identities_recorded": {
+      "c-image": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "c-native": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "rust": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45"
+    },
+    "counts": {
+      "signal_rows": 12,
+      "cache_dumps": 3,
+      "alarm_maintenance": 3,
+      "daemon_logs": 18,
+      "final_lease_files": 3
+    },
+    "original_passed_expression_recomputed": true,
+    "signal_raw_checks": [
+      {
+        "implementation": "c-image",
+        "signal": "SIGHUP",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-native",
+        "signal": "SIGHUP",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGHUP",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-image",
+        "signal": "SIGUSR2",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-native",
+        "signal": "SIGUSR2",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGUSR2",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-image",
+        "signal": "SIGUSR1",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-native",
+        "signal": "SIGUSR1",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGUSR1",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-image",
+        "signal": "SIGALRM",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "c-native",
+        "signal": "SIGALRM",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGALRM",
+        "snapshot_exact_raw_prefix": true,
+        "only_post_snapshot_line": "normal SIGTERM exit"
+      }
+    ],
+    "dump_raw_checks": [
+      {
+        "implementation": "c-image",
+        "parsed_raw_equals_result": true,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      },
+      {
+        "implementation": "c-native",
+        "parsed_raw_equals_result": true,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      },
+      {
+        "implementation": "rust",
+        "parsed_raw_equals_result": true,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      }
+    ],
+    "alarm_raw_checks": [
+      {
+        "implementation": "c-image",
+        "raw_write_failure_logged": true,
+        "raw_dhcp_ack_logged": true,
+        "raw_lease_dump_present": true,
+        "raw_before_after_dns_queries_logged": true,
+        "final_lease_fields": [
+          "1792146679",
+          "02:00:00:00:00:01",
+          "127.0.0.30",
+          "alarm-client",
+          "*"
+        ],
+        "final_lease_sha256": "ed19c5b483978a31dd0d09d344ab9227b6f10a177cf4856526b227f0220f07be"
+      },
+      {
+        "implementation": "c-native",
+        "raw_write_failure_logged": true,
+        "raw_dhcp_ack_logged": true,
+        "raw_lease_dump_present": true,
+        "raw_before_after_dns_queries_logged": true,
+        "final_lease_fields": [
+          "1792146679",
+          "02:00:00:00:00:01",
+          "127.0.0.30",
+          "alarm-client",
+          "*"
+        ],
+        "final_lease_sha256": "ed19c5b483978a31dd0d09d344ab9227b6f10a177cf4856526b227f0220f07be"
+      },
+      {
+        "implementation": "rust",
+        "raw_write_failure_logged": true,
+        "raw_dhcp_ack_logged": true,
+        "raw_lease_dump_present": true,
+        "raw_before_after_dns_queries_logged": true,
+        "final_lease_fields": [
+          "1792146679",
+          "02:00:00:00:00:01",
+          "127.0.0.30",
+          "alarm-client",
+          "*"
+        ],
+        "final_lease_sha256": "ed19c5b483978a31dd0d09d344ab9227b6f10a177cf4856526b227f0220f07be"
+      }
+    ],
+    "all_final_lease_bytes_equal": true,
+    "namespace_record_checks": {
+      "isolated_mount_namespace": "mnt:[4026532710]",
+      "host_mount_namespace": "mnt:[4026531832]",
+      "different": true,
+      "preflight_host_path_empty_unmounted": true,
+      "postflight_host_path_empty_unmounted": true,
+      "postflight_original_namespace_exited": true
+    },
+    "input_receipts": {
+      "preflight.json": {
+        "bytes": 2448,
+        "sha256": "0a3601647f5a8ea03a912cbf100b241a29fd3a07512e8dd75c8bc925be035bd0"
+      },
+      "mapping.json": {
+        "bytes": 1216,
+        "sha256": "f0f7417fe52fc01122f0ecb05eb6914c14fba09d3ad7be21b4fd226590e9cc1e"
+      },
+      "postflight.json": {
+        "bytes": 1182,
+        "sha256": "9045891327742ee3ca3333d0ed4831f84cdba0130d75f53123690e9c219679a2"
+      },
+      "exit.json": {
+        "bytes": 464,
+        "sha256": "e641d6f996d03a0c49990806014189e24247a2f4da82f89f698e493d997a8e36"
+      },
+      "plan.json": {
+        "bytes": 2977,
+        "sha256": "6811d872a922cf3767b8378cb9c7aa64f4cfb8e69a6d4cf682ccfd712f905f8f"
+      }
+    },
+    "limitations": [
+      "No audit module, daemon, test, build, mount, or remote operation was executed by this reviewer. Only the original AST dump_summary function and passed expression were evaluated locally.",
+      "Binary identity, live DNS/wire response checks, process status, pre-alarm lease absence, and namespace cleanup are recorded runtime observations; this peer review did not recapture packets, rehash remote binaries, or observe the remote host directly.",
+      "Raw logs independently corroborate saved signal snapshots, repeated dump statistics, injected write failure, DHCPACK logging, lease dump, query logging, normal TERM cleanup, and final persisted lease bytes.",
+      "Final quiet, execution authorization/SDK chain, performance and health release remain coordinator work; this receipt grants none."
+    ]
+  },
+  "private_verified_result_sha256": "13b7cd1529bd0f3719c30de0a0fe731b15e28702c6583b7dfd2cedac7abd70a6",
+  "native_layout_preflight_sha256": "bdf4c6030a0b67598acd18f74f095ae73d21e74235b4115503fde12d4adbc8ed"
+}
