@@ -1,0 +1,131 @@
+{
+  "status": "PASS",
+  "source_commit": "24f8c9bc",
+  "source_file": "tools/dnsmasq/query_shape_stats.c",
+  "source_sha256": "977b2a9c98720403fea93fe09a6f3c5718e04b67ac7ffee080716c4ccb757320",
+  "compiler": "OpenWrt 25.12.5 pinned aarch64_cortex-a53 GCC 14.3.0 musl",
+  "argv": [
+    "aarch64-openwrt-linux-musl-gcc",
+    "-Os",
+    "-static",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "query_shape_stats.c",
+    "-o",
+    "query-shape-stats"
+  ],
+  "build_exit": 0,
+  "build_warnings": "Existing SDK host wrapper emitted missing STAGING_DIR/runas.so warnings; compiler and linker exited 0. No source warning or rebuild.",
+  "artifact": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/query-shape-validation-20261017/query-shape-stats",
+    "bytes": 392264,
+    "sha256": "0eab970fd8f27846167c4f8df98ffccfec9582001e7768048175c7bc63698101",
+    "format": "AArch64 statically linked ELF, unstripped"
+  },
+  "experiment": {
+    "scope": "One real AF_PACKET/cBPF capture in the existing isolated network namespace with a synthetic veth pair; no router access or real client capture.",
+    "prediction": "Exact synthetic counts; IPv6 Hop-by-Hop UDP53 reaches parser; non-53, nonlocal destination and outgoing traffic never enter queries.",
+    "small_effect_rule": "No performance conclusion; original device CPU gates unchanged.",
+    "fixture_source": "private/query-shape-validation-20261017/validate_capture.py"
+  },
+  "successful_capture": {
+    "passed": true,
+    "sent_frames": 16,
+    "expected_aggregate": {
+      "queries": 8,
+      "excluded_health_name": 1,
+      "malformed": 0,
+      "ad": 2,
+      "cd": 2,
+      "ad_cd": 3,
+      "opt": 4,
+      "empty_opt": 3,
+      "do_bit": 1,
+      "opt_options": 1,
+      "opt_nonzero_version": 0,
+      "a": 5,
+      "aaaa": 2,
+      "https": 1,
+      "other_type": 0,
+      "address_queries": 7,
+      "j_shape": 1,
+      "reserve_shape": 5,
+      "reserve_extra": 4
+    },
+    "capture": {
+      "schema": 1,
+      "duration_seconds": 3,
+      "elapsed_seconds": 3.002,
+      "interrupted": false,
+      "frames": 20,
+      "outgoing_skipped": 4,
+      "fragment_packets_skipped": 0,
+      "truncated": 0,
+      "udp4_datagrams": 6,
+      "udp6_datagrams": 3,
+      "tcp_segments": 2,
+      "tcp_data_segments": 1,
+      "receive_errors": 0,
+      "socket_stats_available": true,
+      "socket_packets": 20,
+      "socket_drops": 0,
+      "udp_dns": {
+        "queries": 8,
+        "excluded_health_name": 1,
+        "malformed": 0,
+        "ad": 2,
+        "cd": 2,
+        "ad_cd": 3,
+        "opt": 4,
+        "empty_opt": 3,
+        "do_bit": 1,
+        "opt_options": 1,
+        "opt_nonzero_version": 0,
+        "a": 5,
+        "aaaa": 2,
+        "https": 1,
+        "other_type": 0,
+        "address_queries": 7,
+        "j_shape": 1,
+        "reserve_shape": 5,
+        "reserve_extra": 4
+      },
+      "minute_bins": [
+        {
+          "queries": 8,
+          "excluded_health_name": 1,
+          "malformed": 0,
+          "ad": 2,
+          "cd": 2,
+          "ad_cd": 3,
+          "opt": 4,
+          "empty_opt": 3,
+          "do_bit": 1,
+          "opt_options": 1,
+          "opt_nonzero_version": 0,
+          "a": 5,
+          "aaaa": 2,
+          "https": 1,
+          "other_type": 0,
+          "address_queries": 7,
+          "j_shape": 1,
+          "reserve_shape": 5,
+          "reserve_extra": 4
+        }
+      ]
+    }
+  },
+  "preserved_failure": {
+    "stage": "Fixture setup before helper launch",
+    "reason": "The existing isolator retains host /sys; its interface address file did not contain the isolated veth. The fixture now reads the link address via ip -j link.",
+    "helper_rebuilt": false,
+    "actual_capture_repeated": false,
+    "local_record": "private/query-shape-validation-20261017/attempt1-failure.json"
+  },
+  "transport": "Artifact retained on Oracle; download and device sampling await device operator restoration gap.",
+  "limitations": [
+    "UDP query shape, not cache hit or D1 selection observability.",
+    "The fixed public health name is excluded; TCP counters represent segments, not queries."
+  ]
+}
