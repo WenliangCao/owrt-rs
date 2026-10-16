@@ -1,0 +1,80 @@
+{
+  "status": "READY_METADATA_ONLY_PENDING_FRESH_REMOTE_PREFLIGHT",
+  "candidate_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "plans": {
+    "native": {
+      "before_sha256": "271cddd4cc9c4fabb84c8b91e4122917767a8850fac15d2d5bdbf7bc20996dcc",
+      "after_sha256": "968af9c4c26abecb78e9a78b91040df606cdacca73b680f6fb3ffbf6cc16ab8e",
+      "metadata_update": {
+        "status": "FROZEN_ACTUAL_G6AB_NATIVE240_READY_AFTER_PRETRANSFER",
+        "sdk_independent_review": {
+          "commit": "94608544",
+          "path": "correctness/post185-sdk-independent-audit.json",
+          "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+        },
+        "screen_plan_independent_review": {
+          "commit": "5aa27e67",
+          "path": "correctness/post185-screen-plan-independent-audit.json",
+          "sha256": "d6f7fa04838fd95e7c61f56db419e3f0f4f8f5f32b3b6596fb98e5097cc71be1"
+        },
+        "explicit_slot_release": {
+          "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/release-to-loop.json",
+          "sha256": "b596f6a0a1b9acdc590223d5d6684dcb34288c20c5d61d7e533f5db429cb9763",
+          "epoch": 1792127431.7606876,
+          "scope": "SDK owner explicit quiet handoff to loop; native240 then owner32 in sequence."
+        },
+        "pretransfer_complete": true,
+        "pretransfer_inputs_archive_sha256": "56c8c649d4962df862a8c7f87c200b95b70b3966f4465b1364a890d6f40e16fe"
+      }
+    },
+    "owner32": {
+      "before_sha256": "0c778100e6a53022d40473eec30e2979c2b3e89d30df30c2a92b8836bdd782e8",
+      "after_sha256": "00f508a8b2990198bf7e411fdf372eb097349b57ead123adb4084ba5e3eac653",
+      "metadata_update": {
+        "status": "FROZEN_EXACT_SDK_READY_AFTER_EXCLUSIVE_SLOT_RELEASE",
+        "sdk_independent_review": {
+          "commit": "94608544",
+          "path": "correctness/post185-sdk-independent-audit.json",
+          "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+        },
+        "screen_plan_independent_review": {
+          "commit": "5aa27e67",
+          "path": "correctness/post185-screen-plan-independent-audit.json",
+          "sha256": "d6f7fa04838fd95e7c61f56db419e3f0f4f8f5f32b3b6596fb98e5097cc71be1"
+        },
+        "explicit_slot_release": {
+          "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/release-to-loop.json",
+          "sha256": "b596f6a0a1b9acdc590223d5d6684dcb34288c20c5d61d7e533f5db429cb9763",
+          "epoch": 1792127431.7606876,
+          "scope": "SDK owner explicit quiet handoff to loop; native240 then owner32 in sequence."
+        },
+        "pretransfer_complete": true,
+        "pretransfer_inputs_archive_sha256": "56c8c649d4962df862a8c7f87c200b95b70b3966f4465b1364a890d6f40e16fe"
+      }
+    }
+  },
+  "measurement_argv_or_checks_changed": false,
+  "sdk_and_plan_independent_reviews": {
+    "sdk": {
+      "commit": "94608544",
+      "path": "correctness/post185-sdk-independent-audit.json",
+      "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+    },
+    "plan": {
+      "commit": "5aa27e67",
+      "path": "correctness/post185-screen-plan-independent-audit.json",
+      "sha256": "d6f7fa04838fd95e7c61f56db419e3f0f4f8f5f32b3b6596fb98e5097cc71be1"
+    }
+  },
+  "SDK_owner_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/release-to-loop.json",
+    "sha256": "b596f6a0a1b9acdc590223d5d6684dcb34288c20c5d61d7e533f5db429cb9763",
+    "epoch": 1792127431.7606876,
+    "scope": "SDK owner explicit quiet handoff to loop; native240 then owner32 in sequence."
+  },
+  "input_files_staged": 14,
+  "input_archive_bytes": 256000,
+  "no_more_file_transfer_during_DHCP_observation": true,
+  "timing_started": false
+}

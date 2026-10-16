@@ -426,7 +426,7 @@
   "protocol_commit": "b17f4010",
   "reused_runner_sha256": "119d49a162d47c9dc7b8f7b88de6f4a0119b6a0126cca4ce19fb81ca138d94be",
   "mechanism_limit": "Original public hot15 omits SinglePoll and owner reply recycling. It cannot measure owner-clock or private socket Rc changes; cache/lease regressions still require all15 original scenes.",
-  "status": "BOUND_ACTUAL_SDK_PENDING_INDEPENDENT_REVIEW_AND_RELEASE",
+  "status": "FROZEN_ACTUAL_G6AB_NATIVE240_READY_AFTER_PRETRANSFER",
   "linux_gate": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
     "sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
@@ -451,8 +451,23 @@
     "sha256": "beb36e4de69550564afb00d5c7f7456f767edad7e0022818330ed398f061e3bc"
   },
   "launch_prerequisites_enforced_by_owner": true,
-  "sdk_independent_review": null,
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "parent_preparation_sha256": "81e5fa961c6f4883a85df84ac5c389888651cb1abb5cda6a672770c0e831d21a"
+  "sdk_independent_review": {
+    "commit": "94608544",
+    "path": "correctness/post185-sdk-independent-audit.json",
+    "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+  },
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/release-to-loop.json",
+    "sha256": "b596f6a0a1b9acdc590223d5d6684dcb34288c20c5d61d7e533f5db429cb9763",
+    "epoch": 1792127431.7606876,
+    "scope": "SDK owner explicit quiet handoff to loop; native240 then owner32 in sequence."
+  },
+  "pretransfer_complete": true,
+  "parent_preparation_sha256": "81e5fa961c6f4883a85df84ac5c389888651cb1abb5cda6a672770c0e831d21a",
+  "screen_plan_independent_review": {
+    "commit": "5aa27e67",
+    "path": "correctness/post185-screen-plan-independent-audit.json",
+    "sha256": "d6f7fa04838fd95e7c61f56db419e3f0f4f8f5f32b3b6596fb98e5097cc71be1"
+  },
+  "pretransfer_inputs_archive_sha256": "56c8c649d4962df862a8c7f87c200b95b70b3966f4465b1364a890d6f40e16fe"
 }

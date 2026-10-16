@@ -421,7 +421,7 @@
   "analysis": "Original actual warmup+measurement N CPU/PMU denominator, 20s measurement throughput/latency; grouped unscaled same-window user/kernel instructions/cycles. Low original >8tick/W/direction; high variable-N pipeline diagnostic with no invented precision pass.",
   "reservation": "PREPARATION ONLY. After original five related6ab groups PASS, canonical original SDK build, exact artifact/source/pretransfer binding and native240 raw/postflight release, independently acquire exclusive owner32 slot. No running/staging now.",
   "failure_policy": "Retain every failed/partial original window and stop; no replacements, selective reruns or historical E/G controls pooled.",
-  "status": "BOUND_ACTUAL_SDK_PENDING_INDEPENDENT_REVIEW_AND_RELEASE",
+  "status": "FROZEN_EXACT_SDK_READY_AFTER_EXCLUSIVE_SLOT_RELEASE",
   "artifact_transfer": {
     "candidate_elf_bytes": 2145051,
     "local_three_hashes_verified": {
@@ -449,7 +449,22 @@
     "sha256": "e05c8b0ae0de73bcbac5a7eac0fa1ed92dcf8026df390fb2121c03c078d59ba1"
   },
   "anticipated_related_gate_passes": 961,
-  "sdk_independent_review": null,
-  "explicit_slot_release": null,
-  "pretransfer_complete": false
+  "sdk_independent_review": {
+    "commit": "94608544",
+    "path": "correctness/post185-sdk-independent-audit.json",
+    "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+  },
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/release-to-loop.json",
+    "sha256": "b596f6a0a1b9acdc590223d5d6684dcb34288c20c5d61d7e533f5db429cb9763",
+    "epoch": 1792127431.7606876,
+    "scope": "SDK owner explicit quiet handoff to loop; native240 then owner32 in sequence."
+  },
+  "pretransfer_complete": true,
+  "screen_plan_independent_review": {
+    "commit": "5aa27e67",
+    "path": "correctness/post185-screen-plan-independent-audit.json",
+    "sha256": "d6f7fa04838fd95e7c61f56db419e3f0f4f8f5f32b3b6596fb98e5097cc71be1"
+  },
+  "pretransfer_inputs_archive_sha256": "56c8c649d4962df862a8c7f87c200b95b70b3966f4465b1364a890d6f40e16fe"
 }
