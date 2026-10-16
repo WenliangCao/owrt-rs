@@ -999,3 +999,58 @@ This is not A53 CPU evidence and is not mixed into active builds. See
 `dns/CACHED_REPLY_BUFFER_PLAN.md` for ownership bounds and the conditional
 incremental screen. Existing no-subscriber metrics and upstream idle-clock
 directions were already rejected/removed; do not reopen them as new findings.
+
+## 0161 fails the original improvement gate;185 prepared, 2026-10-16
+
+Both54bd and0161 SDK builds passed canonical source/size/hardening/postflight
+checks. 0161 ELF isf4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff,
+2,140,955B; mapb9a67ea6 and receipt972a6f3c. Its independent A53ten is complete
+and independently audited: E136→122us/query,5/5 improving,7tick median delta,
+absolute change belowW13.235%. CPU,p50,p95 all remain inconclusive. Every
+window remains, including E's first152us sample.150 physical windows have now
+completed in total. Production8472/[3086,2115] and E/F restoration are verified;
+the router is idle. No0161 full44/110 has run, and those prepared recipes are
+explicitly marked SCREEN_DID_NOT_SUPPORT_CONTINUATION.
+
+54bd native240 completed6 gains/4 regressions/5withinW. Hits improve17.383–25.892%,
+but miss+2.180%,miss-leases+2.101%,synth+0.797%,lease+0.622% each exceedW.
+Its metadata has independent recomputation; original578 stdout/stderr/CSV files
+remain remote until the current timing reservation ends. Do not describe that
+as completed independent raw-byte verification. DNS continues0161/E owner32
+in full under PID644847; its output isdns/private/cached-local-name-owner32,
+plan3a0e6206. No build, transfer or other Oracle workload may overlap it.
+
+Next source185db90c9cabd26c0af09765636ef15bf6d35f79 combines03ace8ec bounded
+reply-buffer return witha8dcdacc narrowed local-frame extraction. It is a clean
+cherry-pick: six changed files match their independent parents exactly. Mac721/8,
+musl all-target checking and composition review pass. Its179-file identity is
+0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762.
+Fresh local prepared-UDP comparison gives E5/277B allocations per operation
+versus185zero, equal checksum and no live-byte delta; this is not A53 evidence.
+Source/worktree isowrt-perf-cached-zero-frame-20261016. No G is selected.
+
+Rootb17f4010 freezes direct accepted-E comparisons: complete hot15/native240,
+exactSDK owner32 and independent A53ten, original workloads/rules. Hot15 does
+not recycle owner responses, so it primarily checks shared local/cache and
+fallback effects. It cannot prove the buffer-return mechanism. No earlier
+standalone effects are summed. After DNS explicitly releases, loop downloads
+54bd578raw, correctness runs185's original four Linux gates once, then loop
+builds its single canonical SDK. Actual receipts must bind before timing. All
+transfers finish before native/owner timing; A53 can run concurrently after
+new health/recovery checks. The two standalone children's gates/SDKs remain
+prepared but unexecuted; the combination takes priority.
+
+Additional root source722d2762 is a separate185 child, never part of the active
+185 experiment. It removes disabled diagnostic elapsed-time reads from the
+owner wait and avoids a fresh pre-poll clock when no deadline needs it. Active
+deadlines and enabled diagnostic timing retain the original reads. Default and
+m6b-feature musl all-target checks pass; local cross-codegen review is pending.
+This differs from the already removed idle upstream timer work and has no
+measured A53 invocation count or CPU benefit yet.
+
+Completed PGO and superseded standalone source branches were archived under
+exact annotated archive/perf-20261016 refs and detached; all worktrees/private
+evidence remain. Current185, its722 child, accepted E/F and agent timing/gate
+work remain intact. Future promotion still requires full44/67 and complete
+Oracle/device11-scene matrices, with a fresh original-baseline comparison for
+any new total v0.2.0 claim.
