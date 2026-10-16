@@ -1,0 +1,33 @@
+{
+  "status": "PASS_SOURCE_ONLY_LOCAL_EMPTY_OPT_SCAN_EQUIVALENCE",
+  "source_commit": "3b11c9bb76887150c9b2de86fcd6e153e88201b8",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "changed_product_files": [
+    "components/dnsmasq/src/dns/service.rs"
+  ],
+  "source_sha256": "c870fe3780043ad4153b3277014d075cdf62c07fb06b780850cfd086688dae88",
+  "entire_service_source_restored_by_exact_two_reverse_substitutions": true,
+  "wire_scanner_unchanged": true,
+  "existing_call_sites": [
+    "3b11c9bb76887150c9b2de86fcd6e153e88201b8:components/dnsmasq/src/dns/daemon.rs:1880:        let local_answer = local.lookup_local_parsed(",
+    "3b11c9bb76887150c9b2de86fcd6e153e88201b8:components/dnsmasq/src/dns/service.rs:358:        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;"
+  ],
+  "proof": [
+    "Header::parse reads additional count from packet bytes10..12. The new branch reads the same query bytes instead of relying on the separately supplied Header, retaining behavior even when a caller supplies a mismatched Header.",
+    "When those bytes are zero, find_pseudoheader initializes opt=None. Any early header/question/name error is discarded by .ok().and_then(scan.opt); any successful scan returns before the only opt=Some assignment. Thus the existing caller value is unconditionally None, including TKEY/signed state, malformed question scans and trailing undeclared bytes.",
+    "The caller never observes EdnsScan.signed. find_pseudoheader and its parsing helpers only inspect immutable query bytes and do not alter service/cache/query logging state.",
+    "For UDP with zero additions, both versions select None before LocalAnswerer; the writer limit remains512 and no OPT is appended. For TCP with zero additions, both keep the u16::MAX envelope, return misses before any second scan, and select None after a hit.",
+    "For nonzero additionals the exact original UDP-before-answer and TCP-after-hit scans remain. For a query shorter than12 bytes, get returnsNone so has_additional=true and the original malformed-scan path is retained.",
+    "Local answer/cache/forward-rule order, error mapping, answer event handling, writer/EDNS limits and append flags are byte-identical after reversing only the two declared substitutions."
+  ],
+  "qualification_scope": {
+    "source_only": true,
+    "reviewer_test_build_codegen_or_runtime_execution": false,
+    "author_test_codegen_claims_independently_reexecuted": false,
+    "remote_selection_or_measurement": false,
+    "product_or_physical_device_state_changed": false,
+    "performance_claim": false,
+    "whole_combined_candidate_qualified": false
+  },
+  "reviewer_script_sha256": "ad21c56fc8551d3fcb94d4f344c07fff0c3a0125e199e7c8ccba1fe122f6d10d"
+}
