@@ -380,6 +380,7 @@ fn plain_udp_owner_allocation_count_comparison() {
             fixture.client.recv_from(&mut response).unwrap();
         }
         let before = udp_allocation_diagnostic::cached_totals();
+        let before_names = dnsmasq_rs::dns::wire::diagnostic_name_visits();
         for _ in 0..2000 {
             assert!(fixture.send_client(&query));
             let (length, _) = fixture.client.recv_from(&mut response).unwrap();
@@ -387,6 +388,9 @@ fn plain_udp_owner_allocation_count_comparison() {
             assert_eq!(&response[length - 4..length], &[192, 0, 2, 55]);
         }
         let after = udp_allocation_diagnostic::cached_totals();
+        let after_names = dnsmasq_rs::dns::wire::diagnostic_name_visits();
+        let names: [u64; 3] = std::array::from_fn(|i| after_names[i] - before_names[i]);
+        println!("D1_NAME_VISITS fast={enabled} columns=general_walk,encoded_skip,plain_scan values={names:?}");
         let delta: [u64; 6] = std::array::from_fn(|i| after[i] - before[i]);
         assert_eq!(delta[0], 2000);
         println!("D1_ALLOCATION fast={enabled} columns=query,alloc,dealloc,realloc,requested,released values={delta:?}");

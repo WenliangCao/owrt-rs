@@ -164,6 +164,7 @@ impl Name {
     /// Narrow plain-question constructor: no pointers or trailing bytes.
     /// Validate first, then copy once into the existing bounded name scratch.
     pub(super) fn from_uncompressed_reusing(wire: &[u8], scratch: &mut Vec<u8>) -> Option<Self> {
+        NAME_WALKS[2].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         if wire.len() > MAX_NAME_LEN { return None; }
         let mut pos = 0;
         loop {
@@ -219,6 +220,13 @@ pub(super) fn decode_name_reusing(
     Ok((Name(std::mem::take(scratch)), next))
 }
 
+// Excluded local owner diagnostic: visits, not instruction or timing counts.
+static NAME_WALKS: [std::sync::atomic::AtomicU64; 3] =
+    [const { std::sync::atomic::AtomicU64::new(0) }; 3];
+pub fn diagnostic_name_visits() -> [u64; 3] {
+    std::array::from_fn(|i| NAME_WALKS[i].load(std::sync::atomic::Ordering::Relaxed))
+}
+
 /// Check the same expanded name and cursor as `decode_name` without keeping
 /// its labels. Unlike `skip_name`, this follows pointers and rejects unsupported
 /// label types. Writers use it when only the validity of an existing owner is
@@ -233,6 +241,7 @@ fn walk_name(
     extra: usize,
     mut label: impl FnMut(&[u8]),
 ) -> Result<usize, WireError> {
+    NAME_WALKS[0].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let mut pos = start;
     let mut resume = None;
     let mut hops = 0;
@@ -274,6 +283,7 @@ fn walk_name(
 
 /// Locate the end of the encoded name without dereferencing pointers.
 pub fn skip_name(packet: &[u8], mut pos: usize, extra: usize) -> Result<usize, WireError> {
+    NAME_WALKS[1].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     loop {
         end(packet, pos, 1)?;
         let length = packet[pos];
