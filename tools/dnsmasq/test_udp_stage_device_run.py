@@ -82,6 +82,20 @@ class StageGateTests(unittest.TestCase):
             self.assertEqual(result['thread_samples'], 3)
             self.assertEqual(result['raw'] is None, mode is None)
 
+    def test_cached_local_name_uses_accepted_e_and_preserves_f_restore_role(self):
+        import cached_local_name_device_run as entry
+        with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
+                            ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
+            entry.configure()
+            rows = schedule()
+            self.assertEqual(len(rows), 10)
+            self.assertEqual([row['side'] for row in rows], ['c', 'rust', 'rust', 'c', 'c', 'rust', 'rust', 'c', 'c', 'rust'])
+            self.assertEqual({row['artifact'] for row in rows if row['side'] == 'c'}, {'e'})
+            self.assertEqual({row['artifact'] for row in rows if row['side'] == 'rust'}, {'cached-local-name'})
+            self.assertTrue(all(row['mode'] is None for row in rows))
+            self.assertEqual(stage.ARTIFACT_ROLES, {'e', 'f', 'cached-local-name'})
+        self.assertEqual(len(schedule()), 50)
+
     def test_wrong_mode_threshold_matching_or_cuts_is_rejected(self):
         for key, value in [('mode', 2), ('mode', True), ('matched_queries', 5000),
                            ('prewarm_threshold', 999), ('cuts_by_mode', [0, 5001, 0, 0]),
