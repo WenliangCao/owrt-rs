@@ -1,0 +1,87 @@
+{
+  "scope": "Independent6ab layout-only child; not part of currently measured6ab. No code timing or A53 claim.",
+  "source": "84912e5432d9bb9d71aca409f2078cdc78a9368d",
+  "parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--frozen",
+        "--release",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lease-expiry-frame-20261016/private/lease-expiry-frame/check-0.log",
+      "log_sha256": "d316a37ccc1d60ebc7c682f3a7de980c802ff2bf59a520a851a4b9f7774acc96"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lease-expiry-frame-20261016/private/lease-expiry-frame/check-1.log",
+      "log_sha256": "89ae0408827c1946360ece5475ac87e20e5ba8d3ade84d818a47c0da8a48845c"
+    }
+  ],
+  "source_review": "0a202a2b",
+  "codegen_receipt": "/Users/USER/Developer/owrt-perf-lease-expiry-frame-20261016/private/lease-expiry-frame/cross-daemon-final/inspection-v3.json",
+  "codegen_receipt_sha256": "9cd7804a4ba41bdd0080b4490e2d83041bd5f6a8795e832728788cd902c2775b",
+  "outputs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "expiryframe": {
+      "sha256": "a90daf2701cfa7a566f11f93c0fdaac6265537fc9b54a32624142cdf314de553",
+      "bytes": 5021912
+    }
+  },
+  "selected_code_bytes": {
+    "answer_parsed_with_query_events": [
+      3804,
+      3096
+    ],
+    "expire_lease_lookups": [
+      null,
+      1440
+    ],
+    "cached_address_is_unclaimed": [
+      528,
+      528
+    ],
+    "answer_local_or_cached": [
+      4060,
+      4060
+    ]
+  },
+  "selected_frames": {
+    "answer_parsed_with_query_events": [
+      400,
+      368
+    ],
+    "expire_lease_lookups": [
+      null,
+      144
+    ]
+  },
+  "mechanism": "Original CLASS_IN/empty/may_have_expired short-circuit guard remains ahead of traversal. Helper is non-inlined, not marked cold; traversals after conservatively early expiry bounds still retain all work.",
+  "tradeoff": "Live-query shared frame decreases32B, but a possible-expiry traversal now calls a separate144B frame. This can cost more on expirable generations; preserve lease/alias/PTR controls in any future screen.",
+  "not_measured": [
+    "SDK size",
+    "Linux full correctness",
+    "CPU",
+    "instructions",
+    "A53 IPC"
+  ],
+  "whole_local_elf_bytes_delta": -328
+}
