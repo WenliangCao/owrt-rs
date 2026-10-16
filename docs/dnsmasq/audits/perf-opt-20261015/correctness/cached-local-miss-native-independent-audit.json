@@ -1,0 +1,856 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_METADATA_AND_DERIVED_STATISTICS_REVIEW",
+  "scope": "Independent local-only recomputation from complete native-result metadata; original578stdout/stderr/CSV files were checked remotely by the run owner and are not locally available for this second review. NoOracle access, transfer or workload.",
+  "candidate_source": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+  "baseline_source": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "input_sha256": {
+    "raw_result": "dd81b34e96a63ac9b7e7d7438dc369778744b2ba3d56da29f5f75acf3aa67c6a",
+    "original_owner_raw_hash_audit": "bd42a6137e2e47fd6511de04f71c4597ad08b4b2663c8a39638ba6de6e0ddc9d",
+    "summary": "67d1f09fa65d6d6c74cab7e130dc045bb2842f58e28cf97ad95a3ab7b9200bb3",
+    "published_result": "28510241273a4f348ca937ed3366a162391979725e37b8bcd69b7e2076b283de",
+    "plan": "4164adeed24c9a0291a39cdb0ee7dfb6fe6bd86aa9680de2f52411632e69475d",
+    "runner": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+    "probe": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd"
+  },
+  "verification": {
+    "original_order_windows": 240,
+    "plain_windows": 150,
+    "grouped_PMU_windows": 90,
+    "commands_including_four_premeasurement_builds": 244,
+    "recorded_returncodes_all_zero": true,
+    "all_expected_N_checksum_fields_match": true,
+    "all_plain_CPU_fields_equal_recorded_user_plus_system_rusage": true,
+    "all_PMU_recorded_fields_unscaled_and_same_group_window": true,
+    "all15_cpu_stats_PMUmedians_and_IPC_recomputed": true,
+    "all_published_fields_match_recomputed_results": true,
+    "source_files_checked_against_git_each": 162,
+    "original_raw_log_files_rehashed_locally": 0,
+    "original_raw_csv_files_reparsed_locally": 0,
+    "owner_prior_raw_hash_audit_count": 578
+  },
+  "native_artifacts_from_retained_receipt": {
+    "F": {
+      "elf_sha256": "4f555d8d8e73adf0d3d375940302ac1fc84f7bed92482a6a16f1cbc91ab8fd04",
+      "rlib_sha256": "0166df8c53409f7589eaf5743749d4e6a89487df797a4bd6e278a080a5dcdfe1"
+    },
+    "cached-local-miss": {
+      "elf_sha256": "67b175d9b971b438ea11a297e1647e04cb007ba2b38edc5acaf398a018df44b2",
+      "rlib_sha256": "278c87ca07d8e8052fd2fc9115eaa70d62c07e3ef6c3f0c138bddfaa0c68626b"
+    }
+  },
+  "counts": {
+    "faster": 6,
+    "slower": 4,
+    "within_variation_or_resolution": 5
+  },
+  "summaries": [
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 574.1985,
+          "min": 573.258,
+          "max": 574.7485,
+          "rounds": [
+            573.258,
+            574.7485,
+            574.1985,
+            573.78,
+            574.481
+          ]
+        },
+        "right": {
+          "median": 425.5275,
+          "min": 425.4375,
+          "max": 426.9525,
+          "rounds": [
+            425.714,
+            425.469,
+            425.5275,
+            425.4375,
+            426.9525
+          ]
+        },
+        "relative_change_pct": -25.89191716801768,
+        "W_pct": 0.356028693797695,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4525.5754,
+          "cycles:u": 1724.12886,
+          "ipc": 2.6248475418478874
+        },
+        "cached-local-miss": {
+          "instructions:u": 3293.66098,
+          "cycles:u": 1280.393035,
+          "ipc": 2.5724079872083965
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -27.221166616735626,
+        "cycles:u": -25.736813256521906,
+        "ipc": -1.997813351192712
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 591.3575,
+          "min": 590.335,
+          "max": 591.855,
+          "rounds": [
+            591.855,
+            590.335,
+            590.7565,
+            591.6355,
+            591.3575
+          ]
+        },
+        "right": {
+          "median": 442.421,
+          "min": 442.0705,
+          "max": 443.3885,
+          "rounds": [
+            443.057,
+            443.3885,
+            442.0705,
+            442.421,
+            442.397
+          ]
+        },
+        "relative_change_pct": -25.185526521604945,
+        "W_pct": 0.2979062928748953,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4640.1711,
+          "cycles:u": 1774.481245,
+          "ipc": 2.6149451356979543
+        },
+        "cached-local-miss": {
+          "instructions:u": 3409.38031,
+          "cycles:u": 1332.858815,
+          "ipc": 2.557945576553808
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -26.52468547980913,
+        "cycles:u": -24.887410404836363,
+        "ipc": -2.1797611875681855
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 670.05,
+          "min": 669.9145,
+          "max": 672.088,
+          "rounds": [
+            669.9145,
+            670.0145,
+            672.088,
+            670.05,
+            671.087
+          ]
+        },
+        "right": {
+          "median": 553.5725,
+          "min": 553.025,
+          "max": 554.0785,
+          "rounds": [
+            553.9795,
+            553.087,
+            553.5725,
+            553.025,
+            554.0785
+          ]
+        },
+        "relative_change_pct": -17.383404223565403,
+        "W_pct": 0.324378777703155,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 5401.015395,
+          "cycles:u": 2012.82498,
+          "ipc": 2.6833940549565316
+        },
+        "cached-local-miss": {
+          "instructions:u": 4529.58261,
+          "cycles:u": 1662.636945,
+          "ipc": 2.7239711072341173
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -16.134610277295824,
+        "cycles:u": -17.397838285969613,
+        "ipc": 1.5121540648357357
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 573.5755,
+          "min": 573.3095,
+          "max": 574.7585,
+          "rounds": [
+            573.4605,
+            573.3095,
+            574.0985,
+            573.5755,
+            574.7585
+          ]
+        },
+        "right": {
+          "median": 425.635,
+          "min": 425.255,
+          "max": 429.4535,
+          "rounds": [
+            425.255,
+            426.9,
+            429.4535,
+            425.635,
+            425.492
+          ]
+        },
+        "relative_change_pct": -25.792681172748843,
+        "W_pct": 0.9864085425305776,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 4525.79437,
+          "cycles:u": 1722.806655,
+          "ipc": 2.626849540466861
+        },
+        "cached-local-miss": {
+          "instructions:u": 3293.83858,
+          "cycles:u": 1281.37632,
+          "ipc": 2.5704061863731025
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -27.220763677780603,
+        "cycles:u": -25.62274377794298,
+        "ipc": -2.14870906095852
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 366.447,
+          "min": 366.035,
+          "max": 367.7905,
+          "rounds": [
+            367.5795,
+            367.7905,
+            366.035,
+            366.209,
+            366.447
+          ]
+        },
+        "right": {
+          "median": 374.4365,
+          "min": 373.4405,
+          "max": 378.18,
+          "rounds": [
+            374.275,
+            378.18,
+            374.4365,
+            373.4405,
+            374.5415
+          ]
+        },
+        "relative_change_pct": 2.18026071983125,
+        "W_pct": 1.2657686950924978,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 2883.558745,
+          "cycles:u": 1097.952515,
+          "ipc": 2.6263066121762106
+        },
+        "cached-local-miss": {
+          "instructions:u": 2903.13542,
+          "cycles:u": 1116.450355,
+          "ipc": 2.600326227671807
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.6789067513864877,
+        "cycles:u": 1.6847577420048943,
+        "ipc": -0.9892365340723019
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 461.742,
+          "min": 461.428,
+          "max": 462.96,
+          "rounds": [
+            461.428,
+            461.741,
+            461.911,
+            461.742,
+            462.96
+          ]
+        },
+        "right": {
+          "median": 471.4445,
+          "min": 470.58,
+          "max": 471.928,
+          "rounds": [
+            471.121,
+            471.4635,
+            470.58,
+            471.928,
+            471.4445
+          ]
+        },
+        "relative_change_pct": 2.1012816681176902,
+        "W_pct": 0.33178701525959997,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 3759.343705,
+          "cycles:u": 1383.978015,
+          "ipc": 2.7163839159684917
+        },
+        "cached-local-miss": {
+          "instructions:u": 3785.72082,
+          "cycles:u": 1415.622575,
+          "ipc": 2.674244453893369
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.7016414850527619,
+        "cycles:u": 2.2864929686039925,
+        "ipc": -1.5513073033381786
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 850.8345,
+          "min": 849.897,
+          "max": 865.2185,
+          "rounds": [
+            850.8345,
+            849.9155,
+            865.2185,
+            853.88,
+            849.897
+          ]
+        },
+        "right": {
+          "median": 864.4655,
+          "min": 856.3265,
+          "max": 885.161,
+          "rounds": [
+            864.4655,
+            862.9215,
+            885.161,
+            869.3195,
+            856.3265
+          ]
+        },
+        "relative_change_pct": 1.6020741989188225,
+        "W_pct": 3.3355292952697284,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 6694.383495,
+          "cycles:u": 2564.577345,
+          "ipc": 2.614841736560156
+        },
+        "cached-local-miss": {
+          "instructions:u": 6774.784985,
+          "cycles:u": 2600.25335,
+          "ipc": 2.605432653322031
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 1.2010290426303083,
+        "cycles:u": 1.3911066113702963,
+        "ipc": -0.3598337561531606
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1598.9235,
+          "min": 1588.4135,
+          "max": 1608.5575,
+          "rounds": [
+            1598.9235,
+            1600.399,
+            1593.099,
+            1588.4135,
+            1608.5575
+          ]
+        },
+        "right": {
+          "median": 1621.608,
+          "min": 1600.952,
+          "max": 1663.4105,
+          "rounds": [
+            1600.952,
+            1663.4105,
+            1608.93,
+            1662.888,
+            1621.608
+          ]
+        },
+        "relative_change_pct": 1.4187357931758362,
+        "W_pct": 3.8516398537747696,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 12766.86299,
+          "cycles:u": 4783.81339,
+          "ipc": 2.677969711943482
+        },
+        "cached-local-miss": {
+          "instructions:u": 12702.342285,
+          "cycles:u": 4768.04629,
+          "ipc": 2.674450173379794
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.5053763406918099,
+        "cycles:u": -0.3295927059562831,
+        "ipc": -0.13142562994612472
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6690.585,
+          "min": 6682.555,
+          "max": 6693.7,
+          "rounds": [
+            6692.295,
+            6690.585,
+            6693.7,
+            6682.555,
+            6686.045
+          ]
+        },
+        "right": {
+          "median": 6697.235,
+          "min": 6691.47,
+          "max": 6705.505,
+          "rounds": [
+            6701.815,
+            6694.665,
+            6691.47,
+            6697.235,
+            6705.505
+          ]
+        },
+        "relative_change_pct": 0.09939340132439295,
+        "W_pct": 0.20956409622776945,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 58167.591475,
+          "cycles:u": 19868.872575,
+          "ipc": 2.927573834671895
+        },
+        "cached-local-miss": {
+          "instructions:u": 58190.7351,
+          "cycles:u": 19896.719215,
+          "ipc": 2.9250333888418805
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.039787834450644155,
+        "cycles:u": 0.14015208912778743,
+        "ipc": -0.0867764904825763
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 803.1235,
+          "min": 802.757,
+          "max": 803.9645,
+          "rounds": [
+            803.9645,
+            803.87,
+            802.757,
+            803.1235,
+            803.061
+          ]
+        },
+        "right": {
+          "median": 809.5245,
+          "min": 809.004,
+          "max": 809.946,
+          "rounds": [
+            809.739,
+            809.4985,
+            809.004,
+            809.946,
+            809.5245
+          ]
+        },
+        "relative_change_pct": 0.7970131617366387,
+        "W_pct": 0.15035047536276744,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 6471.14164,
+          "cycles:u": 2404.68881,
+          "ipc": 2.691051587668843
+        },
+        "cached-local-miss": {
+          "instructions:u": 6467.127995,
+          "cycles:u": 2424.14682,
+          "ipc": 2.6677955071219657
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.0620237544360136,
+        "cycles:u": 0.8091695656869513,
+        "ipc": -0.8642004729096597
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 697.219,
+          "min": 695.712,
+          "max": 698.5885,
+          "rounds": [
+            697.219,
+            698.5885,
+            698.505,
+            695.712,
+            696.2855
+          ]
+        },
+        "right": {
+          "median": 701.5585,
+          "min": 700.4345,
+          "max": 704.2185,
+          "rounds": [
+            701.5585,
+            702.2665,
+            701.47,
+            704.2185,
+            700.4345
+          ]
+        },
+        "relative_change_pct": 0.6224012828106993,
+        "W_pct": 0.5393705585492858,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 5692.824625,
+          "cycles:u": 2101.09008,
+          "ipc": 2.710001724438202
+        },
+        "cached-local-miss": {
+          "instructions:u": 5695.809685,
+          "cycles:u": 2110.239235,
+          "ipc": 2.6993479011871373
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.05243548144608923,
+        "cycles:u": 0.4354480127763072,
+        "ipc": -0.39312975910645864
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1486.9715,
+          "min": 1480.3315,
+          "max": 1506.118,
+          "rounds": [
+            1486.9715,
+            1506.118,
+            1480.3315,
+            1486.2865,
+            1487.5
+          ]
+        },
+        "right": {
+          "median": 1499.345,
+          "min": 1496.938,
+          "max": 1501.86,
+          "rounds": [
+            1496.938,
+            1498.611,
+            1499.345,
+            1501.3295,
+            1501.86
+          ]
+        },
+        "relative_change_pct": 0.8321275828084076,
+        "W_pct": 1.734162356171583,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 12598.28697,
+          "cycles:u": 4439.08058,
+          "ipc": 2.838039711817982
+        },
+        "cached-local-miss": {
+          "instructions:u": 12623.804635,
+          "cycles:u": 4478.85348,
+          "ipc": 2.8185347514426837
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.2025486882523353,
+        "cycles:u": 0.8959715707616223,
+        "ipc": -0.6872687613945994
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1165.3685,
+          "min": 1163.4995,
+          "max": 1167.0615,
+          "rounds": [
+            1165.0395,
+            1167.0615,
+            1165.7765,
+            1165.3685,
+            1163.4995
+          ]
+        },
+        "right": {
+          "median": 1085.36,
+          "min": 1084.32,
+          "max": 1085.7145,
+          "rounds": [
+            1085.69,
+            1085.36,
+            1085.7145,
+            1084.44,
+            1084.32
+          ]
+        },
+        "relative_change_pct": -6.865510780495623,
+        "W_pct": 0.30565439172245734,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 9296.405875,
+          "cycles:u": 3499.543015,
+          "ipc": 2.656443298497361
+        },
+        "cached-local-miss": {
+          "instructions:u": 8709.949015,
+          "cycles:u": 3240.866135,
+          "ipc": 2.687537421227057
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -6.308425728023625,
+        "cycles:u": -7.391733117473908,
+        "ipc": 1.1705170875389914
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1403.0585,
+          "min": 1394.4315,
+          "max": 1415.779,
+          "rounds": [
+            1394.4315,
+            1394.712,
+            1415.779,
+            1403.0585,
+            1404.623
+          ]
+        },
+        "right": {
+          "median": 1348.4865,
+          "min": 1346.0095,
+          "max": 1348.5595,
+          "rounds": [
+            1346.0095,
+            1348.5075,
+            1348.4865,
+            1348.5595,
+            1348.4345
+          ]
+        },
+        "relative_change_pct": -3.8895028254345854,
+        "W_pct": 1.52149749992606,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 11424.20066,
+          "cycles:u": 4168.21708,
+          "ipc": 2.740788313261266
+        },
+        "cached-local-miss": {
+          "instructions:u": 11204.97722,
+          "cycles:u": 4029.01517,
+          "ipc": 2.7810255874514365
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.9189389833423998,
+        "cycles:u": -3.339603176329775,
+        "ipc": 1.4680912785377531
+      }
+    },
+    {
+      "candidate": "cached-local-miss",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 22591.74,
+          "min": 22561.325,
+          "max": 22598.94,
+          "rounds": [
+            22591.74,
+            22580.625,
+            22591.915,
+            22561.325,
+            22598.94
+          ]
+        },
+        "right": {
+          "median": 22546.51,
+          "min": 22507.625,
+          "max": 22565.31,
+          "rounds": [
+            22507.625,
+            22540.87,
+            22565.31,
+            22546.51,
+            22561.25
+          ]
+        },
+        "relative_change_pct": -0.20020591596753146,
+        "W_pct": 0.2558489096538724,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "F": {
+          "instructions:u": 219896.186745,
+          "cycles:u": 67149.25937,
+          "ipc": 3.274167378800977
+        },
+        "cached-local-miss": {
+          "instructions:u": 219982.01171,
+          "cycles:u": 67038.706105,
+          "ipc": 3.281009622269469
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.03902976503158406,
+        "cycles:u": -0.16463810031147608,
+        "ipc": 0.20897659395158197
+      }
+    }
+  ],
+  "limitations": [
+    "NativeCPU is whole probe processRUSAGE_CHILDREN, including setup/priming/teardown and tasksetexec; this original native screen uses W/5pair direction without the daemon100Hztick acceptance gate. precision_ok=true in the original comparator is not a claim of physical>8tickprecision.",
+    "GroupedPMU here is user-mode instructions/cycles from recorded fields. The originalowner parsed actualCSV/open-group details; this independent review cannot reparse absent rawCSV.",
+    "Allocation fields are zero because the native probe build disables allocation_tracking, not because the path allocatesnothing.",
+    "Fourretaineddiscernibleregressions remain. Native15scenes do not replaceSDKowner32, physicalA53screen, full44 or original11scene matrices.",
+    "54bd/F result must not be pooled into0161/E or later child comparisons."
+  ],
+  "performance_accepted": false,
+  "deployment": false,
+  "audit_script_sha256": "be5f74cb2b7718c38ab29148509f503a8af93402cf2e283664075b6e268bfc6f",
+  "private_receipt_sha256": "03f79158a89026e93dd5fc87a05d7e22bb63010d671363e0cf25b7a0b091edc3",
+  "author_result_commit": "57f476cd"
+}
