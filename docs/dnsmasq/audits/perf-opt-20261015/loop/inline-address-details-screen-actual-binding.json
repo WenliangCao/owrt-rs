@@ -33,11 +33,11 @@
   "plans": {
     "native": {
       "path": "loop/inline-address-details-native-plan.json",
-      "sha256": "1e6b67670c6d86824a3c6b8fcd8b0bfeeba4a882203592f8458f07e7b0058b43"
+      "sha256": "212782bae767dd2f07eed2cbba17c1149af84b5dd58c3195cfa0b35e7f8f63da"
     },
     "owner32": {
       "path": "loop/inline-address-details-owner32-plan.json",
-      "sha256": "3868f8688e2cd496a056b00c33c42f7a632b8749e719f04b0680d2c9f7df84c3"
+      "sha256": "7f7dab49383f2649d29339ad788beac2ded4d0ec9d680959a15be237e6f2e398"
     }
   },
   "four_adapted_scripts_unchanged": true,
@@ -46,5 +46,13 @@
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "executed": false,
-  "remote_accessed": false
+  "remote_accessed": true,
+  "comparison_interpretation": "Direct frozenG185 versus bare1df includes all changes inherited from6ab plus the1df change. It is not an isolated inline-address-only comparison; no1df/6ab control or attribution inferred.",
+  "owner_native_input_pretransfer": {
+    "path": "loop/inline-address-details-screen-pretransfer.json",
+    "sha256": "b20d13c7c55a6609b7d31fc4e10a1a7d1e601f760ed1bcc9787fff3b44ee5bce",
+    "complete": true,
+    "pending_plan_uploaded_not_ready": true
+  },
+  "pretransfer_remaining": "Device freshhealth and fourartifactstage; fullactualaudit; finalquiet then smallready metadata before any measurement."
 }

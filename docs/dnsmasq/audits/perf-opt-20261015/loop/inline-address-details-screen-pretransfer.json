@@ -1,0 +1,74 @@
+{
+  "status": "PRETRANSFER_ONLY_BARE1DF_ORIGINAL_NATIVE240_OWNER32_INPUTS_REHASHED",
+  "archive_sha256": "5fd0a370d9aa846f4a0cb0a400c1e69ef28879ddcda26273ca3eb018e3753a63",
+  "file_count_with_manifest": 16,
+  "files": {
+    "inline-address-details-native-screen1/run_inline_address_details_native.py": {
+      "sha256": "d07635e57dab56533425d1ba65dd4635b7670bcce02c80e58d507d34a8fef74b",
+      "bytes": 8251
+    },
+    "inline-address-details-native-screen1/analyze_inline_address_details_native.py": {
+      "sha256": "040508608b4fb083d0199baa7efbe76fae526414a5a1b4a0bae0c670dc989558",
+      "bytes": 2456
+    },
+    "inline-address-details-native-screen1/plan.json": {
+      "sha256": "1e6b67670c6d86824a3c6b8fcd8b0bfeeba4a882203592f8458f07e7b0058b43",
+      "bytes": 46922
+    },
+    "inline-address-details-native-screen1/hotpath_probe_v2.rs": {
+      "sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+      "bytes": 10583
+    },
+    "inline-address-details-owner32-inputs/run_inline_address_details_owner32.py": {
+      "sha256": "8636eddfdb595101d7928173668b2a76a84a43edb3c7dd1f475d77b0d632c6ef",
+      "bytes": 6817
+    },
+    "inline-address-details-owner32-inputs/analyze_inline_address_details_owner32.py": {
+      "sha256": "53856cab516bd04335f8b44937c90d8c5d50feb616f37d4df167b8023e803d96",
+      "bytes": 5705
+    },
+    "inline-address-details-owner32-inputs/plan.json": {
+      "sha256": "3868f8688e2cd496a056b00c33c42f7a632b8749e719f04b0680d2c9f7df84c3",
+      "bytes": 51073
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/elf_link_map_report.py": {
+      "sha256": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+      "bytes": 4542
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/elf_size_report.py": {
+      "sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+      "bytes": 14113
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/loop_hit_syscalls.py": {
+      "sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+      "bytes": 11368
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/loop_owner_profile.py": {
+      "sha256": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620",
+      "bytes": 18177
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/loop_owner_profile_analyze.py": {
+      "sha256": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a",
+      "bytes": 22399
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/perf_link_map_profile.py": {
+      "sha256": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d",
+      "bytes": 10666
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/perf_opt_analyze.py": {
+      "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "bytes": 11018
+    },
+    "inline-address-details-owner32-inputs/analysis-inputs/r121_symbolize.py": {
+      "sha256": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12",
+      "bytes": 20808
+    }
+  },
+  "native_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/inline-address-details-native-screen1",
+  "owner_inputs_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/inline-address-details-owner32-inputs",
+  "owner_uid": 1001,
+  "controllers_started": false,
+  "native_result_exists": false,
+  "owner_output_exists": false,
+  "epoch": 1792139508.372814
+}
