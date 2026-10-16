@@ -1,0 +1,64 @@
+{
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_post185_combined_related.py"
+  ],
+  "pid": 811523,
+  "start_ticks": 184932771,
+  "epoch": 1792124710.4987295,
+  "preflight_sha256": "d8741628b17b8f71c126ebd0c0ca20167afc573c7a579dcc8e44baf3ec612a54",
+  "wrapper_sha256": "17ad9066a85ad6fdaf631f8f4bdaf6853f39f652328dce3f309d674e221deff9",
+  "scope": "Originalfive relatedLinuxgroups only, noSDK/full44/corpora or performance. Freshactual count required.",
+  "status": "RUNNING_NOT_YET_PASSED",
+  "preflight": {
+    "status": "PASS_EXACT_SOURCE_ORIGINAL_FIVE_GROUP_PREFLIGHT",
+    "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+    "source_files_verified": 179,
+    "git_identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+    "source_manifest_sha256": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+    "archive_sha256": "ad34576d3a5a9cb632ff513ff19a4a203799ba2fa4a26d2a98976b5d836c221c",
+    "tool_hashes": {
+      "tools/dnsmasq/oracle_build.sh": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+      "tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+    },
+    "wrapper_hashes": {
+      "run_post185_combined_related.py": "17ad9066a85ad6fdaf631f8f4bdaf6853f39f652328dce3f309d674e221deff9",
+      "build_post185_combined_allocations.py": "caee13e2a700485dd4c0548ed9681a29ef5aae21559e4d4e00f694cabc050511"
+    },
+    "original_E_argv_identical_except_candidate_paths": true,
+    "fresh_outputs": [
+      "post185-combined-tests",
+      "post185-combined-allocation-build",
+      "post185-combined-unit-run",
+      "post185-combined-related-ready.json",
+      "post185-combined-tests-build.log",
+      "post185-combined-allocation-build.log"
+    ],
+    "research": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "original_E_raw_receipt_sha256": "c3dfca57ca73e7ef9f7aa14382b9d964b109c541ede9dc88fee267bae952b52e",
+    "prior_preflight_failure_sha256": "29bdfd234d897b86a0bf75c3c0f37d1731e1172979f8fcddccde64df26de83ba",
+    "epoch": 1792124681.0805433
+  },
+  "launch_receipt_sha256": "8a791beb8bbdacc46ac4b7e318ea08030209cb18ba1337c0e09415094ee17c24",
+  "source_archive": {
+    "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "archive": "private/post185-combined-related-preparation/source-6ab0f064.tar.gz",
+    "bytes": 20524434,
+    "sha256": "ad34576d3a5a9cb632ff513ff19a4a203799ba2fa4a26d2a98976b5d836c221c",
+    "identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+    "source_files_verified": 179,
+    "source_manifest_sha256": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+    "uploaded": true
+  },
+  "prior_preflight_failure_sha256": "29bdfd234d897b86a0bf75c3c0f37d1731e1172979f8fcddccde64df26de83ba",
+  "related_result_passed": false,
+  "expected_inventory": "Projected961 only; fresh actual list/output reconciliation pending.",
+  "full44_or_fullcorpora_started": false
+}

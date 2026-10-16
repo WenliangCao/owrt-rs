@@ -1,0 +1,19 @@
+{
+  "status": "PREBUILD_PREFLIGHT_BINDING_FAILURE_PRESERVED",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "builds_started": 0,
+  "test_groups_started": 0,
+  "cause": "Preparation incorrectly used reformattedlocalEreceipt-copy hash5d49 as the originalremote byteshash. OriginalremoteEreceipt is unchanged and matches accepted185preflight c3df.",
+  "incorrect_local_copy_sha256": "5d49a0aaa38f4b5c72501769f199347db463709f24fb96b2d36bbed9821908dc",
+  "correct_original_remote_sha256": "c3dfca57ca73e7ef9f7aa14382b9d964b109c541ede9dc88fee267bae952b52e",
+  "original185_preflight_sha256": "b5d322036df000dee11e38a4376b311e0e670efff5d12cd04451d8008f853171",
+  "source179_and_Gitblob_checks_already_passed": true,
+  "source_reextract_or_mutation": false,
+  "five_original_argv_unchanged": true,
+  "files": {
+    "preflight-attempt1.py": "198c3881854b1f4b38b1efa4522f64e2e64dc7bc1026f345d55741c22ef06975",
+    "preflight.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preflight.stderr": "923e5b6b4550d666c9e907c8797442f5f78aee033b9e03df4c2b34f28810c91f",
+    "preflight-receipt-investigation.json": "66b3bd084ea44a20e680f1dbac2d34bdd403f2bd5547f92cf7eabe0c314aefc3"
+  }
+}
