@@ -1,0 +1,173 @@
+{
+  "schema": "dnsmasq-cached-local-name-full-qualification-preparation-v1",
+  "status": "prepared-not-launched-final-SDK-binding-pending",
+  "authorization": "Root authorizes full qualification after the independent accepted-E screens support continuation; currently local preparation only. Do not overlap Oracle timing; coordinate its release before any execution.",
+  "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name",
+  "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name",
+  "shipping_elf_sha256": null,
+  "shipping_elf_bytes": null,
+  "same_build_map_sha256": null,
+  "same_build_receipt_sha256": null,
+  "local_artifacts_rehashed": false,
+  "source_files_rehashed": 179,
+  "git_identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
+  "source_digest": null,
+  "F_base_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_changed_files": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs",
+    "components/dnsmasq/src/dns/forward.rs",
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/wire.rs",
+    "components/dnsmasq/src/hosts.rs",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/retained-lease-fixture-repair.json"
+  ],
+  "all_other_tracked_files_identical_to_F": true,
+  "validated_F_wrappers": {
+    "run_cached_local_name_short.py": {
+      "sha256": "34e435d34facbf962dad25f49e6c49cb8c29b33af32fba3b0cb34b3c08081ef7",
+      "validated_F_original": "run_f_short.py",
+      "validated_F_original_sha256": "e693092f548c46a3e972a9cf1b6dceaa03e85203b68e9c5401ea894223cdefd9",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "cb68a1439c7ac66c2978c47457931247b14bb59434acada58c71f324341a9b45",
+      "candidate_identity_pending": true
+    },
+    "build_cached_local_name_allocations.py": {
+      "sha256": "68fb31b892bed3dd3bff4d90387afe5c38b6d5bd822e9ed5da8277eb9e5f4195",
+      "validated_F_original": "build_f_allocations.py",
+      "validated_F_original_sha256": "d2abf472a24d6a5ad23e5e0cdf97772e3e2b20934d8680c9389197592d909c97",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "280cc84cbfb1e78f3ac2f43c6829d590adc19ebc7f8c1f048d57b196fad1e7d3",
+      "candidate_identity_pending": true
+    },
+    "run_cached_local_name_tcp.py": {
+      "sha256": "1e4eb2d79f028ddd63fe25a0c2bad7807cd1e4e6694f7d7c1ab14b1bee87fb91",
+      "validated_F_original": "run_f_tcp.py",
+      "validated_F_original_sha256": "cbb1229a60dee9421a4e03f90efd126ebdcfcbacb0a2affa330d79f4624544d3",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "2cb5463a4f34ac5d9f42afecaa3e9927a993d685cb65eecc2a0f00a3e9ec1c3c",
+      "candidate_identity_pending": true
+    },
+    "run_cached_local_name_corpus.py": {
+      "sha256": "7bf21e254a50d28e0716d3936b1aa945704b2d608cb1ee6755d32eec23464adc",
+      "validated_F_original": "run_f_corpus.py",
+      "validated_F_original_sha256": "fdef9a044665a5b27eec5a8754b16939a82b4dee7b2d8fd887aa3e3a15a2430e",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "53bdab26e31cb6abb2d77731ddbd1c18b92a58d765779218e2cd9a2a410e0452",
+      "candidate_identity_pending": true
+    },
+    "run_cached_local_name_remaining.py": {
+      "sha256": "9505054576714768cb5f992bcbeb73f885e98d2d458db35ed8ad865e6e8a49cc",
+      "validated_F_original": "run_f_remaining.py",
+      "validated_F_original_sha256": "329872f989ed9e08ddd46aae0402a63242db3a6106e97121674673aa17a6195d",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "ed6f4fc377f800a2328905c7b3d3d7425140b908da6c978c2b6ad21244134cbe",
+      "candidate_identity_pending": true
+    },
+    "audit_cached_local_name_families_final.py": {
+      "sha256": "86c14b99f067f301ec31e71a29d21589577e7e6e2ccdc6691692ba5d25e3af0a",
+      "validated_F_original": "audit_f_families_final.py",
+      "validated_F_original_sha256": "63c0742ed220cc0ec2b054f0136c12ab13c87d0827002e4776018f0d7cffc5e6",
+      "same_checks_and_historical_comparisons": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "9ca81820f5642a702a7cdbe40ac04c544d77abbe37c998b1c229b9e04813b722",
+      "candidate_identity_pending": true
+    },
+    "audit_cached_local_name_boundary.py": {
+      "sha256": "c13c3d674b8d7e3c5d17ba135a708a63dcaae585cea5218d922d2e2bd02757e9",
+      "validated_F_original": "audit_f_boundary.py",
+      "validated_F_original_sha256": "34934ff2afa49f093ceac384a3cca7ab10149343927cb5247c16c2f5cbbf98e8",
+      "same_checks_and_historical_comparisons": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "0e4c8ae438ee9f95df397fc8de991f87589cd4e7804a374e3d985fabd4a313b3",
+      "candidate_identity_pending": true
+    }
+  },
+  "immutable_input_hashes": {
+    "tools/dnsmasq/m5_final_families.draft.json": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+    "tools/dnsmasq/m5_final_validation.py": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+    "tools/dnsmasq/audit_20261011_families.py": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py": "6c56077e3ccf8d2ea605271da14751d2c4ea7f318c52b59818dcf68af2b41db3",
+    "docs/dnsmasq/audits/full-20261014/f10-contract/qualifier/approved/manifest.json": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78"
+  },
+  "family_base_identity": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "expected_sha256": "0a317a758e1933a160abc58d8ee5ac93abb461b547c74d270ed49c86af6211d9",
+    "provenance": "Retained E/C full44 identity receipts and the identical successful F command; actual remote file must be rehashed before launch.",
+    "rehashed_this_preparation": false
+  },
+  "family_command": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name/docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name",
+    "--elf",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name/dnsmasq-rs",
+    "--link-map",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name/link.map",
+    "--commit",
+    "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+    "--base-identity",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-local-name-families-attempt1",
+    "--jobs",
+    "3"
+  ],
+  "family_command_sha256": "17a670eee84ca0e170e0e35bc28f6dff32b5649668d7aaf4cf008731e5fb2b88",
+  "families": 44,
+  "jobs": 67,
+  "omitted_procedural_job": "m5_dns_endpoints-local-archive-gate",
+  "schedule": {
+    "before_start": "Bind/reverify final0161source/SDK/artifact/input/wrapper identities; independent E-relative screens must support continuation; obtain Oracle scheduling release and verify quiet state; require all cached-local-name outputs absent.",
+    "first": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_cached_local_name_short.py"
+    ],
+    "after_short": "Original family coordinator jobs3 plus one serial run_cached_local_name_remaining.py worker. No overlap with performance timing.",
+    "fresh_builds": [
+      "cached-local-name-tests",
+      "cached-local-name-allocation-build",
+      "cached-local-name-probe-tests"
+    ],
+    "output_paths": "Fresh cached-local-name-* paths; no original output overwrite or replacement run.",
+    "related_Linux_939_tests_are_not_reused_as_full_qualification": true
+  },
+  "preserved_comparisons": {
+    "exact_image_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "F10": "Original13cases/704observations and approved PTR-order manifest; retain39 original raw order differences.",
+    "protocol": "Original368pairs/366exact; exact same two historical C forward-pointer defects.",
+    "TCP": "Original13conditions/50pairs; all three groups and resolver order unchanged.",
+    "cache_answer": "Original764commands/164queries/382metrics.",
+    "transfer": "Original307comparisons.",
+    "stale": "Original1100comparisons.",
+    "lease": "Exact same source-a two UID mismatches and cohort counts; preserve raw comparator exit1 and corpus exits[0,0,0,1].",
+    "ubus": "Approved346 paired observations; unchanged original checks and26negative controls; no new amendment.",
+    "historical_references": "All exact-C baselines, source-a lease comparisons and historical E inventory/protocol comparisons remain unchanged."
+  },
+  "prepared_only": true,
+  "uploaded": false,
+  "executed": false,
+  "new_framework_comparators_expectations_or_waivers": false,
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "followup_audits": "Reuse adapted F final family and boundary audits; reconcile fresh short groups from raw outputs; rehash all67job results/44family results/source/artifacts and confirm no owned surviving processes.",
+  "related_linux": {
+    "tests": 939,
+    "receipt_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea"
+  },
+  "screen_results_pending": true,
+  "local_preparation_directory": "private/cached-local-name-full-qualification",
+  "prepared_recipe_sha256": "4a9852a779b01d170d3c881d5a88bf2223e3429eae37b20fb8d4f86d357040c2",
+  "unit_command_manifest_sha256": "b944702cde461bbf03a4ce5dbdd6fa4e98c3b3c50a9e7fa201c5ca7e8005c0e7",
+  "verification": "Seven wrappers parsed without imports/execution. Original F checks retained; current candidate179source inputs and originalregistry/comparators/approvedubus346 hashes checked. FinalSDK pending; explicit pendingELF string must be replaced only after identity validation."
+}
