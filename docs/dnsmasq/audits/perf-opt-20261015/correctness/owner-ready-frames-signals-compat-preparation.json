@@ -11,9 +11,9 @@
     "sha256": "8c4c96de51a357aa33c29b0902329d62738df7679007d613d86ba14ad6cb9f4f"
   },
   "adapter_private_path": "private/owner-ready-signals-preparation/run_signals_compat.py",
-  "adapter_sha256": "f8d35c30e37d86d627178f0bfac47c7a094c42ca81e1780298681712f8ad077a",
+  "adapter_sha256": "ce8e3b3da0f57d7282cd621e0a8c9f09f7c828ce673414b21c6020920d00d4ee",
   "pending_plan_private_path": "private/owner-ready-signals-preparation/pending-plan.json",
-  "pending_plan_sha256": "9eac8bcc27055be3d23f3152c400048f110644c5cffe42800bfde516d8384120",
+  "pending_plan_sha256": "d7eba24b2e6e15ffad6b7b426b3c40f74ac16993573b4d378f8f9600002ce07b",
   "pending_plan": {
     "status": "SELECTED_FUTURE_5C_WAITING_1DF_CLOSEOUT_THEN_ACTUAL5C_SDK_AND_EXPLICIT_QUIET",
     "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
@@ -39,7 +39,7 @@
     },
     "output": null,
     "mapping_receipt": null,
-    "adapter_sha256": "f8d35c30e37d86d627178f0bfac47c7a094c42ca81e1780298681712f8ad077a",
+    "adapter_sha256": "ce8e3b3da0f57d7282cd621e0a8c9f09f7c828ce673414b21c6020920d00d4ee",
     "outer_invocation": [
       "sudo",
       "-n",
@@ -59,5 +59,12 @@
     "Onlythen run originalsignals standalone andretainactualresults; actualsignals plusallSDK/gateindependentreviews andquiet precede owner32+G5cten. No newnative240."
   ],
   "frozen_review_terminology_correction": "be199 originalscope calls runtime-signals a family; it is a separate directed audit outside44familyregistry. Prior44/nativeevidence isnot5c runtime orperformance result.",
-  "review_validation": "ASTparse andread-onlysource/identity review only; adapter, audit, mounts, network and remote commands were not executed."
+  "review_validation": "ASTparse andread-onlysource/identity review only; adapter, audit, mounts, network and remote commands were not executed.",
+  "local_peer_review": {
+    "agent": "/root/correctness/runtime_signals_c_identity",
+    "status": "PASS_STATIC_PREPARATION_NO_EXECUTION",
+    "scope": "Read-only namespace/identity/argv review; original249aeaudit unchanged; actualnative layout/output paths remain pending.",
+    "followup": "Added an absolute private sibling-path constraint for mapping receipt after peer noted it was not yet constrained. No invocation or mount executed.",
+    "evidence_form": "Terminal review; no separate peer file receipt."
+  }
 }
