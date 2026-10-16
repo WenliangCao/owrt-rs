@@ -1,0 +1,184 @@
+{
+  "schema": "dnsmasq-cached-zero-frame-full-device-prefix-audit-v1",
+  "status": "FIRST30_COMPLETED_WINDOWS_AND3_GUARD_SEGMENTS_PASS_FULL110_PENDING",
+  "scope": "Read-only local independent prefix audit, adapted originalF/Earchive/cohort/statistical checks and independently decoded rawguard evidence; no device/Oracle operation.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "comparison": {
+    "c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "rust": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+  },
+  "verified_archives": 30,
+  "verified_raw_files": 1230,
+  "verified_windows": 30,
+  "scenes": [
+    "udp-hit",
+    "udp-miss",
+    "udp-mixed"
+  ],
+  "captured_progress_sha256": "72c9a9659e1c44d6820a150182306630b3dd90b3a66371f1923e1704dee6bd3e",
+  "archive_index_sha256": "58cd95b641cfef783573114e384b42df8733610745b1f7a33dccdf9c595ab1de",
+  "raw_prefix_audit_sha256": "2501d6d7ae763c8b9baff10c5a5d36139b4c3deaa970399d5022b53e9bc965c3",
+  "archive_audit_script_sha256": "777e39dd894d8f7d5515a9bf75f7ec1543a89b1b257ee9b56c93e1e1bc167b9e",
+  "guard_audit_sha256": "adacc30467f92150bf51b01da27dcc807d6093279c171918fd85fa9f64021965",
+  "guard_audit_script_sha256": "d9f18d24cd6f61acd55916baa283d8c193fcb51789fda76b217e0da127578900",
+  "guard_samples": 1214,
+  "qualified_samples": 1214,
+  "shutdown_tail_samples": 0,
+  "minimum_available_memory_kib": 86496,
+  "guard_identity_sha256": "90512f8b21140ab0c5d3fc38769c6a34cf19ad4bd8b16598ab2bc0c9b8eab8c7",
+  "prefix_comparisons": {
+    "udp-hit": {
+      "p50_ms": {
+        "left_median": 0.198665,
+        "right_median": 0.170427,
+        "relative_change_pct": -14.213877633201626,
+        "W_pct": 4.453728638663073,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "p95_ms": {
+        "left_median": 0.289149,
+        "right_median": 0.26345,
+        "relative_change_pct": -8.88780524919677,
+        "W_pct": 64.310874928829,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 138.0,
+        "right_median": 116.0,
+        "relative_change_pct": -15.942028985507246,
+        "W_pct": 8.620689655172415,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster",
+        "cpu_ticks": {
+          "c": [
+            72,
+            69,
+            69,
+            69,
+            74
+          ],
+          "rust": [
+            59,
+            61,
+            58,
+            56,
+            58
+          ]
+        }
+      }
+    },
+    "udp-miss": {
+      "p50_ms": {
+        "left_median": 1.63079,
+        "right_median": 1.635022,
+        "relative_change_pct": 0.25950612893137764,
+        "W_pct": 2.2400310209893144,
+        "same_direction_pairs": 2,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left_median": 1.884161,
+        "right_median": 1.903089,
+        "relative_change_pct": 1.0045850646521213,
+        "W_pct": 40.89109862964897,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 448.0,
+        "right_median": 456.0,
+        "relative_change_pct": 1.7857142857142858,
+        "W_pct": 5.357142857142857,
+        "same_direction_pairs": 4,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution",
+        "cpu_ticks": {
+          "c": [
+            233,
+            224,
+            221,
+            223,
+            224
+          ],
+          "rust": [
+            228,
+            232,
+            225,
+            226,
+            232
+          ]
+        }
+      }
+    },
+    "udp-mixed": {
+      "p50_ms": {
+        "left_median": 0.212206,
+        "right_median": 0.179353,
+        "relative_change_pct": -15.481654618625296,
+        "W_pct": 10.659924790062474,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "p95_ms": {
+        "left_median": 1.715965,
+        "right_median": 1.709349,
+        "relative_change_pct": -0.3855556494450618,
+        "W_pct": 12.308351277561018,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left_median": 208.0,
+        "right_median": 186.0,
+        "relative_change_pct": -10.576923076923077,
+        "W_pct": 6.730769230769231,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster",
+        "cpu_ticks": {
+          "c": [
+            102,
+            104,
+            104,
+            107,
+            100
+          ],
+          "rust": [
+            94,
+            91,
+            90,
+            93,
+            96
+          ]
+        }
+      }
+    }
+  },
+  "prefix_primary_regressions": [],
+  "limits": [
+    "Only the first30 originalcompleted windows and their3finalscene guards were reviewed. OngoingTCP/DHCP/lifecycle windows and finalexternalhealth/postflight remain pending.",
+    "All30archive/tar/extracted hashes, rawclientbinary quantiles/lag/CPUendpoints/resource windows/cohort counts were reparsed; no finalauthor110summary exists yet for comparison.",
+    "Eachscene wholecapture, partialbytes, hashes, requestboundary after its10windows, finalstart/terminalshape, productionPID/start, route/memory and observedprestopDNS/HTTP/external outcomes were independently checked. No runtime120s or minimumsample gate added.",
+    "FullsourceSDKbindings/freshhealth/postflight/completeinventory and33primary finalcomparisons are still required. No candidatepromotion or pooling with the oldscreen."
+  ],
+  "full110_passed": false,
+  "performance_accepted": false
+}
