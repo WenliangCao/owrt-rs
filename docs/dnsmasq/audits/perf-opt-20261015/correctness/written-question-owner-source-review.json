@@ -1,0 +1,56 @@
+{
+  "schema": "dnsmasq-written-question-owner-independent-source-review-v1",
+  "status": "NO_SOURCE_BLOCKER_EXACT_QUESTION_VALIDITY_INVARIANT_CONFIRMED",
+  "source_commit": "b65e9a9cc79aa0cc06851a6edb2b0cd3a206243f",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/wire.rs": "13f9a954c09ff296d40f27c4925528aad15e3ba8a30e7c2e0e2d4a5ccf4082ea",
+    "components/dnsmasq/src/dns/wire_tests.rs": "f89cbb4e8a2a19b5df6c9cb995598ea5cb26362cc97b912b9f9d5f1a8a301d1f",
+    "components/dnsmasq/src/hosts.rs": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1"
+  },
+  "only_product_change": "Skip validate_name only after originalbounds whenname_offset==HEADER_LEN and self.header.questions>0. Restoring the replaced block reconstructs185wire.rs byte-for-byte.",
+  "Name_construction_review": [
+    "Name wraps a privateVec and exposes only immutable as_wire. No mutable accessor, public unchecked constructor, deserializer or conversion from arbitraryVec exists. Clone preserves bytes; into_wire_buffer consumes theName.",
+    "root emits onezero byte. from_ascii delegates to from_dotted_bytes afterASCII check; dotted construction enforces nonempty labels<=63, adds lengths/root and caps encodedlength255, while retaining binarylabel contents.",
+    "decode_name and decode_name_reusing build only from successful walk_name. walk_name emits complete length+label slices and finalroot, bounds every read, rejects unsupportedtypes, enforces expandedlength and pointerhop limits. Failedreusing decode leaves scratch but produces noName.",
+    "Repository search found no other productionName constructor, unsafe reinterpretation or access mutating its internalVec. Testchild module visibility is not a productionconstructor path."
+  ],
+  "writer_mutation_review": [
+    "new delegates with_buffer. with_buffer clears any recycledVec, resets allcounts, writes exactly12headerbytes and returns packetlength12. Stale replybytes cannot survive construction.",
+    "question rejects any nonzero RRsectioncount; it checks capacity and nextquestioncount before appending Name+type+class, then commits questionscount. The first successfulquestion therefore starts at12. Multiplequestions append after it.",
+    "Any successfulRR append increments a sectioncount and subsequently preventsquestion. FailedRR paths do not append bytes; they maysetTC/truncated. A laterfirstquestion after suchfailure still starts at12. Counteroverflow exits before writes.",
+    "record, record_wire and record_at all append through the same atomic append_record. Their data/owner slices cannot mutate existingpacketbytes. No writer rewind, truncate, arbitrarybyte setter, headerreference or mutablebuffer escape exists.",
+    "position is read-only. finish consumes thewriter and Header::write touches only bytes0..12. External mutation afterfinish cannot return into the samewriter; with_buffer reconstructs a freshheader/countstate.",
+    "Consequently originalvalidate_name(packet,12,0) must succeed whenever the newshortcut applies. Otheroffsets or noquestion preserve originalvalidation and its errors; original0x4000/packetlength checks still runfirst. Appendfull/TC/sectionorder/errorprecedence remain unchanged."
+  ],
+  "caller_scope": "Fresh cached replywriter and general local/cache record_at callers are unchanged. This strengthens no caller privilege and adds no state/API/unsafe code. It removes only a redundant scan of an already written validfirstquestion.",
+  "test_review": {
+    "new_test": "written_first_question_owner_preserves_binary_names_and_offset_fallbacks",
+    "byte_expectations": "259actualName fixtures: root,mixedcase,maximum255bytewireName and each256single-byte binarylabel. Exact expected fullpacket bytes are compared.",
+    "fallbacks": "Noquestion/out-of-bounds12 rejection, interiorlabel offset13LabelType with unchangedposition,0x4000 rejection and secondquestion coexistence. Existing atomic/stickyfullwriter tests remain.",
+    "author_whole_library": "722passed,0failed,8ignored",
+    "author_musl": "all-target completion reported and retainedlog rehashed",
+    "log_sha256": {
+      "lib.stdout": "4d190987aa986c76f919759855190a7340c1f2be6e5d2cd9e70069446f1d944a",
+      "lib.stderr": "07d8e26a99828e5b1821e14defc9cdee6a218c829163fc74b66065059dc4b9ca",
+      "musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "musl.stderr": "53b311a5ab2cc5afb690a33cd4959437d50f81ac8044ec6cda628c6303224e61"
+    },
+    "reviewer_test_execution": false
+  },
+  "fixture_repair": {
+    "commit": "705dc108",
+    "same_source_as_independent7c2708f6": true,
+    "hosts_product_prefix_unchanged": true,
+    "original_failure_evidence_retained": true
+  },
+  "limitations": [
+    "Source review only; authorlocaltests were rehashed, notrerun. No Linuxruntime/fullqualification/SDK or CPU benefit is asserted.",
+    "Authorlocalcodegen work is separate and not independently verified here.",
+    "Futurewriter mutablebuffer/rewind/uncheckedName APIs would need to preserve this explicitfirstquestion invariant; none exists in this source."
+  ],
+  "combined_into185_or_a15": false,
+  "Oracle_or_router_accessed": false,
+  "performance_accepted": false,
+  "deployment": false
+}
