@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL963_AND_CANONICAL_SDK_BOUND_NOT_READY",
+  "status": "ACTUAL_AUDITED_PENDING_DEVICE_STAGE_AND_FINAL_QUIET",
   "candidate_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
   "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "actual_gate": {
@@ -33,16 +33,20 @@
   "plans": {
     "native": {
       "path": "loop/inline-address-details-native-plan.json",
-      "sha256": "212782bae767dd2f07eed2cbba17c1149af84b5dd58c3195cfa0b35e7f8f63da"
+      "sha256": "e822840ef792bf3cee33297c56bfe80a8ae980f17b4c4061dfa8476216235a5b"
     },
     "owner32": {
       "path": "loop/inline-address-details-owner32-plan.json",
-      "sha256": "7f7dab49383f2649d29339ad788beac2ded4d0ec9d680959a15be237e6f2e398"
+      "sha256": "e00718ab40cc14fac00fe8d6209a5b77fd1b3935c94ca2e942c15e0d84676e78"
     }
   },
   "four_adapted_scripts_unchanged": true,
   "original15scenes_240windows_32windows_unchanged": true,
-  "SDK_independent_review": null,
+  "SDK_independent_review": {
+    "commit": "9d2a8d09",
+    "path": "correctness/inline-address-details-sdk-independent-audit.json",
+    "sha256": "e35b50bbda5ec42741ea67cebd7cacd9564c8694dc60c0e0236ddc94cae2c471"
+  },
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "executed": false,
@@ -54,5 +58,15 @@
     "complete": true,
     "pending_plan_uploaded_not_ready": true
   },
-  "pretransfer_remaining": "Device freshhealth and fourartifactstage; fullactualaudit; finalquiet then smallready metadata before any measurement."
+  "pretransfer_remaining": "Device freshhealth and fourartifactstage; fullactualaudit; finalquiet then smallready metadata before any measurement.",
+  "related_independent_review": {
+    "commit": "0022f006",
+    "path": "correctness/inline-address-details-related-independent-audit.json",
+    "sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560"
+  },
+  "actual_plan_independent_review": {
+    "commit": "baa4d567",
+    "path": "correctness/inline-address-details-actual-screen-root-review.json",
+    "sha256": "61a54290f1021d8b650445ce1a387f23e95d924b4483acf084eb4095384f01a4"
+  }
 }
