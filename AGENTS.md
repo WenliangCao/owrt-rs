@@ -23,3 +23,9 @@ This project is evidence-first:
   health before confirming a deployment.
 - Keep firmware images, extracted files, device dumps, backups and secrets out
   of Git. Commit only tooling, manifests without secrets, and derived reports.
+
+## Research method
+
+Before any performance research, algorithm research, or difficult debugging,
+read `docs/RESEARCH_GUIDANCE_FROM_FABLE.md`. Before each experiment, apply its
+pre-experiment checklist.
