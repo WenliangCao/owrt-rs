@@ -77,6 +77,7 @@ impl CacheContext<'_> {
             false,
             self.filter_rr.contains(&question.rrtype),
             None,
+            None,
         )
     }
 
@@ -102,6 +103,7 @@ impl CacheContext<'_> {
             edns_packet_max,
             true,
             self.filter_rr.contains(&question.rrtype),
+            None,
             None,
         )
     }
@@ -133,6 +135,7 @@ impl CacheContext<'_> {
         tcp: bool,
         filtered_type: bool,
         name_lookup: Option<&super::cache::NameLookup<'_>>,
+        edns_scan: Option<&super::wire::EdnsScan<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
         // interface-name owns this family even when the current interface
         // enumeration is empty. NXDOMAIN is the earlier cache exception.
@@ -146,7 +149,14 @@ impl CacheContext<'_> {
         // change the cached record representation. Source-bound NO_CACHE is
         // evaluated by the owner before entering this context. DO still
         // rejects unsigned dynamic records in the exact no-DNSSEC image.
-        let edns = find_pseudoheader(query, true)?;
+        let own_scan;
+        let edns = match edns_scan {
+            Some(scan) => scan,
+            None => {
+                own_scan = find_pseudoheader(query, true)?;
+                &own_scan
+            }
+        };
         let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if header.questions != 1
             || header.answers != 0

@@ -355,7 +355,7 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;
+        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None, &mut None)?;
         Ok(answer.map(|answer| self.finish_local_answer(answer)))
     }
 
@@ -367,22 +367,27 @@ impl LocalDnsService {
     /// Retain forward-rule answers until answer_request's cache lookup has
     /// run. Their query log events belong only to the answer actually sent.
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn lookup_local_parsed<'q>(
+    pub(super) fn lookup_local_parsed<'q, 'p>(
         &mut self,
-        query: &[u8],
+        query: &'p [u8],
         header: Header,
         question: &'q super::forward::Question,
         now: i64,
         cache: Option<&mut Cache>,
         tcp: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
+        edns_scan: &mut Option<super::wire::EdnsScan<'p>>,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
         let opt = if tcp {
             None
         } else {
-            find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
+            // Only successful scans are shared with the following cache
+            // answer of this same immutable query. Failed scans retain the
+            // local caller's suppression and the cache caller's own error.
+            *edns_scan = find_pseudoheader(query, true).ok();
+            edns_scan.as_ref().and_then(|scan| scan.opt.as_ref())
         };
         let limit = if tcp {
             u16::MAX as usize
@@ -412,8 +417,10 @@ impl LocalDnsService {
             return Ok(None);
         };
         // TCP needs OPT only after a hit; UDP needs it to size the writer.
+        let tcp_scan;
         let opt = if tcp {
-            find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
+            tcp_scan = find_pseudoheader(query, true).ok();
+            tcp_scan.as_ref().and_then(|scan| scan.opt.as_ref())
         } else {
             opt
         };

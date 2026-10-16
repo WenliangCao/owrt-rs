@@ -1877,8 +1877,10 @@ impl<R: Random> DnsDaemon<R> {
         tcp: bool,
     ) -> Result<LocalLookup, DaemonError> {
         let mut name_lookup = None;
+        let mut edns_scan = None;
         let local_answer = local.lookup_local_parsed(
             query, header, question, now, cache.as_deref_mut(), tcp, &mut name_lookup,
+            &mut edns_scan,
         );
         // A malformed TCP question must reach tcp_request's REFUSED path;
         // UDP admission instead drops it. Valid questions share this lookup.
@@ -1895,6 +1897,7 @@ impl<R: Random> DnsDaemon<R> {
                 let answer = CacheContext::answer_from_cache(
                     cache, query, header, question, now, local,
                     limit, maximum, tcp, filtered_type, name_lookup.as_ref(),
+                    edns_scan.as_ref(),
                 )?;
                 if let Some(packet) = answer.packet {
                     return Ok(LocalLookup::answered(if answer.stale {
