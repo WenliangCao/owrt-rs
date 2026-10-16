@@ -1,0 +1,19 @@
+{
+  "scope": "Retire two completed root-owned local task branches only. Exact commits kept under durable refs; detached worktrees and all ignored private artifacts remain. No active agent/source/measurement branch or file deleted.",
+  "worktrees": [
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-warm-reply-chunks-20261016",
+      "branch": "perf/dnsmasq-warm-reply-chunks-20261016",
+      "head": "bc189ae0bbf7cb050aeb225f8dd1c501b4e13e19",
+      "durable_ref": "refs/archive/perf/warm-reply-chunks-unselected-20261016",
+      "reason": "Completed local prototype and source review; unselected for remote timing, preserved for possible later reuse."
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-contiguous-query-name-20261016",
+      "branch": "perf/dnsmasq-contiguous-query-name-20261016",
+      "head": "9eec5389c7e982b582134c32af3493bedf2a4b0f",
+      "durable_ref": "refs/archive/perf/contiguous-query-name-unselected-20261016",
+      "reason": "Completed local prototype and source review; unselected for remote timing, preserved for possible later reuse."
+    }
+  ]
+}
