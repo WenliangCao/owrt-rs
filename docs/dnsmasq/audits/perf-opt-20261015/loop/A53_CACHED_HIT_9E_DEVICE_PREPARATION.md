@@ -2,7 +2,8 @@
 
 This prepares one original ten-window UDP-hit screen for source
 `9e8459dd704d339b10596721eaa2d3bef1f943c1` against accepted G185. Execution remains
-disabled. No health collection, staging or measurement has started for this source.
+disabled. Measurement has not started. Original health collection and staging are now
+authorized after the actual independent qualification receipts were bound.
 The separately authorized read-only device preflight is now complete; its
 identity and memory evidence are bound in the plan.
 
@@ -29,10 +30,10 @@ allowed.
 
 Before any device action, bind actual exact-source evidence for the original
 five groups, canonical opt3 SDK, unchanged ELF/APK budgets and independent
-reviews. The prepared cohort is **844 / 82 / 17 / 18 / 4 = 965**; independent actual verification remains required.
+reviews. The prepared cohort is **844 / 82 / 17 / 18 / 4 = 965**; the actual independent review has now passed.
 The author now reports all 965 passes, and exact artifact hashes plus 179 source
 files have been verified locally against Git. Actual independent gate/SDK
-reviews and standalone signal results remain pending. Local tests and previous
+reviews and standalone signal results have now passed and are bound below. Local tests and previous
 5c or warm results do not substitute.
 
 The original standalone USR1/ALRM runtime-signals audit must also pass for this
@@ -54,6 +55,10 @@ introduced.
 
 Independent local preparation review PASS: [report](../dns/cached-hit-9e-device-preparation-peer.json), commit `aac5dad2`, SHA256 `649d7ac56461a3bf5a9cf0b2772e7e6aa137b56e3af860b26775732816dd3909`. This reviews the disabled plan and local adaptations only. Exact actual result contents, source/SDK identities and standalone-signal schema must be rehashed and verified before enable; nonempty references alone are insufficient.
 
-Actual author evidence: `eb40e0f2`. Local ELF `a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087` is 2,145,051 bytes; APK `cdb5335ec50d4869906e701baf39b7a077e9301286ea5b6f1f8d2548f42090cd` is 1,168,103 bytes. Original budgets pass. Read-only preflight confirms production `[3086, 2115]`, original E/F slots and helpers, idle task ownership and 94,600 KiB available memory. These checks do not release health, staging or measurement.
+Actual author evidence: `eb40e0f2`. Local ELF `a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087` is 2,145,051 bytes; APK `cdb5335ec50d4869906e701baf39b7a077e9301286ea5b6f1f8d2548f42090cd` is 1,168,103 bytes. Original budgets pass. Read-only preflight confirms production `[3086, 2115]`, original E/F slots and helpers, idle task ownership and 94,600 KiB available memory. Those read-only checks alone do not release health, staging or measurement.
 
 Exact-source composition review `d5f5c1ad` found no blocker in the reviewed control flow; [source review](cached-hit-9e-composition-source-review.json), SHA256 `10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b`. It supplies source reasoning only.
+
+Actual independent qualification is now bound: original five groups `7ffb1476`, canonical SDK `6c8ad70d`, and original standalone signals `b019256e`. The signal result `df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e` passes its original schema and 12 + 3 + 3 case identities. Release `d8bb694a874ece98b76d4e28957afe680bb36dab1b13dfb703a723a2813ab2ab` closes all qualification transfers and restores the original native compatibility path. Fresh health and four-copy staging are authorized; staging stops before Popen, and timing still requires DNS final quiet plus loop readiness.
+
+A local binding assertion initially used incorrect signal names before any plan write or device call. It was corrected by reading the unchanged frozen tool: SIGHUP, SIGUSR2, SIGUSR1 and SIGALRM. The original result bytes and all test invocations were retained; no qualification or measurement was rerun.
