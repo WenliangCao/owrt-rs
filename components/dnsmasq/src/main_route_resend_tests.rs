@@ -427,3 +427,50 @@ fn plain_udp_owner_allocation_count_comparison() {
     }
     D1_FAST_ENABLED.store(true, Ordering::Relaxed);
 }
+
+#[test]
+fn plain_udp_owner_flag_shape_counts() {
+    // Count work only; elapsed time in this instrumented native test is not
+    // device performance. This fixture keeps one fresh A and public rules.
+    assert_eq!(std::env::var("D1_DIAGNOSTIC_LOCAL_RULE").as_deref(), Ok("rfc6761"));
+    assert!(std::env::var_os("D1_DIAGNOSTIC_DUAL_FAMILY").is_none());
+    let mut fixture = PendingCaller::new(true, true);
+    let mut response = [0; 1232];
+    for (shape, flags, opt) in [
+        ("plain", 0x0100u16, false), ("ad", 0x0120, false),
+        ("cd", 0x0110, false), ("ad_cd", 0x0130, false),
+        ("empty_opt", 0x0100, true), ("ad_cd_empty_opt", 0x0130, true),
+    ] {
+        let mut packet = query("cached.route.example", 0x2345);
+        packet[2..4].copy_from_slice(&flags.to_be_bytes());
+        if opt {
+            packet[10..12].copy_from_slice(&1u16.to_be_bytes());
+            packet.extend_from_slice(&[0, 0, 41, 4, 208, 0, 0, 0, 0, 0, 0]);
+        }
+        for enabled in [false, true] {
+            D1_FAST_ENABLED.store(enabled, Ordering::Relaxed);
+            for _ in 0..20 {
+                assert!(fixture.send_client(&packet));
+                fixture.client.recv_from(&mut response).unwrap();
+            }
+            let before = udp_allocation_diagnostic::cached_totals();
+            let before_names = dnsmasq_rs::dns::wire::diagnostic_name_visits();
+            for _ in 0..200 {
+                assert!(fixture.send_client(&packet));
+                let (length, _) = fixture.client.recv_from(&mut response).unwrap();
+                let header = Header::parse(&response[..length]).unwrap();
+                assert_eq!(header.id, 0x2345);
+                assert_eq!(header.answers, 1);
+                assert_eq!(header.flags & 0x0030, flags & 0x0010);
+                assert_eq!(header.additionals, u16::from(opt));
+            }
+            let after = udp_allocation_diagnostic::cached_totals();
+            let after_names = dnsmasq_rs::dns::wire::diagnostic_name_visits();
+            let delta: [u64; 6] = std::array::from_fn(|i| after[i] - before[i]);
+            let names: [u64; 3] = std::array::from_fn(|i| after_names[i] - before_names[i]);
+            assert_eq!(delta[0], 200);
+            println!("D1_FLAG_SHAPE shape={shape} fast={enabled} allocation_columns=query,alloc,dealloc,realloc,requested,released values={delta:?} name_columns=general_walk,encoded_skip,plain_scan names={names:?}");
+        }
+    }
+    D1_FAST_ENABLED.store(true, Ordering::Relaxed);
+}
