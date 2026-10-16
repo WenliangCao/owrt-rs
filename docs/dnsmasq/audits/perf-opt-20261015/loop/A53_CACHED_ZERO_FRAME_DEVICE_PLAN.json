@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "status": "local preparation only; prior0161 final audit,new185 Linux/source review,SDK identity and coordinator concept plan pending",
+  "scope": "Exploratory acceptedE/cached-zero-frame185 A53 UDP-hit comparison; not full44/complete11-scene acceptance or G selection.",
+  "reason": "Exact185db90c combination of reviewed03ace reply reuse plusa8dcdacc entry-frame split; independent experiment, no additive estimate from separate prototypes.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "prior_gate_scope": "New exact185 Linux/source review and unchanged SDK build must pass before any device load. No previous0161,8d572 or standalone gate/artifact substitutes.",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "entry_sha256": "f02b123d48ca95997032e45ab7de847874bbe03b35e6ca6a87aa9816e148a82b",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "artifacts": {
+    "e": {
+      "name": "a53-cached-zero-frame-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-cached-zero-frame-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "cached-zero-frame": {
+      "name": "a53-cached-zero-frame-artifact-cached-zero-frame",
+      "sha256": null
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "schedule": [
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 1,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r1-c"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 1,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r1-rust"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 2,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r2-rust"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 2,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r2-c"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 3,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r3-c"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 3,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r3-rust"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 4,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r4-rust"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 4,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r4-c"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 5,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r5-c"
+    },
+    {
+      "group": "e-vs-cached-zero-frame",
+      "round": 5,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r5-rust"
+    }
+  ],
+  "measurement_environment": "No DNSMASQ_UDP_STAGE or allocation-meter variables. Both normal product ELFs use the unchanged real cache/local answer.",
+  "output_requirements": [
+    "10 attempts in five alternating acceptedE/cached-zero-frame185 pairs; no extra windows or favorable replacement; original explicit evidence-based tool-invalid rule retained.",
+    "Each6000 fixture replies correct, including1000 prewarm; original steady upstream0, file/live ELF, single process/thread samples and final endpoint, isolated namespace, case/daemon exit0.",
+    "Original20s measurement and100Hz CPU endpoint over5000 completed warmup+measurement queries; original W/direction and exclusive8tick median-difference gate.",
+    "First archive attempt retained even if partial; any failed gate stops; verify all raw bytes before pruning valid device copies.",
+    "Fresh>=120s health; unchanged guard/prod identity; restore E/F slots only after no owned daemon remains."
+  ],
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "automatic_replacement": false,
+  "source_inputs_expected": 179,
+  "pending_before_launch": [
+    "Prior0161 final independent audit completes; preserve its inconclusive frozen result unchanged.",
+    "New185 exact-source related Linux gates and interaction/source review pass; coordinator concept plan is bound.",
+    "Loop provides immutable185 ELF/map/build and transfer interval before Oracle timing; verify179source and all full hashes then commit binding.",
+    "Fresh>=120s original health/recovery and all original identity/tool gates before isolated10."
+  ],
+  "artifact_verification_receipt_sha256": null,
+  "baseline_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "baseline_E_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "restore_only_F_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "concept_plan_commit": null,
+  "concept_plan_sha256": null,
+  "related_linux_verified_receipt_sha256": null,
+  "related_linux_report_sha256": null,
+  "source_review_report_sha256": null,
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "comparison_policy": "Exactly five alternating acceptedE/185 pairs. F is restoration-only. No earlier0161/8d572/F/E-B/prototype control pooling or summing of standalone gains. Original strictW,>8ticks,direction,20s and all observations remain."
+}
