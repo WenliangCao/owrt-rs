@@ -99,7 +99,9 @@ class StageGateTests(unittest.TestCase):
     def test_g_based_prototypes_compare_only_new_g_controls(self):
         import udp_thread_local_handles_device_run as handles
         import opt2_codegen_device_run as opt2
-        for entry, role in ((handles, 'udp-thread-local-handles'), (opt2, 'opt2-codegen')):
+        import inline_address_details_device_run as inline_address
+        for entry, role in ((handles, 'udp-thread-local-handles'), (opt2, 'opt2-codegen'),
+                            (inline_address, 'inline-address-details')):
             with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
                                 ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
                 entry.configure()
