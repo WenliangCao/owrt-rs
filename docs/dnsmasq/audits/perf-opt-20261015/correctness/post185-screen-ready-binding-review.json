@@ -1,0 +1,20 @@
+{
+  "status": "PASS_READY_METADATA_ONLY_BINDING",
+  "reviewed_commit": "f230912a",
+  "parent_review_commit": "5aa27e67",
+  "ready_receipt_sha256": "8cacb0e1edf3bf77838d1ad2dfacd1e2ac15d19119717cfc6cbfee8d2361847b",
+  "plans": {
+    "native": {
+      "sha256": "968af9c4c26abecb78e9a78b91040df606cdacca73b680f6fb3ffbf6cc16ab8e",
+      "only_six_declared_metadata_updates": true
+    },
+    "owner32": {
+      "sha256": "00f508a8b2990198bf7e411fdf372eb097349b57ead123adb4084ba5e3eac653",
+      "only_six_declared_metadata_updates": true
+    }
+  },
+  "all_four_script_bytes_unchanged": true,
+  "SDK_release_local_bytes_rehashed": true,
+  "measurement_argv_checks_or_statistics_changed": false,
+  "local_readonly": true
+}
