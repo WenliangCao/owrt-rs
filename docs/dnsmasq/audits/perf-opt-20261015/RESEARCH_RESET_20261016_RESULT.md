@@ -578,3 +578,34 @@ c29e6592f26dcb7c05be7d03ca00709e40077932f048d96554a1ef2629c15846，267raw等设�
 I 81/0µs这样的分项，而总CPUclock仍约80µs；不把分项中位数当作真实用户/内核差额。
 实际I ELF还含按getauxval(16) bit8选择LDADD或LDXR/STXR的原子helper，Oracle存档cpuinfo含
 atomics；路由器对应字段仅在当前测量恢复gap补读，不据此另造候选或宣称它是主因。
+
+## J公开配置筛选通过；下一覆盖问题来自同名双栈
+
+J实际14/14有效。200qps、5+95+1、CPU N20000/latency N19000，I/J CPUclock两侧中位
+104.82254125→77.4346551µs；五对差为−26.0778943/−24.08311365/−22.4088802/
+−24.4215409/−31.3325813µs，中位−24.4215409，5/5，超过新AA5.8929906。
+AA原两对−5.8929906/−1.32177275保留。原tick104.5→77µs（−26.316%，W9.091%）可辨；
+p50 .160502→.134110ms（−16.443%，W15.148%，5/5）可辨；p95 .348010→.278761ms
+（−19.899%，W38.227%，5/5）仍未分辨。RSS中位2328→2380KiB，Anon504、FD12、线程/进程1均同。
+630raw核验、1646guard/110外网检查，最低MemAvailable70016KiB、恢复后83476，生产/E/F身份不变。
+result SHA3531f8d0fc5b2614ec29cdda78fa878e0fddf631f50c11267368a4f541bfbe27，summary
+8cf15b476c455dd58040441769b6d2154fc840a087162872c0751f2b8d606290。独立公开九对及原118、
+实际44/67继续，不提前接受J。已补读A53两核CPU part0xd03，Features无atomics；只作Oracle外推限制。
+
+root在等待期间发现另一覆盖边界：J只给单槽名字缓存hint，同名正A+AAAA属于Many，D1和
+general已有fresh捷径均回退。原aaaa30生成器按名字index固定族，因此不覆盖这种状态。
+已有whole-owner仪器只新增同名AAAA预热：七条公开规则、20warm+2000查询，旧路径每query
+11次alloc/dealloc、416B，general和D1相同；D1另加一次无效plain扫描。原型4ce24c62仅
+把恰好各一条fresh A/AAAA纳入hint，两成员任一stale/expired/negative/异常长度均回退，
+其余RRset仍原路。两条路径计数均降到0，D1名字扫描从3general+4skip+1plain变为1plain。
+这是本机插桩计数，不是实际PGO计数或A53时间；instrumented树e8796627→ffe84c73，日志
+在private/d1-count/dual-family-{count,after}-release.log，误用未限定exact过滤器的零测试日志也保留。
+产品树基于J23aece16，738lib+31bin、8ignored及Linux全目标check通过；新测试直接以未走hint的
+answer_records_general为字节/TTL/淘汰参照，另核验对族过期和旧hint失效。一次针对性审阅无阻断项。
+
+当前模型修订：总命中成本取决于规则和缓存形状是否让快捷路径生效，不能只谈二进制体积。
+双栈原型消除11次分配提供下一实验理由，但hint变大、额外检查及新PGO布局可能抵消收益。
+先完成J资格及直接C/v0.2.0参照，双栈原型不混入J；下一轮只用固定合成双族状态测J/新产物，
+预期5–20µs，若未达5µs/同轮AA不追逐这个区域的更多小变体。真实客户端请求分布未知。
+AD/CD及空OPT仍回退；DO关系到unsigned缓存的LRU/转发语义，保持原路。因覆盖比例和单次
+增益未测，暂不把空OPT扩展排在已测出额外工作的双栈方向前，也不把本轮24.42µs全归于D1。
