@@ -1,0 +1,592 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only F/local-address-miss-stack fixed ten-window audit using existing raw/count/statistical/health checks; no device query, build or new load.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "local-address-miss-stack",
+    "source_commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "70f9512eb5c62b239d3ad25d3d1a61bc9d67f898e559ef9df20214d36ecd23a5",
+        "bytes": 2136859
+      },
+      "link.map": {
+        "sha256": "26c352cfe13e48816bf91aa05e907f1a105b27f6b953a0e892eaf2182440f9fc",
+        "bytes": 3019243
+      },
+      "build.json": {
+        "sha256": "b168a2fcf084e02b97cfcbeb50057c7db2f7986dc1ad8c96f1d09246887a3a44",
+        "bytes": 44024
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "b0d2892f",
+    "author_public_result": "../loop/A53_LOCAL_ADDRESS_MISS_STACK_DEVICE_RESULT.json",
+    "author_public_result_sha256": "3332d4847de0dc01d79be54060c5714a6a5237a62e8684841c5c524ed6be9f38",
+    "summary_sha256": "ab2588e9271ed5331f71763fe8202e9a65f7dc637f61486a87c0e19e53937be1",
+    "progress_sha256": "97ae02b77f94956ccc679c8785ffa6fbed84052ddeb23d511dd99da46e5b5b32",
+    "identity_sha256": "41d8ceb114a9749028868d1632c5d9f1e23149287e8f02b2c5741a3ec151a24b",
+    "plan_sha256": "9ad6fb119f845d0a5187f05ba288eceda5bfe015de241ce7bb0a0f08f2d20a4c",
+    "launch_sha256": "f68077c4c3f8d821bd52fe5c0b31f6dae355124ad5eeefb934c7ca70e3202804",
+    "independent_audit_sha256": "946784e84eacbafe809596c771e2611f700e1286fe4f751af45f588a7b176f02",
+    "statistical_script_sha256": "c474a2bbc2ca8ae1ef7a3760ee926ebfadcc6a392f14c1f3748e1103bc708e47",
+    "health_script_sha256": "c5060b13042c7b19b7faac4692687c9d374ee0b93f686f168375c1bc191f971f",
+    "subreceipts": {
+      "statistics_sha256": "3c11a03c6d7e2708d8bbac076d56d8605e3b5942cc939bb5cc95c234216e2ebc",
+      "health_sha256": "4a0a18c339271e995107a9d5a90f649b5be07e7fa6d64a5e88d293186c5710f0"
+    }
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 316,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_members_all_manifest_and_extracted_hashes_match": true,
+    "all_local_files_regular_not_symlinks": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-local-address-miss-stack": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "local-address-miss-stack",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.188432,
+            "min": 0.187354,
+            "max": 0.193279,
+            "rounds": [
+              0.187354,
+              0.192586,
+              0.187739,
+              0.193279,
+              0.188432
+            ]
+          },
+          "right": {
+            "median": 0.18066,
+            "min": 0.178121,
+            "max": 0.184508,
+            "rounds": [
+              0.184508,
+              0.17966,
+              0.181737,
+              0.178121,
+              0.18066
+            ]
+          },
+          "relative_change_pct": -4.1245648297529085,
+          "W_pct": 3.535370308867488,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.326465,
+            "min": 0.288841,
+            "max": 0.367783,
+            "rounds": [
+              0.367783,
+              0.362782,
+              0.289841,
+              0.326465,
+              0.288841
+            ]
+          },
+          "right": {
+            "median": 0.374939,
+            "min": 0.265835,
+            "max": 0.430645,
+            "rounds": [
+              0.430645,
+              0.374939,
+              0.407562,
+              0.265835,
+              0.273914
+            ]
+          },
+          "relative_change_pct": 14.848146049346795,
+          "W_pct": 43.95648358799698,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 132.0,
+            "min": 132.0,
+            "max": 138.0,
+            "rounds": [
+              134.0,
+              138.0,
+              132.0,
+              132.0,
+              132.0
+            ]
+          },
+          "right": {
+            "median": 126.0,
+            "min": 124.0,
+            "max": 132.0,
+            "rounds": [
+              132.0,
+              126.0,
+              126.0,
+              124.0,
+              128.0
+            ]
+          },
+          "relative_change_pct": -4.545454545454546,
+          "W_pct": 6.349206349206349,
+          "same_direction_pairs": 5,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2356.0,
+            "min": 2288.0,
+            "max": 2408.0,
+            "rounds": [
+              2288.0,
+              2408.0,
+              2288.0,
+              2360.0,
+              2356.0
+            ]
+          },
+          "right": {
+            "median": 2412.0,
+            "min": 2360.0,
+            "max": 2452.0,
+            "rounds": [
+              2416.0,
+              2392.0,
+              2360.0,
+              2452.0,
+              2412.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2356,
+            "min": 2288,
+            "max": 2408,
+            "rounds": [
+              2288,
+              2408,
+              2288,
+              2360,
+              2356
+            ]
+          },
+          "right": {
+            "median": 2412,
+            "min": 2360,
+            "max": 2452,
+            "rounds": [
+              2416,
+              2392,
+              2360,
+              2452,
+              2412
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 520,
+            "max": 524,
+            "rounds": [
+              520,
+              524,
+              520,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 536,
+            "rounds": [
+              524,
+              516,
+              516,
+              536,
+              520
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1832,
+            "min": 1764,
+            "max": 1880,
+            "rounds": [
+              1764,
+              1880,
+              1764,
+              1836,
+              1832
+            ]
+          },
+          "right": {
+            "median": 1888,
+            "min": 1840,
+            "max": 1912,
+            "rounds": [
+              1888,
+              1872,
+              1840,
+              1912,
+              1888
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 66,
+        "right": 63,
+        "absolute_delta": 3,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          67,
+          69,
+          66,
+          66,
+          66
+        ],
+        "rust": [
+          66,
+          63,
+          63,
+          62,
+          64
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "left": 66,
+    "right": 63,
+    "absolute_delta": 3,
+    "required_delta_exclusive": 8,
+    "same_direction_pairs": 5,
+    "discernible": false,
+    "threshold": "Every CPU window at least10ticks and median absolute difference strictly greater than8ticks; unchanged."
+  },
+  "resource_observation": {
+    "RssAnon_peak_median_kib_F_candidate": [
+      520,
+      520
+    ],
+    "RssAnon_peak_ranges_kib_F_candidate": [
+      [
+        520,
+        524
+      ],
+      [
+        516,
+        536
+      ]
+    ],
+    "scope": "Descriptive only. RssAnon and RSS do not establish private memory or PSS/USS equivalence."
+  },
+  "health": {
+    "baseline": {
+      "sha256": "b6c22da2afd25bbb935db4d818b24a8a04966ac37645b70fb2e3595424fd1ae0",
+      "samples": 126,
+      "dns_completed": 49,
+      "http_completed": 23,
+      "dns_p95_ms": 0.648,
+      "dns_max_ms": 2.096,
+      "http_max_ms": 61.318,
+      "min_memory_kib": 85900,
+      "start_epoch": 1792108110,
+      "last_sample_epoch": 1792108235,
+      "stop_epoch": 1792108236,
+      "elapsed_seconds": 125.653,
+      "sample_elapsed_step_range_seconds": [
+        1.0,
+        1.0
+      ],
+      "wall_epoch_step_counts": {
+        "1": 125
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "runtime_guard": {
+      "sha256": "6d9604a043c0299b665542ca97e494d4558de5630af147a052326dcd5a11d6a1",
+      "samples": 428,
+      "dns_completed": 167,
+      "http_completed": 76,
+      "dns_p95_ms": 0.685,
+      "dns_max_ms": 13.205,
+      "http_max_ms": 113.194,
+      "min_memory_kib": 84540,
+      "start_epoch": 1792108269,
+      "last_sample_epoch": 1792108696,
+      "stop_epoch": 1792108697,
+      "elapsed_seconds": 427.913,
+      "sample_elapsed_step_range_seconds": [
+        0.9950000000000045,
+        1.0049999999999955
+      ],
+      "wall_epoch_step_counts": {
+        "1": 427
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "external_health": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "7afc06b2e26291adf8a3a80c30c9f12e45b5a75c679230ece49aa38f25417593"
+      },
+      {
+        "segment": "run",
+        "checks": 30,
+        "versions": {
+          "4": 15,
+          "6": 15
+        },
+        "sha256": "c56de3d38409400d668a2fe527599511130c2a28631445f69e31b9a6b5066e84"
+      }
+    ],
+    "windows_coverage": [
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r1-c",
+        "start_epoch": 1792108271.0,
+        "end_epoch": 1792108306.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r1-rust",
+        "start_epoch": 1792108314.0,
+        "end_epoch": 1792108349.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r2-rust",
+        "start_epoch": 1792108357.0,
+        "end_epoch": 1792108392.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r2-c",
+        "start_epoch": 1792108400.0,
+        "end_epoch": 1792108436.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r3-c",
+        "start_epoch": 1792108444.0,
+        "end_epoch": 1792108479.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r3-rust",
+        "start_epoch": 1792108482.0,
+        "end_epoch": 1792108517.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r4-rust",
+        "start_epoch": 1792108525.0,
+        "end_epoch": 1792108560.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r4-c",
+        "start_epoch": 1792108568.0,
+        "end_epoch": 1792108603.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r5-c",
+        "start_epoch": 1792108611.0,
+        "end_epoch": 1792108646.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-address-miss-stack-f-vs-local-address-miss-stack-r5-rust",
+        "start_epoch": 1792108654.0,
+        "end_epoch": 1792108690.0,
+        "covered": true
+      }
+    ]
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "3f1ef456842dee891840b69c7f24bf68358e6ada9a218c5ddac2a8877e141657",
+    "postflight_script_sha256": "3edd7e68657a58d1967fd81936f4da67bd546e75e7a28c939b8fc43e3a948532",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 91184,
+    "local_controller_pid_absent": 34957,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "conclusion": {
+    "p50": "Discernible improvement under the unchanged strict variation and paired-direction rule.",
+    "p50_relative_change_pct": -4.1245648297529085,
+    "p50_W_pct": 3.535370308867488,
+    "p50_same_direction_pairs": 5,
+    "cpu": "Not discernible: relative change does not exceedW and tick difference does not exceed8.",
+    "p95": "Not discernible under the unchanged variation and paired-direction rule.",
+    "promotion": "Exploratory evidence only; no full44 qualification, selectedG, deployment or overall performance acceptance follows from these ten windows."
+  },
+  "limits": [
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "This round uses its own five F controls. Do not pool either side with independent prototype rounds or historical E/C windows.",
+    "No stage cuts or allocation instrumentation entered these production-artifact windows.",
+    "Retained local audit only; no new device observation."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
