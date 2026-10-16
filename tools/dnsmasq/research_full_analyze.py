@@ -53,6 +53,15 @@ def analyze(folder):
                 resources[key] = {'left': original.spread([r[key] for r in left]),
                                   'right': original.spread([r[key] for r in right])}
         comparison = {'pairs': required, 'original_primary_metrics': metrics, 'resources': resources}
+        if scene[1] == 'dhcp':
+            comparison['initial_dora'] = {
+                'scope': 'Original DORA cohort inside warmup; the measured phase is renew-only. Extrema span retained per-window cohorts, with no pooled latency quantile.',
+                'sides': {side: {'per_window': [r['dora_latency_ms'] for r in values],
+                       'minimum_ms': min(r['dora_latency_ms']['min'] for r in values),
+                       'maximum_ms': max(r['dora_latency_ms']['max'] for r in values),
+                       'p50_range_ms': original.spread([r['dora_latency_ms']['p50'] for r in values]),
+                       'p95_range_ms': original.spread([r['dora_latency_ms']['p95'] for r in values])}
+                for side, values in (('left', left), ('right', right))}}
         if scene[1] == 'udp':
             valid = all(r['cpu_clock']['valid'] for r in left + right)
             comparison['cpu_clock_valid'] = valid
