@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_RELATED_AND_CANONICAL_SDK_POSTFLIGHT_PASS_QUIET_RELEASED_TO_ORIGINAL_REMOTE_AUDIT_BULK_PENDING",
+  "status": "ACTUAL_RELATED_AND_SDK_INDEPENDENT_REMOTE_AUDIT_PASS_ORIGINAL_OWNER32_RUNNING_BULK_PENDING",
   "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
   "execution_plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
   "G_stage_explicit_quiet_release_sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
@@ -63,10 +63,10 @@
   "independent_execution_plan_review_commit": "c17892bc",
   "independent_execution_plan_review_sha256": "05e188f8b65f6a24bd450608453df6bb097f35f4a6aae4e7fee9e54266f82710",
   "raw_logs_test_ELFs_downloaded": false,
-  "actual_related_independent_review_passed": false,
+  "actual_related_independent_review_passed": true,
   "SDK_passed": false,
   "performance_accepted": false,
-  "timing_started": false,
+  "timing_started": true,
   "bulk_hold": "All raw and artifact bulk stays remote until DHCP releases G-stage fresh125/device50 archival and restoration window. Non-timing gates/SDK and small controls only.",
   "scope": "Exact6dad original five fresh groups, then unchanged canonical opt3 SDK. No native240, no C expectation or source edits; owner32 remains a later separately bound measurement.",
   "SDK_postflight_summary": {
@@ -85,7 +85,7 @@
   },
   "SDK_command_returncode_observed": 0,
   "SDK_remote_postflight_passed": true,
-  "SDK_passed_definition": "Full SDK acceptance requires downloaded raw artifact rehash and independent actual audit; remote postflight already passed.",
+  "SDK_passed_definition": "Independent original raw/source/static SDK audit passed remotely; required downloaded raw artifact/archive rehash remains pending after DHCP safe gap. No full qualification or promotion implied.",
   "postflight_tool_peer": "Loop locally verified exact name/status/plan-only adaptation from prior canonical verifier; collectors also preserve both actual underscore wrapper filenames.",
   "remote_read_only_actual_audit_handoff": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-execution-20261016/release-to-correctness-remote-audit.json",
@@ -121,5 +121,49 @@
       "performance_timing_released": false,
       "DNS_stops_Oracle_access_after_handoff": true
     }
-  }
+  },
+  "related_independent_review": {
+    "commit": "7f189cf6",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-related-independent-audit.json",
+    "sha256": "dbd269282eca73f7ed8971db33eb32cf3d3b18a40f93fbd6a055536a171c3711",
+    "status": "PASS_FRESH_6DAD_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+  },
+  "SDK_independent_audit_passed": true,
+  "SDK_independent_review": {
+    "commit": "7db02ead",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-sdk-independent-audit.json",
+    "sha256": "e94817dd91324dd75ef4b1e9cca7036b50d72778ce9be5222930fb4a13bae7fd",
+    "status": "PASS_ACTUAL_BARE6DAD_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL961_CHAIN"
+  },
+  "original_owner32": {
+    "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+    "fresh_correctness_quiet_release_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+    "launch": {
+      "scope": "Original exact-SDK G185/warm6dad owner32 after actual961/SDK independent remote audits, owner plan peer, input pretransfer and correctness fresh quiet; bulk download audit deferred until device50 restoration. Root authorized simultaneous device50; no bulk during either measurement, no native240 or isolated-writer attribution.",
+      "pid": 1053371,
+      "starttime_ticks": 187338855,
+      "epoch": 1792148771.3366027,
+      "utc": "2026-10-16 11:06:11 UTC",
+      "argv": [
+        "taskset",
+        "-c",
+        "0",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/run_warm_address_encode_owner32.py",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/plan.json"
+      ],
+      "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+      "controller_sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+      "explicit_release_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+      "final_metadata_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+      "windows": 32,
+      "stat_windows": 12,
+      "plain_windows": 20,
+      "no_measurement_retries": true,
+      "transfers_held_during_both_measurement_slots": true
+    },
+    "result": null,
+    "performance_accepted": false
+  },
+  "timing_started_by_DNS": false
 }
