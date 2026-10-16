@@ -1,0 +1,26 @@
+{
+  "status": "PASS_EXACT_G_STAGE_SOURCE_AND_ORIGINAL_GATE_PREFLIGHT",
+  "epoch": 1792146494.599793,
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "source_files_rehashed": 180,
+  "source_archive_sha256": "84f2ee03d5d8b59845a33febc321323ecf38c41e63ea976e186189dc5b376579",
+  "git_identity_sha256": "912d626581d2d2595ffc50849eba93a4eeb97bb17f7bc12cc219b991c94237e0",
+  "manifest_sha256": "cddb9c52ac486a1a150102f659efcda7dd8ab31ae7264daf27abadfbee303a89",
+  "runner_sha256": "2ef11c6b8bfe169e167007e795a4b84fb147e4fef39764f276e2eafb0e216346",
+  "state_sha256": "d4af6fc6b757b93e13cd7c8fa20ee6401d27aef6c6a9c6e930cff380520e7ab3",
+  "root_quiet_sha256": "7420a7cc401c2a28b6d14f1c38b400f050aee155d9f7133e156e2ce30bd66c8d",
+  "research": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "source_owner_uid": 1001,
+  "original_tools": {
+    "tools/dnsmasq/oracle_build.sh": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+    "tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "tools/dnsmasq/perf_opt_map_cc.py": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5"
+  },
+  "build_test_or_measurement_started": false,
+  "resumed_only_exact_owned_extracted_source": true
+}
