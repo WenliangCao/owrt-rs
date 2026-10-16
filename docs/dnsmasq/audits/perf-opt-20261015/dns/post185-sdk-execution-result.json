@@ -1,6 +1,6 @@
 {
   "schema": "post185-serial-sdk-result-v1",
-  "status": "BUILT_ORIGINAL_CONTROLS_VERIFIED_DOWNLOADED_AWAITING_INDEPENDENT_REVIEW_AND_TIMING",
+  "status": "BUILT_ORIGINAL_CONTROLS_INDEPENDENTLY_VERIFIED_QUIET_RELEASED_TO_LOOP",
   "scope": "Original7c allocation diagnostic and6ab combined product experiment only. No performance timing, router access or deployment by DNS.",
   "preparation_commit": "2624a40b",
   "plan_sha256": "3489608499a712c5a8fe513c0ccab05e5e35c1e1f3f33d7a18ae64526f0d578f",
@@ -404,5 +404,37 @@
   "runtime_hardening_verified": false,
   "performance_timing_started": false,
   "qualification": "Both SDK outputs remain built-unqualified.7c exceeds both original budgets and is excluded diagnostic only;6ab fits original budgets but has no new performance/full-compatibility result.",
-  "next_queue": "After independent SDK audit and pretransfer, explicit quiet release to loop originalnative240 thenowner32, then correctness originalfull44/67 plus boundaries. Router independently count3 thenG/6abten under DHCP gates. No rebuild of these SDKs."
+  "next_queue": "After independent SDK audit and pretransfer, explicit quiet release to loop originalnative240 thenowner32, then correctness originalfull44/67 plus boundaries. Router independently count3 thenG/6abten under DHCP gates. No rebuild of these SDKs.",
+  "independent_review": {
+    "commit": "94608544",
+    "report_sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2",
+    "status": "PASS",
+    "archive_regular_files_including_manifest": 47,
+    "manifest_payload_entries": 46
+  },
+  "final_quiet_release": {
+    "sha256": "b596f6a0a1b9acdc590223d5d6684dcb34288c20c5d61d7e533f5db429cb9763",
+    "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/release-to-loop.json",
+    "local_path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/execution/release-to-loop.json",
+    "receipt": {
+      "status": "QUIET_RELEASE_FROM_DNS_SDK_TO_LOOP_NATIVE240_OWNER32",
+      "epoch": 1792127431.7606876,
+      "sdk_result_commit": "06c689ac",
+      "independent_review_commit": "94608544",
+      "postflight_sha256": "3ec8ca2c030e07814db881d0f2420806db9fcd98366d26904bb0f6ecb514fee6",
+      "state_sha256": "37973de8f6d3064caa8f08a54e5d3896b078df7575e8ce65a7d1d00f0097e458",
+      "source_files_rehashed": 359,
+      "all_downloaded_build_artifacts_rehashed": true,
+      "accepted_G_unchanged": true,
+      "research_including_exact_image_C": [],
+      "locks_available": [
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+        "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+      ],
+      "bulk_pretransfer_complete": true,
+      "next_owner": "loop original native240 then owner32, then correctness original full44/67 plus boundaries",
+      "no_new_SDK_builds": "DNS performs no further Oracle work until the root serial queue releases it."
+    }
+  }
 }
