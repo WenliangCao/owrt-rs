@@ -1,0 +1,48 @@
+{
+  "status": "PASS_LOCAL_NATIVE162_SCOPE_CORRECTION_AND_DISABLED_READY_LAUNCH_TEMPLATES",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "correction_report_sha256": "29acb666942241cdd18eb2d9e1487f2a6434c2ed9a4606496370baeb0f73933e",
+  "corrected_pending_plan_sha256": "ed77525410f759dfb285a029a6af9b311b1cbe37aa42562784aae6cae978a054",
+  "correction_only_fields": [
+    "native_source_binding_scope",
+    "sources"
+  ],
+  "native_source_keys_each": 162,
+  "SDK_outer_source_keys_each": 179,
+  "native_keys_exact_original6ab": true,
+  "removed_candidate_only_SDK_keys": [
+    "manifests/release-25.12.5.json",
+    "packaging/openwrt/owrt-dnsmasq/Makefile",
+    "packaging/openwrt/owrt-dnsmasq/README.md",
+    "packaging/openwrt/owrt-dnsmasq/files/50-dnsmasq-migrate-ipset.sh",
+    "packaging/openwrt/owrt-dnsmasq/files/50-dnsmasq-migrate-resolv-conf-auto.sh",
+    "packaging/openwrt/owrt-dnsmasq/files/dhcp-script.sh",
+    "packaging/openwrt/owrt-dnsmasq/files/dhcp.conf",
+    "packaging/openwrt/owrt-dnsmasq/files/dhcpbogushostname.conf",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasq.conf",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasq.init",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasq_acl.json",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasqsec.hotplug",
+    "packaging/openwrt/owrt-dnsmasq/files/rfc6761.conf",
+    "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py",
+    "rust-toolchain.toml",
+    "tools/dnsmasq/build_package.py",
+    "tools/dnsmasq/build_package.sh"
+  ],
+  "source_bytes_or_runner_probe_workload_changed": false,
+  "original_f234_and_d51_pretransfer_preserved": true,
+  "original_owner1ca_and035_pretransfer_still_disabled": true,
+  "ready_template_sha256": "164090e51cd78cea22812367b4003e8e456c49f01380393268df45e5f1b3b480",
+  "launch_template_sha256": "9376d5a9a5bc873db6928ce2b27588f314ee730e65bf904e1cd60f0abf700b19",
+  "original_launch_basis": "inline-address-details-screen-preparation/native-launch-command.py; name/pins963\u2192965, separate owner-prerequisites layout, actualsignals reference hash andnative162 assertions added. Originalbuild/perf/probe/240windows/244commands unchanged.",
+  "ready_preserves_before_plan_and_never_launches": true,
+  "launcher_only_starts_original_native_underCPU0": true,
+  "required_concrete_bindings_before_execution": [
+    "Immutable actual965/SDK/source179 and original965 reports; exact native162 subset remains consistent with fullSDK179.",
+    "Final payload must independently bind actual9e/a91f/410a signals df613 and its committed PASS review/schema; truthy reference checks are not content verification.",
+    "Actual DHCP four-copy stage receipt must be locally rehashed and bound, not accepted from only len64/boolean.",
+    "Concrete fresh correctness/DNS release, final native/op/metadata hashes replace placeholders only after all transfers; preserve owner32 disabled until later native/device review and quiet."
+  ],
+  "scope": "Local reads/AST only; no script import/execute, remote/Oracle/router access, build or timing. PASS covers preparatory correction and templates, not concrete launch approval. Loop explicitly agreed to verify actual signal and device receipt contents before generating final payload.",
+  "script_sha256": "11db00ed6bc463cdc659ef5dfe1790fec3bbbc5230c5a64f2eb4d423fd058a01"
+}
