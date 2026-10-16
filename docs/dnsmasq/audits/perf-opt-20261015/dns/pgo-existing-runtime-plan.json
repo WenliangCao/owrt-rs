@@ -96,6 +96,6 @@
   ],
   "runner_sha256": "e43297d85f92f239cd0a9db19b5839ab91de9d08cdcee57d333783d070c6cb14",
   "scope": "Each existing artifact starts once, answers the original two local A/AAAA questions, checks live identity/RELRO/NX/noWX, exits normally on SIGTERM. Existing smoke helpers reused. No training/profile generation/build/full44/native/owner/performance window. Fresh failed/partial output retained, no automatic retry.",
-  "scheduling": "After correctness c95 closeout, DHCP CPUclock helper and loop PMU; run only in their released non-timing gap. Device measurement requires root supplemental protocol and original device health/recovery boundary.",
+  "scheduling": "After correctness c95 closeout and DHCP CPUclock helper, run this short smoke and complete required downloads, then directly release quiet to loop PMU. Root explicitly reordered this non-timing work ahead of PMU to avoid bulk transfers during measurement. Device measurement still requires root supplemental protocol and original health/recovery boundary.",
   "remaining_after_smoke": "Whole feature equivalence remains unqualified; actual diagnostic traffic validates its own response/completion. Release budgets remain failed."
 }
