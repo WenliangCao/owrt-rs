@@ -8,14 +8,6 @@ Mac721/8 and musl all-target checking pass on the combination. It has no new
 behavior repair, compiler option or test-tool change. It is an experiment,
 not selected G or a qualified release.
 
-[Fresh local allocation controls](cached-zero-frame-local-allocation.json)
-compare the actual accepted-E source with the combination in the same prepared
-UDP API probe. After1000 prewarm,8000 calls yield E5allocations/277requested
-bytes per operation versus zero for185, equal checksum468800 and zero
-reallocations/live-byte delta. The fixture differs from the earlier physical
-E5/270B diagnostic. These counts exclude socket/owner work and are not CPU
-attribution or a prediction of A53 gain.
-
 The reason to measure this combination is the remaining allocation and entry
 overhead, not addition of independent effects. The first prototype demonstrates
 zero steady allocations in the local prepared-UDP probe; the second reduces
