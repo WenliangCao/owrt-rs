@@ -77,11 +77,13 @@ def main():
                         help='queries/second; zero is a separately planned unpaced UDP diagnostic')
     parser.add_argument('--loadgen-sha256', default='b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd')
     parser.add_argument('--sample-event', choices=('instructions:u', 'cycles:u'), default='instructions:u')
+    parser.add_argument('--stat-events', help='explicit diagnostic event group; preserves raw, unscaled counts')
     parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
     assert args.rate >= 0 and (args.rate != 0 or args.mode == 'udp')
     assert re.fullmatch('[0-9a-f]{64}', args.loadgen_sha256)
     observer = 'strace' if args.strace else args.observer
+    assert args.stat_events is None or observer == 'stat', '--stat-events requires --observer stat'
     assert bool(args.build) != bool(args.stock_image_root), 'select one exact implementation'
     assert os.readlink('/proc/self/ns/net') != os.readlink('/proc/1/ns/net')
     assert {name for _, name in socket.if_nameindex()} == {'lo'}
@@ -137,6 +139,8 @@ def main():
          'process_tree': 'root and every inherited fork; no --no-inherit',
          'counter_window': '5s warmup + 20s measurement at the recorded rate, then fixed 1s drain; prewarm excluded',
          'sample_event': args.sample_event, 'sample_period': 10000,
+         'stat_events': args.stat_events or '{instructions:u,instructions:k,cycles:u,cycles:k}',
+         'stat_no_scale': args.stat_events is not None,
          'deployed_baseline': expected == '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'})
     (out / 'config').write_text(
         'no-hosts\nno-resolv\nno-poll\nuser=root\ngroup=root\ninterface=lo\n'
@@ -262,8 +266,9 @@ def main():
                 instruments.append(instrument(['perf', 'record', '-e', args.sample_event, '-c', '10000', '-p', daemon.pid,
                                    '-o', out / 'perf.data'], 'perf-record'))
             else:
-                instruments.append(instrument(['perf', 'stat', '-vv', '-x,', '-e',
-                                   '{instructions:u,instructions:k,cycles:u,cycles:k}', '-p', daemon.pid,
+                instruments.append(instrument(['perf', 'stat', '-vv', '-x,',
+                                   *(['--no-scale'] if args.stat_events is not None else []), '-e',
+                                   args.stat_events or '{instructions:u,instructions:k,cycles:u,cycles:k}', '-p', daemon.pid,
                                    '-o', out / 'perf-stat.csv'], 'perf-stat'))
             for channel in instruments:
                 control(channel, 'enable')
