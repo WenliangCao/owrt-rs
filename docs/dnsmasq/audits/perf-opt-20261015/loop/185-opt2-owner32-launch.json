@@ -1,0 +1,24 @@
+{
+  "scope": "Original exact-SDK803 opt2/G owner32 after actual957/full SDK independent audit, all pretransfers and DNS final quiet; no native240.",
+  "pid": 976472,
+  "starttime_ticks": 186165714,
+  "epoch": 1792137039.933169,
+  "utc": "2026-10-16 07:50:39 UTC",
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs/run_185_opt2_owner32.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs/plan.json"
+  ],
+  "plan_sha256": "715d64768c4616c10ce41983b48f0d801f404b4da6807aed5e756cdd21dd6c31",
+  "controller_sha256": "3d887c8f0a8366f84aac7f98d3bc5644ac6ef91c4aa09e1867271bd6acac3b17",
+  "explicit_release_sha256": "f9533ce806a75c35b6475e88a5fa9b0b0f36e5b201f3a45684824d6ba59c4b28",
+  "final_metadata_sha256": "86307ea61be6ce9c15236d59ee0edc120f10a03f8f146bda891adc4125e5c306",
+  "windows": 32,
+  "stat_windows": 12,
+  "plain_windows": 20,
+  "no_measurement_retries": true,
+  "transfers_held_during_both_measurement_slots": true
+}

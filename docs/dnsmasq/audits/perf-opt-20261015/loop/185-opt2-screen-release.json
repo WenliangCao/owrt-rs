@@ -1,0 +1,101 @@
+{
+  "status": "QUIET_RELEASE_DNS_ACTUAL803_TO_OWNER32_AND_DEVICE10",
+  "epoch": 1792136867.3528123,
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "source_files_rehashed": 179,
+  "git_identity_sha256": "92dfd48474172faae3aa2bddffa80b3ce4a48e4f484ad3c0a040378feac70216",
+  "source_manifest_sha256": "163a1186fa1f022e5f5b3c4a8c6a9dbca08d0ecb05a0ff55bc5ee744d4246367",
+  "related_verified_sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
+  "actual_related_passed": 957,
+  "sdk_postflight_sha256": "6b3e3cdf4214607f37ca09330901fd0453681a4368d418d2ec311ce5852be81c",
+  "sdk_artifacts_rehashed": {
+    "build.json": {
+      "bytes": 50022,
+      "sha256": "718af94afbd124908a88b430d53494c072f3a052f23a0b2a70657fe133da8bc4"
+    },
+    "cargo-version.log": {
+      "bytes": 36,
+      "sha256": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503"
+    },
+    "compile.log": {
+      "bytes": 157937,
+      "sha256": "b7571884ada6d8daf8ff0aa15349d099273d89f2720738b5756a983b49ef39ad"
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "bytes": 1126646,
+      "sha256": "04c99c514a8990b5caaa6f9bf9c0da7161b2e1a8f593686876d651fe57d6403e"
+    },
+    "dnsmasq-prestrip": {
+      "bytes": 2048480,
+      "sha256": "270bff2d9eaca8e69b49609fc19421d240bde511edce036746018a5cc8613d7a"
+    },
+    "dnsmasq-rs": {
+      "bytes": 2046747,
+      "sha256": "2156c7f5f8eb22c64262e6f92939f36ec82b72e30fe2c732baed0993cc1cb3c5"
+    },
+    "extract.log": {
+      "bytes": 95,
+      "sha256": "5553f0025904af44a0da8d75805408f042c5aa0ef4c85081e18e2762d771b9a5"
+    },
+    "invalidate-product.log": {
+      "bytes": 1463,
+      "sha256": "ce6104bf687fc276d080bba05dc161f1cb4275bad6b035f80a0b50826129f44e"
+    },
+    "link.map": {
+      "bytes": 3032642,
+      "sha256": "13b5ccc9effd40d0588283c77004e96a569b3790799a48442c5e533ad04a0cbe"
+    },
+    "prepare.log": {
+      "bytes": 7239,
+      "sha256": "b10a59cd617855e351bdd35447555d95cf1f0018126fe85ea7ebe20f43baac6b"
+    },
+    "readelf.log": {
+      "bytes": 2788,
+      "sha256": "7e4065c511e034ecab4f28fde37f28cde3b2a83e4cc327930e2f704170fc5796"
+    },
+    "rustc-version.log": {
+      "bytes": 197,
+      "sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14"
+    }
+  },
+  "effective_profile2_verified": true,
+  "original_budget_passed": true,
+  "accepted_G_unchanged": true,
+  "research_including_exact_image_C": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "dependencies": {
+    "independent_actual_review": {
+      "status": "PASS",
+      "commit": "3ce1e7e5",
+      "related_report_sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
+      "SDK_report_sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2"
+    },
+    "loop_pretransfer_complete": true,
+    "loop_pretransfer": {
+      "local_path": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/185-opt2-owner32-preparation/pretransfer-receipt.json",
+      "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs/pretransfer.json",
+      "sha256": "b77cc84b863b9b3416dd57b10cc801776aa238114e7720c13b751af2337ba889",
+      "ready_metadata_pending_final_release": true
+    },
+    "device_pretransfer_complete": true,
+    "device_pretransfer": {
+      "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-opt2-codegen-device-stage-complete.json",
+      "sha256": "28baa946a11d628874534ba5e0360cabdf0c81c62276f8e03aa018becc2497e7",
+      "preflight_sha256": "ccef87fd59a75d9d64deb71bdae4287b7049facb97e65962fa78f074d24b07c6",
+      "health_summary_sha256": "02fa8c7587266238e0922dc9f0adc6f10cd850c966f957a72afb18787712878c",
+      "no_workload_started": true
+    },
+    "metadata_order": "Afterthisrelease,loopbinds/uploadsfinalready metadataandnotifiesDHCP; onlythenbothoriginalscreensmaystart. Noadditionalbulk."
+  },
+  "next_owners": [
+    "loop original exact-SDK owner32",
+    "DHCP original fresh G/803 device ten"
+  ],
+  "native240_excluded": true,
+  "DNS_stops_Oracle_access_after_this_handoff": true,
+  "next_1df_waits_for_803_measurement_and_audit_release": true
+}

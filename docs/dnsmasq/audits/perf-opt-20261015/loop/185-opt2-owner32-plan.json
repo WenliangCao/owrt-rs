@@ -1,5 +1,5 @@
 {
-  "scope": "Actual803 opt2 SDK UDP owner32 versus frozen G185; original32 protocol. Bound actual SDK and957 gate; not ready until actual independent audit, pretransfer and explicit quiet release.",
+  "scope": "Original exact-SDK803 opt2 UDP owner32 versus frozen G185, after actual957/SDK independent audit, both pretransfers and explicit DNS quiet release; no full acceptance claim.",
   "declared_plan_commit": "b1efce28",
   "declared_plan_sha256": "ef482f589f68447d0894c987c38d3ebf994a0bcb9eb4285cbd7053c9ebc3d3da",
   "candidate_commit": "8035114257c8706047d2038c2bb8126391331925",
@@ -420,9 +420,9 @@
   "workload": "original driver: 800 names, A/AAAA70/30,1000 full prewarm,5s warmup+20s measured+1s drain; low200/s and highunpaced",
   "placement": "Original controller/driver CPU0 nice0; daemon CPU2 absolute nice10; original upstream/client placement unchanged",
   "analysis": "Original actual warmup+measurement N CPU/PMU denominator, 20s measurement throughput/latency; grouped unscaled same-window user/kernel instructions/cycles. Low original >8tick/W/direction; high variable-N pipeline diagnostic with no invented precision pass.",
-  "reservation": "Actual artifact/source binding only. DNS owns host. Both owner inputs and all device artifact pretransfers complete before DNS final quiet release. No native240. Execute original32 only after actual independent audit and release are bound.",
+  "reservation": "Exclusive Oracle owner32 slot explicitly released by DNS. Original32 only; no native240, bulk transfer, measurement replacement or unrelated builds during timing.",
   "failure_policy": "Retain every failed/partial original window and stop; no replacements, selective reruns or historical E/G controls pooled.",
-  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
+  "status": "FROZEN_EXACT_SDK_READY_AFTER_EXCLUSIVE_SLOT_RELEASE",
   "artifact_transfer": {
     "candidate_elf_bytes": 2046747,
     "local_three_hashes_verified": {
@@ -488,9 +488,14 @@
     "path": "correctness/185-opt2-owner32-actual-binding-root-review.json",
     "sha256": "31e117a742c4013ebf98be50c79afcb793ea1f238656b0c16809adb50b4a2509"
   },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "execution_enabled": false,
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/185-opt2-execution-20261016/release-to-measurements.json",
+    "sha256": "f9533ce806a75c35b6475e88a5fa9b0b0f36e5b201f3a45684824d6ba59c4b28",
+    "epoch": 1792136867.3528123,
+    "scope": "Actual803 DNS final quiet handoff after both complete pretransfers; original owner32 and separate device10 only."
+  },
+  "pretransfer_complete": true,
+  "execution_enabled": true,
   "protocol_preparation_review": {
     "commit": "0f43a8d1",
     "path": "loop/185-opt2-owner32-preparation-independent-review.json",
@@ -500,5 +505,13 @@
   "owner_input_pretransfer": {
     "path": "loop/185-opt2-owner32-pretransfer.json",
     "sha256": "b77cc84b863b9b3416dd57b10cc801776aa238114e7720c13b751af2337ba889"
+  },
+  "pretransfer_inputs_archive_sha256": "0a8bc1ca7530de70476d07f35c8211201b32e1ca5d7bb478645aa8869aa97c99",
+  "device_pretransfer": {
+    "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-opt2-codegen-device-stage-complete.json",
+    "sha256": "28baa946a11d628874534ba5e0360cabdf0c81c62276f8e03aa018becc2497e7",
+    "preflight_sha256": "ccef87fd59a75d9d64deb71bdae4287b7049facb97e65962fa78f074d24b07c6",
+    "health_summary_sha256": "02fa8c7587266238e0922dc9f0adc6f10cd850c966f957a72afb18787712878c",
+    "no_workload_started": true
   }
 }
