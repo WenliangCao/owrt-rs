@@ -643,7 +643,8 @@ K ELF f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08，2296611
 APK1296161B，caps与实际smoke/硬化通过。原shipping/source边界通过，44/67仍在执行；
 J118与K尚未最终接受，I仍为已接受回退。原成功门和检查缓存均复用。
 
-主代理新增一次非计时诊断c541540a，沿已有whole-owner分配计数器，K诊断源码的singleton
+主代理新增一次非计时诊断c541540a，沿已有owner分配计数器，范围为完整`step_udp`的接收/
+处理/发送及其析构，不含wait/control工作；K诊断源码的singleton
 路径与J相同，公开七规则、单fresh A、各20warm+200计数。plain/AD/CD/AD+CD/空OPT/
 AD+CD+空OPT六形状各D1开关，共12窗，全部0alloc/dealloc/realloc/bytes。普通路径每查询
 3次general name walk、4次encoded skip；空OPT为3/8；只有plain+D1为0/0/1次plain scan。
@@ -655,4 +656,8 @@ d1-count/flag-shape-release.log` SHA c1e63e8b2cb0e6a3ab1ded4143813c52ab0a1a9587e
 服务于普通fresh路径；不能按D1覆盖率折减整个J的27.07µs收益。备用原型的价值主要待验证于
 少走解析/入口及减小触碰范围。下一步固定600秒被动真实UDP样本决定扩面优先级，再决定
 是否对其单独测量；DO仍保留原有转发/LRU语义。采样工具24f8c9bc仅输出聚合，已过131072
-flags/OPT组合、24个cBPF分支及ASan/UBSan，实际隔离Linux验证和设备样本仍待完成。
+flags/OPT组合、24个cBPF分支及ASan/UBSan。原SDK构建后在隔离Linux veth首次实际采样：
+16个合成发送精确得到8条查询、固定health名排除1、AD2/CD2/OPT4/空OPT3/DO1；IPv6 HBH
+可通过过滤，非53/非本机目的/出站不进入查询，TCP仅2段/1载荷段，0drop/0收包错误。
+验证依据`query-shape-validation-20261017.json`（48ee9645），helper ELF392264B、SHA
+0eab970fd8f27846167c4f8df98ffccfec9582001e7768048175c7bc63698101；设备真实样本仍待完成。
