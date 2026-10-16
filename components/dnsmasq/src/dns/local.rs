@@ -1895,6 +1895,47 @@ mod tests {
     use crate::config::{lex_line, validate_directive};
 
     #[test]
+    fn borrowed_domain_match_preserves_frozen_binary_and_wildcard_semantics() {
+        // The pre-4cd1d7c6 predicate is the independent reference. In
+        // particular, compare escaped names rather than unescaped dotted keys.
+        let previous = |name: &Name, pattern: &DomainPattern| {
+            if !pattern.dotless && pattern.suffix.is_empty() { return true; }
+            let query = name.dnsmasq_bytes().to_ascii_lowercase();
+            let suffix = pattern.suffix.to_ascii_lowercase();
+            if pattern.dotless && (query.is_empty() || query.contains(&b'.')) { return false; }
+            if suffix.is_empty() { return true; }
+            if pattern.wildcard {
+                (if pattern.wildcard_dot { query.len() > suffix.len() }
+                 else { query.len() >= suffix.len() }) && query.ends_with(&suffix)
+            } else {
+                query == suffix || (query.len() > suffix.len() && query.ends_with(&suffix)
+                    && query[query.len() - suffix.len() - 1] == b'.')
+            }
+        };
+        let mut config = DnsConfig::default();
+        for directive in ["local=//", "local=/#/", "local=/TEST/", "local=/*test/",
+                          "local=/*.test/", "local=/*./", "local=/.test/", "local=/aZ/"] {
+            apply(&mut config, directive.as_bytes());
+        }
+        let mut names = vec![Name::root(), Name::from_ascii("test").unwrap(),
+            Name::from_ascii("badTEST").unwrap(), Name::from_ascii("x.TeSt").unwrap()];
+        for byte in 0..=255 {
+            for suffix in [false, true] {
+                let mut wire = vec![3, b'a', byte, b'Z'];
+                if suffix { wire.extend_from_slice(b"\x04TeSt"); }
+                wire.push(0);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        for name in names {
+            for rule in &config.rules {
+                assert_eq!(matches_domain(&name, &rule.domain), previous(&name, &rule.domain),
+                    "name={:?} pattern={:?}", name.as_wire(), rule.domain);
+            }
+        }
+    }
+
+    #[test]
     fn query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names() {
         let mut names = vec![Name::root(), Name::from_ascii("MiXeD.Example.").unwrap()];
         for byte in 0..=255 {
