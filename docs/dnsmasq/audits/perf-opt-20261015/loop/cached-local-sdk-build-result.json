@@ -1,0 +1,185 @@
+{
+  "status": "TWO_SDK_BUILDS_AND_ACCEPTED_E_IDENTITIES_VERIFIED",
+  "verified_utc": "2026-10-16T00:29:55.199497+00:00",
+  "state": {
+    "scope": "Two independent exact cached-local prototypes; original SDK recipe, canonical slot/target and budgets; gates and hot250 postflight released before launch",
+    "controller_pid": 633295,
+    "epoch": 1792110394.542794,
+    "builds": [
+      {
+        "name": "cached-local-miss",
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-miss",
+          "--commit",
+          "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+          "--epoch",
+          "1792108823",
+          "--sdk",
+          "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-miss",
+          "--cargo",
+          "/home/ubuntu/.cargo/bin/cargo",
+          "--build-slot",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+          "--cargo-target",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+        ],
+        "pid": 633296,
+        "started_epoch": 1792110394.5450897,
+        "returncode": 0,
+        "finished_epoch": 1792110479.5415864,
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2140955,
+            "sha256": "36e4cdde1fd0ea25d55599a37cf8fc7eb78e933c953b719c8a09af715d1b1b3f"
+          }
+        ],
+        "link_map": {
+          "path": "link.map",
+          "sha256": "0ab38b1002501c5aa7d8383bd42761bbc0c5181c469b99ebe1374ac9c97a4bf9"
+        },
+        "receipt_sha256": "2d8d21b716331c68e9446b87c1dea1f32f80765232c71d9bb5ffb906fb619f41"
+      },
+      {
+        "name": "cached-local-name",
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name",
+          "--commit",
+          "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+          "--epoch",
+          "1792109501",
+          "--sdk",
+          "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name",
+          "--cargo",
+          "/home/ubuntu/.cargo/bin/cargo",
+          "--build-slot",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+          "--cargo-target",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+        ],
+        "pid": 636123,
+        "started_epoch": 1792110479.5557055,
+        "returncode": 0,
+        "finished_epoch": 1792110564.6401715,
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2140955,
+            "sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff"
+          }
+        ],
+        "link_map": {
+          "path": "link.map",
+          "sha256": "b9a67ea66d81d3141e2ee8a4ffc5f0b860ef92177a5d96a15ada55739bfab96f"
+        },
+        "receipt_sha256": "972a6f3c1b9d6121fef854d18cae24bc12be776b097e96d21b843571fe1b2165"
+      }
+    ],
+    "qualifications": {
+      "cached-local-miss": {
+        "source_commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+        "identity_sha256": "dad7c90634cc482b3b95ad8ca5a05068a75a0bdb1b81a9c0a041421cb074f390",
+        "gate_receipt_sha256": "cb9ceed13e8e9441a8b3465cd51af23bb67c80fd2405df9b26f2b6a72aac2fa4",
+        "related_test_passes": 938
+      },
+      "cached-local-name": {
+        "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+        "identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
+        "gate_receipt_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea",
+        "related_test_passes": 939
+      }
+    },
+    "complete": true
+  },
+  "state_sha256": "f0d62b815afe32e207402d8c1523712d66344ffe5954511a2abee2d216d824c5",
+  "controller_exited": true,
+  "controller_stderr_bytes": 0,
+  "sdk_lock_available": true,
+  "artifacts": {
+    "cached-local-miss": {
+      "source_commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-miss",
+      "bytes": 2140955,
+      "elf_sha256": "36e4cdde1fd0ea25d55599a37cf8fc7eb78e933c953b719c8a09af715d1b1b3f",
+      "map_sha256": "0ab38b1002501c5aa7d8383bd42761bbc0c5181c469b99ebe1374ac9c97a4bf9",
+      "build_receipt_sha256": "2d8d21b716331c68e9446b87c1dea1f32f80765232c71d9bb5ffb906fb619f41",
+      "source_files_rehashed": 179,
+      "within_existing_budget": true,
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "recipe_restored": true
+    },
+    "cached-local-name": {
+      "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name",
+      "bytes": 2140955,
+      "elf_sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
+      "map_sha256": "b9a67ea66d81d3141e2ee8a4ffc5f0b860ef92177a5d96a15ada55739bfab96f",
+      "build_receipt_sha256": "972a6f3c1b9d6121fef854d18cae24bc12be776b097e96d21b843571fe1b2165",
+      "source_files_rehashed": 179,
+      "within_existing_budget": true,
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "recipe_restored": true
+    },
+    "e": {
+      "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e",
+      "bytes": 2136859,
+      "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "map_sha256": "cbf8655450a025a51be7a3c8630fa84ff48aba5ca5c641a9a3f53fd0bf4637fd",
+      "build_receipt_sha256": "ec4becb104e5ba2be6431eebbbed871016d974344a060a5c9a2e31cea1660cc3",
+      "source_files_rehashed": 179,
+      "within_existing_budget": true,
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "recipe_restored": true
+    }
+  },
+  "performance_acceptance": false,
+  "deployment": false,
+  "scope": "Two independent original SDK artifacts plus immutable accepted E identity; all source/artifact/budget/hardening checks passed, no qualification or speed claim"
+}
