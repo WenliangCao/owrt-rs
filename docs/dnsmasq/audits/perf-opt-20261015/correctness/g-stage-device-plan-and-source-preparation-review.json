@@ -1,0 +1,131 @@
+{
+  "schema": "g-stage-device-plan-and-source-preparation-independent-review-v1",
+  "status": "PASS_LOCAL_ORIGINAL_FIFTY_WINDOW_PROTOCOL_AND_EXACT_G_STAGE_SOURCE_ARCHIVE_PENDING_ACTUAL_GATES_SDK",
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "device_plan_sha256": "a7bbb0752a5f874c5e30e217c414840f58c03e395d4112ae3a071f0096794f9c",
+  "original_E_device_plan_sha256": "6b403edb27d555de7588504a68acc4bc6206c6c677baaeee792b5c1c191ed30c",
+  "original_five_groups_and_50_alternating_windows_preserved_with_E_control_replaced_by_G": true,
+  "unchanged_workload_measurement_artifacts_EF_restore_slots_controller_analyzer": true,
+  "stage_report_comparisons_set_slots_byte_identical_to_original_reviewed_E_runner": true,
+  "schedule_identical_except_previously_generic_PREFIX_label": true,
+  "current_shared_runner_and_capture_boundary_health_helper_match_recent_reviewed_device_runs": true,
+  "entry_only_configures_prefix_roles_experiment_and_five_group_bindings": {
+    "PREFIX": "a53-g-stage",
+    "ARTIFACT_ROLES": [
+      "e",
+      "exact-c",
+      "f",
+      "g",
+      "stage"
+    ],
+    "EXPERIMENT_ROLE": "stage",
+    "GROUPS": [
+      [
+        "exact-c-vs-g",
+        [
+          "exact-c",
+          null
+        ],
+        [
+          "g",
+          null
+        ]
+      ],
+      [
+        "g-vs-stage-full",
+        [
+          "g",
+          null
+        ],
+        [
+          "stage",
+          "full"
+        ]
+      ],
+      [
+        "stage-full-vs-receive",
+        [
+          "stage",
+          "full"
+        ],
+        [
+          "stage",
+          "receive"
+        ]
+      ],
+      [
+        "stage-full-vs-before-answer",
+        [
+          "stage",
+          "full"
+        ],
+        [
+          "stage",
+          "before-answer"
+        ]
+      ],
+      [
+        "stage-full-vs-skip-local",
+        [
+          "stage",
+          "full"
+        ],
+        [
+          "stage",
+          "skip-local"
+        ]
+      ]
+    ]
+  },
+  "one_immutable_stage_ELF_for_all_four_modes": true,
+  "five_immutable_artifacts_and_EF_restore_only": true,
+  "original6000matched_1000prewarm_5000cut_contract_and_strict_CPU_W_direction_preserved": true,
+  "source_peer_commit": "f9abcc95",
+  "source_peer_sha256": "a9f4238131b0c530b15156c8c9123f1c4ac309beda52c8a786be4a0d0f72c8dc",
+  "source_manifest_sha256": "ebe3a081f74af97d29f2df1a24e32f38684a65c5100dabe29ae8d49f4af1934c",
+  "source_git_identity_sha256": "912d626581d2d2595ffc50849eba93a4eeb97bb17f7bc12cc219b991c94237e0",
+  "SDK_source_files_verified": 180,
+  "full_source_archive_sha256": "84f2ee03d5d8b59845a33febc321323ecf38c41e63ea976e186189dc5b376579",
+  "all4097_Git_blobs_and_modes_plus_identity_verified": true,
+  "source_archive_bytes": 20721161,
+  "retained_local_archive_mode_failure": {
+    "receipt_sha256": "8feddd3c88380d821ad5f23f9ff768f37dc5a03342a973c6dcfebe0e677749f3",
+    "failed_archive_sha256": "943bf54ebd315e0c86cf6d1b60be96f2a79d7e23d8f0c7a5bb152d2a868819a3",
+    "failed_archive_bytes": 229,
+    "record": {
+      "stage": "Local source archive preparation beforeremoteaction",
+      "error": "git archive default outputmode0664 differs from Git tracked100644; first mode assertion stopped with partial229B archive.",
+      "failed_archive_sha256": "943bf54ebd315e0c86cf6d1b60be96f2a79d7e23d8f0c7a5bb152d2a868819a3",
+      "failed_archive_bytes": 229,
+      "correction": "Emit eachregularfile withtheexact Git mode0644/0755 and verifybytes againstGitblob. Directorymetadata normalized0755; no sourcecontent change.",
+      "remote_accessed": false,
+      "tests_or_builds_run": false,
+      "epoch": 1792146051.36405
+    }
+  },
+  "actual_G_stage_private_bundle_hashes_match_plan": true,
+  "actual_gate_counts": null,
+  "actual_SDK": null,
+  "execution_enabled": false,
+  "scope_limits": [
+    "Preparation/identity review only; actualthree originalLinux selectioncounts andnames remainauthoritative. Do not inheritE86orG961 counts.",
+    "Currentsharedrunner includes alreadyreviewed pre-stop capture-boundary health handling; this reviewdoesnotclaimitsentirefileidentical toolderE beforethatfix. Measurement/sidecar/statistic/slotfunctions areexact; scheduleonlyusesgenericPREFIXinlabel.",
+    "Sourcea34before-answer preservesGbuffer take/clear/reserve/send/recycle per f9sourcepeer; no measuredallocationzeroornewallocationgate inferred.",
+    "Full calibration andeachcutretain ownfullcontemporaneouscontrols. SyntheticTTL/writer/cache/layout/branch/frame interventionsarecumulative, not additivefunctionprices oracceptedproductperformance.",
+    "No operatorimports/execution, tests, builds, Oracle/routeraccess, metadatafakevalues, newcomparators orframeworks."
+  ],
+  "reviewer_initial_assumption_correction": "Initial exactfunctioncomparison stopped on schedule label change from literal a53-stage to existing PREFIX parameter. Retained script/stderr; explicitly normalized only that label token. No protocol or measurement rule changed or rerun. Secondassumption comparedcurrentworking controller/health files; thesehaveadvanced whiletheplannedG-stageprivatebundle ishash-pinned. Switchedverification toactualG-stagebundle andprovedexactsamefourfilesasprecedingreviewed5c bundle; retainedattempt2script/stderr.",
+  "reviewer_script_sha256": "10e654ecf506865f7abde95517e6e5ce78066dcc11900cdfd9ae94db0795be27",
+  "original_related_runner_slice": {
+    "status": "PASS_LOCAL_IDENTITY_ONLY_ADAPTATION_AND_ORIGINAL_BUILD_PLUS_THREE_SELECTIONS",
+    "preparation_commit": "77563850",
+    "manifest_sha256": "cddb9c52ac486a1a150102f659efcda7dd8ab31ae7264daf27abadfbee303a89",
+    "original_runner_sha256": "257e714b0b2699509ca57e73ecdcc0d249e618afa0c2af79bf339a2890d6120e",
+    "adapted_runner_sha256": "2ef11c6b8bfe169e167007e795a4b84fb147e4fef39764f276e2eafb0e216346",
+    "commands_sha256": "a7fc373706e1cd31e0bf04ac5db9aa048f6d2e4887cb2f95204cd6e4c151c5bb",
+    "all_declared_replacements_and_occurrences_exact": true,
+    "original_build_and_three_gate_argv_exact_except_source_output_paths": true,
+    "actual_counts": null,
+    "no_full_lib_allocation_or_hosts_repair_added": true
+  }
+}
