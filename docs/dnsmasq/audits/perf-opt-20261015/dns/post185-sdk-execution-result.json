@@ -1,0 +1,408 @@
+{
+  "schema": "post185-serial-sdk-result-v1",
+  "status": "BUILT_ORIGINAL_CONTROLS_VERIFIED_DOWNLOADED_AWAITING_INDEPENDENT_REVIEW_AND_TIMING",
+  "scope": "Original7c allocation diagnostic and6ab combined product experiment only. No performance timing, router access or deployment by DNS.",
+  "preparation_commit": "2624a40b",
+  "plan_sha256": "3489608499a712c5a8fe513c0ccab05e5e35c1e1f3f33d7a18ae64526f0d578f",
+  "controller_sha256": "f20dac99e192853f75e3991b91aa5b0f40d60eaa61fd2ae580be0300b646a615",
+  "postflight_tool_sha256": "ef6c5db081fc1eda1a4768c8cc5a20e121a864f484537e0ca1bbc3a32f5bec5f",
+  "launcher": {
+    "source": "private/perf-opt-20261015/post185-sdk-preparation/execution/launch-command.py",
+    "sha256": "698d6b81b44e174709e7021d0b2fe946cdcd2ccf0ebeea1accab093e73f9f3eb",
+    "receipt_sha256": "d3cf7c93e28d1cab56c0c7887414ac50d826c9755ba065622ddf0cafb0f66b37"
+  },
+  "builder": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+    "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
+  },
+  "related_gate": {
+    "commit": "4e6446e4",
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255"
+  },
+  "commands": [
+    {
+      "name": "cached-zero-frame-allocation-sdk",
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame-allocation",
+        "--commit",
+        "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+        "--epoch",
+        "1792119139",
+        "--sdk",
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame-allocation",
+        "--cargo",
+        "/home/ubuntu/.cargo/bin/cargo",
+        "--build-slot",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+        "--cargo-target",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+      ],
+      "cwd": null,
+      "pid": 822121,
+      "started_epoch": 1792126463.520185,
+      "returncode": 0,
+      "finished_epoch": 1792126549.1764712,
+      "stdout_sha256": "418d089d50098435af223b9eae7f22024389b52eb7a1cf46490c6b62235c8910",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "meter-rustc-version",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/rustc",
+        "-vV"
+      ],
+      "cwd": null,
+      "pid": 824958,
+      "started_epoch": 1792126549.2039034,
+      "returncode": 0,
+      "finished_epoch": 1792126549.2177584,
+      "stdout_sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "meter-control-build",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/rustc",
+        "--edition=2021",
+        "-O",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame-allocation/tools/dnsmasq/udp_allocation_meter_check.rs",
+        "-o",
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/meter-check"
+      ],
+      "cwd": null,
+      "pid": 824964,
+      "started_epoch": 1792126549.2187495,
+      "returncode": 0,
+      "finished_epoch": 1792126549.6385005,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "fcdf690b1f8e88d558ba84041165a8eda98d7b1dbc6b9f9d45f54f9875fa9ef3"
+    },
+    {
+      "name": "meter-control-run",
+      "argv": [
+        "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/meter-check"
+      ],
+      "cwd": null,
+      "pid": 824980,
+      "started_epoch": 1792126549.6395562,
+      "returncode": 0,
+      "finished_epoch": 1792126549.6411998,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "meter-parser-controls",
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_udp_allocation_device_run",
+        "-v"
+      ],
+      "cwd": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/post185-sdk-execution-20261016/meter-tools",
+      "pid": 824981,
+      "started_epoch": 1792126549.6422057,
+      "returncode": 0,
+      "finished_epoch": 1792126549.724541,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7bfb06645cd17958a0c76febba65dd2b1ecd0b401b558152fc210bc58f615dd6"
+    },
+    {
+      "name": "post185-combined-sdk",
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+        "--commit",
+        "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+        "--epoch",
+        "1792121293",
+        "--sdk",
+        "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-post185-combined",
+        "--cargo",
+        "/home/ubuntu/.cargo/bin/cargo",
+        "--build-slot",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+        "--cargo-target",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+      ],
+      "cwd": null,
+      "pid": 824982,
+      "started_epoch": 1792126549.7313857,
+      "returncode": 0,
+      "finished_epoch": 1792126631.990574,
+      "stdout_sha256": "041cb9b0d014ab73d326d07324af4cc7622e7bf11d6b42e4e14e72852ee860de",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "builds": [
+    {
+      "name": "cached-zero-frame-allocation",
+      "source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+      "source_files_verified": 180,
+      "source_manifest_sha256": "1824abc57eb69f6ba3dfd9ee5e4b7622fba119d24a18ce115084d1be72969249",
+      "git_identity_sha256": "632070df0957f5b8589aa1a17eca4f9f87a906b0b2b2769c79f6cf44a9f6d90d",
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame-allocation",
+      "files": {
+        "build.json": {
+          "bytes": 44180,
+          "sha256": "ac70dfed94ff3104affbcf72237a7e7f85e2c2327e9af850f60ac0f16daf410a"
+        },
+        "cargo-version.log": {
+          "bytes": 36,
+          "sha256": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503"
+        },
+        "compile.log": {
+          "bytes": 153339,
+          "sha256": "e734e74a18e9eed62fda7b92ead2e3dc731754bfa3d8d8123d059083477f9977"
+        },
+        "dnsmasq-2.93-r4.apk": {
+          "bytes": 1264206,
+          "sha256": "0b1dfce0aab3c480593ac1ec9ca960e43ed761ebd1dd1c72c4a4b592d9d17960"
+        },
+        "dnsmasq-prestrip": {
+          "bytes": 2367968,
+          "sha256": "995f44b96fd8cc7e6177665616c6ccce9377e108aa51dafe843303ec41761330"
+        },
+        "dnsmasq-rs": {
+          "bytes": 2366235,
+          "sha256": "92ba1353bae3676771e417d2410eb7d642705a8ba86dd8b38a08f941807c21a5"
+        },
+        "extract.log": {
+          "bytes": 115,
+          "sha256": "bf2da5d36d8be35c1e47b1dfd5c72e13216ef9c11ada016593192da4f6b68d8d"
+        },
+        "invalidate-product.log": {
+          "bytes": 37,
+          "sha256": "a93efe9c6e3e5cd16e90a7ee3afdc2af73731dc58d4a51977f976b4ca20dcd65"
+        },
+        "link.map": {
+          "bytes": 3039440,
+          "sha256": "c06f68a763be3adbd4646d817bf902d4e6967b790b2320646282677f172208c8"
+        },
+        "prepare.log": {
+          "bytes": 7380,
+          "sha256": "0ba0a94ff281c40383a740c9bac957d1d86c8d275cd4d824b724ada8cec9b9da"
+        },
+        "readelf.log": {
+          "bytes": 2788,
+          "sha256": "85b43920ff7c29c980bce2db6e44467f4d49d7e4f8c76d0d46abaad83bea1ece"
+        },
+        "rustc-version.log": {
+          "bytes": 197,
+          "sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14"
+        }
+      },
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "budget": {
+        "elf_max_bytes": 2200000,
+        "apk_max_bytes": 1200000
+      },
+      "within_existing_budget": false,
+      "budget_scope": "diagnostic descriptive/excluded",
+      "sdk_inputs_unchanged": true,
+      "sdk_recipe_restored": true,
+      "sdk_recipe_backup_absent": true,
+      "sdk_recipe_current_files": {
+        "Makefile": "be342e2ce19feca34789322644c3938e97c8b70dd238720c47d10cb81887fd7b",
+        "README.md": "977e2372dae8927a5dce8557b73aede00193d017b386acdc46b49e28cb21cbfc"
+      },
+      "sdk_recipe_restore_basis": "Unchanged canonical helper completed its finally restore; current files recorded, no pre-build recipe hash snapshot asserted."
+    },
+    {
+      "name": "post185-combined",
+      "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+      "source_files_verified": 179,
+      "source_manifest_sha256": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+      "git_identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+      "remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-post185-combined",
+      "files": {
+        "build.json": {
+          "bytes": 43968,
+          "sha256": "3d77809b0552a91f384248b9cc21aba17fab0d1d0776f2d401becc27d4e0859c"
+        },
+        "cargo-version.log": {
+          "bytes": 36,
+          "sha256": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503"
+        },
+        "compile.log": {
+          "bytes": 153179,
+          "sha256": "744c14cd2c6334febbe6e8297c4d4f059f92acf18828e84704ca6eae9038cc8b"
+        },
+        "dnsmasq-2.93-r4.apk": {
+          "bytes": 1167196,
+          "sha256": "37b2be86f7bd6955078400dbf089bb8e996a9a5705e86241774dbea56890fb76"
+        },
+        "dnsmasq-prestrip": {
+          "bytes": 2146784,
+          "sha256": "446a1563fe67ca4fbb15a652fd514ede164059e1ca91de2d230d93c0ec74fee2"
+        },
+        "dnsmasq-rs": {
+          "bytes": 2145051,
+          "sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288"
+        },
+        "extract.log": {
+          "bytes": 103,
+          "sha256": "4316090e360c07bf107a4472e0503177a9a5df31dbd41ba0893e59634803b535"
+        },
+        "invalidate-product.log": {
+          "bytes": 37,
+          "sha256": "dc3e6f04294c58c14c5c9778b3cf0b812da8b0f29ebad04d760e3b394888265a"
+        },
+        "link.map": {
+          "bytes": 3023894,
+          "sha256": "3c92b784b606b5eb50a968e8605b6e88d17d04436a25dfec3fd6e2cdf4698cf5"
+        },
+        "prepare.log": {
+          "bytes": 7295,
+          "sha256": "09915a7c8df20186e0c709b3a904bd518a850683ffc11a1cc607a9f5d424d981"
+        },
+        "readelf.log": {
+          "bytes": 2788,
+          "sha256": "48ed5c21ebbbefa7988301dc7191c16fdc3476650d2fc6ec420d45a373fef1a3"
+        },
+        "rustc-version.log": {
+          "bytes": 197,
+          "sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14"
+        }
+      },
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "budget": {
+        "elf_max_bytes": 2200000,
+        "apk_max_bytes": 1200000
+      },
+      "within_existing_budget": true,
+      "budget_scope": "original product budget",
+      "sdk_inputs_unchanged": true,
+      "sdk_recipe_restored": true,
+      "sdk_recipe_backup_absent": true,
+      "sdk_recipe_current_files": {
+        "Makefile": "be342e2ce19feca34789322644c3938e97c8b70dd238720c47d10cb81887fd7b",
+        "README.md": "977e2372dae8927a5dce8557b73aede00193d017b386acdc46b49e28cb21cbfc"
+      },
+      "sdk_recipe_restore_basis": "Unchanged canonical helper completed its finally restore; current files recorded, no pre-build recipe hash snapshot asserted."
+    }
+  ],
+  "original_controls": {
+    "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "binary_sha256": "c36404c986c1afe4ff65b95514f4dda709a3ee281f3bc77a97026637ec9be1d7",
+    "report_sha256": "2b3f4a07c56a4f0269b00597be00821f0aa5c30d975b687f718a00d5a7ff87e8",
+    "original_json_equal": true,
+    "original_parser_tests_passed": 4,
+    "scope": "Original standalone host GlobalAlloc controls only; no musl SDK timing/size inference."
+  },
+  "quiet_postflight": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/execution/downloaded/remote-execution/postflight.json",
+    "sha256": "3ec8ca2c030e07814db881d0f2420806db9fcd98366d26904bb0f6ecb514fee6",
+    "epoch": 1792126706.213813,
+    "controller_exited": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "sdk_background_services": [
+      {
+        "pid": 564010,
+        "state": "S",
+        "ppid": 1,
+        "cpu_ticks": 0,
+        "args": "/usr/libexec/qemu-binfmt/x86_64-binfmt-P /home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/../lib/ld-linux-x86-64.so.2 /home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/../lib/ld-linux-x86-64.so.2 --library-path /home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/../lib/ /home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/.faked.bin "
+      }
+    ]
+  },
+  "download": {
+    "status": "IMMUTABLE_DOWNLOADED_BYTES_REHASHED",
+    "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/execution/immutable-sdk-results.tar.gz",
+    "archive_sha256": "4aa8e193bc55136c2785020290508d51320e0f0a4c58b42392a70a717d4e4235",
+    "archive_bytes": 8557789,
+    "files_verified": 46,
+    "manifest_sha256": "1e23a6006b6698703100a52ff56282d2f6cd2d7d51e7a7ab6260b2076c72cde3",
+    "postflight_sha256": "3ec8ca2c030e07814db881d0f2420806db9fcd98366d26904bb0f6ecb514fee6",
+    "root": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/execution/downloaded"
+  },
+  "setup_and_review_failures": [
+    {
+      "stage": "local source archive preparation",
+      "cause": "Two executable Git paths were initially archived as mode0644.",
+      "evidence": "private/perf-opt-20261015/post185-sdk-preparation/allocation-source-archive.json",
+      "sha256": "9b4acb97a36f644a1c8c02e06281a155dec4fc8dcf3ceed3bafa379130618637",
+      "executed_builds": 0,
+      "resolution": "Original local-only archive retained; corrected archive modes matched Git before upload."
+    },
+    {
+      "stage": "launcher attempt1",
+      "cause": "SHA helper called read_bytes on str path.",
+      "evidence": "private/perf-opt-20261015/post185-sdk-preparation/execution/attempt1-prelaunch.stderr",
+      "sha256": "289fb0b80aa5b3405890aa6e5fcc845e36596a765d6628471d406bc67ea263e1",
+      "executed_builds": 0,
+      "resolution": "Only launch helper normalized paths with Path; controller and plan unchanged."
+    },
+    {
+      "stage": "launcher attempt2",
+      "cause": "Overbroad SDK-path process scan matched pre-existing idle SDK fakeroot daemon.",
+      "evidence": "private/perf-opt-20261015/post185-sdk-preparation/execution/attempt2-prelaunch.stderr",
+      "sha256": "f54955803e3c31aaf9383bdfbde4b8bc98182b24c96c4f1e12e1655937d5524a",
+      "executed_builds": 0,
+      "resolution": "Used correctness original research/exact-C predicates; additionally identified daemon564010 sleeping PPID1 no children CPUticks0. Retained it untouched."
+    },
+    {
+      "stage": "postflight attempt1",
+      "cause": "Reviewer incorrectly required restored SDK recipe to be absent; the original helper restores existing recipes.",
+      "evidence": "private/perf-opt-20261015/post185-sdk-preparation/execution/attempt1-postflight-command.stderr",
+      "sha256": "56e3701aaefdb927e2b5df5d3434ca2283442b06fdc514841ff1d2ff32496ffa",
+      "script_sha256": "630f051803582ca1d627c82b4379e67f6da6dd3dcb4f3667036e8a58df48d828",
+      "repeated_builds": 0,
+      "resolution": "Retained failure and source; verify canonical finally restoration, backup absence and unchanged SDK inputs; record current recipe files without inventing a before-hash snapshot."
+    },
+    {
+      "stage": "local archive extraction attempt1",
+      "cause": "Local Python does not support tarfile.extractall(filter=...).",
+      "evidence": "private/perf-opt-20261015/post185-sdk-preparation/execution/download-local-extraction-attempt1.json",
+      "sha256": "92d8220b2884024e8abaf499cc1e17b97d7fd30dfa7400cb9ba8f9c2de0e3de9",
+      "repeated_builds": 0,
+      "resolution": "Reused downloaded archive; rechecked regular-file paths/content and exclusively wrote each file, then rehashed 46 files. No second download or remote rerun."
+    }
+  ],
+  "accepted_G_unchanged": true,
+  "runtime_hardening_verified": false,
+  "performance_timing_started": false,
+  "qualification": "Both SDK outputs remain built-unqualified.7c exceeds both original budgets and is excluded diagnostic only;6ab fits original budgets but has no new performance/full-compatibility result.",
+  "next_queue": "After independent SDK audit and pretransfer, explicit quiet release to loop originalnative240 thenowner32, then correctness originalfull44/67 plus boundaries. Router independently count3 thenG/6abten under DHCP gates. No rebuild of these SDKs."
+}
