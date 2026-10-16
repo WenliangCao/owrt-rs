@@ -35,7 +35,7 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "ACTUAL803 SDK179/957 LOCAL VERIFICATION COMPLETE; independentactualaudit andDNS finalquiet pending; no device action",
+  "status": "ACTUAL803 SDK957 AND INDEPENDENT REVIEWS BOUND; originalfreshhealth/preflight/fourcopy staging next, thenDNSquiet beforeten",
   "scope": "Independent freshG185/803 opt-level2 UDP-hit A53ten exploratory comparison. Shipping compilerprofile is the only product variable; knowncfg(test) hostsfixture repair is separately recorded. Not fullqualification or deployment.",
   "source_commit": "8035114257c8706047d2038c2bb8126391331925",
   "forbidden_substitution": "Only exact803 source and actual independentlyreviewedopt2 SDK. Never6ab,210,a15,instrumentedcountELF orcombinedsource.",
@@ -46,7 +46,7 @@
   "elf_bytes": 2046747,
   "map_sha256": "13b5ccc9effd40d0588283c77004e96a569b3790799a48442c5e533ad04a0cbe",
   "build_receipt_sha256": "718af94afbd124908a88b430d53494c072f3a052f23a0b2a70657fe133da8bc4",
-  "related_linux_report_sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
+  "related_linux_report_sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
   "related_linux_verified_receipt_sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
   "entry_sha256": "88c67afbad2d69551f56f28894e63cb03c12442e7e67534dbd825038f997cb31",
   "artifacts": {
@@ -153,7 +153,6 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Actual803SDK/related independentreview beforefreshhealth anddevicepreflight/pretransfer.",
     "Completeoriginalfresh125shealth andallproduction/slot/tool/offline/idle gates; stagefourimmutableE/F/G/803copieswhile E/F slotsstayoriginal.",
     "BindDNS explicitfinalquiet/allnecessarytransferscomplete receipt beforeoriginalfixedten; no change towindow/controller/thresholds/health/archive/restore."
   ],
@@ -213,7 +212,12 @@
     "status": "PASS_LOCAL_G803_DEVICE_PLAN_BINDINGS_ONLY"
   },
   "actual_related_linux_tests_passed": 957,
-  "actual_SDK_review": null,
+  "actual_SDK_review": {
+    "commit": "3ce1e7e5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/185-opt2-sdk-independent-audit.json",
+    "sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2",
+    "status": "PASS_ACTUAL_803_SOURCE_PROFILE2_SDK_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL957_CHAIN"
+  },
   "required_reviews": [
     "Exact803 source/builder plus actualoriginalrelatedLinux receipt",
     "Actual803 opt2SDK/compiler flags/artifact identities and unchanged releasebudgets",
@@ -221,7 +225,7 @@
   ],
   "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-185-opt2/dnsmasq-rs",
   "related_linux_tests_passed": 957,
-  "related_linux_report_path": "private/perf-opt-20261015/sdk-185-opt2/related-verified.json",
+  "related_linux_report_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/185-opt2-related-independent-audit.json",
   "related_linux_group_passed": {
     "lib": 836,
     "bin": 82,
@@ -268,5 +272,11 @@
     "peer_review": "loop localread/AST PASS in session; no separatepeer report orremoteexecution. Stageprefix equals originalreviewedlaunch throughpreflight; startkeeps originallocalgates andPopen suffix plusstage/quietreceipt binding andsamegates rechecked.",
     "phase_boundary": "Freshhealth thenfourimmutablecopies,originalE/F slotsunchanged; stagecomplete isnot measurement. DNSactualfinalquiet andallnecessarytransferreceipt isrequiredbeforestart; operator verifies actualreceipt source/ELF/content/sha.",
     "preflight_or_windows_started": false
+  },
+  "actual_related_independent_review": {
+    "commit": "3ce1e7e5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/185-opt2-related-independent-audit.json",
+    "sha256": "8834e4812f9b8438216df26595288dab635f0341e5cd93a2a1bed39757398610",
+    "status": "PASS_FRESH_803_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_AND_SOURCE_IDENTITIES"
   }
 }
