@@ -1,0 +1,50 @@
+{
+  "status": "PASS_SOURCE_ONLY_CONTIGUOUS_NAME_FAST_PATH_AND_ORIGINAL_WALK_OUTLINE",
+  "source_commit": "cbb631bdad1c882866073264b2247304d65b09f8",
+  "fast_path_commit": "365d80d61bcbda9c4d3f602a9292ef3a0188fde2",
+  "base_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "changed_files": [
+    "components/dnsmasq/src/dns/wire.rs",
+    "components/dnsmasq/src/dns/wire_tests.rs"
+  ],
+  "source_sha256": "13d20c26ad75f3b2dbad5751b0a10fae0e442c2e8543135f44a2a272baf7d33c",
+  "step1_reverse_removes_only_fast_path_and_pure_scanner_restores_exact9e_wire": true,
+  "step2_reverse_removes_only_private_outline_restores_exact365_wire": true,
+  "original_walk_name_and_end_bytes_unchanged": true,
+  "original_forward_caller_and_all_existing_tests_unchanged": true,
+  "new_test_source_only_one_append": true,
+  "proof": [
+    "Only ordinary uncompressed labels0..63 can return Some. Each accepted nonzero label advances by exactly its length byte plus payload; length equals walk_name expanded bytes before the terminator. The same >=MAX_NAME_LEN exclusion preserves its accepted maximum.",
+    "At a zero label, remaining includes the terminator. extra<remaining.len is exactly the original end(packet,next,extra) bound without adding an untrusted extra. A successful first byte establishes start+length+1<=packet.len, so even then_some eager value evaluation cannot overflow. Out-of-range start, truncation, reserved labels, pointers and unsupported lengths return None.",
+    "The validation pass only reads packet/local counters. A rejected input, including a different preliminary error detection order, always executes the original walk from the same cleared/reserved scratch. Thus original WireError priority, pointer cursor/hop checks and partial scratch contents remain authoritative.",
+    "Both versions clear and perform the same minimum32 reserve before selection. A contiguous name uses a single append only when its entire length fits existing capacity. Every old per-label prefix then also fits; the inspected pinned1.98.1 u8 extend path does not grow. Missing capacity falls through unchanged per-label growth, preserving final capacity/allocation behavior.",
+    "On successful uncompressed input, concatenating the old label callbacks and zero terminator is byte-identical to packet[start..next], including binary/interior-zero label data and case. The same owned Name(mem::take(scratch)) and cursor are returned; errors never take scratch.",
+    "cbb changes only a private helper boundary with inline(never). The callback body, question arguments, Result type, ? error path and success ownership transfer are exactly365 bytes. The public decoder signature and all callers are unchanged."
+  ],
+  "capacity_implementation_reference": {
+    "prior_source_review_commit": "2bc0f64b",
+    "report": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-reply-chunks-source-review.json",
+    "sha256": "33609f01c9b3aa0d3fc13d7ee6c40b6ccadf5319f92e2218290de2eac46865a3",
+    "scope": "Same installed1.98.1 Vec<u8> specialization/reserve source; not a generic future bulk-Vec guarantee or measured allocation claim."
+  },
+  "retained_first_draft_failure": {
+    "log_sha256": "11391050d7168a4ce27e00baa0db9b8d65e3a7c3816194ded2dba70ab81e0d58",
+    "existing_test": "dns::daemon::cache_tests::prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned",
+    "observed_capacity_actual": 255,
+    "observed_capacity_expected": 256,
+    "existing_test_file_unchanged": true,
+    "current_fix": "Only existing-capacity names enter single-copy path; growth retains original callbacks.",
+    "scope": "Existing author failure log rehashed and read; first uncommitted draft source was not reconstructed or rerun."
+  },
+  "retained_reviewer_comment_scan_failure": {
+    "failure": "The initial pure-scanner token assertion included the explanatory comment containing scratch, not an input or mutation.",
+    "correction": "Restrict that token assertion to the actual contiguous_name_end signature/body; source and semantic checks unchanged.",
+    "original_script_sha256": "7aa68add2c3fd5048bdf76a0f2a5437ed29bc882f6f5e97cecbec43a6d7cdad7",
+    "product_rerun": false
+  },
+  "codegen_scope": "Source-only. Author-reported365 containing-entry/frame growth and later outline tradeoffs remain local observations; no ELF/codegen rerun or independent code-range attestation here.",
+  "reviewer_test_build_codegen_or_remote_run": false,
+  "selected9e_source_or_measurements_changed": false,
+  "remote_selection_or_performance_acceptance": false,
+  "reviewer_script_sha256": "e7f99c5c6eb0ac96f615515e01064a4b6061f10806909a7f35ac18396a316ab5"
+}
