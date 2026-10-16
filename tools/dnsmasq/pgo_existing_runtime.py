@@ -18,6 +18,9 @@ def sha(path):
 
 plan_path = Path(sys.argv[1])
 plan = json.loads(plan_path.read_text())
+control_side = plan.get('control_side', 'E')
+candidate_side = plan.get('candidate_side', 'PGO')
+assert set(plan['artifacts']) == {control_side, candidate_side}
 assert sha(plan_path) == sys.argv[2]
 assert os.getuid() == 0 and os.getpid() == 1
 assert os.environ.get('DNSMASQ_TEST_ISOLATED') == '1'
@@ -45,8 +48,8 @@ try:
         assert built['elf_layout'] == plan['static_elf_layout']
         builds[side] = built
     for key in ('source_files', 'source_digest', 'source_date_epoch', 'toolchain', 'features', 'opt_level'):
-        assert builds['E'][key] == builds['PGO'][key], key
-    assert len(builds['E']['source_files']) == 179
+        assert builds[control_side][key] == builds[candidate_side][key], key
+    assert len(builds[control_side]['source_files']) == 179
     assert sha(plan['training_profile']['path']) == plan['training_profile']['sha256']
     for side, identity in plan['artifacts'].items():
         folder = out / side
@@ -93,7 +96,7 @@ try:
                 row['cleanup'] = helper.stop_group(process)
             row['raw_files'] = {f.name: sha(f) for f in folder.iterdir() if f.is_file()}
         assert not row['forced_cleanup']
-    assert result['sides']['E']['queries'] == result['sides']['PGO']['queries']
+    assert result['sides'][control_side]['queries'] == result['sides'][candidate_side]['queries']
     result['status'] = 'PASS_EXISTING_E_PGO_STARTUP_TWO_QUERIES_RUNTIME_PROTECTIONS_NORMAL_EXIT'
 except BaseException as error:
     result.update(status='failed', error=repr(error))
