@@ -379,7 +379,10 @@ impl LocalDnsService {
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
-        let opt = if tcp {
+        // This caller only uses OPT, not signed-query state. With ARCOUNT=0
+        // either a successful scan or a discarded scan error yields no OPT.
+        let has_additional = query.get(10..12) != Some(&[0, 0]);
+        let opt = if tcp || !has_additional {
             None
         } else {
             find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
@@ -412,7 +415,7 @@ impl LocalDnsService {
             return Ok(None);
         };
         // TCP needs OPT only after a hit; UDP needs it to size the writer.
-        let opt = if tcp {
+        let opt = if tcp && has_additional {
             find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
         } else {
             opt
