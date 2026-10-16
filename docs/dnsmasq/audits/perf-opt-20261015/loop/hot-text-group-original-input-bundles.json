@@ -1,0 +1,83 @@
+{
+  "status": "LOCAL_ONLY_DISABLED_ORIGINAL_C95_INPUT_BUNDLES",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "native": {
+    "archive_path": "/Users/USER/Developer/owrt-perf-hot-text-group-screen-prep-20261016/private/perf-opt-20261015/hot-text-group-screen-preparation/native-inputs.tar.gz",
+    "archive_sha256": "38a53cbdb8823eefe8571ea49c66668738ff3c577c62e97afde5bf91bd4c90f6",
+    "archive_bytes": 19349,
+    "files_with_manifest": 4,
+    "plan_sha256": "72f8c14850e7bdd193d68f80f57b6da98265d699e27350ef0a2af39711cdab87",
+    "file_manifest": {
+      "plan.json": {
+        "bytes": 50574,
+        "sha256": "72f8c14850e7bdd193d68f80f57b6da98265d699e27350ef0a2af39711cdab87"
+      },
+      "run_hot_text_group_native.py": {
+        "bytes": 8251,
+        "sha256": "f7b2a4341103f8dddde45f9b5ab96fb103c733938c156af19012c596a1ca1164"
+      },
+      "hotpath_probe_v2.rs": {
+        "bytes": 10583,
+        "sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd"
+      }
+    },
+    "uploaded": false,
+    "execution_enabled": false
+  },
+  "owner32": {
+    "archive_path": "/Users/USER/Developer/owrt-perf-hot-text-group-screen-prep-20261016/private/perf-opt-20261015/hot-text-group-screen-preparation/owner32-inputs.tar.gz",
+    "archive_sha256": "5599ca46c111b03933985f5d618608add2414bb68c81685bfc35705b4988e086",
+    "archive_bytes": 50557,
+    "files_with_manifest": 12,
+    "plan_sha256": "8eea67cba64d0bc422b9f4bf18282fc15ffdaa2bb6c1536b6600a2333385f284",
+    "file_manifest": {
+      "plan.json": {
+        "bytes": 54672,
+        "sha256": "8eea67cba64d0bc422b9f4bf18282fc15ffdaa2bb6c1536b6600a2333385f284"
+      },
+      "run_hot_text_group_owner32.py": {
+        "bytes": 6785,
+        "sha256": "ea5b102f2b11374fa5dedcea0f6f18317ac2a3d6e3e446b821a0a44d5753636a"
+      },
+      "analyze_hot_text_group_owner32.py": {
+        "bytes": 5705,
+        "sha256": "9787c1d7ed4c47a591be1c4adf6649cd2598d1b303d3d6e5780c984e4db2dc55"
+      },
+      "analysis-inputs/loop_owner_profile.py": {
+        "bytes": 18177,
+        "sha256": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620"
+      },
+      "analysis-inputs/loop_hit_syscalls.py": {
+        "bytes": 11368,
+        "sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e"
+      },
+      "analysis-inputs/elf_size_report.py": {
+        "bytes": 14113,
+        "sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7"
+      },
+      "analysis-inputs/perf_link_map_profile.py": {
+        "bytes": 10666,
+        "sha256": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d"
+      },
+      "analysis-inputs/perf_opt_analyze.py": {
+        "bytes": 11018,
+        "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+      },
+      "analysis-inputs/elf_link_map_report.py": {
+        "bytes": 4542,
+        "sha256": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578"
+      },
+      "analysis-inputs/loop_owner_profile_analyze.py": {
+        "bytes": 22399,
+        "sha256": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a"
+      },
+      "analysis-inputs/r121_symbolize.py": {
+        "bytes": 20808,
+        "sha256": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12"
+      }
+    },
+    "uploaded": false,
+    "execution_enabled": false
+  },
+  "scope": "Original disabled plan/tool bundles only. No remote directory/controller/build/window. Fresh actual965/SDK/signals and actual GNUmap hot-input grouping plus independent qualification/quiet remain required; no grouping means stop. No historical9e PASS or subtractive attribution."
+}
