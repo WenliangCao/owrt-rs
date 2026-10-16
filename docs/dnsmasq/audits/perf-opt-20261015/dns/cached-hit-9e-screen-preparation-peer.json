@@ -1,0 +1,102 @@
+{
+  "status": "PASS_LOCAL_EXACT9E_ORIGINAL_NATIVE240_OWNER32_PREPARATION_AND_INPUT_BUNDLES",
+  "reviewed_commits": [
+    "53d73dc6",
+    "f1f85125"
+  ],
+  "binding_sha256": "5527b4fec4e10e9f021956212c31d9b28f5fcc679648b1d24f0d504962e1f068",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "source179_bound_to_DNS_frozen_manifest": true,
+  "original_tools_exact_declared_substitutions": {
+    "run_cached_hit_9e_native.py": {
+      "original_path": "loop/run_post185_combined_native.py",
+      "original_sha256": "241dd797e8fa14b9ff3ffadba51a1535ac394f179b79e8c51a4550bef15aa3f1",
+      "sha256": "045a9ee0baefc926508322acbc2a0634805a37a5c4ce849f3ba575311afd7b32",
+      "replacements": [
+        {
+          "from": "Fixed independent G/6ab mechanism screen",
+          "to": "Fixed independent G/9e mechanism screen",
+          "occurrences": 1
+        }
+      ]
+    },
+    "analyze_cached_hit_9e_native.py": {
+      "original_path": "loop/analyze_post185_combined_native.py",
+      "original_sha256": "f5b6f6b7e3ff6f7e07e751cfe0855819573b334153ae8a5fa6f6598cf2179adb",
+      "sha256": "411b8b20f432d79203a416243cb9e06c191b22d64bcbcd17af8508f1607a881c",
+      "replacements": [
+        {
+          "from": "post185-combined",
+          "to": "cached-hit-9e",
+          "occurrences": 3
+        },
+        {
+          "from": "post185_combined",
+          "to": "cached_hit_9e",
+          "occurrences": 1
+        }
+      ]
+    },
+    "run_cached_hit_9e_owner32.py": {
+      "original_path": "loop/run_post185_combined_owner32.py",
+      "original_sha256": "4b2f8e5993a7a78948bfd508f80f464a41aadeb5a961dc894d4bed220d7d54f6",
+      "sha256": "1deaae97c98e5e2526d454b7b46ade42f50ad33e4420eb3d243047cb89a80147",
+      "replacements": [
+        {
+          "from": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+          "to": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+          "occurrences": 1
+        },
+        {
+          "from": "post185-combined",
+          "to": "cached-hit-9e",
+          "occurrences": 4
+        },
+        {
+          "from": "== 961",
+          "to": "== 965",
+          "occurrences": 1
+        },
+        {
+          "from": "Frozen exact-SDK 6ab/G owner32 screen",
+          "to": "Frozen exact-SDK 9e/G owner32 screen",
+          "occurrences": 1
+        }
+      ]
+    },
+    "analyze_cached_hit_9e_owner32.py": {
+      "original_path": "loop/analyze_post185_combined_owner32.py",
+      "original_sha256": "6a00ac084e86ed95a8f95796c80ff50a33867f07b173481be9c65d88d90bab3f",
+      "sha256": "4d8bfbc11d72bdd8393a5255110b4aa058f616ab03a747868a456db05d2471e0",
+      "replacements": [
+        {
+          "from": "Independent accepted-G/6ab UDP owner diagnostic",
+          "to": "Independent accepted-G/9e UDP owner diagnostic",
+          "occurrences": 1
+        }
+      ]
+    }
+  },
+  "unchanged_protocol_field_counts": {
+    "native": 18,
+    "owner32": 13
+  },
+  "native15_scenes240_windows": {
+    "stat": 90,
+    "plain": 150,
+    "unchanged_build_commands": 4,
+    "checksum_operation_order_exact": true
+  },
+  "owner32_argv_exact": true,
+  "eight_imports_and_original72d8_probe_verified": true,
+  "bundles_files_including_manifest": {
+    "native": 4,
+    "owner32": 12
+  },
+  "bundle_hashes": {
+    "native": "cdeaedd49220f65e7e6b04a33e07cb3704c887dd104641dbe7da4fd3d6aa1322",
+    "owner32": "1404695b4a9ff4d305c4016e2189985053350b57468c94f11c897082ad1c8323"
+  },
+  "actual_gate_SDK_signals_quiet_null_and_execution_disabled": true,
+  "scope": "Purelocalread/AST/metadata reconstruction; noimport of controllers, Oracle/router/upload/build or measurement. Original native runner readiness is enforced by its owning launch boundary, not a newly added guard. Native still lacks warm reply recycling; no isolatedwriter/CPUacceptance inference. Actual965/SDK/signals, full ready binding, all transfers and fresh quiet remain required."
+}
