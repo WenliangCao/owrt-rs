@@ -1,0 +1,132 @@
+{
+  "status": "PASS_FRESH_C95_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "execution_plan_sha256": "477e2c982126a512cf17630766fa715e25bfdc52302822e2fca663aeb7f07389",
+  "verified_receipt_sha256": "957e81458eb7e57f02bc5bb9605098fe41eb0ee4691b260db3bc0f144e8f78d5",
+  "archive_sha256": "f71c8cb30be39bb73efe71d0a3b8d0445d4a5b6240ecba97b43264983db78f7e",
+  "manifest_sha256": "ec093c9f1f00536fcfa6032f1edce4b09ae587edaec07cf42a8a93454cb65d04",
+  "verified_regular_archive_files": 47,
+  "archive_payload_entries": 46,
+  "raw_regular_bytes": 158747667,
+  "groups": [
+    {
+      "gate": "lib",
+      "passed": 844,
+      "ignored": 22,
+      "raw_log_sha256": "1f99a0a82e0f87f90e0fa07127a82c54a2ead309c09a244449d7a5500f2175e4",
+      "original_6ab_log_sha256": "631efb88fdd027b9a4e24b8af5d195bab2c83434e1a1d989e39227300de58045",
+      "listing_sha256": "4ba313414cd4a6d25aba9ce3c766a427d508d1378d2d2bd0f7a694587343f871",
+      "binary_sha256": "fe2ea647b37613f2071972afd07c43373f741bd44f8773f17157d328d577c563",
+      "binary_bytes": 72596552,
+      "all_6ab_names_retained_with_only_declared_lib_additions": true
+    },
+    {
+      "gate": "bin",
+      "passed": 82,
+      "ignored": 4,
+      "raw_log_sha256": "933b97a3fb5dcf27fccd71ab8f8ca565196341d90c261a928193afc81c58c978",
+      "original_6ab_log_sha256": "7afe21648b3882196ec27c9d3dd0ea281c7d9138a8a3f64ca5483a15644fa213",
+      "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61",
+      "binary_sha256": "474f7877a6a3b10f4f52a78a2795dd9b6d8aac624b92e122ca017eeb102ae247",
+      "binary_bytes": 51001416,
+      "all_6ab_names_retained_with_only_declared_lib_additions": true
+    },
+    {
+      "gate": "allocations",
+      "passed": 17,
+      "ignored": 0,
+      "raw_log_sha256": "60f1ad783a289ce996272a5af122cbb776ec5a687eeee387e07981c2e4030645",
+      "original_6ab_log_sha256": "b04595a03e3d41ba5776ada61d203bb8b701766e723f3ff2e978268cf273e13d",
+      "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11",
+      "binary_sha256": "1bb04d0473b790b232a76ae50090b18690b088744cc2c5cb70952095dfa1576b",
+      "binary_bytes": 34477712,
+      "all_6ab_names_retained_with_only_declared_lib_additions": true
+    },
+    {
+      "gate": "lib-ignored-live",
+      "passed": 18,
+      "ignored": 0,
+      "raw_log_sha256": "3dde2e1575b018395272b465998eab687fd947671f983d94a7bdf51bf75d2f4f",
+      "original_6ab_log_sha256": "b2006bef345d084ef3fa0bd6ebcc11e82d7901c3669164d0952a477a45e5f994",
+      "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726",
+      "binary_sha256": "fe2ea647b37613f2071972afd07c43373f741bd44f8773f17157d328d577c563",
+      "binary_bytes": 72596552,
+      "all_6ab_names_retained_with_only_declared_lib_additions": true
+    },
+    {
+      "gate": "bin-ignored-live",
+      "passed": 4,
+      "ignored": 0,
+      "raw_log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "original_6ab_log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c",
+      "binary_sha256": "474f7877a6a3b10f4f52a78a2795dd9b6d8aac624b92e122ca017eeb102ae247",
+      "binary_bytes": 51001416,
+      "all_6ab_names_retained_with_only_declared_lib_additions": true
+    }
+  ],
+  "total_passed": 965,
+  "all_6ab_passed_and_ignored_names_retained_with_exact_four_lib_additions": true,
+  "all_fresh_test_ELFs_independently_rehashed": true,
+  "actual_compiler_test_profiles": [
+    {
+      "target": "dnsmasq-rs",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    },
+    {
+      "target": "dnsmasq_rs",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    },
+    {
+      "target": "hosts_allocations",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    }
+  ],
+  "source179_SHA256_and_Git_blob_identities_rechecked": true,
+  "source_manifest_sha256": "5ddf3803be7f1dd7709b5b17bda3602d8a35266e4183b12a2e64cb3d5e8e6bdc",
+  "git_identity_sha256": "ca7ba1782c6267f373fe906db8533610019ddcf2d0af3338bda86f1492f7b304",
+  "preflight_sha256": "10bcb615ff3d455a437639e14e7a3267637fa8891288086b030e4f45a47cbcb1",
+  "launch_sha256": "35c08c7d9d3a05e888bc3d29958a5cfd165d27b561630b86dd72c141f10e6da1",
+  "unit_result_sha256": "ab3b6fb16cb21eee343c4cc49c46a565ce11cd7305315fdf62f7b4434062ddf1",
+  "original_6ab_verified_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+  "retained_author_postflight": {
+    "wrapper_exited": true,
+    "research": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "epoch": 1792157991.655689
+  },
+  "scope": "Local raw-data audit, no test/listing rerun or Oracle/device access. Original dev/test binaries are opt0 with debug assertions; retained helper receipt opt_level3 is release-env metadata. Actual shipping canonical profile3 and standalone runtime-signals remain separate gates.",
+  "SDK_shipping_qualified_by_these_groups": false,
+  "full44_or_corpora_inherited": false,
+  "performance_accepted": false,
+  "expected_added_lib_names": [
+    "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+    "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent",
+    "dns::edns_policy::tests::ecs_absence_uses_declared_additional_count_and_accepts_bad_questions",
+    "dns::lease_names::tests::direct_slice_lookup_keeps_order_and_expiry_across_retained_views"
+  ],
+  "original_auditor_sha256": "ebd900c3cc98db7e787e3cb67f7f6d9696dc5df43dfa0ab0a06bac5bf0f0c99c",
+  "reviewer_script_sha256": "7802cf9ac1aa2a25febdadd158b3031a0005bef2283077a9d0b8cc2586e938ed"
+}
