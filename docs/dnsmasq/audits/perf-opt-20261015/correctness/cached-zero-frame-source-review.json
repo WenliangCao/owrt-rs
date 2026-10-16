@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "status": "NO_INTERACTION_REVIEW_BLOCKER_RELATED_GATES_PREPARED_NOT_RUN",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "base_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "composition": "03ace8ec plus conflict-free cherry-pick of a8dcdacc; sixproductfiles match parentcomponents byte-for-byte.",
+  "source_files": {
+    "components/dnsmasq/src/dns/local.rs": {
+      "sha256": "151fe84fb596746c461680b88e53aded2c42d076ecbd235586f67ea6cfabee32",
+      "byte_identical_to": "a8dcdacc9567b6f6fa4c2edc11445842db049587"
+    },
+    "components/dnsmasq/src/dns/cache_engine.rs": {
+      "sha256": "225fdb1ab0b789d341eb8b26c72b0379a1ae91082a3edd41be683f536880b39f",
+      "byte_identical_to": "03ace8ecaaf513847c43943bfd61c8826789bedf"
+    },
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": {
+      "sha256": "9cff4386cd5189fef70e716defa36c3a0bf6f1b165450db6ecbe19f89c3bcb5d",
+      "byte_identical_to": "03ace8ecaaf513847c43943bfd61c8826789bedf"
+    },
+    "components/dnsmasq/src/dns/service.rs": {
+      "sha256": "473da0b55f510c3260cf6755350a27f49cc2e01c0b1efc196ec9c3c814f0baa6",
+      "byte_identical_to": "03ace8ecaaf513847c43943bfd61c8826789bedf"
+    },
+    "components/dnsmasq/src/dns/wire.rs": {
+      "sha256": "e0bafebf7682e73256be466d4bc28ff11121dcfe926ed872bada4d83d17374b5",
+      "byte_identical_to": "03ace8ecaaf513847c43943bfd61c8826789bedf"
+    },
+    "components/dnsmasq/src/main.rs": {
+      "sha256": "48fa89d6cfcec4627c358163fb7b51322fa5e9ec7ac008a6ccfd37b87750ec01",
+      "byte_identical_to": "03ace8ecaaf513847c43943bfd61c8826789bedf"
+    }
+  },
+  "interaction_review": [
+    "LocalAnswerer only borrowsconfig/hosts and sameoriginallease/cacheowners; extractedlocalrecordhelper has noaccess toLocalDnsServicecachedreplybuffer.",
+    "CachedCNAME/freshaddress checks retainoriginalorder and query-localNameLookup. Freshhitreturns before recordassembly, thenCacheContext takes the serviceownedreplyVec; no hint or stackdottedslice escapes.",
+    "Fallbacklocalassembly/Additionalleaseexpiry hold the same mutableArc leaseowner; no clone/extraexpiry introduced. It doesnotconsume/cache the reusablefreshreplybuffer.",
+    "PacketWriter resetsheader/lengthbefore reuse. FinalownedCachedreply isrecycled onlyafter ownerpoll/log/dump/send; retainedresponses remain independent, staleLocal/forward/error paths preserveoriginalorder.",
+    "Originalrecycledresponse test now exercises thecombinedearlylocalcheckpath;576fresh/generalboundaries, same-nameownership, leaseclockrollback and namebufferscratcherrorcontrols remain inoriginalgroups."
+  ],
+  "retained_author_logs": {
+    "summary": "Mac721passed/8ignored andmuslalltargets success; readexistinglogs only.",
+    "sha256": {
+      "cached-zero-frame-lib.stdout": "d4da349dba27427db4e933f27c7147ffa3ec1b53870bf04a06a1e8dbf2003cfd",
+      "cached-zero-frame-lib.stderr": "4ef240f3af60699538743f4c4a012fc08008c1b6d9e76ce346394aae3bb07912",
+      "cached-zero-frame-musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cached-zero-frame-musl.stderr": "063d47ee4916c9589b14764949357ec342f83c5e705bc2e2236246138817dcff"
+    }
+  },
+  "linux_preparation": {
+    "schema": 1,
+    "status": "LOCAL_PREPARED_WAITING_DNS_RELEASE_AND_LOOP_RAW_TRANSFER",
+    "scope": "Rootauthorizesone originalfourgroupLinuxrun after coordinatedslotrelease; nofull44/G/performance. Twoindependentchildinputs stayprepared/unrun.",
+    "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+    "identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+    "manifest_sha256": "e8d7cb072de8f03727e748049ffd69a5f94ce96a588ecf0dca52a67b7df2abf7",
+    "input_archive_sha256": "819c58a5eb8d1f8792d8d04649166ee52943540c69e6a3e04cc8a67754a80449",
+    "runner_sha256": "4731073ceb34d1334310021be25afb906e830c6914085d199beb6c232c6161a3",
+    "original_runner_sha256": "370d1b9687b8eef253fd8a3ca6d9f2e3d40efb9105bb7c8d234016ed209b7247",
+    "fixtures": [
+      "dns::daemon::cache_tests::cached_local_shortcut_keeps_same_name_hosts_raw_and_rule_precedence",
+      "dns::daemon::cache_tests::cached_local_shortcut_expires_live_lease_before_cache_and_clock_rollback",
+      "dns::local::tests::query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names",
+      "dns::cache::tests::fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback",
+      "hosts::tests::retained_finite_and_immortal_lease_links_follow_exact_c_counterexample",
+      "dns::daemon::cache_tests::prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned",
+      "dns::daemon::cache_tests::prepared_udp_recycled_cache_replies_keep_wire_data_and_ownership",
+      "dns::cache_engine::tests::fresh_address_reply_matches_general_flags_ttl_limits_and_logging"
+    ],
+    "affinity": [
+      2
+    ],
+    "nice": 10,
+    "build_jobs": 1,
+    "verified_inputs": 179,
+    "uploaded": false,
+    "executed": false,
+    "sequence": "DNSowner32formalrelease\u2192loopdownloads54bd578raw\u2192loopnotify\u2192thissourceoriginalfourgroups\u2192verifiedreceipt/quiet\u2192loopsinglecanonicalSDK"
+  },
+  "local_prepared_receipt_sha256": "79140cc73ba5cf0c78cf144da0990e60c0842876f21d87ff1d8a74150ea307a3",
+  "preserved_limits": [
+    "Original0161A53CPU7ticks/Wfailedresult remains.185isnewexperiment,notselectedG.",
+    "03ace0alloc/callpreparedcount and a8entryframe384/fallback1168staticevidence are notnewcombinedperformanceevidence.",
+    "Hot15doesnotrecycle replies and cannot validate185replybuffer mechanism; futurecomparisons use directacceptedE wholeSDKowner/device protocol."
+  ],
+  "full44_qualified": false,
+  "selected_G": false,
+  "performance_accepted": false,
+  "deployment": false
+}
