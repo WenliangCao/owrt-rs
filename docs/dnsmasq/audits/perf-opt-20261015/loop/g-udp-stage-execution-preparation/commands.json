@@ -1,0 +1,63 @@
+[
+  {
+    "name": "build",
+    "argv": [
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage/tools/dnsmasq/oracle_build.sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/g-udp-stage-linux-gates-20261016/g-udp-stage/tests",
+      "tests"
+    ]
+  },
+  {
+    "name": "stage-fixture",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/g-udp-stage-linux-gates-20261016/g-udp-stage/tests/lib-dnsmasq_rs",
+      "--exact",
+      "dns::udp_stage_diagnostic::tests::synthetic_replies_match_the_fixed_input_and_address_contract",
+      "--test-threads=1"
+    ]
+  },
+  {
+    "name": "bin",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/g-udp-stage-linux-gates-20261016/g-udp-stage/tests/bin-dnsmasq-rs",
+      "--test-threads=1"
+    ]
+  },
+  {
+    "name": "bin-ignored-live",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/loop/private/g-udp-stage-linux-gates-20261016/g-udp-stage/tests/bin-dnsmasq-rs",
+      "--ignored",
+      "--test-threads=1"
+    ]
+  }
+]
