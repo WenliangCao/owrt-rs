@@ -1,0 +1,63 @@
+{
+  "scope": "Local pinned Rust1.98.1 LLVM argument accumulation parsing, not internal default measurement or product compilation",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "rows": [
+    {
+      "label": "valid",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--crate-type=lib",
+        "-Copt-level=3",
+        "-Cllvm-args=-pgo-warn-missing-function",
+        "-Cllvm-args=-hot-callsite-threshold=250",
+        "--emit=llvm-ir",
+        "private/perf-opt-20261015/pgo-hot250/options.rs",
+        "-o",
+        "private/perf-opt-20261015/pgo-hot250/valid.ll"
+      ],
+      "status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "label": "first-invalid",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--crate-type=lib",
+        "-Copt-level=3",
+        "-Cllvm-args=-pgo-warn-missing-function=not-a-bool",
+        "-Cllvm-args=-hot-callsite-threshold=250",
+        "--emit=llvm-ir",
+        "private/perf-opt-20261015/pgo-hot250/options.rs",
+        "-o",
+        "private/perf-opt-20261015/pgo-hot250/first-invalid.ll"
+      ],
+      "status": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "30cd9663a905ba0bf018bd1f10d85838dac0b968ec2f97074643320f86bdeb23",
+      "stderr": "rustc -Cllvm-args=\"...\" with: for the --pgo-warn-missing-function option: 'not-a-bool' is invalid value for boolean argument! Try 0 or 1\n"
+    },
+    {
+      "label": "last-invalid",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--crate-type=lib",
+        "-Copt-level=3",
+        "-Cllvm-args=-pgo-warn-missing-function",
+        "-Cllvm-args=-hot-callsite-threshold=not-an-int",
+        "--emit=llvm-ir",
+        "private/perf-opt-20261015/pgo-hot250/options.rs",
+        "-o",
+        "private/perf-opt-20261015/pgo-hot250/last-invalid.ll"
+      ],
+      "status": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ecc7cdec26d367431aece67e72f4fece05fce8c97f5e9b5329d7a20436c9aa86",
+      "stderr": "rustc -Cllvm-args=\"...\" with: for the --hot-callsite-threshold option: 'not-an-int' value invalid for integer argument!\n"
+    }
+  ]
+}
