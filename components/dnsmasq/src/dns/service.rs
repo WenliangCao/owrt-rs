@@ -14,6 +14,27 @@ use std::io::{self, Read, Write};
 use std::net::{Ipv4Addr, TcpStream, UdpSocket};
 use std::sync::Arc;
 
+/// Only these OPT fields affect a local/cache reply envelope. Keep the
+/// successful scan's absence distinct from a suppressed parse error.
+#[derive(Clone, Copy)]
+pub(super) struct AnswerEdns {
+    pub udp_limit: u16,
+    pub had_opt: bool,
+    pub dnssec_ok: bool,
+}
+
+impl AnswerEdns {
+    pub(super) fn scan(query: &[u8], maximum: u16) -> Result<Self, super::wire::WireError> {
+        let scan = find_pseudoheader(query, true)?;
+        Ok(match scan.opt {
+            Some(opt) => Self {
+                udp_limit: opt.udp_size(maximum), had_opt: true, dnssec_ok: opt.dnssec_ok(),
+            },
+            None => Self { udp_limit: 512, had_opt: false, dnssec_ok: false },
+        })
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FrameError {
     Truncated,
@@ -367,16 +388,16 @@ impl LocalDnsService {
     /// Retain forward-rule answers until answer_request's cache lookup has
     /// run. Their query log events belong only to the answer actually sent.
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn lookup_local_parsed<'q, 'p>(
+    pub(super) fn lookup_local_parsed<'q>(
         &mut self,
-        query: &'p [u8],
+        query: &[u8],
         header: Header,
         question: &'q super::forward::Question,
         now: i64,
         cache: Option<&mut Cache>,
         tcp: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
-        edns_scan: &mut Option<super::wire::EdnsScan<'p>>,
+        edns_scan: &mut Option<AnswerEdns>,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
@@ -386,14 +407,13 @@ impl LocalDnsService {
             // Only successful scans are shared with the following cache
             // answer of this same immutable query. Failed scans retain the
             // local caller's suppression and the cache caller's own error.
-            *edns_scan = find_pseudoheader(query, true).ok();
-            edns_scan.as_ref().and_then(|scan| scan.opt.as_ref())
+            *edns_scan = AnswerEdns::scan(query, self.edns_packet_max).ok();
+            *edns_scan
         };
         let limit = if tcp {
             u16::MAX as usize
         } else {
-            opt.as_ref()
-                .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)))
+            opt.map_or(512, |opt| usize::from(opt.udp_limit))
         };
         let mut answerer = LocalAnswerer {
             config: &self.config,
@@ -417,14 +437,12 @@ impl LocalDnsService {
             return Ok(None);
         };
         // TCP needs OPT only after a hit; UDP needs it to size the writer.
-        let tcp_scan;
         let opt = if tcp {
-            tcp_scan = find_pseudoheader(query, true).ok();
-            tcp_scan.as_ref().and_then(|scan| scan.opt.as_ref())
+            AnswerEdns::scan(query, self.edns_packet_max).ok()
         } else {
             opt
         };
-        if let Some(opt) = opt {
+        if let Some(opt) = opt.filter(|opt| opt.had_opt) {
             let opt_limit = if tcp || answer.forward_rule {
                 limit
             } else {
@@ -433,7 +451,7 @@ impl LocalDnsService {
             append_empty_opt(
                 &mut answer.packet,
                 self.edns_packet_max,
-                opt.dnssec_ok() && (tcp || !answer.forward_rule),
+                opt.dnssec_ok && (tcp || !answer.forward_rule),
                 opt_limit,
             )?;
         }

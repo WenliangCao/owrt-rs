@@ -1897,7 +1897,7 @@ impl<R: Random> DnsDaemon<R> {
                 let answer = CacheContext::answer_from_cache(
                     cache, query, header, question, now, local,
                     limit, maximum, tcp, filtered_type, name_lookup.as_ref(),
-                    edns_scan.as_ref(),
+                    edns_scan,
                 )?;
                 if let Some(packet) = answer.packet {
                     return Ok(LocalLookup::answered(if answer.stale {

@@ -135,7 +135,7 @@ impl CacheContext<'_> {
         tcp: bool,
         filtered_type: bool,
         name_lookup: Option<&super::cache::NameLookup<'_>>,
-        edns_scan: Option<&super::wire::EdnsScan<'_>>,
+        edns_scan: Option<super::service::AnswerEdns>,
     ) -> Result<CachedAnswer, CacheError> {
         // interface-name owns this family even when the current interface
         // enumeration is empty. NXDOMAIN is the earlier cache exception.
@@ -149,15 +149,11 @@ impl CacheContext<'_> {
         // change the cached record representation. Source-bound NO_CACHE is
         // evaluated by the owner before entering this context. DO still
         // rejects unsigned dynamic records in the exact no-DNSSEC image.
-        let own_scan;
         let edns = match edns_scan {
             Some(scan) => scan,
-            None => {
-                own_scan = find_pseudoheader(query, true)?;
-                &own_scan
-            }
+            None => super::service::AnswerEdns::scan(query, edns_packet_max)?,
         };
-        let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
+        let dnssec_requested = edns.dnssec_ok;
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
@@ -222,9 +218,7 @@ impl CacheContext<'_> {
         let limit = if tcp {
             65536
         } else {
-            edns.opt
-                .as_ref()
-                .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)))
+            usize::from(edns.udp_limit)
         };
         let mut answer = Self::answer_records_filtered(
             cache,
@@ -244,7 +238,7 @@ impl CacheContext<'_> {
         }) {
             local.record_query_event(QueryEvent::label(0, b"reply", Some(b"truncated"), 0));
         }
-        if edns.opt.is_some() {
+        if edns.had_opt {
             if let Some(packet) = &mut answer.packet {
                 let append_limit = if tcp {
                     65536
