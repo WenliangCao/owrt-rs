@@ -4554,6 +4554,15 @@ impl SinglePoll {
             return;
         }
         #[cfg(target_os = "linux")]
+        self.dump_requested_cache();
+    }
+
+    // A normal owner turn only consumes the request counter. Keep the full
+    // cache/report formatting frame behind that existing successful request.
+    #[cfg(target_os = "linux")]
+    #[inline(never)]
+    fn dump_requested_cache(&mut self) {
+        #[cfg(target_os = "linux")]
         {
             let mut event = self.parent_events.borrow_mut();
             let metrics = self.metrics(&event);
