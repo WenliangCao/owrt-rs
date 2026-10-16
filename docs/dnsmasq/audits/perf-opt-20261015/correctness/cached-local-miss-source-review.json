@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "status": "SOURCE_REVIEW_AND_RELATED_LINUX_GATES_PASSED",
+  "source_commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+  "product_commit": "11a33c95",
+  "base_commit": "b343df112e430f16e21026645e56755f2d0fc391",
+  "scope": "Narrow review of read-only fresh-address eligibility and local ownership fallback after fresh writer-frame prototype; no replacement component or new framework.",
+  "interface_and_callers": [
+    "LocalAnswerer receives the original borrowed Question and mutable optional cache after validation. Lease expiry runs before cached CNAME inspection and the new shortcut.",
+    "single_fresh_address_id_with_hint extracts only the previous fresh helper eligibility. The existing mutable helper remains the caller that promotes an eligible entry into LRU head.",
+    "The same validated NameLookup proceeds to the original CacheContext; daemon/service/lease_names execution-plane code is unchanged fromb343."
+  ],
+  "eligibility_and_failure_boundary": [
+    "Read-only selector still checks question pointer, cache owner, name-table root, revision, generation, exact address type and payload length, fresh/nonnegative and is_valid. Rejection cannot mutate LRU/expiry.",
+    "Only existing single fresh A/AAAA answers reach local shortcut eligibility; cold miss/stale/CNAME/negative/RRset/type mismatch keep the original path.",
+    "Published hosts are required. Matching hosts and nonterminals or live leases retain original lookup. Any configured CNAME, same-type raw record, interface data/rules, synth domain, literal/zero/local-only forwarding rule rejects the shortcut.",
+    "253-byte stack dotted conversion is query-local, matches the existing owned helper and falls back on conversion failure. The borrowed stack slice does not escape."
+  ],
+  "focused_test_evidence": {
+    "ownership_matrix": "24combinations: cachedA/AAAA\u00d7UDP/TCP\u00d7none/host/raw/literal/local-only/configured-CNAME. Each starts with an eligible real cached record, verifies selected owner/rdata and logging.",
+    "lease_coexistence": "UDP/TCP real live IPv4 lease and cache with100\u2192160\u2192100 timestamps: lease first, cache after expiry, no resurrected lease after rollback.",
+    "read_only_selector": "Existing fresh-hint test now verifies eligible ID selection preserveshead/tail/name_revision before original mutable promotion.",
+    "stack_conversion": "Root,mixedcase,everybyte at1/63length and max255wire\u2192253dotted against unchanged owned conversion."
+  },
+  "fixture_repair": {
+    "independent_fix_commit": "16a95086",
+    "applied_commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+    "report_sha256": "a1724aa901fb3248160dfbe6d92ea7e7485d9673305b00edaef13e34f4f16f0f",
+    "original_failure": "716passed/1failed/8ignored; immortal reverse owner fixture lacked actual name-bucket separation.",
+    "original_failed_binary_sha256": "63f7cf063cb74d8ac75b7565139ed810ed35d06e217b4570ec3a2898571ffc6a",
+    "proof": "Same unmodified failed ELF reproduced6failures in fixed256runs; immutable F diagnostic and forced colliding/noncolliding chains confirm old/a collision precondition. Matching C source inspected; original finite/immortal expectations retained.",
+    "product_changed_by_repair": false,
+    "original_failure_and_initial_missing_Arc_import_log_retained": true
+  },
+  "local_author_gates": {
+    "ordinary_lib": "719passed/8ignored on finalsource; retained logs inspected.",
+    "musl_all_targets_check": "Final check log ends successfully; warnings retained.",
+    "focused_ownership": "Two tests pass;24ownership combinations andtwo lease transport trajectories.",
+    "log_sha256": {
+      "lib.stdout": "55190e2c656f23c07df2002cb9a206af1cde01308e9eaf9977998d8f965d4faf",
+      "lib.stderr": "aac7e626c980d8b29243485805d14e97405354155eb29b6780c3c9f9761ca931",
+      "failed-source.patch": "9c6668960497ac020dc3a4a78a46cb7dfb32e03b0db3060a637687f42b89098b",
+      "ownership.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ownership.stderr": "e2069aa721e03863978fadf502413a206b272c0f4c6050359f91fabb73e9a89d",
+      "ownership-fixed.stdout": "42867c7251bb91e145026c208053b85abbbf90ef1831cdce44545a0c757d0845",
+      "ownership-fixed.stderr": "e32aa746ee55dd5cd50ab9a8bdce5d5c958772af4b529a9df1e02e1e41da14a4",
+      "fresh-selector.stdout": "14637ce6eee2d58f8095ccc3091fb63972aac4504913470f0a673dda1ad50b17",
+      "fresh-selector.stderr": "d9f4a71b60d83ae0dc5972f9eb46b98487eb928f44a91290bc465158eb187a68",
+      "lib-after-fixture-fix.stdout": "fd170471e0471781837a97bc238f2b0467eac3c5a85f5cc0fa171b715827efb2",
+      "lib-after-fixture-fix.stderr": "964cfcba4ae05290ae23e3ef095d529b5f673483821ffb7ad4fae0e66906c9a9",
+      "check-after-fixture-fix.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "check-after-fixture-fix.stderr": "4c6c2598a58796ecee8e3657fdda22d6fe2bf4ae4c729c5cd7d724fbb722e686"
+    }
+  },
+  "related_linux": {
+    "report": "cached-local-miss-linux-gates.json",
+    "report_sha256": "9d8de8f413b785b674aae762b2f080f3bf642942d2d4930199128cec71b6cb01",
+    "verified_receipt_sha256": "cb9ceed13e8e9441a8b3465cd51af23bb67c80fd2405df9b26f2b6a72aac2fa4",
+    "total_passes": 938,
+    "groups": {
+      "lib": 834,
+      "lib-ignored-live": 18,
+      "bin": 82,
+      "bin-ignored-live": 4
+    },
+    "source_identity_sha256": "dad7c90634cc482b3b95ad8ca5a05068a75a0bdb1b81a9c0a041421cb074f390",
+    "source_files_rechecked": 179,
+    "all_processes_exited": true
+  },
+  "review_result": "No blocker found within this narrow source/related-functional scope. Final SDK can be built from the hash-bound remote source; full qualification and performance remain separate.",
+  "new_expectations_comparators_or_waivers": false,
+  "full44_qualified": false,
+  "performance_accepted": false,
+  "deployment": false
+}
