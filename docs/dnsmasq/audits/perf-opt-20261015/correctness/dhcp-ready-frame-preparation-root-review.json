@@ -1,0 +1,17 @@
+{
+  "status": "PASS_LOCAL_DISABLED_PREPARATION_ONLY",
+  "commit": "6a919578",
+  "manifest_sha256": "d6df267838a3fe8512c6bfbc9984c76dc5fa866cd6ef584c6a3a4d18635e0734",
+  "source_commit": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "source179_git_and_archive_verified": true,
+  "three_entries_equal_after_exact_paths_and_source_identity_substitution": [
+    "run_dhcp_ready_frame_related.py",
+    "build_dhcp_ready_frame_allocations.py",
+    "launch_related.py"
+  ],
+  "five_original_argv_equal_after_path_substitution": true,
+  "original_builder_profile_budget_tools_equal": true,
+  "all_actual_results_and_release_null_execution_disabled": true,
+  "archive_sha256": "439cbc91dd0d7e00b81baef3d4301d4c40fde7fc6088700f1ed654fcb859efe8",
+  "scope": "Root local source/input/delta review only. Existing source equivalencefc446c16 remains authority for extracted body. No remote, execution or result. The future launcher must bind actual prior results, explicit selection, fresh gates and quiet handoff; this preparation grants no slot."
+}
