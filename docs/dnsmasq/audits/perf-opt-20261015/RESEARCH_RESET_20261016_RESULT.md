@@ -70,4 +70,39 @@ c95c5571仅22个Linux方法section属性，965相关检查、SDK原硬化/预算
 [唯一清理映射](dns/completed-worktrees-cleanup-20261016.json)提交59f2b886/3ab2695c。
 活跃测量树、G交付和当前输入路径保留。
 
-CPUclock能力、A/A、C/G速率扫描、E/PGO和G/c95物理窗口仍待结果；不把准备完成当性能完成。
+## CPUclock与A/A：完成，固定物理批次仍在运行
+
+跨进程getcpuclockid/gettime成功，接口reported resolution1ns，但tight读最小观测正增量
+25385ns、paced最小33232ns；100ms工作累计91.336ms而tick只8。阻塞100ms增60693ns。
+fork child约91.57ms未计入父CPUclock；回收后旧PID/clock分别ESRCH/EINVAL。该接口可用来
+分辨sub-tick累计CPU，不宣称ns精度。新CPUclock和helper tick使用相同身份/端点范围，
+原resource tick另列；仅稳定单进程/单线程/无子CPU增长的UDP窗口判ns有效。
+
+默认5+20窗的G/G四窗全有效，两对CPUclock差+3.2802782、+4.9424388µs/query，经验噪声
+最大4.9424388µs（不是全环境上界）。同端点tick差2/3，原resource tick每query差4/6µs。
+这说明新仪器消除了粗量化，却没有消除环境波动。后续候选按事前规则同时超过5µs和本批
+A/A经验幅度，不据此宣称小于5µs的真实收益不存在。42窗固定批次已14:36:53UTC启动：
+A/A4、三速率18、E/PGO10、G/c9510；原计划不随观察结果改变。
+
+## 本机D1原型：尚未选入计时
+
+独立9e child4de2d573复用旧的按需metrics，aeba3093增加保守的plain fresh UDP入口；
+无EDNS/异常flags/日志/订阅等情形回落。复用现有local所有权检查、单次LRU、TTL/回答writer、
+upstream poll与send/recycle尾部，没有新缓存状态或原地写包。第一次实现漏掉deferred准入后的
+resend清除；6dcdd5d3复现了多发47字节包，修后同test无包且pending/counters不变。
+修复在未选原型中完成，计时中c95/G/PGO全部未改。
+
+736lib+23bin本机测试通过（8ignored），musl alltargets通过。原hosts测试另暴露缺失哈希桶
+前提：lease名还须避开x.test，05bfb529单独修cfg(test)夹具，保留原finite/immortal行为断言。
+3拓扑×2lease定向证明及原失败日志留存。7组新增差分/回归覆盖bytes/TTL/LRU和无副作用回落。
+
+局部ELF5024648→5028680B；process_udp4660→5344B，own frame1056→1136B，另有624B
+快速wrapper和704B选择closure。它跳过重复通用入口，但增大owner并增加miss回落前检查；
+没有CPU收益结论。完整本机raw与local-result在`owrt-perf-plain-cached-entry-20261016/private/`。
+是否送测等本批物理结果，不从静态大小决定、不混进当前候选。
+
+C匹配骨架诊断补丁/原SDK构建命令亦已在correctness/private/c-receive-diagnostic准备，
+未构建/运行；保留原C recvmsg/send_from/loop，仅回G receive相同固定应答。只有本批仍有
+未解循环差额才选择。它测循环/内核/用户态残余，不命名为不可压缩内核地板。
+
+C/G速率扫描、E/PGO和G/c95物理结果仍待完成；不把准备或本机测试通过当性能完成。
