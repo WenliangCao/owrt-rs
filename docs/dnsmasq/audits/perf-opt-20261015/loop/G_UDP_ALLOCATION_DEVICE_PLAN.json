@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "LOCAL PREPARATION ONLY; exactG7c5b SDK/relatedreview identities pending; no device action",
+  "status": "LOCAL PREPARATION REVIEWED; exact7c5b SDK identities pending; no device action",
   "scope": "Three fixed count-only A53 windows on frozenG185 plus byte-reused original allocationmeter. All instrumentedCPU/latency and release-size acceptance EXCLUDED. No expected-zero allocation gate.",
   "diagnostic_source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
   "diagnostic_ELF_sha256": null,
@@ -99,8 +99,7 @@
     "cleanup": "Preserve first partial/completearchive attempt; archive/hash all raw before pruningvaliddevicecopies. Afterallownedinstancesexit and rawverification, restoreexactE/F from verifiedofflinecopies. No productionconfiguration/install/restart/flash."
   },
   "pre_run_pending": [
-    "Exactsource7c5b SDK ELF/map/build receipt and independentreview delivered; keep all failedbuild records and original releasebudget result, no sizegate relaxation.",
-    "Correctness reviews newGdriver identity/label and capture-boundary adaptation with original meter_report unchanged.",
+    "Exactsource7c5b SDK ELF/map/build receipt and actualoriginalmetercontrol delivered; keep failedbuild records and originalreleasebudget result, no sizegate relaxation.",
     "Fresh originalhealth+offlinebackups+production/slot/helper/idle recoverygates, then atomically stage ownedrustslot only.",
     "Three original fixedwindows only, failstop/no selective replacement; verifyallraw then restoreoriginalE/F."
   ],
@@ -121,5 +120,30 @@
   "original_slots": {
     "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
     "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "tool_review": {
+    "commit": "0a5eceb19f503407a30b85298e7b7c907df1d285",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-udp-allocation-device-tool-review.json",
+    "sha256": "ea792bcac718989b9df7c1f80e525acbb56566adc258b7710471c63b2c7006d6",
+    "status": "PASS_LOCAL_THREE_WINDOW_COUNT_TOOL_REVIEW_EXACT_SDK_AND_DEVICE_PREFLIGHT_PENDING"
+  },
+  "tool_review_PASS": true,
+  "source_review": {
+    "commit": "98367eec97fe94b97396a944eb5236e1def5695e",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-zero-frame-allocation-source-review.json",
+    "sha256": "ccbd9bc4f472c0b8716fb62aa38ee330137ab445c19e3812942d94ea69925bc6",
+    "status": "PASS_DIAGNOSTIC_SOURCE_REVIEW_ONLY"
+  },
+  "source_review_PASS": true,
+  "local_operator_preparation": {
+    "scope": "Independentloop local-onlyread/AST PASS; no helper execution or device/Oracle access. Success-onlypostflight doesnot apply to failedrounds.",
+    "artifacts": {
+      "launch-g-udp-allocation.py": "cf98f48c3236749a5863985e49fa08ab0c4510a8f2173f74ef816cbe2c14fe9c",
+      "verify-g-udp-allocation.py": "1a2993794cd9e15af54fecfb0dad430276faf302a1c995d0e3b4c066190df877",
+      "postflight-g-udp-allocation.py": "3203f0035e4a368bf611cddb82736efe05586b06fa18039337aa530139a36ee8"
+    },
+    "preflight_shell_bytes": 2222,
+    "verification": "Raw3tar/complete/progress/identity/plan/tools/health bindings; normalizedunique members and exactmanifest contents.",
+    "recovery": "Onlyaftervalidcomplete/rawverification andidle checks, verifyofflineF/hash temporaryfile beforeatomic ownedrustslot restore; E/production remainchecked."
   }
 }
