@@ -1,0 +1,213 @@
+{
+  "schema": "dnsmasq-cached-zero-frame-full-qualification-preparation-v1",
+  "status": "PREPARED_FINAL_SDK_BOUND_NOT_EXECUTED_SCREENS_PENDING",
+  "authorization": "Local preparation only. Progress requires supportive185directE screens and completion/release of the reserved Oracle owner32 work. No full gate runs or transfers during timing.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+  "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame",
+  "shipping_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "shipping_elf_bytes": 2145051,
+  "same_build_map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+  "same_build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "local_artifacts_rehashed": true,
+  "source_files_rehashed": 179,
+  "git_identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+  "source_digest": "4116339b41acfee6c331db99c223300067c2e1848f79ed07dfa6468ba41901c7",
+  "F_base_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "source_changed_files": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs",
+    "components/dnsmasq/src/dns/forward.rs",
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/service.rs",
+    "components/dnsmasq/src/dns/wire.rs",
+    "components/dnsmasq/src/hosts.rs",
+    "components/dnsmasq/src/main.rs",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/retained-lease-fixture-repair.json"
+  ],
+  "all_other_tracked_files_identical_to_F": true,
+  "validated_F_wrappers": {
+    "run_cached_zero_frame_short.py": {
+      "sha256": "02284f0a2043610ea0080eb8dde1e6026d0b55a7320a704e295670d16f99da94",
+      "validated_F_original": "run_f_short.py",
+      "validated_F_original_sha256": "e693092f548c46a3e972a9cf1b6dceaa03e85203b68e9c5401ea894223cdefd9",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "cb68a1439c7ac66c2978c47457931247b14bb59434acada58c71f324341a9b45",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "34e435d34facbf962dad25f49e6c49cb8c29b33af32fba3b0cb34b3c08081ef7"
+    },
+    "build_cached_zero_frame_allocations.py": {
+      "sha256": "b589d505642b8547be6ffa4486ac36ae00141b35aa32005a21248a47a7f0253e",
+      "validated_F_original": "build_f_allocations.py",
+      "validated_F_original_sha256": "d2abf472a24d6a5ad23e5e0cdf97772e3e2b20934d8680c9389197592d909c97",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "280cc84cbfb1e78f3ac2f43c6829d590adc19ebc7f8c1f048d57b196fad1e7d3",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "68fb31b892bed3dd3bff4d90387afe5c38b6d5bd822e9ed5da8277eb9e5f4195"
+    },
+    "run_cached_zero_frame_tcp.py": {
+      "sha256": "8bdbdffea2a6dc5fa4bd4d1ac214086cddec016f8398112e1ed033055470bac7",
+      "validated_F_original": "run_f_tcp.py",
+      "validated_F_original_sha256": "cbb1229a60dee9421a4e03f90efd126ebdcfcbacb0a2affa330d79f4624544d3",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "2cb5463a4f34ac5d9f42afecaa3e9927a993d685cb65eecc2a0f00a3e9ec1c3c",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "1e4eb2d79f028ddd63fe25a0c2bad7807cd1e4e6694f7d7c1ab14b1bee87fb91"
+    },
+    "run_cached_zero_frame_corpus.py": {
+      "sha256": "21f299db45ea241550db77da241966e631e9c92b02823f2aa10cc7f753ddd3b0",
+      "validated_F_original": "run_f_corpus.py",
+      "validated_F_original_sha256": "fdef9a044665a5b27eec5a8754b16939a82b4dee7b2d8fd887aa3e3a15a2430e",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "53bdab26e31cb6abb2d77731ddbd1c18b92a58d765779218e2cd9a2a410e0452",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "7bf21e254a50d28e0716d3936b1aa945704b2d608cb1ee6755d32eec23464adc"
+    },
+    "run_cached_zero_frame_remaining.py": {
+      "sha256": "5dc87be76486dae9132eacd88fda53f59005ca9cfc7ce2bbbf4cb53c34e6a697",
+      "validated_F_original": "run_f_remaining.py",
+      "validated_F_original_sha256": "329872f989ed9e08ddd46aae0402a63242db3a6106e97121674673aa17a6195d",
+      "only_candidate_path_output_and_identity_substitutions": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "ed6f4fc377f800a2328905c7b3d3d7425140b908da6c978c2b6ad21244134cbe",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "a835dfec22d6e91236f49205fbeab88fcebeb368358ebbf3e5138bac40bb3210"
+    },
+    "audit_cached_zero_frame_families_final.py": {
+      "sha256": "da5f83dac597e0aad6665cab88065e36d3804512b6f3376198ff7094b5cc6a58",
+      "validated_F_original": "audit_f_families_final.py",
+      "validated_F_original_sha256": "63c0742ed220cc0ec2b054f0136c12ab13c87d0827002e4776018f0d7cffc5e6",
+      "same_checks_and_historical_comparisons": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "9ca81820f5642a702a7cdbe40ac04c544d77abbe37c998b1c229b9e04813b722",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "1db00b621708abcf861399f766e831a7bc50e95574683bf95bbd093dbfe40f7f"
+    },
+    "audit_cached_zero_frame_boundary.py": {
+      "sha256": "898447ac61580dcb79693cb2b6a7a192058af765b6d947c9b8b5175c58c1b572",
+      "validated_F_original": "audit_f_boundary.py",
+      "validated_F_original_sha256": "34934ff2afa49f093ceac384a3cca7ab10149343927cb5247c16c2f5cbbf98e8",
+      "same_checks_and_historical_comparisons": true,
+      "ast_parse_passed": true,
+      "validated_integration_original_sha256": "0e4c8ae438ee9f95df397fc8de991f87589cd4e7804a374e3d985fabd4a313b3",
+      "candidate_identity_pending": false,
+      "previous_0161_wrapper_sha256": "b6c3869da0fc6530157fbbf292ffee6356ddbaca1ecf81c5a4bb3d7c65630db5"
+    }
+  },
+  "immutable_input_hashes": {
+    "tools/dnsmasq/m5_final_families.draft.json": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+    "tools/dnsmasq/m5_final_validation.py": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+    "tools/dnsmasq/audit_20261011_families.py": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py": "6c56077e3ccf8d2ea605271da14751d2c4ea7f318c52b59818dcf68af2b41db3",
+    "docs/dnsmasq/audits/full-20261014/f10-contract/qualifier/approved/manifest.json": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78"
+  },
+  "family_base_identity": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "expected_sha256": "0a317a758e1933a160abc58d8ee5ac93abb461b547c74d270ed49c86af6211d9",
+    "provenance": "Retained E/C full44 identity receipts and the identical successful F command; actual remote file must be rehashed before launch.",
+    "rehashed_this_preparation": false
+  },
+  "family_command": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame/docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+    "--elf",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/dnsmasq-rs",
+    "--link-map",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/link.map",
+    "--commit",
+    "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "--base-identity",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-zero-frame-families-attempt1",
+    "--jobs",
+    "3"
+  ],
+  "family_command_sha256": "d00223cec2d464da37d84355e7953ab0ef01167b76b2c37a939cb4bf0df8fa3f",
+  "families": 44,
+  "jobs": 67,
+  "omitted_procedural_job": "m5_dns_endpoints-local-archive-gate",
+  "schedule": {
+    "before_start": "Supportive185directE screens, completed owner32 reservation and explicit Oracle scheduling release; reverify final source/SDK/input identities and fresh outputs before original full qualification.",
+    "first": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_cached_zero_frame_short.py"
+    ],
+    "after_short": "Original family coordinator jobs3 plus one serial run_cached_zero_frame_remaining.py worker. No overlap with performance timing.",
+    "fresh_builds": [
+      "cached-zero-frame-tests",
+      "cached-zero-frame-allocation-build",
+      "cached-zero-frame-probe-tests"
+    ],
+    "output_paths": "Fresh cached-zero-frame-* paths; no original output overwrite or replacement run.",
+    "related_Linux_940_tests_are_not_reused_as_full_qualification": true
+  },
+  "preserved_comparisons": {
+    "exact_image_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "F10": "Original13cases/704observations and approved PTR-order manifest; retain39 original raw order differences.",
+    "protocol": "Original368pairs/366exact; exact same two historical C forward-pointer defects.",
+    "TCP": "Original13conditions/50pairs; all three groups and resolver order unchanged.",
+    "cache_answer": "Original764commands/164queries/382metrics.",
+    "transfer": "Original307comparisons.",
+    "stale": "Original1100comparisons.",
+    "lease": "Exact same source-a two UID mismatches and cohort counts; preserve raw comparator exit1 and corpus exits[0,0,0,1].",
+    "ubus": "Approved346 paired observations; unchanged original checks and26negative controls; no new amendment.",
+    "historical_references": "All exact-C baselines, source-a lease comparisons and historical E inventory/protocol comparisons remain unchanged."
+  },
+  "prepared_only": true,
+  "uploaded": false,
+  "executed": false,
+  "new_framework_comparators_expectations_or_waivers": false,
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "followup_audits": "Reuse adapted F final family and boundary audits; reconcile fresh short groups from raw outputs; rehash all67job results/44family results/source/artifacts and confirm no owned surviving processes.",
+  "related_linux": {
+    "tests": 940,
+    "receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501"
+  },
+  "screen_results_pending": true,
+  "sdk_binding": {
+    "local_directory": "/Users/USER/Developer/owrt-perf-cached-zero-frame-owner32-20261016/private/perf-opt-20261015/cached-zero-frame-owner32-inputs/sdk-cached-zero-frame",
+    "source_files_rehashed_against_commit": 179,
+    "features": "",
+    "opt_level": "3",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "apk_bytes": 1167095,
+    "sdk_recipe_restored": true,
+    "source_unchanged": true,
+    "elf_layout_from_hash_bound_build_receipt": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "runtime_protections_independently_retested": false
+  },
+  "prior_0161_preparation_and_failed_screen_unchanged": {
+    "functional_recipe_sha256": "62d688d7c224bd7f9c63a2b27e803581a4eb0c580d327be31a5327813a7c352b",
+    "performance_recipe_sha256": "6eb536c9f8235402bb230e18d0fdf2378fde93a80eccce79f48b92f0104e3cb4"
+  },
+  "local_preparation_directory": "private/cached-zero-frame-full-qualification",
+  "prepared_recipe_sha256": "2e9924dfabd3dd0b3fc3a9b2e417070591335fbe7f882c0616feaa98b1f4e717",
+  "unit_command_manifest_sha256": "f206d48f4a093bd1bd58351ed5fcf487ebe5c8acff2c43bd1b2c601bd4aec6bf",
+  "verification": "Seven original wrappers parsed without imports/execution; candidate179source and finalSDK identities checked; canonical44families/67jobs and original comparators remain unchanged."
+}
