@@ -1,0 +1,15 @@
+{
+  "status": "QUIET_RELEASE_TO_INDEPENDENT_REVIEW",
+  "epoch": 1792123345.5703938,
+  "controller_pid": 801096,
+  "controller_exited": true,
+  "research": [],
+  "locks_obtainable": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "small_derived_transfer_completed": true,
+  "summary_sha256": "ffd15ede24397f1f474950574d9f7f7a13447f72f64c020fe7d4e717340c7ce9",
+  "postflight_sha256": "a04c2354deba357af255a552eb8190bd2827a204a769935c0adf9188ebe32b3b"
+}

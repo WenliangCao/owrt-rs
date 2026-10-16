@@ -1,0 +1,60 @@
+{
+  "epoch": 1792122436.911669,
+  "bindings": {
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile.py": "2c1bb2ec7531b403c1d0a3ea19489e726adb1540e6fca84cbd5f33b6d14dac37",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py": "9cc023614688558f12b80101986fe324328fe267e2dc81efe994fbfced6bb7bc",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/perf_link_map_profile.py": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/elf_link_map_report.py": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/elf_size_report.py": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/r121_symbolize.py": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/dns_udp_refusal_diff.py": "fd9c6be5c48104115103c4f0a0311e091c59e88916e7c93258f58dacca7ef901",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/original_stat_driver.py": "7671b1e5edb73951f1b548cffb2ebfdf8e0f8e068a234a7cf090bb7255537325",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/dnsmasq-rs": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/link.map": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame/build.json": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+    "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/usr/sbin/dnsmasq": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/home/ubuntu/dnsmasq-image-bases/d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "/home/ubuntu/dnsmasq-perf-20261015/dns/private/image-c-symbols-20261015/symbol-receipt.json": "02ed4b8321ffacd1ddec6c061ea4375f8f4220ba06f8ee22d4b2f8b764596b94",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/dnsmasq-nodhcpv6/dnsmasq-2.93/src/dnsmasq": "79cb9590a6113bca41034155ec45569eac58a2dccde80819c9863ef316f740da",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/m6a_loadgen": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs/m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68"
+  },
+  "plan_sha256": "f413ce0507f4047d0d701de59ab2118418fac024c4858d317833850221444c86",
+  "archive_sha256": "08375005c1dfd5b0f1500cbe37e7f19d031f875ced58b4535c058575c5cda61e",
+  "raw_fresh": true,
+  "status": "PASS_READY_FOR_FROZEN16",
+  "source_files_verified": 179,
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "versions": {
+    "python3": {
+      "path": "/usr/bin/python3",
+      "resolved": "/usr/bin/python3.12",
+      "sha256": "c86f21d0da9290ece2d7d49a3f7ed52aed59cb029abdf0ea25c79634f6cbe960",
+      "version": "Python 3.12.3"
+    },
+    "perf": {
+      "path": "/usr/bin/perf",
+      "resolved": "/usr/bin/perf",
+      "sha256": "2d0953085bf720a25efbe24f853e97d27b1f12f18a398255ff82cbafde254dad",
+      "version": "perf version 6.17.13"
+    },
+    "llvm-cxxfilt-18": {
+      "path": "/usr/bin/llvm-cxxfilt-18",
+      "resolved": "/usr/lib/llvm-18/bin/llvm-cxxfilt",
+      "sha256": "02844bb3fb31912de262f92211730c26796229190bd6b2814e5983a38b476bb6",
+      "version": "/usr/bin/llvm-cxxfilt-18\nUbuntu LLVM version 18.1.3\n  Optimized build."
+    }
+  },
+  "research": [],
+  "locks_obtainable": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "analysis_binding_sha256": "434eeba65071f4d2d30e30921adffcbe64ada86c73e882bc328f3492eea5671c",
+  "retained_preflight_failure": "4be87a589333f23b3cd25099c20180c9bca33bc000e73b2e44ed3ff523be8ff8"
+}
