@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_INDEPENDENT_AUDIT_PASS_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
+  "status": "READY_AFTER_FULL_ACTUAL_AUDIT_BOTH_PRETRANSFERS_AND_EXPLICIT_DNS_QUIET",
   "candidate_commit": "8035114257c8706047d2038c2bb8126391331925",
   "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "candidate_sdk": {
@@ -34,11 +34,16 @@
     "path": "correctness/185-opt2-sdk-independent-audit.json",
     "sha256": "267753aef3405f5d6e9ffea2a33f9d707aaff55e6c77561ab24924d8f18bfcc2"
   },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "executed": false,
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/185-opt2-execution-20261016/release-to-measurements.json",
+    "sha256": "f9533ce806a75c35b6475e88a5fa9b0b0f36e5b201f3a45684824d6ba59c4b28",
+    "epoch": 1792136867.3528123,
+    "scope": "Actual803 DNS final quiet handoff after both complete pretransfers; original owner32 and separate device10 only."
+  },
+  "pretransfer_complete": true,
+  "executed": true,
   "remote_accessed": true,
-  "owner32_plan_sha256": "d72d4c8b31bc3180b11e93ad11f7a46a57871fd527e1ad02159397814fd751dc",
+  "owner32_plan_sha256": "715d64768c4616c10ce41983b48f0d801f404b4da6807aed5e756cdd21dd6c31",
   "sdk_postflight_sha256": "6b3e3cdf4214607f37ca09330901fd0453681a4368d418d2ec311ce5852be81c",
   "original32_protocol_and_scripts_unchanged": true,
   "full_independent_review_pending": false,
@@ -49,7 +54,7 @@
     "remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs",
     "pending_plan_uploaded_not_ready": true
   },
-  "pretransfer_remaining": "DHCP four immutable device artifact copies, actual independent audit and DNS finalquiet. Ready-plan release metadata is filled/self-checked before any measurement.",
+  "pretransfer_remaining": null,
   "related_independent_review": {
     "commit": "3ce1e7e5",
     "path": "correctness/185-opt2-related-independent-audit.json",
@@ -59,5 +64,6 @@
     "commit": "dd4fd1bd",
     "path": "correctness/185-opt2-owner32-actual-binding-root-review.json",
     "sha256": "31e117a742c4013ebf98be50c79afcb793ea1f238656b0c16809adb50b4a2509"
-  }
+  },
+  "launch_sha256": "9c9b38aee33aebbf90fe15aee2dec8026bc5b5a20f8e039b8048e25757b2a270"
 }

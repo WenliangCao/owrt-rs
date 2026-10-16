@@ -2,8 +2,9 @@
 
 The [actual plan](185-opt2-owner32-plan.json) now binds source
 `8035114257c8706047d2038c2bb8126391331925`, the actual 957 related-test receipt
-and the downloaded SDK ELF/map/build hashes. Its status still rejects launch:
-all pretransfers and DNS's final explicit quiet release remain pending.
+and the downloaded SDK ELF/map/build hashes. Both pretransfers, full actual
+independent review and DNS's explicit final quiet release are complete.
+The original owner32 started at 2026-10-16 07:50:39 UTC; results are pending.
 No native240 is added.
 
 The [binding receipt](185-opt2-owner32-actual-binding.json) records exact
@@ -28,4 +29,15 @@ Root's actual identity-delta review `dd4fd1bd` also passed, SHA-256
 `31e117a742c4013ebf98be50c79afcb793ea1f238656b0c16809adb50b4a2509`.
 The owner input pretransfer is retained in
 [its receipt](185-opt2-owner32-pretransfer.json); DHCP's device pretransfer and
-the final release are still required before either measurement starts.
+the final release were completed before either measurement started.
+
+The [DNS release](185-opt2-screen-release.json) has SHA-256
+`f9533ce806a75c35b6475e88a5fa9b0b0f36e5b201f3a45684824d6ba59c4b28`.
+After that handoff, only the final ready metadata was uploaded and rehashed:
+[receipt](185-opt2-owner32-final-ready-metadata.json), SHA-256
+`86307ea61be6ce9c15236d59ee0edc120f10a03f8f146bda891adc4125e5c306`.
+The [ready self-check](185-opt2-owner32-ready.json) preserves the unchanged
+protocol fields. Final plan SHA-256 is
+`715d64768c4616c10ce41983b48f0d801f404b4da6807aed5e756cdd21dd6c31`.
+The [launch](185-opt2-owner32-launch.json) binds controller PID 976472,
+original 32 windows and the transfer hold during both measurement slots.
