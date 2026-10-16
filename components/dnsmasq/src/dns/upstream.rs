@@ -763,6 +763,20 @@ impl<R: Random> UpstreamResolver<R> {
             self.consume_releases();
             return Ok(self.events.drain(..).collect());
         }
+        self.poll_active_with_context_filter(max_wait, ignore)
+    }
+
+    // The owner also polls after cached replies, when only the empty branch
+    // above is needed. Reserve socket/timer scratch only for active work.
+    #[inline(never)]
+    fn poll_active_with_context_filter<F>(
+        &mut self,
+        max_wait: Duration,
+        ignore: F,
+    ) -> io::Result<Vec<UpstreamEvent>>
+    where
+        F: Fn(&[u8], &super::forward::Pending) -> bool,
+    {
         let call_deadline = Instant::now()
             .checked_add(max_wait)
             .unwrap_or_else(Instant::now);
