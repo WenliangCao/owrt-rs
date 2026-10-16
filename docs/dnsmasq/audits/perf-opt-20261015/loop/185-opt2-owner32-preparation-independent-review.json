@@ -1,0 +1,114 @@
+{
+  "schema": "803-opt2-owner32-preparation-independent-review-v1",
+  "status": "PASS_LOCAL_DISABLED_ORIGINAL_OWNER32_PREPARATION_ONLY",
+  "author_commit": "b1efce288652c854888baa996e1cbcccf67e9904",
+  "plan_sha256": "ef482f589f68447d0894c987c38d3ebf994a0bcb9eb4285cbd7053c9ebc3d3da",
+  "binding_sha256": "17bb1d492aefe13a1d57d9ff99fdd635e0e992d5b16f16d0088688634f894ca6",
+  "markdown_sha256": "7612936b74982e5ddfe780f726e1da599daa117353dd6e81944790e9a45367c9",
+  "candidate_source": "8035114257c8706047d2038c2bb8126391331925",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "adapted_tools": {
+    "run_185_opt2_owner32.py": {
+      "sha256": "3d887c8f0a8366f84aac7f98d3bc5644ac6ef91c4aa09e1867271bd6acac3b17",
+      "original_sha256": "4b2f8e5993a7a78948bfd508f80f464a41aadeb5a961dc894d4bed220d7d54f6",
+      "exact_declared_reconstruction": true,
+      "declared_replacements": [
+        {
+          "from": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+          "to": "8035114257c8706047d2038c2bb8126391331925",
+          "occurrences": 1
+        },
+        {
+          "from": "post185-combined",
+          "to": "185-opt2",
+          "occurrences": 4
+        },
+        {
+          "from": "== 961",
+          "to": "== 957",
+          "occurrences": 1
+        },
+        {
+          "from": "Frozen exact-SDK 6ab/G owner32 screen",
+          "to": "Frozen exact-SDK 803 opt2/G owner32 screen",
+          "occurrences": 1
+        }
+      ]
+    },
+    "analyze_185_opt2_owner32.py": {
+      "sha256": "ba0aeea816976ff34a984e37adbc485017867c3376456b6e2e46b3a80de978b6",
+      "original_sha256": "6a00ac084e86ed95a8f95796c80ff50a33867f07b173481be9c65d88d90bab3f",
+      "exact_declared_reconstruction": true,
+      "declared_replacements": [
+        {
+          "from": "Independent accepted-G/6ab UDP owner diagnostic",
+          "to": "Independent accepted-G/803 opt2 UDP owner diagnostic",
+          "occurrences": 1
+        }
+      ]
+    }
+  },
+  "unchanged_imports": {
+    "loop_owner_profile.py": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620",
+    "loop_hit_syscalls.py": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+    "elf_size_report.py": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+    "perf_link_map_profile.py": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d",
+    "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "elf_link_map_report.py": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+    "loop_owner_profile_analyze.py": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a",
+    "r121_symbolize.py": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12"
+  },
+  "source_files_verified_against_git": {
+    "G": 179,
+    "185-opt2": 179
+  },
+  "source_difference_files": [
+    "components/dnsmasq/Cargo.toml",
+    "components/dnsmasq/src/hosts.rs"
+  ],
+  "hosts_non_test_prefix_identical": true,
+  "windows": {
+    "total": 32,
+    "stat": 12,
+    "plain": 20,
+    "all_unique": true,
+    "original_argv_identity_only_substitutions": true,
+    "independently_reconstructed_argv_equal": true
+  },
+  "statistics_review": [
+    "Original low200/s and highunpaced,800names,A/AAAA70/30,1000prewarm,5+20+1s and CPU/nice placement remain hash-bound to the unchanged driver.",
+    "Original stat3pairs and plain5pairs per low/high class; G first odd,variant first even; no historical pooling or replacement.",
+    "CPU/PMU use actual correct warmup+measurement N; throughput/latency use20s measurement; grouped PMU must be unscaled.",
+    "Low CPU retains everywindow>=10ticks and absolute median difference>8ticks, absrelativechange>W and>=4/5direction.",
+    "High variable-N remains pipeline diagnostic; precision_ok=None, no fixed-cohort/tick precision acceptance claim."
+  ],
+  "dns_preparation": {
+    "commit": "d7957509",
+    "manifest_sha256": "23148c2eff34f1dd31e694e93d038069b9912d9247ad8cf4c6fb7da0cdb025bb",
+    "source_paths_manifests_builder_profile_and_review_match": true,
+    "anticipated_related_count": 957,
+    "actual_gate": null
+  },
+  "sdk_builder_sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
+  "planned_opt_level": "2",
+  "disabled_state": {
+    "actual_sdk_identity": null,
+    "actual_related_receipt": null,
+    "actual_sdk_review": null,
+    "explicit_host_release": null,
+    "pretransfer_complete": false,
+    "execution_enabled": false,
+    "status_assertion_before_output_creation": true
+  },
+  "scope_limits": [
+    "Source957 is only anticipated; actual803 logs/listings and originalfivegroups must pass. Existing dev/test receipts are not relabeled shippingopt2.",
+    "The unchanged runtime wrapper doesnot itself inspect every added preparationmetadata field. Final actualSDK/profile2/source/independentreview/quiet/pretransfer binding must precede setting its existingready status.",
+    "No native240 prepared or authorized: original nativehot15 explicitlyusesopt3/LTO. No6ab,210,Arc-content,lazy-metrics orinline-address product composition.",
+    "This review grants no executionrelease and measures no product/CPU/latency. Routerten remains an independent already-authorized queue."
+  ],
+  "target_scripts_executed_or_imported": false,
+  "product_tests_or_builds_run": false,
+  "remote_or_router_accessed": false,
+  "review_verifier_sha256": "8b02baae16f354ee743335fde86dd2ad7a0ca8628ccbf576a3c0c05f01aa32ea"
+}
