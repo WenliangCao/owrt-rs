@@ -1,0 +1,110 @@
+{
+  "status": "NO_BLOCKER_FOUND_IN_SCOPED_EXACT9E_COMPOSITION_SOURCE_REVIEW",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "baseline_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "reviewed_source_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "0204d6723d0bd2979084119bffebb2d03461ff9f66468af297532684439cac68",
+    "components/dnsmasq/src/dns/cache_engine.rs": "fe1a39b5515cd93c664de6fe037fa1ff438a0c0157d69418e8d75d471802daa9",
+    "components/dnsmasq/src/dns/daemon.rs": "ba1bb4257116d74fe0e329644b209d46cf893df6dda825342248e3ce221b4193",
+    "components/dnsmasq/src/dns/local.rs": "9a410c969f6a12bb3ec6e2e053cc1a323cfb854d1f3c4c1828a699a76357e119",
+    "components/dnsmasq/src/dns/service.rs": "c870fe3780043ad4153b3277014d075cdf62c07fb06b780850cfd086688dae88",
+    "components/dnsmasq/src/dns/lease_names.rs": "c50961b17cdb3de122cc3690e31f7dd8848914f4fac9efe2b925a6877d435253",
+    "components/dnsmasq/src/dns/upstream.rs": "d441f855198c4f7ced5a3ef60cc0bfb3c3dc09338765c34fa11e964605ce2ed0",
+    "components/dnsmasq/src/dns/edns_policy.rs": "74774b090bf981758f73fdc2aaa120cd5e5ca8fd5bafb03cd5d52bdbd0418097",
+    "components/dnsmasq/src/hosts.rs": "0dac900d6933503bc166bcec4ecf2226e43bbbc2793adfecb82b1e06ed783638",
+    "components/dnsmasq/src/main.rs": "3cd3c5b793b2551d37ae963b546fac5794e43f4c697b19d0b16b862c3753b431"
+  },
+  "author_report": {
+    "commit": "dcc9cdeb",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-integration-local.json",
+    "sha256": "024e871b364b6c1f97673a74ff256a2a5d0f3d057175fdf9fb6daa3cd9d540f2"
+  },
+  "interaction_checks": [
+    {
+      "boundary": "local/CNAME/cache ordering",
+      "files": [
+        "dns/local.rs:249",
+        "dns/daemon.rs:1885"
+      ],
+      "conclusion": "Lease expiry still precedes name inspection. Configured CNAME and cached-CNAME deferral stay before other local records. Typed local answers still return before cache, retaining the separately authorized stale-negative compatibility fix. Fresh address early return requires exact family eligibility plus absence of every original local blocker; forward-rule answers still wait until cache lookup and TCP terminal-name handling."
+    },
+    {
+      "boundary": "query-scoped NameLookup lifetime and invalidation",
+      "files": [
+        "dns/cache.rs:312",
+        "dns/cache.rs:566",
+        "dns/cache.rs:610",
+        "dns/cache.rs:637",
+        "dns/daemon.rs:1895"
+      ],
+      "conclusion": "The hint owns no index/Entry references and borrows the caller question only for the synchronous answer. Question identity, cache address, names-root address, monotonic revision and EntryId generation are rechecked. Index mutations still increment/saturate revision. Only read-only local ownership checks intervene on the fresh early-return path; rejected hints retain ordinary lookup. No hint escapes in LocalLookup or survives a queued turn."
+    },
+    {
+      "boundary": "canonical scratch and direct lease-ID slice",
+      "files": [
+        "dns/local.rs:627",
+        "dns/local.rs:882",
+        "dns/local.rs:960",
+        "dns/local.rs:990",
+        "hosts.rs:1490",
+        "dns/lease_names.rs:276"
+      ],
+      "conclusion": "Both original dotted converters fold ASCII case, so canonical host presence receives its required spelling. Some reuses the original query conversion after lease expiry, not a CNAME terminal; None initializes the entire scratch before borrowing. Direct slice iteration retains the same forward-key lookup, ID order, active/live predicates and immutable LeaseNames borrow; it does not reorder expiry, create mutation, or bypass local ownership."
+    },
+    {
+      "boundary": "fresh selection to immutable inline RDATA",
+      "files": [
+        "dns/cache.rs:153",
+        "dns/cache.rs:610",
+        "dns/cache.rs:932",
+        "dns/cache.rs:1169",
+        "dns/cache_engine.rs:273"
+      ],
+      "conclusion": "Inline bytes are created only for positive A4/AAAA16 at insertion. Invalid lengths, negative, CNAME and general records keep Other. Record bytes have no mutable cache accessor; import edits its owned Record before insertion. COW entry metadata setters retain independent target/authority state. The fresh selector still validates family, generation, stale/expired predicates and performs one original LRU promotion before the writer; no intervening cache mutation changes the selected inline bytes."
+    },
+    {
+      "boundary": "warm writer/fallback and EDNS composition",
+      "files": [
+        "dns/cache_engine.rs:124",
+        "dns/cache_engine.rs:273",
+        "dns/cache_engine.rs:293",
+        "dns/cache_engine.rs:347",
+        "dns/cache_engine.rs:1602",
+        "dns/service.rs:370",
+        "dns/edns_policy.rs:212"
+      ],
+      "conclusion": "Only already selected fresh class-IN A/AAAA with original RD/header/DO/filter checks reaches the writer. Warm direct encoding additionally requires logging off, existing capacity, complete fit and original minimum reservation capacity. Both direct and fallback writers now read the same immutable inline address. Logging, growth, overflow and other types retain the original writer/general path; record_cached has no side effect when logging is off. Absent-additional shortcuts are limited to OPT-only local sizing and the already permissive ECS predicate; cache EDNS parsing, response append and error/truncation boundaries remain in their original owner."
+    },
+    {
+      "boundary": "buffer ownership and empty upstream events",
+      "files": [
+        "main.rs:5342",
+        "dns/service.rs:291",
+        "dns/daemon.rs:1267",
+        "dns/upstream.rs:754"
+      ],
+      "conclusion": "Only Cached marks the recycling path. The reply remains owned through dump/send, then the owner reacquires the service and recycles; stale send-before-refresh and large/general reply lifetime remain unchanged. Upstream releases/events are drained in the same empty-work branch, and daemon query events are extended before empty response return. Outlining does not move notices after the owner take_query_events call."
+    },
+    {
+      "boundary": "parallel DHCP/main outline review",
+      "reviewer": "DHCP",
+      "files": [
+        "main.rs:4538",
+        "main.rs:6425",
+        "dns/daemon.rs:1267",
+        "dns/upstream.rs:754"
+      ],
+      "conclusion": "Independent read of exact9e versus6ab found no blocker: ALARM and dump-counter gates, helper/reload/readiness/maintenance gates, borrow recovery/early returns, provider drop and DHCP restoration retain their original order. Nonempty upstream body and scratch restoration remain unchanged. This is source-order review only."
+    }
+  ],
+  "no_source_edits": true,
+  "new_tests_or_builds_or_target_execution": false,
+  "Oracle_or_router_access": false,
+  "new_instrumentation_or_audit_framework": false,
+  "scope_limits": [
+    "Scoped source interaction review, not a proof of all behavior or new runtime qualification. Existing original actual related/SDK/standalone gates and independent performance/raw audits remain required.",
+    "No test was added or rerun. Existing local729/23/musl and18432/576 comparisons remain author evidence, not this review execution.",
+    "No performance or zero-allocation inference; original native does not exercise recycled-buffer or main owner paths.",
+    "Previous adverse native/owner/device results and the warm send-lag regressions remain unchanged."
+  ]
+}
