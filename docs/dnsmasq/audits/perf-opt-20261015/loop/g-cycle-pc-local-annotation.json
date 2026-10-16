@@ -1,0 +1,256 @@
+{
+  "scope": "Read-only annotation of original single Oracle cycles:u sample and frozen G bytes; sample skid and sparse PCs preclude exact instruction-cost, cache-miss, or A53 attribution",
+  "status": "ORIGINAL_SAMPLE_READONLY_ANNOTATION_NO_NEW_CAPTURE",
+  "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "source_files": {
+    "samples.txt": "cee1c52049d2e0ad1e8365c3ee8601ddc48cc0f7f8924de4b7e2e8fe24f9ad56",
+    "self.txt": "b90a5d8c22feb0d3d3042d301622915e5f008b27a70417208843812db3f74a5f",
+    "maps-after": "b42b1c0a1896e337b1cc29b7ec3122e8c81966aa046102986ece3a820cc60327",
+    "mapped-files-after.json": "6e7d21168908d458d1f6589dda4ed9b63b52403fea682b5eade4070dbe8a1d54"
+  },
+  "totals": {
+    "samples": 5497,
+    "period": 54970000,
+    "lost_samples": 0
+  },
+  "unknown_period": {
+    "non_user": 1200000,
+    "[vdso]": 1640000
+  },
+  "private_derived_receipt": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/g-cycle-code/annotated.json",
+  "private_derived_receipt_sha256": "5a4242e4adfc491d629b5020af2e390ba807f1407f88244bba184e9e1cdbc62c",
+  "private_annotator_sha256": "ce2e5767840a32ae3fb0d5e37b49f77e6cb4cfd0715ba4d5a22b456188950fa5",
+  "named_ranges_decoded": 22,
+  "selected_mechanism_ranges": [
+    {
+      "label": "<dnsmasq_rs::dns::local::LocalAnswerer>::answer_parsed_with_query_events",
+      "elf_range": [
+        "0xe7254",
+        "0xe83f0"
+      ],
+      "period": 2950000,
+      "share_all_period_percent": 5.366563580134619,
+      "top_three_pcs": [
+        {
+          "vma": "0xe7ff8",
+          "offset": 3492,
+          "period": 560000,
+          "percent_all": 1.0187374931780973,
+          "percent_range": 18.983050847457626,
+          "context": [
+            "e7fec: b.eq #0xe7fb0",
+            "e7ff0: ldr x8, [x8, #0x30]",
+            "e7ff4: ldrh w8, [x8, #0x40]",
+            "e7ff8: cmp w8, #5 <-- sampled",
+            "e7ffc: b.ne #0xe7fb0",
+            "e8000: ldr x2, [sp, #0x60]"
+          ]
+        },
+        {
+          "vma": "0xe7fe8",
+          "offset": 3476,
+          "period": 440000,
+          "percent_all": 0.8004366017827906,
+          "percent_range": 14.915254237288135,
+          "context": [
+            "e7fdc: ldr x8, [x9, #0x10]",
+            "e7fe0: umaddl x8, w0, w24, x8",
+            "e7fe4: ldr x9, [x8]",
+            "e7fe8: cmn x9, #1 <-- sampled",
+            "e7fec: b.eq #0xe7fb0",
+            "e7ff0: ldr x8, [x8, #0x30]"
+          ]
+        },
+        {
+          "vma": "0xe822c",
+          "offset": 4056,
+          "period": 230000,
+          "percent_all": 0.41841004184100417,
+          "percent_range": 7.796610169491525,
+          "context": [
+            "e8220: ldur x28, [x29, #-0x60]",
+            "e8224: tbnz w9, #0, #0xe8240",
+            "e8228: ldr x8, [x8, #0x38]",
+            "e822c: cmp x8, x20 <-- sampled",
+            "e8230: b.ne #0xe8240",
+            "e8234: ldr x8, [x0, #0x38]"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "<dnsmasq_rs::dns::cache::Cache>::names_for",
+      "elf_range": [
+        "0xe2f34",
+        "0xe30b0"
+      ],
+      "period": 1540000,
+      "share_all_period_percent": 2.801528106239767,
+      "top_three_pcs": [
+        {
+          "vma": "0xe2fd4",
+          "offset": 160,
+          "period": 420000,
+          "percent_all": 0.7640531198835728,
+          "percent_range": 27.272727272727273,
+          "context": [
+            "e2fc8: dup v8.8b, w8",
+            "e2fcc: and x24, x0, x21",
+            "e2fd0: ldr d9, [x22, x24]",
+            "e2fd4: cmeq v0.8b, v9.8b, v8.8b <-- sampled",
+            "e2fd8: fmov x8, d0",
+            "e2fdc: ands x25, x8, #-0x7f7f7f7f7f7f7f80"
+          ]
+        },
+        {
+          "vma": "0xe2fa4",
+          "offset": 112,
+          "period": 360000,
+          "percent_all": 0.6549026741859196,
+          "percent_range": 23.376623376623378,
+          "context": [
+            "e2f98: b.hs #0xe306c",
+            "e2f9c: ldr x22, [x0, x8, lsl #3]",
+            "e2fa0: ldr x8, [x22, #0x28]",
+            "e2fa4: cbz x8, #0xe307c <-- sampled",
+            "e2fa8: ldp x0, x1, [x22, #0x30]",
+            "e2fac: mov x2, x20"
+          ]
+        },
+        {
+          "vma": "0xe2ffc",
+          "offset": 200,
+          "period": 340000,
+          "percent_all": 0.6185191922867018,
+          "percent_range": 22.07792207792208,
+          "context": [
+            "e2ff0: and x8, x8, x21",
+            "e2ff4: sub x26, x22, x8, lsl #5",
+            "e2ff8: ldur x8, [x26, #-0x18]",
+            "e2ffc: cmp x19, x8 <-- sampled",
+            "e3000: b.ne #0xe301c",
+            "e3004: ldur x8, [x26, #-0x20]"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "<dnsmasq_rs::dns::lease_names::LeaseNames>::lookup",
+      "elf_range": [
+        "0xb49b0",
+        "0xb4c64"
+      ],
+      "period": 910000,
+      "share_all_period_percent": 1.6554484264144078,
+      "top_three_pcs": [
+        {
+          "vma": "0xb49b0",
+          "offset": 0,
+          "period": 160000,
+          "percent_all": 0.29106785519374206,
+          "percent_range": 17.582417582417584,
+          "context": [
+            "b49b0: sub sp, sp, #0x80 <-- sampled",
+            "b49b4: stp d9, d8, [sp, #0x10]",
+            "b49b8: stp x29, x30, [sp, #0x20]"
+          ]
+        },
+        {
+          "vma": "0xb4c20",
+          "offset": 624,
+          "period": 140000,
+          "percent_all": 0.2546843732945243,
+          "percent_range": 15.384615384615385,
+          "context": [
+            "b4c14: mov x0, x23",
+            "b4c18: bl #0x1b7820",
+            "b4c1c: ldr x4, [sp, #8]",
+            "b4c20: mov w8, #1 <-- sampled",
+            "b4c24: str xzr, [x21, #0x10]",
+            "b4c28: stp x8, x19, [x21]"
+          ]
+        },
+        {
+          "vma": "0xb49d8",
+          "offset": 40,
+          "period": 120000,
+          "percent_all": 0.21830089139530653,
+          "percent_range": 13.186813186813186,
+          "context": [
+            "b49cc: stp x20, x19, [sp, #0x70]",
+            "b49d0: add x29, sp, #0x20",
+            "b49d4: ldr x8, [x1, #0x90]",
+            "b49d8: mov x20, x1 <-- sampled",
+            "b49dc: mov x21, x0",
+            "b49e0: cbz x8, #0xb4a3c"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "<core::iter::adapters::flatten::FlattenCompat<core::iter::adapters::map::Map<core::option::IntoIter<&dnsmasq_rs::dns::lease_names::LeaseIds>, <dnsmasq_rs::dns::lease_names::LeaseNames>::lookup::{closure#1}>, core::slice::iter::Iter<usize>>>::iter_try_fold::<(), <core::iter::adapters::flatten::FlattenCompat<_, _> as core::iter::traits::iterator::Iterator>::try_fold::flatten<core::slice::iter::Iter<usize>, (), core::ops::control_flow::ControlFlow<&dnsmasq_rs::dns::lease_names::LeaseName>, core::iter::traits::iterator::Iterator::find_map::check<&usize, &dnsmasq_rs::dns::lease_names::LeaseName, &mut <dnsmasq_rs::dns::lease_names::LeaseNames>::lookup::{closure#2}>::{closure#0}>::{closure#0}, core::ops::control_flow::ControlFlow<&dnsmasq_rs::dns::lease_names::LeaseName>>",
+      "elf_range": [
+        "0xb4c64",
+        "0xb4f94"
+      ],
+      "period": 880000,
+      "share_all_period_percent": 1.6008732035655813,
+      "top_three_pcs": [
+        {
+          "vma": "0xb4e40",
+          "offset": 476,
+          "period": 240000,
+          "percent_all": 0.43660178279061307,
+          "percent_range": 27.272727272727273,
+          "context": [
+            "b4e34: mov x0, x8",
+            "b4e38: ldp x29, x30, [sp], #0x10",
+            "b4e3c: ret ",
+            "b4e40: str xzr, [x0, #8] <-- sampled",
+            "b4e44: ldr x11, [x0, #0x20]",
+            "b4e48: str xzr, [x0, #0x10]"
+          ]
+        },
+        {
+          "vma": "0xb4ef0",
+          "offset": 652,
+          "period": 190000,
+          "percent_all": 0.34564307804256866,
+          "percent_range": 21.59090909090909,
+          "context": [
+            "b4ee4: mov x0, x8",
+            "b4ee8: ldp x29, x30, [sp], #0x10",
+            "b4eec: ret ",
+            "b4ef0: mov x8, xzr <-- sampled",
+            "b4ef4: str xzr, [x0, #0x20]",
+            "b4ef8: mov x0, x8"
+          ]
+        },
+        {
+          "vma": "0xb4d14",
+          "offset": 176,
+          "period": 160000,
+          "percent_all": 0.29106785519374206,
+          "percent_range": 18.181818181818183,
+          "context": [
+            "b4d08: mov x0, x8",
+            "b4d0c: ldp x29, x30, [sp], #0x10",
+            "b4d10: ret ",
+            "b4d14: ldr x8, [x0] <-- sampled",
+            "b4d18: cmp x8, #1",
+            "b4d1c: b.ne #0xb4e44"
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Original single Oracle cycles:u capture; no cache miss, stall attribution or A53 PMU evidence.",
+    "Sample skid means the recorded instruction may follow the event source. Load/compare sequences only identify code to investigate.",
+    "Use full54970000period denominator, including1200000nonuser and1640000vDSO.",
+    "Unnamed input section stays unnamed. No instruction symbol guessed.",
+    "Initial Elf section parser rejected sstrip no-SHT artifact; read original ELF64 PT_LOAD bytes instead, unchanged hash.",
+    "No new tool or qualification rule, remote analysis, capture or measurement."
+  ],
+  "followup": "Keep original6ab queue frozen; independent2b content-slice and530 lease-address-presence prototypes follow mechanism evidence, with no performance claim."
+}
