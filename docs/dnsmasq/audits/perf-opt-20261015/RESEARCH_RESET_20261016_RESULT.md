@@ -492,3 +492,20 @@ DHCP authoritative也不是EDNS改写/DNS auth开关。真实请求OPT/flags与�
 owrt-perf-d1-count-20261016/private/d1-count/local-rule-{before,after}.log，源afd86e27→0bff6d89。
 4cd经独立针对性审查无行为风险发现，f675e9e0另保存4128组旧/新后缀匹配对照。下一轮按真实
 配置因素选择源码与配对，仍保持原正确性语料/基线/失败数据，不新增审计框架。
+
+
+同一计数fixture进一步加入公开RFC6761六规则（加lan共七条），把query后缀移到.example避免
+匹配.test：原路径每query23次alloc/dealloc、401B（2000次合计46000/802000B），D1旧入口
+同样回退；覆盖修正后general/D1均零。本机debug及release两种编译的计数一致，均未用其
+elapsed判断性能；日志rfc6761-{before,after}{,-release}.log保留在同一private/d1-count。
+诊断源b796e88c；before仅将local.rs替回afd86e27对应blob，after恢复该提交的修正，测试后
+工作树干净。此证据仍不是实际PGO机器码的分配计数或A53时间。
+
+后继已分别准备：D1+规则+D2源b059fc43（735lib+31bin/8ignored/Linuxcheck通过），或无D1的
+D2+规则源f56fdd49（724lib+29bin/8ignored/Linuxcheck通过）；5a077516预先固定按原D1五对
+方向只选一个新profile，测公开规则条件。当前ba40新profile/use构建和actualLinux13项完成，
+实际ELF b9e1eddbbabed9654fe708e5c9d1e9e27b78ccc0e0509bbac212a055c92bf5c2，2296611B；
+APK1299617B，profile e638a583045e18a0ae2a9d501f7026cd81504d52615dcd472f08c229d4ac7e57，
+934368B，原11场景单次50raw、零missing/mismatch、smoke/硬化/新caps通过。579文件已下载；
+唯一构建结果SHAed50677ae50398be38d9fe63577c106c3c6c29ed03d7109dc6f3a1e23a08454f在
+active PGO树private/perf-opt-20261015/d1-pgo-preparation-20261016/result-summary.json。
