@@ -16,7 +16,7 @@
   },
   "native": {
     "plan": "post185-combined-native-preparation.json",
-    "sha256": "6f700607bda2c7b2166fa75554cc207458a11155cbf73e111baba1cfd3dc848c",
+    "sha256": "81e5fa961c6f4883a85df84ac5c389888651cb1abb5cda6a672770c0e831d21a",
     "windows": 240,
     "stat_windows": 90,
     "plain_windows": 150,
@@ -25,7 +25,7 @@
   },
   "owner32": {
     "plan": "post185-combined-owner32-preparation.json",
-    "sha256": "efe9014e6e87faf466b44a4fcdbf4fa8ef83d48f808554d3b28bc4094ccb893e",
+    "sha256": "9258251a359ec9a6accc8f666020771ae3e3156d19927bf1cb5d64750293fc39",
     "windows": [
       {
         "label": "stat-low-r1-G",
@@ -1327,7 +1327,7 @@
     "run_post185_combined_owner32.py": {
       "original_path": "dns/run_cached_zero_frame_owner32.py",
       "original_sha256": "b9ce540f671a6c34160888cebf9258da25655d2633d316805c22631d68805b49",
-      "sha256": "8fc501e26b0c613535ebce133787e37e91d3b4e79709359527cc30ce05c69a15",
+      "sha256": "4b2f8e5993a7a78948bfd508f80f464a41aadeb5a961dc894d4bed220d7d54f6",
       "replacements": [
         {
           "from": "185db90c9cabd26c0af09765636ef15bf6d35f79",
@@ -1357,6 +1357,16 @@
         {
           "from": "== 940",
           "to": "== 961",
+          "occurrences": 1
+        },
+        {
+          "from": "PASS_RELATED_LINUX_GATES_VERIFIED",
+          "to": "PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET",
+          "occurrences": 1
+        },
+        {
+          "from": "verified['owned_processes'] == []",
+          "to": "verified['research'] == [] and verified['wrapper_exited']",
           "occurrences": 1
         },
         {
