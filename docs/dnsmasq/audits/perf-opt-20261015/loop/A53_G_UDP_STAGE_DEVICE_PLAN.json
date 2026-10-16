@@ -1,0 +1,567 @@
+{
+  "schema": 1,
+  "status": "LOCAL DISABLED PREPARATION; originalG-stage gate/SDK/review/quiet identities pending; no device action",
+  "scope": "Excluded cumulative-path diagnostic onacceptedG185. Fiveindependentgroups: exactC/G, G/diagnosticfull calibration, ownfull/receive,ownfull/before-answer,ownfull/skip-local. Notproductcandidate,additivefunctioncost,IPCorallocationCPU attribution; nohistoricalE/G pooling.",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "artifacts": {
+    "exact-c": {
+      "name": "a53-g-stage-artifact-exact-c",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    },
+    "e": {
+      "name": "a53-g-stage-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "stage": {
+      "name": "a53-g-stage-artifact-stage",
+      "sha256": null
+    },
+    "f": {
+      "name": "a53-g-stage-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "g": {
+      "name": "a53-g-stage-artifact-g",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "schedule": [
+    {
+      "group": "exact-c-vs-g",
+      "round": 1,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r1-c"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 1,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r1-rust"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 2,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r2-rust"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 2,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r2-c"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 3,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r3-c"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 3,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r3-rust"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 4,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r4-rust"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 4,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r4-c"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 5,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r5-c"
+    },
+    {
+      "group": "exact-c-vs-g",
+      "round": 5,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-exact-c-vs-g-r5-rust"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-g-vs-stage-full-r1-c"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-g-vs-stage-full-r1-rust"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-g-vs-stage-full-r2-rust"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-g-vs-stage-full-r2-c"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-g-vs-stage-full-r3-c"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-g-vs-stage-full-r3-rust"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-g-vs-stage-full-r4-rust"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-g-vs-stage-full-r4-c"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-g-stage-g-vs-stage-full-r5-c"
+    },
+    {
+      "group": "g-vs-stage-full",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-g-vs-stage-full-r5-rust"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-receive-r1-c"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "label": "a53-g-stage-stage-full-vs-receive-r1-rust"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "label": "a53-g-stage-stage-full-vs-receive-r2-rust"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-receive-r2-c"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-receive-r3-c"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "label": "a53-g-stage-stage-full-vs-receive-r3-rust"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "label": "a53-g-stage-stage-full-vs-receive-r4-rust"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-receive-r4-c"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-receive-r5-c"
+    },
+    {
+      "group": "stage-full-vs-receive",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "label": "a53-g-stage-stage-full-vs-receive-r5-rust"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r1-c"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r1-rust"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r2-rust"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r2-c"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r3-c"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r3-rust"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r4-rust"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r4-c"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r5-c"
+    },
+    {
+      "group": "stage-full-vs-before-answer",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "label": "a53-g-stage-stage-full-vs-before-answer-r5-rust"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r1-c"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r1-rust"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r2-rust"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r2-c"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r3-c"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r3-rust"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r4-rust"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r4-c"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r5-c"
+    },
+    {
+      "group": "stage-full-vs-skip-local",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "label": "a53-g-stage-stage-full-vs-skip-local-r5-rust"
+    }
+  ],
+  "output_requirements": [
+    "All6000 fixture replies correct,1000 prewarm then1000 warmup and4000 measurement; no timeout/wrong/transport/skipped; original upstream hit gate.",
+    "Stage sidecar matched6000, prewarm threshold1000, full cuts all0; selected nonfull cut5000, others0.",
+    "Normal case/daemon exit0; same isolated namespace; file/live ELF identity; single process/thread in sampled resource observations.",
+    "Original100Hz CPU endpoint completed5000 denominator, median delta>8ticks and unchanged W/direction compare.",
+    "Archive, manifest and local extraction verified before pruning only valid windows; stop first failed gate without replacement.",
+    "Fresh>=120s original guard baseline and dual-stack health; no production changes; restore original E/F slots only after no owned daemon remains."
+  ],
+  "known_interventions": [
+    "Receive and before-answer fixedTTL120 synthetic reply, correct ID/question/A/AAAA/48-or60byte length; not exactC wire equivalence.",
+    "Before-answer usesG cached_reply_buffer via take/clear/reserve_exact128 andoriginalsend-then-recycle; unlikeoldE diagnostic,itdoesnotforcea new128Ballocation percut. Thisisreviewedsourcebehavior,notanewactualA53allocationclaim orzeroallocationgate.",
+    "Oneimmutable diagnosticELF forfull/receive/before-answer/skip-local; G/full calibration separateandnotproof ofzeroinstrumentation cost. Eachcut usesitsowncontemporaneousfullfivepairs.",
+    "Receive cuts admission/synchronousquerywork afterreceive; skip-local retainsinspect_name hint andrealcacheanswer. Functionprologues,syntheticTTL/writer,branchprediction/layout/cacheeffects remain. No additivefunctioncost orallocationpricing."
+  ],
+  "optional_extensions": false,
+  "automatic_replacement": false,
+  "original_E_stage_plan": {
+    "path": "loop/A53_UDP_STAGE_DEVICE_PLAN.json",
+    "sha256": "6b403edb27d555de7588504a68acc4bc6206c6c677baaeee792b5c1c191ed30c",
+    "source_commit": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+    "author_result_commit": "be1bb962",
+    "independent_result_review_commit": "e6c1f013"
+  },
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "base_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "diagnostic_ELF_sha256": null,
+  "diagnostic_ELF_bytes": null,
+  "diagnostic_build_receipt_sha256": null,
+  "diagnostic_map_sha256": null,
+  "actual_source_files_verified": null,
+  "actual_Linux_gate_receipt": null,
+  "actual_Linux_gate_independent_review": null,
+  "actual_SDK_independent_review": null,
+  "actual_queue_release": null,
+  "actual_release_budget": null,
+  "execution_enabled": false,
+  "execution_started": false,
+  "candidate_eligible": false,
+  "execution_selected": true,
+  "restore_only": [
+    "e",
+    "f"
+  ],
+  "immutable_artifact_roles": [
+    "exact-c",
+    "e",
+    "f",
+    "g",
+    "stage"
+  ],
+  "entry_sha256": "260a43b024fdcbe987d73bcbff1abc5eede23c03094b86c5ab4e65e204f6e69e",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "health_scope": "Originalfresh125s/>=120sbaseline andalreadyreviewed pre-stop capture-boundary helper, sameoriginalwhole-roundsafety/dualstack. No newobserver,probe,affinity,freqortrace; do notreviveoldpre-boundary wrapper.",
+  "statistics": {
+    "pairs_per_group": 5,
+    "groups": 5,
+    "windows": 50,
+    "W": "maxrelativefullranges",
+    "paired_direction_minimum": 4,
+    "CPU": "allwindows>=10ticks andabsolutemediantickdelta strictly>8",
+    "CPU_denominator": 5000,
+    "measurement_seconds": 20,
+    "historical_pooling": false
+  },
+  "original_meter_not_added": true,
+  "allocation_zero_target": false,
+  "source_review": {
+    "commit": "f9abcc95",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/g-udp-stage-source-peer-review.json",
+    "sha256": "a9f4238131b0c530b15156c8c9123f1c4ac309beda52c8a786be4a0d0f72c8dc",
+    "status": "PASS_LOCAL_SOURCE_REVIEW_ONLY_NOT_SELECTED_NOT_EXECUTED",
+    "actual_runtime_or_SDK_PASS_inherited": false
+  },
+  "source_hook_hashes": {
+    "components/dnsmasq/src/dns/local.rs": "430935a8fb338b891945d7dbfcc85f49d1e0ae2b140bfd60bee0261c4ec3dac8",
+    "components/dnsmasq/src/dns/mod.rs": "e527e22d055879214d9a73c3ff0ce45c40adb1f23c729f84216fcf2fb369d108",
+    "components/dnsmasq/src/dns/udp_stage_diagnostic.rs": "aaeee005ed7f9ded2bd786c17d969d7da948fe174182df2ea1ed4def71682213",
+    "components/dnsmasq/src/main.rs": "53c9773bd8a168f7adfddd64254929a43e610db1c43a9bae3b0f79b439d5a09e"
+  },
+  "image_C_runtime_reference": {
+    "interpreter": "/lib/ld-musl-aarch64.so.1",
+    "interpreter_link": "libc.so",
+    "needed": [
+      "libubox.so.20260213",
+      "libubus.so.20251202",
+      "libgcc_s.so.1",
+      "libc.so"
+    ],
+    "libraries_sha256": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "historical_reference_receipt_sha256": "8d07ca0b3008da5141386398d4739ae871b4fbe7496516e8ed862b4d40b0fa00",
+    "fresh_device_reverification_pending": true
+  },
+  "gate_scope": "Loop reusestheoriginalE-stageLinux diagnostic fixture/bin/ignored selections withactualsource identities. No guessed957/958/961 passcount andno inheritedproductqualification; actualgate/log inventories bindbefore launch.",
+  "pending_before_launch": [
+    "Current5c measurements/independentaudits/quietcomplete; coordinateallbulktransfers outsideothermeasuredwindows.",
+    "OriginalG-stageLinuxgates andactuala34canonicalSDK/source/ELF/map/build/budget identity andindependentreviews delivered; no source/flag/budget relaxation.",
+    "Originalhealth/offlineE-F-restores/exactCimageELF+matchingruntime libraries/originalhelpers/production/idlepreflight. Stagefiveimmutablecopies: C,E,F,G,diagnostic; E/Frestoreonly.",
+    "Finalquiet/allnecessarytransfers beforefixed50; oneimmutable diagnosticELF for4modes, noadditionalwindows/observerorselectiveretry. PreserveallrawthenrestoreexactE/F andverifyproduction unchanged."
+  ]
+}
