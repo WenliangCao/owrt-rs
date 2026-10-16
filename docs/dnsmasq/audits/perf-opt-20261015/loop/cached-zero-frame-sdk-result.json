@@ -1,0 +1,91 @@
+{
+  "status": "SDK_BUILD_AND_POSTFLIGHT_PASS_UNQUALIFIED",
+  "verified_utc": "2026-10-16T01:05:57.800769+00:00",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame",
+  "ELF": {
+    "path": "dnsmasq-rs",
+    "bytes": 2145051,
+    "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+  },
+  "link_map": {
+    "path": "link.map",
+    "sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f"
+  },
+  "build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "source_files_rehashed": 179,
+  "within_existing_budget": true,
+  "elf_layout": {
+    "type": "ET_DYN",
+    "machine": "AArch64",
+    "linkage": "static-pie",
+    "interpreter": null,
+    "needed": [],
+    "pie": true,
+    "bind_now": true,
+    "gnu_relro": true,
+    "nx_stack": true,
+    "writable_executable_load": false,
+    "runtime_protections_verified": false
+  },
+  "recipe_restored": true,
+  "controller_exited": true,
+  "controller_stderr_bytes": 0,
+  "sdk_lock_available": true,
+  "state": {
+    "scope": "Independent185 combined reply-storage/local-frame SDK; original recipe/canonical paths/budgets; Linux gate and reservation required",
+    "controller_pid": 654260,
+    "epoch": 1792112642.7530034,
+    "builds": [
+      {
+        "name": "cached-zero-frame",
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+          "--commit",
+          "185db90c9cabd26c0af09765636ef15bf6d35f79",
+          "--epoch",
+          "1792111445",
+          "--sdk",
+          "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+          "--out",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame",
+          "--cargo",
+          "/home/ubuntu/.cargo/bin/cargo",
+          "--build-slot",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+          "--cargo-target",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+        ],
+        "pid": 654261,
+        "started_epoch": 1792112642.7555256,
+        "returncode": 0,
+        "finished_epoch": 1792112728.0722785,
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2145051,
+            "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+          }
+        ],
+        "link_map": {
+          "path": "link.map",
+          "sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f"
+        },
+        "receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10"
+      }
+    ],
+    "qualification": {
+      "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+      "gate_receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501",
+      "related_test_passes": 940
+    },
+    "complete": true
+  },
+  "state_sha256": "3732b6eb21b74755e96855da8cb567f2fbd74f7e7a53cfab6f3e8f3348464197",
+  "performance_acceptance": false,
+  "deployment": false
+}
