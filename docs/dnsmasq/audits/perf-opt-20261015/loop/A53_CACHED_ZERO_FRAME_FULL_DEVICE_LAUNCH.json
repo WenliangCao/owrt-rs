@@ -1,0 +1,182 @@
+{
+  "scope": "Full authorized independent acceptedE/185 physicalA53 original11scene110; fullfunctional qualificationPASS, performance outcome pending. No production deployment.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "candidate_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "candidate_bytes": 2145051,
+  "baseline_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "artifact": {
+    "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "elf_bytes": 2145051,
+    "map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+    "build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "qualification_sha256": "d76634eab46459a2a38e672da8e1eb86d79a250cf5b4b0c367ee79392fe2d4be",
+  "qualification_commit": "3c8d46e9",
+  "quiet_receipt_sha256": "2c0b9adda89eaaaccf377a00f64b4f3d194655e1bc497703d6ebef0498cece3b",
+  "controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+  "runtime_health_evidence_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+  "fresh_health_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "fresh_health_collector_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "plan_sha256": "258851eddfedb88c750aef7f5e9e03ad6a5307af112eef9e5669bbfd9ad84cba",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "scenes": [
+    [
+      "udp-hit",
+      "udp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-miss",
+      "udp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-mixed",
+      "udp",
+      "mixed",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-hit",
+      "tcp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-miss",
+      "tcp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "dhcp-home6",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      6
+    ],
+    [
+      "dhcp",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      150
+    ],
+    [
+      "startup-small",
+      "life-startup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "config-small",
+      "life-config",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-small",
+      "life-hup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-large",
+      "life-hup",
+      999,
+      150,
+      20,
+      1000,
+      150
+    ]
+  ],
+  "expected_windows": 110,
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-cached-zero-frame-full-prefix-v1/perf_opt_device_run.py",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-vs-e",
+    "--prefix",
+    "cached-zero-frame-vs-e",
+    "--c-hash",
+    "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "--rust-hash",
+    "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-cached-zero-frame-vs-e-prefix-v1/summary.json"
+  ],
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.706,
+    "dns_samples": 49,
+    "dns_p95_ms": 0.674,
+    "dns_max_ms": 1.031,
+    "http_samples": 23,
+    "http_max_ms": 161.397,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "b5b0c6a458c8ff916a97124e6275335ba3821f7075fcd5c28a1d802a65c85a98",
+    "raw_sha256": "7124d7b76762191baa6c74f4a434c6bf8792648aa2b1e9858e2ed88d958c971c"
+  },
+  "health_summary_sha256": "430fb657cea76e277cd3034d4d609200e4fd4769c6ea7748c6ce9b135a0dd1e2",
+  "preflight_sha256": "6995772975380e408e0be64e5128aca2fd2d1ff4793a23afd5daa13e702f18ce",
+  "staging_sha256": "bdd92fbefd5b22352c145d9ad8bf390cce40292843704feb717e38b592293899",
+  "setup_script_sha256": "0cd206d8649a850e57b6a896c5a12fcb41f36eb2bcbffff914626fc7928f72cd",
+  "old_health_FAILED_retained": true,
+  "current_performance_reruns_or_supplements": 0,
+  "prior_ten_windows_not_pooled": true,
+  "status": "running",
+  "pid": 71513,
+  "launch_epoch": 1792118740.2261372,
+  "started_utc": "2026-10-16T02:45:40.226162+00:00"
+}
