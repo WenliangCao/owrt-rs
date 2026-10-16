@@ -1,0 +1,346 @@
+{
+  "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+  "source": "80351142",
+  "parent": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "separate_fixture": "f8adb016 (=7c2708f6)",
+  "single_experimental_flag": "opt-level3\u21922; fatLTO/codegen-units1 remain unchanged",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/parent-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-620fe96dc5800825.rlib"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-185-opt2-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=2",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/opt2-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-185-opt2-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-185-opt2-20261016/private/185-opt2/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-73a1bd20b2e3f78d.rlib"
+      ],
+      "returncode": 0
+    }
+  ],
+  "outputs": {
+    "parent": {
+      "sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+      "bytes": 5022408
+    },
+    "opt2": {
+      "sha256": "05567e2f1c623a8680a19b6f14fe785898737dbbd1e03b9bbc9c96e1f637b6b7",
+      "bytes": 4903720
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "answer_parsed_with_query_events",
+        "symbol": "_RNvMs_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": "0x3187fc",
+        "bytes": 4508,
+        "code_sha256": "0663ed1a5072b826b35b5a04ee7f6a75a8ddfa951c9241ec2d8a5ffc2503bd97",
+        "asm_sha256": "cba0c6e605f232bd656f8f1d24ba9c01bab148ac48c11288c7198da0178bc482"
+      },
+      {
+        "name": "answer_local_records",
+        "symbol": "_RNvMs_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20answer_local_records",
+        "address": "0x31adb4",
+        "bytes": 12132,
+        "code_sha256": "f668f6df3fcc43180a66f92e1744daa8825ea422c4a543f6ad30040a06d7bfba",
+        "asm_sha256": "0fa64d7650973cbc679fc4102911c45af673ba8b467461170f747fcedafc90ab"
+      },
+      {
+        "name": "answer_local_or_cached",
+        "symbol": "_RNvMsb_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "0x2ac938",
+        "bytes": 3980,
+        "code_sha256": "321b17d43402c045e3133bd264a26d2ee28f4e5be333a3e956fc6bb28d811986",
+        "asm_sha256": "daaa64bb644077c4a3eb4783bed5686899af7aec1984bf919a2d3f06b8d4f105"
+      },
+      {
+        "name": "answer_fresh_address",
+        "symbol": "_RNvMs0_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+        "address": "0x310414",
+        "bytes": 1088,
+        "code_sha256": "c63b96db81ed2711dc5359b8c020597cc2b292d69444057dabd1bfd69dd1ffaf",
+        "asm_sha256": "e79f8d18406886dd8cae022499e2b34f83ca0b05ecf2624a24472249ab598911"
+      },
+      {
+        "name": "answer_records_general",
+        "symbol": "_RNvMs0_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general",
+        "address": "0x30cca8",
+        "bytes": 13364,
+        "code_sha256": "ae6c7825672303cd50ab5041d7c6f3ddd7ad8809222fa41cfa31276e7fea6ec0",
+        "asm_sha256": "321e4749cfb53a86845919b91d7af3225ea638ace0c73641016a01570bf3f29c"
+      },
+      {
+        "name": "names_for",
+        "symbol": "_RNvMs3_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for",
+        "address": "0x3138fc",
+        "bytes": 380,
+        "code_sha256": "88f3687df1227d225c85970472caefa6d225217094253782b52db06b0bec10ce",
+        "asm_sha256": "f1e0f6c95d59e60512f5accfb1170be631397d2d923cec79717ce41f16d85290"
+      },
+      {
+        "name": "process_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "address": "0x278ebc",
+        "bytes": 4672,
+        "code_sha256": "93f59a387dddeb36a1d68741a8067a76cd790dfba5a00384cc218643734bbc81",
+        "asm_sha256": "480b7c7b32d4e8cef2bf248d34d704bcb976530494b8c94e050f438375a24704"
+      },
+      {
+        "name": "step_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "address": "0x2963a4",
+        "bytes": 1764,
+        "code_sha256": "52196c256c2098d2f5daf3228ddadd2773b5476f5b12314a07a4e4d55b5e5037",
+        "asm_sha256": "e7763a9ed2cec5ea45d437e770a60002ab2e48f74ef53db22d7c3de16805c3c2"
+      },
+      {
+        "name": "wait_for_files",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "address": "0x27c424",
+        "bytes": 7304,
+        "code_sha256": "e5bcfe17102434bb9c5cc40726e67bf4073f935c3f24c5c29b52c28806324a42",
+        "asm_sha256": "6bf71ed845050f3f2a2f3047dc0975c313d65997c289efa2b2309614373c47b7"
+      }
+    ],
+    "opt2": [
+      {
+        "name": "answer_parsed_with_query_events",
+        "symbol": "_RNvMs_NtNtCs4RXocrxNTCE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": "0x30b39c",
+        "bytes": 3700,
+        "code_sha256": "e6542fca510d184f30cbff825e93c005243121ea22f695b00d79610c17e3a707",
+        "asm_sha256": "9f793e4dc57c3a2a2b1ae550d923d975d037f7127b6fde82c0ed089327c60e56"
+      },
+      {
+        "name": "answer_local_records",
+        "symbol": "_RNvMs_NtNtCs4RXocrxNTCE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20answer_local_records",
+        "address": "0x30d458",
+        "bytes": 11436,
+        "code_sha256": "0c67844cdbd204bbc18795f6b0c84846390bb6183dc53e8262b070328446133d",
+        "asm_sha256": "feb08058a053a37538055d7872d6d480535ccd01b3c751d702008bcda506aaf1"
+      },
+      {
+        "name": "answer_local_or_cached",
+        "symbol": "_RNvMsb_NtNtCs4RXocrxNTCE_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "0x2a5d38",
+        "bytes": 3668,
+        "code_sha256": "c5e1d0793f941e7cd700f588c43c2c45d0e2c8dc1c474accefcbc91ef8db4e5e",
+        "asm_sha256": "c28d4fbccb47fa834dffd09f7ac2ebed3a2645457871f479b882af801b6149d5"
+      },
+      {
+        "name": "answer_fresh_address",
+        "symbol": "_RNvMs0_NtNtCs4RXocrxNTCE_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+        "address": "0x303870",
+        "bytes": 1132,
+        "code_sha256": "763aa338cf5bf1435dac4142f7809b564fbac893ae9f7f8f4a279b6fc9334855",
+        "asm_sha256": "7506357c614911f20326459d70c046260683b4d00839cacb5a1b5069270a19e3"
+      },
+      {
+        "name": "answer_records_general",
+        "symbol": "_RNvMs0_NtNtCs4RXocrxNTCE_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general",
+        "address": "0x300348",
+        "bytes": 12812,
+        "code_sha256": "7f07746618328ab2e8dd6ba6ea9d0d495ebb29bb497124662241e78ec45ecc0e",
+        "asm_sha256": "95824e9ef7ad00ea2b78bc8f3ad958a4b317e1c5abc65012276e553934e1eaae"
+      },
+      {
+        "name": "names_for",
+        "symbol": "_RNvMs3_NtNtCs4RXocrxNTCE_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for",
+        "address": "0x306c9c",
+        "bytes": 356,
+        "code_sha256": "b9b09c0d35e32f65316d947298bd39bfb8488aabb9c1664bc6aec3a6b8bf400e",
+        "asm_sha256": "e11fa635ce2026bdec2e7468da697637ce5dab27e9f2473076ce8e82662567a6"
+      },
+      {
+        "name": "process_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "address": "0x276188",
+        "bytes": 4652,
+        "code_sha256": "8bc22a17b0304a37dc98ac2cf70a58ba80735a87602a10e2e3342effe48a5edd",
+        "asm_sha256": "b65eb6bddd1d8943775c51628e7fd3b7a9fd625faa3b06661428bd50d04b26fd"
+      },
+      {
+        "name": "step_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "address": "0x29215c",
+        "bytes": 1716,
+        "code_sha256": "a2b0163f1819c45c635d0d100115aabf37c0b1e18e6029ad61ff5bd94ac7478a",
+        "asm_sha256": "c16a94b1d30db884a50352b1056769b52c3e9318d4334b1ca9744fbf35f17a16"
+      },
+      {
+        "name": "wait_for_files",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "address": "0x27950c",
+        "bytes": 6752,
+        "code_sha256": "df9cce800f40b30d5648f752839c7fdbc2fbd176c997c64681ffe968728f5abd",
+        "asm_sha256": "c95a0cbd851881ea4a22379f74ed9c05f752efd558ba38ba524465e9acbfd8bc"
+      }
+    ]
+  },
+  "sections": {
+    "parent": {
+      ".rodata": 93396,
+      ".gcc_except_table": 5640,
+      ".eh_frame_hdr": 18892,
+      ".eh_frame": 96744,
+      ".text": 1823896,
+      ".init": 16,
+      ".fini": 16,
+      ".tbss": 48,
+      ".fini_array": 8,
+      ".init_array": 24,
+      ".data.rel.ro": 46264,
+      ".got": 192,
+      ".relro_padding": 3296,
+      ".data": 2840,
+      ".bss": 4441
+    },
+    "opt2": {
+      ".rodata": 92132,
+      ".gcc_except_table": 5520,
+      ".eh_frame_hdr": 18916,
+      ".eh_frame": 93824,
+      ".text": 1729992,
+      ".init": 16,
+      ".fini": 16,
+      ".tbss": 48,
+      ".fini_array": 8,
+      ".init_array": 24,
+      ".data.rel.ro": 46408,
+      ".got": 192,
+      ".relro_padding": 3024,
+      ".data": 2840,
+      ".bss": 4449
+    }
+  },
+  "local_validation": {
+    "lib": {
+      "result": [
+        "test result: ok. 721 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.45s",
+        "    Finished `release` profile [optimized] target(s) in 44.49s"
+      ],
+      "stdout_sha256": "2041d5b806f1366652f2591bd47a8848831810ea5de731975e319d99e807344c",
+      "stderr_sha256": "ee152e16b7b3adfa1c96e0909dfd583ba4c75f229096c3ebf64a969be6b1d470"
+    },
+    "musl": {
+      "result": [
+        "    Finished `release` profile [optimized] target(s) in 8.46s"
+      ],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3d33f48ecd15b5018bd513a3b69fd394694e7d12c82e3a8027fd32cb2610c171"
+    }
+  },
+  "frame_bytes": {
+    "local_entry": [
+      384,
+      384
+    ],
+    "local_cache_entry": [
+      608,
+      672
+    ],
+    "fresh_writer": [
+      288,
+      320
+    ],
+    "udp_owner": [
+      1056,
+      1056
+    ],
+    "wait": [
+      352,
+      368
+    ]
+  },
+  "limitations": [
+    "No canonical SDK artifact, runtime CPU/IPC/cache-miss or on-router measurement.",
+    "Text reduction is not an instruction-count or performance improvement. Several hot frames grow.",
+    "Exploratory substring selection matched names_for_mut; end-of-symbol selection then missed a generic function crate suffix. Both private attempts remain; final v3 matches one exact function-name component per chosen function. No workload/product changed.",
+    "Compiler experiment stays separate from185 and post185 small product changes. Any separately timed screen waits for the refreshed profile."
+  ]
+}
