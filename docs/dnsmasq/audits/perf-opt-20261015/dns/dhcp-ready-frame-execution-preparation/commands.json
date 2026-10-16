@@ -1,0 +1,92 @@
+[
+  {
+    "gate": "lib",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-dhcp-ready-frame/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/dhcp-ready-frame-tests/lib-dnsmasq_rs",
+      "--test-threads=1"
+    ]
+  },
+  {
+    "gate": "bin",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-dhcp-ready-frame/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/dhcp-ready-frame-tests/bin-dnsmasq-rs",
+      "--test-threads=1"
+    ]
+  },
+  {
+    "gate": "allocations",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-dhcp-ready-frame/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/dhcp-ready-frame-allocation-build/hosts_allocations",
+      "--test-threads=1"
+    ]
+  },
+  {
+    "gate": "lib-ignored-live",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-dhcp-ready-frame/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/dhcp-ready-frame-tests/lib-dnsmasq_rs",
+      "--ignored",
+      "--skip",
+      "exact_c_oracle_driver",
+      "--skip",
+      "exact_c_stale_driver",
+      "--skip",
+      "exact_c_transfer_probe",
+      "--skip",
+      "exact_c_lease_cache_driver",
+      "--test-threads=1"
+    ]
+  },
+  {
+    "gate": "bin-ignored-live",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-dhcp-ready-frame/tools/dnsmasq/run_isolated.sh",
+      "env",
+      "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+      "python3",
+      "-c",
+      "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/dhcp-ready-frame-tests/bin-dnsmasq-rs",
+      "--ignored",
+      "--test-threads=1"
+    ]
+  }
+]
