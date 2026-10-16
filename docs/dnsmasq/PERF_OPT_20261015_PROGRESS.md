@@ -1445,3 +1445,41 @@ so itdoesnot reintroduceE'sperquery128B allocation. Originalfourmodes/fixture/
 threshold unchanged; local1600replytest+muslcheck andsourcepeerf9abcc95pass.
 NoSDK/deviceplan/remoteexecution selected. Stagecalibration/nonadditivelimits
 remain; currentacceptedG andallmeasurementartifacts areunchanged.
+
+
+## Bare1df physical result; next selected5c research source
+
+Bare1df actual963/canonicalSDK pass independent0022f006/9d2a8d09. ELFf7cde2e9
+is2145051B, APK7f928a01 is1167447B. Relatedcollector originally included two
+old803wrappers;51e1ccf2 preserves the firstarchive and supplements only the
+actual original1df wrapperbytes, with no test/SDK rerun. All real names/logs/
+ELFs/source179 remain bound. Original native240 began08:39:25UTC and completed
+240/240+244commands; originalowner32 began08:46:28UTC and isstillrunning.
+
+The physicalten ranonce from08:39:28UTC. Authorbdc6bee3/independenta4d94373
+verify10archives/430files/314singlethreads and restoredE/F/production3086/2115.
+Allprimary metrics inconclusive: CPU118→114us(−3.390%,W21.053%,3/5,2ticks),
+p50−2.283%<W17.865%,p95+23.896%<W58.035%. Round3's134us/.195279/.453189ms
+remain unchanged. No replacement/full110/promotion fromthisscreen. This is
+G→1dfincluding6ab, not an isolated4us inlineaddressbenefit.
+
+Root nowselects5c995a85 asthenextindependent researchsource. Itcontains025
+plusdumpoutlining only; relative6ab onlymain.rs+17lines, no1df/803 combination.
+Prepared4e394a9a/peerbe199f1e remainunexecuted. Waitforallcurrent1df native/
+owner/deviceaudit+quiet, thenDNSoriginalfive(expected961)/canonicalSDK. After
+SDKpostflight,correctness explicitlytakesthequietslotfororiginalstandalone
+runtime-signalsaudit, includingactualnativeCcompatbytesandnamespacevisibility.
+Thatfrozenaudit isNOTcalledby44families; nocoverageisinherited. Alloriginal
+comparators/isolatedentryremain; no newtestingframework. Originalowner32 and
+G/5cA53ten followactualgates/audits/transfers/quiet. No repetitivenative240:
+162guardfilesincludeuncompiledmain; onlymainchanges, remaining161identical,
+andtheoriginalcargo--lib/externalprobe nevercompilemain. Keep6ab'sexisting
+nativeadverseresultsaspriorcontext, not as5c measurements. Full44+both110
+remainrequiredifdevicegainjustifiespromotion. G-stage diagnostic staysdormant.
+
+ExistingA53observabilitylimits139c7644 and14f5fb82 werecheckedonlyagainst
+alreadycollectedraw. Dynamicfreq/governor/affinity/migration arenotobserved;
+final.stat lastCPU isasingleendpoint, and100CLK_TCK isnotMHz. Originaldirect
+C/G totals41..42vs56..61ticks remainexact, whileuser/systemcomponents vary
+widelyacrossrounds anddo not stablyattributethe32usgap. No oldwindow/gate or
+acceptanceconclusionchanged, andnoobserverwasadded.
