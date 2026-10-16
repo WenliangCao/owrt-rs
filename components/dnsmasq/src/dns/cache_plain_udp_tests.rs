@@ -393,3 +393,68 @@ fn plain_name_constructor_matches_general_decode_and_rejects_pointers() {
         assert!(Name::from_uncompressed_reusing(&invalid, &mut scratch).is_none());
     }
 }
+
+
+#[test]
+fn plain_unrelated_local_rules_keep_public_hits_eligible() {
+    // OpenWrt supplies local and RFC6761 rules even when no local name is queried.
+    for directive in [
+        "local=/lan/", "local=/invalid/", "local=/localhost/",
+        "address=/blocked.test/192.0.2.99", "address=/blocked.test/#",
+    ] {
+        for rrtype in [1, 28] {
+            let owner = name("Public.Example");
+            let (mut cache, counters, mut local) = fixture(&owner, rrtype, Policy::default());
+            Arc::make_mut(&mut local.config).apply(&lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+            let mut reference_cache = cache.snapshot();
+            let mut reference = LocalDnsService::new((*local.config).clone(), Hosts::new(), 60, 1232);
+            let packet = query(&owner, rrtype);
+            let expected = general(&mut reference_cache, &mut reference, &packet, 101);
+            let actual = in_place_answer(&mut cache, &packet, &mut local, 101, &mut Vec::with_capacity(256))
+                .expect("an unrelated local rule cannot own this public name").unwrap();
+            assert_eq!(expected, Some(QueryResult::Cached(actual)));
+            assert_eq!(eviction_trace(&cache, counters), eviction_trace(&reference_cache, counters));
+        }
+    }
+}
+
+#[test]
+fn plain_local_rule_matching_preserves_boundaries_wildcards_and_binary_fallback() {
+    for (directive, owner, eligible) in [
+        ("local=/lan/", "LAN", false),
+        ("local=/lan/", "a.LaN", false),
+        ("local=/lan/", "notlan", true),
+        ("local=/lan/", "lan.example", true),
+        ("local=//", "printer", false),
+        ("local=//", "printer.example", true),
+        ("local=/*blocked.test/", "notblocked.test", false),
+        ("local=/*.blocked.test/", "blocked.test", true),
+        ("local=/*.blocked.test/", "x.blocked.test", false),
+        ("local=/*.blocked.test/", "notblocked.test", true),
+        ("address=/#/192.0.2.99", "public.example", false),
+    ] {
+        for rrtype in [1, 28] {
+            let owner = name(owner);
+            let (mut cache, counters, mut local) = fixture(&owner, rrtype, Policy::default());
+            Arc::make_mut(&mut local.config).apply(&lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+            let packet = query(&owner, rrtype);
+            if eligible {
+                let mut reference_cache = cache.snapshot();
+                let mut reference = LocalDnsService::new((*local.config).clone(), Hosts::new(), 60, 1232);
+                let expected = general(&mut reference_cache, &mut reference, &packet, 101);
+                let actual = in_place_answer(&mut cache, &packet, &mut local, 101, &mut Vec::with_capacity(256))
+                    .expect("unmatched suffix retains a plain cached answer").unwrap();
+                assert_eq!(expected, Some(QueryResult::Cached(actual)));
+            } else {
+                reject_unchanged(&mut cache, counters, &mut local, &packet, 101);
+            }
+        }
+    }
+    for byte in [0, 1, b'.'] {
+        let wire = [1, byte, 7, b'e', b'x', b'a', b'm', b'p', b'l', b'e', 0];
+        let owner = super::super::wire::decode_name(&wire, 0, 0).unwrap().0;
+        let (mut cache, counters, mut local) = fixture(&owner, 1, Policy::default());
+        Arc::make_mut(&mut local.config).apply(&lex_line(b"local=/lan/").unwrap().unwrap()).unwrap();
+        reject_unchanged(&mut cache, counters, &mut local, &query(&owner, 1), 101);
+    }
+}
