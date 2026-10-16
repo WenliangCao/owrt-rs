@@ -1,0 +1,541 @@
+{
+  "status": "PASS_RAW_TEN_SCREEN_WITH_NO_DISCERNIBLE_PRIMARY_GAIN_OR_REGRESSION",
+  "author_commit": "9d5acd46",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "author_result_sha256": "2b4d45a0c1f971c3909a4185fcd311a19d016fa244d4c525d4df1f78dc812260",
+  "plan_sha256": "66f30ec636f19030d56ea7155764a96b0475ae22c3fb8415656d5be082936925",
+  "verified_archives": 10,
+  "verified_raw_files": 430,
+  "single_thread_observations": 314,
+  "wire_samples": 600,
+  "all_raw_latency_send_lag_and_scheduled_latency_bins_recomputed": true,
+  "all_CPU_ticks_actual_denominator_and_three_primary_comparisons_recomputed": true,
+  "original_full_field_verifier_result_byte_identical": true,
+  "comparisons": {
+    "g-vs-owner-ready-frames": {
+      "p50": {
+        "left_median": 0.180737,
+        "right_median": 0.170658,
+        "relative_change_pct": -5.5766113192096824,
+        "W_pct": 9.01686413763198,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "p95": {
+        "left_median": 0.418104,
+        "right_median": 0.345855,
+        "relative_change_pct": -17.280150393203595,
+        "W_pct": 293.0438359833917,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "cpu": {
+        "left_median": 124.0,
+        "right_median": 116.0,
+        "relative_change_pct": -6.451612903225806,
+        "W_pct": 10.344827586206897,
+        "same_direction_pairs": 5,
+        "precision_ok": false,
+        "discernible": false
+      }
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r1-c",
+      "artifact": "g",
+      "cpu_ticks": 62,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.07525,
+        "p50": 0.180737,
+        "p95": 0.481658,
+        "p99": null,
+        "max": 25.556584
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r1-rust",
+      "artifact": "owner-ready-frames",
+      "cpu_ticks": 60,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089022,
+        "p50": 0.178198,
+        "p95": 0.378941,
+        "p99": null,
+        "max": 10.381889
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r2-rust",
+      "artifact": "owner-ready-frames",
+      "cpu_ticks": 60,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089638,
+        "p50": 0.170658,
+        "p95": 0.350549,
+        "p99": null,
+        "max": 7.937128
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r2-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087407,
+        "p50": 0.175813,
+        "p95": 0.349548,
+        "p99": null,
+        "max": 4.83905
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r3-c",
+      "artifact": "g",
+      "cpu_ticks": 64,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 128.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088945,
+        "p50": 0.183892,
+        "p95": 0.418104,
+        "p99": null,
+        "max": 15.091214
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r3-rust",
+      "artifact": "owner-ready-frames",
+      "cpu_ticks": 58,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089715,
+        "p50": 0.173658,
+        "p95": 0.345855,
+        "p99": null,
+        "max": 7.038981
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r4-rust",
+      "artifact": "owner-ready-frames",
+      "cpu_ticks": 55,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086406,
+        "p50": 0.168119,
+        "p95": 0.278839,
+        "p99": null,
+        "max": 5.965022
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r4-c",
+      "artifact": "g",
+      "cpu_ticks": 64,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 128.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088252,
+        "p50": 0.184277,
+        "p95": 1.574776,
+        "p99": null,
+        "max": 46.068375
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r5-c",
+      "artifact": "g",
+      "cpu_ticks": 61,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086406,
+        "p50": 0.174659,
+        "p95": 0.356011,
+        "p99": null,
+        "max": 5.666101
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-owner-ready-frames-g-vs-owner-ready-frames-r5-rust",
+      "artifact": "owner-ready-frames",
+      "cpu_ticks": 54,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 108.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086714,
+        "p50": 0.16281,
+        "p95": 0.240675,
+        "p99": null,
+        "max": 5.685413
+      },
+      "thread_samples": 31
+    }
+  ],
+  "primary_gains": 0,
+  "primary_regressions": 0,
+  "primary_indistinguishable": 3,
+  "absolute_median_cpu_tick_difference": 4,
+  "retained_G_all_rounds_p95_ms": [
+    0.481658,
+    0.349548,
+    0.418104,
+    1.574776,
+    0.356011
+  ],
+  "health": {
+    "fresh": {
+      "qualified": 126,
+      "final": 127,
+      "tail": 1,
+      "DNS": 48,
+      "HTTP": 23,
+      "HTTPS": 10,
+      "minimum_available_memory_kib": 88756,
+      "raw_sha256": "513c1468e68fd88a39c3d6fa6087df170e0b7bc7f658ae816761b303cf0cc6e1",
+      "elapsed_seconds": 125.0
+    },
+    "run": {
+      "qualified": 424,
+      "final": 424,
+      "tail": 0,
+      "DNS": 167,
+      "HTTP": 77,
+      "HTTPS": 28,
+      "minimum_available_memory_kib": 78628,
+      "raw_sha256": "4b7641bd17c4b9e4e58da71b15f42e697ad260c1e4cd4d2a454f04a7d9e66fc5",
+      "elapsed_seconds": 423.0
+    }
+  },
+  "fresh_health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 126.001,
+    "dns_samples": 48,
+    "dns_p95_ms": 1.885,
+    "dns_max_ms": 9.812,
+    "http_samples": 23,
+    "http_max_ms": 86.139,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 127,
+    "final_tail_samples": 1,
+    "pre_stop_prefix_sha256": "01b0f967148038c6e6505842502907c133d246b5e3cc38adf63263e2a80bd180",
+    "raw_sha256": "513c1468e68fd88a39c3d6fa6087df170e0b7bc7f658ae816761b303cf0cc6e1"
+  },
+  "postflight_sha256": "01d2331f8f2c591eb068b9e62e672e65049719c9a20e9d0938cd7c54ac4f1ccb",
+  "postflight_shell_reconstructed_exactly": true,
+  "postflight_available_memory_kib": 87808,
+  "scope_limits": [
+    "Fresh exactG185 control and exact5c product artifact only. 5c includes025 andinherits6ab; this directGcomparison doesnot isolatedump-only orready-frame-only effects. Itcontainsno1df changes. Neither side contains allocationmeter instrumentation; no olda15/E/F/timing subtraction or historical pooling.",
+    "Original200/s UDP-hit,1000prewarm,5s warmup+20s measurement,800names,A/AAAA70/30 and unchangedtools. CPU denominator5000 correctwarmup+measurement; separate count3 cached5200 denominators are not reused.",
+    "Five alternating pairs; absolute relative median change strictly greater thanW, >=4/5 same direction. CPU requires eachwindow>=10ticks and absolute median difference strictly>8ticks.",
+    "All fullranges and everyoriginalwindow retained; no selective replacement, discarded outlier or extra favorable repeat.",
+    "p99 is unavailable for4000 latency samples. RSS/RssAnon/file/shmem ranges are descriptive and are not privateheap/PSS/USS attribution.",
+    "This ten-window UDP screen doesnot complete full44 or full110 qualification and cannot establish otherworkload performance. Production/kernel/drivers/configuration were unchanged."
+  ],
+  "retained_restoration_limit": "Retained exact controller/shell, receipts and local artifacts checked; no new live router observation. /proc/1 namespace is not an independently queried production-PID namespace.",
+  "candidate_eligible_from_screen": false,
+  "full_functional_qualification_complete": false,
+  "full110_eligible": false,
+  "deployment_authorized": false,
+  "reviewer_remote_access": false,
+  "reviewer_repeated_windows": 0,
+  "schema": "owner-ready-frames-device-independent-audit-v1",
+  "SDK_source_identity_review": {
+    "status": "PASS_LOCAL_EXACT5C_SDK_SOURCE179_RELATED961_AND_ORIGINAL_MEASUREMENT_TOOLS",
+    "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+    "SDK_build_sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+    "SDK_elf_sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+    "SDK_independent_review_sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925",
+    "related_independent_review_sha256": "18b8d96c6d5751153c2ef8ea28f227d4232b631b78e1f71e69e4e16ee0eb34c5",
+    "source179_git_bytes_rehashed": true,
+    "canonical_source_profile3_bound": true,
+    "individual_rustc_commands_logged": false,
+    "original_four_measurement_modules_byte_identical": true,
+    "candidate_entry_sha256": "8ccd77cf916fdf5fd31d883d4830e716f27a8fd855b170d697da4412de204c35",
+    "comparison_scope": "Direct G185 versus5c includes025 and6ab changes; no1df, and no singleframe attribution.",
+    "scope": "Local original receipts/artifacts/Git reads only; no tests/builds or network/physical actions.",
+    "script_sha256": "7e067d8a46c46d3953ea0e4c849b47b1a3bb41491af3cc56b97e6abb2843d603"
+  },
+  "independent_phase_and_signal_review": {
+    "status": "PASS_LOCAL_INDEPENDENT_DEVICE5C_PHASE_AND_SIGNAL_BINDING_REVIEW",
+    "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+    "SDK_elf_sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+    "SDK_build_sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+    "author_result_sha256": "2b4d45a0c1f971c3909a4185fcd311a19d016fa244d4c525d4df1f78dc812260",
+    "signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+    "signal_audit_commit": "80f13a76",
+    "signal_audit_sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a",
+    "phase_order": [
+      {
+        "phase": "signals_postflight",
+        "epoch": 1792143187.8040185
+      },
+      {
+        "phase": "loop_pretransfer",
+        "epoch": 1792143666.9768076
+      },
+      {
+        "phase": "device_preflight",
+        "epoch": 1792143887.411707
+      },
+      {
+        "phase": "device_stage_complete",
+        "epoch": 1792143887.413449
+      },
+      {
+        "phase": "DNS_quiet_release",
+        "epoch": 1792143953.5567126
+      },
+      {
+        "phase": "retained_loop_metadata_failure",
+        "epoch": 1792144053.4630778
+      },
+      {
+        "phase": "loop_final_ready",
+        "epoch": 1792144054.0919123
+      },
+      {
+        "phase": "loop_owner32_launch",
+        "epoch": 1792144087.008683
+      },
+      {
+        "phase": "device_queue_binding",
+        "epoch": 1792144111.641772
+      },
+      {
+        "phase": "device_controller_launch",
+        "epoch": 1792144113.14861
+      },
+      {
+        "phase": "device_postflight",
+        "epoch": 1792144575.6303859
+      }
+    ],
+    "phase_sha256": {
+      "stage": "ca82c065a9036d7bd09cad5211554a7018848a4d27dba925d5f1590659189c4d",
+      "DNS_quiet": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+      "loop_final_ready": "acef2b1fa7ccce2e41b525c2d2ad3c80413a319672e024b52162dd6fff2a6312",
+      "queue": "0d8c7e0a76c830c7edc3b62ff4a48290e3f90d9f0d92d5d8562a72837dee13c1"
+    },
+    "first_metadata_failure": {
+      "receipt_sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d",
+      "missing_filename": "run_185_opt2_owner32.py",
+      "failure_line": 12,
+      "first_mutation_line": 14,
+      "correction_only_two_filenames": true,
+      "pretransfer_archive_original_names_verified": true,
+      "before_both_measurement_launches": true,
+      "measurement_retry": false
+    },
+    "signal_binding": {
+      "all_six_receipts_rehashed": true,
+      "result_rows": 18,
+      "original_case_order_and_three_binary_pins_verified": true,
+      "audit_report_matches_committed_80f13a76_bytes": true,
+      "source_ELF_build_result_equal_across_plan_preflight_postflight_binding_audit_device_report": true
+    },
+    "inputs": {
+      "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_OWNER_READY_FRAMES_DEVICE_RESULT.json": {
+        "sha256": "2b4d45a0c1f971c3909a4185fcd311a19d016fa244d4c525d4df1f78dc812260",
+        "bytes": 32494
+      },
+      "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_OWNER_READY_FRAMES_DEVICE_PLAN.json": {
+        "sha256": "66f30ec636f19030d56ea7155764a96b0475ae22c3fb8415656d5be082936925",
+        "bytes": 18083
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-preflight.json": {
+        "sha256": "b9333db3b401fb4ef198488ae880c35aee291393088502d25ba7df5a8a4ee034",
+        "bytes": 3456
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-stage-complete.json": {
+        "sha256": "ca82c065a9036d7bd09cad5211554a7018848a4d27dba925d5f1590659189c4d",
+        "bytes": 762
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-release-to-measurements.json": {
+        "sha256": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+        "bytes": 5252
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-owner32-final-ready-metadata.json": {
+        "sha256": "acef2b1fa7ccce2e41b525c2d2ad3c80413a319672e024b52162dd6fff2a6312",
+        "bytes": 404
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-queue-release.json": {
+        "sha256": "0d8c7e0a76c830c7edc3b62ff4a48290e3f90d9f0d92d5d8562a72837dee13c1",
+        "bytes": 1728
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-launch.json": {
+        "sha256": "1cf7d506571fef7065bc58a558b1661c954f2f248724b16c89db016813ed17ef",
+        "bytes": 3721
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-postflight.json": {
+        "sha256": "01d2331f8f2c591eb068b9e62e672e65049719c9a20e9d0938cd7c54ac4f1ccb",
+        "bytes": 1920
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/docs/dnsmasq/audits/perf-opt-20261015/loop/owner-ready-frames-owner32-plan.json": {
+        "sha256": "c6c6db1fc43e5809ef78c7d605b1dc9026f8293c3e844e25bb7107d04b7858a3",
+        "bytes": 53063
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/launch.json": {
+        "sha256": "6118363afae8a93b16f4a828a02f444fa84902f962af068660524bb9ee35a0dc",
+        "bytes": 1353
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/pretransfer-receipt.json": {
+        "sha256": "8835ed0990781dbee950057ef446083ad169229da47527ff9ab5bf6ca6f549a4",
+        "bytes": 2216
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata.json": {
+        "sha256": "acef2b1fa7ccce2e41b525c2d2ad3c80413a319672e024b52162dd6fff2a6312",
+        "bytes": 404
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-owner-ready-frames/dnsmasq-rs": {
+        "sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+        "bytes": 2145051
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-owner-ready-frames/build.json": {
+        "sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+        "bytes": 43982
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-owner-ready-frames-prefix-v1/summary.json": {
+        "sha256": "7e66b56c58791fcaa1cf0ca196794181261e8d287cc938defecdf552bc5eef8f",
+        "bytes": 569
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/stage-a53-owner-ready-frames.py": {
+        "sha256": "96bbd99b404197ebd65aef707cf037bd45ec5149a10858bc86bc216aaefec8f9",
+        "bytes": 5237
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/start-a53-owner-ready-frames.py": {
+        "sha256": "e7a97eb499d8630929946eae38258c2ea5d6afe3011e5cd9f8f7c9e7e351ecc1",
+        "bytes": 5904
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-owner32-final-ready-metadata-attempt1-failure.json": {
+        "sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d",
+        "bytes": 461
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata-attempt1-failure.json": {
+        "sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d",
+        "bytes": 461
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata-command-attempt1.py": {
+        "sha256": "f17f133d94196590515ee193bdc0db1bf63287d55d482c1de8576c6e2c11a330",
+        "bytes": 1925
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata-command.py": {
+        "sha256": "41d9eb9f55f583eb93d7c62ede3ac4ab308c2681c606c319024fc89a66d6cf77",
+        "bytes": 1945
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata-attempt1.stderr": {
+        "sha256": "e3d3dce8660cf8ac1fcfc4ea7f5d82ee5115e6f68cf6530a8d888c1128180b8a",
+        "bytes": 608
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata-attempt1.stdout": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/final-ready-metadata.stderr": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/inputs-before-ready.tar.gz": {
+        "sha256": "f94301c404f3522288d63c245cb7fb1c220bebd2c26d1304fb1d552fd3a80afd",
+        "bytes": 50703
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-signals-local-binding.json": {
+        "sha256": "a4891eaac45b7beedc427211e8543c4ac6f93b39d3aa82e664012e501116e7d4",
+        "bytes": 2347
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/result.json": {
+        "sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+        "bytes": 12752
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/plan.json": {
+        "sha256": "6811d872a922cf3767b8378cb9c7aa64f4cfb8e69a6d4cf682ccfd712f905f8f",
+        "bytes": 2977
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/preflight.json": {
+        "sha256": "0a3601647f5a8ea03a912cbf100b241a29fd3a07512e8dd75c8bc925be035bd0",
+        "bytes": 2448
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/launch.json": {
+        "sha256": "cf739391771efde7442e7c772c2006a60a30eeeda928c106894fe257b1146865",
+        "bytes": 811
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/postflight.json": {
+        "sha256": "9045891327742ee3ca3333d0ed4831f84cdba0130d75f53123690e9c219679a2",
+        "bytes": 1182
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/exit.json": {
+        "sha256": "e641d6f996d03a0c49990806014189e24247a2f4da82f89f698e493d997a8e36",
+        "bytes": 464
+      },
+      "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-runtime-signals-bindings/mapping.json": {
+        "sha256": "f0f7417fe52fc01122f0ecb05eb6914c14fba09d3ad7be21b4fd226590e9cc1e",
+        "bytes": 1216
+      },
+      "/Users/USER/Developer/owrt-perf-correctness-20261015/docs/dnsmasq/audits/perf-opt-20261015/correctness/owner-ready-frames-runtime-signals-independent-audit.json": {
+        "sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a",
+        "bytes": 15446
+      }
+    },
+    "limits": [
+      "Local read-only review of retained evidence. No operator module imported/executed and no router, Oracle, network, test, build, health, capture or replay execution.",
+      "Timestamps and quiet/transfer/process observations are recorded evidence; this review did not observe remote state live or prove no unrelated remote activity.",
+      "Signal raw log/predicate qualification remains the exact already committed 80f13a76 audit; this subaudit rehashes and binds it without rerunning that audit.",
+      "Device raw archives, measurements, health, restoration and complete SDK validation are coordinator work, outside this phase/signal subaudit.",
+      "Device start operator directly checks the quiet hash and queue identity; loop final-ready and actual signal semantics are independently established by the operator-bound queue and retained receipts, not asserted to be revalidated in its code.",
+      "No performance, runtime hardening, full44/full110 or deployment acceptance is granted."
+    ],
+    "reviewer_script_sha256": "db104f34d7f26ed1455dcc22cef76a8f381bf85ae37baaf9bbb0ce1e75eb2a2f"
+  },
+  "independent_phase_receipt_sha256": "a643ecf08f3e6a968db536e798008a047fe25d76011d4e1c3740e315dcdfd760",
+  "reviewer_scripts": {
+    "raw_audit_sha256": "85da950dd1b1ad38318b168ee12321936020e496100089b6bd516a9d618652f1",
+    "identity_audit_sha256": "7e067d8a46c46d3953ea0e4c849b47b1a3bb41491af3cc56b97e6abb2843d603",
+    "adapted_original_verifier_sha256": "c62db08c492105b620652a501445f02861427b1fc91d71db2f1b552c98f17430"
+  },
+  "reviewer_raw_result_sha256": "0301fd9d04adfff6ce566efcd7a7bcfd8e349b83106240ac1dbc083d9df6eff0",
+  "fresh_health_precedes_preflight_stage_and_same_summary_hash_bound": true,
+  "retained_G_round4_p95_ms": 1.574776,
+  "retained_fresh_health_qualified_samples": 126,
+  "retained_fresh_health_final_samples": 127,
+  "retained_fresh_health_tail_samples": 1,
+  "premeasurement_metadata_failure_is_not_window_retry": true,
+  "original_verifier_adaptation": "Only output redirected to reviewer private file and SSH-denial sentinel injected. Originalvalidation logic and complete output remainbyte-identical.",
+  "comparison_scope": "DirectG185 versus5c includes025 and6ab inheritance, not singleframe attribution; no1df overlay.",
+  "reviewer_test_build_or_capture_rerun": false
+}
