@@ -23,5 +23,13 @@
     "exclusive create for controller logs and launch receipt"
   ],
   "dependency_scope_note": "The inherited device_pretransfer_complete field must explicitly describe the existing G-stage device staging/no-bulk coordination. It must not claim warm candidate router transfer or all bulk downloads completed. Correctness and loop were notified before final binding.",
-  "remaining": "Replace placeholders using actual reviewed receipts; explicit fresh quiet; follow root scheduling and preserve all bulk for device/archive gap."
+  "remaining": "Replace placeholders using actual reviewed receipts; explicit fresh quiet; follow root scheduling and preserve all bulk for device/archive gap.",
+  "concrete_ready_binding_followup": {
+    "status": "PASS_LOCAL_ACTUAL_RELEASE_SCHEMA_BINDING",
+    "ready_tool_sha256": "4494caacee82188731de39e1e255d42f8a2c82fa72f9ae92908bb75d9d478eff",
+    "actual_release_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+    "actual_plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+    "delta": "Only release placeholder bound and old device/loop dependencies replaced by actual performance_timing_released, exact899a owner32 input pretransfer digest and accepted_G_triple_rehashed. Source and quiet assertions retained; local release values and plan binding rehashed, AST parsed.",
+    "scope": "No new authority, remote access or execution. Original no-bulk condition and deferred archive validation remain."
+  }
 }
