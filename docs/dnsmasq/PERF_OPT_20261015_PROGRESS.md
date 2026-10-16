@@ -1207,3 +1207,59 @@ UDP-hit five pairs, original thresholds and freshhealth/recovery. Plan8e56ce33
 and independent8bcdfe38 pass locally. These two new diagnostics may run in
 parallel on separate machines. Preserve pending timing exclusivity until the
 actual releases, not just the last timed window.
+
+## G accepted; next source and residual gap, 2026-10-16
+
+Frozen185 is accepted as candidateG, tag
+`perf/dnsmasq-candidate-g-20261016`. Its original SDK ELF is9109e987 and
+APK is5bb29803; a build from the integrated main tree is not that measured
+artifact. Functional qualification passed957short checks,44families/67jobs
+and the original boundary corpora. Both full110matrices and independent
+raw/statistical/health/postflight audits completed. Acceptance and source
+integration receipts are in candidate-g-acceptance.json and
+candidate-g-source-integration.json.
+
+The formal A53 E/G matrix has110valid windows, no replacements,4/33 discernible
+improvements and no discernible regressions. UDP-hit CPU138→116us/query
+passesW/direction and11ticks>8; UDP-mixed208→186 also passes. Hit/mixed p50
+improve14.214%/15.482%. TCP-hit164→152 and DHCP1500 2596→2564 remain
+inconclusive. Oracle110 has no discernible primary change;26→24us UDP CPU
+does not clear its variation/resolution. Resource ranges and all adverse
+earlier native/owner-screen observations remain in the reports. The approved
+CNAME behavior repair is common toE/G, not a new part of their delta.
+
+Fresh direct exactC/G A53ten independently passes all10windows but still
+findsG slower:82→114us/query,+39.024%,16ticks,5/5. This is a contemporaneous
+comparison, not pooled with the formal E/G controls. Original C round4 p95
+1.562003ms remains. E/F task slots and production identity were restored and
+verified after both rounds. Oracle C/G profiling completed the original
+12stat+4cycles captures: G UDP instructions−14.001%, user cycles+30.849%,
+kernel cycles+1.09%. These are Oracle observations, not A53 PMU attribution.
+
+Next product source6ab0f064 contains six separately committed optimizations:
+lease expiry bound, disabled-diagnostic clocks, already-fetched positive-entry
+validity, delayed UDP handle clone, first-written-question validation reuse,
+and private UDP Rc ownership. The hosts collision fixture repair is separate
+and test-only. Actual Linux961related checks pass; full44/corpora and timing
+are pending. DNS owns the serial canonical SDK sequence for excluded G
+allocation-meter source7c5b4c58, original controls, then6ab. No product source
+or artifact is changed during a measured run. DHCP owns the reviewed fixed
+three allocation windows followed by the separately bound G/6ab ten; loop
+owns original native240/owner32 after actual artifacts and Oracle release.
+
+The three-window meter permits zero or nonzero allocation counts and uses the
+actual cached-hit denominator, including prewarm. Instrumented size/CPU/latency
+are excluded from product acceptance. The first two launcher setup failures
+occurred before any build and are retained; only launcher path/process checks
+were repaired. Actual SDK sequence began with PID822120. This entry is a
+checkpoint, not its completion receipt.
+
+Independent local content-slice prototype2b4f8b16 removes one dependent storage
+pointer and one allocation per content block. All16count controls and12ELF
+function inspections have independent verification. Capacity1000 constructor
+allocations99→83, but20snapshot root bytes rise2560 and peak detach bytes2240.
+No runtime gain is claimed; full resource-tool representation adapters remain
+unmodified. Separate803opt2 reduces local.text5.15% but grows selected frames;
+its SDK/timing are pending. LTO/CGU1 already apply, and failed PGO size results
+remain retired. Root is also examining conditional UBus doctor-metrics capture
+in an isolated child of6ab; it is not part of the frozen SDK sequence.
