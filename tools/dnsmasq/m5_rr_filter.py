@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import errno
 import hashlib
 import ipaddress
 import json
@@ -235,12 +236,29 @@ def schedule():
     return rows
 
 
+def free_dns_port():
+    # The daemon binds both transports. A UDP-only ephemeral reservation can
+    # select a port still occupied by a previous TCP connection/TIME_WAIT.
+    for _ in range(100):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp, \
+                socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp:
+            tcp.bind((LISTEN_HOST, 0))
+            port = tcp.getsockname()[1]
+            try:
+                udp.bind((LISTEN_HOST, port))
+            except OSError as error:
+                if error.errno != errno.EADDRINUSE:
+                    raise
+                continue
+            return port
+    raise RuntimeError("no port available for both DNS transports")
+
+
 def run_side(args, side, folder, directive):
     folder.mkdir(parents=True)
     root = prepare(args.image_root, None, folder, args.rust)
     upstream = Upstream()
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
-        reserve.bind((LISTEN_HOST, 0)); port = reserve.getsockname()[1]
+    port = free_dns_port()
     config = (f"port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN_HOST}\n"
               f"server={UPSTREAM_HOST}#{upstream.port}\ncache-size=100\nedns-packet-max=1232\n"
               f"local-ttl=60\nhost-record=local.m5.test,192.0.2.10,2001:db8::10\ntxt-record=local.m5.test,local\ncname=alias.m5.test,local.m5.test\ncache-rr=TXT\n"
