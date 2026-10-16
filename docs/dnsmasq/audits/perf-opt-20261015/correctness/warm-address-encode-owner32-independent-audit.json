@@ -1,0 +1,803 @@
+{
+  "status": "PASS_WARM_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "collection_sha256": "89c4a2003f1ce3d164ab16f7b866cdf24c0e8843a6eaf6990981c2eab46a196a",
+  "archive_sha256": "2d213fad9c7c96e1e014ebbcbb19ed1eec58df39e449845e9aa79aa59d8b966b",
+  "result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+  "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+  "remote_archive_included_files_rehashed": 1172,
+  "remote_archive_omitted_files_also_rehashed": 192,
+  "full_raw_inventory_files_bound": 1264,
+  "remote_raw_bin_bytes": 3624051024,
+  "ordered_windows": 32,
+  "PMU_windows": 12,
+  "plain_windows": 20,
+  "all_CPU_starttime_PID_actualN_ticks_recomputed": true,
+  "all48_actual_PMU_events_reparsed_unscaled_same_group_same_window": true,
+  "all_count_health_and_exit_receipts_checked": true,
+  "all_published_row_and_group_math_recomputed": true,
+  "summaries": {
+    "high": {
+      "cpu": {
+        "left": {
+          "median": 4.302328163825219,
+          "min": 4.300434777743442,
+          "max": 4.30899458632962,
+          "rounds": [
+            4.3055069122517695,
+            4.30899458632962,
+            4.301079717538872,
+            4.302328163825219,
+            4.300434777743442
+          ]
+        },
+        "right": {
+          "median": 4.181077827633811,
+          "min": 4.15254963386524,
+          "max": 4.1854175159304,
+          "rounds": [
+            4.181077827633811,
+            4.1854175159304,
+            4.155972413526908,
+            4.15254963386524,
+            4.182380591610961
+          ]
+        },
+        "relative_change_pct": -2.818249365794628,
+        "W_pct": 0.7861102667816364,
+        "same_direction_pairs": 5,
+        "precision_ok": null,
+        "discernible": true,
+        "direction": "faster",
+        "scope": "Variable-query saturation diagnostic; W/direction only, not fixed-cohort acceptance or a tick precision pass"
+      },
+      "throughput": {
+        "left": {
+          "median": 232131.0,
+          "min": 232022.25,
+          "max": 232520.25,
+          "rounds": [
+            232080.65,
+            232131.0,
+            232022.25,
+            232520.25,
+            232464.6
+          ]
+        },
+        "right": {
+          "median": 239121.85,
+          "min": 238771.8,
+          "max": 240612.45,
+          "rounds": [
+            239121.85,
+            238771.8,
+            240408.7,
+            240612.45,
+            238863.55
+          ]
+        },
+        "relative_change_pct": 3.0115969000262806,
+        "W_pct": 0.7697539978048945,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "higher"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          99.87505755449854,
+          99.87456006409838,
+          99.68052789991893,
+          99.87409807281486,
+          99.88082929724817
+        ],
+        "warm-address-encode": [
+          99.84673420626646,
+          99.84544055171052,
+          99.84537456391875,
+          99.78674377005765,
+          99.86655203963656
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 131.721,
+            "min": 131.641,
+            "max": 131.922,
+            "rounds": [
+              131.841,
+              131.922,
+              131.641,
+              131.641,
+              131.721
+            ]
+          },
+          "right": {
+            "median": 127.041,
+            "min": 126.241,
+            "max": 127.601,
+            "rounds": [
+              127.041,
+              127.441,
+              126.481,
+              126.241,
+              127.601
+            ]
+          },
+          "relative_change_pct": -3.5529642198282785,
+          "W_pct": 1.0705205406128726,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95": {
+          "left": {
+            "median": 146.042,
+            "min": 145.841,
+            "max": 146.401,
+            "rounds": [
+              146.401,
+              146.042,
+              146.081,
+              145.841,
+              145.961
+            ]
+          },
+          "right": {
+            "median": 141.762,
+            "min": 140.762,
+            "max": 142.481,
+            "rounds": [
+              141.762,
+              142.481,
+              140.762,
+              140.881,
+              142.201
+            ]
+          },
+          "relative_change_pct": -2.9306637816518544,
+          "W_pct": 1.2125957590891734,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.8,
+            "rounds": [
+              2.76,
+              2.76,
+              2.8,
+              2.8,
+              2.76
+            ]
+          },
+          "right": {
+            "median": 2.84,
+            "min": 2.8,
+            "max": 2.88,
+            "rounds": [
+              2.88,
+              2.84,
+              2.84,
+              2.88,
+              2.8
+            ]
+          },
+          "relative_change_pct": 2.898550724637684,
+          "W_pct": 2.8169014084507067,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95": {
+          "left": {
+            "median": 5.48,
+            "min": 5.28,
+            "max": 6.4,
+            "rounds": [
+              5.48,
+              5.28,
+              6.4,
+              5.52,
+              5.32
+            ]
+          },
+          "right": {
+            "median": 6.8,
+            "min": 6.68,
+            "max": 6.92,
+            "rounds": [
+              6.92,
+              6.76,
+              6.8,
+              6.88,
+              6.68
+            ]
+          },
+          "relative_change_pct": 24.0875912408759,
+          "W_pct": 20.437956204379564,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 5501.325684243793,
+          "instructions:k": 13002.902139736834,
+          "cycles:u": 3485.6167158575586,
+          "cycles:k": 9295.704651215632,
+          "user_ipc": 1.5783619594351
+        },
+        "warm-address-encode": {
+          "instructions:u": 5074.446145026273,
+          "instructions:k": 12998.068068313916,
+          "cycles:u": 3183.2487378148057,
+          "cycles:k": 9204.943915249309,
+          "user_ipc": 1.5941092145094862
+        }
+      }
+    },
+    "low": {
+      "cpu": {
+        "left": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            26.0,
+            24.0,
+            28.0,
+            24.0,
+            28.0
+          ]
+        },
+        "right": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            26.0,
+            28.0,
+            24.0,
+            26.0,
+            26.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 15.384615384615385,
+        "same_direction_pairs": 0,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "throughput": {
+        "left": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "right": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 0.0,
+        "same_direction_pairs": 0,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          0.8170841716475346,
+          0.8680131791112131,
+          0.8147565455427503,
+          0.813116594417178,
+          0.8315389782645212
+        ],
+        "warm-address-encode": [
+          0.8074391017296614,
+          0.7980857428515187,
+          0.7619095221988853,
+          0.7480968372312591,
+          0.7902253016826859
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 56.12,
+            "min": 51.761,
+            "max": 58.281,
+            "rounds": [
+              58.281,
+              56.12,
+              51.761,
+              54.801,
+              57.641
+            ]
+          },
+          "right": {
+            "median": 50.12,
+            "min": 48.24,
+            "max": 53.121,
+            "rounds": [
+              52.481,
+              53.121,
+              48.241,
+              48.24,
+              50.12
+            ]
+          },
+          "relative_change_pct": -10.691375623663578,
+          "W_pct": 11.61796151104775,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 82.441,
+            "min": 79.961,
+            "max": 85.761,
+            "rounds": [
+              85.041,
+              85.761,
+              82.121,
+              82.441,
+              79.961
+            ]
+          },
+          "right": {
+            "median": 77.641,
+            "min": 75.6,
+            "max": 78.481,
+            "rounds": [
+              78.481,
+              77.401,
+              75.6,
+              77.641,
+              77.68
+            ]
+          },
+          "relative_change_pct": -5.822345677514825,
+          "W_pct": 7.035334360330414,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 70.593,
+            "min": 68.619,
+            "max": 72.361,
+            "rounds": [
+              72.361,
+              68.619,
+              70.593,
+              70.526,
+              71.614
+            ]
+          },
+          "right": {
+            "median": 70.338,
+            "min": 70.077,
+            "max": 71.01,
+            "rounds": [
+              70.876,
+              71.01,
+              70.338,
+              70.08,
+              70.077
+            ]
+          },
+          "relative_change_pct": -0.3612256172708479,
+          "W_pct": 5.300808862068483,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 83.153,
+            "min": 81.991,
+            "max": 97.722,
+            "rounds": [
+              82.441,
+              97.722,
+              83.735,
+              83.153,
+              81.991
+            ]
+          },
+          "right": {
+            "median": 81.527,
+            "min": 81.203,
+            "max": 81.955,
+            "rounds": [
+              81.955,
+              81.754,
+              81.527,
+              81.449,
+              81.203
+            ]
+          },
+          "relative_change_pct": -1.9554315538826077,
+          "W_pct": 18.91813885247675,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 7690.8282,
+          "instructions:k": 25694.6428,
+          "cycles:u": 17159.811,
+          "cycles:k": 37728.5654,
+          "user_ipc": 0.4482066148630658
+        },
+        "warm-address-encode": {
+          "instructions:u": 6991.7918,
+          "instructions:k": 25720.9382,
+          "cycles:u": 15908.34,
+          "cycles:k": 37788.776,
+          "user_ipc": 0.43949769743417605
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks_plain": {
+    "low": {
+      "G": [
+        13,
+        12,
+        14,
+        12,
+        14
+      ],
+      "warm-address-encode": [
+        13,
+        14,
+        12,
+        13,
+        13
+      ]
+    },
+    "high": {
+      "G": [
+        2498,
+        2498,
+        2495,
+        2499,
+        2498
+      ],
+      "warm-address-encode": [
+        2498,
+        2497,
+        2498,
+        2496,
+        2498
+      ]
+    }
+  },
+  "postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+  "release_sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+  "no_measurement_retries": true,
+  "limits": [
+    "High unpaced variable-N pipeline is diagnostic; precision_ok remains None, not a fixed-cohort CPU acceptance.",
+    "Original low CPU precision requires every window >=10ticks and absolute median delta strictly >8ticks, plus strictabsdelta>W and >=4/5 direction.",
+    "Original full-bin analyzer replay is byte-identical to the author result. Raw counts/CPU/PMU/statistics are independently checked; no original measured window, build or test was rerun.",
+    "All original raw files and smallraw archive remain on Oracle. Safe exact archive inventory and bytes were read and checked there; local raw download and transport integrity remain pending DHCP safe-gap.",
+    "Owner32 is an Oracle diagnostic; it does not replace physical A53 qualification or full44/full110. G-stage50 is a separate accepted-G diagnostic, not warm6dad physical qualification."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "remote_archive_inventory_verified": true,
+  "bulk_local_delivery_and_transport_audit_complete": false,
+  "original_auditor_sha256": "217fec22855bfd786b76e85fc27a2da341dea3f224f0406b22ae258c42af1925",
+  "reviewer_script_sha256": "adcdbec8d8cfff6aef50037ed40df0af37a4592ca28209917b45be6d0f336080",
+  "schema": "warm-owner32-independent-audit-v1",
+  "author_result_commit": "2ca79de3",
+  "independent_statistics_receipt_sha256": "8c115dc0a12247c51161a7f860a9806bddbd627839b75beaa22538c6e7df29b1",
+  "independent_phase_local_before": {
+    "status": "PASS_LOCAL_WARM_OWNER32_ORIGINAL_PRETRANSFER_READY_LAUNCH_BINDINGS",
+    "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+    "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+    "pretransfer_sha256": "899a036e9bd1156f183aebcbbab6f24e13cdaadb8066aec57dba041056c572ee",
+    "quiet_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+    "ready_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+    "launch_sha256": "6a1532d6f1cdcc21dae0c3a6dc0db0251adb0ddde97bdf74ab1b50d801db87ab",
+    "archive12_inputs_verified": true,
+    "eight_imports_and_original_controller_analyzer_bound": true,
+    "source358_Git_blob_hashes_verified": true,
+    "actual961_SDK_triples_bound_to_independent_reviews": true,
+    "review_refs": {
+      "source_review": {
+        "commit": "190e015c",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-writer-final-source-review.json",
+        "sha256": "efef368ae0beb5809507b821f30b9acf5ac594724c12b56c254ee9ded98af773"
+      },
+      "sdk_independent_review": {
+        "commit": "7db02ead",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-sdk-independent-audit.json",
+        "sha256": "e94817dd91324dd75ef4b1e9cca7036b50d72778ce9be5222930fb4a13bae7fd",
+        "status": "PASS_ACTUAL_BARE6DAD_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL961_CHAIN"
+      },
+      "screen_plan_independent_review": {
+        "commit": "adb0be99",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/warm-owner32-preparation-peer.json",
+        "sha256": "7ea67dfd83b8098e2551727467e039ca4db3e020f709045d4512546c3ab9a9d6"
+      },
+      "linux_gate_independent_review": {
+        "commit": "7f189cf6",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-related-independent-audit.json",
+        "sha256": "dbd269282eca73f7ed8971db33eb32cf3d3b18a40f93fbd6a055536a171c3711",
+        "status": "PASS_FRESH_6DAD_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+      },
+      "launch_template_independent_review": {
+        "commit": "c0b8a5b0",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/warm-owner32-launch-template-peer.json",
+        "sha256": "90b021c3f843fb351b412dfd81da748a7eb6a92a2686e0064c08af2be66f5bad",
+        "status": "PASS_LOCAL_WARM_OWNER32_READY_AND_LAUNCH_TEMPLATE_PEER"
+      }
+    },
+    "changed_plan_fields": [
+      "artifact_transfer",
+      "artifacts",
+      "declared_plan_commit",
+      "declared_plan_sha256",
+      "execution_enabled",
+      "explicit_slot_release",
+      "launch_template_independent_review",
+      "linux_gate",
+      "linux_gate_independent_review",
+      "planned_linux_gate",
+      "pretransfer_complete",
+      "pretransfer_inputs_archive_sha256",
+      "pretransfer_receipt",
+      "remote_independent_audits",
+      "reservation",
+      "scope",
+      "screen_plan_independent_review",
+      "sdk_independent_review",
+      "source_review",
+      "status"
+    ],
+    "recorded_order": "pretransfer < fresh correctness quiet < final ready metadata < original owner32 launch",
+    "bulk_download_and_archive_audit_pending": true,
+    "scope": "Local retained input archive, control receipts and Git objects. Remote actual raw/statistics and post-measurement phase still pending; no Oracle access or workload.",
+    "script_sha256": "9ccbe72ad2ff3d715524e444c8a6271a7c350f5ed97810e99eb90de187b96e73"
+  },
+  "independent_phase_local_before_sha256": "9672babe27ae23205ddeae818fbda0f6e10db712943c46b122bce7b81a3c61a0",
+  "independent_phase_remote_after": {
+    "status": "PASS_REMOTE_ORIGINAL_WARM_OWNER32_PHASE_IDENTITY_BINDINGS",
+    "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+    "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+    "author_result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+    "postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+    "release_sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+    "controller_sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+    "analyzer_sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+    "local_before_phase_receipt_sha256": "9672babe27ae23205ddeae818fbda0f6e10db712943c46b122bce7b81a3c61a0",
+    "pretransfer12_and_source358_and_both_SDK_triples_rehashed": true,
+    "original32_sequential_completion_and_analysis_chain_verified": true,
+    "recorded_order": "pretransfer < fresh correctness quiet < ready < launch < 32 sequential windows < original analysis < postflight < release",
+    "bulk_download_and_archive_audit_pending": true,
+    "scope": "Existing raw phase/identity read only; no timing/workload. Original full-bin math independently checked by main reviewer; local input archive/Git/ref checks in the pinned before-phase receipt. No5c signals or5c-only metadata failure inherited. Remote quiet is receipt-bound, not a new observation.",
+    "script_sha256": "7101ff010afdbbc862635dd4375d7640a61ddcb9ac029a4b9c35cb21a3dd22cf"
+  },
+  "independent_phase_remote_after_sha256": "fbfe948bcd0be2168b86761f0e894a4c30a8da46f2f0fbbb4c05acf9826830aa",
+  "original_analyzer_replay": {
+    "status": "PASS_ORIGINAL_ANALYZER_FULL_RAW_BIN_REPLAY_BYTE_IDENTICAL",
+    "exit": 0,
+    "result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+    "author_result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+    "original_analyzer_sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+    "exit_receipt_sha256": "bf1171339ba6c7d72f08269a39bd39486709d123dd2e8b35f76bcfea6d75ca48",
+    "analysis_stdout_sha256": "a1c38a57989431067a66e1c1543e92e029b141a664efb3431df837933b31ee5f",
+    "analysis_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "full_raw_files_rehashed_after_replay": 1264,
+    "all32_copied_ELFs_and_maps_rehashed": true,
+    "all128_raw_bin_bytes_rehashed": 3624051024,
+    "input_postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+    "scope": "Original unchanged analyzer CPU0 under root read privileges; output only in fresh reviewer directory. All retained raw bins and copied ELFs/maps rehashed, no build/capture/window retry.",
+    "finished_epoch": 1792150155.6573384,
+    "bulk_local_delivery_and_transport_audit_complete": false,
+    "original_worker_sha256": "4cbdfb4766ba0b17122c4048b2ddb13355bc4645d32f6183a02cfd35405e8238",
+    "reviewer_script_sha256": "eada8e07651e32bdd0913f96a6e6a5fd4b8e03092a7e88bd678849ed5f8faf06"
+  },
+  "replay_receipt_sha256": "3f6180c10c46a6f2a9e6e9ae3bd5250b7918e4a9847c8e9ff50e1f8ff6644e21",
+  "original_plain_latency_sendlag_bins_independently_replayed": true,
+  "all128_bins_hash_verified_against_original_postflight": true,
+  "reviewer_measurement_retries": 0,
+  "reviewer_full_bin_analysis_replays": 1,
+  "comparison_scope": "G185 versus warm6dad includes inherited6ab; not an isolated writer-only attribution. No combined candidate measured.",
+  "retained_high_unpaced_send_lag_regressions": {
+    "p50": {
+      "left": {
+        "median": 2.76,
+        "min": 2.76,
+        "max": 2.8,
+        "rounds": [
+          2.76,
+          2.76,
+          2.8,
+          2.8,
+          2.76
+        ]
+      },
+      "right": {
+        "median": 2.84,
+        "min": 2.8,
+        "max": 2.88,
+        "rounds": [
+          2.88,
+          2.84,
+          2.84,
+          2.88,
+          2.8
+        ]
+      },
+      "relative_change_pct": 2.898550724637684,
+      "W_pct": 2.8169014084507067,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "slower"
+    },
+    "p95": {
+      "left": {
+        "median": 5.48,
+        "min": 5.28,
+        "max": 6.4,
+        "rounds": [
+          5.48,
+          5.28,
+          6.4,
+          5.52,
+          5.32
+        ]
+      },
+      "right": {
+        "median": 6.8,
+        "min": 6.68,
+        "max": 6.92,
+        "rounds": [
+          6.92,
+          6.76,
+          6.8,
+          6.88,
+          6.68
+        ]
+      },
+      "relative_change_pct": 24.0875912408759,
+      "W_pct": 20.437956204379564,
+      "same_direction_pairs": 5,
+      "precision_ok": true,
+      "discernible": true,
+      "direction": "slower"
+    }
+  },
+  "retained_author_local_release_adapter_failure": {
+    "receipt_sha256": "552b29566ae324cc0fff6602d445e876205ff54b0fbf3f8f2a434bcca0f54322",
+    "value": {
+      "status": "RETAINED_LOCAL_RELEASE_ADAPTER_ASSERTION_BEFORE_REMOTE_SEND",
+      "epoch": 1792149996.839782,
+      "check": "assert 'WARM_' not in s",
+      "reason": "Check matched intentional EXPLICIT_QUIET_RELEASE_TO_CORRECTNESS_ORIGINAL_WARM_OWNER32_REMOTE_RAW_AUDIT status after all four placeholders were replaced.",
+      "failed_error": "AssertionError at local adapter line6",
+      "template_sha256": "ad5b4d76b5f7315d7b2a8ba757ac1fcdf852e080f1656b87bfbb1462d4842e61",
+      "intended_remote_script_sha256": "417b5196c97b68de83e3004e8e7b89c2a4239888f93704beec9612a029ba20db",
+      "remote_script_written": false,
+      "remote_release_attempted": false,
+      "measurement_retries": 0,
+      "analysis_retries": 0,
+      "correction": "Check only the exact four placeholder tokens; remote script content and all measurement/analysis remain unchanged."
+    }
+  },
+  "local_raw_archive_delivery_and_transport_validation": "PENDING_DHCP_SAFE_GAP",
+  "execution_receipts": {
+    "launch.json": {
+      "sha256": "37f68523194d21c431307e2f2604fd288e715740c24267d16b196ba0ba192e8a",
+      "value": {
+        "pid": 1059832,
+        "start_ticks": "187467647",
+        "epoch": 1792150059.2592595,
+        "worker_sha256": "eada8e07651e32bdd0913f96a6e6a5fd4b8e03092a7e88bd678849ed5f8faf06",
+        "release_sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+        "root_read_only_wrapper": true,
+        "raw_input_mutation": false,
+        "measured_windows_repeated": 0
+      }
+    },
+    "exit.json": {
+      "sha256": "bf1171339ba6c7d72f08269a39bd39486709d123dd2e8b35f76bcfea6d75ca48",
+      "value": {
+        "argv": [
+          "taskset",
+          "-c",
+          "0",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/analyze_warm_address_encode_owner32.py",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32",
+          "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/result.json",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/analysis-inputs"
+        ],
+        "exit": 0,
+        "started_epoch": 1792150059.2971952,
+        "finished_epoch": 1792150151.8283558,
+        "bulk_local_delivery_and_transport_audit_complete": false,
+        "original_worker_sha256": "4cbdfb4766ba0b17122c4048b2ddb13355bc4645d32f6183a02cfd35405e8238",
+        "reviewer_script_sha256": "eada8e07651e32bdd0913f96a6e6a5fd4b8e03092a7e88bd678849ed5f8faf06"
+      }
+    },
+    "statistics-exit.json": {
+      "sha256": "b77850a94390841c82ebcf259b273e04c5384e92d2cb1ccc7198b8730e588abb",
+      "value": {
+        "argv": [
+          "taskset",
+          "-c",
+          "0",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/audit-statistics.py"
+        ],
+        "returncode": 0,
+        "started_epoch": 1792150216.52227,
+        "finished_epoch": 1792150224.4979737
+      }
+    },
+    "phase-exit.json": {
+      "sha256": "6cc6138368f9d863389da1401b23529903c76c75da9523812ef46bb83ac3823e",
+      "value": {
+        "argv": [
+          "taskset",
+          "-c",
+          "0",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/audit-phase.py",
+          "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+          "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+          "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+          "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/phase-receipt.json"
+        ],
+        "returncode": 0,
+        "started_epoch": 1792150224.4981546,
+        "finished_epoch": 1792150224.5695543
+      }
+    }
+  }
+}
