@@ -1,0 +1,289 @@
+{
+  "status": "PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+  "total_passed": 961,
+  "groups": [
+    {
+      "gate": "lib",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 8.130210399627686,
+      "summary": [
+        "test result: ok. 840 passed; 0 failed; 22 ignored; 0 measured; 0 filtered out; finished in 8.09s"
+      ],
+      "log_sha256": "631efb88fdd027b9a4e24b8af5d195bab2c83434e1a1d989e39227300de58045",
+      "binary_sha256": "5e6288b14bdb599ab582da85ed1886acfe33e21142886ff3b8b8f4e01b089a3e",
+      "passed": 840,
+      "failed": 0,
+      "ignored": 22,
+      "listed_tests": 862,
+      "listed_names_match_actual_log": true,
+      "listing_sha256": "b0807f414ad40dc075088a0a1706158efc31d7e5b6be0c76deeab9118f90c273"
+    },
+    {
+      "gate": "bin",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 4.2906293869018555,
+      "summary": [
+        "test result: ok. 82 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 4.25s"
+      ],
+      "log_sha256": "7afe21648b3882196ec27c9d3dd0ea281c7d9138a8a3f64ca5483a15644fa213",
+      "binary_sha256": "016e04153f62998220b0e286659d5475fc3d242136528cdd6222fca666b50813",
+      "passed": 82,
+      "failed": 0,
+      "ignored": 4,
+      "listed_tests": 86,
+      "listed_names_match_actual_log": true,
+      "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61"
+    },
+    {
+      "gate": "allocations",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-allocation-build/hosts_allocations",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.4732029438018799,
+      "summary": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.43s"
+      ],
+      "log_sha256": "b04595a03e3d41ba5776ada61d203bb8b701766e723f3ff2e978268cf273e13d",
+      "binary_sha256": "972671ca18fa99d803debe2d765722a67d2c17b007508e32e734788e0988100e",
+      "passed": 17,
+      "failed": 0,
+      "ignored": 0,
+      "listed_tests": 17,
+      "listed_names_match_actual_log": true,
+      "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11"
+    },
+    {
+      "gate": "lib-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/lib-dnsmasq_rs",
+        "--ignored",
+        "--skip",
+        "exact_c_oracle_driver",
+        "--skip",
+        "exact_c_stale_driver",
+        "--skip",
+        "exact_c_transfer_probe",
+        "--skip",
+        "exact_c_lease_cache_driver",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.33905458450317383,
+      "summary": [
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 844 filtered out; finished in 0.30s"
+      ],
+      "log_sha256": "b2006bef345d084ef3fa0bd6ebcc11e82d7901c3669164d0952a477a45e5f994",
+      "binary_sha256": "5e6288b14bdb599ab582da85ed1886acfe33e21142886ff3b8b8f4e01b089a3e",
+      "passed": 18,
+      "failed": 0,
+      "ignored": 0,
+      "listed_tests": 18,
+      "listed_names_match_actual_log": true,
+      "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726"
+    },
+    {
+      "gate": "bin-ignored-live",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "DNSMASQ_C_REFERENCE=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/image-runner/dnsmasq-image-runner",
+        "python3",
+        "-c",
+        "import os,subprocess,sys; subprocess.run([\"mount\",\"--make-rprivate\",\"/\"],check=True); subprocess.run([\"mount\",\"-t\",\"tmpfs\",\"-o\",\"mode=1777\",\"tmpfs\",\"/tmp\"],check=True); os.execv(sys.argv[1],sys.argv[1:])",
+        "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-tests/bin-dnsmasq-rs",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.1457228660583496,
+      "summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.11s"
+      ],
+      "log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "binary_sha256": "016e04153f62998220b0e286659d5475fc3d242136528cdd6222fca666b50813",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "listed_tests": 4,
+      "listed_names_match_actual_log": true,
+      "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c"
+    }
+  ],
+  "added_tests_exactly": [
+    "dns::cache::tests::fresh_address_hint_keeps_exact_expiry_and_stale_policy_boundaries",
+    "dns::lease_names::tests::expiry_bound_never_skips_expirable_entries_or_parent_names",
+    "dns::lease_names::tests::expiry_bound_stays_conservative_after_extension_and_sticky_removal",
+    "dns::wire::tests::written_first_question_owner_preserves_binary_names_and_offset_fallbacks"
+  ],
+  "all_original185_passed_test_names_retained": true,
+  "remaining4group_names_identical_to185": true,
+  "source_files_rehashed": 179,
+  "source_manifest_sha256": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+  "git_identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+  "unit_raw_sha256": "9e31b5f66e2829314981ea7a12c96df17a3c6f10247adfd937affd0dc16cf5ba",
+  "build_receipts": {
+    "tests": {
+      "sha256": "0f4e9ddae5643feb6f54768db0d64a5f7b32512b4d0d3ad589cdcdd4a6e0ef00",
+      "value": {
+        "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+        "kind": "tests",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "artifacts": [
+          {
+            "path": "bin-dnsmasq-rs",
+            "bytes": 51021296,
+            "sha256": "016e04153f62998220b0e286659d5475fc3d242136528cdd6222fca666b50813"
+          },
+          {
+            "path": "lib-dnsmasq_rs",
+            "bytes": 72486624,
+            "sha256": "5e6288b14bdb599ab582da85ed1886acfe33e21142886ff3b8b8f4e01b089a3e"
+          }
+        ]
+      }
+    },
+    "allocations": {
+      "sha256": "a216ee9b0683071fdd12862ed941914197f36918b4727d1c132132ec4a4e2e61",
+      "value": {
+        "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+        "kind": "hosts-allocations-musl",
+        "command": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/components/dnsmasq/Cargo.toml",
+          "--test",
+          "hosts_allocations",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "sha256": "972671ca18fa99d803debe2d765722a67d2c17b007508e32e734788e0988100e",
+        "bytes": 34519752
+      }
+    }
+  },
+  "preflight_sha256": "d8741628b17b8f71c126ebd0c0ca20167afc573c7a579dcc8e44baf3ec612a54",
+  "launch_sha256": "8a791beb8bbdacc46ac4b7e318ea08030209cb18ba1337c0e09415094ee17c24",
+  "prior_preflight_binding_failure_sha256": "29bdfd234d897b86a0bf75c3c0f37d1731e1172979f8fcddccde64df26de83ba",
+  "original_E_raw_receipt_sha256": "c3dfca57ca73e7ef9f7aa14382b9d964b109c541ede9dc88fee267bae952b52e",
+  "wrapper_exited": true,
+  "research": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "quiet_epoch": 1792125141.854114,
+  "shipping_SDK_built": false,
+  "full44_or_corpora_run": false,
+  "performance_accepted": false,
+  "scope": "Original5groups fromfreshsame-source binaries. Listing calls only enumerate tests and do not rerun them. No product/Cexpectation change; no fullqualification inheritance.",
+  "independent_remote_receipt_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+  "independent_verifier_sha256": "f0d1c37f3528081fc7b3ec6e978bf636e0e253e502dd8a1966ec004b7e1cca58",
+  "quiet_handoff": {
+    "status": "QUIET_RELEASE_TO_DNS_SERIAL_SDK",
+    "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "related_verified_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "source_files_verified": 179,
+    "tests_passed": 961,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "supervisor_811523_absent": true,
+    "epoch": 1792125327.702248,
+    "next_owner": "DNS canonical serialSDK underroot authorization"
+  },
+  "quiet_receipt_sha256": "406f8d4035a8e2bcc298fd017ababd2fa7e4845489623aa7b9c32d28dba583f7",
+  "source_review_sha256": "57f01b67c884fd699fe75bde09e1235118b1b49229e0232c3f9a2c6f79608374",
+  "prepared_recipe_commit": "ee6d24e8",
+  "launch_and_preflight_correction_commit": "5e78856b",
+  "first_preflight_failure_retained": {
+    "status": "PREBUILD_PREFLIGHT_BINDING_FAILURE_PRESERVED",
+    "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "builds_started": 0,
+    "test_groups_started": 0,
+    "cause": "Preparation incorrectly used reformattedlocalEreceipt-copy hash5d49 as the originalremote byteshash. OriginalremoteEreceipt is unchanged and matches accepted185preflight c3df.",
+    "incorrect_local_copy_sha256": "5d49a0aaa38f4b5c72501769f199347db463709f24fb96b2d36bbed9821908dc",
+    "correct_original_remote_sha256": "c3dfca57ca73e7ef9f7aa14382b9d964b109c541ede9dc88fee267bae952b52e",
+    "original185_preflight_sha256": "b5d322036df000dee11e38a4376b311e0e670efff5d12cd04451d8008f853171",
+    "source179_and_Gitblob_checks_already_passed": true,
+    "source_reextract_or_mutation": false,
+    "five_original_argv_unchanged": true,
+    "files": {
+      "preflight-attempt1.py": "198c3881854b1f4b38b1efa4522f64e2e64dc7bc1026f345d55741c22ef06975",
+      "preflight.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preflight.stderr": "923e5b6b4550d666c9e907c8797442f5f78aee033b9e03df4c2b34f28810c91f",
+      "preflight-receipt-investigation.json": "66b3bd084ea44a20e680f1dbac2d34bdd403f2bd5547f92cf7eabe0c314aefc3"
+    }
+  },
+  "reviewer_parser_correction": {
+    "scope": "Initial name-log verifier omitted originalignored reason suffixes; reused exact original185regex ignored(?:,.*)? to include all22ordinary ignored names. No gate/test/Cexpectation change, no test rerun; raw firstverifier exception retained.",
+    "initial_script_sha256": "50d68f229ce5bb8de80cfb316c9ee97b2999085bf9e0e438b8f20194beff8aaf",
+    "initial_stderr_sha256": "52fdfed770456fa53fd719f3072fbc2826bf9b2137069aefbf38a40d9beff342",
+    "final_script_sha256": "f0d1c37f3528081fc7b3ec6e978bf636e0e253e502dd8a1966ec004b7e1cca58"
+  },
+  "scope_limit": "961same-source relatedtests only. No shippingSDK/full44/sourcecorpora/newperformance qualification; cannot inherit185/G fullPASS.",
+  "handoff": "Oracleexclusive functional slot released to DNS for rootauthorized canonical serialSDK after actualquiet. Remote6absource retained unchanged for the same build identity."
+}
