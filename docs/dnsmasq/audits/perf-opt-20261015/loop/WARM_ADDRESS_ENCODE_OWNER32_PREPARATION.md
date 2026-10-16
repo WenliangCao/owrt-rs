@@ -24,3 +24,11 @@ pretransfers and explicit quiet release remain unset; execution is disabled.
 G-stage device50 has priority. Bulk avoids device health/timing, and ready
 stage work is not delayed for this experiment. Only after all actual bindings
 may the original owner32 run; no larger windows or changed thresholds apply.
+
+The original tool/import/disabled-plan input package was staged in an explicit
+gap before device health: 12 files, 49,996 bytes, archive SHA-256
+`49d0ccf596c72941774d1ad3ae674e1cf3bc6a49d7df51730510b421cb57bd2d`.
+The [rehash receipt](warm-address-encode-owner32-pretransfer.json), SHA-256
+`899a036e9bd1156f183aebcbbab6f24e13cdaadb8066aec57dba041056c572ee`,
+confirms no controller or measurement output was created. The staged plan is
+still disabled; actual gate/SDK/review/quiet bindings remain necessary.

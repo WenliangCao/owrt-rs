@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_ORIGINAL_G_STAGE_GATES_AND_CANONICAL_SDK_COMPLETE_PENDING_INDEPENDENT_REVIEW",
+  "status": "ACTUAL_ORIGINAL_G_STAGE_GATES_AND_CANONICAL_SDK_INDEPENDENT_PASS",
   "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
   "source_inputs_verified": 180,
   "related_actual_counts": {
@@ -41,7 +41,18 @@
   "release_to_DNS_warm_sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
   "related_all27_downloaded_rehashed": true,
   "SDK_all45_downloaded_rehashed": true,
-  "independent_actual_review": null,
+  "independent_actual_review": {
+    "related": {
+      "commit": "ad9f1c3d",
+      "path": "correctness/g-stage-related-independent-audit.json",
+      "sha256": "d53677fa512d625625fe0c0004a5004e7d6992bc2075c319d7ae2e844fd04791"
+    },
+    "sdk": {
+      "commit": "ef762db0",
+      "path": "correctness/g-stage-sdk-independent-audit.json",
+      "sha256": "e6e4535e95e858f5755341c4ce29c20bdff622b82b6bc8072c6c5ef7bab60913"
+    }
+  },
   "original_gate_and_SDK_reruns": 0,
   "retained_preparation_failures": [
     "source-archive-attempt1-failure.json",
