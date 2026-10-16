@@ -1,6 +1,6 @@
 {
   "schema": "dnsmasq-post185-combined-related-linux-preparation-v1",
-  "status": "LOCAL_PREPARATION_ONLY_PROFILE_DECISION_AND_ORACLE_RELEASE_REQUIRED",
+  "status": "ORIGINAL_FIVE_GROUPS_RUNNING_NOT_YET_PASSED",
   "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "source_review_sha256": "57f01b67c884fd699fe75bde09e1235118b1b49229e0232c3f9a2c6f79608374",
   "local_source": "/Users/USER/Developer/owrt-perf-post185-combined-20261016",
@@ -148,18 +148,28 @@
   ],
   "before_execution": [
     "Current110andrawaudits plusC/185profile must releaseOracle; root chooses screening from newprofile first. No upload/build/test before release.",
-    "Bind extracted source to exact6ab0f064and179source hashes; rehash originaloracle_build.sh/run_isolated.sh and exactCimage/runner. OriginalEunit receipt must hash5d49a0aaa38f4b5c72501769f199347db463709f24fb96b2d36bbed9821908dc before its5argv are used.",
+    "Bind extracted source to exact6ab0f064and179source hashes; rehash originaloracle_build.sh/run_isolated.sh and exactCimage/runner. OriginalEunit receipt must hashc3dfca57ca73e7ef9f7aa14382b9d964b109c541ede9dc88fee267bae952b52e before its5argv are used.",
     "Fresh post185-combined-tests/allocation-build/unit-run paths andlogs; no overwrite. Check no researchprocesses and originalbuildlocks. Preserve failures and stop on originalnonzeroexit.",
     "Rehash fresh testELFs/buildreceipts/logs/179sourcefiles and independently reconcile names/listings/counts/ignoredskips. ShippingSDK/full44/corpora/performance are not run and cannot inherit185PASS."
   ],
   "full44_or_full_corpora_prepared": false,
   "shipping_SDK_built": false,
   "prepared_only": true,
-  "uploaded": false,
-  "executed": false,
+  "uploaded": true,
+  "executed": true,
   "new_framework_or_expectations": false,
   "supersedes_for_future_selection_only": {
     "a15_plan_sha256": "d780a3d9885c00db27876575779b868e7e8044f4fbf423e77cff073e111d67fe",
     "old_files_unchanged": true
-  }
+  },
+  "receipt_binding_correction": {
+    "prior_failed_preflight_sha256": "29bdfd234d897b86a0bf75c3c0f37d1731e1172979f8fcddccde64df26de83ba",
+    "original185_preflight_sha256": "b5d322036df000dee11e38a4376b311e0e670efff5d12cd04451d8008f853171",
+    "original_remote_E_receipt_sha256": "c3dfca57ca73e7ef9f7aa14382b9d964b109c541ede9dc88fee267bae952b52e",
+    "wrong_hash_was_local_formatted_copy": true,
+    "original_argv_unchanged": true,
+    "before_any_build_or_test": true
+  },
+  "launch_receipt_sha256": "8a791beb8bbdacc46ac4b7e318ea08030209cb18ba1337c0e09415094ee17c24",
+  "preflight_receipt_sha256": "d8741628b17b8f71c126ebd0c0ca20167afc573c7a579dcc8e44baf3ec612a54"
 }
