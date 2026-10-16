@@ -1,0 +1,1286 @@
+{
+  "scope": "Local allocation/representation/codegen mechanism only; no CPU timing or full qualification.",
+  "source": "2b4f8b16",
+  "base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "separate_fixture": "1721e5a1 (=7c2708f6)",
+  "probe": "Byte-identical pre-existing private snapshot-count.rs; all timing code is disabled and zero timing fields are not performance results.",
+  "probe_sha256": "c43d5a931411a15c592943e684b9449e55bc825d7d2bdaca85c030c84759bc07",
+  "controller_sha256": "9bdc831cb7cc43338474d5d1022ea449da7a91e87967d3c6621199f6f7045102",
+  "commands": [
+    {
+      "label": "G-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "f73ed875cb8a5a99dee777294b4e0eaa54b988bc82b223caa821e4704d074edf"
+    },
+    {
+      "label": "G-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/snapshot-count.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9f9d087136cf2d550dd52f6de65d9eda65d4d1b890d608979044b580194e85a7"
+    },
+    {
+      "label": "G-0-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "0",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "219b5e7137845c4c45dc1eff447a392a17130c15747a0fa3af9651b8ce29ba84",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-1-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "1",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "4162c0798794688c1b13d1da788f62a4be48b72a83fd5e3e068f762f1d2ce7a7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-63-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "63",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "c189052b8ad6d32e793624cf7208432f41a5aa29ddb00a2c6948c686413df873",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-64-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "64",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "f96ace0532c436b9bedc49d748151d95e3748f4dac8bb7976615fcd02a39b18c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-65-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "65",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "475b77043d680ded6f72d14b43306bcebf23fd84873864da9e7ff6878176f9d9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-1000-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "1000",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "351daefe1dd563ffb7fd914925e1503a70ff4a4b28c1c0a48f6603daaabc4089",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-1000-800-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "1000",
+        "800",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "49936088c655fa1921eec5730c78208b862d13604d0039eb46ae06d82e626915",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "G-1000-800-detach",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/G",
+        "1000",
+        "800",
+        "allocation",
+        "detach"
+      ],
+      "exit": 0,
+      "stdout_sha256": "90dcbbc1178c50a74bc00614770063488934c823dcaea138debd3cb642f7af75",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3b7fb6b0c5d90b2beb921d298171094bda97d8110335a22309ee9416cbbf4bb7"
+    },
+    {
+      "label": "slice-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/snapshot-count.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9f9d087136cf2d550dd52f6de65d9eda65d4d1b890d608979044b580194e85a7"
+    },
+    {
+      "label": "slice-0-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "0",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "219b5e7137845c4c45dc1eff447a392a17130c15747a0fa3af9651b8ce29ba84",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-1-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "1",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "3cb6244043dc4a8e3269751c300b30ce74189806fac88925aa74e4d076c58393",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-63-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "63",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "1138d1f27c47fed9afacb2c9f47d2b40c158f11515be4a9ef159fc808aff2301",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-64-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "64",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "9905cfd061c144e4c96bc0bb4c38a386dda55c247ba71c5c71019fde7c9bee91",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-65-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "65",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "f1681e24ad1b989ff7d8788751fc390607e9f554f9edb7686f08fab1ad2d5106",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-1000-0-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "1000",
+        "0",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "c3ca964328c04ec59c2bfe640dace4aa16f509beb09a232da6ed359fb1509629",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-1000-800-read",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "1000",
+        "800",
+        "allocation"
+      ],
+      "exit": 0,
+      "stdout_sha256": "0035f51d92d7fb6f85b371601956bbbf4a3426d2ed2fcb44e4531d687150820f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "slice-1000-800-detach",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/counts/slice",
+        "1000",
+        "800",
+        "allocation",
+        "detach"
+      ],
+      "exit": 0,
+      "stdout_sha256": "17b873f221069b30ee98e4f863fb3c54a2789368691895ce247a28ee85799786",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "counts": [
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 0,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        65,
+        0,
+        4608,
+        4608,
+        0
+      ],
+      "clone_allocation": [
+        20,
+        0,
+        10240,
+        10240,
+        10240
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        20,
+        0,
+        10240,
+        0,
+        10240
+      ],
+      "peak_extra_requested": 10240,
+      "population_drop": -4608,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 1,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        69,
+        0,
+        4736,
+        4736,
+        128
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        10720,
+        10720,
+        10720
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        10720,
+        0,
+        10720
+      ],
+      "peak_extra_requested": 10720,
+      "population_drop": -4736,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 63,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        69,
+        0,
+        10192,
+        10192,
+        5584
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        30560,
+        30560,
+        30560
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        30560,
+        0,
+        30560
+      ],
+      "peak_extra_requested": 30560,
+      "population_drop": -10192,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 64,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        69,
+        0,
+        10280,
+        10280,
+        5672
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        30880,
+        30880,
+        30880
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        30880,
+        0,
+        30880
+      ],
+      "peak_extra_requested": 30880,
+      "population_drop": -10280,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 65,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        71,
+        0,
+        10408,
+        10408,
+        5800
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        31360,
+        31360,
+        31360
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        31360,
+        0,
+        31360
+      ],
+      "peak_extra_requested": 31360,
+      "population_drop": -10408,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 1000,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        99,
+        0,
+        93248,
+        93248,
+        88640
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        332800,
+        332800,
+        332800
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        332800,
+        0,
+        332800
+      ],
+      "peak_extra_requested": 332800,
+      "population_drop": -93248,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "read",
+      "capacity": 1000,
+      "filled": 800,
+      "completed": 20,
+      "hits": 20,
+      "errors": 0,
+      "population_allocation": [
+        5101,
+        0,
+        337768,
+        257736,
+        253152
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        332800,
+        332800,
+        332800
+      ],
+      "lookup_allocation": [
+        20,
+        0,
+        1280,
+        0,
+        64
+      ],
+      "final_allocation": [
+        80,
+        0,
+        334080,
+        0,
+        332864
+      ],
+      "peak_extra_requested": 332864,
+      "population_drop": -257736,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "G",
+      "mode": "detach",
+      "capacity": 1000,
+      "filled": 800,
+      "completed": 20,
+      "hits": 20,
+      "errors": 0,
+      "population_allocation": [
+        5101,
+        0,
+        337768,
+        257736,
+        253152
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        332800,
+        332800,
+        332800
+      ],
+      "lookup_allocation": [
+        80,
+        0,
+        92732,
+        91072,
+        91155
+      ],
+      "final_allocation": [
+        140,
+        0,
+        425532,
+        0,
+        423955
+      ],
+      "peak_extra_requested": 423955,
+      "population_drop": -257736,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 0,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        65,
+        0,
+        4608,
+        4608,
+        0
+      ],
+      "clone_allocation": [
+        20,
+        0,
+        10240,
+        10240,
+        10240
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        20,
+        0,
+        10240,
+        0,
+        10240
+      ],
+      "peak_extra_requested": 10240,
+      "population_drop": -4608,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 1,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        68,
+        0,
+        4728,
+        4728,
+        120
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        10880,
+        10880,
+        10880
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        10880,
+        0,
+        10880
+      ],
+      "peak_extra_requested": 10880,
+      "population_drop": -4728,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 63,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        68,
+        0,
+        10184,
+        10184,
+        5576
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        30720,
+        30720,
+        30720
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        30720,
+        0,
+        30720
+      ],
+      "peak_extra_requested": 30720,
+      "population_drop": -10184,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 64,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        68,
+        0,
+        10272,
+        10272,
+        5664
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        31040,
+        31040,
+        31040
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        31040,
+        0,
+        31040
+      ],
+      "peak_extra_requested": 31040,
+      "population_drop": -10272,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 65,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        69,
+        0,
+        10392,
+        10392,
+        5784
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        31680,
+        31680,
+        31680
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        31680,
+        0,
+        31680
+      ],
+      "peak_extra_requested": 31680,
+      "population_drop": -10392,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 1000,
+      "filled": 0,
+      "completed": 20,
+      "hits": 0,
+      "errors": 0,
+      "population_allocation": [
+        83,
+        0,
+        93120,
+        93120,
+        88512
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        335360,
+        335360,
+        335360
+      ],
+      "lookup_allocation": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_allocation": [
+        60,
+        0,
+        335360,
+        0,
+        335360
+      ],
+      "peak_extra_requested": 335360,
+      "population_drop": -93120,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "read",
+      "capacity": 1000,
+      "filled": 800,
+      "completed": 20,
+      "hits": 20,
+      "errors": 0,
+      "population_allocation": [
+        5085,
+        0,
+        337640,
+        257608,
+        253024
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        335360,
+        335360,
+        335360
+      ],
+      "lookup_allocation": [
+        20,
+        0,
+        1280,
+        0,
+        64
+      ],
+      "final_allocation": [
+        80,
+        0,
+        336640,
+        0,
+        335424
+      ],
+      "peak_extra_requested": 335424,
+      "population_drop": -257608,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    },
+    {
+      "side": "slice",
+      "mode": "detach",
+      "capacity": 1000,
+      "filled": 800,
+      "completed": 20,
+      "hits": 20,
+      "errors": 0,
+      "population_allocation": [
+        5085,
+        0,
+        337640,
+        257608,
+        253024
+      ],
+      "clone_allocation": [
+        60,
+        0,
+        335360,
+        335360,
+        335360
+      ],
+      "lookup_allocation": [
+        60,
+        0,
+        92412,
+        90752,
+        90835
+      ],
+      "final_allocation": [
+        120,
+        0,
+        427772,
+        0,
+        426195
+      ],
+      "peak_extra_requested": 426195,
+      "population_drop": -257608,
+      "layout": [
+        224,
+        72,
+        72,
+        56
+      ],
+      "image_layout": 224
+    }
+  ],
+  "codegen": {
+    "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+    "target": "aarch64-unknown-linux-musl",
+    "codegen_flags": [
+      "-Cforce-unwind-tables=no",
+      "-Crelocation-model=pie",
+      "-Ctarget-feature=+crt-static"
+    ],
+    "sources": {
+      "parent": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "slice": "2b4f8b1685dd8ab99286617808a795e01614c3c4"
+    },
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/parent-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-620fe96dc5800825.rlib"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-content-slice-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/slice-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-content-slice-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-content-slice-20261016/private/content-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-e45b1d18feb773ce.rlib"
+        ],
+        "returncode": 0
+      }
+    ],
+    "outputs": {
+      "parent": {
+        "sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+        "bytes": 5022408
+      },
+      "slice": {
+        "sha256": "5f9083be632efe6b7ebf5077434a00ff89210f8f60e7936e13426a75affa108c",
+        "bytes": 5022608
+      }
+    }
+  },
+  "code_functions": {
+    "parent": [
+      {
+        "name": "get",
+        "symbol": "_RNvMs3_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5cacheNtB5_5Cache3get",
+        "address": "0x3100dc",
+        "bytes": 160,
+        "code_sha256": "b0b03096cfba411ce57ac6ef1a753797bb1d480d9109e8ebc1ab62729d765751",
+        "asm_sha256": "b228060795144ccbafbc08116bd94d4ceac9b51c4d403844e2222baf445dbb62"
+      },
+      {
+        "name": "invalid",
+        "symbol": "_RNvMs3_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5cacheNtB5_5Cache7invalid",
+        "address": "0x3136c0",
+        "bytes": 232,
+        "code_sha256": "43e70db0f0e453901c544ef26e8990a0c642b40a39a1c3c6c216474eae6a7fdc",
+        "asm_sha256": "95939bc772796fd9a32df522db38d0b3639cc2a19386890959b40f8d0a8f86d9"
+      },
+      {
+        "name": "is_valid",
+        "symbol": "_RNvMs3_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5cacheNtB5_5Cache8is_valid",
+        "address": "0x31017c",
+        "bytes": 176,
+        "code_sha256": "87b4c79969c256f0d8254031c5894bbac32cccc686dfb09d43a1b144255676e7",
+        "asm_sha256": "96e807b3d57701272deb62d2e70ab4b53e3b5ffd952d555d24e659b55883875c"
+      },
+      {
+        "name": "answer_fresh_address",
+        "symbol": "_RNvMs0_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+        "address": "0x310414",
+        "bytes": 1088,
+        "code_sha256": "c63b96db81ed2711dc5359b8c020597cc2b292d69444057dabd1bfd69dd1ffaf",
+        "asm_sha256": "e79f8d18406886dd8cae022499e2b34f83ca0b05ecf2624a24472249ab598911"
+      },
+      {
+        "name": "answer_parsed_with_query_events",
+        "symbol": "_RNvMs_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": "0x3187fc",
+        "bytes": 4508,
+        "code_sha256": "0663ed1a5072b826b35b5a04ee7f6a75a8ddfa951c9241ec2d8a5ffc2503bd97",
+        "asm_sha256": "cba0c6e605f232bd656f8f1d24ba9c01bab148ac48c11288c7198da0178bc482"
+      },
+      {
+        "name": "answer_local_or_cached",
+        "symbol": "_RNvMsb_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "0x2ac938",
+        "bytes": 3980,
+        "code_sha256": "321b17d43402c045e3133bd264a26d2ee28f4e5be333a3e956fc6bb28d811986",
+        "asm_sha256": "daaa64bb644077c4a3eb4783bed5686899af7aec1984bf919a2d3f06b8d4f105"
+      }
+    ],
+    "slice": [
+      {
+        "name": "get",
+        "symbol": "_RNvMs3_NtNtCs4pCoGSfb54S_10dnsmasq_rs3dns5cacheNtB5_5Cache3get",
+        "address": "0x310128",
+        "bytes": 160,
+        "code_sha256": "7047fcbfee8f9b08b5fe61b53598d2c7d8fe7900abdb303b89f0a3dcc2366807",
+        "asm_sha256": "f1c8b213697ec17ce486e47d3f437486d49471c551112930f625e38371a6cb08"
+      },
+      {
+        "name": "invalid",
+        "symbol": "_RNvMs3_NtNtCs4pCoGSfb54S_10dnsmasq_rs3dns5cacheNtB5_5Cache7invalid",
+        "address": "0x313750",
+        "bytes": 232,
+        "code_sha256": "6ac6a25342724498ba79bffb9d0c2cee4d910164ad4883e2d6a0182496ffb8c0",
+        "asm_sha256": "dade0ff5dea74e5df97b5c5ca6e58ea0c6104ec7a748a27ab9902ada183514f1"
+      },
+      {
+        "name": "is_valid",
+        "symbol": "_RNvMs3_NtNtCs4pCoGSfb54S_10dnsmasq_rs3dns5cacheNtB5_5Cache8is_valid",
+        "address": "0x3101c8",
+        "bytes": 176,
+        "code_sha256": "10f5fac2a5ac167e6e168915c43be0b63f3eec926ad543479777868835c3ad1d",
+        "asm_sha256": "311e8a349c4e9661936b136d88dbd51c7018564820f00a8354e406604fbab220"
+      },
+      {
+        "name": "answer_fresh_address",
+        "symbol": "_RNvMs0_NtNtCs4pCoGSfb54S_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+        "address": "0x310460",
+        "bytes": 1088,
+        "code_sha256": "889486e0a6c61234d96bc81c1467fa13b98b9266d6cdc58bfc41521f145504d2",
+        "asm_sha256": "951f13079e9d136225239d74e45f2a967ffb22669c27cce81284c678881a1592"
+      },
+      {
+        "name": "answer_parsed_with_query_events",
+        "symbol": "_RNvMs_NtNtCs4pCoGSfb54S_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": "0x318888",
+        "bytes": 4508,
+        "code_sha256": "52ef73cef6079cbc2e99324907ff4ed78d602d2c31ffcf4a7f16dc5553777013",
+        "asm_sha256": "cb3a0be9c2c1ad8de2be75724091a4337fb2a8fe6d553311865edfcc9dca952f"
+      },
+      {
+        "name": "answer_local_or_cached",
+        "symbol": "_RNvMsb_NtNtCs4pCoGSfb54S_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "0x2ac964",
+        "bytes": 3980,
+        "code_sha256": "92f2e57a1627b82670b1dbe403dd34d97682764b05e267db31b6bd5611fbea1c",
+        "asm_sha256": "82894ee915a41ba25859ea0da5d8541e813a64d7beea876440f5404c04b09778"
+      }
+    ]
+  },
+  "validation": {
+    "lib": {
+      "result": [
+        "test result: ok. 722 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.90s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.81s"
+      ],
+      "stdout_sha256": "d1e6b605ac40835b6baa3a9130ffc5d4e33a3a5284f61e918cc6fc9ce3485224",
+      "stderr_sha256": "e03442e17be87ef4dc2469d462806b3a9b2ade0916862702b1fc7320d82c1a16"
+    },
+    "musl": {
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.72s"
+      ],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "232512ef2d6e01b7727d710793d44b196f14618ad9caba9d34a3c13bb20628fc"
+    }
+  },
+  "limitations": [
+    "No SDK, Linux runtime, native timing or router run.",
+    "Same static get/is_valid/invalid code sizes do not negate the changed load dependencies, but also do not prove a cycle benefit.",
+    "Fat content handles increase each snapshot root-vector storage by8B per block on this64-bit platform;20snapshots atcapacity1000 add2560requested B.",
+    "Full qualification requires minimal accurate adaptations for existing layout/root diagnostic tools; no dummy ContentBlock size or relaxed expectation. Those tools have not been changed.",
+    "Source remains independent from G and6ab; not selected for full timing."
+  ]
+}
