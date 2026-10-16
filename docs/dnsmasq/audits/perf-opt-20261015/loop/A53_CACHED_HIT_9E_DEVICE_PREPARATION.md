@@ -48,3 +48,5 @@ through device archive verification and exact E/F restoration.
 [Disabled plan](A53_CACHED_HIT_9E_DEVICE_PLAN.json) binds the unchanged tools and
 private operator hashes. No new test framework, observer or measurement tool is
 introduced.
+
+Independent local preparation review PASS: [report](../dns/cached-hit-9e-device-preparation-peer.json), commit `aac5dad2`, SHA256 `649d7ac56461a3bf5a9cf0b2772e7e6aa137b56e3af860b26775732816dd3909`. This reviews the disabled plan and local adaptations only. Exact actual result contents, source/SDK identities and standalone-signal schema must be rehashed and verified before enable; nonempty references alone are insufficient.
