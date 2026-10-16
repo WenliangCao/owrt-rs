@@ -131,10 +131,22 @@ impl CacheContext<'_> {
         { return None; }
         let query = packet.get(..query_len)?;
         let header = Header::parse(query).ok()?;
-        if header.flags != 0x0100 || header.questions != 1 || header.answers != 0
-            || header.authorities != 0 || header.additionals != 0
+        if header.flags & !0x0030 != 0x0100 || header.questions != 1 || header.answers != 0
+            || header.authorities != 0 || header.additionals > 1
         { return None; }
-        let fixed = query_len.checked_sub(4)?;
+        // Only a literal root, version-zero, empty OPT is admitted. Keep DO,
+        // options, signatures and every other Additional shape on the general
+        // path; in particular DO can require forwarding an unsigned cache hit.
+        let (question_end, limit) = if header.additionals == 1 {
+            let end = query_len.checked_sub(11)?;
+            let opt = query.get(end..)?;
+            if opt[..3] != [0, 0, 41] || opt[5..] != [0; 6] { return None; }
+            let advertised = u16::from_be_bytes([opt[3], opt[4]]);
+            let limit = if advertised > local.edns_packet_max { local.edns_packet_max }
+                else { advertised.max(512) };
+            (end, usize::from(limit))
+        } else { (query_len, 512) };
+        let fixed = question_end.checked_sub(4)?;
         let question = super::forward::Question {
             name: Name::from_uncompressed_reusing(query.get(12..fixed)?, scratch)?,
             rrtype: u16::from_be_bytes([query[fixed], query[fixed + 1]]),
@@ -144,9 +156,15 @@ impl CacheContext<'_> {
             let (kind, data_len) = match question.rrtype {
                 1 => (Kind::Ipv4, 4), 28 => (Kind::Ipv6, 16), _ => return None,
             };
-            let answer_len = query_len.checked_add(12 + data_len)?;
+            let answer_end = question_end.checked_add(12 + data_len)?;
+            // append_empty_opt reserves 15 bytes although the empty OPT writes
+            // 11. Its configured limit is separate from the answer's client
+            // limit, and insufficient OPT space does not truncate the answer.
+            let append_opt = header.additionals == 1
+                && answer_end.checked_add(15)? <= usize::from(local.edns_packet_max);
+            let answer_len = answer_end.checked_add(if append_opt { 11 } else { 0 })?;
             if question.class != 1 || local.config.filter_rr.contains(&question.rrtype)
-                || answer_len > local.max_udp.min(512) || answer_len > packet.len()
+                || answer_end > local.max_udp.min(limit) || answer_len > packet.len()
             { return None; }
             let (_, lookup) = cache.inspect_name(&question.name, now);
             cache.single_fresh_address_id_with_hint(&question.name, kind, now, lookup.as_ref())?;
@@ -163,15 +181,22 @@ impl CacheContext<'_> {
             let ttl = entry.reply_ttl(now, cache.policy());
             // Same question bytes and c00c owner as PacketWriter::record_at.
             // Capacity and the complete address length were checked above.
-            packet[2..4].copy_from_slice(&0x8180u16.to_be_bytes());
+            packet[2..4].copy_from_slice(&((header.flags & 0x0110) | 0x8080).to_be_bytes());
             packet[6..8].copy_from_slice(&1u16.to_be_bytes());
-            let rr = &mut packet[query_len..answer_len];
+            packet[10..12].copy_from_slice(&u16::from(append_opt).to_be_bytes());
+            let rr = &mut packet[question_end..answer_end];
             rr[..2].copy_from_slice(&[0xc0, 0x0c]);
             rr[2..4].copy_from_slice(&question.rrtype.to_be_bytes());
             rr[4..6].copy_from_slice(&1u16.to_be_bytes());
             rr[6..10].copy_from_slice(&ttl.to_be_bytes());
             rr[10..12].copy_from_slice(&(data_len as u16).to_be_bytes());
             rr[12..].copy_from_slice(&entry.record.data);
+            if append_opt {
+                let opt = &mut packet[answer_end..answer_len];
+                opt[..3].copy_from_slice(&[0, 0, 41]);
+                opt[3..5].copy_from_slice(&local.edns_packet_max.to_be_bytes());
+                opt[5..].fill(0);
+            }
             Some(answer_len)
         })();
         *scratch = question.name.into_wire_buffer();

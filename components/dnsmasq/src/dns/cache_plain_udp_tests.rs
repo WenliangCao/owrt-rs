@@ -70,6 +70,32 @@ fn general(cache: &mut Cache, local: &mut LocalDnsService, packet: &[u8], now: i
     ).unwrap().answer
 }
 
+// Use the old record state machine and OPT footer, bypassing both the in-place
+// path and answer_records_filtered's single-address writer.
+fn original_cache_answer(cache: &mut Cache, local: &mut LocalDnsService,
+                         packet: &[u8], now: i64) -> Vec<u8> {
+    let header = Header::parse(packet).unwrap();
+    let question = Question::parse_with_header(packet, header).unwrap();
+    let opt = find_pseudoheader(packet, true).unwrap().opt;
+    let limit = opt.as_ref().map_or(512, |opt| usize::from(opt.udp_size(local.edns_packet_max)));
+    let mut answer = CacheContext::answer_records_general(cache, &question, header, now,
+        local, local.max_udp.min(limit), false, false, None).unwrap().packet.unwrap();
+    if opt.is_some() {
+        super::super::service::append_empty_opt(&mut answer, local.edns_packet_max, false,
+            usize::from(local.edns_packet_max)).unwrap();
+    }
+    answer
+}
+
+fn empty_opt_query(owner: &Name, rrtype: u16, flags: u16, advertised: Option<u16>) -> Vec<u8> {
+    let mut writer = PacketWriter::new(0x1234, flags, 512).unwrap();
+    writer.question(owner, rrtype, 1).unwrap();
+    if let Some(advertised) = advertised {
+        writer.record(Section::Additional, &Name::root(), 41, advertised, 0, &[]).unwrap();
+    }
+    writer.finish()
+}
+
 fn entries(cache: &Cache) -> String {
     format!("{:?}", cache.entries().collect::<Vec<_>>())
 }
@@ -156,11 +182,120 @@ fn plain_hit_matches_original_bytes_ttl_lru_and_counted_eviction() {
 }
 
 #[test]
+fn plain_empty_opt_and_ad_cd_match_original_bytes_ttl_and_lru() {
+    let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+    for owner in [name("HiT.example"), Name::root(), name(&longest)] {
+        for rrtype in [1, 28] {
+            for flags in [0x0100, 0x0110, 0x0120, 0x0130] {
+                for advertised in [None, Some(0), Some(511), Some(512), Some(1232), Some(65535)] {
+                    for (policy, now) in [(Policy::default(), 101),
+                        (Policy { max_reply_ttl: 7, ..Policy::default() }, 101),
+                        (Policy::default(), 159),
+                        (Policy { stale: StalePolicy::Forever, ..Policy::default() }, 160)] {
+                        let (mut reference, counters, mut left) = fixture(&owner, rrtype, policy);
+                        let mut actual = reference.snapshot();
+                        let mut right = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+                        let query = empty_opt_query(&owner, rrtype, flags, advertised);
+                        let expected = original_cache_answer(&mut reference, &mut left, &query, now);
+                        let answer = in_place_answer(&mut actual, &query, &mut right, now,
+                            &mut Vec::with_capacity(256)).expect("empty OPT and AD/CD are eligible").unwrap();
+                        assert_eq!(answer, expected);
+                        let message = Message::parse(&answer).unwrap();
+                        assert_eq!(message.header.flags, 0x8180 | (flags & 0x10));
+                        if advertised.is_some() {
+                            let opt = message.records(Section::Additional).next().unwrap();
+                            assert_eq!((opt.rrtype, opt.class, opt.ttl, opt.rdata), (41, 1232, 0, &[][..]));
+                        }
+                        assert_eq!(entries(&actual), entries(&reference));
+                        assert_eq!(eviction_trace(&actual, counters), eviction_trace(&reference, counters));
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn plain_empty_opt_keeps_client_configured_and_buffer_limits_separate() {
+    let owner = name("limits.example");
+    for rrtype in [1, 28] {
+        let answer_end = query(&owner, rrtype).len() + if rrtype == 1 { 16 } else { 28 };
+        for configured in [answer_end - 1, answer_end, answer_end + 10, answer_end + 11,
+            answer_end + 14, answer_end + 15, 512, 1232] {
+            for advertised in [0, 511, 512, 1232, 65535] {
+                for receive_limit in [answer_end - 1, 1232] {
+                    for capacity in [answer_end - 1, answer_end, answer_end + 10, answer_end + 11, 512] {
+                        let (mut reference, counters, mut left) = fixture(&owner, rrtype, Policy::default());
+                        let mut actual = reference.snapshot();
+                        let before = eviction_trace(&actual, counters);
+                        let mut right = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+                        for local in [&mut left, &mut right] {
+                            local.edns_packet_max = configured as u16;
+                            local.max_udp = receive_limit;
+                        }
+                        let query = empty_opt_query(&owner, rrtype, 0x0130, Some(advertised));
+                        let expected = original_cache_answer(&mut reference, &mut left, &query, 101);
+                        let mut packet = vec![0xa5; capacity];
+                        packet[..query.len()].copy_from_slice(&query);
+                        let original = packet.clone();
+                        let result = CacheContext::try_plain_udp_in_place(&mut actual, &mut packet,
+                            query.len(), &mut right, 101, &mut Vec::with_capacity(64));
+                        if Header::parse(&expected).unwrap().answers != 1 || capacity < expected.len() {
+                            assert!(result.is_none());
+                            assert_eq!(packet, original);
+                            assert_eq!(eviction_trace(&actual, counters), before);
+                        } else {
+                            assert_eq!(result, Some(expected.len()));
+                            assert_eq!(&packet[..expected.len()], expected);
+                            assert_eq!(&packet[expected.len()..], &original[expected.len()..]);
+                            assert_eq!(eviction_trace(&actual, counters), eviction_trace(&reference, counters));
+                            assert_eq!(Header::parse(&expected).unwrap().additionals,
+                                u16::from(configured >= answer_end + 15));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn plain_nonempty_nonzero_and_malformed_opt_keep_fallback_unchanged() {
+    let owner = name("hit.example");
+    let original = empty_opt_query(&owner, 1, 0x0130, Some(1232));
+    let opt_start = original.len() - 11;
+    let mut packets = Vec::new();
+    // Includes DO, other flags, version and extended RCODE. These may be valid
+    // general requests; the narrow path must not partially answer any of them.
+    for offset in [0, 1, 2, 5, 6, 7, 8, 9, 10] {
+        let mut packet = original.clone();
+        packet[opt_start + offset] ^= if offset == 7 { 0x80 } else { 1 };
+        packets.push(packet);
+    }
+    for end in opt_start..original.len() { packets.push(original[..end].to_vec()); }
+    let mut options = original.clone();
+    options[opt_start + 10] = 4;
+    options.extend_from_slice(&[0, 12, 0, 0]);
+    packets.push(options);
+    let mut trailing = original.clone(); trailing.push(0); packets.push(trailing);
+    let mut twice = original.clone(); twice[11] = 2;
+    twice.extend_from_slice(&original[opt_start..]); packets.push(twice);
+    let mut compressed_root = original[..opt_start].to_vec();
+    compressed_root.extend_from_slice(&[0xc0, 0x10]);
+    compressed_root.extend_from_slice(&original[opt_start + 1..]); packets.push(compressed_root);
+    for packet in packets {
+        let (mut cache, counters, mut local) = fixture(&owner, 1, Policy::default());
+        reject_unchanged(&mut cache, counters, &mut local, &packet, 101);
+    }
+}
+
+#[test]
 fn plain_packet_rejections_leave_semantics_untouched() {
     let owner = name("hit.test");
     let original = query(&owner, 1);
     let mut packets = Vec::new();
     for bit in 0..16 {
+        if matches!(bit, 4 | 5) { continue; } // CD and AD are admitted above.
         let mut packet = original.clone();
         packet[2..4].copy_from_slice(&(0x0100u16 ^ (1 << bit)).to_be_bytes());
         packets.push(packet);
@@ -177,7 +312,7 @@ fn plain_packet_rejections_leave_semantics_untouched() {
     packets.push(wrong_class);
     let mut opt = original.clone();
     opt[10..12].copy_from_slice(&1u16.to_be_bytes());
-    opt.extend_from_slice(&[0, 0, 41, 4, 208, 0, 0, 0, 0, 0, 0]);
+    opt.extend_from_slice(&[0, 0, 41, 4, 208, 0, 0, 0x80, 0, 0, 0]);
     packets.push(opt);
     let mut trailing = original.clone(); trailing.push(0); packets.push(trailing);
     packets.push(vec![0; 1233]);
