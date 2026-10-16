@@ -1,0 +1,33 @@
+{
+  "scope": "54bd/0161 completed independent screens and03ace/a8 now composed into185. Current185/722 and all agent operational branches remain active. No source or artifact changed.",
+  "rows": [
+    {
+      "worktree": "owrt-perf-cached-local-miss-20261016",
+      "retired_branch": "perf/dnsmasq-cached-local-miss-20261016",
+      "commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+      "archive_tag": "archive/perf-20261016/cached-local-miss",
+      "status": "all files/private evidence retained; clean detached worktree"
+    },
+    {
+      "worktree": "owrt-perf-cached-local-name-20261016",
+      "retired_branch": "perf/dnsmasq-cached-local-name-20261016",
+      "commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+      "archive_tag": "archive/perf-20261016/cached-local-name",
+      "status": "all files/private evidence retained; clean detached worktree"
+    },
+    {
+      "worktree": "owrt-perf-cached-reply-buffer-20261016",
+      "retired_branch": "perf/dnsmasq-cached-reply-buffer-20261016",
+      "commit": "03ace8ecaaf513847c43943bfd61c8826789bedf",
+      "archive_tag": "archive/perf-20261016/cached-reply-buffer",
+      "status": "all files/private evidence retained; clean detached worktree"
+    },
+    {
+      "worktree": "owrt-perf-cached-local-frame-20261016",
+      "retired_branch": "perf/dnsmasq-cached-local-frame-20261016",
+      "commit": "a8dcdacc9567b6f6fa4c2edc11445842db049587",
+      "archive_tag": "archive/perf-20261016/cached-local-frame",
+      "status": "all files/private evidence retained; clean detached worktree"
+    }
+  ]
+}
