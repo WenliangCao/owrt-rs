@@ -1,0 +1,40 @@
+{
+  "status": "PASS_LOCAL_DORMANT_210_EXECUTION_PREPARATION",
+  "author_commit": "e10fcbb6",
+  "manifest_sha256": "501d94f5c35532e34ead2b5ba6f6dac100dc43db68c39cb41e5c7b0a8b9dee7d",
+  "source_commit": "210801cfc46db03671c8cbfe45bbb83e513006db",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "related_wrappers": {
+    "run_lease_lookup_slice_related.py": "8c913d2beddd1c7ed522ee3914fc93756a27d848e67219f586515435a2745dd7",
+    "build_lease_lookup_slice_allocations.py": "7397e1a11562911a7c5e4fd0b60fcef8c93c3711a80e8f982879a4f6e2c24580",
+    "preflight_related.py": "be0409d0f516d83c419e27f3025d7e75c28a0073155dd1bafc975a5701737bc0",
+    "verify_related.py": "a5db71ea6e6faae730b0cdc0fd327dff679b1a21abea782be843da35fd5d940b"
+  },
+  "launcher_sha256": "a3b02f95f05703fe2fe75ea839878adb0f07113cf0eb3e400b086d7de7d8d94d",
+  "original_five_argv_and_skip_lists_preserved": true,
+  "two_runners_exact_candidate_substitution_only": true,
+  "preflight_body_exact_after_identity_and_prior_failure_metadata_substitution": true,
+  "verifier_review": "Original raw-log/binary/listing/build/source assertions retained. Hash-bound6ab baseline logs define passed-name sets; exactly one direct-slice lib test added, all other four groups unchanged. Counts derive from actual outputs; projected962 is not a result.",
+  "source179_SHA256_and_Git_blobs_rehashed": true,
+  "archive_regular_files": 4098,
+  "archive_Git_files": 4097,
+  "archive_safe_members_exact_Git_blob_identities_and_modes": true,
+  "archive_sha256": "10a991cff611b681a82f587080dad4f93fdf3a3579ffa0a5244b1c17d7d78ab2",
+  "only_SDK_input_change_from6ab": "components/dnsmasq/src/dns/lease_names.rs",
+  "original_builder_helper_and_SDK_argv_verified": true,
+  "budget": {
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000
+  },
+  "retained_first_local_mode_failure_sha256": "629b28a552a106adc6f2db91175c139a7a5129e6d687b2db70ab50e388e38d87",
+  "launcher_gate": "Explicit selected execution flag, exact release SHA, hash-bound quiet preflight/source identities and exact original wrapper argv required before Popen; exclusive stdout/stderr and launch receipt retain PID/startticks.",
+  "execution_authorized": false,
+  "uploaded": false,
+  "tests_or_builds_run": false,
+  "remote_accessed": false,
+  "SDK_artifact_or_budget_pass_inherited": false,
+  "qualification_inherited": false,
+  "queue": "Dormant210. Current6ab owner32\u2192full44 and then root-authorized803 gates\u2192SDK retain priority.",
+  "schema": "210-related-sdk-preparation-independent-review-v1",
+  "review_verifier_sha256": "f5b574720d935f465c992eac5c4ddbd97f37ce56ab0ae4ecf069589b10a659b4"
+}
