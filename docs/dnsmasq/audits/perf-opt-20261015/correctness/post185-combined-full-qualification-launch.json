@@ -1,0 +1,46 @@
+{
+  "schema": "post185-combined-original-full-launch-v1",
+  "status": "EXACT_PREFLIGHT_PASS_FRESH_RELEASE_PROBE_BUILD_RUNNING_NOT_YET_FULL_PASS",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "shipping_elf_sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+  "plan_sha256": "48b6e4a32c004d2738d2b3f1691858f0eae2a69aef63fcb666513bdc0e622181",
+  "launcher_receipt_sha256": "7f3d5aea281877e32a10ebc92f0ed54cb1feb6177343d29477f9de60f98b0e64",
+  "preflight_sha256": "f8da5fe22987cfdae9012366898966b635179c65eb6961e5b16c708e2ceed048",
+  "wrapper_staging_sha256": "3ccdabdbbe99ac748d82253141ec7c47b1f8f8c9353a63e01d5340a88d894bc6",
+  "source179_and_original961_evidence_rehashed": true,
+  "no_short_group_rerun": true,
+  "output_parent_owned_and_writable": true,
+  "fresh_quiet_research": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "loop_exclusive_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/post185-combined-owner32-inputs/release-to-correctness.json",
+    "sha256": "35dda22f7e441dc1ef2b555be2cb897ccda60e4a7c3fe5e4b0822236850513a7"
+  },
+  "screen_raw_independent_review_commit": "d68522c6",
+  "launcher": {
+    "status": "AUTHORIZED_FULL_FUNCTIONAL_LAUNCHER_RUNNING_NOT_PASSED",
+    "pid": 849502,
+    "start_ticks": "185559151",
+    "entry_argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/launch_post185_combined_full.py",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-full-plan.json",
+      "48b6e4a32c004d2738d2b3f1691858f0eae2a69aef63fcb666513bdc0e622181"
+    ],
+    "plan_sha256": "48b6e4a32c004d2738d2b3f1691858f0eae2a69aef63fcb666513bdc0e622181",
+    "wrapper_sha256": "2177838f662c353a9415feaa57350106607c09e4dd2cd047e28a9bf9dd0f1712",
+    "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "epoch": 1792130974.304709,
+    "scope": "Exact same-source961 evidence reuse then one fresh release probe and original44families67jobs plus boundary/TCP/corpora; no performance measurement."
+  },
+  "fixed_schedule": "One original release probe build, then original44family/67job coordinator with jobs3 and one serial F10/protocol/TCP/four-corpus worker. Existing C exceptions and exact source-a2UID mismatches preserved.",
+  "probe_or_family_pass_claimed": false,
+  "performance_accepted": false,
+  "full110_authorized": false,
+  "deployment_authorized": false,
+  "next_owner_after_actual_full_closeout": "DNS803 original five fresh groups then independently reviewed profile2 SDK, only after explicit finalquiet handoff."
+}
