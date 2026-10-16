@@ -287,7 +287,7 @@
     }
   ],
   "local_preparation_directory": "private/cached-zero-frame-full-performance",
-  "prepared_recipe_sha256": "2f4eb580e3e3dac390a18e4d78540e4cd7688eee995429855df0e4b159c8ee45",
+  "prepared_recipe_sha256": "9af5f5570dca9c653d1d9b396876a1f4a2dc16689694948da6ece8f9d72a7f94",
   "schedule_validation": {
     "Oracle": {
       "windows": 110,
@@ -301,5 +301,12 @@
       "pairs_per_scene": 5,
       "original_alternating_order": true
     }
+  },
+  "full110_tail_capture_alignment_pending": {
+    "required_before_launch": true,
+    "scope": "Before any supported185full110 launch, align the generic7c93 full-run tail evidence with the same minimal capture boundary and bind that concrete recipe. Do not run the new prefix verifier against an old full-run log lacking captured prefix. Generic full110 tooling is unchanged in this repair.",
+    "generic_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "implemented": false,
+    "new_statistical_rules": false
   }
 }
