@@ -1,0 +1,72 @@
+{
+  "frozen_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "scope": "Prepare literal component patches on main evidence branch; newer already-present7c270 test-only hosts fixture retained. No measured artifact is relabeled or rebuilt.",
+  "commits": [
+    {
+      "original": "b49f8ca3134372f9301d3906899272af5be0230c",
+      "integrated": "7fe8d601173fb243b38d277fa07b062ed900ff72"
+    },
+    {
+      "original": "445f3a097ab14e52e81e5e1fb1c0361920a86303",
+      "integrated": "c5297e9bb1381c7d7a9e27b84c9e10fd48356648"
+    },
+    {
+      "original": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "integrated": "bee86dd895334f2a9b54c95081d8d1135d050cce"
+    },
+    {
+      "original": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+      "integrated": "b683aea1cdd435b691ef28a424ebed7db9955489"
+    },
+    {
+      "original": "b343df112e430f16e21026645e56755f2d0fc391",
+      "integrated": "514648837c50d1a39c2d4d7fc0756530596e947c"
+    },
+    {
+      "original": "11a33c9505a7ea05072c1b6becc6c3e541dd049f",
+      "integrated": "980d0223c0d0fdfbeb3c667372dceb4ee1667937"
+    },
+    {
+      "original": "149c48fa9c15cb8d61688bbed439ac8770d8dcb5",
+      "integrated": "5d882d50416fe94cfc8063771016016195e5ae79"
+    },
+    {
+      "original": "a5285d8d08c9e12c7ff17aca0f8bcca7736bef5a",
+      "integrated": "a91b7ff6a308228915726550c589fa349e9808f1"
+    },
+    {
+      "original": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+      "integrated": "d87a06b52c48dc5512b0cb2463f6ee87f00ad0b6"
+    },
+    {
+      "original": "03ace8ecaaf513847c43943bfd61c8826789bedf",
+      "integrated": "58297fb05b11746f57f1bc35988b63fa899ce1c0"
+    },
+    {
+      "original": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "integrated": "35a6ff6cde0dbde741290a54e0c1e61776b75c1b"
+    }
+  ],
+  "only_component_difference_from185": [
+    "components/dnsmasq/src/hosts.rs"
+  ],
+  "hosts_exact_source": "7c2708f6",
+  "local_validation": {
+    "lib": {
+      "result": [
+        "test result: ok. 721 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.90s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.63s"
+      ],
+      "stdout_sha256": "1f7b22045485d900dda922b927c2b26c9cb35bfb46e17497a3f97cc2395f0d90",
+      "stderr_sha256": "6dc7fb630472cf9828b3c4dc67052f0a9771e1a2f161ba0e98f1abeb2040bcda"
+    },
+    "musl": {
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.72s"
+      ],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "f4ba7765bff532574efef36fae13da5d00bd0f3f62f440726f9b68b6b5df6a55"
+    }
+  },
+  "shipping_artifact_rule": "Accepted delivery remains original185 source/tag and9109 ELF/5bb APK. Main additionally retains the previously approved test-only hosts fixture repair; no new build is relabeled as accepted."
+}

@@ -1,0 +1,44 @@
+{
+  "status": "ACCEPTED_E_RELATIVE_DEVICE_INCREMENT",
+  "source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "elf_bytes": 2145051,
+  "apk_sha256": "5bb29803bceaf70eecc9a88d582e67a4440c53aa8ec498d3990b06eab82fe032",
+  "apk_bytes": 1167095,
+  "functional_receipt": "d76634eab46459a2a38e672da8e1eb86d79a250cf5b4b0c367ee79392fe2d4be",
+  "oracle_full_independent": "fc72a89a96212b68d7ae7c4c9c8a5a22864b3a2b5daa15e15fb5d86da234c0b3",
+  "device_full_independent": "2e1e9d377da33d92d098ff89380f0ea10698904f4f2ac3652ab9149a148c97e1",
+  "device_result_sha256": "fafe943d8d09d859272c6138ad52abb92639d904f236ee6762f96c2c02df2a14",
+  "device_primary": {
+    "improved": 4,
+    "regressed": 0,
+    "inconclusive": 29,
+    "udp_hit_cpu_us": [
+      138,
+      116
+    ],
+    "udp_hit_change_pct": -15.942028985507246,
+    "udp_hit_W_pct": 8.620689655172413,
+    "udp_hit_improving_pairs": 5,
+    "udp_hit_median_tick_delta": 11,
+    "udp_mixed_cpu_us": [
+      208,
+      186
+    ]
+  },
+  "resource_decision": {
+    "rationale": "Measured size/resource tradeoff accepted under original growth-measured-and-justified contract, without a new threshold: ELF+8192B and APK remain below original budgets; bounded reply/name storage; all device FD medians/ranges match; anonymous peak medians span-28 to+4KiB with all ranges retained; device RSS median deltas span-48 to+52KiB. Production health and >=64MiB reserve passed throughout.",
+    "oracle": "RSS median+60..76KiB and file peak+64KiB retained; not a physical-memory attribution or equivalence claim.",
+    "limitations": "Device PSS/USS unavailable; lifecycle resources are readiness snapshots, not transient peaks."
+  },
+  "scope_limits": [
+    "Oracle UDP CPU26\u219224us is inconclusive; only device fulfills discernibleCPU goal.",
+    "Native seven regressions and owner32 high-load sendlag regressions remain reported, not pooled into formal comparisons.",
+    "All historical health/setup/postflight tool failures retained; no failed/full timing window or replacement in either110 series.",
+    "ApprovedCNAME repair common to E/G, not a varying performance factor. No new behavior fix in this delta.",
+    "No fresh direct v0.2.0/G percentage is inferred.",
+    "No production install, restart, configuration change, flash or push."
+  ],
+  "next_work": "Fresh exactC/G device comparison and C/G profile independent audit, then measured screening of6ab product combination and separate803opt2 experiment as evidence warrants; no early stop or promotion of unmeasured children."
+}
