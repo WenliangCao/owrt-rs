@@ -1,0 +1,40 @@
+{
+  "scope": "Completed E allocation/stages, G allocation and C/E/C/G attribution source branches only. Active G stage, warm preparation and all running agent branches untouched. No files, private data, artifacts or worktrees removed.",
+  "retired": [
+    {
+      "branch": "diagnostic/dnsmasq-e-udp-alloc-20261015",
+      "worktree": "/Users/USER/Developer/owrt-diagnostic-e-udp-alloc-20261015",
+      "commit": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired-20261016/diagnostic-e-udp-alloc-20261015",
+      "postflight": "same clean HEAD detached; durable archive resolves exactly; worktree and all private evidence retained"
+    },
+    {
+      "branch": "diagnostic/dnsmasq-e-udp-stages-20261015",
+      "worktree": "/Users/USER/Developer/owrt-diagnostic-e-udp-stages-20261015",
+      "commit": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired-20261016/diagnostic-e-udp-stages-20261015",
+      "postflight": "same clean HEAD detached; durable archive resolves exactly; worktree and all private evidence retained"
+    },
+    {
+      "branch": "diagnostic/dnsmasq-185-udp-alloc-20261016",
+      "worktree": "/Users/USER/Developer/owrt-diagnostic-185-udp-alloc-20261016",
+      "commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired-20261016/diagnostic-185-udp-alloc-20261016",
+      "postflight": "same clean HEAD detached; durable archive resolves exactly; worktree and all private evidence retained"
+    },
+    {
+      "branch": "perf/dnsmasq-c-e-hit-syscalls-20261015",
+      "worktree": "/Users/USER/Developer/owrt-perf-c-e-hit-20261015",
+      "commit": "6090172de6c140b2e645f6c4f459aff1ede82902",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired-20261016/perf-c-e-hit-20261015",
+      "postflight": "same clean HEAD detached; durable archive resolves exactly; worktree and all private evidence retained"
+    },
+    {
+      "branch": "perf/c185-hit-profile-20261016",
+      "worktree": "/Users/USER/Developer/owrt-profile-c185-hit-20261016",
+      "commit": "515acc33f26ef75b561d5757ddf4c7fd0f282ef3",
+      "archive_ref": "refs/archive/perf-opt-20261015/retired-20261016/profile-c185-hit-20261016",
+      "postflight": "same clean HEAD detached; durable archive resolves exactly; worktree and all private evidence retained"
+    }
+  ]
+}
