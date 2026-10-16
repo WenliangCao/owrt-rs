@@ -1,0 +1,205 @@
+{
+  "status": "DISABLED_LOCAL48_KNOWN_ORIGINAL_INPUT_REFERENCES_ONLY",
+  "source_binding_sha256": "88c5871c814f65c18ebaa85cd62a354252230f505a0b5f5668383cb388543b59",
+  "source_commit": "48f921ce3e533e7fb80836b52a6142cfb749d1b3",
+  "source_date_epoch": "1792149030",
+  "root_local_author_report": {
+    "commit": "8bf21ff256c5211ca4a3353b75c7564fb0ec5c0a",
+    "path": "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016/docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-integration-local.json",
+    "sha256": "8afafae9acace041c7284fa54c3ae21fb58570c6bb0e468bd32d0aef7b819a05",
+    "scope": "Author local tests/codegen only; not Linux/runtime/SDK/performance acceptance."
+  },
+  "original_five_related_groups": {
+    "reference_preparation": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/docs/dnsmasq/audits/perf-opt-20261015/dns/warm-address-encode-preparation/manifest.json",
+    "reference_sha256": "5699d227446ce790bc11283c3730297a03bee5c7a8e39f4f3ba6b03695008e02",
+    "frozen_command_reference": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/docs/dnsmasq/audits/perf-opt-20261015/dns/warm-address-encode-preparation/commands.json",
+    "frozen_command_reference_sha256": "f2afbc4c3b5206215173e33bf2c57f9e547a5101798c45bc1457d1ae6a0ac9d2",
+    "groups": [
+      "lib",
+      "bin",
+      "allocations",
+      "lib-ignored-live",
+      "bin-ignored-live"
+    ],
+    "original_tools_rehashed_against48": {
+      "tools/dnsmasq/oracle_build.sh": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+      "tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+    },
+    "baseline6ab_verified_receipt": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "baseline6ab_verified_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "baseline_actual_passes": 961,
+    "actual48_counts": null,
+    "future_rule": "After explicit selection, adapt identities/paths only and retain original skips/isolation/argv; compare actual logs and listings against original6ab names plus precise already-existing48 source additions. Neither961 nor local728 is an actual Linux result. No new tests or expanded framework.",
+    "runner_copies_created": false
+  },
+  "canonical_SDK": {
+    "reference_builder": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+      "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+      "helper": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py",
+      "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
+    },
+    "private_verified_bundle": {
+      "perf_opt_sdk_build.py": {
+        "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+        "bytes": 9310
+      },
+      "build_package.py": {
+        "sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+        "bytes": 29079
+      }
+    },
+    "profile": {
+      "opt_level": "3",
+      "features": "",
+      "allocator_linker_LTO_codegen1_panic_strip_hardening_unchanged": true
+    },
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "map_wrapper": {
+      "path": "tools/dnsmasq/perf_opt_map_cc.py",
+      "sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5",
+      "git_blob_sha1": "b698a66a6434acd2f0737e4453a07e59f0ead176",
+      "executable_source_mode": "100755"
+    },
+    "original_argv_reference_only": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-warm-address-encode",
+      "--commit",
+      "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+      "--epoch",
+      "1792143477",
+      "--sdk",
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-warm-address-encode",
+      "--cargo",
+      "/home/ubuntu/.cargo/bin/cargo",
+      "--build-slot",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+      "--cargo-target",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+    ],
+    "future_identity_substitutions_only": [
+      "--source",
+      "--commit",
+      "--epoch",
+      "--out"
+    ],
+    "SDK_recipe_rule": "Unchanged helper restores existing recipe in finally; never assert it was absent or invent a prebuild snapshot.",
+    "ambient_profile_rule": "No ambient CARGO_PROFILE_RELEASE_* overrides.",
+    "future_argv": null,
+    "actual_build": null
+  },
+  "original_standalone_signals": {
+    "reference5c_execution_plan": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/owner-ready-frames-execution-preparation/execution/execution-plan.json",
+    "reference5c_execution_plan_sha256": "465b5322b43173e2210b26d54e9586e5614067132f66fb6c935d3663239042b6",
+    "original_preparation_commit": "1d8b1a0c9a9ba25c606123c0043a90b68a5b5744",
+    "original_preparation_sha256": "4a0de855f6eeb865226f4a5297893d35370175c16eda97ae312d2de39ffa38bf",
+    "frozen_tool_and_imports_rehashed_against48": {
+      "run_isolated.sh": {
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "audit_20261011_runtime_signals.py": {
+        "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+        "bytes": 12826
+      },
+      "audit_20261011_dhcp.py": {
+        "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+        "bytes": 10332
+      },
+      "m2_rootfs.py": {
+        "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+        "bytes": 15493
+      },
+      "elf_cost.py": {
+        "sha256": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7",
+        "bytes": 4657
+      }
+    },
+    "original_comparators": {
+      "c_image": {
+        "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bytes": 269305
+      },
+      "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "c_native": {
+        "path": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+        "sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "bytes": 1650080
+      },
+      "c_native_libraries": {
+        "dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+        "deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+      },
+      "native_source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9"
+    },
+    "original_case_scope": {
+      "signals": [
+        "SIGHUP",
+        "SIGUSR2",
+        "SIGUSR1",
+        "SIGALRM"
+      ],
+      "implementations": [
+        "c-image",
+        "c-native",
+        "rust"
+      ],
+      "signal_case_count": 12,
+      "cache_dump_cases": 3,
+      "cache_dump_details": "Eachimplementation forwards and caches a realrecord, tests ordinary/policyNXDOMAIN, then receives exactlytwoSIGUSR1; originaldump summary equality/counters/rows checked.",
+      "alarm_maintenance_cases": 3,
+      "alarm_details": "OriginalRLIMIT_FSIZE persistence failure injection thenSIGALRM retry, followedbySIGUSR1 lease dump; sameACK,lease,DNS,alive predicates.",
+      "original_args_policy": "Retain-k and originallogging/DHCP/query options. No normal/debug matrix expansion, newcomparator, cases, thresholds, or retry policy."
+    },
+    "required_private_native_C_gate": "RehashoriginalnativeC ELFandlibubox/libubus bytes andsourceidentity;verifyoriginalcompatpathvisibleinsideprivateisolatedmountnamespace beforeaudit. HistoricalhostpathorpriorPASSdoesnotprovevisibility. No tool/comparator/expectationchange.",
+    "separate_from_44_families": true,
+    "scope": "Known existing inputs only. Future same-source SDK and private nativeC visibility must be verified afresh after explicit root selection and quiet release; no prior PASS inherited.",
+    "actual_sdk_identity": null,
+    "actual_result": null,
+    "actual_independent_audit": null
+  },
+  "retained_adverse_context": [
+    "6ab native synth-address/configured-CNAME regressions and inconclusive device/owner screen.",
+    "1df native miss regression and inconclusive physical screen.",
+    "5c high-load send-lag p95 regression and inconclusive physical screen.",
+    "Warm6dad is still an independently selected actual screen; its source is unchanged.",
+    "Conditional45 scratch only skips zeroing forSome existing lease conversion; ordinaryNone keeps initialization. Rejected inline source is durable refs/archive/perf/lazy-query-scratch-inline-rejected-20261016 atb2e47980; frame+96B andNone9stores remain.",
+    "Root48 local full-daemon ELF is3288B larger than6ab; local codegen does not establish CPU benefit or deployment budget."
+  ],
+  "local_preparation_failure_retained": {
+    "path": "/Users/USER/Developer/owrt-perf-cached-hit-integration-preparation-20261016/private/perf-opt-20261015/cached-hit-integration-preparation-attempt1/failure.json",
+    "sha256": "cae48be975f94b7aa2222a397f61cca546c4af587b788f3443923b1ab104babd",
+    "value": {
+      "status": "LOCAL_PREPARATION_FAILED_BEFORE_INPUT_HASHING_OR_ARCHIVE",
+      "cause": "Default python3 lacks tomllib required by frozen canonical helper; use existing /opt/homebrew/bin/python3.14 without changing frozen helper.",
+      "script_sha256": "89b43e24723f0a0469ddcf8a0137da2d76d1feac2a56f0a02c0f482709047e39",
+      "stderr_sha256": "90cc5ccd5fcd5d7d1dd498609281eb8ee7eefec0df3f536be907ae6468c214b5",
+      "source_modified": false,
+      "archive_created": false,
+      "build_or_test_run": false,
+      "remote_accessed": false
+    },
+    "resolution": "Only local interpreter changed to existing /opt/homebrew/bin/python3.14; unchanged frozen helper then hashed179 files and verified archive. No product build/test or remote action."
+  },
+  "execution_enabled": false,
+  "selection_authorized": false,
+  "execution_authorized": false,
+  "selected_source": null,
+  "explicit_slot_release": null,
+  "actual_related": null,
+  "actual_SDK": null,
+  "actual_signals": null,
+  "actual_performance": null,
+  "uploaded": false,
+  "remote_accessed": false,
+  "queue": "Current G-stage/warm results and original evidence archival take priority. Root alone selects a future source after full results. This preparation is not an execution permit."
+}
