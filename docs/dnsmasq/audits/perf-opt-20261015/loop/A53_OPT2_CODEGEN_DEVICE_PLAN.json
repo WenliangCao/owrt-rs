@@ -35,19 +35,19 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "LOCAL PREPARATION ONLY; exact803 relatedLinux/SDK/artifactreview pending; no device action",
+  "status": "ACTUAL803 SDK179/957 LOCAL VERIFICATION COMPLETE; independentactualaudit andDNS finalquiet pending; no device action",
   "scope": "Independent freshG185/803 opt-level2 UDP-hit A53ten exploratory comparison. Shipping compilerprofile is the only product variable; knowncfg(test) hostsfixture repair is separately recorded. Not fullqualification or deployment.",
   "source_commit": "8035114257c8706047d2038c2bb8126391331925",
   "forbidden_substitution": "Only exact803 source and actual independentlyreviewedopt2 SDK. Never6ab,210,a15,instrumentedcountELF orcombinedsource.",
   "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
-  "related_linux_report_sha256": null,
-  "related_linux_verified_receipt_sha256": null,
+  "source_files_verified": 179,
+  "elf_sha256": "2156c7f5f8eb22c64262e6f92939f36ec82b72e30fe2c732baed0993cc1cb3c5",
+  "elf_bytes": 2046747,
+  "map_sha256": "13b5ccc9effd40d0588283c77004e96a569b3790799a48442c5e533ad04a0cbe",
+  "build_receipt_sha256": "718af94afbd124908a88b430d53494c072f3a052f23a0b2a70657fe133da8bc4",
+  "related_linux_report_sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
+  "related_linux_verified_receipt_sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
   "entry_sha256": "88c67afbad2d69551f56f28894e63cb03c12442e7e67534dbd825038f997cb31",
   "artifacts": {
     "e": {
@@ -64,7 +64,7 @@
     },
     "opt2-codegen": {
       "name": "a53-opt2-codegen-artifact-opt2-codegen",
-      "sha256": null
+      "sha256": "2156c7f5f8eb22c64262e6f92939f36ec82b72e30fe2c732baed0993cc1cb3c5"
     }
   },
   "schedule": [
@@ -153,10 +153,9 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Bind actualoriginalrelated803Linux gates andsource/builder/artifact reviews; never inferpass fromG or6ab.",
-    "Exact803 SDK ELF/map/build receipt delivered,179 source identities andactualeffectiveopt2flags verified withindependentopt2builder; originalbudget unchanged.",
-    "Prior6abten alreadycomplete/archived/restored; nohistoricalpooling orcountinstrumentation in either timedside.",
-    "Newfresh125shealth, originalprod/slot/tool/offline/idle/recovery gates; sameoriginalten/W/direction/>8ticks andallraw."
+    "Actual803SDK/related independentreview beforefreshhealth anddevicepreflight/pretransfer.",
+    "Completeoriginalfresh125shealth andallproduction/slot/tool/offline/idle gates; stagefourimmutableE/F/G/803copieswhile E/F slotsstayoriginal.",
+    "BindDNS explicitfinalquiet/allnecessarytransferscomplete receipt beforeoriginalfixedten; no change towindow/controller/thresholds/health/archive/restore."
   ],
   "count_diagnostic_not_a_performance_control": true,
   "statistics": {
@@ -174,14 +173,17 @@
   "compiler_profile": {
     "baseline_release_opt_level": 3,
     "experiment_release_opt_level": 2,
-    "actual_effective_compiler_arguments_verified": null,
+    "actual_effective_compiler_arguments_verified": true,
     "other_release_settings_unchanged": [
       "lto=true",
       "codegen-units=1",
       "panic=abort",
       "strip=true"
     ],
-    "source_and_artifact_combination": "Independent803 only, no6ab or210 overlay."
+    "source_and_artifact_combination": "Independent803 only, no6ab or210 overlay.",
+    "actual_compile_log_sha256": "b7571884ada6d8daf8ff0aa15349d099273d89f2720738b5756a983b49ef39ad",
+    "actual_lib_bin_commands_reparsed_identically": true,
+    "ambient_release_profile_overrides": []
   },
   "independent_opt2_builder": {
     "commit": "08ccde52",
@@ -192,7 +194,7 @@
     "review_sha256": "9994d56c0c4100f301480f6a6690051c489cc0cf497882070b5d4e1160cde6fe",
     "review_status": "PASS_LOCAL_ISOLATED_OPT2_BUILDER_COPY_AND_ORIGINAL_CONTROL_REVIEW",
     "original_opt3_builder_unchanged": true,
-    "actual_SDK_run_completed": false
+    "actual_SDK_run_completed": true
   },
   "source_difference": {
     "files": [
@@ -204,12 +206,67 @@
     "shipping_hosts_prefix_sha256": "97926a9ae4eda08d1fdf071d245bc7ca45b0ac9e064a3d8272cc86186221996e",
     "source_parent": "f8adb0168dff72e1ee3d4ed6de16c9b13a50c261"
   },
-  "source_interaction_review": null,
-  "actual_related_linux_tests_passed": null,
+  "source_interaction_review": {
+    "commit": "1a0a0e8e",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/185-opt2-device-plan-peer-review.json",
+    "sha256": "1eecef8c2efc9e1fd63d9270f550c6965cd9968de1164c6a143b11956a63ce26",
+    "status": "PASS_LOCAL_G803_DEVICE_PLAN_BINDINGS_ONLY"
+  },
+  "actual_related_linux_tests_passed": 957,
   "actual_SDK_review": null,
   "required_reviews": [
     "Exact803 source/builder plus actualoriginalrelatedLinux receipt",
     "Actual803 opt2SDK/compiler flags/artifact identities and unchanged releasebudgets",
     "This fixedA53ten plan/tool identity beforefreshdevicegates"
-  ]
+  ],
+  "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-185-opt2/dnsmasq-rs",
+  "related_linux_tests_passed": 957,
+  "related_linux_report_path": "private/perf-opt-20261015/sdk-185-opt2/related-verified.json",
+  "related_linux_group_passed": {
+    "lib": 836,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
+  "sdk_local_verification_sha256": "0bf565b709fd1bc57948d53674ed307ab63f3640f9551e37516c461f0a10cccd",
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2046747,
+    "APK_bytes": 1126646,
+    "gate_unchanged": true
+  },
+  "device_plan_independent_review": {
+    "commit": "1a0a0e8e",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/185-opt2-device-plan-peer-review.json",
+    "sha256": "1eecef8c2efc9e1fd63d9270f550c6965cd9968de1164c6a143b11956a63ce26",
+    "status": "PASS_LOCAL_G803_DEVICE_PLAN_BINDINGS_ONLY"
+  },
+  "source_interaction_review_sha256": "1eecef8c2efc9e1fd63d9270f550c6965cd9968de1164c6a143b11956a63ce26",
+  "source_interaction_review_PASS": true,
+  "preceding_G_6ab_ten_archived_restored": true,
+  "preceding_G_6ab_ten": {
+    "result_commit": "3831e7e3",
+    "report_sha256": "0a12d1be70da8ca3bda4499aad357c54431d75f6d2e992e4f29fac64e59fb6d1",
+    "postflight_sha256": "0d78978c661695a226eea8bbd51332a6f295f3b4fffd166f680a26f33fc8d0cc",
+    "independent_audit_commit": "5a2263a1"
+  },
+  "sdk_all_files_local_verification_sha256": "fe6d158a66a9f84262482f8e000312b292cb32c780e39429ffb2e2a3366ab09c",
+  "operator_local_preparation": {
+    "scope": "Split only existing privateoperator staging andstart tofinish all transfers beforetwohosts begin timing; originalentry/sharedrunner unchanged.",
+    "artifacts": {
+      "stage-a53-opt2-codegen.py": "795baccd5b0006d1fee46c6ee45d8ec2d77bfce2c563eff3c57f4a3ba9fdb0b0",
+      "start-a53-opt2-codegen.py": "712330e13dc113c2b0c74c0df75acb1ef45e9d3010d1b8c61ad12377ceccd43f",
+      "verify-a53-opt2-codegen.py": "8bac044bc87edbae6d848f170be833f4302fef1ee7bd5eabd4276a435d7cf2a3",
+      "postflight-a53-opt2-codegen.py": "f2c58ef10657c1944455be8578d26a83206f218650343b7caea3ff2ca6b5c569",
+      "report-a53-opt2-codegen.py": "23879e7ad6cf49033eb15a71aea68e0c62ea1b6f4320f3e04baca60713bcddf4"
+    },
+    "peer_review": "loop localread/AST PASS in session; no separatepeer report orremoteexecution. Stageprefix equals originalreviewedlaunch throughpreflight; startkeeps originallocalgates andPopen suffix plusstage/quietreceipt binding andsamegates rechecked.",
+    "phase_boundary": "Freshhealth thenfourimmutablecopies,originalE/F slotsunchanged; stagecomplete isnot measurement. DNSactualfinalquiet andallnecessarytransferreceipt isrequiredbeforestart; operator verifies actualreceipt source/ELF/content/sha.",
+    "preflight_or_windows_started": false
+  }
 }
