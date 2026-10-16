@@ -1054,3 +1054,56 @@ evidence remain. Current185, its722 child, accepted E/F and agent timing/gate
 work remain intact. Future promotion still requires full44/67 and complete
 Oracle/device11-scene matrices, with a fresh original-baseline comparison for
 any new total v0.2.0 claim.
+
+## 185 runtime screens begin, around03:12 local, 2026-10-16
+
+0161/E owner32 completed all32 windows and independent metadata/raw-PMU audit.
+Low CPU28→28us is inconclusive. High variableN CPU/query−10.103% and throughput
++11.160% pass W/direction diagnostically, but sendlagp50+300% andp95+56.790%
+also exceedW adversely. All32 windows are retained. The1211 small files have
+independent byte checks; the64 large latency/sendlag binaries and32 mappings
+remain remote with their original digests, so local quantiles were not derived
+again. Its failed A53 result still prevents promotion/full44/110.54bd's578
+original raw files and90 PMU pairs now also have independent byte/CSV checks.
+
+185 related Linux qualification passes940 (836+18+82+4), exact receipt
+b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501.
+The canonical SDK passed source/budget/hardening/postflight:
+ELF9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99,
+2,145,051B; mape1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f;
+builddfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10.
+APK1,167,095B remains under1,200,000. Main source remains185db90c;722 is separate.
+
+All DNS/DHCP artifact downloads and owner inputs were verified before timing.
+Loop launched directE/185 native240 at01:11:48UTC, PID659491/start183772597,
+planbeb36e4d, runner119d49a1. It owns Oracle through full postflight/collection,
+then must usefollowup_task to awaken idle DNS for the authorized185/E owner32.
+That32-window plan is frozen73ad729e/e05c8b0a; exactSDK,940gate,358source files,
+driver/analyzer/modules were independently checked before pretransfer. Do not
+start another Oracle workload/build/transfer during these timing reservations.
+
+DHCP185/E A53ten plan76a34850 is fully artifact/gate/concept bound; it completed
+transfers and is performing fresh125s health/recovery before the independent
+ten windows. F remains only a restore role. Correctness prepared185 full44/67
+and both11-scene110 recipes locally in893eed29, without uploading or running.
+They still require supportive screens and the current owner32 reservation end.
+
+Root's exact SDK inspection4f8054b4 confirms185 local entry4,508B/384B versus
+0161's14,768B/848B. The actual record helper is12,132B/784B (different from the
+standalone local cross-build). Fallback two-frame subtotal remains1,168B;
+fresh writer1,088B/288B and UDP owner4,672B/1,056B grow slightly. These are
+static observations, not CPU or cache-cost attribution. The original ambiguous
+map match and Python basename-shadowing read-only errors remain retained.
+
+Local64-unrelated-live-lease allocation control0ba6132a narrows the zero claim:
+E5allocations/277B per prepared call becomes185one/21B, equalchecksum468800.
+The original lease-expiry conversion remains. No-lease prepared calls still
+reach zero after prewarm; neither scope covers the whole physical owner.
+722 local final-codegen2f985631 confirms fewer static clock-call sites6→4,
+same352B wait frame, with no runtime/A53 claim; source reviewc04e4d6a passes.
+
+Completed54bd/0161 and standalone03ace/a8 branches now have exact durable
+archive/perf-20261016 tags and clean detached worktrees. Their files, raw
+evidence and all negative results remain. Active185/722 and operational agent
+branches are intact. Accepted E and production remain unchanged; G is not yet
+selected or qualified.
