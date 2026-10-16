@@ -21,7 +21,10 @@
     "Daemon368 pairs/366 identical plus original2 C-invalid qualifiers,8 lifecycles and5 negative controls",
     "F10all13/704observations plus original24 checker controls and approved PTR manifest",
     "TCP upstream13conditions/50pairs plus7 original tool tests",
-    "Independent exact-source review and affected historical DNS regressions"
+    "Independent exact-source review and affected historical DNS regressions",
+    "Fresh same-source cache-answer corpus:764commands/164queries/382metric snapshots, original expectations",
+    "Fresh same-source transfer307 and stale1100 corpora with all cases/controls retained",
+    "Fresh same-source lease corpus:269commands/95queries/43dynamic lookups; preserve only the two already user-authorized UID/layout cases and raw comparator exit1, reject new/unclassified differences"
   ],
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
@@ -1508,5 +1511,7 @@
     "docs/dnsmasq/audits/perf-opt-20261015/correctness/FROZEN_GATES.md": "d37639de2cbef5057886746ff30120b3e2af9f73e61f46a5a111bb28cbada186",
     "docs/dnsmasq/audits/perf-opt-20261015/correctness/local-cache-linux-gates.json": "2fc7f3817ef1e8c76c82689d6a484d3bfd998b1f6a61b8f5057e6d41f9e3d444",
     "docs/dnsmasq/PERF_DEVICE_20261014.md": "83a85577ee77e6a8dd2e8b0c9916cd5ad400df1cf663d8a070cb90300a612599"
-  }
+  },
+  "inputs_snapshot_root": "/Users/USER/Developer/owrt-perf-opt-20261015",
+  "inputs_snapshot_note": "inputs_sha256 binds the canonical coordinator working-tree contents at preparation time, not this older device branch; hashes remain the authority."
 }

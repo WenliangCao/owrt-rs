@@ -96,3 +96,5 @@ production unchanged, no owned live executable/group, and restore prior exact
 E/F task slots. Independent source/artifact, raw/statistical and health audits
 must accompany any final acceptance claim. Full44 and the entire frozen
 qualification receipt remain explicit missing launch gates in the JSON.
+
+The input-document hashes bind the canonical coordinator working-tree snapshot at `/Users/USER/Developer/owrt-perf-opt-20261015`, not the older device branch. Complete qualification explicitly includes fresh same-source cache-answer764commands/164queries/382snapshots, transfer307, stale1100 and lease269commands/95queries/43lookups corpora. Only the already authorized two UID/layout cases and their raw exit1 are retained; no new exception is introduced.
