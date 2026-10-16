@@ -1,7 +1,7 @@
 {
   "schema": "dnsmasq-cached-local-name-full-qualification-preparation-v1",
-  "status": "prepared-and-final-SDK-bound-not-launched-screen-results-pending",
-  "authorization": "Root authorizes full qualification after the independent accepted-E screens support continuation; currently local preparation only. Do not overlap Oracle timing; coordinate its release before any execution.",
+  "status": "PREPARED_NOT_EXECUTED_SCREEN_DID_NOT_SUPPORT_CONTINUATION",
+  "authorization": "Root explicitly instructed not to start0161full44/110 after A53CPUfailedoriginalWand>8tickgates. Preserve thisboundrecipeaspreparedonly.",
   "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
   "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name",
   "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name",
@@ -194,7 +194,12 @@
     "runtime_protections_independently_retested": false
   },
   "local_preparation_directory": "private/cached-local-name-full-qualification",
-  "prepared_recipe_sha256": "585bcd743eca4aeed5290ac76d141b847ddec1a9215e9cecd1dc3a317eb14860",
+  "prepared_recipe_sha256": "62d688d7c224bd7f9c63a2b27e803581a4eb0c580d327be31a5327813a7c352b",
   "unit_command_manifest_sha256": "b944702cde461bbf03a4ce5dbdd6fa4e98c3b3c50a9e7fa201c5ca7e8005c0e7",
-  "verification": "Seven wrappers parsed without imports/execution. Original F checks retained; finalSDK ELF/map/receipt and candidate179source inputs rehashed. Canonical44/67registry/comparators/approvedubus346 unchanged. Screens and Oracle timing release remain pending; no qualification executed."
+  "verification": "Seven wrappers parsed without imports/execution. Original F checks retained; finalSDK ELF/map/receipt and candidate179source inputs rehashed. Canonical44/67registry/comparators/approvedubus346 unchanged. Screens and Oracle timing release remain pending; no qualification executed.",
+  "screen_outcome": {
+    "report_sha256": "98103d5bec12d940655be16afdf71b2378b042d655ba19a1ad28b7b144dc1f0e",
+    "CPU_improvement_gate_passed": false,
+    "full_execution_authorized": false
+  }
 }

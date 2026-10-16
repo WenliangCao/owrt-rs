@@ -1,6 +1,6 @@
 {
   "schema": "dnsmasq-cached-local-name-full11-preparation-v1",
-  "status": "LOCAL_PREPARATION_FINAL_SDK_BOUND_SCREENS_AND_FULL_CORRECTNESS_PENDING",
+  "status": "PREPARED_NOT_EXECUTED_SCREEN_DID_NOT_SUPPORT_CONTINUATION",
   "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
   "artifact": {
     "elf_sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
@@ -15,7 +15,7 @@
     "full44_pass": false,
     "full_qualification_receipt_sha256": null
   },
-  "authorization": "Root authorizes progression after independent accepted-E screens support continuation. Full functional qualification, final artifact binding, independent review and environment-specific launch/health/scheduling gates still precede each full110 execution. Current preparation executes nothing.",
+  "authorization": "Root explicitly instructed not to start0161full44/110 after A53CPUfailedoriginalWand>8tickgates. Preserve thisboundrecipeaspreparedonly.",
   "baseline_E": {
     "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
     "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
@@ -283,7 +283,7 @@
     }
   ],
   "local_preparation_directory": "private/cached-local-name-full-performance",
-  "prepared_recipe_sha256": "4456efd309058e585411ef789aaed2e15958394e06213c9323c13ed4382a1314",
+  "prepared_recipe_sha256": "6eb536c9f8235402bb230e18d0fdf2378fde93a80eccce79f48b92f0104e3cb4",
   "schedule_validation": {
     "Oracle": {
       "windows": 110,
@@ -298,5 +298,10 @@
       "original_alternating_order": true
     }
   },
-  "verification": "Both complete schedules retain originalSCENES/tools. Canonical coordinator input hashes and final0161SDK artifacts/source179 checked. No remote action or physical operation during preparation."
+  "verification": "Both complete schedules retain originalSCENES/tools. Canonical coordinator input hashes and final0161SDK artifacts/source179 checked. No remote action or physical operation during preparation.",
+  "screen_outcome": {
+    "report_sha256": "98103d5bec12d940655be16afdf71b2378b042d655ba19a1ad28b7b144dc1f0e",
+    "CPU_improvement_gate_passed": false,
+    "full_execution_authorized": false
+  }
 }
