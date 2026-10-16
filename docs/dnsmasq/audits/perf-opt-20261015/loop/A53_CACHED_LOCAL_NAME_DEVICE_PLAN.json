@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "status": "preregistered acceptedE exploratory fixed10; exact0161 SDK identities pending, no launch with old artifact",
+  "scope": "Exploratory acceptedE/cached-local-name0161 A53 UDP-hit comparison; not full44 or full11-scene acceptance and not G selection.",
+  "reason": "Rootb25e8ad6 fixed direct acceptedE baseline for independent0161 narrowed cache plus synchronous decoded-name reuse combination. No oldF controls or8d572 artifact reuse.",
+  "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "prior_gate_scope": "Exact0161 Linux939 and interaction/source review pass; full44/67 and complete11-scene gates remain required for acceptance.",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "entry_sha256": "fb3ad5ee27b9e1832eb76a02ab98f0a096c02d7f0d80d4bfe18f7200b08a937e",
+  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "artifacts": {
+    "e": {
+      "name": "a53-cached-local-name-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-cached-local-name-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "cached-local-name": {
+      "name": "a53-cached-local-name-artifact-cached-local-name",
+      "sha256": null
+    }
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "schedule": [
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 1,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r1-c"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 1,
+      "side": "rust",
+      "artifact": "cached-local-name",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r1-rust"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 2,
+      "side": "rust",
+      "artifact": "cached-local-name",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r2-rust"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 2,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r2-c"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 3,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r3-c"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 3,
+      "side": "rust",
+      "artifact": "cached-local-name",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r3-rust"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 4,
+      "side": "rust",
+      "artifact": "cached-local-name",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r4-rust"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 4,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r4-c"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 5,
+      "side": "c",
+      "artifact": "e",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r5-c"
+    },
+    {
+      "group": "e-vs-cached-local-name",
+      "round": 5,
+      "side": "rust",
+      "artifact": "cached-local-name",
+      "mode": null,
+      "label": "a53-cached-local-name-e-vs-cached-local-name-r5-rust"
+    }
+  ],
+  "measurement_environment": "No DNSMASQ_UDP_STAGE or allocation-meter variables. Both normal product ELFs use the unchanged real cache/local answer.",
+  "output_requirements": [
+    "10 attempts in five alternating F/address-dispatch pairs; no extra windows, supplements or replacement.",
+    "Each6000 fixture replies correct, including1000 prewarm; original steady upstream0, file/live ELF, single process/thread samples and final endpoint, isolated namespace, case/daemon exit0.",
+    "Original20s measurement and100Hz CPU endpoint over5000 completed warmup+measurement queries; original W/direction and exclusive8tick median-difference gate.",
+    "First archive attempt retained even if partial; any failed gate stops; verify all raw bytes before pruning valid device copies.",
+    "Fresh>=120s health; unchanged guard/prod identity; restore E/F slots only after no owned daemon remains."
+  ],
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "automatic_replacement": false,
+  "source_inputs_expected": 179,
+  "pending_before_launch": [
+    "Loop provides precise new0161 SDK artifact/receipt and a transfer interval before Oracle timing.",
+    "Download/verify immutable ELF,map,build and all179source files; bind identities in new commit.",
+    "Fresh>=120s original health; verify production/currentE-F slots/offline restore copies/idle-owned state and all frozen helper hashes."
+  ],
+  "artifact_verification_receipt_sha256": null,
+  "baseline_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "baseline_E_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+  "restore_only_F_elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+  "concept_plan_commit": "b25e8ad6",
+  "concept_plan_sha256": "edf6f9c1e6d31aa847a9bbdc9e270d0f2f4a2f03a0f05b77401e3a233598f2ac",
+  "related_linux_verified_receipt_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea",
+  "related_linux_report_sha256": "9bb66eb95167ad3ec4beffd9871940970961c01f84b5d685ec80f758cf92bedd",
+  "source_review_report_sha256": "fada7437f87feb0788f400d34fe052251bb2e12d3376b24206e6d67c79aad5c6",
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "comparison_policy": "Exactly five alternating acceptedE/variant pairs. No F, earlier E/B,8d572 or other prototype control pooling; original strictW/>8ticks/direction,20s window and all samples. F artifact is staged only as exact original restoration source."
+}
