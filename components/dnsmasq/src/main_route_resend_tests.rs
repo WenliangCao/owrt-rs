@@ -42,8 +42,14 @@ impl PendingCaller {
         }
         // Diagnostic fixture only: model the one local rule already known to
         // exist in OpenWrt without importing any private production names.
-        if std::env::var_os("D1_DIAGNOSTIC_LOCAL_RULE").is_some() {
+        if let Ok(mode) = std::env::var("D1_DIAGNOSTIC_LOCAL_RULE") {
             config.apply(&lex_line(b"local=/lan/").unwrap().unwrap()).unwrap();
+            if mode == "rfc6761" {
+                for line in ["server=/bind/", "server=/invalid/", "server=/local/",
+                    "server=/localhost/", "server=/onion/", "server=/test/"] {
+                    config.apply(&lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+                }
+            }
         }
         let mut daemon = DnsDaemon::new(
             config.clone(),
@@ -70,7 +76,7 @@ impl PendingCaller {
             peer: "127.0.0.1:0".parse().unwrap(),
         };
         if cached {
-            fixture.send_client(&query("cached.route.test", 8));
+            fixture.send_client(&query("cached.route.example", 8));
             fixture.read_upstream();
             let question = WireQuestion::parse(&fixture.packet, 12).unwrap();
             let mut writer =
@@ -119,7 +125,7 @@ impl PendingCaller {
     }
 
     fn prime(&mut self) {
-        assert!(self.send_client(&query("pending.route.test", 7)));
+        assert!(self.send_client(&query("pending.route.example", 7)));
         self.read_upstream();
         assert_eq!(
             self.owner
@@ -252,7 +258,7 @@ fn route_resend_owner_clears_on_local_cached_invalid_oversize_and_rejected_udp()
         let mut fixture = PendingCaller::new(false, case == "cached");
         let packet = match case {
             "local" => query("ready.test", 9),
-            "cached" => query("cached.route.test", 9),
+            "cached" => query("cached.route.example", 9),
             "short" => b"bad".to_vec(),
             "qr" => {
                 let mut packet = query("ready.test", 9);
@@ -330,7 +336,7 @@ fn plain_udp_owner_reuses_receive_bytes_and_sends_existing_completion_after_hit(
     writer.record_at(Section::Answer, 12, 1, 1, 600, &[192, 0, 2, 88]).unwrap();
     fixture.upstream.send_to(&writer.finish(), fixture.peer).unwrap();
     let before_count = fixture.owner.parent_events.borrow().local_answered;
-    let packet = query("cached.route.test", 0x1234);
+    let packet = query("cached.route.example", 0x1234);
     assert!(fixture.send_client(&packet));
     assert_eq!(Header::parse(&fixture.owner.udp_buffer).unwrap().flags, 0x8180,
         "the direct hit must use the receive buffer rather than a copied reply");
@@ -357,7 +363,7 @@ fn plain_udp_owner_feature_rejection_keeps_packet_and_counters() {
             "loop" => fixture.owner.config.loop_detect = true,
             _ => unreachable!(),
         }
-        let query = query("cached.route.test", 0x1234);
+        let query = query("cached.route.example", 0x1234);
         let mut packet = vec![0xa5; 512];
         packet[..query.len()].copy_from_slice(&query);
         let before = packet.clone();
@@ -376,7 +382,7 @@ fn plain_udp_owner_feature_rejection_keeps_packet_and_counters() {
 #[test]
 fn plain_udp_owner_allocation_count_comparison() {
     let mut fixture = PendingCaller::new(true, true);
-    let query = query("cached.route.test", 0x2345);
+    let query = query("cached.route.example", 0x2345);
     let mut response = [0; 512];
     for enabled in [false, true] {
         D1_FAST_ENABLED.store(enabled, Ordering::Relaxed);
