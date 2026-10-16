@@ -10,11 +10,13 @@ and both110 matrices. G-stage50 and warm6dad owner32 are complete and audited;
 neither is a new delivery. Frozen 9e has passed actual965, canonical SDK and
 original standalone signals, with independent reviews. Its original G/9e
 physical ten is all valid but inconclusive: CPU118→114µs, W10.526%,3/5,2ticks.
-Restoration is verified; independent raw review is finishing. Native240 and
-raw/source postflight completed; original owner32 began12:40:15UTC and owns
-Oracle until completion. No full110/promotion is triggered by the ten result.
-Root is researching local-only name-copy/code-layout directions; source9e,
-all measured artifacts and the frozen comparators remain unchanged.
+Restoration and original device raw review PASS61331c36. Native240 and owner32
+completed once; author data retain high-load CPU gain and send-lag regression,
+low-load nulls. Loop hands original raw to correctness before new timing.
+No full110/promotion is triggered. Next selected research sourcec95c5571 adds
+only22Linux hot-method sections to9e; sourcepeer1df84d56 passes. DNS prepares
+original965/SDK; actual GNUmap must show clustering, since local rust-lld did
+not. All measured artifacts and frozen comparators remain unchanged.
 See latest reports and the chronological sections below for exact evidence.
 Production remains v0.2.0 SHA256
 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
@@ -1640,3 +1642,26 @@ the original walk.730Mac/8ignored and muslalltargets pass. First-version growth
 mismatch was caught by an unchanged original test; the failure is retained.
 Localcodegen expands the containingfunction2484→2840B and frame688→720B,
 so fewer per-label copies are not assumed to improve CPU. Sourcepeer pending.
+
+
+## 9e screens completed; next layout-only source selected
+
+Originalowner32 completed12:56:56UTC with32valid/no retries. Authorhigh-load
+CPU−7.189%,rate+7.675%,p50−8.939%,p95−7.661% are retained alongside significant
+send-lag p50+66.667%/p95+62.687%. Lowprimary and physicalten are inconclusive.
+Native15 CPU has12faster/3inconclusive; every original240window and244command
+completed. These Oracle results await independent raw review. No full110 or
+promotion. Device originalraw430files/313threads/600wire independentlyPASS
+61331c36; preciseG118→9e114µs at2ticks remains inconclusive.
+
+Localcbb name-copy sourcepeer93f7ae96 PASS; still unselected. DNS independent
+c2a OPT-scan guard passes730Mac+musl, but addsbcmp/bounds and growscaller3848→3996B,
+frame592→608B; no net runtime evidence, not selected. Rootcommonsectionffc3
+clusters19emitted ranges40708B from24addresspages into11 underlocalLLD but is
+retired as an approach because sharedinputsection losesGC/map granularity.
+Finalc95 unique-per-method .text.hot.dnsmasq sections keep sourcebody exact9e
+and passsourcepeer1df84d56. Daemon methods inheritR generic; no per-monomorph
+GC or per-function range guarantee. LocalLLD unique sections remain24pages;
+map-only relink is byte-identical. ActualcanonicalGNU SDK has a precedinghot
+wildcard and is the next validation. If its ownmap doesnot cluster, stop the
+experiment without linker/parser changes. No remote qualification claimed yet.

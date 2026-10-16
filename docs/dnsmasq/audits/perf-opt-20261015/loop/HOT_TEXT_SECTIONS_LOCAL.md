@@ -38,8 +38,10 @@ The other annotated methods have no separately emitted range. The original GNU S
 the next layout check. If its own map does not actually cluster these sections,
 stop this experiment; do not alter the linker or choose a favorable rerun.
 
-The unique names retain per-input-section GC and map ranges without KEEP or a
-new linker script. Original static-PIE, RX/NX, RELRO, relocation, payload and size
+The unique method names retain per-input-section map ranges without KEEP or a
+new linker script. Daemon methods inherit `R: Random`, so several compiled
+instances or clones can still share a method section; GC granularity is not
+promised per instantiation. Actual SDK ranges must be checked independently. Original static-PIE, RX/NX, RELRO, relocation, payload and size
 gates remain mandatory. Profile names must be reported as input-section labels,
 not claimed to be original mangled functions or free of inlined code/clones.
 
