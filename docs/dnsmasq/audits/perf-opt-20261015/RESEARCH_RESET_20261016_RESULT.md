@@ -509,3 +509,31 @@ APK1299617B，profile e638a583045e18a0ae2a9d501f7026cd81504d52615dcd472f08c229d4
 934368B，原11场景单次50raw、零missing/mismatch、smoke/硬化/新caps通过。579文件已下载；
 唯一构建结果SHAed50677ae50398be38d9fe63577c106c3c6c29ed03d7109dc6f3a1e23a08454f在
 active PGO树private/perf-opt-20261015/d1-pgo-preparation-20261016/result-summary.json。
+
+
+## D1固定长窗：5/5同向，保留组合而非改门
+
+14/14有效，CPU N20000、latency N19000、steady upstream=0；I/D1 CPUclock中位
+86.7900481→79.18431515µs，五对D1−I为[−6.77374285,−9.85964660,−7.60573295,
+−7.75875960,−11.45069265]，配对中位改善7.75875960µs。新I/I两对−3.404347/+7.78929155，
+所以严格screen未触发：不因只差0.030532µs就改门，也不把同向结果解释为无效。原tick
+87→78.5µs有分辨率但W17.241%未分辨；p50−7.242%/W17.644%/5of5未分辨；p95−0.606%/
+W35.883%/3of5且两对上升，均保留。95秒窗降低了tick量化，但本批A/A波动没有消失。
+RSS中位2332→2300KiB，Anon峰值中位504→504（I范围504..504、D1 500..512）；FD12、
+线程1、进程1一致。630raw/14归档、1645guard/110外网检查及恢复通过，最低MemAvailable
+65680KiB仅高于原门144KiB。随后gap经本地/远端hash比对回收已完成ba40/H私有副本4585030B，
+MemAvailable76408KiB；保留I/E/F和生产，不改64MiB门，不删原结果或本地可恢复产物。
+原result SHA b5c8196a78a0bd075a5c3696259d1eb06f754966fc8f2d7db3c4b9c9a323d357，
+summary SHA4c56fad3a7ef46a4ce50ff55541a7b25eb72813bdada07d6b19005bb6771460d，位于
+private/perf-opt-20261015/research-reset-20261016/d1-pgo-screen14/。
+
+按5a077516事前分支选择J（D1+规则+D2）b059fc43；不追加ba40窗口或其完整门。
+原stage的Linux udp_dispatch_实际8项5通过/3失败，未进入SDK/训练/设备；27原文件均保存。
+三个失败断言在初建owner上要求idle，但Linux构造器的arp_awake初始为true，原step_neighbors
+才会清除。root独立23aece16仅修cfg(test)夹具：先走原full turn，另加Linux回归验证待办存在
+时不可跳过、正常排空后才允许就绪UDP。产品guard没有放宽；Mac相关6/6、Linux测试编译通过。
+原b059归档tag perf/dnsmasq-j-linux-fixture-failure-20261016；原失败summary SHA
+ a46dbd20a00bbe31c481a0f8643990e1007e51e76fd989a40600e4141498ae71保留。
+J1改用独立新目录与23aece16身份，实际Linux9项及未执行filter通过后才继续原单次新PGO；
+不是重跑未修改的失败源码，不覆盖b059记录。公开规则工具4b3d3ec1显式选择独立case/group，
+原ba40和所有旧case保持，规避组名变化后误用旧AA。工具/夹具修正不列作产品性能优化。
