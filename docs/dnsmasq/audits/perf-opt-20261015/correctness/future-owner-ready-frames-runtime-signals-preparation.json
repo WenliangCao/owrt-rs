@@ -1,0 +1,158 @@
+{
+  "schema": "future-owner-ready-frames-original-runtime-signals-preparation-v1",
+  "status": "LOCAL_IDENTITY_AND_ORIGINAL_INVOCATION_PREPARED_DISABLED_PENDING_SELECTION_SDK_AND_QUIET",
+  "candidate_source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "candidate_scope": "5c includes025 DHCP outline plus independent dump outline; no current1df change. Not selected for execution.",
+  "execution_selected": false,
+  "remote_accessed": false,
+  "audit_run": false,
+  "historical_validation": {
+    "path": "docs/dnsmasq/audits/20261011/fix2_repairs/validation.json",
+    "sha256": "e51645516c9b276944e7d86c6e2d7a2a1afbcd00826b76fec2c3df3a57319ab1",
+    "tool_commit": "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+    "original_runtime_signals_command": {
+      "id": "runtime-signals",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+        "--c-native",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/signals"
+      ],
+      "result": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/signals/result.json",
+      "custom_check": "signals",
+      "timeout_seconds": 1800,
+      "passed": true,
+      "started": 1791756471.9003024,
+      "returncode": 0,
+      "result_sha256": "6db5a49ca63e572ab40ee28729c47672bf0df6e27e9d5c82aff775b53cbbc369",
+      "elapsed_seconds": 8.869231462478638,
+      "result_summary": {
+        "passed": true,
+        "cases_count": 12
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/runtime-signals.log",
+        "sha256": "6db5a49ca63e572ab40ee28729c47672bf0df6e27e9d5c82aff775b53cbbc369",
+        "bytes": 12735
+      }
+    },
+    "independent_of_44_families": true,
+    "original_pass_does_not_qualify_5c": true
+  },
+  "frozen_tool_and_local_import_closure": {
+    "run_isolated.sh": {
+      "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+      "bytes": 399
+    },
+    "audit_20261011_runtime_signals.py": {
+      "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+      "bytes": 12826
+    },
+    "audit_20261011_dhcp.py": {
+      "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+      "bytes": 10332
+    },
+    "m2_rootfs.py": {
+      "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "bytes": 15493
+    },
+    "elf_cost.py": {
+      "sha256": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7",
+      "bytes": 4657
+    }
+  },
+  "dependency_scope": {
+    "runtime_signals": [
+      "audit_20261011_dhcp.packet",
+      "audit_20261011_dhcp.decode",
+      "m2_rootfs.image_elf_command"
+    ],
+    "audit_dhcp": [
+      "m2_rootfs"
+    ],
+    "m2_rootfs_image_elf_command": [
+      "elf_cost.inspect"
+    ],
+    "elf_cost": "Python standard library only",
+    "system": "OriginalLinux isolated namespace setup via unshare/ip/sh/python3; signal/socket/resource.prlimit operations and original C/image loader dependencies. No new package or framework."
+  },
+  "original_comparators": {
+    "c_image": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    },
+    "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "c_native": {
+      "path": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+      "sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "bytes": 1650080
+    },
+    "c_native_libraries": {
+      "dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+      "deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+    },
+    "native_source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9"
+  },
+  "original_case_scope": {
+    "signals": [
+      "SIGHUP",
+      "SIGUSR2",
+      "SIGUSR1",
+      "SIGALRM"
+    ],
+    "implementations": [
+      "c-image",
+      "c-native",
+      "rust"
+    ],
+    "signal_case_count": 12,
+    "cache_dump_cases": 3,
+    "cache_dump_details": "Eachimplementation forwards and caches a realrecord, tests ordinary/policyNXDOMAIN, then receives exactlytwoSIGUSR1; originaldump summary equality/counters/rows checked.",
+    "alarm_maintenance_cases": 3,
+    "alarm_details": "OriginalRLIMIT_FSIZE persistence failure injection thenSIGALRM retry, followedbySIGUSR1 lease dump; sameACK,lease,DNS,alive predicates.",
+    "original_args_policy": "Retain-k and originallogging/DHCP/query options. No normal/debug matrix expansion, newcomparator, cases, thresholds, or retry policy."
+  },
+  "future_invocation_binding": {
+    "shape": "sudo -n sh <same-hash run_isolated.sh> python3 <same-hash audit_20261011_runtime_signals.py> --image-root <same exact image root> --rust <actual selected5c canonical SDK ELF> --c-native <same-hash originalnative C accessible within original isolated environment> --out <fresh nonexistent candidate-specific directory>",
+    "actual_candidate_SDK_path": null,
+    "actual_candidate_SDK_sha256": null,
+    "fresh_output": null,
+    "explicit_quiet_release": null,
+    "actual_native_runtime_path": null,
+    "pending": "BindactualSDK/source/artifacts andquiet onlyif5c isselected. Originaltools/comparators frozen; validate currentnative ELF+2library bytes and its private-namespace path visibility before running. No execution is authorized by this receipt."
+  },
+  "native_path_limit": {
+    "historical_recovery_document": "docs/dnsmasq/audits/perf-opt-20261015/correctness/TRANSFER_RECOVERY.md",
+    "historical_recovery_document_sha256": "a41b6d0938b17557655e075ae97c2c099af75309349a2e64116362242fd9ae11",
+    "historical_recovery_receipt_sha256": "803b09d125b4b1225b7d6abaeab15d2e9eaa64c5583b3740affed61086fc7f3f",
+    "recorded_recovery_directory": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/native-reference-compat/",
+    "recorded_namespace_cleanup": "original compatibility path is an empty directory in host namespace; no mount remains",
+    "finding": "Oldargv path ishistoricalprovenance, not proof ofcurrenthost availability. The recovered original ELF/libraries were mapped onlyinsideprivate mountnamespace; originalhostpath wasleftanemptymountpoint. run_isolated.sh itself creates namespaces butdoesnotinstallthatcompatibilitymapping. No remoterecheck or rebuild wasperformed.",
+    "local_ELF_bytes_rehashed": false
+  },
+  "supporting_evidence_sha256": {
+    "docs/dnsmasq/audits/20261011/fix2_repairs/validation.json": "e51645516c9b276944e7d86c6e2d7a2a1afbcd00826b76fec2c3df3a57319ab1",
+    "docs/dnsmasq/audits/20261011/review_fixes/f02_f06.json": "caa8c1151ee7c1a3971b1f4736d62d07776befc2562bc8d88dcec59822d23f6b",
+    "docs/dnsmasq/audits/20261011/fix2_repairs/r4-dump.json": "504c097fcc5957b8aa5d21663c7d2f71dfd47ec87bd73dde2db0d4f23bbd63ec",
+    "docs/dnsmasq/audits/20261011/identity.json": "aaf357194011f9ab7e72d37b7f92cfe816d7d539494a43e4714567393a760ee1",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/transfer-recovery-receipt.json": "803b09d125b4b1225b7d6abaeab15d2e9eaa64c5583b3740affed61086fc7f3f",
+    "docs/dnsmasq/AUDIT.md": "5b91f4e3f3e29009d0b109825e53b148ea16478d9d9de3687bc48c213a0ee2b7"
+  },
+  "peer_C_identity_review": {
+    "agent": "/root/correctness/runtime_signals_c_identity",
+    "status": "PASS_HISTORICAL_PIN_AND_RECOVERY_PROVENANCE_CURRENT_PATH_PENDING",
+    "scope": "Localread-onlyreceipt/sourcehashcheck; no separatelywrittenpeerreceipt. PeerfoundnolocalexpandedELFofrecordedsize; compressedarchivecontentsnotexhaustivelysearched.",
+    "current_native_bytes_or_remote_executability_verified": false
+  },
+  "reviewer_script_sha256": "32b521484181742a106b32a40c541e7e00390b4de401d629dc840449545c906c"
+}
