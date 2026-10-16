@@ -1,0 +1,438 @@
+{
+  "schema": "g-stage-sdk-independent-audit-v1",
+  "status": "PASS_ACTUAL_G_STAGE_ORIGINAL87_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_AND_BUDGETS",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "source_manifest_sha256": "ebe3a081f74af97d29f2df1a24e32f38684a65c5100dabe29ae8d49f4af1934c",
+  "git_identity_sha256": "912d626581d2d2595ffc50849eba93a4eeb97bb17f7bc12cc219b991c94237e0",
+  "SDK_source180_bound_to_independent_related_review": true,
+  "actual_related_test_passes": 87,
+  "actual_related_verified_receipt_sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+  "related_independent_review_commit": "ad9f1c3d",
+  "related_independent_review_sha256": "d53677fa512d625625fe0c0004a5004e7d6992bc2075c319d7ae2e844fd04791",
+  "SDK_build_sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+  "SDK_postflight_sha256": "27652efd302a259dd4b81634540e0691923d3d4a6fb748c9379bb5c23d300d1d",
+  "SDK_exit_receipt_sha256": "fee4833891715c0decb68d7d89ac931be888ef8ba59cf26429b2f8a1274b6b40",
+  "controller_sha256": "1b18ac7476181f2e770b26886bb4e288d781ee4a7e9a0fb9a3701683d9ccf39d",
+  "canonical_builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "canonical_helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "canonical_original_command_once_after_gate_exit": true,
+  "original_CPU1_UID1001_controller_and_no_ambient_release_profile_override_gate": true,
+  "source_release_profile": {
+    "opt-level": 3,
+    "lto": true,
+    "codegen-units": 1,
+    "panic": "abort",
+    "strip": true
+  },
+  "actual_logged_Cargo_command": "RUSTUP_HOME=\"/home/ubuntu/.rustup\" CARGO_HOME=\"/home/ubuntu/.cargo\" CARGO_BUILD_TARGET=\"aarch64-unknown-linux-musl\" CARGO_PROFILE_RELEASE_PANIC=abort CC_aarch64_unknown_linux_musl=\"/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage/tools/dnsmasq/perf_opt_map_cc.py\" AR_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc-ar\" DNSMASQ_STATIC_PIE_CC=\"`command -v \"/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage/tools/dnsmasq/perf_opt_map_cc.py\"`\" CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=\"/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq/static-pie-linker.py\" RUSTFLAGS=\"-Cforce-unwind-tables=no --remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot=/build --remap-path-prefix=/home/ubuntu/.cargo=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static\" /home/ubuntu/.cargo/bin/cargo build --release --frozen --manifest-path /home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir /home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot/dnsmasq/target",
+  "actual_Cargo_recipe_command_equal_6ab_except_candidate_source_path": true,
+  "individual_effective_rustc_invocations_logged": false,
+  "recorded_SDK106_and_toolchain_equal_G": true,
+  "G_triple_independently_rehashed": true,
+  "retained21_fakeroot_warning_lines_equal_6ab": true,
+  "static_peer_receipt_sha256": "7b5429bb05c793c6d1bdb8ec37e13b4c8bf6b3106b2f8c8a78abae49656583f8",
+  "static_peer": {
+    "status": "PASS_G_STAGE_LOCAL_ARCHIVE_STATIC_ELF_ALLOC_TLS_PAYLOAD_BUDGET_AND_RECORDED_SDK_IDENTITY",
+    "script_sha256": "7a4e16dc0c7689b6776f46016bc8ca6e4b0af6a26032b0e06d20f29f460d420a",
+    "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+    "archive": {
+      "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/g-udp-stage-execution-preparation/sdk-immutable-results.tar.gz",
+      "sha256": "47ac16337c885d43d3d43e024ed84675dff307ad3b7a5bc3caf8845515d1c23b",
+      "safe_unique_regular_files": 45,
+      "exact_archive_local_bytes": true
+    },
+    "manifest_sha256": "940f1f1b76a87859b6d57001b7af513415dccf659cbc81f7c0047a7d30dfea8f",
+    "artifacts": {
+      "build.json": {
+        "sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+        "bytes": 44059
+      },
+      "dnsmasq-rs": {
+        "sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+        "bytes": 2149147
+      },
+      "link.map": {
+        "sha256": "9f1a05017993363eabdb9f8832d6f3915ccb47ed42de8fb6457e3037ae28e153",
+        "bytes": 3030776
+      },
+      "dnsmasq-2.93-r4.apk": {
+        "sha256": "01af4bd0a73b20cad43fa62e9425005031686a562808987084e6d18cffbc136b",
+        "bytes": 1169636
+      },
+      "dnsmasq-prestrip": {
+        "sha256": "b645a362dfd63709b24c5ce48936fcff83dcf8cbb3524e1f862a7ee24a284429",
+        "bytes": 2150880
+      }
+    },
+    "static_ELF": {
+      "class": "ELF64LE",
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "entry": 124672,
+      "program_headers": [
+        [
+          1,
+          5,
+          0,
+          0,
+          0,
+          2096856,
+          2096856,
+          4096
+        ],
+        [
+          1,
+          6,
+          2099976,
+          2099976,
+          2099976,
+          49171,
+          53680,
+          4096
+        ],
+        [
+          2,
+          6,
+          2145696,
+          2145696,
+          2145696,
+          384,
+          384,
+          8
+        ],
+        [
+          7,
+          4,
+          2099976,
+          2099976,
+          2099976,
+          0,
+          48,
+          8
+        ],
+        [
+          1685382480,
+          4,
+          1975036,
+          1975036,
+          1975036,
+          18964,
+          18964,
+          4
+        ],
+        [
+          1685382481,
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          16
+        ],
+        [
+          1685382482,
+          4,
+          2099976,
+          2099976,
+          2099976,
+          46328,
+          46328,
+          1
+        ]
+      ],
+      "dynamic_tags": [
+        [
+          12,
+          54376
+        ],
+        [
+          13,
+          1882532
+        ],
+        [
+          25,
+          2099976
+        ],
+        [
+          27,
+          24
+        ],
+        [
+          26,
+          2100000
+        ],
+        [
+          28,
+          8
+        ],
+        [
+          4,
+          456
+        ],
+        [
+          1879047925,
+          480
+        ],
+        [
+          5,
+          584
+        ],
+        [
+          6,
+          512
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          11,
+          24
+        ],
+        [
+          21,
+          0
+        ],
+        [
+          7,
+          592
+        ],
+        [
+          8,
+          53784
+        ],
+        [
+          9,
+          24
+        ],
+        [
+          24,
+          0
+        ],
+        [
+          1879048187,
+          134217729
+        ],
+        [
+          1879048185,
+          2241
+        ]
+      ],
+      "PT_INTERP": false,
+      "DT_NEEDED": false,
+      "PIE_flag": true,
+      "BIND_NOW_flag": true,
+      "nonempty_GNU_RELRO": true,
+      "nonexecuting_GNU_STACK": true,
+      "writable_executable_LOAD": false,
+      "DT_TEXTREL_RPATH_RUNPATH": false
+    },
+    "prestrip_binding": {
+      "section_header_removal_metadata_only": true,
+      "LOAD_memory_equal_except_verified_ELF_strip_metadata": true,
+      "LOAD_tail_zero_trim": [
+        {
+          "program_header": 0,
+          "file_tail_zero_bytes_removed": 0
+        },
+        {
+          "program_header": 1,
+          "file_tail_zero_bytes_removed": 5
+        }
+      ],
+      "ALLOC_sections": [
+        {
+          "name": ".hash",
+          "bytes": 20,
+          "type": 5,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".gnu.hash",
+          "bytes": 28,
+          "type": 1879048182,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".dynsym",
+          "bytes": 72,
+          "type": 11,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".dynstr",
+          "bytes": 1,
+          "type": 3,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".rela.dyn",
+          "bytes": 53784,
+          "type": 4,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".init",
+          "bytes": 16,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".text",
+          "bytes": 1828132,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".fini",
+          "bytes": 16,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".rodata",
+          "bytes": 92476,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".eh_frame_hdr",
+          "bytes": 18964,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".eh_frame",
+          "bytes": 97216,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".gcc_except_table",
+          "bytes": 5640,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".tbss",
+          "bytes": 48,
+          "type": 8,
+          "TLS": true,
+          "verification": "PT_TLS initialization and zero-fill"
+        },
+        {
+          "name": ".init_array",
+          "bytes": 24,
+          "type": 14,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".fini_array",
+          "bytes": 8,
+          "type": 15,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".data.rel.ro",
+          "bytes": 45688,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".dynamic",
+          "bytes": 384,
+          "type": 6,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".got",
+          "bytes": 224,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".data",
+          "bytes": 2848,
+          "type": 1,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        },
+        {
+          "name": ".bss",
+          "bytes": 4504,
+          "type": 8,
+          "TLS": false,
+          "verification": "PT_LOAD initialized bytes and zero-fill"
+        }
+      ],
+      "identical_PT_TLS": [
+        [
+          7,
+          4,
+          2099976,
+          2099976,
+          2099976,
+          0,
+          48,
+          8
+        ]
+      ],
+      "TLS_NOBITS_uses_TLS_zero_fill_not_overlapping_LOAD_bytes": true
+    },
+    "payload_files_verified": 16,
+    "payload_shipping_ELF_bytes_equal": true,
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "budget_met": true,
+    "SDK_identity": {
+      "comparison_receipt": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-zero-frame/build.json",
+      "comparison_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+      "recorded_106_SDK_tool_hashes_equal_frozen_G": true,
+      "SDK_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "toolchain": {
+        "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+        "map_wrapper_sha256": "8b54180ab0c138acb1152833d5e4821dcb9333a57243ca19d31601f543088ec5"
+      },
+      "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+      "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+      "local_reviewed_builder_helper_and_map_tool_bytes_verified": true
+    },
+    "scope_limits": [
+      "Static local audit only; no runtime ASLR or runtime RELRO enforcement claim.",
+      "SDK106 identity is a comparison of recorded hash maps with frozenG receipt, not a fresh read of remote tool files.",
+      "sdk_recipe_restored is an author receipt field; no before/after recipe snapshots were available for equality proof.",
+      "Downloaded extracted payload was byte-verified; APK was hash/size-bound, not independently re-extracted by this audit.",
+      "Actual opt3 commands, source180, actual87, controller and quiet-state bindings are reviewed separately by correctness.",
+      "No examined file changed; no Oracle/device access, target execution, build or product test."
+    ]
+  },
+  "recipe_restoration_scope": "Unchanged canonical helper and build.sdk_recipe_restored receipt; no prebuild recipe snapshots, therefore no independent before/after recipe-byte-equality claim.",
+  "scope_limits": [
+    "Excluded cumulative-stage diagnostic only; no full ordinary library/allocations/five product groups/full44 qualification, performance acceptance or deployment.",
+    "Originalcanonical sourceprofile/recipe/actualCargo command proof; individualrustc invocations are notlogged. No verbose build added or source/flag/budget changed.",
+    "Static ELF protection bits do not verify runtimeASLR/RELRO. RecordedSDK map comparison isnotreviewer liveOracle read.",
+    "Alloriginalraw artifacts/logs/controller receipts arelocallybound; no reviewer build/test/Oracle/router/extraction rerun."
+  ],
+  "reviewer_script_sha256": "c553881a56a356810d4a1d84d151a66672f7e4731d2b8f68cf9201ef028aa6b7"
+}
