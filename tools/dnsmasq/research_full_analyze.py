@@ -48,6 +48,10 @@ def analyze(folder):
                            'right': original.spread([r[key] for r in right])}
                      for key in ('rss_median_kib', 'rss_peak_kib', 'anon_peak_kib', 'file_peak_kib',
                                  'shmem_peak_kib', 'tree_fd_peak', 'parent_fd_peak')}
+        for key in ('tree_rss_peak_kib', 'thread_peak', 'process_peak', 'resource_samples'):
+            if all(key in row for row in left + right):
+                resources[key] = {'left': original.spread([r[key] for r in left]),
+                                  'right': original.spread([r[key] for r in right])}
         comparison = {'pairs': required, 'original_primary_metrics': metrics, 'resources': resources}
         if scene[1] == 'udp':
             valid = all(r['cpu_clock']['valid'] for r in left + right)
