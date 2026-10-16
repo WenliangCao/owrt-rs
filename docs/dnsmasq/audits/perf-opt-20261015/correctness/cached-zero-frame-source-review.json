@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "NO_INTERACTION_REVIEW_BLOCKER_RELATED_GATES_PREPARED_NOT_RUN",
+  "status": "NO_INTERACTION_REVIEW_BLOCKER_RELATED_LINUX_GATES_PASSED",
   "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "base_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
   "composition": "03ace8ec plus conflict-free cherry-pick of a8dcdacc; sixproductfiles match parentcomponents byte-for-byte.",
@@ -48,7 +48,7 @@
   },
   "linux_preparation": {
     "schema": 1,
-    "status": "LOCAL_PREPARED_WAITING_DNS_RELEASE_AND_LOOP_RAW_TRANSFER",
+    "status": "EXECUTED_ORIGINAL_FOUR_GROUPS_AND_VERIFIED",
     "scope": "Rootauthorizesone originalfourgroupLinuxrun after coordinatedslotrelease; nofull44/G/performance. Twoindependentchildinputs stayprepared/unrun.",
     "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
     "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
@@ -74,8 +74,8 @@
     "nice": 10,
     "build_jobs": 1,
     "verified_inputs": 179,
-    "uploaded": false,
-    "executed": false,
+    "uploaded": true,
+    "executed": true,
     "sequence": "DNSowner32formalrelease\u2192loopdownloads54bd578raw\u2192loopnotify\u2192thissourceoriginalfourgroups\u2192verifiedreceipt/quiet\u2192loopsinglecanonicalSDK"
   },
   "local_prepared_receipt_sha256": "79140cc73ba5cf0c78cf144da0990e60c0842876f21d87ff1d8a74150ea307a3",
@@ -87,5 +87,13 @@
   "full44_qualified": false,
   "selected_G": false,
   "performance_accepted": false,
-  "deployment": false
+  "deployment": false,
+  "related_linux": {
+    "report": "cached-zero-frame-linux-gates.json",
+    "report_sha256": "a39b21bc6f00eafff5a1f3c2b4b98e941d25ea054691cba9a49b931c807fc913",
+    "verified_receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501",
+    "passes": 940,
+    "source_files_verified": 179,
+    "processes_exited": true
+  }
 }
