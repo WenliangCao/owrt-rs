@@ -1,63 +1,69 @@
-# Local cached-hit integration, unselected
+# Cached-hit integration selected for fresh screening
 
-Current source48f921ce is an independent6ab child, assembled with each original
-performance step in its own commit. It combines1df inline address details,
-025/5c ready DHCP/dump outlines, the final6dad warm writer,4f/117 inactive
-upstream outlines,215 canonical hosts presence and86 empty-additional ECS.
-It now also includes3b local absent-OPT scanning and45 conditional scratch
-initialization in their own commits; earlier15e/dfe artifacts remain intact.
-No source currently being built or measured changed. The G-stage diagnostic
-and independent warm6dad screen retain priority; this is not a new timed
-candidate or qualified artifact.
+Root selected source `9e8459dd704d339b10596721eaa2d3bef1f943c1`, an independent
+6ab child, after the complete G-stage and warm screens. Each original product
+step remains a separate commit. Accepted G remains the delivery artifact;
+9e has no Linux runtime, canonical SDK or measured performance result yet.
 
-Separate integration commit15e69b7a makes the warm encoder consume the same
-selected inline positive address as1df's fallback writer. Otherwise combining
-these sources would reintroduce a retained Arc<Record> RDATA load in the warm
-branch. Local machine code confirms the old dependent loads at310638/310644
-are replaced by inline-address tag tests; it also grows the warm range952→1028B
-and the local whole ELF by136B. This is a concrete tradeoff, not a speed claim.
+The combination contains inline address details (1df), ready DHCP/dump outlines
+(025/5c), the warm writer (6dad), inactive upstream outlines (4f/117), canonical
+hosts presence (215), empty-additional ECS (86), local absent-OPT scanning (3b),
+conditional name scratch (45) and direct lease-ID slice iteration (210).
+Separate integration commit15e makes the warm writer use 1df's inline address
+bytes, as its fallback already does. This removes the reintroduced retained
+Arc<Record> RDATA read, while growing that local writer range952→1028B. There
+is no new behavior repair or change to frozen C expectations.
 
-Both the plain combinationdfe and adjusted15e pass728Mac library tests with
-8ignored,23Mac main-binary tests, and musl all-target checking. The existing
-18432 general/fresh answer comparisons remain; no new test names or benchmark
-framework were added for the integration. Original individual source reviews
-remain evidence, not an independent review or full qualification of this bundle.
+Existing tests pass729Mac library tests with8ignored,23Mac main-binary tests,
+and musl all-target compilation. The original warm comparison still covers
+18432 tuples;210 retains its576 ordered-entry/expiry comparisons. Individual
+source reviews and the root's exact whole-file substitution check for45 are
+retained. These are not an independent qualification of the complete bundle.
 
-| Local emitted range |6ab bytes / frame|15e bytes / frame|
+| Local emitted range |6ab bytes / frame bytes|9e bytes / frame bytes|
 | --- | ---: | ---: |
+|Shared local/cache answer|4060 /624|3848 /592|
+|Cached local-ownership check|528 /368|528 /336|
 |SinglePoll::step|17608 /2400|4692 /640|
 |DnsDaemon::poll_inner|12448 /1520|528 /224|
-|CacheContext::answer_fresh_address|1092 /288|1028 /160|
+|Fresh address writer|1092 /288|1028 /160|
 |Fallback address writer|part of fresh|1148 /288|
 
-The separate completed-reply helper is5664/1024 and active-upstream poll is
-6260/1088. Active paths pay additional calls/nested frames. Both local control
-ELFs reproduce77096845,5,022,240B. The plain integration is329a0b97,5,025,360B;
-15e is9dea4eb4,5,025,496B (+3256B versus6ab). These are bundled-musl local
-ELFs, not SDK size-budget results, resident instruction footprints or runtime
-measurements. Warm zero-initialization and cold fallback overhead remain.
+The completed-reply helper is5664/1024 and active-upstream poll is6260/1088.
+Active paths pay additional calls/nested frames. Conditional scratch only
+avoids clearing when a lease-expiry dotted name already exists; ordinaryNone
+cached hits still initialize253 bytes. The rejected forced-inline converter
+retains that zeroing and adds96 frame bytes; it is excluded and archived.
 
-The6ab native synth/CNAME regressions,1df native miss regression and5c
-high-load send-lag regression are all retained; none becomes a pass by being
-combined. Previous independent medians cannot be added. The combined source
-has no new Linux gates, allocation/resource screen, SDK, Oracle or device
-result. It must earn any later candidate selection from fresh evidence.
+| Preserved local revision |ELF SHA prefix|Bytes|Delta versus6ab|
+| --- | --- | ---: | ---: |
+|6ab control|77096845|5022240|0|
+|dfe plain combination|329a0b97|5025360|+3120|
+|15e inline warm address|9dea4eb4|5025496|+3256|
+|48 local OPT and conditional scratch|25424e92|5025528|+3288|
+|9e direct lease slice|fd2fa9ff|5024648|+2408|
 
-[Exact sources, commit mapping, checks and codegen](cached-hit-integration-local.json).
+These are locally linked bundled-musl ELFs, not SDK budget results, resident
+instruction footprints or CPU measurements. The final two comparisons reuse
+the exact earlier6ab control ELF with its unchanged hash and original receipt;
+they do not claim fresh control rebuilds. All earlier artifacts remain intact.
+210's earlier name_exists code-growth tradeoff is retained alongside its
+smaller iterator state; no allocation or performance saving is inferred here.
 
-The final48 build passes the same728Maclib+23Macbin/8ignored and muslalltargets.
-Its ELF25424e92 is5,025,528B, +3288B versus6ab and+32B versus15e. The existing
-verified6ab control ELF was copied for this local comparison, not rebuilt;
-its original receipt and unchanged SHA remain bound. Mainstep4692/640,
-empty-poll528/224 and warm-writer1028/160 are unchanged. The shared answer
-range is3848B/frame592; its prior15e emitted range/frame is separately read
-from the retained ELF in the JSON, without recompilation.
+The G-stage before-answer intervention was122→94us and discernible; skipping
+local lookup was116→110us and inconclusive. The warm owner32 screen has
+high-load diagnostic gains and significant send-lag regressions, with all
+low-load metrics inconclusive. The6ab native synth/CNAME regressions,1df native
+miss regression and5c high-load send-lag regression also remain. Combining
+sources makes none of those results a pass. Independent medians and stage
+differences cannot be added or treated as removable function costs.
 
-Conditional scratch initialization only saves clearing when an existing
-lease-expiry dotted name is supplied. The ordinaryNone cached-hit path still
-clears the same253 bytes, and cached_address_is_unclaimed remains528B/frame368.
-Root verified that reversing45's exact two-line change restores the complete
-6ab local.rs; theSome branch never borrows the uninitialized scratch. DNS's
-rejected inline converter variant is excluded: it retainsNone zeroing and
-increases that frame by96B. No runtime benefit is assigned to either local
-change, and the integration still has no remote execution selection.
+The execution queue is the original five groups, canonical SDK, original
+standalone signals12+3+3 and independent actual reviews. Then original native240
+and G/9e device10 may run together, followed by original owner32. Native coverage
+is cold/library/general: it does not recycle the warm writer or execute the
+main owner and its empty-upstream handling. A meaningful physical result still
+requires original full44/corpora and both110 qualification matrices. No source
+already measured or accepted was changed by this preparation.
+
+[Exact sources, commits, checks, body review and codegen](cached-hit-integration-local.json).

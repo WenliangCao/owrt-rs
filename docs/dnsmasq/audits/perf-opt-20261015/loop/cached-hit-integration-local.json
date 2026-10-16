@@ -1,6 +1,6 @@
 {
-  "status": "LOCAL_INTEGRATION_ONLY_NOT_SELECTED_FOR_REMOTE",
-  "source": "48f921ce3e533e7fb80836b52a6142cfb749d1b3",
+  "status": "SELECTED_RESEARCH_SOURCE_LOCAL_VALIDATED_NOT_REMOTE_QUALIFIED",
+  "source": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "base": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "worktree": "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016",
   "commits": [
@@ -59,6 +59,10 @@
     {
       "commit": "48f921ce3e533e7fb80836b52a6142cfb749d1b3",
       "title": "perf(dnsmasq): initialize cached name scratch only when needed"
+    },
+    {
+      "commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "title": "perf(dnsmasq): iterate lease IDs directly after name lookup"
     }
   ],
   "original_sources": [
@@ -74,11 +78,12 @@
     "2155eaba",
     "86a8d59d",
     "3b11c9bb",
-    "45b674b6"
+    "45b674b6",
+    "210801cf"
   ],
   "integration_adjustment": "15e69b7a uses the selected EntryDetails positive address also in the warm encoder, avoiding a new read of the retained Arc<Record> data. Fallback already uses that same precondition after1df.",
   "checks": {
-    "Mac_library_passed": 728,
+    "Mac_library_passed": 729,
     "Mac_library_ignored": 8,
     "Mac_main_binary_passed": 23,
     "other_Mac_probe_binaries_tests": 0,
@@ -90,7 +95,9 @@
       "inline-warm-mac-tests.log": "688815e3f336435922bd446c52b9131098ee84ee0d284365eadef6ee9cb92831",
       "inline-warm-musl-check.log": "c1e4c97add6c8a1058258df70deae78b3d265be347890fc603b195b736849c68",
       "local-opt-scratch-mac-tests.log": "8c52eb81417bd7b3d97e6b92c8946d13ab83f46e7a8f7b71aa2e6542b667e2a3",
-      "local-opt-scratch-musl-check.log": "ca7a014bf82b570ecd029479685d6e19ca15d159079dbef9350acbaee18e9d69"
+      "local-opt-scratch-musl-check.log": "ca7a014bf82b570ecd029479685d6e19ca15d159079dbef9350acbaee18e9d69",
+      "direct-lease-slice-mac-tests.log": "7428e98bff0c70d2e32ba01f8b48f427984661c65929eb253e704fe90ee08b76",
+      "direct-lease-slice-musl-check.log": "29e31ec79b5a41b100fa31bfe573152a94c2364b198f4c4a52f5949b537f6a6c"
     }
   },
   "local_codegen": [
@@ -1244,6 +1251,425 @@
         "sha256": "adbaadf97c544535754cecfb3c7dc115be211d2e423ddc0f1e7c1906d902b938",
         "scope": "Exact existing control ELF copied without rebuilding; same6ab source/flags/toolchain"
       }
+    },
+    {
+      "source": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "receipt_path": "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016/private/cached-hit-integration/direct-lease-slice-cross-daemon/inspection-v3.json",
+      "receipt_sha256": "4fab72d6f721c96a2495b5755a34e23afa70b7165223281815f7b6350ae53756",
+      "outputs": {
+        "parent": {
+          "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+          "bytes": 5022240
+        },
+        "integration": {
+          "sha256": "fd2fa9ffe57ae5b3b1c3ac596b9508ae31a54ce58508104c8a6d47d725884a77",
+          "bytes": 5024648
+        }
+      },
+      "functions": {
+        "parent": [
+          {
+            "name": "poll_inner",
+            "symbol": "_RNvMsb_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCslhjqNMUq7WX_10dnsmasq_rs",
+            "address": "0x2a41f8",
+            "bytes": 12448,
+            "code_sha256": "a51636c192e15478f6ebe6fae978d584a3a449c61d9ea1bf6351b64f4d78da16",
+            "asm_sha256": "43298343d3163ba74f46e3916b3e7f3696560fcb0174466576938f0cafa80b18",
+            "entry": [
+              "2a41f8: stp x29, x30, [sp, #-0x60]!",
+              "2a41fc: stp x28, x27, [sp, #0x10]",
+              "2a4200: mov x29, sp",
+              "2a4204: stp x26, x25, [sp, #0x20]",
+              "2a4208: stp x24, x23, [sp, #0x30]",
+              "2a420c: stp x22, x21, [sp, #0x40]",
+              "2a4210: stp x20, x19, [sp, #0x50]",
+              "2a4214: sub sp, sp, #0x590",
+              "2a4218: str xzr, [sp]",
+              "2a421c: ldr x8, [x1, #0x708]",
+              "2a4220: mov x27, x1",
+              "2a4224: add x25, sp, #0x270"
+            ],
+            "static_call_sites": 175,
+            "selected_calls": []
+          },
+          {
+            "name": "process_udp",
+            "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+            "address": "0x278f50",
+            "bytes": 4660,
+            "code_sha256": "2008af3e8faf8ade5dc0e76f54252045f1d0ea060a900a60570bd109fb26439e",
+            "asm_sha256": "d0f27f26e1583d0997a33644d1c889c8cfb0f01f30980fffd405cacf8ea65a0b",
+            "entry": [
+              "278f50: stp x29, x30, [sp, #-0x60]!",
+              "278f54: stp x28, x27, [sp, #0x10]",
+              "278f58: mov x29, sp",
+              "278f5c: stp x26, x25, [sp, #0x20]",
+              "278f60: stp x24, x23, [sp, #0x30]",
+              "278f64: stp x22, x21, [sp, #0x40]",
+              "278f68: stp x20, x19, [sp, #0x50]",
+              "278f6c: sub sp, sp, #0x3c0",
+              "278f70: ldr x9, [x0, #0x1bf8]",
+              "278f74: mov x20, x5",
+              "278f78: mov x21, x4",
+              "278f7c: mov x19, x2"
+            ],
+            "static_call_sites": 73,
+            "selected_calls": []
+          },
+          {
+            "name": "step",
+            "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll4step",
+            "address": "0x291c90",
+            "bytes": 17608,
+            "code_sha256": "103007c1ddc4f1fe8fad7904e19f7467c337454b543cf9ec59336c4a100c2600",
+            "asm_sha256": "c886615e57787b4ec1078a9acac33eafe587de5db3460025e41c5d36d545b71a",
+            "entry": [
+              "291c90: stp x29, x30, [sp, #-0x60]!",
+              "291c94: stp x28, x27, [sp, #0x10]",
+              "291c98: mov x29, sp",
+              "291c9c: stp x26, x25, [sp, #0x20]",
+              "291ca0: stp x24, x23, [sp, #0x30]",
+              "291ca4: stp x22, x21, [sp, #0x40]",
+              "291ca8: stp x20, x19, [sp, #0x50]",
+              "291cac: sub sp, sp, #0x900",
+              "291cb0: str xzr, [sp]",
+              "291cb4: ldr x22, [x0, #0x1bf8]",
+              "291cb8: mov x9, #0x7fffffffffffffff",
+              "291cbc: ldr x8, [x22, #0x10]"
+            ],
+            "static_call_sites": 254,
+            "selected_calls": []
+          },
+          {
+            "name": "answer_fresh_address",
+            "symbol": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+            "address": "0x310304",
+            "bytes": 1092,
+            "code_sha256": "890a700fb28dc385f332452e05dd24e0caedf24b53898b4091acfee34ce208b5",
+            "asm_sha256": "210b44420564da728100e38b5a6f849c0713323de6279799a90f6ef55258399e",
+            "entry": [
+              "310304: sub sp, sp, #0x120",
+              "310308: stp x29, x30, [sp, #0xc0]",
+              "31030c: stp x28, x27, [sp, #0xd0]",
+              "310310: stp x26, x25, [sp, #0xe0]",
+              "310314: stp x24, x23, [sp, #0xf0]",
+              "310318: stp x22, x21, [sp, #0x100]",
+              "31031c: stp x20, x19, [sp, #0x110]",
+              "310320: add x29, sp, #0xc0",
+              "310324: mov x21, x1",
+              "310328: mov x19, x0",
+              "31032c: mov w8, #1",
+              "310330: ldp x23, x24, [x29, #0x60]"
+            ],
+            "static_call_sites": 10,
+            "selected_calls": []
+          },
+          {
+            "name": "cached_address_is_unclaimed",
+            "symbol": "_RNvMs_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed",
+            "address": "0x31dc70",
+            "bytes": 528,
+            "code_sha256": "0cf165aa7c3401999c409fd2e99d02c3cc715b510c2cd7cf99e2af35cab1bea7",
+            "asm_sha256": "59ddf28fe42a8e454da63544ee3a23b1411e005a9ed4fbce790d3ea337fffb43",
+            "entry": [
+              "31dc70: ldr x8, [x0, #0x10]",
+              "31dc74: cbz x8, #0x31dc80",
+              "31dc78: mov w0, wzr",
+              "31dc7c: ret ",
+              "31dc80: sub sp, sp, #0x170",
+              "31dc84: stp x29, x30, [sp, #0x140]",
+              "31dc88: stp x28, x21, [sp, #0x150]",
+              "31dc8c: stp x20, x19, [sp, #0x160]",
+              "31dc90: add x29, sp, #0x140",
+              "31dc94: ldr x10, [x0, #0xb8]",
+              "31dc98: cbz x10, #0x31dcfc",
+              "31dc9c: ldrh w8, [x2, #0x18]"
+            ],
+            "static_call_sites": 4,
+            "selected_calls": []
+          },
+          {
+            "name": "answer_local_or_cached",
+            "symbol": "_RNvMsb_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+            "address": "0x2ac920",
+            "bytes": 4060,
+            "code_sha256": "de1b1f135aa433e664c7c2196f1b7f4f11c95dfd689835ea1ac3686f179bbd47",
+            "asm_sha256": "c9c201c7edeffce26e74cf8622677ecc556bb9c6ed1a9c0bac2fca2b394873c0",
+            "entry": [
+              "2ac920: stp x29, x30, [sp, #-0x60]!",
+              "2ac924: stp x28, x27, [sp, #0x10]",
+              "2ac928: mov x29, sp",
+              "2ac92c: stp x26, x25, [sp, #0x20]",
+              "2ac930: stp x24, x23, [sp, #0x30]",
+              "2ac934: stp x22, x21, [sp, #0x40]",
+              "2ac938: stp x20, x19, [sp, #0x50]",
+              "2ac93c: sub sp, sp, #0x210",
+              "2ac940: ldrb w25, [x29, #0x68]",
+              "2ac944: mov x27, x7",
+              "2ac948: mov x20, x6",
+              "2ac94c: mov x28, x2"
+            ],
+            "static_call_sites": 56,
+            "selected_calls": []
+          }
+        ],
+        "integration": [
+          {
+            "name": "poll_inner",
+            "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCslhjqNMUq7WX_10dnsmasq_rs",
+            "address": "0x2a5cc4",
+            "bytes": 528,
+            "code_sha256": "1090e6c852271feee97db915ceee200431eef87689662ab7bda63376da93c6e6",
+            "asm_sha256": "cf3931e8943bfe9ef7d7e29747142cb2d8dd1b790438504793fa345df37d7bac",
+            "entry": [
+              "2a5cc4: sub sp, sp, #0xe0",
+              "2a5cc8: stp x29, x30, [sp, #0x80]",
+              "2a5ccc: stp x28, x27, [sp, #0x90]",
+              "2a5cd0: stp x26, x25, [sp, #0xa0]",
+              "2a5cd4: stp x24, x23, [sp, #0xb0]",
+              "2a5cd8: stp x22, x21, [sp, #0xc0]",
+              "2a5cdc: stp x20, x19, [sp, #0xd0]",
+              "2a5ce0: add x29, sp, #0x80",
+              "2a5ce4: ldr x8, [x1, #0x708]",
+              "2a5ce8: mov x22, x4",
+              "2a5cec: mov x23, x3",
+              "2a5cf0: mov x25, x2"
+            ],
+            "static_call_sites": 10,
+            "selected_calls": [
+              {
+                "pc": "0x2a5d78",
+                "callee": "_RINvMs8_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver31poll_active_with_context_filterNCINvB2_16poll_with_filterNCNvMsb_NtB8_6daemonNtB2f_9DnsDaemon10poll_inner0E0ECslhjqNMUq7WX_10dnsmasq_rs"
+              },
+              {
+                "pc": "0x2a5e5c",
+                "callee": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon31finish_nonempty_upstream_eventsCslhjqNMUq7WX_10dnsmasq_rs"
+              }
+            ]
+          },
+          {
+            "name": "finish_nonempty_upstream_events",
+            "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon31finish_nonempty_upstream_eventsCslhjqNMUq7WX_10dnsmasq_rs",
+            "address": "0x2ae514",
+            "bytes": 5664,
+            "code_sha256": "fec4887a17f6903e53afcc03034d13ed331868d38eb8ea535b3e7fabf6693db4",
+            "asm_sha256": "4c981a0f0ee24ea270e0fb271a65bf06a035d763cfa8a0e301836c2636544eb2",
+            "entry": [
+              "2ae514: stp x29, x30, [sp, #-0x60]!",
+              "2ae518: stp x28, x27, [sp, #0x10]",
+              "2ae51c: mov x29, sp",
+              "2ae520: stp x26, x25, [sp, #0x20]",
+              "2ae524: stp x24, x23, [sp, #0x30]",
+              "2ae528: stp x22, x21, [sp, #0x40]",
+              "2ae52c: stp x20, x19, [sp, #0x50]",
+              "2ae530: sub sp, sp, #0x3a0",
+              "2ae534: ldp x26, x8, [x2, #8]",
+              "2ae538: mov w9, #0x60",
+              "2ae53c: ldr x10, [x2]",
+              "2ae540: mov x20, x0"
+            ],
+            "static_call_sites": 75,
+            "selected_calls": []
+          },
+          {
+            "name": "process_udp",
+            "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+            "address": "0x27a888",
+            "bytes": 4660,
+            "code_sha256": "6ca8eae6228742fafcc13e769024b715947914f64a49a38e14a4acd6119778d6",
+            "asm_sha256": "b2264165592306e3659563b85be530692043e7ab1a783e0be9fd3ac1f12adcc1",
+            "entry": [
+              "27a888: stp x29, x30, [sp, #-0x60]!",
+              "27a88c: stp x28, x27, [sp, #0x10]",
+              "27a890: mov x29, sp",
+              "27a894: stp x26, x25, [sp, #0x20]",
+              "27a898: stp x24, x23, [sp, #0x30]",
+              "27a89c: stp x22, x21, [sp, #0x40]",
+              "27a8a0: stp x20, x19, [sp, #0x50]",
+              "27a8a4: sub sp, sp, #0x3c0",
+              "27a8a8: ldr x9, [x0, #0x1bf8]",
+              "27a8ac: mov x20, x5",
+              "27a8b0: mov x21, x4",
+              "27a8b4: mov x19, x2"
+            ],
+            "static_call_sites": 73,
+            "selected_calls": []
+          },
+          {
+            "name": "poll_active_with_context_filter",
+            "symbol": "_RINvMs8_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver31poll_active_with_context_filterNCINvB2_16poll_with_filterNCNvMsb_NtB8_6daemonNtB2f_9DnsDaemon10poll_inner0E0ECslhjqNMUq7WX_10dnsmasq_rs",
+            "address": "0x25343c",
+            "bytes": 6260,
+            "code_sha256": "228836fe2a576e18289e0009f0d242ba8eb1c48e8e2a24b06bc4cd826779778b",
+            "asm_sha256": "ab86c64771cb00bf96ac14e45f0c6cb481cefcfe9c5227f4f2060b62e1026b9d",
+            "entry": [
+              "25343c: stp x29, x30, [sp, #-0x60]!",
+              "253440: stp x28, x27, [sp, #0x10]",
+              "253444: mov x29, sp",
+              "253448: stp x26, x25, [sp, #0x20]",
+              "25344c: stp x24, x23, [sp, #0x30]",
+              "253450: stp x22, x21, [sp, #0x40]",
+              "253454: stp x20, x19, [sp, #0x50]",
+              "253458: sub sp, sp, #0x3e0",
+              "25345c: stp x2, x0, [sp, #0x78]",
+              "253460: mov w0, #1",
+              "253464: mov x27, x1",
+              "253468: bl #0x3d80b8 ; _RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+            ],
+            "static_call_sites": 92,
+            "selected_calls": []
+          },
+          {
+            "name": "step",
+            "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll4step",
+            "address": "0x2969d0",
+            "bytes": 4692,
+            "code_sha256": "350bbb477cc1b9982ddd7f586993c043390a26d33b180ba26fe7e434eab5dc27",
+            "asm_sha256": "50e4156a37076ca9cd688765000121ce4f78eff788f1c2ba391339cdff493acf",
+            "entry": [
+              "2969d0: stp x29, x30, [sp, #-0x60]!",
+              "2969d4: stp x28, x27, [sp, #0x10]",
+              "2969d8: mov x29, sp",
+              "2969dc: stp x26, x25, [sp, #0x20]",
+              "2969e0: stp x24, x23, [sp, #0x30]",
+              "2969e4: stp x22, x21, [sp, #0x40]",
+              "2969e8: stp x20, x19, [sp, #0x50]",
+              "2969ec: sub sp, sp, #0x220",
+              "2969f0: ldr x22, [x0, #0x1bf8]",
+              "2969f4: mov x9, #0x7fffffffffffffff",
+              "2969f8: ldr x8, [x22, #0x10]",
+              "2969fc: cmp x8, x9"
+            ],
+            "static_call_sites": 86,
+            "selected_calls": []
+          },
+          {
+            "name": "answer_fresh_address",
+            "symbol": "_RNvMs0_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+            "address": "0x31034c",
+            "bytes": 1028,
+            "code_sha256": "7714d90f3d1a3e342c124b4363d3b79793c32e1eebd75aa2447a39a44a04f598",
+            "asm_sha256": "6fe7321f85e7091a10cf4e85a44b1b72152a2c0cd67002e7967e0e4bf901f4a1",
+            "entry": [
+              "31034c: sub sp, sp, #0xa0",
+              "310350: stp x29, x30, [sp, #0x40]",
+              "310354: stp x28, x27, [sp, #0x50]",
+              "310358: stp x26, x25, [sp, #0x60]",
+              "31035c: stp x24, x23, [sp, #0x70]",
+              "310360: stp x22, x21, [sp, #0x80]",
+              "310364: stp x20, x19, [sp, #0x90]",
+              "310368: add x29, sp, #0x40",
+              "31036c: ldp x10, x11, [x29, #0x60]",
+              "310370: ldrb w8, [x6, #0x217]",
+              "310374: tbnz w8, #0, #0x31044c",
+              "310378: ldr x12, [x6, #0x1d0]"
+            ],
+            "static_call_sites": 11,
+            "selected_calls": []
+          },
+          {
+            "name": "answer_address_with_writer",
+            "symbol": "_RNvMs0_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext26answer_address_with_writer",
+            "address": "0x314b04",
+            "bytes": 1148,
+            "code_sha256": "fb29e154db8343d4bdaee456bb0c109774f5e71e039b5dbf1ff994d953c8498f",
+            "asm_sha256": "c544a6d7d9189d06a96f4ec0e63c662a779ec8bbc1521a026f892d74054b4d5f",
+            "entry": [
+              "314b04: sub sp, sp, #0x120",
+              "314b08: stp x29, x30, [sp, #0xc0]",
+              "314b0c: stp x28, x27, [sp, #0xd0]",
+              "314b10: stp x26, x25, [sp, #0xe0]",
+              "314b14: stp x24, x23, [sp, #0xf0]",
+              "314b18: stp x22, x21, [sp, #0x100]",
+              "314b1c: stp x20, x19, [sp, #0x110]",
+              "314b20: add x29, sp, #0xc0",
+              "314b24: mov x21, x1",
+              "314b28: mov x19, x0",
+              "314b2c: mov w8, #1",
+              "314b30: ldp x23, x24, [x29, #0x60]"
+            ],
+            "static_call_sites": 11,
+            "selected_calls": []
+          },
+          {
+            "name": "single_fresh_address_id_with_hint",
+            "symbol": "_RNvMs4_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns5cacheNtB5_5Cache33single_fresh_address_id_with_hint",
+            "address": "0x30ffe4",
+            "bytes": 384,
+            "code_sha256": "af0c43a5e7be44ca8df88156b91a0047ac274a97480730202a8410cce32997e6",
+            "asm_sha256": "7d009549731404ac14679977247bdc9325517ac4f224a6cf84979410850affc1",
+            "entry": [
+              "30ffe4: cbz x5, #0x3100a8",
+              "30ffe8: ldr w8, [x5]",
+              "30ffec: tbz w8, #0, #0x3100a8",
+              "30fff0: ldr x8, [x5, #0x18]",
+              "30fff4: cmp x2, x8",
+              "30fff8: b.ne #0x3100a8",
+              "30fffc: ldr x8, [x5, #0x20]",
+              "310000: cmp x8, x1",
+              "310004: b.ne #0x3100a8",
+              "310008: ldr x8, [x5, #0x28]",
+              "31000c: ldr x9, [x1, #0x58]",
+              "310010: cmp x8, x9"
+            ],
+            "static_call_sites": 1,
+            "selected_calls": []
+          },
+          {
+            "name": "cached_address_is_unclaimed",
+            "symbol": "_RNvMs_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed",
+            "address": "0x31e170",
+            "bytes": 528,
+            "code_sha256": "b644f04ea3ebf755b23a6348fb07010d50e0443a27f26a9405eeb48a45272433",
+            "asm_sha256": "31fb5e1bbabcb946b447937011aad4792e2cfff856e18d9d86efe72f4ca0fbd9",
+            "entry": [
+              "31e170: ldr x8, [x0, #0x10]",
+              "31e174: cbz x8, #0x31e180",
+              "31e178: mov w0, wzr",
+              "31e17c: ret ",
+              "31e180: sub sp, sp, #0x150",
+              "31e184: stp x29, x30, [sp, #0x120]",
+              "31e188: stp x28, x21, [sp, #0x130]",
+              "31e18c: stp x20, x19, [sp, #0x140]",
+              "31e190: add x29, sp, #0x120",
+              "31e194: ldr x10, [x0, #0xb8]",
+              "31e198: cbz x10, #0x31e1fc",
+              "31e19c: ldrh w8, [x2, #0x18]"
+            ],
+            "static_call_sites": 4,
+            "selected_calls": []
+          },
+          {
+            "name": "answer_local_or_cached",
+            "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+            "address": "0x2ab55c",
+            "bytes": 3848,
+            "code_sha256": "ebc5ec11b793a74db35937d59f027eb319adc9ea659eddc13539bdffd654a2c9",
+            "asm_sha256": "876032b04c6599ae60f346109ea4d7caf1f131b8b9f426a656ab3b1899218fef",
+            "entry": [
+              "2ab55c: stp x29, x30, [sp, #-0x60]!",
+              "2ab560: stp x28, x27, [sp, #0x10]",
+              "2ab564: mov x29, sp",
+              "2ab568: stp x26, x25, [sp, #0x20]",
+              "2ab56c: stp x24, x23, [sp, #0x30]",
+              "2ab570: stp x22, x21, [sp, #0x40]",
+              "2ab574: stp x20, x19, [sp, #0x50]",
+              "2ab578: sub sp, sp, #0x1f0",
+              "2ab57c: ldrb w24, [x29, #0x68]",
+              "2ab580: mov x20, x6",
+              "2ab584: mov x23, x3",
+              "2ab588: mov x27, x1"
+            ],
+            "static_call_sites": 56,
+            "selected_calls": []
+          }
+        ]
+      },
+      "reused_local_control_receipt": {
+        "path": "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016/private/cached-hit-integration/inline-warm-cross-daemon/result.json",
+        "sha256": "adbaadf97c544535754cecfb3c7dc115be211d2e423ddc0f1e7c1906d902b938",
+        "scope": "Exact existing control ELF copied without rebuilding; same6ab source/flags/toolchain"
+      }
     }
   ],
   "retained_adverse_context": [
@@ -1256,8 +1682,8 @@
     "No independent integrated Linux/corpus qualification, canonical SDK, size-budget verdict, runtime/resource measurement or device timing.",
     "Local codegen changes are not CPU, IPC, cache-stall or global-stack evidence.",
     "Prior independent medians cannot be added; this combination has no measured performance result.",
-    "G-stage and warm6dad remain the execution priorities. No new remote inputs or timing selected for this source.",
-    "No new behavior repair or frozen-C comparator change; historical CNAME repair inherited from6ab is common to the controls."
+    "No new behavior repair or frozen-C comparator change; historical CNAME repair inherited from6ab is common to the controls.",
+    "Research source9e selected for preparation; execution requires original gates/SDK/signals/independent reviews and explicit resource handoff. No qualification or runtime result is inferred."
   ],
   "additional_local_inspection_of_prior_15e": {
     "elf_sha256": "9dea4eb4a5ffae2a88dac6bb0011271401ac604dc5baa5aeec761492076db75e",
@@ -1299,5 +1725,11 @@
       "48f921ce": "9a410c969f6a12bb3ec6e2e053cc1a323cfb854d1f3c4c1828a699a76357e119"
     },
     "review_scope": "Source-only root review; None initializes the array before borrowing; Some has no scratch access, allocation or destructor. No source, test or codegen rerun."
+  },
+  "selection": {
+    "reason": "Original G A53 stage50 now complete: ownfull/before122\u219294us discernible, ownfull/skip116\u2192110us inconclusive. Warm originalowner32 high-load gain plus send-lag adverse is independently reproduced; no additive cost or gain inference. Select one combined source for fresh screening rather than promote any small independent result.",
+    "queue": "Original five groups, canonical SDK, original standalone signals12+3+3 and actual independent reviews, then original native240 concurrently with G/9e device10, then originalowner32. A meaningful physical result still requires full44/original corpora and both110 qualification.",
+    "accepted_artifact_unchanged": "G185/9109",
+    "not_yet_run": "Any9e Linux test, SDK, performance or physical window; all actual remote fields remain absent."
   }
 }
