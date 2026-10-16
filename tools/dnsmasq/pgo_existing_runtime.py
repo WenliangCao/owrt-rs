@@ -49,7 +49,7 @@ try:
         builds[side] = built
     for key in ('source_files', 'source_digest', 'source_date_epoch', 'toolchain', 'features', 'opt_level'):
         assert builds[control_side][key] == builds[candidate_side][key], key
-    assert len(builds[control_side]['source_files']) == 179
+    assert len(builds[control_side]['source_files']) == plan.get('source_file_count', 179)
     assert sha(plan['training_profile']['path']) == plan['training_profile']['sha256']
     for side, identity in plan['artifacts'].items():
         folder = out / side
