@@ -1,0 +1,96 @@
+{
+  "status": "NO_SOURCE_BLOCKER_LOCAL_CODEGEN_VERIFIED_RUNTIME_PENDING",
+  "source": "99b519dca413754d19afd9baad825924b06bbf13",
+  "only_main_changed": true,
+  "restoring_clone_placement_reconstructs185_main": true,
+  "author_report_sha256": "327f44030b75bd61a5642f136d122e12bd12fba03286e4049fa54b8050fa6e08",
+  "codegen": {
+    "parent": {
+      "elf_sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+      "function_bytes": 1764,
+      "frame_bytes": 384,
+      "instructions": 441,
+      "calls": [
+        {
+          "address": "0x296460",
+          "target": "__aarch64_ldadd8_relax"
+        },
+        {
+          "address": "0x2966c0",
+          "target": "_RNvMs4_NtCshAPcPKfzgL5_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+        },
+        {
+          "address": "0x296764",
+          "target": "__aarch64_ldadd8_rel"
+        },
+        {
+          "address": "0x29683c",
+          "target": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9admit_udp"
+        },
+        {
+          "address": "0x296958",
+          "target": "__aarch64_ldadd8_rel"
+        },
+        {
+          "address": "0x296988",
+          "target": "__aarch64_ldadd8_rel"
+        }
+      ],
+      "full_assembly_bytes_match_elf": true
+    },
+    "borrow": {
+      "elf_sha256": "eefa59d1813f932ddcab9420d0a607def15dfade8f1d50e35b8d91f9b386ff5d",
+      "function_bytes": 1700,
+      "frame_bytes": 384,
+      "instructions": 425,
+      "calls": [
+        {
+          "address": "0x296690",
+          "target": "_RNvMs4_NtCsgKoFaadHkje_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+        },
+        {
+          "address": "0x2967f8",
+          "target": "__aarch64_ldadd8_relax"
+        },
+        {
+          "address": "0x296810",
+          "target": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9admit_udp"
+        },
+        {
+          "address": "0x29683c",
+          "target": "__aarch64_ldadd8_rel"
+        }
+      ],
+      "full_assembly_bytes_match_elf": true
+    }
+  },
+  "all_retained_test_logs_rehashed": true,
+  "author23_bin_tests_not_rerun": true,
+  "checks_receipt_sha256": "d2145a1449b0e28ff287507463eb645c012f00717cc25a3665ffd4db8eb82f3d",
+  "schema": "dnsmasq-udp-listener-borrow-independent-source-review-v1",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "author_evidence_commit": "8fc7d7af",
+  "review": [
+    "The listener Arc itself owns DnsSocket during fd_ready and receive; taking a temporary extra Arc is unnecessary for these borrowed synchronous operations. DnsSocket::receive returns owned scalar Incoming data and has no callback into listener ownership.",
+    "Between the first borrow and later clone, fd_ready reads ready_fds, M6b changes only counters, and invalidate_udp_resend changes daemon upstream resend state. None mutates self.listeners, its index/token or socket Arc. The mutable SinglePoll owner has no concurrent listener replacement during this call.",
+    "The new clone occurs after successful datagram receipt, existing EDNS size bound and len<12/QR rejection, but before admit_udp. Admission rejection still clones and drops as before; the change is not limited to accepted packets.",
+    "PendingInterfaces retains the same Arc in PendingUdpAdmission; accepted packets pass the same Arc to process_admitted_udp and deferredMAC work. No borrowed socket escapes into queued work.",
+    "All readiness/error/short/QR return values, WouldBlock resend preservation, consumed/discard/error resend invalidation, UDP16budget and later buffer take/restore are unchanged. Only unnecessary Arc increment/decrement on earlier returns is removed.",
+    "The product diff has no meter, timing, synthetic reply or feature gate and is separate from185and the other prototypes. Source restoration of the clone placement reconstructs185main.rs byte-for-byte."
+  ],
+  "codegen_review": {
+    "method": "Rehashed both final local ELFs and every retained test/build receipt. Independently matched all assembly row bytes to the full ELF function extents, decoded BL targets and checked stack allocation opcode and symbol sizes.",
+    "summary": "step_udp1764->1700bytes,441->425instructions, frame384unchanged. Parent Arc increment precedes receive; child increment follows packet checks and precedes admission. Static release sites3->1.",
+    "claims_limit": "Static sites are not dynamic operations/query. No exact185empty-receive frequency, SDK layout, CPU or latency benefit is established."
+  },
+  "validation_limits": [
+    "23author Mac bin tests and default/diagnostic musl checks were rehashed, not rerun by this review. Existing route-resend/fairness tests remain unchanged.",
+    "The local bundled-musl/rust-lld final ELF is not an OpenWrt SDK artifact; relatedLinux/full behavior/resource/performance gates remain pending.",
+    "No forced-repeat tests, new framework or remote workload was introduced."
+  ],
+  "Oracle_or_router_accessed": false,
+  "frozen185_modified": false,
+  "full_qualification_passed": false,
+  "performance_accepted": false,
+  "deployment": false
+}
