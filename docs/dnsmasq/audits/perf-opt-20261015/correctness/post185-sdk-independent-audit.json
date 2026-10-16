@@ -1,0 +1,277 @@
+{
+  "status": "PASS_EXACT_CANONICAL_SDK_IDENTITIES_STATIC_HARDENING_BUDGETS_AND_ORIGINAL_CONTROLS",
+  "scope": "Local downloaded-byte, Git, ELF and control audit; no builds, control reruns, router actions or Oracle access.",
+  "execution_plan_sha256": "3489608499a712c5a8fe513c0ccab05e5e35c1e1f3f33d7a18ae64526f0d578f",
+  "sequence_controller_sha256": "f20dac99e192853f75e3991b91aa5b0f40d60eaa61fd2ae580be0300b646a615",
+  "state_sha256": "37973de8f6d3064caa8f08a54e5d3896b078df7575e8ce65a7d1d00f0097e458",
+  "postflight_sha256": "3ec8ca2c030e07814db881d0f2420806db9fcd98366d26904bb0f6ecb514fee6",
+  "archive_sha256": "4aa8e193bc55136c2785020290508d51320e0f0a4c58b42392a70a717d4e4235",
+  "manifest_sha256": "1e23a6006b6698703100a52ff56282d2f6cd2d7d51e7a7ab6260b2076c72cde3",
+  "verified_archive_files": 47,
+  "verified_manifest_files": 46,
+  "original_six_commands_once_serial": true,
+  "builds": [
+    {
+      "name": "cached-zero-frame-allocation",
+      "source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+      "source_files": 180,
+      "build_receipt_sha256": "ac70dfed94ff3104affbcf72237a7e7f85e2c2327e9af850f60ac0f16daf410a",
+      "elf_sha256": "92ba1353bae3676771e417d2410eb7d642705a8ba86dd8b38a08f941807c21a5",
+      "elf_bytes": 2366235,
+      "map_sha256": "c06f68a763be3adbd4646d817bf902d4e6967b790b2320646282677f172208c8",
+      "APK": {
+        "name": "dnsmasq-2.93-r4.apk",
+        "bytes": 1264206,
+        "sha256": "0b1dfce0aab3c480593ac1ec9ca960e43ed761ebd1dd1c72c4a4b592d9d17960"
+      },
+      "budget": {
+        "elf_max_bytes": 2200000,
+        "apk_max_bytes": 1200000
+      },
+      "within_existing_budget": false,
+      "independent_raw_ELF_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false,
+        "program_headers": 7,
+        "dynamic_flags": null,
+        "dynamic_flags_1": 134217729
+      },
+      "prestrip_shipping_ALLOC_proof": {
+        "checked_non_TLS_ALLOC_sections": [
+          ".hash",
+          ".gnu.hash",
+          ".dynsym",
+          ".dynstr",
+          ".rela.dyn",
+          ".init",
+          ".text",
+          ".fini",
+          ".rodata",
+          ".eh_frame_hdr",
+          ".eh_frame",
+          ".gcc_except_table",
+          ".init_array",
+          ".fini_array",
+          ".data.rel.ro",
+          ".dynamic",
+          ".got",
+          ".data",
+          ".bss"
+        ],
+        "checked_TLS_zero_fill_sections": [
+          {
+            "name": ".tbss",
+            "size": 48,
+            "file_bytes": 0,
+            "zero_fill_verified_against_PT_TLS": true
+          }
+        ],
+        "identical_PT_TLS": [
+          [
+            7,
+            4,
+            2317016,
+            2321112,
+            2321112,
+            0,
+            48,
+            8
+          ]
+        ],
+        "defined_sized_functions": 0,
+        "zero_size_functions_unattributed": 0
+      },
+      "APK_payload_binding": "APK bytes independently rehashed. Payload binding uses the original canonical no-network APK extraction log and hash-bound payload manifest; no separate APK unpack was performed in this audit."
+    },
+    {
+      "name": "post185-combined",
+      "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+      "source_files": 179,
+      "build_receipt_sha256": "3d77809b0552a91f384248b9cc21aba17fab0d1d0776f2d401becc27d4e0859c",
+      "elf_sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+      "elf_bytes": 2145051,
+      "map_sha256": "3c92b784b606b5eb50a968e8605b6e88d17d04436a25dfec3fd6e2cdf4698cf5",
+      "APK": {
+        "name": "dnsmasq-2.93-r4.apk",
+        "bytes": 1167196,
+        "sha256": "37b2be86f7bd6955078400dbf089bb8e996a9a5705e86241774dbea56890fb76"
+      },
+      "budget": {
+        "elf_max_bytes": 2200000,
+        "apk_max_bytes": 1200000
+      },
+      "within_existing_budget": true,
+      "independent_raw_ELF_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false,
+        "program_headers": 7,
+        "dynamic_flags": null,
+        "dynamic_flags_1": 134217729
+      },
+      "prestrip_shipping_ALLOC_proof": {
+        "checked_non_TLS_ALLOC_sections": [
+          ".hash",
+          ".gnu.hash",
+          ".dynsym",
+          ".dynstr",
+          ".rela.dyn",
+          ".init",
+          ".text",
+          ".fini",
+          ".rodata",
+          ".eh_frame_hdr",
+          ".eh_frame",
+          ".gcc_except_table",
+          ".init_array",
+          ".fini_array",
+          ".data.rel.ro",
+          ".dynamic",
+          ".got",
+          ".data",
+          ".bss"
+        ],
+        "checked_TLS_zero_fill_sections": [
+          {
+            "name": ".tbss",
+            "size": 48,
+            "file_bytes": 0,
+            "zero_fill_verified_against_PT_TLS": true
+          }
+        ],
+        "identical_PT_TLS": [
+          [
+            7,
+            4,
+            2095952,
+            2095952,
+            2095952,
+            0,
+            48,
+            8
+          ]
+        ],
+        "defined_sized_functions": 0,
+        "zero_size_functions_unattributed": 0
+      },
+      "APK_payload_binding": "APK bytes independently rehashed. Payload binding uses the original canonical no-network APK extraction log and hash-bound payload manifest; no separate APK unpack was performed in this audit."
+    }
+  ],
+  "original_control_JSON_exact_and_all_vectors_recomputed": true,
+  "original_parser_tests": 4,
+  "host_control_not_SDK_runtime_evidence": true,
+  "source359_files_matched_named_Git_objects": true,
+  "accepted_G_triple_rehashed_unchanged": true,
+  "recipe_restoration_basis": "The unchanged canonical helper renames the existing recipe to a backup and restores it in finally. Build reports and retained postflight confirm restoration, no backup left, current two-file hashes and unchanged SDK inputs. No prebuild recipe hash snapshot exists; independent before/after byte equality is not claimed.",
+  "retained_setup_review_failures": {
+    "attempt1-postflight-command.stderr": "56e3701aaefdb927e2b5df5d3434ca2283442b06fdc514841ff1d2ff32496ffa",
+    "attempt1-prelaunch.stderr": "289fb0b80aa5b3405890aa6e5fcc845e36596a765d6628471d406bc67ea263e1",
+    "attempt2-launch.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt1-verify-post185-sdk-sequence.py": "630f051803582ca1d627c82b4379e67f6da6dd3dcb4f3667036e8a58df48d828",
+    "attempt1-launch.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt1-postflight-command.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt2-prelaunch.stderr": "f54955803e3c31aaf9383bdfbde4b8bc98182b24c96c4f1e12e1655937d5524a",
+    "download-local-extraction-attempt1.json": "92d8220b2884024e8abaf499cc1e17b97d7fd30dfa7400cb9ba8f9c2de0e3de9"
+  },
+  "no_build_or_control_repeated": true,
+  "runtime_hardening_verified": false,
+  "product6ab_within_original_budgets": true,
+  "diagnostic7c_exceeds_original_budgets_but_count_only": true,
+  "schema": "post185-sdk-independent-audit-v1",
+  "reviewer_TLS_correction": {
+    "status": "REVIEWER_ASSERTION_FAILED_NO_BUILD_OR_CONTROL_RERUN",
+    "script_sha256": "24634d56f4b1866a30070662829986112f6dd7c8aac9448c399fdce0ecc75df2",
+    "exception": "ValueError: C companion ALLOC section content changed: .tbss",
+    "cause": "Original C-only companion verifier treated SHF_TLS SHT_NOBITS as ordinary process LOAD bytes. Both Rust ELFs have identical prestrip/shipping PT_TLS: filesz 0, memsz 48, alignment 8. TLS zero-fill does not require the overlapping ordinary LOAD file range to contain zeros.",
+    "correction": "Keep original LOAD and all non-TLS ALLOC assertions; verify TLS NOBITS section against identical PT_TLS zero-fill extent.",
+    "failure_receipt_sha256": "a56905eb0040792e2ed3616db2464c6acdbd2bcc264d6636d60387643fd7c945",
+    "corrected_verifier_sha256": "482de84ed4d7df0c4577622a53eff561bc0281fce4611071f58027343b352b1e"
+  },
+  "retained_setup_failure_explanations": [
+    "Local launcher used str.read_bytes before unpack or build.",
+    "Overbroad process scan rejected an existing idle fakeroot service before unpack or build; retained PID 564010 was sleeping with zero CPU ticks and no children.",
+    "First postflight incorrectly required the original SDK recipe to be absent. Canonical helper restores a pre-existing recipe; final postflight verifies restoration and backup absence.",
+    "Local Python 3.9 rejected tar.extractall(filter=...). The same already hash-verified archive was extracted through exclusive regular-file writes."
+  ],
+  "original_control_semantics": {
+    "expected_json_sha256": "2b3f4a07c56a4f0269b00597be00821f0aa5c30d975b687f718a00d5a7ff87e8",
+    "cached": [
+      2,
+      2,
+      1,
+      72,
+      72
+    ],
+    "local": [
+      1,
+      1,
+      0,
+      8,
+      8
+    ],
+    "cached_owner_turn": [
+      1,
+      1,
+      3,
+      3,
+      1,
+      80,
+      80
+    ],
+    "mixed_owner_turn": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      8,
+      8
+    ],
+    "queries": [
+      0,
+      0,
+      1,
+      1,
+      0
+    ],
+    "histogram_nonzero": {
+      "2": 1
+    },
+    "nested_steps": 0,
+    "unscoped_classifications": 1,
+    "unscoped_is_deliberate_control": true,
+    "parser_tests": 4,
+    "runtime_or_performance_evidence": false
+  },
+  "hardening_scope": "Static shipping ELF program headers and dynamic tags only; runtime ASLR and RELRO enforcement are not independently verified.",
+  "plan_metadata_note": "The frozen plan retains preparatory built=false and projected-gate fields inside source entries. Actual results are the state/postflight/build receipts; the controller verifies the top-level actual 961 receipt and quiet gate.",
+  "qualification_scope": {
+    "count7c_original_controls_pass": true,
+    "count7c_release_or_performance_eligible": false,
+    "combined6ab_original_sdk_and_budget_pass": true,
+    "combined6ab_functional_and_performance_qualification_complete": false,
+    "accepted185_changed": false,
+    "deployment_authorized": false
+  },
+  "author_execution_commit": "06c689ac",
+  "reviewed_execution_plan_commit": "2624a40ba28ea6324fe8d8be7e358c18158db8b8",
+  "review_private_directory": "private/post185-sdk-review",
+  "raw_verified_result_sha256": "7b325699d9056cc9d6af225c155661741af91ec1d1f6f06012736ad3f7c6e303"
+}
