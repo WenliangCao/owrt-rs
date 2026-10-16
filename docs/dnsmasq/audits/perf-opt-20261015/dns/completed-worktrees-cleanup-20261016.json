@@ -16,14 +16,20 @@
     "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/docs/dnsmasq/audits/perf-opt-20261015/loop/summarize_cg_pmu.py",
     "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/private/cg-pmu-20261016",
     "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-correctness-20261015/private",
     "/Users/USER/Developer/owrt-perf-correctness-20261015/private/c-receive-diagnostic",
     "/Users/USER/Developer/owrt-perf-correctness-20261015/private/hot-text-group-signals",
     "/Users/USER/Developer/owrt-perf-correctness-20261015/tools",
+    "/Users/USER/Developer/owrt-perf-d1-count-20261016/private",
+    "/Users/USER/Developer/owrt-perf-d1-rules-d2-20261016/private",
+    "/Users/USER/Developer/owrt-perf-dual-family-20261016/private",
     "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_HOT_TEXT_GROUP_DEVICE_PLAN.json",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/private",
     "/Users/USER/Developer/owrt-perf-f-e-device-20261015/tools",
     "/Users/USER/Developer/owrt-perf-hot-text-group-20261016/tools",
     "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution",
     "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private",
     "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/clock-source",
     "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cpu-clock-capability",
     "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/launch-a53-hot-text-group.py",
@@ -36,6 +42,7 @@
     "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/verify-a53-hot-text-group.py",
     "/Users/USER/Developer/owrt-perf-opt-20261015/tools",
     "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/docs/dnsmasq/audits/perf-opt-20261015/dns/pgo-existing-runtime-plan.json",
+    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private",
     "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/pgo-existing-runtime-20261016",
     "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/tools",
     "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/tools/dnsmasq/pgo_existing_runtime.py",
@@ -1903,11 +1910,115 @@
       "private_regular_files": 10,
       "private_regular_bytes": 103832,
       "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-d1-empty-opt-flags-20261016",
+      "status": "removed",
+      "head": "4fca22ef03254b8a2b0f95fe4cd879565ea4caf0",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-d1-empty-opt-flags-20261016-20261016",
+      "original_branch": "perf/d1-empty-opt-flags-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Untimed reserve empty-OPT/AD/CD prototype; retained under its archive tag, not selected for measurement.",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-empty-opt-flags-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-empty-opt-flags-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-empty-opt-flags-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-empty-opt-flags-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "private_contents_rehashed_after_move": true,
+      "private_regular_files": 7,
+      "private_regular_bytes": 5895,
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-d1-inplace-20261016",
+      "status": "removed",
+      "head": "ba40be3a21005c8a4ec779c93f58535014fe2bba",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-d1-inplace-20261016-20261016",
+      "original_branch": "perf/dnsmasq-d1-inplace-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Completed 14-window mechanism screen; superseded by rule-aware D1 in J.",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-inplace-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-inplace-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-inplace-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-inplace-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "private_contents_rehashed_after_move": true,
+      "private_regular_files": 45,
+      "private_regular_bytes": 45345731,
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-d1-local-rules-20261016",
+      "status": "removed",
+      "head": "f675e9e076bb849f35a300e11bfab1cf39c1e34e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-d1-local-rules-20261016-20261016",
+      "original_branch": "perf/dnsmasq-d1-local-rules-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Local-rule coverage and semantic tests are incorporated into J; no remaining worktree input dependency.",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-local-rules-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-local-rules-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-d1-local-rules-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-d1-local-rules-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "private_contents_rehashed_after_move": true,
+      "private_regular_files": 11,
+      "private_regular_bytes": 107460,
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016",
+      "status": "removed",
+      "head": "05bfb529fa17c60df961091538a9ce557832431a",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-plain-cached-entry-20261016-20261016",
+      "original_branch": "perf/dnsmasq-plain-cached-entry-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Conservative entry prototype superseded by the ba40 in-place implementation and J.",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-plain-cached-entry-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-plain-cached-entry-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "private_contents_rehashed_after_move": true,
+      "private_regular_files": 110,
+      "private_regular_bytes": 53568438,
+      "obsolete_branch_deleted": true
     }
   ],
-  "removed_worktrees": 91,
-  "removed_obsolete_branches": 40,
-  "preserved_tags": 91,
+  "removed_worktrees": 95,
+  "removed_obsolete_branches": 44,
+  "preserved_tags": 95,
   "preserved_active_worktrees": [
     "/Users/USER/Developer/owrt-control-plane-rs",
     "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016",
@@ -1922,8 +2033,6 @@
     "/Users/USER/Developer/owrt-perf-content-slice-20261016",
     "/Users/USER/Developer/owrt-perf-correctness-20261015",
     "/Users/USER/Developer/owrt-perf-d1-count-20261016",
-    "/Users/USER/Developer/owrt-perf-d1-inplace-20261016",
-    "/Users/USER/Developer/owrt-perf-d1-local-rules-20261016",
     "/Users/USER/Developer/owrt-perf-d1-rules-d2-20261016",
     "/Users/USER/Developer/owrt-perf-dual-family-20261016",
     "/Users/USER/Developer/owrt-perf-f-e-device-20261015",
@@ -1936,7 +2045,6 @@
     "/Users/USER/Developer/owrt-perf-owner-clock-20261016",
     "/Users/USER/Developer/owrt-perf-pgo-opt2-20261016",
     "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016",
-    "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016",
     "/Users/USER/Developer/owrt-perf-post185-combined-20261016",
     "/Users/USER/Developer/owrt-perf-udp-idle-batch-20261015",
     "/Users/USER/Developer/owrt-perf-udp-local-owner-20261016",
@@ -1987,8 +2095,8 @@
     }
   ],
   "latest_batch": {
-    "removed": 1,
-    "worktrees_after": 32,
-    "scope": "Unselected D2+rules only; new dual-family and all active acceptance inputs preserved."
+    "removed": 4,
+    "worktrees_after": 29,
+    "scope": "Four completed D1/entry prototypes only; source tags and private/compiled evidence preserved. J, K dual-family, d1-count, PGO, device and correctness inputs remain active."
   }
 }
