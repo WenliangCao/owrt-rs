@@ -14,3 +14,20 @@ No performance claim follows from the removed call. A later compact-envelope
 revision must be assessed separately;803 and bare1df remain unchanged.
 
 [Full local receipt](shared-answer-opt-full-scan-local.json).
+
+## Compact reply-envelope follow-up
+
+Separate refinement961b7cf8 retains only udp_limit, OPT presence and DO in a
+private4B value. Signedness and RecordRef bytes are never consumed by these
+reply-envelope callers. Failed scans still remain absent and the cache caller
+rescans at its original boundary. TCP keeps its original delayed scan; none
+of this shares a scan with the differently configured forwarding/EDNS owner.
+
+Local725Mac/8ignored and musl all-target checks pass. The shared owner frame
+returns to the original624B, while code remains4060→4444B and the full local
+ELF grows384B. One UDP scan is removed; extra merge branches and TCP/fallback
+code effects remain. Keep this below803 and bare1df with no timing claim or
+remote preparation. The broad local symbol selector also matched an unrelated
+scan function in private output; it is excluded from the derived report.
+
+[Compact representation receipt](shared-answer-opt-compact-local.json).
