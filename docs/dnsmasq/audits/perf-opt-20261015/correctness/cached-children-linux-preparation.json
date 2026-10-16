@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "status": "LOCAL_INPUTS_PREPARED_NOT_UPLOADED_NOT_STARTED",
+  "scope": "Independent reply-buffer and local-frame children of0161; originalrunner and fourgroups only, no newgate/framework. Do not add eitherchild to0161qualification or active timing.",
+  "authorization": "Prepare locally now; do not upload or occupy Oracle during native/owner32screening. Wait for independent screen decision and a released idle slot before next action.",
+  "base_F": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+  "parent": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "candidates": {
+    "cached-reply-buffer": {
+      "commit": "03ace8ecaaf513847c43943bfd61c8826789bedf",
+      "input_dir": "private/cached-reply-buffer-linux-inputs",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-reply-buffer",
+      "identity_sha256": "9876ce4f97858a74af7d4fde84c4063a076cc6064e031d269a6e7be39bfcf3b7",
+      "manifest_sha256": "10313d89130fc3efc26c1d57b7c2897f29bbd26fa87a67c3c162c5a1a630672c",
+      "input_archive_sha256": "103c71ac8319c35ad642b1cff3464313b6449ed59302a1e21469136121c0a8ec",
+      "verified_inputs": 179,
+      "changed_files_against_parent": [
+        "components/dnsmasq/src/dns/cache_engine.rs",
+        "components/dnsmasq/src/dns/daemon_cache_tests.rs",
+        "components/dnsmasq/src/dns/service.rs",
+        "components/dnsmasq/src/dns/wire.rs",
+        "components/dnsmasq/src/main.rs"
+      ]
+    },
+    "cached-local-frame": {
+      "commit": "a8dcdacc9567b6f6fa4c2edc11445842db049587",
+      "input_dir": "private/cached-local-frame-linux-inputs",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-frame",
+      "identity_sha256": "e9804d413beabdfcd70b9ead2942b4d816efd290018f2578dbb8e32f363caa0d",
+      "manifest_sha256": "bf73f0bc493fd85137093c674f022e26f7b1e038c626a66118fcb1df515047e7",
+      "input_archive_sha256": "99c66461a655ec750db82c6972159c91f937c2d6d5c4da861d87dc3c39437399",
+      "verified_inputs": 179,
+      "changed_files_against_parent": [
+        "components/dnsmasq/src/dns/local.rs"
+      ]
+    }
+  },
+  "runner_sha256": "98770bcfa8b17d1563d35a69ad50ed9438b4f1b97c4b24a1436a5d9007860420",
+  "original_runner_sha256": "370d1b9687b8eef253fd8a3ca6d9f2e3d40efb9105bb7c8d234016ed209b7247",
+  "fixtures": {
+    "cached-reply-buffer": [
+      "dns::daemon::cache_tests::cached_local_shortcut_keeps_same_name_hosts_raw_and_rule_precedence",
+      "dns::daemon::cache_tests::cached_local_shortcut_expires_live_lease_before_cache_and_clock_rollback",
+      "dns::local::tests::query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names",
+      "dns::cache::tests::fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback",
+      "hosts::tests::retained_finite_and_immortal_lease_links_follow_exact_c_counterexample",
+      "dns::daemon::cache_tests::prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned",
+      "dns::daemon::cache_tests::prepared_udp_recycled_cache_replies_keep_wire_data_and_ownership",
+      "dns::cache_engine::tests::fresh_address_reply_matches_general_flags_ttl_limits_and_logging"
+    ],
+    "cached-local-frame": [
+      "dns::daemon::cache_tests::cached_local_shortcut_keeps_same_name_hosts_raw_and_rule_precedence",
+      "dns::daemon::cache_tests::cached_local_shortcut_expires_live_lease_before_cache_and_clock_rollback",
+      "dns::local::tests::query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names",
+      "dns::cache::tests::fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback",
+      "hosts::tests::retained_finite_and_immortal_lease_links_follow_exact_c_counterexample",
+      "dns::daemon::cache_tests::prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned"
+    ]
+  },
+  "affinity": [
+    2
+  ],
+  "nice": 10,
+  "build_jobs": 1,
+  "source_inputs_verified_total": 358,
+  "syntax_check": "ast.parse only; no imports/execution",
+  "raw_failure_and_fixture_evidence_preserved": true,
+  "uploaded": false,
+  "executed": false,
+  "full44_qualified": false,
+  "performance_accepted": false,
+  "deployment": false,
+  "evidence_limits": [
+    "03aceprepared allocation0/call is synchronous MacAPI count only; hot15doesnotrecycle replies and cannot screen its mechanism.",
+    "a8entry848\u2192384staticframe and fallbackcombined1168>848 are retained local crossELF codegen; not runtime,SDK, or generalized performance evidence."
+  ],
+  "local_preparation_directory": "private/cached-children-linux-gates",
+  "prepared_receipt_sha256": "57be7f75151a09473d5d8ee99e0d38dae616f4738065ca8906b443bee454b670"
+}
