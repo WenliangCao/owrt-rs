@@ -243,12 +243,11 @@ impl<'a> LocalAnswerer<'a> {
         lease_names: &mut Arc<LeaseNames>,
         now: i64,
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
-        mut cache: Option<&mut Cache>,
+        cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
         logging: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
-        let mut notices = QueryEvents::new(logging);
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
             || header.questions != 1
@@ -297,13 +296,6 @@ impl<'a> LocalAnswerer<'a> {
             interfaces,
         };
 
-        let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
-        let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
-        let mut owned = false;
-        let mut windows_filtered = false;
-        let mut preserve_negative_authority = true;
-        let mut cname_terminal = None;
-
         // CNAME processing runs before every other local record path in C.
         // Once an alias is found, its own address/TXT/etc. records are not
         // considered; the name is replaced with the terminal target and the
@@ -316,6 +308,71 @@ impl<'a> LocalAnswerer<'a> {
                 self.config.records.cnames.iter()
                     .any(|record| dotted_key_matches(&record.alias, &key))
             };
+        if !has_cname && class_in
+            && cache
+                .as_deref()
+                .is_some_and(|cache| {
+                    let (cname, lookup) = cache.inspect_name(&question.name, now);
+                    *name_lookup = lookup;
+                    cname
+                })
+        {
+            // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
+            // local records. Let CacheContext use that chain, including its
+            // RD/DO checks, instead of answering records at the alias owner.
+            // NXDOMAIN alone must not defer typed local answers: a newly
+            // published DHCP A can coexist with an older negative marker.
+            return Ok(None);
+        }
+        if !has_cname && class_in {
+            let address_kind = match question.rrtype {
+                TYPE_A => Some(Kind::Ipv4), TYPE_AAAA => Some(Kind::Ipv6), _ => None,
+            };
+            if address_kind.is_some_and(|kind| cache.as_deref().is_some_and(|cache| {
+                cache.single_fresh_address_id_with_hint(&question.name, kind, now, name_lookup.as_ref()).is_some()
+            })) && self.cached_address_is_unclaimed(question, dotted_name.as_deref(), leases) {
+                return Ok(None);
+            }
+        }
+        self.answer_local_records(query, header, question, lease_names, now, local_network,
+            cache, interfaces, logging, has_cname, dotted_name)
+    }
+
+    // Eligible fresh hits and cached CNAMEs have already returned. Keep record
+    // assembly out of the common ownership/expiry/name-inspection entry path.
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)]
+    fn answer_local_records(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        mut cache: Option<&mut Cache>,
+        interfaces: &super::interface_records::InterfaceRecords,
+        logging: bool,
+        has_cname: bool,
+        dotted_name: Option<Vec<u8>>,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let class_in = question.class == CLASS_IN;
+        let leases = LeaseView {
+            names: lease_names,
+            synth: &self.config.synth_domains,
+            now,
+            local_ttl: self.local_ttl,
+            local_network,
+            interfaces,
+        };
+        let mut notices = QueryEvents::new(logging);
+        let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
+        let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
+        let mut owned = false;
+        let mut windows_filtered = false;
+        let mut preserve_negative_authority = true;
+        let mut cname_terminal = None;
+
         if has_cname {
             let (local_owned, terminal) = add_cname_chain(
                 self.config,
@@ -331,30 +388,7 @@ impl<'a> LocalAnswerer<'a> {
             owned = local_owned;
             preserve_negative_authority = terminal.is_some();
             cname_terminal = terminal;
-        } else if class_in
-            && cache
-                .as_deref()
-                .is_some_and(|cache| {
-                    let (cname, lookup) = cache.inspect_name(&question.name, now);
-                    *name_lookup = lookup;
-                    cname
-                })
-        {
-            // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
-            // local records. Let CacheContext use that chain, including its
-            // RD/DO checks, instead of answering records at the alias owner.
-            // NXDOMAIN alone must not defer typed local answers: a newly
-            // published DHCP A can coexist with an older negative marker.
-            return Ok(None);
         } else if class_in {
-            let address_kind = match question.rrtype {
-                TYPE_A => Some(Kind::Ipv4), TYPE_AAAA => Some(Kind::Ipv6), _ => None,
-            };
-            if address_kind.is_some_and(|kind| cache.as_deref().is_some_and(|cache| {
-                cache.single_fresh_address_id_with_hint(&question.name, kind, now, name_lookup.as_ref()).is_some()
-            })) && self.cached_address_is_unclaimed(question, dotted_name.as_deref(), leases) {
-                return Ok(None);
-            }
             if let Some(name) = dotted_name.or_else(|| wire_to_dotted(&question.name)) {
                 let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
