@@ -35,19 +35,19 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "LOCAL PREPARATION ONLY; queuedafter803; exact1df actualLinux/SDK/review/release pending; no device action",
+  "status": "ACTUALBARE1DF SDK179/963 LOCALLY VERIFIED; actualindependentreview andmeasurementquiet pending; no device action",
   "scope": "Fresh acceptedG185 versus bare1df product A53ten UDP-hit exploratory comparison, not fullqualification or deployment.1df parentis6ab; versusG includes inherited6ab changes anddoesnot isolate addressinline alone.",
   "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
   "forbidden_substitution": "Onlyexact1df135dc; no210/849/2b/803 overlay, noinstrumentedcountELF, no reconstructedcombination.",
   "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
-  "related_linux_report_sha256": null,
-  "related_linux_verified_receipt_sha256": null,
+  "source_files_verified": 179,
+  "elf_sha256": "f7cde2e91c19d3aa535ef87078144acde965999163cbdd689bfff73ffa08b53d",
+  "elf_bytes": 2145051,
+  "map_sha256": "ea0bf7b17e529c33df54bd36dd90bbd52387f64551a4b0a5ba0c2bec43bb61bb",
+  "build_receipt_sha256": "04e582299d5e7a13002c36d37be421af3c651c4ec66eef15d80dfd8753a669f6",
+  "related_linux_report_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
+  "related_linux_verified_receipt_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
   "entry_sha256": "5405f8c84b0dbfede1baba2688d85b6676a13fc9d03f5e69461aa5208f34d0be",
   "artifacts": {
     "e": {
@@ -64,7 +64,7 @@
     },
     "inline-address-details": {
       "name": "a53-inline-address-details-artifact-inline-address-details",
-      "sha256": null
+      "sha256": "f7cde2e91c19d3aa535ef87078144acde965999163cbdd689bfff73ffa08b53d"
     }
   },
   "schedule": [
@@ -153,10 +153,9 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Keep803 priority andbind itscompletedarchive/restore plusappropriatequeuerelease beforeany1dfdeviceaction.",
-    "Freshoriginalrelated1dfLinux tests/actualreceipt andindependentreview; anticipated963 isnotPASS, retainall6ab names andexacttwoadded tests.",
-    "Exact1df originalopt3 SDK ELF/map/build and179source identity, unchangedELF/APKbudgets andactualSDKreview bound; nooverlayorartifactsubstitution.",
-    "Newfresh125shealth,originalproduction/slot/tool/offline/idle/recoverygates; originalten/W/direction/>8ticks, allraw,noautomaticreplacement."
+    "Actualindependentreview ofbare1df963 andcanonicalSDK beforefreshdevicehealth/staging.",
+    "Originalfresh125shealth+prod/slots/helper/offline/idle gates andfourimmutablecopies beforemeasurement.",
+    "DNSactualfinalmeasurementquiet+alltransfers+loopfinalready metadata thenoriginalten,unchangedfailure/archive/restore."
   ],
   "count_diagnostic_not_a_performance_control": true,
   "statistics": {
@@ -173,10 +172,20 @@
   ],
   "source_parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "anticipated_related_gate_passes": 963,
-  "actual_related_linux_tests_passed": null,
+  "actual_related_linux_tests_passed": 963,
   "actual_SDK_review": null,
-  "source_interaction_review": null,
-  "explicit_queue_release": null,
+  "source_interaction_review": {
+    "commit": "5ec04eed",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/inline-address-details-peer-review.json",
+    "sha256": "2ce4eb0fba6ea06354234c82ae15369536d19ec1bcdece15badc0253934c82ae",
+    "status": "PASS_CURRENT_CACHE_SOURCE_SEMANTICS_AND_LOCAL_COUNT_AUDIT"
+  },
+  "explicit_queue_release": {
+    "scope": "Actual803screens/audits release permits1dfsourcegates/SDK/staging; separateDNSfinalmeasurementrelease stillrequired inoperatorstart.",
+    "sha256": "a0e3fd07ea97490196da80eaad36cd852b18c463196e29cacd986d231a33ea39",
+    "local_path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/803-release-to-dns-bare1df.json",
+    "raw_status": "EXPLICIT_803_ALL_ORIGINAL_SCREEN_AUDITS_COMPLETE_AND_QUIET_RELEASE_TO_DNS_BARE1DF"
+  },
   "execution_selected": false,
   "queue": "803originalrelatedgates/profile2SDK/owner32 anddevice10 first. Onlyafter itsmeasurement/recoveryrelease andexact1df selection may1dfactualgates/SDK/independentreview/pretransfer/freshhealth proceed.",
   "source_preparation": {
@@ -217,5 +226,61 @@
   "projected_added_tests": [
     "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
     "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
-  ]
+  ],
+  "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-inline-address-details/dnsmasq-rs",
+  "related_linux_tests_passed": 963,
+  "related_linux_report_path": "private/perf-opt-20261015/sdk-inline-address-details/related-verified.json",
+  "related_linux_group_passed": {
+    "lib": 842,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
+  "sdk_local_verification_sha256": "1b681a6563e63dfd6fec8c5e080cda7e354090360639e35cdbca1ba13943788a",
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2145051,
+    "APK_bytes": 1167447,
+    "gate_unchanged": true
+  },
+  "device_plan_independent_review": {
+    "commit": "7efb9c2b",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/inline-address-details-screen-root-review.json",
+    "sha256": "7e9c1fafcbbdb38b95bd73b5467fc485b33be25b9dc2733b7f328e696a4b87d7",
+    "status": "PASS_DISABLED_BARE_1DF_NATIVE_OWNER_DEVICE_PREPARATIONS"
+  },
+  "source_interaction_review_sha256": "2ce4eb0fba6ea06354234c82ae15369536d19ec1bcdece15badc0253934c82ae",
+  "source_interaction_review_PASS": true,
+  "preceding_G_803_ten_archived_restored": true,
+  "preceding_G_803_ten": {
+    "result_commit": "69e2b4e9",
+    "report_sha256": "ebbcc065996b5ae8675cb4eb398a8aefc98fca3438c2ae3faa4ff78924012898",
+    "postflight_sha256": "a73e7ec962df6fd7c7a261c7989135fc24bd8ac9b753794e65c2deb1c36d5580",
+    "independent_audit_commit": "d6d779dc"
+  },
+  "collection_omission_evidence": {
+    "author_commit": "51e1ccf2",
+    "receipts": {
+      "related-collection-omission.json": "0b67c50a99f1491bbe7603950a86895ceddfa90ee08aff27491a29e6a65647c7",
+      "related-wrapper-supplement-download.json": "e3692568d0923890bd0ef10ef0123c6bed2a096f62e8b380c61f4143f343b967"
+    },
+    "scope": "Initialcollector omittedtwoactualwrapperfiles; originalsretained andsupplementdownloaded,nooriginaltests/SDK rerun."
+  },
+  "operator_local_preparation": {
+    "scope": "Originaltwo-phaseoperator pattern from803; measuremententry/sharedtools unchanged.",
+    "artifacts": {
+      "stage-a53-inline-address-details.py": "c58b3263ca9124dc607fb9b2933a340e8969bf5aedb284cf58589d9d6079a947",
+      "start-a53-inline-address-details.py": "1c4135fcb38513bdee5d70015777b3d86d4debca59c6cfb80ae046ea10491c63",
+      "verify-a53-inline-address-details.py": "656f7fa64b95b9bc0cf727426ebe889d65825380b81f63fea9829fc4203a4644",
+      "postflight-a53-inline-address-details.py": "ab15f11a25e29ec398ef5f27cfc27b2536ad50c15db89ec2395d3e3ed0abd65b",
+      "report-a53-inline-address-details.py": "a9967871deb6058b4f03e982ae883e4dcdedbb066ff04dd8e50e2d28d964a2ed"
+    },
+    "phase_boundary": "Afteractualindependentreview,fresh125health and4immutablecopies whileE/F slotsunchanged; stopbeforePopen. DNSfinalquiet+loopfinalmetadata then originalten.",
+    "preflight_or_windows_started": false
+  }
 }
