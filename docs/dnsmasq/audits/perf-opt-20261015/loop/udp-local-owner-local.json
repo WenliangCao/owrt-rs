@@ -1,0 +1,264 @@
+{
+  "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+  "source": "c95610c6",
+  "base_product": "99b519dca413754d19afd9baad825924b06bbf13",
+  "base_product_notes": "The recorded actual control worktree HEAD includes later docs only; exact local ELF hash reproduces the original99 build.",
+  "actual_build_sources": {
+    "parent": "704c86aa904db38739b23ad596b27ca7ef9dccde",
+    "rc": "c95610c6a496ce0d4bb867c62c42481f9bdd04d3"
+  },
+  "separate_fixture": "5038daf1 (=7c2708f6)",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/parent-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-80a1ae5deb778b64.rlib"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/rc-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-udp-local-owner-20261016/private/udp-local-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-aa58ba7732697549.rlib"
+      ],
+      "returncode": 0
+    }
+  ],
+  "outputs": {
+    "parent": {
+      "sha256": "eefa59d1813f932ddcab9420d0a607def15dfade8f1d50e35b8d91f9b386ff5d",
+      "bytes": 5022360
+    },
+    "rc": {
+      "sha256": "d16a47d1245a844b2889655cc4de75cc1149305fd0d1e7835a0371e9b5c85980",
+      "bytes": 5020664
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "step_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "address": "0x2963b4",
+        "bytes": 1700,
+        "code_sha256": "a593f89fd05dbdc1ad6e42d10071987a6e8626d8565170d51790b825dd88546d",
+        "asm_sha256": "2bdaf9af55975ad8a21ef12da3004c1f006b18e5bb8982b90b864aa677758e7d",
+        "outlined_atomic_calls": [
+          {
+            "pc": "0x2967f8",
+            "callee": "__aarch64_ldadd8_relax"
+          },
+          {
+            "pc": "0x29683c",
+            "callee": "__aarch64_ldadd8_rel"
+          }
+        ]
+      },
+      {
+        "name": "process_admitted_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20process_admitted_udp",
+        "address": "0x28e7f8",
+        "bytes": 3308,
+        "code_sha256": "e41b8c4f59cd70d3507b5e6dd7298a0e3efa3aff1c7a2ad3c57c79e160bdcb30",
+        "asm_sha256": "079e4ff0d53d0accd05f96523542511159340a4c8ebb99299903a078f6d7b843",
+        "outlined_atomic_calls": [
+          {
+            "pc": "0x28e84c",
+            "callee": "__aarch64_ldadd8_rel"
+          },
+          {
+            "pc": "0x28f484",
+            "callee": "__aarch64_ldadd8_rel"
+          }
+        ]
+      },
+      {
+        "name": "step_edns_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll13step_edns_udp",
+        "address": "0x27bb78",
+        "bytes": 884,
+        "code_sha256": "d369189069d4954d035f81467daa862edcbfa26df2718be207b6eaf883d253ae",
+        "asm_sha256": "001da40349329ca4f7f07e024b98e9beb5cef798cf82efee93327d5140d2a752",
+        "outlined_atomic_calls": [
+          {
+            "pc": "0x27bde0",
+            "callee": "__aarch64_ldadd8_relax"
+          }
+        ]
+      },
+      {
+        "name": "process_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "address": "0x278ecc",
+        "bytes": 4672,
+        "code_sha256": "a40db7e4018ba071fe378ba19e3dc13208c6781000733969a9e5d2a05a21b608",
+        "asm_sha256": "d5e45d7b62c6130ff8346137c6dac89df3855b1706cbee44d804c54d6ec28840",
+        "outlined_atomic_calls": [
+          {
+            "pc": "0x278f38",
+            "callee": "__aarch64_ldadd8_rel"
+          },
+          {
+            "pc": "0x279f40",
+            "callee": "__aarch64_ldadd8_rel"
+          }
+        ]
+      }
+    ],
+    "rc": [
+      {
+        "name": "step_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+        "address": "0x2965ec",
+        "bytes": 1700,
+        "code_sha256": "f141265699c0e4628d523953cc067c38bc52d3237c1ff9430e9e08d014f089f2",
+        "asm_sha256": "490a61ae37e60efe605ca9a6a1851cd0e99bce2425bee4518179d668b40e425c",
+        "outlined_atomic_calls": []
+      },
+      {
+        "name": "process_admitted_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20process_admitted_udp",
+        "address": "0x28ea40",
+        "bytes": 3300,
+        "code_sha256": "f5706666737be5e4f07eb629abaf4b2987b5e8169446f30644d406653dc4ac8a",
+        "asm_sha256": "97d91e3e24f1fc5967516bab818184ffdce6f955c2e8e635fb5ce4ddad0e1f48",
+        "outlined_atomic_calls": [
+          {
+            "pc": "0x28f6c4",
+            "callee": "__aarch64_ldadd8_rel"
+          }
+        ]
+      },
+      {
+        "name": "step_edns_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll13step_edns_udp",
+        "address": "0x27bdbc",
+        "bytes": 888,
+        "code_sha256": "9b0a701cc46dd098e853a68028b35e4a55852cbc8680f72015bf166b254fa89f",
+        "asm_sha256": "c4a0838bb55dab7bcb6e730f9b06dbd0faf47eeeba2984322530dcaba4dd7671",
+        "outlined_atomic_calls": []
+      },
+      {
+        "name": "process_udp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+        "address": "0x27911c",
+        "bytes": 4660,
+        "code_sha256": "41afe0bdcf39d5665c46b6c1e88d8e861676e448c5efb110e70a7e9a5ffb83df",
+        "asm_sha256": "07462dc2e6b0583a70fc0678d4b5b3649f8a4a855962ac0cd96deb09505d6f5a",
+        "outlined_atomic_calls": []
+      }
+    ]
+  },
+  "local_validation": {
+    "bin": {
+      "result": [
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.45s"
+      ],
+      "stdout_sha256": "b8eaff95c0f187f51557965af44c2cdddf47aacd529e43d5e167e23ad6e9162b",
+      "stderr_sha256": "0fd0dc63718cd48204451881b49d31011e21b6a4a573c8633958c64c9325bde1"
+    },
+    "musl": {
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.69s"
+      ],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e5b02d3253316f81c23faf8e504fe54b0eff2f28e436edd2bf0bc7f14aa37c8c"
+    },
+    "diagnostics": {
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.30s"
+      ],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "26f0bae4ea686a385a97ca31fd0636b15346f26fb1345d87aa2c6b39d9557563"
+    }
+  },
+  "remaining_atomic": "The one process_admitted_udp release site is in detect_loop config replacement, followed by Arc<DnsConfig>::drop_slow. It is retained; no whole-owner atomic-free claim.",
+  "limits": [
+    "Local final-codegen call sites, not runtime calls/query or a CPU measurement.",
+    "Only private UDP handles change; library/shared config/lease/interface/cache Arc stay unchanged.",
+    "No canonical SDK build or related Linux runtime qualification, and no addition to185 or a15."
+  ]
+}
