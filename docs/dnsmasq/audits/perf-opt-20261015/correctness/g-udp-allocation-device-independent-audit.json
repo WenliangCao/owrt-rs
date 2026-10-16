@@ -1,0 +1,429 @@
+{
+  "status": "PASS_FIXED_THREE_COUNT_WINDOWS_AND_RETAINED_RESTORATION_EVIDENCE",
+  "author_commit": "8c6e3ba0",
+  "author_result_sha256": "98916218cdf2d8794f4b30184398b66f24bd4dad763e90a8db1b8911d72f6e5d",
+  "original_verifier_result_byte_equivalent": true,
+  "archive_verification": {
+    "complete": true,
+    "scope": "Raw count windows verified; separate E/F postflight still required.",
+    "windows": 3,
+    "archives": {
+      "g-udp-allocation-r1-rust": {
+        "files": 44,
+        "sha256": "812f21f020be0809a56e49a0e6d966708e8036557ddc24db50fe9f6a367febca"
+      },
+      "g-udp-allocation-r2-rust": {
+        "files": 44,
+        "sha256": "f71fb178bdf5bd699f80685ebab5896adb2d0737a2a1e454591139793eec0c92"
+      },
+      "g-udp-allocation-r3-rust": {
+        "files": 44,
+        "sha256": "59207f55338c7b4cfb3fdf96ce0a0a80a40e88bcaf2e7d20dcdb3c8204f6197a"
+      }
+    },
+    "raw_files": 132,
+    "thread_samples": 95,
+    "cached_query_denominator_total": 15600,
+    "guard_samples": 131,
+    "qualified_guard_samples": 131,
+    "guard_tail_samples": 0,
+    "external_checks": 10,
+    "dns_samples": 53,
+    "http_samples": 24,
+    "minimum_available_memory_kib": 90716,
+    "guard_sha256": "1817a004dca468b35783aa1c69f35c61df22264371598b780468b312b4c2b036",
+    "identity_sha256": "807ddef3ef47bb05de64cabdfa012f9b1132f06f483129212c52f1f96e78732e",
+    "plan_sha256": "a433b67c8e8a4c6f32fa47fc20aab8635cb2254444f823d254f3dd3f03f02c88",
+    "progress_sha256": "22a143069da35f1b3d9661791dddf465dc9d154426f8622a12f710a0036f3570",
+    "complete_sha256": "1c6d360e59f31fdc52ca92fdcc9b2f5b083d999c754028148c15dbb4e0b30dc7",
+    "verifier_sha256": "1a2993794cd9e15af54fecfb0dad430276faf302a1c995d0e3b4c066190df877"
+  },
+  "cases": [
+    {
+      "label": "g-udp-allocation-r1-rust",
+      "raw_meter_sha256": "f310269adc7312386700896d0cd6302dc0aebb6908f98fa4a132d106ed2b5a2a",
+      "queries": [
+        13600,
+        800,
+        0,
+        5200,
+        0
+      ],
+      "step_totals": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          14434,
+          6429,
+          802,
+          526237,
+          184438
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          128,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "whole_owner_turns": [
+        [
+          801,
+          0,
+          18616,
+          23340,
+          1,
+          1478147,
+          1671711
+        ],
+        [
+          5199,
+          5200,
+          1,
+          0,
+          0,
+          128,
+          0
+        ],
+        [
+          800,
+          0,
+          14434,
+          6429,
+          802,
+          526237,
+          184438
+        ]
+      ],
+      "cached_histogram_nonzero": {
+        "0": 5199,
+        "1": 1
+      },
+      "cached_step_per_query": {
+        "alloc": 0.0001923076923076923,
+        "dealloc": 0.0,
+        "realloc": 0.0,
+        "requested_bytes": 0.024615384615384615,
+        "released_bytes": 0.0
+      },
+      "conditional_cached_only_turn_per_query": {
+        "alloc": 0.0001923076923076923,
+        "dealloc": 0.0,
+        "realloc": 0.0,
+        "requested_bytes": 0.024615384615384615,
+        "released_bytes": 0.0
+      },
+      "all_owner_turn_totals": {
+        "turns": 6800,
+        "cached_queries": 5200,
+        "alloc": 33051,
+        "dealloc": 29769,
+        "realloc": 803,
+        "requested_bytes": 2004512,
+        "released_bytes": 1856149
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "g-udp-allocation-r2-rust",
+      "raw_meter_sha256": "347f07ba26bff91dfadf4ebd2ce53c9c5bfcc19294cf502c76d2655a1076e9cd",
+      "queries": [
+        13486,
+        800,
+        0,
+        5200,
+        0
+      ],
+      "step_totals": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          14734,
+          6804,
+          804,
+          549795,
+          210332
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          128,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "whole_owner_turns": [
+        [
+          787,
+          0,
+          18310,
+          22959,
+          1,
+          1451853,
+          1643065
+        ],
+        [
+          5158,
+          5200,
+          1,
+          0,
+          0,
+          128,
+          0
+        ],
+        [
+          798,
+          0,
+          14734,
+          6804,
+          804,
+          549795,
+          210332
+        ]
+      ],
+      "cached_histogram_nonzero": {
+        "0": 5199,
+        "1": 1
+      },
+      "cached_step_per_query": {
+        "alloc": 0.0001923076923076923,
+        "dealloc": 0.0,
+        "realloc": 0.0,
+        "requested_bytes": 0.024615384615384615,
+        "released_bytes": 0.0
+      },
+      "conditional_cached_only_turn_per_query": {
+        "alloc": 0.0001923076923076923,
+        "dealloc": 0.0,
+        "realloc": 0.0,
+        "requested_bytes": 0.024615384615384615,
+        "released_bytes": 0.0
+      },
+      "all_owner_turn_totals": {
+        "turns": 6743,
+        "cached_queries": 5200,
+        "alloc": 33045,
+        "dealloc": 29763,
+        "realloc": 805,
+        "requested_bytes": 2001776,
+        "released_bytes": 1853397
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "g-udp-allocation-r3-rust",
+      "raw_meter_sha256": "e5f0dad786a861fc0bfde3b5e0e1caf496da34ba27bb2f76519a6fa4e57b357c",
+      "queries": [
+        13560,
+        800,
+        0,
+        5200,
+        0
+      ],
+      "step_totals": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          14411,
+          6400,
+          800,
+          524483,
+          182400
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          128,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "whole_owner_turns": [
+        [
+          802,
+          0,
+          18639,
+          23369,
+          1,
+          1479869,
+          1673733
+        ],
+        [
+          5178,
+          5200,
+          1,
+          0,
+          0,
+          128,
+          0
+        ],
+        [
+          800,
+          0,
+          14411,
+          6400,
+          800,
+          524483,
+          182400
+        ]
+      ],
+      "cached_histogram_nonzero": {
+        "0": 5199,
+        "1": 1
+      },
+      "cached_step_per_query": {
+        "alloc": 0.0001923076923076923,
+        "dealloc": 0.0,
+        "realloc": 0.0,
+        "requested_bytes": 0.024615384615384615,
+        "released_bytes": 0.0
+      },
+      "conditional_cached_only_turn_per_query": {
+        "alloc": 0.0001923076923076923,
+        "dealloc": 0.0,
+        "realloc": 0.0,
+        "requested_bytes": 0.024615384615384615,
+        "released_bytes": 0.0
+      },
+      "all_owner_turn_totals": {
+        "turns": 6780,
+        "cached_queries": 5200,
+        "alloc": 33051,
+        "dealloc": 29769,
+        "realloc": 801,
+        "requested_bytes": 2004480,
+        "released_bytes": 1856133
+      },
+      "thread_samples": 31
+    }
+  ],
+  "all_turn_totals": {
+    "turns": 20323,
+    "cached_queries": 15600,
+    "alloc": 99147,
+    "dealloc": 89301,
+    "realloc": 2409,
+    "requested_bytes": 6010768,
+    "released_bytes": 5565679
+  },
+  "correct_packets_including_prewarm": 18000,
+  "actual_cached_denominator": 15600,
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.906,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.558,
+    "dns_max_ms": 1.648,
+    "http_samples": 23,
+    "http_max_ms": 117.686,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "93193364443294fc34feb5185d1ef5f3e8bdb26f31414602a80303ae6d625f15",
+    "raw_sha256": "e5b28085de9bfa4789f0d5cc15e2b31ddc9f5c2ca7822ae4977d0b6c8b60ffee"
+  },
+  "fresh_health_file_receipt_sha256": "709f5c2a6f2f6faf408159f1838621d76ca341e2fb40b69f77460b3150c49ab0",
+  "runtime_safety_helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+  "postflight_sha256": "14d742d3987427e7ecdd4dd701a294ccdbb9ddead6b3321767986f15607e6514",
+  "retained_restore_E_F_and_production_identity_checked": true,
+  "postflight_available_memory_kib": 89408,
+  "prehealth_failure_sha256": "66c7509ec55ebb3ead77270215b5f2e2e2ec7dcd69c5ff2cff5f42a2ece732a8",
+  "prehealth_failure_limit": "Initial check=True exception and command retained in session, but first raw stdout/stderr were not separately saved. Follow-up raw output and exit127 establish unavailable stat; exact-mode numeric ls predicate then passed before collector/window/staging.",
+  "release_budget": {
+    "ELF_limit_bytes": 2200000,
+    "APK_limit_bytes": 1200000,
+    "ELF_bytes": 2366235,
+    "APK_bytes": 1264206,
+    "within_existing_budget": false,
+    "gate_unchanged": true,
+    "artifact_never_promoted": true,
+    "scope": "Count-onlyexcluded artifact; originalELF andAPK budget failures retained."
+  },
+  "zero_count_required": false,
+  "count_outcome": "Each fixed window has one cached-step allocation requesting128 bytes across5200 actual cached classifications; preserve nonzero outcome. Cached-only owner-turn means are a separate conditional statistic.",
+  "limits": [
+    "Exact G plus byte-reused global allocator meter is an independent instrumented diagnostic ELF; all CPU/latency and release-size acceptance are excluded.",
+    "Actual cached classification denominator includes cache hits during prewarm. It is not the 5000 timing denominator or a turn count.",
+    "Cached-step accounting includes receive/admission/process_udp/send and owned drops; it does not independently attribute allocation sites.",
+    "Whole-owner-turn categories cover normal wait/control and upstream work. no_packet means no classified incoming UDP request, not necessarily idle or EAGAIN.",
+    "Cached-only turn means are conditional. All-turn totals are reported separately and exclude initialization/report formatting/later teardown; they are not process-lifetime leak counts.",
+    "Bytes are successful allocator requested/released bytes, not physical footprint/RSS/USS. Realloc is reported separately.",
+    "Runtime uses reviewed8e33 safety/observed-outcome validation without120s or probe-count gates; freshhealth independently retains original125s/>=120s qualification.",
+    "No zero-count target, automatic replacement, selective retry or historical timing pooling. Exact C allocation counts are not measured."
+  ],
+  "reviewer_scope": "Local archived bytes and retained execution records only; no router/Oracle access, capture, test-window rerun or restoration action.",
+  "source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+  "diagnostic_ELF_sha256": "92ba1353bae3676771e417d2410eb7d642705a8ba86dd8b38a08f941807c21a5",
+  "map_sha256": "c06f68a763be3adbd4646d817bf902d4e6967b790b2320646282677f172208c8",
+  "build_receipt_sha256": "ac70dfed94ff3104affbcf72237a7e7f85e2c2327e9af850f60ac0f16daf410a",
+  "prehealth_success_sha256": "5aaf9bf6c4f86c3ac347da206255a3dcf8ddddf6d62337d6490b7bc088605c1d",
+  "preflight_sha256": "8dca5e94fbc580874ace03bdc7a779a4bd7cb53b02a909754ea8b5621787f965",
+  "preflight_shell_sha256": "96af46fd35f4937fded3225c5b12b4e778a40c24483c992eace368fc1dbeab55",
+  "stage_script_sha256": "cd3553c8e995a1a2ddf0ef76c1e5581d4c280c509078ce0877d20f34f59d7f07",
+  "schema": "g-udp-allocation-device-independent-audit-v1",
+  "review_verifier_sha256": "e3ea090dce98ee78b8e74a1ea5496af4d03d11029944cd2bdc6039c9a10e8cc2",
+  "original_verifier_adapter_sha256": "929c16dbcd2a7e56fb3bf2b97cd8a6ce4d3ff408e998584f85d59e8c7eb31ae4",
+  "adapter_changes": "Redirect only the derived verification output into reviewer private directory; replace SSH callable with a fail-closed sentinel. Original raw validators and returned verification bytes are unchanged.",
+  "postflight_evidence_limit": "Restoration checks are validated against retained exact controller and shell bytes, successful receipt and stdout, and local E/F artifacts. No independent new live device query was made."
+}
