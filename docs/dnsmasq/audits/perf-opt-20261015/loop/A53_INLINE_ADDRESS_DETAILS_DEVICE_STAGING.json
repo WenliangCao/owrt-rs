@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "status": "ORIGINAL_FRESH_HEALTH_AND_FOUR_IMMUTABLE_COPIES_COMPLETE_BEFORE_ANY_TIMING",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "source_parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "comparison_scope": "Fresh acceptedG185 versus bare1df product A53ten UDP-hit exploratory comparison, not fullqualification or deployment.1df parentis6ab; versusG includes inherited6ab changes anddoesnot isolate addressinline alone.",
+  "elf_sha256": "f7cde2e91c19d3aa535ef87078144acde965999163cbdd689bfff73ffa08b53d",
+  "source_files_verified": 179,
+  "original_slots_unchanged": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "stage_receipt_sha256": "2199bffccaefcee6413c86ec764cd149d3b1847daafb1902958613d12cc3ae11",
+  "stage_receipt": {
+    "scope": "Original operator preflight and four immutable source copies complete; no windows or slot changes started.",
+    "plan_sha256": "a025e97f660464fc0f586edfb8dcea4555c9992f5d8936f9ae1804b94a9b8c60",
+    "health_summary_sha256": "70b278a7a8bd778cb8aae3c62210d27ec4cf69d52193576f796ae037352ff643",
+    "preflight_sha256": "a98b57508c05c77635297a38a590ca5918d3fac15066da45ad2f571f996479da",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "original_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "script_sha256": "c58b3263ca9124dc607fb9b2933a340e8969bf5aedb284cf58589d9d6079a947",
+    "epoch": 1792139788.987183
+  },
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.553,
+    "dns_samples": 48,
+    "dns_p95_ms": 1.675,
+    "dns_max_ms": 2.766,
+    "http_samples": 24,
+    "http_max_ms": 74.505,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "17a2a606db458e461ceb4600f664b9d9cf5d4172ac089b8f90de7b9f7614e3d5",
+    "raw_sha256": "7d8a4b1d69a9f7dc9710eb5c4740a9dca27a8449ce9cd599aa34901b8fc008ce"
+  },
+  "available_memory_before_staging_kib": 89056,
+  "immutable_sources": {
+    "e": {
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "f": {
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "g": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    },
+    "inline-address-details": {
+      "sha256": "f7cde2e91c19d3aa535ef87078144acde965999163cbdd689bfff73ffa08b53d",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    }
+  },
+  "staged_bytes": 8563820,
+  "measurement_started_at_this_checkpoint": false,
+  "pending_before_start": "DNSactualfinalquiet/allnecessarytransfersreceipt andloopfinalready metadata,thenoriginalstart rechecksallprod/slot/identity/idle/memory gates."
+}
