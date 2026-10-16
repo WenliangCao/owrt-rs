@@ -1,0 +1,15 @@
+{
+  "status": "PASS_ORIGINAL_OWNER32_SMALLRAW_ARCHIVE_AND_ALL_LOCAL_MEMBER_BYTES",
+  "archive_sha256": "2d213fad9c7c96e1e014ebbcbb19ed1eec58df39e449845e9aa79aa59d8b966b",
+  "archive_bytes": 964559,
+  "collection_sha256": "89c4a2003f1ce3d164ab16f7b866cdf24c0e8843a6eaf6990981c2eab46a196a",
+  "local_files_rehashed": 1172,
+  "remote_retained_files": 192,
+  "retained_bins": 128,
+  "author_result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+  "postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+  "no_analysis_or_measurement_rerun": true,
+  "safe_regular_unique_members": true,
+  "root_authorized_parallel_DNS_transport": true,
+  "download_after_DHCP_safegap_and_correctness_quiet": true
+}
