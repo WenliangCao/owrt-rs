@@ -1,0 +1,142 @@
+{
+  "scope": "Unmeasured post185 combined preparation, local validation/counting only.",
+  "source": "6ab0f064",
+  "parent_combination": "a15d3ca2",
+  "new_separate_commits": {
+    "e74ee52f": "b65e9a9c written question validity reuse",
+    "6ab0f064": "c95610c6 private UDP Rc ownership"
+  },
+  "compiler_options": "Original185 release configuration; opt2 experiment not included.",
+  "validation": [
+    {
+      "label": "lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/mac",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "77ea8c68d2c9bda8702bf13db9906bf560f437dc1e2e1a8c0499ee6c19ce9f8d",
+      "stderr_sha256": "01578f58df4566f19837b1bee558afb4524ac7f79a562858afa0e46d7c42b948",
+      "result": [
+        "test result: ok. 725 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.90s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.52s"
+      ]
+    },
+    {
+      "label": "bin",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/mac",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "4933593235be1aa98a50682697b78353d16d9b8508e8fff4bf2de48837a2c400",
+      "stderr_sha256": "13ef1eba1f841d5d262345d134dfc601c81845398054e3a5b4361118038edd7e",
+      "result": [
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.31s"
+      ]
+    },
+    {
+      "label": "musl",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/musl",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e76071030563058f3247b192d30efa8281bbea740b2d94b8d6992bb55ee21934",
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.75s"
+      ]
+    },
+    {
+      "label": "diagnostics",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--features",
+        "m6b-diagnostics",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-post185-combined-20261016/private/post185-combined/musl",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "197e21bcb980ffc1cc9cf92b3241cdc8bcee8556a3dce7003b2591a923915760",
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.29s"
+      ]
+    }
+  ],
+  "counts": {
+    "probe_sha256": "89ebd83b5fbfda6e54e3dcdb59729f517d09995212131cdfb451b88b295e30a8",
+    "controller_sha256": "68b011b338915e63d0a9982ef8bae6d43b4816b7a5921de366820d9d82ec2d64",
+    "commands_sha256": "51a6b3a4591998fbdf68fa96c053c5a7efa4761090a493cf756368b7ebd7a50d",
+    "results": [
+      {
+        "side": "parent-185",
+        "operations": 8000,
+        "allocations": 8000,
+        "reallocations": 0,
+        "requested_bytes": 168000,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      },
+      {
+        "side": "combined",
+        "operations": 8000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 468800
+      }
+    ],
+    "scope": "Original64-live-lease prepared-UDP fixture;1000prewarm,8000actualqueries,explicitreplyrecycling; not whole-owner or CPU evidence."
+  },
+  "source_review": "ee6d24e8",
+  "linux_related_status": "Prepared five original groups, expected961 pending freshlisting/execution; no44/SDK/timing yet.",
+  "limits": [
+    "All small changes stay individually committed.",
+    "The earlier a15 source/prepared gate artifacts remain intact.",
+    "Performance selection waits for original110 acceptance and freshC185 profiling; no effects added or assumed."
+  ]
+}
