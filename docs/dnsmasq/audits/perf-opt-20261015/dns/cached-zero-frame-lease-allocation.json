@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "scope": "Local prepared-UDP allocation control with64 unrelated live DHCP names; no runtime performance measurement",
+  "baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "probe_sha256": "89ebd83b5fbfda6e54e3dcdb59729f517d09995212131cdfb451b88b295e30a8",
+  "controller_sha256": "a7d69f9e6b6458565a311cae021753e3384ffb68444c2e901e6bd51a9b1470dc",
+  "commands": [
+    {
+      "label": "accepted-E-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-accepted-e-readonly-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3759ed024b22b2b01d412572ae1866fc0e26dfb73f2e4eab86d41f7b781e929e"
+    },
+    {
+      "label": "accepted-E-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/accepted-E"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "accepted-E-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/accepted-E",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e990b2b7af7107c2c37034b967070fa98bf3e604995f6363a07fc29c1291d593",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "recycled-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "38b06c115878b978ec2ed1d21dd4316ed6fbe35f446eb5aba47d6f7e4ee0efb4"
+    },
+    {
+      "label": "recycled-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "--cfg",
+        "recycle_reply",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/recycled"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "recycled-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-lease-count/recycled",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "702332b7d6ea2b12aa3898d7c92eaff8971e6416097a3a0ae96499bc06a35798",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rows": [
+    {
+      "side": "accepted-E",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 0,
+      "requested_bytes": 2216000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "recycled",
+      "operations": 8000,
+      "allocations": 8000,
+      "reallocations": 0,
+      "requested_bytes": 168000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    }
+  ],
+  "binaries": {
+    "accepted-E": "091774f8c91d948d1ba9e1d906fbe5603a10badc77722a5ec8b463b43d8b7aa7",
+    "recycled": "5d775bf17c0a11e8b5dcaee82f2e1bca93b947de3103587d9a413bf29a3883d6"
+  },
+  "control": "Same800 cached names,70/30A/AAAA,1000prewarm,8000counted calls as prior prepared count; add64unrelated lease names expiring atsetup walltime+600. Counter implementation identical.",
+  "result": "E5allocations/277requested bytes per operation;185one/21B. Both checksum468800,realloc0,netlive0. The remaining name allocation is consistent with original lease expiry conversion, not a measured CPU attribution.",
+  "limits": [
+    "The zero-allocation claim is scoped to the original no-lease count fixture. A nonempty lease generation retains the expiry conversion.",
+    "Original name-specific sticky expiry/CNAME/reverse rules stay unchanged. No new product change or timing claim.",
+    "Local Mac synchronous API excludes sockets and owner work; not whole-query A53 counts."
+  ]
+}
