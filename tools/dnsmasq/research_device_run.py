@@ -21,7 +21,7 @@ def sha(path):
 
 
 def schedule(confirmation=None, residual=False, g_pgo_screen=False, residual_candidate='pgo',
-             d1_pgo_screen=False, local_rules_screen=False):
+             d1_pgo_screen=False, local_rules_screen=False, public_direct=None):
     windows = []
 
     def pair(group, number, rate, left, right):
@@ -32,6 +32,16 @@ def schedule(confirmation=None, residual=False, g_pgo_screen=False, residual_can
                             'measurement_seconds': 20,
                             'label': f'research-reset-{group}-r{number}-{side}'})
 
+    if public_direct:
+        left, cells = {
+            'c-j': ('exact-c', ((200, 5), (2000, 3))),
+            'v020-j': ('v020', ((200, 5),)),
+        }[public_direct]
+        for rate, pairs in cells:
+            for number in range(1, pairs + 1):
+                pair(f'public-{public_direct}-{rate}', number, rate, left, 'j-pgo')
+        return [{**row, 'measurement_seconds': 45 if row['rate'] == 200 else 20}
+                for row in windows]
     if d1_pgo_screen or local_rules_screen:
         aa_group = 'i-rules-aa95' if local_rules_screen else 'i-aa95'
         group = 'i-rules-next95' if local_rules_screen else 'i-d1-pgo95'
@@ -228,7 +238,7 @@ def prepare(bindings, out):
 
 
 def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo_screen=False,
-            residual_candidate='pgo', d1_pgo_screen=False, local_rules_screen=False):
+            residual_candidate='pgo', d1_pgo_screen=False, local_rules_screen=False, public_direct=None):
     baseline = json.loads(health_path.read_text())
     assert baseline['valid'] and baseline['elapsed_seconds'] >= 120
     artifacts = bindings['artifacts']
@@ -238,8 +248,8 @@ def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo
                          **{v['name']: v['sha256'] for v in bindings['new_tools'].values()}})
     assert not (out / 'progress.json').exists()
     original_schedule = schedule(confirmation, residual, g_pgo_screen, residual_candidate,
-                                 d1_pgo_screen, local_rules_screen)
-    group_helper = 'research_local_rules_group.sh' if local_rules_screen else 'research_device_group.sh'
+                                 d1_pgo_screen, local_rules_screen, public_direct)
+    group_helper = 'research_local_rules_group.sh' if local_rules_screen or public_direct else 'research_device_group.sh'
     assert group_helper in bindings['new_tools']
     if any(row['artifact'] == 'exact-c' for row in original_schedule):
         checks = [f'test "$(sha256sum {path} | cut -d " " -f 1)" = {digest}'
@@ -346,6 +356,8 @@ def main():
                            help='Fixed I/I two pairs then I/D1 five pairs; 95s measurement')
     selection.add_argument('--local-rules-screen', action='store_true',
                            help='Fixed public local-rule I/I and I/J screen using separate case/group')
+    selection.add_argument('--public-direct', choices=('c-j', 'v020-j'),
+                           help='Fixed public-rule exact C/J sixteen or v0.2.0/J ten windows')
     args = parser.parse_args(); bindings = json.loads(args.bindings.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     if args.prepare: prepare(bindings, args.out)
@@ -353,7 +365,7 @@ def main():
         if not args.health: parser.error('--health required for execution')
         execute(bindings, args.out, args.health, args.confirmation,
                 args.residual or args.residual_g_pgo, args.g_pgo_screen,
-                'g-pgo' if args.residual_g_pgo else 'pgo', args.d1_pgo_screen, args.local_rules_screen)
+                'g-pgo' if args.residual_g_pgo else 'pgo', args.d1_pgo_screen, args.local_rules_screen, args.public_direct)
 
 
 if __name__ == '__main__':
