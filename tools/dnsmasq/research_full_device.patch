@@ -9,7 +9,28 @@
      ('udp-miss', 'udp', 'miss', 200, 5, 20, 150),
      ('udp-mixed', 'udp', 'mixed', 200, 5, 20, 150),
      ('tcp-hit', 'tcp', 'hit', 200, 5, 20, 150),
-@@ -198,6 +198,7 @@
+@@ -189,6 +189,20 @@
+     ssh(f'if test "$(readlink /proc/{pid}/exe)" = {ROOT}/device_perf_guard && test "$(awk \'{{print $22}}\' /proc/{pid}/stat 2>/dev/null)" = {start}; then kill -TERM {pid}; fi', check=False)
+ 
+ 
++def tool_invalid(folder, errors):
++    if not errors or not (folder / 'client.json').exists() or not (folder / 'COMPLETE').exists():
++        return False
++    load = json.loads((folder / 'client.json').read_text())
++    phases = [load[key] for key in ('warmup', 'measurement')]
++    # Explicit generator loss only. DNS timeout/wrong/transport failure, crash,
++    # upstream failure and unclassified tool deadlines are never relabelled.
++    return (all(row['correct'] == row['sent'] and not any(row[key] for key in
++                ('timeout', 'wrong', 'transport_error')) for row in phases)
++            and any(row['scheduled_skipped'] for row in phases)
++            and set(errors) <= {'warmup error counters', 'measurement error counters',
++                                'warmup completion count', 'measurement completion count'})
++
++
+ def main():
+     parser = argparse.ArgumentParser()
+     parser.add_argument('--out', required=True, type=Path)
+@@ -198,6 +212,7 @@
      parser.add_argument('--scenes', nargs='*')
      parser.add_argument('--health-baseline', required=True, type=Path)
      parser.add_argument('--resume', action='store_true')
@@ -17,7 +38,7 @@
      args = parser.parse_args()
      # The helper also imports this module for its unchanged guard primitives.
      # Import only at execution time; its standalone baseline still pins 7c93.
-@@ -244,26 +245,28 @@
+@@ -244,26 +259,28 @@
      label = guard_label = None
      try:
          for scene in selected:
@@ -51,3 +72,18 @@
                                  raise RuntimeError('external health failed')
                              if not guard_check(guard) or time.monotonic()-started > 100:
                                  raise RuntimeError('guard unavailable or case deadline')
+@@ -276,11 +293,12 @@
+                     if exit_code:
+                         errors.append('controller exit ' + str(exit_code))
+                     row = {'label':label, 'scene':scene[0], 'round':round_number, 'side':side,
+-                           'valid':not errors, 'errors':errors, 'epoch':time.time()}
++                           'valid':not errors, 'errors':errors, 'epoch':time.time(),
++                           'tool_invalid':tool_invalid(folder, errors)}
+                     results.append(row)
+                     write(args.out / 'progress.json', results)
+                     print(json.dumps(row), flush=True)
+-                    if exit_code or failed.is_set():
++                    if exit_code or failed.is_set() or (errors and not row['tool_invalid']):
+                         raise RuntimeError('case or health failure')
+                     if row['valid']:
+                         # archive_run verified every local copy before progress
