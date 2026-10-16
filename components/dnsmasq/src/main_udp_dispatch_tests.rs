@@ -25,6 +25,14 @@ fn receive(socket: &UdpSocket) -> (Vec<u8>, SocketAddr) {
 
 impl Fixture {
     fn new() -> Self {
+        let mut fixture = Self::unstarted();
+        // Linux starts with ARP maintenance pending even without a neighbor
+        // service. Exercise the original startup turn before claiming idle.
+        fixture.owner.step().unwrap();
+        fixture
+    }
+
+    fn unstarted() -> Self {
         let upstream = UdpSocket::bind("127.0.0.1:0").unwrap();
         upstream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
         let mut config = DnsConfig::default();
@@ -284,4 +292,23 @@ fn udp_dispatch_real_wait_rejects_other_readiness_and_queued_work() {
     fixture.owner.wait_for_files().unwrap();
     assert!(fixture.owner.udp_only_wake.is_some(), "a future timer does not prevent UDP work");
     assert!(fixture.owner.take_udp_only_listener(Instant::now()).is_some());
+}
+
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[test]
+fn udp_dispatch_startup_wakeup_requires_the_original_full_turn() {
+    let mut fixture = Fixture::unstarted();
+    assert!(fixture.owner.arp_awake);
+    assert!(!fixture.owner.udp_dispatch_idle(Instant::now()));
+    fixture.owner.udp_only_wake = Some((SocketToken(1), None));
+    assert_eq!(fixture.owner.take_udp_only_listener(Instant::now()), None,
+        "an injected readiness witness must not bypass pending startup work");
+    fixture.owner.step().unwrap();
+    assert!(!fixture.owner.arp_awake, "the normal neighbor step drains startup work");
+    assert!(fixture.owner.udp_dispatch_idle(Instant::now()));
+    fixture.ready(&query("local.dispatch.test", 71));
+    assert!(fixture.owner.udp_only_wake.is_some());
+    fixture.owner.step().unwrap();
+    assert_eq!(Header::parse(&receive(&fixture.peer).0).unwrap().id, 71);
 }
