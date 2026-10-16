@@ -1,0 +1,275 @@
+{
+  "schema": "dnsmasq-cached-local-name-full11-preparation-v1",
+  "status": "LOCAL_PREPARATION_ONLY_FINAL_SDK_AND_SCREENS_PENDING",
+  "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "artifact": {
+    "elf_sha256": null,
+    "elf_bytes": null,
+    "map_sha256": null,
+    "build_receipt_sha256": null
+  },
+  "source_identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
+  "related_linux": {
+    "tests": 939,
+    "verified_receipt_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea",
+    "full44_pass": false,
+    "full_qualification_receipt_sha256": null
+  },
+  "authorization": "Root authorizes progression after independent accepted-E screens support continuation. Full functional qualification, final artifact binding, independent review and environment-specific launch/health/scheduling gates still precede each full110 execution. Current preparation executes nothing.",
+  "baseline_E": {
+    "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "elf_bytes": 2136859
+  },
+  "scenes": [
+    [
+      "udp-hit",
+      "udp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-miss",
+      "udp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-mixed",
+      "udp",
+      "mixed",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-hit",
+      "tcp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-miss",
+      "tcp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "dhcp-home6",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      6
+    ],
+    [
+      "dhcp",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      150
+    ],
+    [
+      "startup-small",
+      "life-startup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "config-small",
+      "life-config",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-small",
+      "life-hup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-large",
+      "life-hup",
+      999,
+      150,
+      20,
+      1000,
+      150
+    ]
+  ],
+  "full_correctness_required": [
+    "All ordinary and relevant ignored namespace/config/frozen-clock tests; explicit16 hosts_allocations and all original allocation-failure families",
+    "Canonical44 C differential families,68 registered/67 executed procedural steps with190 semantic requirements, frozen exactC",
+    "Daemon368 pairs/366 identical plus original2 C-invalid qualifiers,8 lifecycles and5 negative controls",
+    "F10all13/704observations plus original24 checker controls and approved PTR manifest",
+    "TCP upstream13conditions/50pairs plus7 original tool tests",
+    "Independent exact-source review and affected historical DNS regressions",
+    "Fresh same-source cache-answer corpus:764commands/164queries/382metric snapshots, original expectations",
+    "Fresh same-source transfer307 and stale1100 corpora with all cases/controls retained",
+    "Fresh same-source lease corpus:269commands/95queries/43dynamic lookups; preserve only the two already user-authorized UID/layout cases and raw comparator exit1, reject new/unclassified differences"
+  ],
+  "tool_snapshot": {
+    "local_directory": "private/cached-local-name-full-performance/tools",
+    "remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/tools-cached-local-name-full",
+    "files_sha256": {
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+      "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "m6a_loadgen.c": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+      "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "perf_opt_tables.py": "0e786b6f7ea02020c7c198220c3372f6df743e6a162785aa056e174d132a3269",
+      "perf_opt_device_group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
+    },
+    "source": "Unchanged successful F/E recovery1 tool snapshot; no imports, runners or performance work executed during preparation."
+  },
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "comparability": "Each environment has its own fresh110windows,5pairs/scene and exactE controls. Never pool Oracle/device, exploratory10, owner32, priorF or historicalE/B results.",
+  "accepted_increment_rule": "F_E_NEXT_ROUND later user-targeted increment: UDP-hit CPU/query distinguishably lower than acceptedE; report TCP hit; no discernible p50/p95/CPU regression anywhere across11scenes. Original resource/correctness gates remain; no repeat demand for majority11-scene improvements for this E-relative increment.",
+  "optional_original_B_N_claim": "Only if a direct original-deployed comparison is later requested: preserve separate freshB/0161whole11scene pairs and original majority rule. No historical transitive acceptance; this is not a third automatically scheduled matrix.",
+  "statistics": {
+    "metric": "median[min,max]",
+    "W": "max of each side full-range/median",
+    "discernibility": "abs(relative median delta)>W and>=4/5same direction",
+    "cpu": "all windows>=10ticks and median absolute tick delta>8",
+    "lifecycle_latency_resolution_ms": 1,
+    "p99_min_samples": 10000
+  },
+  "resource_gates": [
+    "Production exact file/live/PID-start and unchanged config; same netns/nice10/affinity, no production mutation/deployment",
+    "Available memory>=65536KiB; fresh>=120s guard health, thresholdceil(max(200,10*p95))<=700; HTTPSv4/v6 every30s",
+    "Retain RSS/RssAnon/RssFile/RssShmem/treeRSS/process/thread/treeFD/parentFD and all ranges; no RSS-to-USS claim, lifecycle values are readiness snapshots",
+    "No newly invented numeric relative-memory/FD allowance; retain frozen qualitative growth/resource review requirement",
+    "ELF<=2200000bytes; final0161ELF size/deltas and SDK features/allocator/hardening must be verified after build. No old8d572size binding."
+  ],
+  "tool_supplement": "Only after original110; exact evidence-based tool-invalid whole pair may be repeated once with original order/all tools/identities, both sides valid required. Product wrong/timeout/crash or unknown cause ineligible; no cherry-picking/favorable retries. Preserve original failures and selection map.",
+  "recovery": "No automatic health bypass or restart. Preserve STOP/failed attempt. Resume only unstarted schedule after independent ownership/identity/health recovery; no valid re-runs. Archive+manifest+hash+durable progress before remote pruning. Restore exact original stagedE/F only after no owned executables.",
+  "inputs_snapshot_root": "/Users/USER/Developer/owrt-perf-opt-20261015",
+  "inputs_snapshot_note": "inputs_sha256 binds the canonical coordinator working-tree contents at preparation time, not this older device branch; hashes remain the authority.",
+  "inputs_sha256": {
+    "docs/dnsmasq/audits/perf-opt-20261015/FROZEN.md": "cc74654b3076a67c8e0a2126efc839e18c0998effdc6c2f625be628dae8fb71a",
+    "docs/dnsmasq/audits/perf-opt-20261015/F_E_NEXT_ROUND.md": "89d7fbda79c8be285181f4e3799384b091e20997cbcc323276741faf2d99d25b",
+    "docs/dnsmasq/audits/perf-opt-20261015/F_E_LAUNCH_GATES.md": "47fed723553f8aaae6c9e8ecd2c5efd7a5ac0c54f3f4f65eb9901c96d6220bab",
+    "docs/dnsmasq/audits/perf-opt-20261015/FROZEN_TOOL_WINDOW_SUPPLEMENT.md": "cfb2b0c30f5aec3781f63e1850c5936558908bb3827276669503218ff79ca470",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/FROZEN_GATES.md": "d37639de2cbef5057886746ff30120b3e2af9f73e61f46a5a111bb28cbada186",
+    "docs/dnsmasq/PERF_DEVICE_20261014.md": "83a85577ee77e6a8dd2e8b0c9916cd5ad400df1cf663d8a070cb90300a612599",
+    "docs/dnsmasq/audits/perf-opt-20261015/dns/CACHED_LOCAL_NAME_PLAN.md": "edf6f9c1e6d31aa847a9bbdc9e270d0f2f4a2f03a0f05b77401e3a233598f2ac",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-local-name-linux-gates.json": "9bb66eb95167ad3ec4beffd9871940970961c01f84b5d685ec80f758cf92bedd"
+  },
+  "reused_device_preparation_sha256": "cf4aa5c87ad43ce2c32629e3407256a527ce511c88a09693b7f9884a8687e9fb",
+  "prepared_only": true,
+  "uploaded": false,
+  "executed": false,
+  "performance_accepted": false,
+  "deployment": false,
+  "matrices": [
+    {
+      "environment": "Oracle",
+      "comparison": "acceptedE/0161",
+      "windows": 110,
+      "execution_started": false,
+      "command": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/tools-cached-local-name-full/perf_opt_oracle_run.py",
+        "--out",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-cached-local-name-vs-e",
+        "--baseline",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e/dnsmasq-rs",
+        "--candidate",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name/dnsmasq-rs",
+        "--inputs",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/inputs-fe",
+        "--cpu",
+        "2"
+      ],
+      "analysis_command": [
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/tools-cached-local-name-full/perf_opt_analyze.py",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-cached-local-name-vs-e",
+        "/home/ubuntu/dnsmasq-perf-20261015/root/private/oracle-cached-local-name-vs-e-summary.json"
+      ],
+      "gates": "Exclusive Oracle timing interval, no overlapping builds/test gates/other timing; fresh output; copied tool snapshot and six original helperELFs rehashed; exactE/candidate identities checked. No --smoke and no scene omission."
+    },
+    {
+      "environment": "physicalA53",
+      "comparison": "acceptedE/0161",
+      "windows": 110,
+      "execution_started": false,
+      "owner": "DHCP device owner only",
+      "command": [
+        "python3",
+        "tools/dnsmasq/perf_opt_device_run.py",
+        "--out",
+        "private/perf-opt-20261015/cached-local-name-vs-e",
+        "--prefix",
+        "cached-local-name-vs-e",
+        "--c-hash",
+        "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "--rust-hash",
+        "__CACHED_LOCAL_NAME_ELF_SHA256_PENDING__",
+        "--health-baseline",
+        "private/perf-opt-20261015/health-cached-local-name-vs-e/summary.json"
+      ],
+      "analysis_command": [
+        "python3",
+        "tools/dnsmasq/perf_opt_analyze.py",
+        "private/perf-opt-20261015/cached-local-name-vs-e",
+        "private/perf-opt-20261015/cached-local-name-vs-e-summary.json"
+      ],
+      "gates": "Full qualification and exact artifact binding before existing live production/offlinebackup/rollback/health preflight. Stage acceptedE and0161 only in task slots through existing owner. No --scenes, no production install or flash."
+    }
+  ],
+  "local_preparation_directory": "private/cached-local-name-full-performance",
+  "prepared_recipe_sha256": "765bd0ed9e64c635c5e5fd40474f9384f321a3ffb1f71f304c5910d79fcce7fb",
+  "schedule_validation": {
+    "Oracle": {
+      "windows": 110,
+      "scenes": 11,
+      "pairs_per_scene": 5,
+      "original_alternating_order": true
+    },
+    "physicalA53": {
+      "windows": 110,
+      "scenes": 11,
+      "pairs_per_scene": 5,
+      "original_alternating_order": true
+    }
+  },
+  "verification": "Both complete schedules derived from originalSCENES; original copied tools parsed only. Canonical coordinator input hashes checked. No remote action or physical operation during preparation."
+}
