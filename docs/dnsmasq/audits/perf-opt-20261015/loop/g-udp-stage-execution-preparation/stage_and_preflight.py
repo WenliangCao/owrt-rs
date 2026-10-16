@@ -17,7 +17,9 @@ source = root / 'root/source-g-udp-stage'
 release_path = root / 'correctness/private/owner-ready-frames-release-to-root.json'
 release_sha = '7420a7cc401c2a28b6d14f1c38b400f050aee155d9f7133e156e2ce30bd66c8d'
 assert sha(release_path.read_bytes()) == release_sha
-assert not inputs.exists() and not source.exists()
+resume_source = len(sys.argv) == 3 and sys.argv[2] == '--resume-owned-extracted-source'
+assert not inputs.exists()
+assert source.is_dir() and not source.is_symlink() if resume_source else not source.exists()
 raw = sys.stdin.buffer.read()
 assert sha(raw) == sys.argv[1]
 with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as tar:
@@ -81,9 +83,20 @@ with tarfile.open(fileobj=io.BytesIO(files['source.tar.gz']), mode='r:gz') as ta
         path = PurePosixPath(member.name)
         assert not path.is_absolute() and '..' not in path.parts and (member.isfile() or member.isdir())
         assert member.mode in (0o644, 0o755)
-    source.mkdir()
+    if resume_source:
+        assert {str(p.relative_to(source)) for p in source.rglob('*') if p.is_file()} == {m.name for m in members if m.isfile()}
+        assert all(not p.is_symlink() for p in source.rglob('*'))
+    else:
+        source.mkdir()
     for member in members:
         target = source / member.name
+        if resume_source:
+            assert target.stat().st_mode & 0o777 == member.mode
+            if member.isfile():
+                assert target.read_bytes() == tar.extractfile(member).read()
+            else:
+                assert target.is_dir()
+            continue
         if member.isdir():
             target.mkdir(parents=True, exist_ok=True)
         else:
@@ -103,7 +116,8 @@ for name, digest in plan['source_files'].items():
 for name, digest in plan['original_tools'].items():
     assert sha((source / name).read_bytes()) == digest
 assert os.access(source / 'tools/dnsmasq/perf_opt_map_cc.py', os.X_OK)
-(source / 'private').mkdir(exist_ok=False)
+(source / 'private').mkdir(exist_ok=True)
+assert (source / 'private').is_dir() and not (source / 'private').is_symlink()
 inputs.mkdir()
 for name, data in files.items():
     (inputs / name).write_bytes(data)
@@ -122,6 +136,7 @@ receipt = {'status': 'PASS_EXACT_G_STAGE_SOURCE_AND_ORIGINAL_GATE_PREFLIGHT', 'e
            'state_sha256': sha((inputs / 'state.json').read_bytes()), 'root_quiet_sha256': release_sha,
            'research': research, 'locks_available': locks, 'source_owner_uid': source.stat().st_uid,
            'original_tools': plan['original_tools'], 'build_test_or_measurement_started': False}
+receipt['resumed_only_exact_owned_extracted_source'] = resume_source
 path = inputs / 'preflight.json'
 path.write_text(json.dumps(receipt, indent=2) + '\n')
 os.chown(path, account.pw_uid, account.pw_gid)

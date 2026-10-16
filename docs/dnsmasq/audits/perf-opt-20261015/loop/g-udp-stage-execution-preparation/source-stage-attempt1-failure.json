@@ -1,0 +1,11 @@
+{
+  "stage": "Remote source staging afterall180hashes checked,beforeinputs/state/build",
+  "error": "FileExistsError: frozenGitarchive already includes source/private directory, whilepreflight mkdir wronglyrequiredabsence.",
+  "source_or_test_code_changed": false,
+  "source_archive_extracted_and_input_hashes_verified": true,
+  "input_state_created": false,
+  "gate_or_build_started": false,
+  "failure_before_chown": true,
+  "first_script_sha256": "17935b8bc1997c0ffb81de2adc4640adedcda119dc8b577575cfb4ef660c4a68",
+  "epoch": 1792146420.009985
+}
