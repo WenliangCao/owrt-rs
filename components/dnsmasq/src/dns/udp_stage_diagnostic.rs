@@ -58,10 +58,12 @@ pub fn answer_in_place(buffer: &mut [u8], query_length: usize) -> Option<usize> 
 }
 
 #[inline(never)]
-pub fn owned_answer(packet: &[u8]) -> Vec<u8> {
-    // Match the ordinary PacketWriter's initial128-byte allocation rather
-    // than changing this one remaining allocation's size class as well.
-    let mut answer = Vec::with_capacity(128);
+pub fn owned_answer(packet: &[u8], local: &mut super::service::LocalDnsService) -> Vec<u8> {
+    // G takes this same buffer for fresh cached answers and returns it after
+    // the final send. Preserve that lifecycle in this diagnostic cut too.
+    let mut answer = std::mem::take(&mut local.cached_reply_buffer);
+    answer.clear();
+    answer.reserve_exact(128);
     answer.extend_from_slice(packet);
     answer.resize(60, 0);
     let size = answer_in_place(&mut answer, packet.len()).expect("selected diagnostic packet");
@@ -87,11 +89,19 @@ mod tests {
     }
     #[test]
     fn synthetic_replies_match_the_fixed_input_and_address_contract() {
+        let mut local = super::super::service::LocalDnsService::new(
+            crate::config::dns::DnsConfig::default(), crate::hosts::Hosts::new(), 0, 1232,
+        );
+        let mut retained = None;
         for index in 0..800 {
             for rrtype in [1,28] {
                 let query = query(index,rrtype);
                 assert!(eligible(&query));
-                let answer = owned_answer(&query);
+                let answer = owned_answer(&query, &mut local);
+                if let Some(pointer) = retained {
+                    assert_eq!(answer.as_ptr(), pointer, "the next cut must reuse the returned buffer");
+                }
+                assert_eq!(answer.capacity(), 128);
                 let header = Header::parse(&answer).unwrap();
                 assert_eq!(header.id,0x1234); assert_eq!(header.answers,1); assert_eq!(header.rcode(),0);
                 let question = Question::parse(&answer,12).unwrap();
@@ -101,6 +111,8 @@ mod tests {
                 assert_eq!(record.name().unwrap(),question.name); assert_eq!(record.end,answer.len());
                 let expected: &[u8] = if rrtype==1 { &[192,0,2,1] } else { &[0x20,0x01,0x0d,0xb8,0,0,0,0,0,0,0,0,0,0,0,1] };
                 assert_eq!(record.rdata,expected);
+                retained = Some(answer.as_ptr());
+                local.recycle_cached_reply(answer);
             }
         }
         assert!(!eligible(&query(800,1))); assert!(!eligible(&query(0,16)));

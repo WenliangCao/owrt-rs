@@ -5297,7 +5297,8 @@ impl SinglePoll {
                 use dnsmasq_rs::dns::udp_stage_diagnostic as stage;
                 if stage::selected(stage::Mode::BeforeAnswer, packet) {
                     stage::record_cut(stage::Mode::BeforeAnswer);
-                    Some((stage::owned_answer(packet), false))
+                    cached_reply = true;
+                    Some((stage::owned_answer(packet, local), false))
                 } else { match daemon.answer_udp_prepared_with_local(
                     packet,
                     decorated.as_deref().unwrap_or(packet),
