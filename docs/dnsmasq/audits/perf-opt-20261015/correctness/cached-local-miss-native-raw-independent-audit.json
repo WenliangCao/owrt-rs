@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "status": "PASS_ALL578_RAW_FILES_AND90_GROUPED_PMU_REPARSED",
+  "scope": "Local-only supplement to prior metadata/statistics audit after ownerreleased timing and loopdownloaded originalraw. No rerunornewmeasurement.",
+  "original_metadata_audit_sha256": "03f79158a89026e93dd5fc87a05d7e22bb63010d671363e0cf25b7a0b091edc3",
+  "result_sha256": "dd81b34e96a63ac9b7e7d7438dc369778744b2ba3d56da29f5f75acf3aa67c6a",
+  "transfer_receipt_sha256": "7f00ff0c80a1dc342b89e6082914ebed7087657d93cb1156f62c2ba49e6ba847",
+  "archive_sha256": "586d9d2fbe236389d2b9fae87934120e3061ab672dcf6213f763305e45f6026a",
+  "archive_bytes": 18784,
+  "raw_files": 578,
+  "raw_bytes": 211944,
+  "all_archive_members_local_files_and_original_command_hashes_match": true,
+  "all240_probe_JSON_outputs_match_recorded_fields": true,
+  "all150_plain_stderr_empty": true,
+  "grouped_PMU_runs_reparsed": 90,
+  "all90_actual_stderr_twoevents_inherit_useronly_samePID_samegroup": true,
+  "all90_actualCSV_unscaled_samewindow_counts_andIPC_match": true,
+  "original15scene_6gain_4regression_5within_decisions_unchanged": true,
+  "limits": [
+    "NativeprobeELF/rlibbytesarenotinthisrawtransfer; theirhashes remainboundinoriginalbuildreceipt.",
+    "GroupedPMUuseronly and wholeprocesssetupinclusiveCPU scopesremain. NoSDK/deviceacceptanceinference."
+  ],
+  "audit_script_sha256": "75a336f10d7fdb1418371dc3ebac0844b097025f7236393321afc359e6a9bcd4",
+  "private_receipt_sha256": "18ff81b4108b4e5223cc84e710806037af54402ce816a3e8bc6974a4ea657133",
+  "original_metadata_report": "cached-local-miss-native-independent-audit.json",
+  "original_metadata_report_sha256": "bb423dd4f0cc93c45964708310bdd98c08ea6b45535f7ca17ed0a3ce352d84d0"
+}
