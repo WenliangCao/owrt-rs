@@ -49,7 +49,9 @@ fn insert(cache: &mut Cache, counters: &mut CacheCounters, record: Record) -> En
 }
 
 fn fixture(owner: &Name, rrtype: u16, policy: Policy) -> (Cache, CacheCounters, LocalDnsService) {
-    let mut cache = Cache::new(4, policy);
+    // C permits at most capacity/10 long names; keep the boundary fixture insertable.
+    let capacity = if owner.dnsmasq_bytes_len() >= 75 { 10 } else { 4 };
+    let mut cache = Cache::new(capacity, policy);
     let mut counters = CacheCounters::default();
     insert(&mut cache, &mut counters, address(owner.clone(), rrtype, 7));
     for index in 0..3 {
