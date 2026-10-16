@@ -123,7 +123,12 @@
     "actual_capture_repeated": false,
     "local_record": "private/query-shape-validation-20261017/attempt1-failure.json"
   },
-  "transport": "Artifact retained on Oracle; download and device sampling await device operator restoration gap.",
+  "transport": {
+    "status": "Downloaded in confirmed J118 restoration gap; local SHA256 matches tested artifact.",
+    "local_artifact": "/Users/USER/Developer/owrt-perf-opt-20261015/private/query-shape-validation-20261017/query-shape-stats",
+    "same_artifact_sha256": "0eab970fd8f27846167c4f8df98ffccfec9582001e7768048175c7bc63698101",
+    "all_bulk_finished": true
+  },
   "limitations": [
     "UDP query shape, not cache hit or D1 selection observability.",
     "The fixed public health name is excluded; TCP counters represent segments, not queries."
