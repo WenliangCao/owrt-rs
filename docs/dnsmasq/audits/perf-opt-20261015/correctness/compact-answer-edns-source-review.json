@@ -1,0 +1,82 @@
+{
+  "schema": "compact-answer-edns-source-review-v1",
+  "status": "PASS_SOURCE_ONLY_COMPACT_SAME_QUERY_EDNS_ENVELOPE_EQUIVALENCE",
+  "source_commit": "961b7cf8626e9c2a9200e7799f83a3d054c4ddd2",
+  "comparison_base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "superseded_full_scan_source_commit": "bdfcc382380b0d05c6a1a2e4bdba7a23bd0714d4",
+  "changed_files": [
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/service.rs"
+  ],
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/cache_engine.rs": "600f5d617ff3b114e9bb25e86e54fb2612d0d633982fc84281ca93978553f869",
+    "components/dnsmasq/src/dns/daemon.rs": "8028196d5b065c0c1bcd94e599f0f49d8f37a6f87cec9a682e5eda538d6b9533",
+    "components/dnsmasq/src/dns/service.rs": "7afcbd0e7cc5e43a0aa5312d8356c5114ec491c8a58b1f2198b7fc01193f904e"
+  },
+  "product_diff_sha256": "27cbc860f8986f33db489efab97e42f81225a292b8e5a864e0a8baac1c44463f",
+  "exact_reverse_substitutions_restore_all_three_base_files": true,
+  "all_other_product_source_files_and_tests_unchanged": true,
+  "inherited_nonproduct_changes": [
+    "docs/dnsmasq/audits/perf-opt-20261015/loop/SHARED_ANSWER_OPT_LOCAL.md",
+    "docs/dnsmasq/audits/perf-opt-20261015/loop/shared-answer-opt-full-scan-local.json"
+  ],
+  "reviewer_inventory_scope_correction": {
+    "status": "REVIEWER_INVENTORY_SCOPE_ASSERTION_FAILED",
+    "script_sha256": "2162f4882a4c17b697b8f383503f3c6e462d37de30676d8f3a7237e6e07af651",
+    "error": "AssertionError at line12: expected only three whole-repository changes; actual diff also contains two inherited full-scan codegen reports from8bd98979.",
+    "correction": "Assert exact three product changes under components/dnsmasq; preserve both additional report paths explicitly. Product source and evidence unchanged; no test/build/capture rerun."
+  },
+  "field_mapping": [
+    {
+      "original": "find_pseudoheader(query,true) returns Err",
+      "compact": "scan returns the identical WireError; local .ok() stores None, cache own scan keeps ? propagation."
+    },
+    {
+      "original": "Successful scan with opt=None",
+      "compact": "Some(AnswerEdns {udp_limit:512, had_opt:false, dnssec_ok:false}); distinct from failed scan. Local/cache both preserve default512 and append no OPT."
+    },
+    {
+      "original": "Successful scan with Some(opt)",
+      "compact": "udp_limit=original opt.udp_size(maximum), had_opt=true, dnssec_ok=original opt.dnssec_ok(); no new clamp or normalization."
+    }
+  ],
+  "configured_maximum_proof": [
+    "Only the answer_local_or_cached caller can pass Some to answer_from_cache. UDP scan uses local.edns_packet_max inside lookup_local_parsed; daemon then reads maximum from that same local.edns_packet_max for the cache argument.",
+    "The synchronous local lookup never writes edns_packet_max or lends it mutably. LocalAnswerer receives config/hosts, a copied limit, leases/cache/interfaces/logging/name hint; it has no access to mutate the enclosing service maximum. No callback, await, external mutation, or service replacement intervenes.",
+    "The two direct cache wrappers pass None, so each computes udp_limit with its own supplied edns_packet_max. Their supplied maximum need not equal the LocalDnsService field; no assumption of that equality is made.",
+    "Original udp_size order remains class>configured ? configured : max(class,512), including unusual configured values below512. No-OPT remains512 regardless of configured maximum. max_udp/receive limit is separate and still applied with min(limit) in the cache writer."
+  ],
+  "caller_and_lifetime_proof": [
+    "lookup_local_parsed still has exactly two callers: a fresh temporary None and the daemon fresh local None. answer_from_cache still has exactly three callers: two wrappers passing None and daemon passing its stack slot.",
+    "Prepared UDP local/cache still use the same original immutable query, never decorated bytes. AnswerEdns now owns only primitive copied values; no packet borrow or packet identity persists beyond the synchronous call.",
+    "TCP leaves the fresh output slot None and scans only after local hit as before. Cache consequently performs its own original scan. Full-query association and configured maximum are current caller invariants, not encoded in the primitive struct type; future Some callers must preserve both."
+  ],
+  "ordering_and_semantics": [
+    "Cache interface-name/NXDOMAIN early return remains before scanning. Header rejection, DO cache lookup/rotation/expiry, response size and EDE/OPT append order are unchanged.",
+    "Computing udp_size and dnssec_ok earlier inside scan moves only pure infallible field reads/comparison. No error, allocation, cache mutation, or logging moves across a failure boundary; TCP computes an unused UDP limit but still uses its original fixed envelope.",
+    "Err scans remain locally suppressed, and UDP local errors still propagate before cache. If cache is reached after failed local scan, its original parser is rerun and the same error is propagated at the same logical position.",
+    "Successful no-OPT includes find_pseudoheader malformed-Additional results that deliberately clear opt. The mapping preserves them separately from Err; all last-OPT/TKEY/TSIG parsing still uses unchanged find_pseudoheader(query,true). Signed/version/is_last/raw options were not consumed by these local/cache envelope branches and remain unused.",
+    "Real local answer still wins immediately. A provisional forward-rule answer waits for cache; event commitment, TCP terminal-name rule reevaluation, forwarding scans and all output DO/append limits remain byte-identical apart from field access substitutions."
+  ],
+  "blocking_findings": [],
+  "scope_limits": [
+    "Read-only source audit and exact byte substitution proof only; no test/build/capture/Oracle/device operations.",
+    "Author-reported725Mac+8ignored and musl all-target checks are not independent runtime evidence here. Struct/Option layout, frame/code size and current codegen were not independently measured.",
+    "Full-scan predecessor was not selected for timing after author-reported frame growth; this source report does not reverse that decision or predict compact variant performance.",
+    "Candidate remains local and outside803/1df queue; no shipping, full functional gate, performance or deployment acceptance."
+  ],
+  "reviewer_script_sha256": "13de74173778df216cc0484fe4d95e1e7190ef9a4027728f7e7f5112b27d5bfd",
+  "independent_peer_review": {
+    "agent": "/root/correctness/answer_edns_max_review",
+    "status": "PASS_NO_BLOCKER",
+    "scope": "Read-only narrow configured-maximum/caller review; no file modifications, builds, tests or remote operations.",
+    "findings": [
+      "Shared daemon path uses same local.edns_packet_max before and after local lookup; no intermediate field mutation or mutable access to that field is possible.",
+      "Direct UDP wrapper passes None and uses daemon maximum, preserving behavior even when external_local maximum differs.",
+      "Direct TCP wrapper passes None; output stays65536 and unused udp_limit cannot change it.",
+      "Original opt.udp_size conditional ordering and no-OPT512 remain unchanged."
+    ],
+    "evidence_form": "Agent terminal response; no separate peer script or file receipt."
+  }
+}
