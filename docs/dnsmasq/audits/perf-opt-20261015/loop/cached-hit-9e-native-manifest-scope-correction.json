@@ -1,0 +1,22 @@
+{
+  "status": "PRE_EXECUTION_SOURCE_MANIFEST_SCOPE_CORRECTION_ONLY",
+  "original_disabled_plan_sha256": "f2343f484571e5d2c2a3a998ac4ec4fb2bd083c9cb3538f57cba9866b02580ee",
+  "original_pretransfer_sha256": "d51cbdc23577bb148dd4988841d5d2d84b955e618e63e95cf4e804f524fb8014",
+  "before": {
+    "G_native_keys": 162,
+    "candidate_native_keys": 179
+  },
+  "ready_metadata": {
+    "G_native_keys": 162,
+    "candidate_native_keys": 162,
+    "separate_SDK_source_keys_each": 179
+  },
+  "ready_key_set_exactly_original6ab": true,
+  "private_pending_plan": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-actual-metadata-disabled-native162.json",
+  "private_pending_plan_sha256": "ed77525410f759dfb285a029a6af9b311b1cbe37aa42562784aae6cae978a054",
+  "preservation": "Original disabled plan and original uploaded bundle remain unchanged; ready metadata will retain them before execution.",
+  "workload_or_source_or_test_or_tool_changed": false,
+  "native_started": false,
+  "owner_started": false,
+  "scope": "The disabled preparation copied the fullSDK179 candidate manifest into native metadata while G retained original162. Correcting this before any native build restores the original native verification scope; full179 remains a launch prerequisite for both sides."
+}
