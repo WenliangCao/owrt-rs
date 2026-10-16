@@ -21,7 +21,7 @@ def sha(path):
 
 
 def schedule(confirmation=None, residual=False, g_pgo_screen=False, residual_candidate='pgo',
-             d1_pgo_screen=False):
+             d1_pgo_screen=False, local_rules_screen=False):
     windows = []
 
     def pair(group, number, rate, left, right):
@@ -32,11 +32,14 @@ def schedule(confirmation=None, residual=False, g_pgo_screen=False, residual_can
                             'measurement_seconds': 20,
                             'label': f'research-reset-{group}-r{number}-{side}'})
 
-    if d1_pgo_screen:
+    if d1_pgo_screen or local_rules_screen:
+        aa_group = 'i-rules-aa95' if local_rules_screen else 'i-aa95'
+        group = 'i-rules-next95' if local_rules_screen else 'i-d1-pgo95'
+        candidate = 'j-pgo' if local_rules_screen else 'd1-pgo'
         for number in (1, 2):
-            pair('i-aa95', number, 200, 'g-pgo', 'g-pgo')
+            pair(aa_group, number, 200, 'g-pgo', 'g-pgo')
         for number in range(1, 6):
-            pair('i-d1-pgo95', number, 200, 'g-pgo', 'd1-pgo')
+            pair(group, number, 200, 'g-pgo', candidate)
         return [{**row, 'measurement_seconds': 95} for row in windows]
     if g_pgo_screen:
         for number in (1, 2):
@@ -150,14 +153,14 @@ def comparisons(rows):
                 'order_statistic_interval_d2_d8': [ordered[1], ordered[7]],
                 'three_pair_block_medians': [statistics.median(deltas[i:i + 3]) for i in (0, 3, 6)],
                 'scope': 'Fixed nine pairs. Nominal 96.09% coverage requires continuous approximately independent differences; this output does not establish those assumptions.'}
-    aa_group = next((name for name in ('i-aa95', 'h-aa', 'g-aa') if name in output), 'g-aa')
+    aa_group = next((name for name in ('i-rules-aa95', 'i-aa95', 'h-aa', 'g-aa') if name in output), 'g-aa')
     aa = output.get(aa_group, {}).get('cpu_delta')
     noise = max(abs(v) for v in aa['rounds']) if aa else None
-    for name in ('e-pgo', 'g-c95', 'h-g-pgo', 'i-d1-pgo95'):
+    for name in ('e-pgo', 'g-c95', 'h-g-pgo', 'i-d1-pgo95', 'i-rules-next95'):
         result = output.get(name)
         if result and result['cpu_delta'] and noise is not None:
             values = result['cpu_delta']['rounds']
-            key = 'cpu_screen_trigger' if name in ('h-g-pgo', 'i-d1-pgo95') else 'independent_confirmation_trigger'
+            key = 'independent_confirmation_trigger' if name in ('e-pgo', 'g-c95') else 'cpu_screen_trigger'
             result[key] = (len(values) == 5 and sum(v < 0 for v in values) >= 4
                            and statistics.median(values) <= -5
                            and -statistics.median(values) > noise)
@@ -225,7 +228,7 @@ def prepare(bindings, out):
 
 
 def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo_screen=False,
-            residual_candidate='pgo', d1_pgo_screen=False):
+            residual_candidate='pgo', d1_pgo_screen=False, local_rules_screen=False):
     baseline = json.loads(health_path.read_text())
     assert baseline['valid'] and baseline['elapsed_seconds'] >= 120
     artifacts = bindings['artifacts']
@@ -234,7 +237,10 @@ def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo
                          **{v['name']: v['sha256'] for v in artifacts.values()},
                          **{v['name']: v['sha256'] for v in bindings['new_tools'].values()}})
     assert not (out / 'progress.json').exists()
-    original_schedule = schedule(confirmation, residual, g_pgo_screen, residual_candidate, d1_pgo_screen)
+    original_schedule = schedule(confirmation, residual, g_pgo_screen, residual_candidate,
+                                 d1_pgo_screen, local_rules_screen)
+    group_helper = 'research_local_rules_group.sh' if local_rules_screen else 'research_device_group.sh'
+    assert group_helper in bindings['new_tools']
     if any(row['artifact'] == 'exact-c' for row in original_schedule):
         checks = [f'test "$(sha256sum {path} | cut -d " " -f 1)" = {digest}'
                   for path, digest in bindings['exact_C_runtime_libraries'].items()]
@@ -258,7 +264,7 @@ def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo
             if pair != previous_pair:
                 shared.set_slots(artifacts, window['left'], window['right']); previous_pair = pair
             scene = ('research-hit', 'udp', 'hit', window['rate'], 5, window['measurement_seconds'], 150)
-            command = 'setsid /bin/sh ' + run.ROOT + '/research_device_group.sh ' + shlex.join([window['side'], label, *map(str, scene[1:])])
+            command = 'setsid /bin/sh ' + run.ROOT + '/' + group_helper + ' ' + shlex.join([window['side'], label, *map(str, scene[1:])])
             with (out / (label + '.controller.log')).open('xb') as log:
                 process = subprocess.Popen(['ssh', '-o', 'BatchMode=yes', 'openwrt', command], stdout=log, stderr=log)
                 started = time.monotonic()
@@ -338,6 +344,8 @@ def main():
                            help='Fixed H/H two pairs followed by H/G+PGO five pairs')
     selection.add_argument('--d1-pgo-screen', action='store_true',
                            help='Fixed I/I two pairs then I/D1 five pairs; 95s measurement')
+    selection.add_argument('--local-rules-screen', action='store_true',
+                           help='Fixed public local-rule I/I and I/J screen using separate case/group')
     args = parser.parse_args(); bindings = json.loads(args.bindings.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     if args.prepare: prepare(bindings, args.out)
@@ -345,7 +353,7 @@ def main():
         if not args.health: parser.error('--health required for execution')
         execute(bindings, args.out, args.health, args.confirmation,
                 args.residual or args.residual_g_pgo, args.g_pgo_screen,
-                'g-pgo' if args.residual_g_pgo else 'pgo', args.d1_pgo_screen)
+                'g-pgo' if args.residual_g_pgo else 'pgo', args.d1_pgo_screen, args.local_rules_screen)
 
 
 if __name__ == '__main__':
