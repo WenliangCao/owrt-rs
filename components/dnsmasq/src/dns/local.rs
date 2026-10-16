@@ -636,10 +636,11 @@ impl<'a> LocalAnswerer<'a> {
             || self.config.rules.iter().any(|rule| matches!(rule.target,
                 RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
         { return false; }
-        let mut scratch = [0; 253];
+        let mut scratch;
         let name = match dotted_name {
             Some(name) => name,
             None => {
+                scratch = [0; 253];
                 let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
                 &scratch[..length]
             }
