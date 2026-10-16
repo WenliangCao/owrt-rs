@@ -1,12 +1,12 @@
 {
   "schema": "dnsmasq-cached-local-name-full11-preparation-v1",
-  "status": "LOCAL_PREPARATION_ONLY_FINAL_SDK_AND_SCREENS_PENDING",
+  "status": "LOCAL_PREPARATION_FINAL_SDK_BOUND_SCREENS_AND_FULL_CORRECTNESS_PENDING",
   "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
   "artifact": {
-    "elf_sha256": null,
-    "elf_bytes": null,
-    "map_sha256": null,
-    "build_receipt_sha256": null
+    "elf_sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
+    "elf_bytes": 2140955,
+    "map_sha256": "b9a67ea66d81d3141e2ee8a4ffc5f0b860ef92177a5d96a15ada55739bfab96f",
+    "build_receipt_sha256": "972a6f3c1b9d6121fef854d18cae24bc12be776b097e96d21b843571fe1b2165"
   },
   "source_identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
   "related_linux": {
@@ -174,7 +174,7 @@
     "Available memory>=65536KiB; fresh>=120s guard health, thresholdceil(max(200,10*p95))<=700; HTTPSv4/v6 every30s",
     "Retain RSS/RssAnon/RssFile/RssShmem/treeRSS/process/thread/treeFD/parentFD and all ranges; no RSS-to-USS claim, lifecycle values are readiness snapshots",
     "No newly invented numeric relative-memory/FD allowance; retain frozen qualitative growth/resource review requirement",
-    "ELF<=2200000bytes; final0161ELF size/deltas and SDK features/allocator/hardening must be verified after build. No old8d572size binding."
+    "ELF2140955bytes<=2200000; +4096bytes vsacceptedE2136859 and+16384 vsdeployedB2124571. Final0161SDK/artifact identity verified; original features/allocator/toolchain and receipt hardening retained, runtime protection gate remains separate. Growth and retainedbuffers remain subject to original resource review."
   ],
   "tool_supplement": "Only after original110; exact evidence-based tool-invalid whole pair may be repeated once with original order/all tools/identities, both sides valid required. Product wrong/timeout/crash or unknown cause ineligible; no cherry-picking/favorable retries. Preserve original failures and selection map.",
   "recovery": "No automatic health bypass or restart. Preserve STOP/failed attempt. Resume only unstarted schedule after independent ownership/identity/health recovery; no valid re-runs. Archive+manifest+hash+durable progress before remote pruning. Restore exact original stagedE/F only after no owned executables.",
@@ -196,6 +196,33 @@
   "executed": false,
   "performance_accepted": false,
   "deployment": false,
+  "sdk_binding": {
+    "local_directory": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-local-name",
+    "source_files_rehashed_against_commit": 179,
+    "features": "",
+    "opt_level": "3",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "apk_bytes": 1166199,
+    "sdk_recipe_restored": true,
+    "source_unchanged": true,
+    "elf_layout_from_hash_bound_build_receipt": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "runtime_protections_independently_retested": false
+  },
   "matrices": [
     {
       "environment": "Oracle",
@@ -242,7 +269,7 @@
         "--c-hash",
         "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
         "--rust-hash",
-        "__CACHED_LOCAL_NAME_ELF_SHA256_PENDING__",
+        "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
         "--health-baseline",
         "private/perf-opt-20261015/health-cached-local-name-vs-e/summary.json"
       ],
@@ -256,7 +283,7 @@
     }
   ],
   "local_preparation_directory": "private/cached-local-name-full-performance",
-  "prepared_recipe_sha256": "765bd0ed9e64c635c5e5fd40474f9384f321a3ffb1f71f304c5910d79fcce7fb",
+  "prepared_recipe_sha256": "4456efd309058e585411ef789aaed2e15958394e06213c9323c13ed4382a1314",
   "schedule_validation": {
     "Oracle": {
       "windows": 110,
@@ -271,5 +298,5 @@
       "original_alternating_order": true
     }
   },
-  "verification": "Both complete schedules derived from originalSCENES; original copied tools parsed only. Canonical coordinator input hashes checked. No remote action or physical operation during preparation."
+  "verification": "Both complete schedules retain originalSCENES/tools. Canonical coordinator input hashes and final0161SDK artifacts/source179 checked. No remote action or physical operation during preparation."
 }

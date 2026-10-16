@@ -1,18 +1,18 @@
 {
   "schema": "dnsmasq-cached-local-name-full-qualification-preparation-v1",
-  "status": "prepared-not-launched-final-SDK-binding-pending",
+  "status": "prepared-and-final-SDK-bound-not-launched-screen-results-pending",
   "authorization": "Root authorizes full qualification after the independent accepted-E screens support continuation; currently local preparation only. Do not overlap Oracle timing; coordinate its release before any execution.",
   "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
   "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name",
   "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-local-name",
-  "shipping_elf_sha256": null,
-  "shipping_elf_bytes": null,
-  "same_build_map_sha256": null,
-  "same_build_receipt_sha256": null,
-  "local_artifacts_rehashed": false,
+  "shipping_elf_sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
+  "shipping_elf_bytes": 2140955,
+  "same_build_map_sha256": "b9a67ea66d81d3141e2ee8a4ffc5f0b860ef92177a5d96a15ada55739bfab96f",
+  "same_build_receipt_sha256": "972a6f3c1b9d6121fef854d18cae24bc12be776b097e96d21b843571fe1b2165",
+  "local_artifacts_rehashed": true,
   "source_files_rehashed": 179,
   "git_identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
-  "source_digest": null,
+  "source_digest": "c06b9cbd514f5795c53869c3142365e744dc88339bc8c791c61b315b7c9a18de",
   "F_base_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
   "source_changed_files": [
     "components/dnsmasq/src/dns/cache.rs",
@@ -35,7 +35,7 @@
       "only_candidate_path_output_and_identity_substitutions": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "cb68a1439c7ac66c2978c47457931247b14bb59434acada58c71f324341a9b45",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     },
     "build_cached_local_name_allocations.py": {
       "sha256": "68fb31b892bed3dd3bff4d90387afe5c38b6d5bd822e9ed5da8277eb9e5f4195",
@@ -44,7 +44,7 @@
       "only_candidate_path_output_and_identity_substitutions": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "280cc84cbfb1e78f3ac2f43c6829d590adc19ebc7f8c1f048d57b196fad1e7d3",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     },
     "run_cached_local_name_tcp.py": {
       "sha256": "1e4eb2d79f028ddd63fe25a0c2bad7807cd1e4e6694f7d7c1ab14b1bee87fb91",
@@ -53,7 +53,7 @@
       "only_candidate_path_output_and_identity_substitutions": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "2cb5463a4f34ac5d9f42afecaa3e9927a993d685cb65eecc2a0f00a3e9ec1c3c",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     },
     "run_cached_local_name_corpus.py": {
       "sha256": "7bf21e254a50d28e0716d3936b1aa945704b2d608cb1ee6755d32eec23464adc",
@@ -62,34 +62,34 @@
       "only_candidate_path_output_and_identity_substitutions": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "53bdab26e31cb6abb2d77731ddbd1c18b92a58d765779218e2cd9a2a410e0452",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     },
     "run_cached_local_name_remaining.py": {
-      "sha256": "9505054576714768cb5f992bcbeb73f885e98d2d458db35ed8ad865e6e8a49cc",
+      "sha256": "a835dfec22d6e91236f49205fbeab88fcebeb368358ebbf3e5138bac40bb3210",
       "validated_F_original": "run_f_remaining.py",
       "validated_F_original_sha256": "329872f989ed9e08ddd46aae0402a63242db3a6106e97121674673aa17a6195d",
       "only_candidate_path_output_and_identity_substitutions": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "ed6f4fc377f800a2328905c7b3d3d7425140b908da6c978c2b6ad21244134cbe",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     },
     "audit_cached_local_name_families_final.py": {
-      "sha256": "86c14b99f067f301ec31e71a29d21589577e7e6e2ccdc6691692ba5d25e3af0a",
+      "sha256": "1db00b621708abcf861399f766e831a7bc50e95574683bf95bbd093dbfe40f7f",
       "validated_F_original": "audit_f_families_final.py",
       "validated_F_original_sha256": "63c0742ed220cc0ec2b054f0136c12ab13c87d0827002e4776018f0d7cffc5e6",
       "same_checks_and_historical_comparisons": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "9ca81820f5642a702a7cdbe40ac04c544d77abbe37c998b1c229b9e04813b722",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     },
     "audit_cached_local_name_boundary.py": {
-      "sha256": "c13c3d674b8d7e3c5d17ba135a708a63dcaae585cea5218d922d2e2bd02757e9",
+      "sha256": "b6c3869da0fc6530157fbbf292ffee6356ddbaca1ecf81c5a4bb3d7c65630db5",
       "validated_F_original": "audit_f_boundary.py",
       "validated_F_original_sha256": "34934ff2afa49f093ceac384a3cca7ab10149343927cb5247c16c2f5cbbf98e8",
       "same_checks_and_historical_comparisons": true,
       "ast_parse_passed": true,
       "validated_integration_original_sha256": "0e4c8ae438ee9f95df397fc8de991f87589cd4e7804a374e3d985fabd4a313b3",
-      "candidate_identity_pending": true
+      "candidate_identity_pending": false
     }
   },
   "immutable_input_hashes": {
@@ -166,8 +166,35 @@
     "receipt_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea"
   },
   "screen_results_pending": true,
+  "sdk_binding": {
+    "local_directory": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-local-name",
+    "source_files_rehashed_against_commit": 179,
+    "features": "",
+    "opt_level": "3",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "apk_bytes": 1166199,
+    "sdk_recipe_restored": true,
+    "source_unchanged": true,
+    "elf_layout_from_hash_bound_build_receipt": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "runtime_protections_independently_retested": false
+  },
   "local_preparation_directory": "private/cached-local-name-full-qualification",
-  "prepared_recipe_sha256": "4a9852a779b01d170d3c881d5a88bf2223e3429eae37b20fb8d4f86d357040c2",
+  "prepared_recipe_sha256": "585bcd743eca4aeed5290ac76d141b847ddec1a9215e9cecd1dc3a317eb14860",
   "unit_command_manifest_sha256": "b944702cde461bbf03a4ce5dbdd6fa4e98c3b3c50a9e7fa201c5ca7e8005c0e7",
-  "verification": "Seven wrappers parsed without imports/execution. Original F checks retained; current candidate179source inputs and originalregistry/comparators/approvedubus346 hashes checked. FinalSDK pending; explicit pendingELF string must be replaced only after identity validation."
+  "verification": "Seven wrappers parsed without imports/execution. Original F checks retained; finalSDK ELF/map/receipt and candidate179source inputs rehashed. Canonical44/67registry/comparators/approvedubus346 unchanged. Screens and Oracle timing release remain pending; no qualification executed."
 }
