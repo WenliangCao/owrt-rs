@@ -1,0 +1,48 @@
+--- verify-a53-cached-zero-frame.before.py
++++ verify-a53-cached-zero-frame.prefix-v1.py
+@@ -6,7 +6,7 @@
+ import tarfile
+ 
+ BASE = Path(__file__).resolve().parent
+-sys.path.insert(0, str(BASE / 'tools-a53-cached-zero-frame'))
++sys.path.insert(0, str(BASE / 'tools-a53-cached-zero-frame-prefix-v1'))
+ import cached_zero_frame_device_run as entry
+ entry.configure()
+ import udp_stage_device_run as stage
+@@ -49,19 +49,25 @@
+ assert all(row['exit'] == 0 and row['result'].startswith('200 ') for row in health)
+ guards = list(folder.glob('a53-cached-zero-frame-guard-*.jsonl'))
+ assert len(guards) == 1
+-guard = [json.loads(line) for line in guards[0].read_text().splitlines()]
+-assert guard[0]['event'] == 'start' and guard[-1]['event'] == 'monitor_stopped'
+-assert not any(row['event'] == 'stop' for row in guard)
+-samples = [row for row in guard if row['event'] == 'sample']
+-assert samples and all([row['production_pid'], row['production_starttime']] == [3086, 2115] for row in samples)
+-assert all(row['mem_available_kib'] >= 65536 and row['dns_ok'] in (-1, 1) for row in samples)
+-assert all(row['http_status'] in (-1, 200, 301, 302, 401, 403) for row in samples)
+-assert guard[0]['ipv4_default_initial'] != 1 or all(row['ipv4_default'] == 1 for row in samples)
++from device_health_baseline import complete_prefix, validate_guard_evidence
++raw = guards[0].read_bytes()
++prefix = (folder / 'pre-stop-prefix.jsonl').read_bytes()
++capture = (folder / 'pre-stop-capture.raw').read_bytes()
++assert complete_prefix(capture) == prefix
++request = json.loads((folder / 'stop-request.json').read_text())
++assert request['complete_prefix_bytes'] == len(prefix) and request['captured_bytes'] == len(capture)
++assert request['prefix_sha256'] == hashlib.sha256(prefix).hexdigest()
++assert request['capture_sha256'] == hashlib.sha256(capture).hexdigest()
++qualified, samples, end = validate_guard_evidence(prefix, raw, health, [3086, 2115])
++expected = {'qualified_samples': len(qualified), 'final_samples': len(samples),
++            'final_tail_samples': len(samples) - len(qualified),
++            'pre_stop_elapsed_seconds': qualified[-1]['elapsed_s'], 'final_elapsed_seconds': end['elapsed_s']}
++assert json.loads((folder / 'guard-verification.json').read_text()) == expected
+ result = {'complete': True, 'windows': len(rows), 'archives': archives, 'raw_files': files,
+           'thread_samples': sum(row['diagnostic']['thread_samples'] for row in rows),
+-          'guard_samples': len(samples), 'external_checks': len(health),
+-          'dns_samples': sum(row['dns_ok'] == 1 for row in samples),
+-          'http_samples': sum(row['http_status'] != -1 for row in samples),
++          'guard_samples': len(samples), 'qualified_guard_samples': len(qualified), 'guard_tail_samples': len(samples)-len(qualified), 'external_checks': len(health),
++          'dns_samples': sum(row['dns_ok'] == 1 for row in qualified),
++          'http_samples': sum(row['http_status'] != -1 for row in qualified),
+           'minimum_available_memory_kib': min(row['mem_available_kib'] for row in samples),
+           'guard_sha256': hashlib.sha256(guards[0].read_bytes()).hexdigest(),
+           'summary_sha256': hashlib.sha256((folder / 'summary.json').read_bytes()).hexdigest(),
