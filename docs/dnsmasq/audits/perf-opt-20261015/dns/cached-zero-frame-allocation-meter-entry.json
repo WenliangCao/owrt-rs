@@ -1,0 +1,144 @@
+{
+  "schema": "cached-zero-frame-allocation-original-meter-entry-v1",
+  "status": "LOCAL_PREPARATION_ONLY_NO_BUILD_OR_RUNTIME_AUTHORIZED",
+  "source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+  "base_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "original_meter_source": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "meter_sha256": "e62ae10c6ca094152db543243d5963537f31aa50bf5491e386b934df8d1dc1c4",
+  "standalone_control": {
+    "source_path": "/Users/USER/Developer/owrt-diagnostic-185-udp-alloc-20261016/tools/dnsmasq/udp_allocation_meter_check.rs",
+    "source_sha256": "ad669923f7484fbbafe1e0db30a78fcc89ed8d6dc92c681485aafd7a72733c86",
+    "retained_json_path": "/Users/USER/Developer/owrt-diagnostic-185-udp-alloc-20261016/private/udp-allocation/meter-check.json",
+    "retained_json_sha256": "2b3f4a07c56a4f0269b00597be00821f0aa5c30d975b687f718a00d5a7ff87e8",
+    "exact_original_json_assertions_rechecked_without_execution": true,
+    "cached_totals": [
+      2,
+      2,
+      1,
+      72,
+      72
+    ],
+    "local_totals": [
+      1,
+      1,
+      0,
+      8,
+      8
+    ],
+    "cached_only_turn": [
+      1,
+      1,
+      3,
+      3,
+      1,
+      80,
+      80
+    ],
+    "mixed_or_other_turn": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      8,
+      8
+    ],
+    "histogram": "Only bucket2 is1; all others0",
+    "nested": 0,
+    "unscoped": 1,
+    "negative_scope_control_is_intentional": true,
+    "fresh_SDK_meter_control_executed": false,
+    "compile_argv_not_reconstructed_from_log": "Use the unchanged standalone source as the entry; bind actual original compile invocation/target/ELF if a fresh control is later selected. This preparation does not manufacture compiler or Linux-runtime evidence."
+  },
+  "original_controller_bundle": {
+    "private_directory": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/original-meter-tools",
+    "files_sha256": {
+      "udp_allocation_device_run.py": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1",
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "test_udp_allocation_device_run.py": "210cbbda0cdab2e363ca3f5d6e38d5461f7cda8a385a7927a3f41bcb2f4a7656"
+    },
+    "controller_entry": "udp_allocation_device_run.py",
+    "CLI_required": [
+      "--plan",
+      "--health-baseline",
+      "--elf-hash",
+      "--out"
+    ],
+    "fixed_legacy_labels": [
+      "e-udp-allocation-r1-rust",
+      "e-udp-allocation-r2-rust",
+      "e-udp-allocation-r3-rust"
+    ],
+    "label_scope": "These are the original fixed labels checked by the unchanged controller, not a claim that diagnostic185 is acceptedE. No new three-window runtime plan is selected or executed here.",
+    "meter_report_entry": "udp_allocation_device_run.meter_report",
+    "namespace_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "original_four_control_entry": {
+      "cwd": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/original-meter-tools",
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_udp_allocation_device_run",
+        "-v"
+      ],
+      "test_names": [
+        "test_actual_cached_denominator_includes_prewarm_and_turns_stay_distinct",
+        "test_unscoped_or_nested_counts_are_rejected",
+        "test_wrong_denominator_or_histogram_is_rejected",
+        "test_multiple_threads_are_rejected"
+      ],
+      "executed": false
+    }
+  },
+  "original_plan_reference": {
+    "path": "/Users/USER/Developer/owrt-perf-opt-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/E_UDP_ALLOCATION_DEVICE_PLAN.json",
+    "sha256": "65d715f66b28f434a3eb4a6f0d0661b615b515d0550ebf5fab748e1c1c1cc64d",
+    "workload": {
+      "prewarm_queries": 1000,
+      "warmup_seconds": 5,
+      "measurement_seconds": 20,
+      "rate": 200,
+      "clients": 32,
+      "hot_names": 800,
+      "qtype": "aaaa30",
+      "seed": "0x293001",
+      "profile": "hit",
+      "upstream_ttl": 120,
+      "upstream_delay_us": 1000,
+      "cache_size": 1000,
+      "edns_max": 1232
+    },
+    "accounting": {
+      "cached_step": "Scope covers entire step_udp including receive, admission, process_udp, send and owned drops; classify only actual QueryResult::Cached.",
+      "denominator": "Read actual meter queries[cached]. This includes true cache hits during the1000-query prewarm as well as warmup/measurement; never substitute5000.",
+      "whole_turn": "Record all no-packet/cached-only/mixed-or-other owner turns separately; cached-only turns are conditional and include wait/control work. Sum all rows for whole normal-owner-loop totals, not process-lifetime startup/output/shutdown.",
+      "bytes": "Requested/released allocator bytes, not RSS/USS or physical malloc footprint; successful realloc recorded separately."
+    },
+    "output_requirements": [
+      "Case/group exit0 and COMPLETE; unchanged set-e case must pass final wait for the daemon, establishing normal daemon exit0.",
+      "Original validate() plus complete1000-query prewarm, zero wrong/timeout/transport/skips; upstream hit rules unchanged.",
+      "Live and file diagnostic ELF identity; exactly one daemon thread in before/resources/after observations.",
+      "udp-alloc.json exists after owner exit; nested_steps=0 and unscoped_classifications=0.",
+      "Keep all kind/query/totals/turn matrices and histogram; reject malformed dimensions or inconsistent cached denominator/histogram sums."
+    ]
+  },
+  "unchanged_semantics": [
+    "Consumed packet steps include1000prewarm plus1000warmup plus4000measurement; cached denominator is the actual cached count, never a substituted5000.",
+    "Preserve cached-step and all three whole-turn matrices; conditional cached-only turns never stand for entire process lifetime.",
+    "Require correct dimensions/nonnegative integer counts/full histogram and same cached denominator in step/turn totals.",
+    "Measured workload must have exactly one process/thread, nested_steps=0 and unscoped_classifications=0. The standalone control deliberately has unscoped=1 and is not a valid measured window.",
+    "Require complete original traffic/identity/health checks and actual final daemon exit0; report-file existence alone is insufficient.",
+    "Requested/released allocator byte traffic is not RSS/USS, live heap or copied physical bytes.",
+    "All instrumented CPU/latency/ELF-size comparisons are excluded from product performance or release claims."
+  ],
+  "diagnostic_sdk_elf": null,
+  "diagnostic_sdk_map": null,
+  "diagnostic_sdk_build_receipt": null,
+  "fresh_health_or_device_plan": null,
+  "runtime_decision": "Root selects source and order from actual C/185 profile after its postflight/review; this entry grants no upload/build/device action.",
+  "uploaded": false,
+  "executed": false,
+  "oracle_accessed": false,
+  "device_accessed": false,
+  "new_tests_or_meter_semantics": false
+}
