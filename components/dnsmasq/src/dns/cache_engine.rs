@@ -313,18 +313,22 @@ impl CacheContext<'_> {
                 {
                     let mut packet = std::mem::take(&mut local.cached_reply_buffer);
                     packet.clear();
-                    packet.extend_from_slice(&header.id.to_be_bytes());
-                    packet.extend_from_slice(&((header.flags & 0x0110) | 0x8080).to_be_bytes());
-                    packet.extend_from_slice(&[0, 1, 0, 1, 0, 0, 0, 0]);
-                    packet.extend_from_slice(name);
-                    packet.extend_from_slice(&question.rrtype.to_be_bytes());
-                    packet.extend_from_slice(&question.class.to_be_bytes());
-                    packet.extend_from_slice(&[0xc0, 12]);
-                    packet.extend_from_slice(&question.rrtype.to_be_bytes());
-                    packet.extend_from_slice(&1u16.to_be_bytes());
-                    packet.extend_from_slice(&entry.reply_ttl(now, cache.policy()).to_be_bytes());
-                    packet.extend_from_slice(&(data.len() as u16).to_be_bytes());
-                    packet.extend_from_slice(data);
+                    packet.resize(length, 0);
+                    let (header_bytes, body) = packet.split_at_mut(12);
+                    Header {
+                        id: header.id, flags: (header.flags & 0x0110) | 0x8080,
+                        questions: 1, answers: 1, ..Header::default()
+                    }.write(header_bytes)?;
+                    let (question_name, fields) = body.split_at_mut(name.len());
+                    question_name.copy_from_slice(name);
+                    fields[..2].copy_from_slice(&question.rrtype.to_be_bytes());
+                    fields[2..4].copy_from_slice(&question.class.to_be_bytes());
+                    fields[4..6].copy_from_slice(&[0xc0, 12]);
+                    fields[6..8].copy_from_slice(&question.rrtype.to_be_bytes());
+                    fields[8..10].copy_from_slice(&1u16.to_be_bytes());
+                    fields[10..14].copy_from_slice(&entry.reply_ttl(now, cache.policy()).to_be_bytes());
+                    fields[14..16].copy_from_slice(&(data.len() as u16).to_be_bytes());
+                    fields[16..].copy_from_slice(data);
                     return Ok(CachedAnswer {
                         packet: Some(packet), stale: false, filtered: false, forward_name: None,
                     });
