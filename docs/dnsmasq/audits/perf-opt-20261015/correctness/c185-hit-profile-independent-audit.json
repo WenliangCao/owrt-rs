@@ -1,0 +1,438 @@
+{
+  "schema": "dnsmasq-c185-hit-profile-independent-audit-v1",
+  "status": "PASS_COMPLETE16_RAW_PERF_AND_DERIVED_DIAGNOSTIC_REVIEW",
+  "scope": "Independent originalcapture audit after exclusiveOraclehandoff, using oneCPU. No capture/workload rerun, routeraccess or timingacceptance claim.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "exact_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "candidate_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "original_plan_sha256": "f413ce0507f4047d0d701de59ab2118418fac024c4858d317833850221444c86",
+  "analysis_binding_sha256": "434eeba65071f4d2d30e30921adffcbe64ada86c73e882bc328f3492eea5671c",
+  "summary_sha256": "ffd15ede24397f1f474950574d9f7f7a13447f72f64c020fe7d4e717340c7ce9",
+  "author_report_commit": "e565f3d1",
+  "author_postflight_sha256": "a04c2354deba357af255a552eb8190bd2827a204a769935c0adf9188ebe32b3b",
+  "inventory": {
+    "captures": 16,
+    "stat": 12,
+    "cycles_samples": 4,
+    "analyzer_results": 16,
+    "raw_files": 648,
+    "raw_index_sha256": "540ef1504029e51b9109c10b06f16a7daba84017a8b5ff7c50297ea4d4299da0",
+    "source_files_rehashed": 179,
+    "input_bindings_rehashed": 21,
+    "stat_events": 48,
+    "all_stat_events_unscaled": true,
+    "samples": 27371,
+    "emitted_ranges": 311
+  },
+  "raw_review": [
+    "Independently rehashed exactrawmembership of every16window against648-file manifest, all21tool/image/map/library bindings,179candidate sources, source/build identities, original32capture+analysisargv/results/order andcomplete/no-failure inventory.",
+    "Reparsed clientbinary latency/lag/status/qtypes and originalprewarm1000, observedwarmup1000+measurement4000, zeroerror and800upstreamhitsetup cohorts. Verified matchingrootPID/start and emptychildtail, controlenable/disableACKordering, originalfixed1sdrain and nochildsurvivor.",
+    "Executed the alreadyreviewed frozenanalyzer9cc on each originalwindow into freshauditoutputs; all16JSON results reproduced exactly. This repeats rawanalysis only, never thecapture.",
+    "Independently decoded all4originalperf.data again with originalsamples/self/task-event/actual-event-attributes commands. All16export byte streams matched the storedexports exactly. Originalsample/selfcount/period/lost0 andfork/exit/MMAP/COMMtree checks passed, including56C TCPchildren observedexited.",
+    "Read12rawCSV/-vvcountergroups and independently checked48rawcounts,enabled==running,100percent/not-scaled,per5000normalization. Reexecutedfrozenparser retainsinheritedrootgroup and user/kernelfilter validation.",
+    "ExactC symbolcompanion allocatedbyte/LOAD proof, exactDSOlibrarydynsyms and185same-buildmapbounds were reverified by the frozenanalyzer. No nativeC or neighboring-symbol substitute; nonuserPC,unknownDSO,gaps,overlaps andunnamedranges remain explicit in the fullperiod denominator."
+  ],
+  "sample_summary": [
+    {
+      "id": "udp-cycles-c",
+      "totals": {
+        "samples": 5107,
+        "period": 51070000,
+        "lost_samples": 0
+      },
+      "descendants": 0,
+      "sample_PIDs": 1,
+      "period_by_mode": {
+        "U": 49960000,
+        "K": 1110000
+      },
+      "redecoded_exports": {
+        "samples.txt": "4112145435b717476d587722a5d8f9c79d9202980d0ff1b23fa98646f2d41b7b",
+        "self.txt": "6060b4766d0754bfd1985c2e1db84c5bfdc47165dd4ca3c3b87de80e6e2965a3",
+        "task-events.txt": "83c0e877fb07d5cf2738c94831c2a2574ab9ccd01f5d0978f696d2d698f70d20",
+        "event-attributes.txt": "5cdbd6810da2db39c10b2c8ef4cfeedbb21e73c343eea6b0811d19585eb0ab30"
+      }
+    },
+    {
+      "id": "udp-cycles-185",
+      "totals": {
+        "samples": 5497,
+        "period": 54970000,
+        "lost_samples": 0
+      },
+      "descendants": 0,
+      "sample_PIDs": 1,
+      "period_by_mode": {
+        "U": 53770000,
+        "K": 1200000
+      },
+      "redecoded_exports": {
+        "samples.txt": "cee1c52049d2e0ad1e8365c3ee8601ddc48cc0f7f8924de4b7e2e8fe24f9ad56",
+        "self.txt": "b90a5d8c22feb0d3d3042d301622915e5f008b27a70417208843812db3f74a5f",
+        "task-events.txt": "a843b2e12248ca05538c9c7d212b767e75476ab966a87f085f4983d240cf8858",
+        "event-attributes.txt": "5cdbd6810da2db39c10b2c8ef4cfeedbb21e73c343eea6b0811d19585eb0ab30"
+      }
+    },
+    {
+      "id": "tcp-cycles-c",
+      "totals": {
+        "samples": 8172,
+        "period": 81720000,
+        "lost_samples": 0
+      },
+      "descendants": 56,
+      "sample_PIDs": 57,
+      "period_by_mode": {
+        "U": 80600000,
+        "K": 1120000
+      },
+      "redecoded_exports": {
+        "samples.txt": "0c83b29a78207d5d867cca3269a30794c00a6e85b168513d3d72734d63320581",
+        "self.txt": "624be88ca09dbb7ec8666cb7e954bfb0ddb1f8b218a09d091c8b97545ab053b3",
+        "task-events.txt": "51297125e5fe6d54d9c42574f235945c8f847f2e7e8b862d6ca4c70579af8f54",
+        "event-attributes.txt": "5cdbd6810da2db39c10b2c8ef4cfeedbb21e73c343eea6b0811d19585eb0ab30"
+      }
+    },
+    {
+      "id": "tcp-cycles-185",
+      "totals": {
+        "samples": 8595,
+        "period": 85950000,
+        "lost_samples": 0
+      },
+      "descendants": 0,
+      "sample_PIDs": 1,
+      "period_by_mode": {
+        "U": 84940000,
+        "K": 1010000
+      },
+      "redecoded_exports": {
+        "samples.txt": "8a4af2aeb9bc301e60fbea816e76e1b164f92d1f8c803872b37711b76bc6deb5",
+        "self.txt": "532116020e1fdedd75c6bc07296a4085d2e7b81dc90c419e9375c1a3be862ba5",
+        "task-events.txt": "31ba934f2ab6858525a87b56e744fb614a144fa9bb9aaf8051490491325751c1",
+        "event-attributes.txt": "5cdbd6810da2db39c10b2c8ef4cfeedbb21e73c343eea6b0811d19585eb0ab30"
+      }
+    }
+  ],
+  "derived_review": {
+    "reviewer": "DNS peer, independently recomputed localhash-bound summary arithmetic and106MDnumericclaims; no remote or rawclaim substitution.",
+    "receipt_sha256": "33cbb6317fb1892038fa0046886b7628384ab2110c4cba6d48ae6f3dd0a9d1e9",
+    "status": "PASS_LOCAL_DERIVED_ARITHMETIC_AND_MD_CLAIMS",
+    "discrepancies": [],
+    "per_operation_counts": 48,
+    "same_window_IPC_observations": 24,
+    "group_medians_and_ranges": 4,
+    "sample_ranges": 311,
+    "sample_mode_DSO_category_conservation": true,
+    "all_cross_run_range_cycle_estimates_recomputed": true,
+    "MD_numeric_claims": 106,
+    "MD_sha256": "c3d1d62682522f2d495bbf56f15fcfa1c7756f98727a4a840cde4beee25c7c5a",
+    "median_changes_185_relative_to_C_pct": {
+      "udp": {
+        "instructions:u": -14.001195323589974,
+        "instructions:k": 11.021721823016167,
+        "cycles:u": 30.8493506498908,
+        "cycles:k": 1.0870549740631354
+      },
+      "tcp": {
+        "instructions:u": -1.7899885079482143,
+        "instructions:k": 3.810128260050719,
+        "cycles:u": 11.267554043518945,
+        "cycles:k": -14.623974145317971
+      }
+    },
+    "unnamed_ranges": "Distinct unnamed ranges remain separate. MDlarge unnamedrow identifies0x1c1680..0x1c180c (3.7474986percent); separate0x1c9c60..0x1c9c8c remains0.3274513percent."
+  },
+  "medians_and_ranges": {
+    "udp-C": {
+      "instructions:u": {
+        "values_per_query": [
+          9009.8394,
+          8852.1088,
+          8943.185
+        ],
+        "median": 8943.185,
+        "minimum": 8852.1088,
+        "maximum": 9009.8394
+      },
+      "instructions:k": {
+        "values_per_query": [
+          24150.2894,
+          24777.7638,
+          25451.2428
+        ],
+        "median": 24777.7638,
+        "minimum": 24150.2894,
+        "maximum": 25451.2428
+      },
+      "cycles:u": {
+        "values_per_query": [
+          14287.3226,
+          13271.167,
+          13464.3236
+        ],
+        "median": 13464.3236,
+        "minimum": 13271.167,
+        "maximum": 14287.3226
+      },
+      "cycles:k": {
+        "values_per_query": [
+          41730.5264,
+          42062.7514,
+          42033.1456
+        ],
+        "median": 42033.1456,
+        "minimum": 41730.5264,
+        "maximum": 42062.7514
+      },
+      "ipc:u": {
+        "values": [
+          0.630617761791142,
+          0.6670181152870731,
+          0.6642134626057264
+        ],
+        "median": 0.6642134626057264,
+        "minimum": 0.630617761791142,
+        "maximum": 0.6670181152870731
+      },
+      "ipc:k": {
+        "values": [
+          0.5787199799137928,
+          0.5890666438905373,
+          0.6055041191111806
+        ],
+        "median": 0.5890666438905373,
+        "minimum": 0.5787199799137928,
+        "maximum": 0.6055041191111806
+      }
+    },
+    "udp-185": {
+      "instructions:u": {
+        "values_per_query": [
+          7690.8572,
+          7691.132,
+          7691.0322
+        ],
+        "median": 7691.0322,
+        "minimum": 7690.8572,
+        "maximum": 7691.132
+      },
+      "instructions:k": {
+        "values_per_query": [
+          27566.49,
+          27508.7,
+          26071.228
+        ],
+        "median": 27508.7,
+        "minimum": 26071.228,
+        "maximum": 27566.49
+      },
+      "cycles:u": {
+        "values_per_query": [
+          17617.98,
+          17405.8198,
+          18113.4918
+        ],
+        "median": 17617.98,
+        "minimum": 17405.8198,
+        "maximum": 18113.4918
+      },
+      "cycles:k": {
+        "values_per_query": [
+          42490.069,
+          43785.3292,
+          41655.66
+        ],
+        "median": 42490.069,
+        "minimum": 41655.66,
+        "maximum": 43785.3292
+      },
+      "ipc:u": {
+        "values": [
+          0.436534562986222,
+          0.4418712872116486,
+          0.4246024060363668
+        ],
+        "median": 0.436534562986222,
+        "minimum": 0.4246024060363668,
+        "maximum": 0.4418712872116486
+      },
+      "ipc:k": {
+        "values": [
+          0.6487748937286969,
+          0.6282629479465007,
+          0.6258748030879837
+        ],
+        "median": 0.6282629479465007,
+        "minimum": 0.6258748030879837,
+        "maximum": 0.6487748937286969
+      }
+    },
+    "tcp-C": {
+      "instructions:u": {
+        "values_per_query": [
+          10114.1208,
+          10034.129,
+          10203.656
+        ],
+        "median": 10114.1208,
+        "minimum": 10034.129,
+        "maximum": 10203.656
+      },
+      "instructions:k": {
+        "values_per_query": [
+          35900.637,
+          43451.4964,
+          37914.9546
+        ],
+        "median": 37914.9546,
+        "minimum": 35900.637,
+        "maximum": 43451.4964
+      },
+      "cycles:u": {
+        "values_per_query": [
+          21835.0974,
+          21338.4806,
+          22054.7208
+        ],
+        "median": 21835.0974,
+        "minimum": 21338.4806,
+        "maximum": 22054.7208
+      },
+      "cycles:k": {
+        "values_per_query": [
+          86718.453,
+          96266.8528,
+          90075.136
+        ],
+        "median": 90075.136,
+        "minimum": 86718.453,
+        "maximum": 96266.8528
+      },
+      "ipc:u": {
+        "values": [
+          0.463204748516487,
+          0.4702363391327872,
+          0.46265178745767666
+        ],
+        "median": 0.463204748516487,
+        "minimum": 0.46265178745767666,
+        "maximum": 0.4702363391327872
+      },
+      "ipc:k": {
+        "values": [
+          0.413990745429926,
+          0.451365087111272,
+          0.42092586571282004
+        ],
+        "median": 0.42092586571282004,
+        "minimum": 0.413990745429926,
+        "maximum": 0.451365087111272
+      }
+    },
+    "tcp-185": {
+      "instructions:u": {
+        "values_per_query": [
+          9933.1836,
+          9932.8374,
+          9933.0792
+        ],
+        "median": 9933.0792,
+        "minimum": 9932.8374,
+        "maximum": 9933.1836
+      },
+      "instructions:k": {
+        "values_per_query": [
+          37561.022,
+          42104.7826,
+          39359.563
+        ],
+        "median": 39359.563,
+        "minimum": 37561.022,
+        "maximum": 42104.7826
+      },
+      "cycles:u": {
+        "values_per_query": [
+          22609.8214,
+          25014.4156,
+          24295.3788
+        ],
+        "median": 24295.3788,
+        "minimum": 22609.8214,
+        "maximum": 25014.4156
+      },
+      "cycles:k": {
+        "values_per_query": [
+          72176.4776,
+          81029.8472,
+          76902.5714
+        ],
+        "median": 76902.5714,
+        "minimum": 72176.4776,
+        "maximum": 81029.8472
+      },
+      "ipc:u": {
+        "values": [
+          0.43933047609124415,
+          0.3970845275313967,
+          0.4088464428469829
+        ],
+        "median": 0.4088464428469829,
+        "minimum": 0.3970845275313967,
+        "maximum": 0.43933047609124415
+      },
+      "ipc:k": {
+        "values": [
+          0.5204053072271291,
+          0.5196206589909502,
+          0.5118107533137702
+        ],
+        "median": 0.5196206589909502,
+        "minimum": 0.5118107533137702,
+        "maximum": 0.5204053072271291
+      }
+    }
+  },
+  "interpretation_limits": [
+    "Historical E measurements are not pooled or substituted.",
+    "One sample per side/transport identifies candidate hotspots, not stable function precision or causality.",
+    "Unknown/non-user/overlap periods remain in the full denominator.",
+    "Counter/scaling details and complete three-window ranges are retained.",
+    "IPC is computed from matching counters in each stat window.",
+    "Oracleusercycles remain higher for185despite fewerinstructions; thisdoes not establish the causal microarchitecture or predict physicalA53gains.",
+    "Actualselfsample shares rank currentemitted ranges includinginlining; do not add them as guaranteed savings of combinedprototypes.",
+    "CurrentG/185 acceptance and separately scheduleddirectC/Gdevice ten are independentmatrices, never pooled."
+  ],
+  "retained_failures": {
+    "preflight_unversioned_demangler": "Originalfailure4be87a58 retained before0captures; reviewedpathonly supplement97f50393. No originalcapture oranalysis retry.",
+    "reviewer_raw_adapter": "Firstreview attempt reached firstsample after12stats. IntegerPIDmap keys differed from savedJSON stringkeys; JSONnormalization fixed onlycomparison representation. Allancestry/exit/map checks unchanged. Originalreviewoutputs preserved; first13analyzer outputs andfirst4exports reused onlyafter equality rechecks.",
+    "peer_MD_selector": "Peerfirstlocal selector could not disambiguate identicalunnamedlabels/Rustgenericspelling. Final selectors use exactemittedranges/names; initialreceipt retained. No numeric/capture defect."
+  },
+  "quiet_after_review": {
+    "status": "PROFILE_INDEPENDENT_RAW_REVIEW_FINISHED_ORACLE_QUIET",
+    "epoch": 1792124052.3931396,
+    "controller_pid_absent": 801096,
+    "research": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "raw_review_sha256": "392ed37325f592420eb607ffe0fcfaa4997b47f28c99ba0279513549ccd8856a",
+    "scope": "Freshreadonlyquiet capture after independentrawparsing; no capture rerun. Rootauthorized6abrelatedgates are next, notyetstarted."
+  },
+  "private_evidence": {
+    "raw-independent.json": "392ed37325f592420eb607ffe0fcfaa4997b47f28c99ba0279513549ccd8856a",
+    "audit_raw_attempt1.py": "8c5d86ed9e2df4d2102b733c4b68aaba918297254802998ff7f9722fface2cc8",
+    "audit_raw_attempt2.py": "9c05441c2736ddf947ea18f3586031376b13a450735e22e5cf4b2a5ef54eadfe",
+    "audit-remote.stdout": "a5c00d31c4dfee09d16c1f41535302787421a07d70a63daeb1c01d574faaa737",
+    "audit-remote.stderr": "69995f30635a5ac51b08edd7493d9b93c7ec15805c13710f239561edee7dfe3d",
+    "audit-remote-attempt2.stdout": "d591ab106a5afc9f33603ebd44b3f01ff3f8516cd063d5eed5eaba87b33c8bca",
+    "audit-remote-attempt2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "quiet.json": "aa26a83a372337dfed4de44ebfad4e179d3d892c2d608b2b7049849e99611a23",
+    "derived-arithmetic-review.json": "33cbb6317fb1892038fa0046886b7628384ab2110c4cba6d48ae6f3dd0a9d1e9"
+  },
+  "next_authorized_work": "Rootauthorized exact6ab0f064 original5relatedLinuxgroups afterthisPASSandactualquiet. Sourceupload deferreduntildirectC/Gdevice ten finishes; DHCP has now explicitly released thatnetworkwindow. No full44orSDKwork bythisreview.",
+  "performance_acceptance": false,
+  "deployment": false
+}
