@@ -24,7 +24,8 @@
     "apk": {
       "name": "dnsmasq-2.93-r4.apk",
       "bytes": 1293382,
-      "sha256": "ea0c484dc8f7d7b5020b78a106842bbee38f55843f14a8700f58d7448e6e4ee2"
+      "sha256": "ea0c484dc8f7d7b5020b78a106842bbee38f55843f14a8700f58d7448e6e4ee2",
+      "local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/candidate-h-reproduction-inputs/files/dnsmasq-2.93-r4.apk"
     },
     "link_map": {
       "path": "link.map",
@@ -37,7 +38,7 @@
     "build_receipt_sha256": "da83d1726ba5b6c70ddfa1c4a3621091786ca338f38235f687b8622b3d440148",
     "profile_invocation_sha256": "926a87b220da6b473ab99534b4d568643fa874789ed74ec0d3c190411d10d0b7",
     "compile_log_sha256": "1c02b913c62fd541e69df4a9275f009d8208e7b9f4d6c17e81895a489e84b159",
-    "local_rehash_scope": "ELF/map/build/invocation/compile present and rehashed. APK/prestrip identities are from retained original execution evidence; their bytes are absent from this local directory."
+    "local_rehash_scope": "ELF/map/build/invocation/compile and now the original APK bytes are present and rehashed. Prestrip identity remains from original execution evidence; no local prestrip bytes downloaded."
   },
   "training_profile": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-train1/training.profdata",
@@ -77,7 +78,17 @@
       "Internal _exit children bypass profiler atexit output.",
       "Exact artifact reconstruction requires preserved merged-profile bytes. Retraining is not known to reproduce identical counts, profile or ELF."
     ],
-    "local_profile_bytes_available": false
+    "local_profile_bytes_available": true,
+    "local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/candidate-h-reproduction-inputs/files/training.profdata",
+    "profile_receipt_local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/candidate-h-reproduction-inputs/files/training-profile.json",
+    "raw_profile_inventory_local_path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/candidate-h-reproduction-inputs/files/training-profile.json",
+    "raw_profile_inventory_entries": 50,
+    "raw_profile_bytes_locally_available": false,
+    "optional_raw_profile_archive": {
+      "compressed_bytes": 5803357,
+      "downloaded": false,
+      "reason": "Exceeded the preselected4MiB small-transfer allowance; all50 original paths, sizes and SHA256 remain in the downloaded original receipt. No retraining or remote data change."
+    }
   },
   "toolchain": {
     "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
@@ -171,7 +182,22 @@
   "existing_validation": {
     "training": "Original11 scenes valid,50 expected normal-exit profiles,matching LLVM merge/show succeeded.",
     "build": "Canonical SDK use build exited0 with source179/SDK106 unchanged and recipe restored; controller then failed original size assertion. Raw failed state stays unchanged.",
-    "static_hardening": {
+    "runtime_smoke": {
+      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/pgo-existing-runtime-20261016/raw/runtime/result.json",
+      "sha256": "4a35a3a0dfcf71f8127cc82f7b59b37034cf279e34365668be2ec5de5db43067",
+      "checks": "Original E/use A+AAAA bytes equal; live ELF hash, read-only RELRO, NX/noWX, SIGTERM exit0,no forced cleanup.",
+      "runtime_protections_verified": true
+    },
+    "compile_warning_lines": 31,
+    "rust_warning_lines_in_historical_summary": 25,
+    "warning_summary": [
+      "Six SDK config type-redefinition warnings plus25 retained compiler-warning lines including summaries.",
+      "Unused imports/variables/dead method/drop-Copy and existing extern signature warnings.",
+      "SDK runas.so LD_PRELOAD could not be preloaded; linker reported it ignored."
+    ],
+    "profile_missing_or_mismatch_warnings": [],
+    "this_task": "Local source179/Git objects,artifact identities,134 retained text files,original script hashes,canonical builder/helper only; no new execution.",
+    "original_build_static_hardening": {
       "type": "ET_DYN",
       "machine": "AArch64",
       "linkage": "static-pie",
@@ -184,20 +210,17 @@
       "writable_executable_load": false,
       "runtime_protections_verified": false
     },
-    "runtime_smoke": {
-      "path": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/pgo-existing-runtime-20261016/raw/runtime/result.json",
-      "sha256": "4a35a3a0dfcf71f8127cc82f7b59b37034cf279e34365668be2ec5de5db43067",
-      "checks": "Original E/use A+AAAA bytes equal; live ELF hash, read-only RELRO, NX/noWX, SIGTERM exit0,no forced cleanup."
-    },
-    "compile_warning_lines": 31,
-    "rust_warning_lines_in_historical_summary": 25,
-    "warning_summary": [
-      "Six SDK config type-redefinition warnings plus25 retained compiler-warning lines including summaries.",
-      "Unused imports/variables/dead method/drop-Copy and existing extern signature warnings.",
-      "SDK runas.so LD_PRELOAD could not be preloaded; linker reported it ignored."
-    ],
-    "profile_missing_or_mismatch_warnings": [],
-    "this_task": "Local source179/Git objects,artifact identities,134 retained text files,original script hashes,canonical builder/helper only; no new execution."
+    "original_build_static_hardening_note": "runtime_protections_verified=false belongs to the original static-build receipt and is retained verbatim. The later runtime smoke separately verified actual mappings.",
+    "local_reproduction_input_completion": {
+      "original_merged_profile_bytes_rehashed": 929880,
+      "original_APK_bytes_rehashed": 1293382,
+      "original_profile_receipt_bytes_rehashed": 12507,
+      "raw_profile_inventory_entries": 50,
+      "transport_archive": "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/candidate-h-reproduction-inputs/inputs.tar.gz",
+      "transport_archive_bytes": 1501656,
+      "transport_archive_sha256": "1a5e435f86cd3e5f221e60914174c8d5f837af8cf6edd45c21834a605cc05e0d",
+      "scope": "One read-only remote stream in the post118/restoration gap. Packaging/download ended before subsequent measurements; no rebuild, retraining, remote mutation or new qualification gate."
+    }
   },
   "budgets": {
     "original": {
@@ -217,13 +240,13 @@
   },
   "not_verified_here": [
     "Byte-identical repeat use build or deterministic retraining.",
-    "Merged/raw profile,APK,prestrip,SDK/compiler binary bytes are not newly rehashed locally; original execution evidence pins them.",
-    "Full44/67,shipping-ELF boundaries,independent9-pair confirmation and conditional118-window matrix are ongoing qualification work; this manifest makes no completion claim.",
+    "Original50 raw profile contents,prestrip,SDK/compiler binary bytes are not locally rehashed; their original pinned identities remain in the receipt/build evidence.",
+    "This artifact manifest does not certify full44/67,shipping-ELF boundaries,independent9-pair confirmation or the118-window matrix; root owns final acceptance from the unified result.",
     "Integrated firmware/install/rollback/free-space validation or deployment authorization."
   ],
   "offline_reproduction_inputs_not_locally_available": [
-    "Preserved Oracle pgo-train1/training.profdata and training/profiles/*/*.profraw matching the profile receipt.",
-    "Oracle pgo-train1/use/dnsmasq-2.93-r4.apk and dnsmasq-prestrip for offline artifact revalidation.",
+    "Original50 Oracle pgo-train1/training/profiles/*/*.profraw contents; the exact merged profile needed for profile-use and full50-entry SHA256 inventory are now local.",
+    "Oracle pgo-train1/use/dnsmasq-prestrip for optional offline companion revalidation; original APK is now local.",
     "Pinned Rust1.98.1/LLVM22.1.8 toolchain and original SDK archive; hashes recorded above."
   ]
 }
