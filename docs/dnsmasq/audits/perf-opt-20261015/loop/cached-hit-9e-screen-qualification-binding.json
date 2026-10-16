@@ -1,0 +1,41 @@
+{
+  "status": "ALL9E_ACTUAL_QUALIFICATION_PINS_LOCALLY_VERIFIED_SCREEN_READINESS_PENDING",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "correctness_qualification_release_sha256": "d8bb694a874ece98b76d4e28957afe680bb36dab1b13dfb703a723a2813ab2ab",
+  "audits": {
+    "related": {
+      "commit": "7ffb1476",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-related-independent-audit.json",
+      "sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+      "status": "PASS_FRESH_9E_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+    },
+    "SDK": {
+      "commit": "6c8ad70d",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-sdk-independent-audit.json",
+      "sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+      "status": "PASS_ACTUAL_BARE9E_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL965_CHAIN"
+    },
+    "signals": {
+      "commit": "b019256e",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+      "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+      "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+    }
+  },
+  "actual_signal_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+  "actual_signal_counts": [
+    12,
+    3,
+    3
+  ],
+  "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+  "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+  "SDK_map_sha256": "346acb9555f6956c7f271e627bd635fe8c32983923a82dffc88052be853f89c0",
+  "related_passed": 965,
+  "local_raw_signal_result_bytes_verified": true,
+  "device_four_copy_stage": null,
+  "DNS_final_quiet": null,
+  "native_enabled": false,
+  "owner32_enabled": false,
+  "scope": "Concrete Git review bytes and actual local raw result checked, not truthy references. DNS owns Oracle; device stage proof and DNS final quiet remain mandatory before native ready."
+}
