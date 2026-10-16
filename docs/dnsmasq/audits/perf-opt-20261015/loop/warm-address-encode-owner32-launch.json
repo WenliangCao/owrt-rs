@@ -1,0 +1,24 @@
+{
+  "scope": "Original exact-SDK G185/warm6dad owner32 after actual961/SDK independent remote audits, owner plan peer, input pretransfer and correctness fresh quiet; bulk download audit deferred until device50 restoration. Root authorized simultaneous device50; no bulk during either measurement, no native240 or isolated-writer attribution.",
+  "pid": 1053371,
+  "starttime_ticks": 187338855,
+  "epoch": 1792148771.3366027,
+  "utc": "2026-10-16 11:06:11 UTC",
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/run_warm_address_encode_owner32.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/plan.json"
+  ],
+  "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+  "controller_sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+  "explicit_release_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+  "final_metadata_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+  "windows": 32,
+  "stat_windows": 12,
+  "plain_windows": 20,
+  "no_measurement_retries": true,
+  "transfers_held_during_both_measurement_slots": true
+}
