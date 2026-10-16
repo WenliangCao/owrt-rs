@@ -1,0 +1,2769 @@
+{
+  "status": "PASS_EXACT_G1DF_NATIVE240_FULL_RAW_AND_DERIVED_STATISTICS",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "result_sha256": "239912cb5c076a1f80d3ba91ebdb4127cdc6a0af097103f94febff7e864e7ecf",
+  "summary_sha256": "48ef6c28ed983c6e37c635092d278e3fb7f1963179da6f1b2d421c5fe24ec74f",
+  "plan_sha256": "d16217a0864a5ccf64c9e2e4f355b29f52386667a087f2b855075c52f85d90fd",
+  "archive_sha256": "b5b79d77ae27ba0644094da0b669f163496cd7fb528d61655da412e3460fe3c5",
+  "collection_sha256": "14631431ed4158abcb39c16b6ac45aef512998c97aa71f69bb43e5642be47e6e",
+  "native_directory_files_verified": 591,
+  "original_command_log_and_CSV_files_verified": 578,
+  "probe_JSON_rows_reparsed": 240,
+  "stat_windows": 90,
+  "plain_windows": 150,
+  "commands": 244,
+  "all180_user_PMU_events_unscaled_same_group_same_window": true,
+  "source_files_rehashed_against_Git_each": 162,
+  "both_native_probe_ELFs_independently_rehashed": {
+    "G": {
+      "elf_sha256": "5680cb7d85d994c4b01dfe864db51a517e8fae7aa7217b9a9efe7f8ff7ba85cb",
+      "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+    },
+    "inline-address-details": {
+      "elf_sha256": "36e1cc534446da2663abc1f36c975c016eaabcd80f271e50c691f0ab04acb5ca",
+      "rlib_sha256": "7bb8ae4491c5670aab114f509e158382846023d1d6ce8ecc151db3a8bdfb8f7c"
+    }
+  },
+  "all15_CPU_and_PMU_IPC_statistics_independently_recomputed": true,
+  "counts": {
+    "faster": 10,
+    "slower": 1,
+    "within_variation_or_resolution": 4
+  },
+  "summaries": [
+    {
+      "candidate": "inline-address-details",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 427.3865,
+          "min": 426.065,
+          "max": 428.5965,
+          "rounds": [
+            426.065,
+            428.5965,
+            427.3865,
+            428.253,
+            426.77
+          ]
+        },
+        "right": {
+          "median": 402.0355,
+          "min": 401.021,
+          "max": 403.3095,
+          "rounds": [
+            403.3095,
+            402.3735,
+            401.021,
+            401.9465,
+            402.0355
+          ]
+        },
+        "relative_change_pct": -5.9316333108322326,
+        "W_pct": 0.5923210021842042,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.809235,
+          "cycles:u": 1286.421735,
+          "ipc": 2.6031970262069617
+        },
+        "inline-address-details": {
+          "instructions:u": 3205.138775,
+          "cycles:u": 1212.516115,
+          "ipc": 2.643316926142462
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.290195407323649,
+        "cycles:u": -5.745053740094031,
+        "ipc": 1.541178002725263
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 442.6455,
+          "min": 440.943,
+          "max": 442.7975,
+          "rounds": [
+            442.6455,
+            442.2775,
+            442.6725,
+            442.7975,
+            440.943
+          ]
+        },
+        "right": {
+          "median": 421.433,
+          "min": 420.365,
+          "max": 422.668,
+          "rounds": [
+            420.365,
+            421.433,
+            422.3005,
+            422.668,
+            420.925
+          ]
+        },
+        "relative_change_pct": -4.792209567249646,
+        "W_pct": 0.54646883371734,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3484.540545,
+          "cycles:u": 1331.912755,
+          "ipc": 2.6159822983300436
+        },
+        "inline-address-details": {
+          "instructions:u": 3321.691055,
+          "cycles:u": 1268.1947,
+          "ipc": 2.6192279899923885
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.673485295892865,
+        "cycles:u": -4.783951107968787,
+        "ipc": 0.12407162175436248
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 553.5165,
+          "min": 552.385,
+          "max": 554.187,
+          "rounds": [
+            552.385,
+            553.969,
+            553.0585,
+            553.5165,
+            554.187
+          ]
+        },
+        "right": {
+          "median": 438.8405,
+          "min": 438.076,
+          "max": 439.9545,
+          "rounds": [
+            439.9545,
+            438.343,
+            438.8405,
+            439.0645,
+            438.076
+          ]
+        },
+        "relative_change_pct": -20.71772024862853,
+        "W_pct": 0.4280598531812752,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 4584.679365,
+          "cycles:u": 1663.58123,
+          "ipc": 2.7559342172909704
+        },
+        "inline-address-details": {
+          "instructions:u": 3579.79708,
+          "cycles:u": 1320.92918,
+          "ipc": 2.710059808051178
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -21.918267451185216,
+        "cycles:u": -20.597253913474354,
+        "ipc": -1.664568368576147
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 426.619,
+          "min": 425.656,
+          "max": 428.8045,
+          "rounds": [
+            426.619,
+            428.7915,
+            428.8045,
+            425.962,
+            425.656
+          ]
+        },
+        "right": {
+          "median": 401.861,
+          "min": 401.0365,
+          "max": 402.318,
+          "rounds": [
+            401.7495,
+            402.318,
+            401.861,
+            401.929,
+            401.0365
+          ]
+        },
+        "relative_change_pct": -5.803304587934442,
+        "W_pct": 0.7380121372934663,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.832305,
+          "cycles:u": 1287.50136,
+          "ipc": 2.601032052502065
+        },
+        "inline-address-details": {
+          "instructions:u": 3205.269865,
+          "cycles:u": 1209.25357,
+          "ipc": 2.6507138573095137
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.2869402503568965,
+        "cycles:u": -6.077491832707649,
+        "ipc": 1.910080452859364
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 388.131,
+          "min": 387.419,
+          "max": 388.9245,
+          "rounds": [
+            388.9245,
+            387.419,
+            388.131,
+            387.849,
+            388.291
+          ]
+        },
+        "right": {
+          "median": 391.832,
+          "min": 391.4775,
+          "max": 392.82,
+          "rounds": [
+            391.832,
+            391.809,
+            392.82,
+            391.4775,
+            392.3825
+          ]
+        },
+        "relative_change_pct": 0.9535440353901189,
+        "W_pct": 0.38788450291268683,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 2977.22133,
+          "cycles:u": 1161.16608,
+          "ipc": 2.5639970855848633
+        },
+        "inline-address-details": {
+          "instructions:u": 2999.31608,
+          "cycles:u": 1174.15465,
+          "ipc": 2.5544466736132247
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.7421265519416353,
+        "cycles:u": 1.1185798675758862,
+        "ipc": -0.3724813895199852
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 486.361,
+          "min": 484.0985,
+          "max": 486.4645,
+          "rounds": [
+            486.408,
+            486.361,
+            484.3995,
+            486.4645,
+            484.0985
+          ]
+        },
+        "right": {
+          "median": 420.5915,
+          "min": 419.2555,
+          "max": 421.977,
+          "rounds": [
+            421.2135,
+            420.5915,
+            419.2555,
+            420.449,
+            421.977
+          ]
+        },
+        "relative_change_pct": -13.522774235598659,
+        "W_pct": 0.6470649073982694,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3862.622015,
+          "cycles:u": 1457.969815,
+          "ipc": 2.649315490115274
+        },
+        "inline-address-details": {
+          "instructions:u": 3264.572945,
+          "cycles:u": 1258.1953,
+          "ipc": 2.5946472260705473
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -15.482981966072595,
+        "cycles:u": -13.70223943902431,
+        "ipc": -2.063486370298151
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 888.259,
+          "min": 883.3295,
+          "max": 908.179,
+          "rounds": [
+            889.8935,
+            883.3295,
+            885.494,
+            908.179,
+            888.259
+          ]
+        },
+        "right": {
+          "median": 888.02,
+          "min": 884.725,
+          "max": 899.623,
+          "rounds": [
+            891.4925,
+            884.725,
+            885.1305,
+            888.02,
+            899.623
+          ]
+        },
+        "relative_change_pct": -0.026906566665807242,
+        "W_pct": 2.7975511646940725,
+        "same_direction_pairs": 2,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6909.059595,
+          "cycles:u": 2652.540045,
+          "ipc": 2.604695679533087
+        },
+        "inline-address-details": {
+          "instructions:u": 6881.98541,
+          "cycles:u": 2675.291895,
+          "ipc": 2.5487632581975856
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.3918649799980356,
+        "cycles:u": 0.8577382287926927,
+        "ipc": -2.1473687607731495
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1671.002,
+          "min": 1632.3555,
+          "max": 1682.609,
+          "rounds": [
+            1682.563,
+            1632.3555,
+            1671.002,
+            1682.609,
+            1645.9325
+          ]
+        },
+        "right": {
+          "median": 1647.3805,
+          "min": 1618.17,
+          "max": 1663.4265,
+          "rounds": [
+            1644.6115,
+            1647.3805,
+            1663.4265,
+            1618.17,
+            1655.0005
+          ]
+        },
+        "relative_change_pct": -1.4136129100982506,
+        "W_pct": 3.0073871844557956,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 13055.982605,
+          "cycles:u": 4919.307985,
+          "ipc": 2.654028299266975
+        },
+        "inline-address-details": {
+          "instructions:u": 13227.04272,
+          "cycles:u": 4965.507475,
+          "ipc": 2.6637846759056587
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 1.310204832338635,
+        "cycles:u": 0.9391461185368266,
+        "ipc": 0.3676063530060336
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6712.6,
+          "min": 6697.66,
+          "max": 6735.095,
+          "rounds": [
+            6712.6,
+            6703.38,
+            6718.82,
+            6735.095,
+            6697.66
+          ]
+        },
+        "right": {
+          "median": 6730.57,
+          "min": 6718.95,
+          "max": 6745.415,
+          "rounds": [
+            6730.57,
+            6731.79,
+            6718.95,
+            6745.415,
+            6720.275
+          ]
+        },
+        "relative_change_pct": 0.2677055090426861,
+        "W_pct": 0.5576825671126001,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 58297.12582,
+          "cycles:u": 19971.102215,
+          "ipc": 2.920085385232204
+        },
+        "inline-address-details": {
+          "instructions:u": 58128.92795,
+          "cycles:u": 19906.428325,
+          "ipc": 2.918117170072497
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.2885182890822735,
+        "cycles:u": -0.3238373591189281,
+        "ipc": -0.06740265780107446
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 831.6135,
+          "min": 827.396,
+          "max": 834.737,
+          "rounds": [
+            831.6135,
+            834.423,
+            834.737,
+            827.396,
+            828.0115
+          ]
+        },
+        "right": {
+          "median": 834.6605,
+          "min": 833.1225,
+          "max": 836.05,
+          "rounds": [
+            833.1225,
+            833.6705,
+            834.6605,
+            834.9705,
+            836.05
+          ]
+        },
+        "relative_change_pct": 0.36639616841235884,
+        "W_pct": 0.8827418025320666,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6590.614455,
+          "cycles:u": 2496.97792,
+          "ipc": 2.6394364172030804
+        },
+        "inline-address-details": {
+          "instructions:u": 6530.37407,
+          "cycles:u": 2482.18108,
+          "ipc": 2.6309026616220925
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.9140329086356758,
+        "cycles:u": -0.592589941684385,
+        "ipc": -0.3233173387078958
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 721.3675,
+          "min": 720.3415,
+          "max": 722.3595,
+          "rounds": [
+            722.3595,
+            721.1345,
+            721.5535,
+            720.3415,
+            721.3675
+          ]
+        },
+        "right": {
+          "median": 641.577,
+          "min": 639.855,
+          "max": 657.0455,
+          "rounds": [
+            657.0455,
+            640.5275,
+            641.577,
+            639.855,
+            642.11
+          ]
+        },
+        "relative_change_pct": -11.061005659389972,
+        "W_pct": 2.6794133829610365,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 5818.43572,
+          "cycles:u": 2167.40251,
+          "ipc": 2.6845201540345176
+        },
+        "inline-address-details": {
+          "instructions:u": 5064.652735,
+          "cycles:u": 1927.02913,
+          "ipc": 2.6282217254287175
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -12.955079703106199,
+        "cycles:u": -11.090389481924145,
+        "ipc": -2.097150528789671
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1517.135,
+          "min": 1514.0585,
+          "max": 1520.9225,
+          "rounds": [
+            1516.021,
+            1514.0585,
+            1520.9225,
+            1520.0315,
+            1517.135
+          ]
+        },
+        "right": {
+          "median": 1473.497,
+          "min": 1473.322,
+          "max": 1480.1925,
+          "rounds": [
+            1473.497,
+            1480.1925,
+            1474.48,
+            1473.3275,
+            1473.322
+          ]
+        },
+        "relative_change_pct": -2.87634257992861,
+        "W_pct": 0.4662717331626885,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12758.666515,
+          "cycles:u": 4525.48916,
+          "ipc": 2.8192895163182756
+        },
+        "inline-address-details": {
+          "instructions:u": 12290.14712,
+          "cycles:u": 4399.25515,
+          "ipc": 2.793687876912527
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.672165852514264,
+        "cycles:u": -2.7894003396530143,
+        "ipc": -0.9080883413201901
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1082.9265,
+          "min": 1081.0645,
+          "max": 1087.1925,
+          "rounds": [
+            1086.202,
+            1082.237,
+            1087.1925,
+            1081.0645,
+            1082.9265
+          ]
+        },
+        "right": {
+          "median": 1069.3345,
+          "min": 1065.5645,
+          "max": 1070.246,
+          "rounds": [
+            1067.0185,
+            1070.246,
+            1065.5645,
+            1069.3345,
+            1069.6965
+          ]
+        },
+        "relative_change_pct": -1.25511749874069,
+        "W_pct": 0.565874045930186,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 8731.90545,
+          "cycles:u": 3237.59413,
+          "ipc": 2.697055708462135
+        },
+        "inline-address-details": {
+          "instructions:u": 8667.96293,
+          "cycles:u": 3193.02791,
+          "ipc": 2.7147876057870097
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.7322859869033582,
+        "cycles:u": -1.3765227576564731,
+        "ipc": 0.6574538771757732
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1345.1795,
+          "min": 1339.879,
+          "max": 1350.7015,
+          "rounds": [
+            1344.4355,
+            1345.1795,
+            1350.7015,
+            1339.879,
+            1347.7595
+          ]
+        },
+        "right": {
+          "median": 1107.128,
+          "min": 1104.8495,
+          "max": 1108.5825,
+          "rounds": [
+            1107.128,
+            1104.8495,
+            1106.336,
+            1108.161,
+            1108.5825
+          ]
+        },
+        "relative_change_pct": -17.696634538364584,
+        "W_pct": 0.8045394685244601,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 11226.347145,
+          "cycles:u": 4033.613075,
+          "ipc": 2.783198818592683
+        },
+        "inline-address-details": {
+          "instructions:u": 9070.76271,
+          "cycles:u": 3299.463805,
+          "ipc": 2.749170103413212
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -19.201120428206742,
+        "cycles:u": -18.200785656665897,
+        "ipc": -1.2226476582322454
+      }
+    },
+    {
+      "candidate": "inline-address-details",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 22987.375,
+          "min": 22963.475,
+          "max": 23008.01,
+          "rounds": [
+            22987.375,
+            22989.11,
+            23008.01,
+            22984.98,
+            22963.475
+          ]
+        },
+        "right": {
+          "median": 22889.74,
+          "min": 22864.715,
+          "max": 22915.15,
+          "rounds": [
+            22915.15,
+            22889.74,
+            22864.715,
+            22872.665,
+            22897.815
+          ]
+        },
+        "relative_change_pct": -0.4247331415613936,
+        "W_pct": 0.22033889419452254,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 220059.34643,
+          "cycles:u": 68432.2151,
+          "ipc": 3.2168065517905
+        },
+        "inline-address-details": {
+          "instructions:u": 219960.22785,
+          "cycles:u": 68128.139815,
+          "ipc": 3.2287896412188704
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.04504174969525154,
+        "cycles:u": -0.44434523207477206,
+        "ipc": 0.37251507777800175
+      }
+    }
+  ],
+  "postflight_sha256": "f43a44e0f44d9bc00d65aeb67e26e8016d57dad5db02bbdbd221179d1a4c2818",
+  "limits": [
+    "Native probe measures whole-process CPU including setup/teardown; original W and direction test has no daemon100Hz tick gate.",
+    "Zero allocation counters reflect allocation_tracking disabled in original probe build; they do not prove zero allocations.",
+    "Native library screen omits SinglePoll, owner recycling, socket Rc and clock costs; no SDK/device/full qualification inference.",
+    "Native rlib bytes were not in this directory transfer; their hashes remain in the original build receipt.",
+    "The source maps are independently rehashed against local Git; remote contents are bound by recorded runner/postflight checks, not reviewer live remote reads.",
+    "Library build logs are not verbose; actual probe rustc argv and library cargo argv/profile are verified, not individual library rustc command lines."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "reviewer_remote_capture_or_build": false,
+  "audit_script_sha256": "0032b6a777fd23129ac99d08f7f7845cdfc6bb150c6f6ccb95ef20005cd21d30",
+  "original_audit_script_sha256": "d3f50acded782c23b89666f0e8229db38671bd7495c8c5a36db04a419b4a5cc1",
+  "archive_bytes": 1534678,
+  "comparison_scope": "Direct G185 versus bare 1df includes inherited 6ab changes; no isolated inline-address contribution inferred.",
+  "rule": {
+    "formula": "abs(delta) > W and same_direction_pairs >= 4 of 5",
+    "strict_width_comparison": true,
+    "daemon_tick_gate_applicable": false
+  },
+  "observations": [
+    {
+      "label": "inline-address-details-hit-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996431,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669761847,
+          "enabled_ns": 90742400,
+          "running_ns": 90742400,
+          "per_operation": 3348.809235
+        },
+        "cycles:u": {
+          "raw_count": 257284347,
+          "enabled_ns": 90742400,
+          "running_ns": 90742400,
+          "per_operation": 1286.421735
+        }
+      },
+      "ipc": 2.6031970262069617
+    },
+    {
+      "label": "inline-address-details-hit-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996436,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641012874,
+          "enabled_ns": 84735680,
+          "running_ns": 84735680,
+          "per_operation": 3205.06437
+        },
+        "cycles:u": {
+          "raw_count": 242503223,
+          "enabled_ns": 84735680,
+          "running_ns": 84735680,
+          "per_operation": 1212.516115
+        }
+      },
+      "ipc": 2.643316926142462
+    },
+    {
+      "label": "inline-address-details-hit-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996441,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641043515,
+          "enabled_ns": 83592520,
+          "running_ns": 83592520,
+          "per_operation": 3205.217575
+        },
+        "cycles:u": {
+          "raw_count": 242641523,
+          "enabled_ns": 83592520,
+          "running_ns": 83592520,
+          "per_operation": 1213.207615
+        }
+      },
+      "ipc": 2.6419365781841058
+    },
+    {
+      "label": "inline-address-details-hit-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996446,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669747323,
+          "enabled_ns": 88128440,
+          "running_ns": 88128440,
+          "per_operation": 3348.736615
+        },
+        "cycles:u": {
+          "raw_count": 256344283,
+          "enabled_ns": 88128440,
+          "running_ns": 88128440,
+          "per_operation": 1281.721415
+        }
+      },
+      "ipc": 2.612686794345244
+    },
+    {
+      "label": "inline-address-details-hit-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 996451,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669765117,
+          "enabled_ns": 88592960,
+          "running_ns": 88592960,
+          "per_operation": 3348.825585
+        },
+        "cycles:u": {
+          "raw_count": 257647038,
+          "enabled_ns": 88592960,
+          "running_ns": 88592960,
+          "per_operation": 1288.23519
+        }
+      },
+      "ipc": 2.5995451847577615
+    },
+    {
+      "label": "inline-address-details-hit-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996456,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641027755,
+          "enabled_ns": 83531600,
+          "running_ns": 83531600,
+          "per_operation": 3205.138775
+        },
+        "cycles:u": {
+          "raw_count": 242045901,
+          "enabled_ns": 83531600,
+          "running_ns": 83531600,
+          "per_operation": 1210.229505
+        }
+      },
+      "ipc": 2.6483726944006376
+    },
+    {
+      "label": "inline-address-details-hit-upper-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996473,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 696852038,
+          "enabled_ns": 92012040,
+          "running_ns": 92012040,
+          "per_operation": 3484.26019
+        },
+        "cycles:u": {
+          "raw_count": 266382551,
+          "enabled_ns": 92012040,
+          "running_ns": 92012040,
+          "per_operation": 1331.912755
+        }
+      },
+      "ipc": 2.6159822983300436
+    },
+    {
+      "label": "inline-address-details-hit-upper-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996478,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 664315226,
+          "enabled_ns": 87312800,
+          "running_ns": 87312800,
+          "per_operation": 3321.57613
+        },
+        "cycles:u": {
+          "raw_count": 253911087,
+          "enabled_ns": 87312800,
+          "running_ns": 87312800,
+          "per_operation": 1269.555435
+        }
+      },
+      "ipc": 2.6163301250409754
+    },
+    {
+      "label": "inline-address-details-hit-upper-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996483,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 664338211,
+          "enabled_ns": 87327040,
+          "running_ns": 87327040,
+          "per_operation": 3321.691055
+        },
+        "cycles:u": {
+          "raw_count": 253638940,
+          "enabled_ns": 87327040,
+          "running_ns": 87327040,
+          "per_operation": 1268.1947
+        }
+      },
+      "ipc": 2.6192279899923885
+    },
+    {
+      "label": "inline-address-details-hit-upper-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996488,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 696917108,
+          "enabled_ns": 91586320,
+          "running_ns": 91586320,
+          "per_operation": 3484.58554
+        },
+        "cycles:u": {
+          "raw_count": 266463636,
+          "enabled_ns": 91586320,
+          "running_ns": 91586320,
+          "per_operation": 1332.31818
+        }
+      },
+      "ipc": 2.615430452206244
+    },
+    {
+      "label": "inline-address-details-hit-upper-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 996493,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 696908109,
+          "enabled_ns": 91637320,
+          "running_ns": 91637320,
+          "per_operation": 3484.540545
+        },
+        "cycles:u": {
+          "raw_count": 266034093,
+          "enabled_ns": 91637320,
+          "running_ns": 91637320,
+          "per_operation": 1330.170465
+        }
+      },
+      "ipc": 2.6196195425223188
+    },
+    {
+      "label": "inline-address-details-hit-upper-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996498,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 664353468,
+          "enabled_ns": 87249040,
+          "running_ns": 87249040,
+          "per_operation": 3321.76734
+        },
+        "cycles:u": {
+          "raw_count": 253446380,
+          "enabled_ns": 87249040,
+          "running_ns": 87249040,
+          "per_operation": 1267.2319
+        }
+      },
+      "ipc": 2.6212781890986174
+    },
+    {
+      "label": "inline-address-details-hit-leases-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996619,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 916880314,
+          "enabled_ns": 114641080,
+          "running_ns": 114641080,
+          "per_operation": 4584.40157
+        },
+        "cycles:u": {
+          "raw_count": 334657348,
+          "enabled_ns": 114641080,
+          "running_ns": 114641080,
+          "per_operation": 1673.28674
+        }
+      },
+      "ipc": 2.7397585006859018
+    },
+    {
+      "label": "inline-address-details-hit-leases-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996624,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 715959416,
+          "enabled_ns": 90589880,
+          "running_ns": 90589880,
+          "per_operation": 3579.79708
+        },
+        "cycles:u": {
+          "raw_count": 264185836,
+          "enabled_ns": 90589880,
+          "running_ns": 90589880,
+          "per_operation": 1320.92918
+        }
+      },
+      "ipc": 2.710059808051178
+    },
+    {
+      "label": "inline-address-details-hit-leases-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996629,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 715932880,
+          "enabled_ns": 91032560,
+          "running_ns": 91032560,
+          "per_operation": 3579.6644
+        },
+        "cycles:u": {
+          "raw_count": 264535576,
+          "enabled_ns": 91032560,
+          "running_ns": 91032560,
+          "per_operation": 1322.67788
+        }
+      },
+      "ipc": 2.7063765517874994
+    },
+    {
+      "label": "inline-address-details-hit-leases-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996634,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 916944087,
+          "enabled_ns": 114021920,
+          "running_ns": 114021920,
+          "per_operation": 4584.720435
+        },
+        "cycles:u": {
+          "raw_count": 332716246,
+          "enabled_ns": 114021920,
+          "running_ns": 114021920,
+          "per_operation": 1663.58123
+        }
+      },
+      "ipc": 2.7559342172909704
+    },
+    {
+      "label": "inline-address-details-hit-leases-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 996639,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 916935873,
+          "enabled_ns": 113884080,
+          "running_ns": 113884080,
+          "per_operation": 4584.679365
+        },
+        "cycles:u": {
+          "raw_count": 332271511,
+          "enabled_ns": 113884080,
+          "running_ns": 113884080,
+          "per_operation": 1661.357555
+        }
+      },
+      "ipc": 2.7595982280888354
+    },
+    {
+      "label": "inline-address-details-hit-leases-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996644,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 715962914,
+          "enabled_ns": 90597800,
+          "running_ns": 90597800,
+          "per_operation": 3579.81457
+        },
+        "cycles:u": {
+          "raw_count": 263835794,
+          "enabled_ns": 90597800,
+          "running_ns": 90597800,
+          "per_operation": 1319.17897
+        }
+      },
+      "ipc": 2.7136686161696466
+    },
+    {
+      "label": "inline-address-details-hit-typed-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996718,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669770820,
+          "enabled_ns": 88741840,
+          "running_ns": 88741840,
+          "per_operation": 3348.8541
+        },
+        "cycles:u": {
+          "raw_count": 257672363,
+          "enabled_ns": 88741840,
+          "running_ns": 88741840,
+          "per_operation": 1288.361815
+        }
+      },
+      "ipc": 2.599311824528112
+    },
+    {
+      "label": "inline-address-details-hit-typed-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996723,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641077039,
+          "enabled_ns": 83362320,
+          "running_ns": 83362320,
+          "per_operation": 3205.385195
+        },
+        "cycles:u": {
+          "raw_count": 241850714,
+          "enabled_ns": 83362320,
+          "running_ns": 83362320,
+          "per_operation": 1209.25357
+        }
+      },
+      "ipc": 2.6507138573095137
+    },
+    {
+      "label": "inline-address-details-hit-typed-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996728,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641037105,
+          "enabled_ns": 82981720,
+          "running_ns": 82981720,
+          "per_operation": 3205.185525
+        },
+        "cycles:u": {
+          "raw_count": 241692715,
+          "enabled_ns": 82981720,
+          "running_ns": 82981720,
+          "per_operation": 1208.463575
+        }
+      },
+      "ipc": 2.6522814516771844
+    },
+    {
+      "label": "inline-address-details-hit-typed-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996733,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669766461,
+          "enabled_ns": 88539720,
+          "running_ns": 88539720,
+          "per_operation": 3348.832305
+        },
+        "cycles:u": {
+          "raw_count": 257500272,
+          "enabled_ns": 88539720,
+          "running_ns": 88539720,
+          "per_operation": 1287.50136
+        }
+      },
+      "ipc": 2.601032052502065
+    },
+    {
+      "label": "inline-address-details-hit-typed-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 996738,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 669749718,
+          "enabled_ns": 88624680,
+          "running_ns": 88624680,
+          "per_operation": 3348.74859
+        },
+        "cycles:u": {
+          "raw_count": 257277039,
+          "enabled_ns": 88624680,
+          "running_ns": 88624680,
+          "per_operation": 1286.385195
+        }
+      },
+      "ipc": 2.603223826748099
+    },
+    {
+      "label": "inline-address-details-hit-typed-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996743,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 641053973,
+          "enabled_ns": 83087120,
+          "running_ns": 83087120,
+          "per_operation": 3205.269865
+        },
+        "cycles:u": {
+          "raw_count": 242059915,
+          "enabled_ns": 83087120,
+          "running_ns": 83087120,
+          "per_operation": 1210.299575
+        }
+      },
+      "ipc": 2.6483276795333914
+    },
+    {
+      "label": "inline-address-details-miss-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996758,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 595445289,
+          "enabled_ns": 80372640,
+          "running_ns": 80372640,
+          "per_operation": 2977.226445
+        },
+        "cycles:u": {
+          "raw_count": 232233216,
+          "enabled_ns": 80372640,
+          "running_ns": 80372640,
+          "per_operation": 1161.16608
+        }
+      },
+      "ipc": 2.5639970855848633
+    },
+    {
+      "label": "inline-address-details-miss-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996763,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 599863088,
+          "enabled_ns": 80753520,
+          "running_ns": 80753520,
+          "per_operation": 2999.31544
+        },
+        "cycles:u": {
+          "raw_count": 234830930,
+          "enabled_ns": 80753520,
+          "running_ns": 80753520,
+          "per_operation": 1174.15465
+        }
+      },
+      "ipc": 2.5544466736132247
+    },
+    {
+      "label": "inline-address-details-miss-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996768,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 599863544,
+          "enabled_ns": 80722120,
+          "running_ns": 80722120,
+          "per_operation": 2999.31772
+        },
+        "cycles:u": {
+          "raw_count": 234416812,
+          "enabled_ns": 80722120,
+          "running_ns": 80722120,
+          "per_operation": 1172.08406
+        }
+      },
+      "ipc": 2.5589612745010797
+    },
+    {
+      "label": "inline-address-details-miss-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996773,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 595444185,
+          "enabled_ns": 79773560,
+          "running_ns": 79773560,
+          "per_operation": 2977.220925
+        },
+        "cycles:u": {
+          "raw_count": 232106570,
+          "enabled_ns": 79773560,
+          "running_ns": 79773560,
+          "per_operation": 1160.53285
+        }
+      },
+      "ipc": 2.565391341572106
+    },
+    {
+      "label": "inline-address-details-miss-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 996778,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 595444266,
+          "enabled_ns": 80200720,
+          "running_ns": 80200720,
+          "per_operation": 2977.22133
+        },
+        "cycles:u": {
+          "raw_count": 233475806,
+          "enabled_ns": 80200720,
+          "running_ns": 80200720,
+          "per_operation": 1167.37903
+        }
+      },
+      "ipc": 2.5503467626962597
+    },
+    {
+      "label": "inline-address-details-miss-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996783,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 599863216,
+          "enabled_ns": 81128480,
+          "running_ns": 81128480,
+          "per_operation": 2999.31608
+        },
+        "cycles:u": {
+          "raw_count": 235428553,
+          "enabled_ns": 81128480,
+          "running_ns": 81128480,
+          "per_operation": 1177.142765
+        }
+      },
+      "ipc": 2.5479628887665124
+    },
+    {
+      "label": "inline-address-details-miss-leases-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996876,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 772516821,
+          "enabled_ns": 99985280,
+          "running_ns": 99985280,
+          "per_operation": 3862.584105
+        },
+        "cycles:u": {
+          "raw_count": 290764306,
+          "enabled_ns": 99985280,
+          "running_ns": 99985280,
+          "per_operation": 1453.82153
+        }
+      },
+      "ipc": 2.6568488808939295
+    },
+    {
+      "label": "inline-address-details-miss-leases-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996900,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 652914589,
+          "enabled_ns": 86343520,
+          "running_ns": 86343520,
+          "per_operation": 3264.572945
+        },
+        "cycles:u": {
+          "raw_count": 251639060,
+          "enabled_ns": 86343520,
+          "running_ns": 86343520,
+          "per_operation": 1258.1953
+        }
+      },
+      "ipc": 2.5946472260705473
+    },
+    {
+      "label": "inline-address-details-miss-leases-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996905,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 652915998,
+          "enabled_ns": 86357840,
+          "running_ns": 86357840,
+          "per_operation": 3264.57999
+        },
+        "cycles:u": {
+          "raw_count": 251218220,
+          "enabled_ns": 86357840,
+          "running_ns": 86357840,
+          "per_operation": 1256.0911
+        }
+      },
+      "ipc": 2.598999379901665
+    },
+    {
+      "label": "inline-address-details-miss-leases-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996910,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 772554163,
+          "enabled_ns": 100223440,
+          "running_ns": 100223440,
+          "per_operation": 3862.770815
+        },
+        "cycles:u": {
+          "raw_count": 291702382,
+          "enabled_ns": 100223440,
+          "running_ns": 100223440,
+          "per_operation": 1458.51191
+        }
+      },
+      "ipc": 2.6484328228762974
+    },
+    {
+      "label": "inline-address-details-miss-leases-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 996915,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 772524403,
+          "enabled_ns": 100020840,
+          "running_ns": 100020840,
+          "per_operation": 3862.622015
+        },
+        "cycles:u": {
+          "raw_count": 291593963,
+          "enabled_ns": 100020840,
+          "running_ns": 100020840,
+          "per_operation": 1457.969815
+        }
+      },
+      "ipc": 2.649315490115274
+    },
+    {
+      "label": "inline-address-details-miss-leases-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996920,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 652904006,
+          "enabled_ns": 86899440,
+          "running_ns": 86899440,
+          "per_operation": 3264.52003
+        },
+        "cycles:u": {
+          "raw_count": 252761586,
+          "enabled_ns": 86899440,
+          "running_ns": 86899440,
+          "per_operation": 1263.80793
+        }
+      },
+      "ipc": 2.58308240715027
+    },
+    {
+      "label": "inline-address-details-host-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 996983,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1411403100,
+          "enabled_ns": 184061760,
+          "running_ns": 184061760,
+          "per_operation": 7057.0155
+        },
+        "cycles:u": {
+          "raw_count": 540911313,
+          "enabled_ns": 184061760,
+          "running_ns": 184061760,
+          "per_operation": 2704.556565
+        }
+      },
+      "ipc": 2.609305936257983
+    },
+    {
+      "label": "inline-address-details-host-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996988,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1376785271,
+          "enabled_ns": 181642040,
+          "running_ns": 181642040,
+          "per_operation": 6883.926355
+        },
+        "cycles:u": {
+          "raw_count": 535058379,
+          "enabled_ns": 181642040,
+          "running_ns": 181642040,
+          "per_operation": 2675.291895
+        }
+      },
+      "ipc": 2.573149631958198
+    },
+    {
+      "label": "inline-address-details-host-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 996993,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1376397082,
+          "enabled_ns": 183654640,
+          "running_ns": 183654640,
+          "per_operation": 6881.98541
+        },
+        "cycles:u": {
+          "raw_count": 540267451,
+          "enabled_ns": 183654640,
+          "running_ns": 183654640,
+          "per_operation": 2701.337255
+        }
+      },
+      "ipc": 2.5476217000531465
+    },
+    {
+      "label": "inline-address-details-host-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 996998,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1381811919,
+          "enabled_ns": 180220600,
+          "running_ns": 180220600,
+          "per_operation": 6909.059595
+        },
+        "cycles:u": {
+          "raw_count": 530508009,
+          "enabled_ns": 180220600,
+          "running_ns": 180220600,
+          "per_operation": 2652.540045
+        }
+      },
+      "ipc": 2.604695679533087
+    },
+    {
+      "label": "inline-address-details-host-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997003,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1378039316,
+          "enabled_ns": 179942000,
+          "running_ns": 179942000,
+          "per_operation": 6890.19658
+        },
+        "cycles:u": {
+          "raw_count": 529932839,
+          "enabled_ns": 179942000,
+          "running_ns": 179942000,
+          "per_operation": 2649.664195
+        }
+      },
+      "ipc": 2.6004037013452566
+    },
+    {
+      "label": "inline-address-details-host-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997008,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1354839099,
+          "enabled_ns": 180659000,
+          "running_ns": 180659000,
+          "per_operation": 6774.195495
+        },
+        "cycles:u": {
+          "raw_count": 531567259,
+          "enabled_ns": 180659000,
+          "running_ns": 180659000,
+          "per_operation": 2657.836295
+        }
+      },
+      "ipc": 2.5487632581975856
+    },
+    {
+      "label": "inline-address-details-host-localise-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 997101,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2611196521,
+          "enabled_ns": 332763040,
+          "running_ns": 332763040,
+          "per_operation": 13055.982605
+        },
+        "cycles:u": {
+          "raw_count": 983861597,
+          "enabled_ns": 332763040,
+          "running_ns": 332763040,
+          "per_operation": 4919.307985
+        }
+      },
+      "ipc": 2.654028299266975
+    },
+    {
+      "label": "inline-address-details-host-localise-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997112,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2652429791,
+          "enabled_ns": 337105440,
+          "running_ns": 337105440,
+          "per_operation": 13262.148955
+        },
+        "cycles:u": {
+          "raw_count": 995656632,
+          "enabled_ns": 337105440,
+          "running_ns": 337105440,
+          "per_operation": 4978.28316
+        }
+      },
+      "ipc": 2.6640005256350263
+    },
+    {
+      "label": "inline-address-details-host-localise-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997136,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2630410488,
+          "enabled_ns": 334149160,
+          "running_ns": 334149160,
+          "per_operation": 13152.05244
+        },
+        "cycles:u": {
+          "raw_count": 987536763,
+          "enabled_ns": 334149160,
+          "running_ns": 334149160,
+          "per_operation": 4937.683815
+        }
+      },
+      "ipc": 2.663607661561051
+    },
+    {
+      "label": "inline-address-details-host-localise-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 997141,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2557239349,
+          "enabled_ns": 326708920,
+          "running_ns": 326708920,
+          "per_operation": 12786.196745
+        },
+        "cycles:u": {
+          "raw_count": 965183697,
+          "enabled_ns": 326708920,
+          "running_ns": 326708920,
+          "per_operation": 4825.918485
+        }
+      },
+      "ipc": 2.649484607902572
+    },
+    {
+      "label": "inline-address-details-host-localise-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997146,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2747036567,
+          "enabled_ns": 346213560,
+          "running_ns": 346213560,
+          "per_operation": 13735.182835
+        },
+        "cycles:u": {
+          "raw_count": 1023885544,
+          "enabled_ns": 346213560,
+          "running_ns": 346213560,
+          "per_operation": 5119.42772
+        }
+      },
+      "ipc": 2.6829527803158437
+    },
+    {
+      "label": "inline-address-details-host-localise-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997151,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2645408544,
+          "enabled_ns": 336133720,
+          "running_ns": 336133720,
+          "per_operation": 13227.04272
+        },
+        "cycles:u": {
+          "raw_count": 993101495,
+          "enabled_ns": 336133720,
+          "running_ns": 336133720,
+          "per_operation": 4965.507475
+        }
+      },
+      "ipc": 2.6637846759056587
+    },
+    {
+      "label": "inline-address-details-raw-address-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 997324,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11659425164,
+          "enabled_ns": 1342597120,
+          "running_ns": 1342597120,
+          "per_operation": 58297.12582
+        },
+        "cycles:u": {
+          "raw_count": 3985271820,
+          "enabled_ns": 1342597120,
+          "running_ns": 1342597120,
+          "per_operation": 19926.3591
+        }
+      },
+      "ipc": 2.9256285871110292
+    },
+    {
+      "label": "inline-address-details-raw-address-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997329,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11617858058,
+          "enabled_ns": 1341576880,
+          "running_ns": 1341576880,
+          "per_operation": 58089.29029
+        },
+        "cycles:u": {
+          "raw_count": 3981285665,
+          "enabled_ns": 1341576880,
+          "running_ns": 1341576880,
+          "per_operation": 19906.428325
+        }
+      },
+      "ipc": 2.918117170072497
+    },
+    {
+      "label": "inline-address-details-raw-address-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997357,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11625785590,
+          "enabled_ns": 1340278560,
+          "running_ns": 1340278560,
+          "per_operation": 58128.92795
+        },
+        "cycles:u": {
+          "raw_count": 3978480243,
+          "enabled_ns": 1340278560,
+          "running_ns": 1340278560,
+          "per_operation": 19892.401215
+        }
+      },
+      "ipc": 2.922167481026247
+    },
+    {
+      "label": "inline-address-details-raw-address-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 997362,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11663464741,
+          "enabled_ns": 1345654120,
+          "running_ns": 1345654120,
+          "per_operation": 58317.323705
+        },
+        "cycles:u": {
+          "raw_count": 3994220443,
+          "enabled_ns": 1345654120,
+          "running_ns": 1345654120,
+          "per_operation": 19971.102215
+        }
+      },
+      "ipc": 2.920085385232204
+    },
+    {
+      "label": "inline-address-details-raw-address-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997367,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11658661559,
+          "enabled_ns": 1346634240,
+          "running_ns": 1346634240,
+          "per_operation": 58293.307795
+        },
+        "cycles:u": {
+          "raw_count": 3995746142,
+          "enabled_ns": 1346634240,
+          "running_ns": 1346634240,
+          "per_operation": 19978.73071
+        }
+      },
+      "ipc": 2.9177683327911477
+    },
+    {
+      "label": "inline-address-details-raw-address-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997372,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 11645450053,
+          "enabled_ns": 1345748480,
+          "running_ns": 1345748480,
+          "per_operation": 58227.250265
+        },
+        "cycles:u": {
+          "raw_count": 3996829600,
+          "enabled_ns": 1345748480,
+          "running_ns": 1345748480,
+          "per_operation": 19984.148
+        }
+      },
+      "ipc": 2.913671889589689
+    },
+    {
+      "label": "inline-address-details-synth-address-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 997469,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318123171,
+          "enabled_ns": 170509080,
+          "running_ns": 170509080,
+          "per_operation": 6590.615855
+        },
+        "cycles:u": {
+          "raw_count": 501590642,
+          "enabled_ns": 170509080,
+          "running_ns": 170509080,
+          "per_operation": 2507.95321
+        }
+      },
+      "ipc": 2.6278862893937323
+    },
+    {
+      "label": "inline-address-details-synth-address-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997474,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1306074814,
+          "enabled_ns": 168785400,
+          "running_ns": 168785400,
+          "per_operation": 6530.37407
+        },
+        "cycles:u": {
+          "raw_count": 496636951,
+          "enabled_ns": 168785400,
+          "running_ns": 168785400,
+          "per_operation": 2483.184755
+        }
+      },
+      "ipc": 2.6298381773046926
+    },
+    {
+      "label": "inline-address-details-synth-address-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997479,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1306075362,
+          "enabled_ns": 168895400,
+          "running_ns": 168895400,
+          "per_operation": 6530.37681
+        },
+        "cycles:u": {
+          "raw_count": 496436216,
+          "enabled_ns": 168895400,
+          "running_ns": 168895400,
+          "per_operation": 2482.18108
+        }
+      },
+      "ipc": 2.6309026616220925
+    },
+    {
+      "label": "inline-address-details-synth-address-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 997484,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318122891,
+          "enabled_ns": 169692880,
+          "running_ns": 169692880,
+          "per_operation": 6590.614455
+        },
+        "cycles:u": {
+          "raw_count": 499395584,
+          "enabled_ns": 169692880,
+          "running_ns": 169692880,
+          "per_operation": 2496.97792
+        }
+      },
+      "ipc": 2.6394364172030804
+    },
+    {
+      "label": "inline-address-details-synth-address-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997489,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1318122632,
+          "enabled_ns": 169453120,
+          "running_ns": 169453120,
+          "per_operation": 6590.61316
+        },
+        "cycles:u": {
+          "raw_count": 498758823,
+          "enabled_ns": 169453120,
+          "running_ns": 169453120,
+          "per_operation": 2493.794115
+        }
+      },
+      "ipc": 2.6428056431595195
+    },
+    {
+      "label": "inline-address-details-synth-address-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997494,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1306074722,
+          "enabled_ns": 168488680,
+          "running_ns": 168488680,
+          "per_operation": 6530.37361
+        },
+        "cycles:u": {
+          "raw_count": 495667465,
+          "enabled_ns": 168488680,
+          "running_ns": 168488680,
+          "per_operation": 2478.337325
+        }
+      },
+      "ipc": 2.6349817452715
+    },
+    {
+      "label": "inline-address-details-lease-address-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 997557,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1163828348,
+          "enabled_ns": 148235040,
+          "running_ns": 148235040,
+          "per_operation": 5819.14174
+        },
+        "cycles:u": {
+          "raw_count": 433869786,
+          "enabled_ns": 148235040,
+          "running_ns": 148235040,
+          "per_operation": 2169.34893
+        }
+      },
+      "ipc": 2.682436955865832
+    },
+    {
+      "label": "inline-address-details-lease-address-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997562,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1012930547,
+          "enabled_ns": 131507520,
+          "running_ns": 131507520,
+          "per_operation": 5064.652735
+        },
+        "cycles:u": {
+          "raw_count": 385134856,
+          "enabled_ns": 131507520,
+          "running_ns": 131507520,
+          "per_operation": 1925.67428
+        }
+      },
+      "ipc": 2.6300671861286946
+    },
+    {
+      "label": "inline-address-details-lease-address-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997567,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1012931965,
+          "enabled_ns": 131500480,
+          "running_ns": 131500480,
+          "per_operation": 5064.659825
+        },
+        "cycles:u": {
+          "raw_count": 385405826,
+          "enabled_ns": 131500480,
+          "running_ns": 131500480,
+          "per_operation": 1927.02913
+        }
+      },
+      "ipc": 2.6282217254287175
+    },
+    {
+      "label": "inline-address-details-lease-address-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 997572,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1163687144,
+          "enabled_ns": 147766680,
+          "running_ns": 147766680,
+          "per_operation": 5818.43572
+        },
+        "cycles:u": {
+          "raw_count": 433480502,
+          "enabled_ns": 147766680,
+          "running_ns": 147766680,
+          "per_operation": 2167.40251
+        }
+      },
+      "ipc": 2.6845201540345176
+    },
+    {
+      "label": "inline-address-details-lease-address-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997577,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1163540895,
+          "enabled_ns": 147655000,
+          "running_ns": 147655000,
+          "per_operation": 5817.704475
+        },
+        "cycles:u": {
+          "raw_count": 433160904,
+          "enabled_ns": 147655000,
+          "running_ns": 147655000,
+          "per_operation": 2165.80452
+        }
+      },
+      "ipc": 2.686163234621008
+    },
+    {
+      "label": "inline-address-details-lease-address-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997582,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1012814588,
+          "enabled_ns": 131611360,
+          "running_ns": 131611360,
+          "per_operation": 5064.07294
+        },
+        "cycles:u": {
+          "raw_count": 385953988,
+          "enabled_ns": 131611360,
+          "running_ns": 131611360,
+          "per_operation": 1929.76994
+        }
+      },
+      "ipc": 2.6241847979039408
+    },
+    {
+      "label": "inline-address-details-rrset-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 997696,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2551732829,
+          "enabled_ns": 306349840,
+          "running_ns": 306349840,
+          "per_operation": 12758.664145
+        },
+        "cycles:u": {
+          "raw_count": 905097832,
+          "enabled_ns": 306349840,
+          "running_ns": 306349840,
+          "per_operation": 4525.48916
+        }
+      },
+      "ipc": 2.8192895163182756
+    },
+    {
+      "label": "inline-address-details-rrset-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997701,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2458264871,
+          "enabled_ns": 297695400,
+          "running_ns": 297695400,
+          "per_operation": 12291.324355
+        },
+        "cycles:u": {
+          "raw_count": 879944043,
+          "enabled_ns": 297695400,
+          "running_ns": 297695400,
+          "per_operation": 4399.720215
+        }
+      },
+      "ipc": 2.7936604498383995
+    },
+    {
+      "label": "inline-address-details-rrset-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997706,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2458029156,
+          "enabled_ns": 297385640,
+          "running_ns": 297385640,
+          "per_operation": 12290.14578
+        },
+        "cycles:u": {
+          "raw_count": 879851030,
+          "enabled_ns": 297385640,
+          "running_ns": 297385640,
+          "per_operation": 4399.25515
+        }
+      },
+      "ipc": 2.793687876912527
+    },
+    {
+      "label": "inline-address-details-rrset-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 997711,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2551733303,
+          "enabled_ns": 306525400,
+          "running_ns": 306525400,
+          "per_operation": 12758.666515
+        },
+        "cycles:u": {
+          "raw_count": 905914350,
+          "enabled_ns": 306525400,
+          "running_ns": 306525400,
+          "per_operation": 4529.57175
+        }
+      },
+      "ipc": 2.8167489597664503
+    },
+    {
+      "label": "inline-address-details-rrset-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997716,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2551733857,
+          "enabled_ns": 305995840,
+          "running_ns": 305995840,
+          "per_operation": 12758.669285
+        },
+        "cycles:u": {
+          "raw_count": 904829048,
+          "enabled_ns": 305995840,
+          "running_ns": 305995840,
+          "per_operation": 4524.14524
+        }
+      },
+      "ipc": 2.820128136514026
+    },
+    {
+      "label": "inline-address-details-rrset-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997721,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2458029424,
+          "enabled_ns": 297468400,
+          "running_ns": 297468400,
+          "per_operation": 12290.14712
+        },
+        "cycles:u": {
+          "raw_count": 879507250,
+          "enabled_ns": 297468400,
+          "running_ns": 297468400,
+          "per_operation": 4397.53625
+        }
+      },
+      "ipc": 2.794780172647809
+    },
+    {
+      "label": "inline-address-details-cname-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 997861,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1746296275,
+          "enabled_ns": 219615760,
+          "running_ns": 219615760,
+          "per_operation": 8731.481375
+        },
+        "cycles:u": {
+          "raw_count": 646588118,
+          "enabled_ns": 219615760,
+          "running_ns": 219615760,
+          "per_operation": 3232.94059
+        }
+      },
+      "ipc": 2.7007862136433505
+    },
+    {
+      "label": "inline-address-details-cname-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997866,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1733678519,
+          "enabled_ns": 216694920,
+          "running_ns": 216694920,
+          "per_operation": 8668.392595
+        },
+        "cycles:u": {
+          "raw_count": 638605582,
+          "enabled_ns": 216694920,
+          "running_ns": 216694920,
+          "per_operation": 3193.02791
+        }
+      },
+      "ipc": 2.7147876057870097
+    },
+    {
+      "label": "inline-address-details-cname-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997871,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1733592586,
+          "enabled_ns": 216686480,
+          "running_ns": 216686480,
+          "per_operation": 8667.96293
+        },
+        "cycles:u": {
+          "raw_count": 638246772,
+          "enabled_ns": 216686480,
+          "running_ns": 216686480,
+          "per_operation": 3191.23386
+        }
+      },
+      "ipc": 2.7161791677655365
+    },
+    {
+      "label": "inline-address-details-cname-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 997876,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1746381090,
+          "enabled_ns": 219864240,
+          "running_ns": 219864240,
+          "per_operation": 8731.90545
+        },
+        "cycles:u": {
+          "raw_count": 647631564,
+          "enabled_ns": 219864240,
+          "running_ns": 219864240,
+          "per_operation": 3238.15782
+        }
+      },
+      "ipc": 2.6965657436671817
+    },
+    {
+      "label": "inline-address-details-cname-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 997881,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1746394346,
+          "enabled_ns": 219726880,
+          "running_ns": 219726880,
+          "per_operation": 8731.97173
+        },
+        "cycles:u": {
+          "raw_count": 647518826,
+          "enabled_ns": 219726880,
+          "running_ns": 219726880,
+          "per_operation": 3237.59413
+        }
+      },
+      "ipc": 2.697055708462135
+    },
+    {
+      "label": "inline-address-details-cname-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 997886,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1733541359,
+          "enabled_ns": 217843000,
+          "running_ns": 217843000,
+          "per_operation": 8667.706795
+        },
+        "cycles:u": {
+          "raw_count": 641001610,
+          "enabled_ns": 217843000,
+          "running_ns": 217843000,
+          "per_operation": 3205.00805
+        }
+      },
+      "ipc": 2.7044259046400834
+    },
+    {
+      "label": "inline-address-details-cname-leases-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 998039,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2245269429,
+          "enabled_ns": 273433920,
+          "running_ns": 273433920,
+          "per_operation": 11226.347145
+        },
+        "cycles:u": {
+          "raw_count": 806722615,
+          "enabled_ns": 273433920,
+          "running_ns": 273433920,
+          "per_operation": 4033.613075
+        }
+      },
+      "ipc": 2.783198818592683
+    },
+    {
+      "label": "inline-address-details-cname-leases-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 998044,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1814019179,
+          "enabled_ns": 224111120,
+          "running_ns": 224111120,
+          "per_operation": 9070.095895
+        },
+        "cycles:u": {
+          "raw_count": 660770593,
+          "enabled_ns": 224111120,
+          "running_ns": 224111120,
+          "per_operation": 3303.852965
+        }
+      },
+      "ipc": 2.7453085809464888
+    },
+    {
+      "label": "inline-address-details-cname-leases-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 998049,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1814157450,
+          "enabled_ns": 223804280,
+          "running_ns": 223804280,
+          "per_operation": 9070.78725
+        },
+        "cycles:u": {
+          "raw_count": 659892761,
+          "enabled_ns": 223804280,
+          "running_ns": 223804280,
+          "per_operation": 3299.463805
+        }
+      },
+      "ipc": 2.749170103413212
+    },
+    {
+      "label": "inline-address-details-cname-leases-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 998054,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2245339208,
+          "enabled_ns": 271279360,
+          "running_ns": 271279360,
+          "per_operation": 11226.69604
+        },
+        "cycles:u": {
+          "raw_count": 801192847,
+          "enabled_ns": 271279360,
+          "running_ns": 271279360,
+          "per_operation": 4005.964235
+        }
+      },
+      "ipc": 2.802495324824087
+    },
+    {
+      "label": "inline-address-details-cname-leases-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 998059,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 2245239005,
+          "enabled_ns": 273386200,
+          "running_ns": 273386200,
+          "per_operation": 11226.195025
+        },
+        "cycles:u": {
+          "raw_count": 807333424,
+          "enabled_ns": 273386200,
+          "running_ns": 273386200,
+          "per_operation": 4036.66712
+        }
+      },
+      "ipc": 2.7810554329285395
+    },
+    {
+      "label": "inline-address-details-cname-leases-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 998064,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 1814152542,
+          "enabled_ns": 223605760,
+          "running_ns": 223605760,
+          "per_operation": 9070.76271
+        },
+        "cycles:u": {
+          "raw_count": 659369487,
+          "enabled_ns": 223605760,
+          "running_ns": 223605760,
+          "per_operation": 3296.847435
+        }
+      },
+      "ipc": 2.7513443945579485
+    },
+    {
+      "label": "inline-address-details-cname-config-stat-r1-G",
+      "operations": 200000,
+      "group_pid": 998152,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44003257042,
+          "enabled_ns": 4602973080,
+          "running_ns": 4602973080,
+          "per_operation": 220016.28521
+        },
+        "cycles:u": {
+          "raw_count": 13686443020,
+          "enabled_ns": 4602973080,
+          "running_ns": 4602973080,
+          "per_operation": 68432.2151
+        }
+      },
+      "ipc": 3.2150981067687225
+    },
+    {
+      "label": "inline-address-details-cname-config-stat-r1-inline-address-details",
+      "operations": 200000,
+      "group_pid": 998235,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 43992045570,
+          "enabled_ns": 4579386120,
+          "running_ns": 4579386120,
+          "per_operation": 219960.22785
+        },
+        "cycles:u": {
+          "raw_count": 13618662166,
+          "enabled_ns": 4579386120,
+          "running_ns": 4579386120,
+          "per_operation": 68093.31083
+        }
+      },
+      "ipc": 3.230276589122638
+    },
+    {
+      "label": "inline-address-details-cname-config-stat-r2-inline-address-details",
+      "operations": 200000,
+      "group_pid": 998264,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 43975055020,
+          "enabled_ns": 4579461960,
+          "running_ns": 4579461960,
+          "per_operation": 219875.2751
+        },
+        "cycles:u": {
+          "raw_count": 13625627963,
+          "enabled_ns": 4579461960,
+          "running_ns": 4579461960,
+          "per_operation": 68128.139815
+        }
+      },
+      "ipc": 3.227378227221013
+    },
+    {
+      "label": "inline-address-details-cname-config-stat-r2-G",
+      "operations": 200000,
+      "group_pid": 998269,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44049821674,
+          "enabled_ns": 4605707600,
+          "running_ns": 4605707600,
+          "per_operation": 220249.10837
+        },
+        "cycles:u": {
+          "raw_count": 13693649576,
+          "enabled_ns": 4605707600,
+          "running_ns": 4605707600,
+          "per_operation": 68468.24788
+        }
+      },
+      "ipc": 3.2168065517905
+    },
+    {
+      "label": "inline-address-details-cname-config-stat-r3-G",
+      "operations": 200000,
+      "group_pid": 998274,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44011869286,
+          "enabled_ns": 4602841080,
+          "running_ns": 4602841080,
+          "per_operation": 220059.34643
+        },
+        "cycles:u": {
+          "raw_count": 13672385640,
+          "enabled_ns": 4602841080,
+          "running_ns": 4602841080,
+          "per_operation": 68361.9282
+        }
+      },
+      "ipc": 3.2190336379365028
+    },
+    {
+      "label": "inline-address-details-cname-config-stat-r3-inline-address-details",
+      "operations": 200000,
+      "group_pid": 998279,
+      "group_leader_fd": 4,
+      "events": {
+        "instructions:u": {
+          "raw_count": 44028028307,
+          "enabled_ns": 4586273280,
+          "running_ns": 4586273280,
+          "per_operation": 220140.141535
+        },
+        "cycles:u": {
+          "raw_count": 13636078283,
+          "enabled_ns": 4586273280,
+          "running_ns": 4586273280,
+          "per_operation": 68180.391415
+        }
+      },
+      "ipc": 3.2287896412188704
+    }
+  ],
+  "original_protocol_plan_sha256": "968af9c4c26abecb78e9a78b91040df606cdacca73b680f6fb3ffbf6cc16ab8e",
+  "original_protocol_runner_sha256": "241dd797e8fa14b9ff3ffadba51a1535ac394f179b79e8c51a4550bef15aa3f1",
+  "original_protocol_keys_compared": [
+    "probe",
+    "scenes",
+    "stat_pairs",
+    "plain_pairs",
+    "stat_event",
+    "cpu",
+    "nice",
+    "build_cpu",
+    "native_target",
+    "build_lock",
+    "stat_operations",
+    "plain_operations",
+    "expected_checksum_per_2000000_operations"
+  ],
+  "runner_only_scope_docstring_changed": true,
+  "all244_command_argv_exactly_verified": true,
+  "protocol_peer": "/root/correctness/inline_native_raw_audit/native_protocol_compare",
+  "schema": "g1df-native240-independent-audit-v1",
+  "author_result_commit": "3cfffc0c",
+  "independent_reviewer": "/root/correctness/inline_native_raw_audit",
+  "review_script_sha256": "0032b6a777fd23129ac99d08f7f7845cdfc6bb150c6f6ccb95ef20005cd21d30",
+  "private_verified_result_sha256": "f02534d5cdcda38ee787a7c432031b03c8d2aead3bf541c223af659cadd4d92b"
+}
