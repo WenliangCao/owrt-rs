@@ -1,0 +1,2665 @@
+{
+  "scope": "Local child of025, combining two separately committed unchanged-body outlines; not SDK or runtime evidence",
+  "source": "5c995a85",
+  "immediate_parent": "025c2f2c",
+  "measurement_control_source": "6ab0f064",
+  "source_review": {
+    "commit": "70cf08da",
+    "sha256": "1c8d309986d2189a7c6e68033c6b5022ab6e8f0eb9b6af4345a4be1f8de92c95"
+  },
+  "checks": {
+    "Mac_bin": {
+      "passed": 23,
+      "failed": 0
+    },
+    "Linux_musl_all_targets": {
+      "exit": 0
+    }
+  },
+  "logs_sha256": {
+    "mac-bin-test.log": "328bacb9bc2f656d7e103e08674c1a83877f38a7ade9b9edeaac491857b75f63",
+    "musl-check.log": "4c2f6b21a980859dfe22e1a870e9e249b372e2b524d88fa82734b5925013a608"
+  },
+  "codegen_receipt": "/Users/USER/Developer/owrt-perf-owner-ready-frames-20261016/private/owner-ready-frames/cross-daemon-final/inspection-v3.json",
+  "codegen_receipt_sha256": "da991e8e63ac9685cef9f9aacbf49a24ad53620e4296f6367df07c464cb24c9b",
+  "outputs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "readyframes": {
+      "sha256": "5f6d7274a09577d074704df3016a9ee2501883e7cfab05a7c6f91ca024bad88b",
+      "bytes": 5022096
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "step",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll4step",
+        "address": "0x291c90",
+        "bytes": 17608,
+        "code_sha256": "103007c1ddc4f1fe8fad7904e19f7467c337454b543cf9ec59336c4a100c2600",
+        "asm_sha256": "c886615e57787b4ec1078a9acac33eafe587de5db3460025e41c5d36d545b71a",
+        "entry": [
+          "291c90: stp x29, x30, [sp, #-0x60]!",
+          "291c94: stp x28, x27, [sp, #0x10]",
+          "291c98: mov x29, sp",
+          "291c9c: stp x26, x25, [sp, #0x20]",
+          "291ca0: stp x24, x23, [sp, #0x30]",
+          "291ca4: stp x22, x21, [sp, #0x40]",
+          "291ca8: stp x20, x19, [sp, #0x50]",
+          "291cac: sub sp, sp, #0x900",
+          "291cb0: str xzr, [sp]",
+          "291cb4: ldr x22, [x0, #0x1bf8]",
+          "291cb8: mov x9, #0x7fffffffffffffff",
+          "291cbc: ldr x8, [x22, #0x10]"
+        ],
+        "calls": [
+          {
+            "pc": "0x291d48",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll7metrics"
+          },
+          {
+            "pc": "0x291d68",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x291da8",
+            "callee": "_RNvMs1_NtCs1h9mybHCK4U_9owrt_ubus4connNtB5_10Connection8rx_frame"
+          },
+          {
+            "pc": "0x291e48",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x291ec4",
+            "callee": "_RNvMs1_NtCshD51oFD3Cxo_10dnsmasq_rs12ubus_serviceNtB5_11UbusService27connect_bytes_interruptible"
+          },
+          {
+            "pc": "0x291ed8",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCshD51oFD3Cxo_10dnsmasq_rs12ubus_service11UbusServiceEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x291ee8",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x291ef4",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x291f74",
+            "callee": "_RNvMs1_NtCshD51oFD3Cxo_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one"
+          },
+          {
+            "pc": "0x29200c",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x292024",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x292034",
+            "callee": "free"
+          },
+          {
+            "pc": "0x292044",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCshD51oFD3Cxo_10dnsmasq_rs12ubus_service11UbusServiceEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x292054",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x2920b4",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x292144",
+            "callee": "_RNvMs4_NtCshD51oFD3Cxo_10dnsmasq_rs3netNtB5_14DatagramSocket11bind_device"
+          },
+          {
+            "pc": "0x292188",
+            "callee": "_RNvMs4_NtCshD51oFD3Cxo_10dnsmasq_rs3netNtB5_14DatagramSocket11bind_device"
+          },
+          {
+            "pc": "0x2921d0",
+            "callee": "_RNvMs4_NtCshD51oFD3Cxo_10dnsmasq_rs3netNtB5_14DatagramSocket11bind_device"
+          },
+          {
+            "pc": "0x292248",
+            "callee": "_RINvMNtNtCshlmZ2E5RoO1_5alloc2io5errorNtNtNtCs2kXltWtc1W_4core2io5error5Error3newReECsiKaSbYLw9fL_3std"
+          },
+          {
+            "pc": "0x2922e0",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x2923e0",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2923f0",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29245c",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x29249c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2924ac",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2924b4",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24step_interface_collector"
+          },
+          {
+            "pc": "0x2924f4",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x292514",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger11flush_ready"
+          },
+          {
+            "pc": "0x292548",
+            "callee": "__aarch64_cas8_acq_rel"
+          },
+          {
+            "pc": "0x2925c4",
+            "callee": "_RNvXsl_NtCsiKaSbYLw9fL_3std4pathNtB5_10ComponentsNtNtCs2kXltWtc1W_4core3cmp9PartialEq2eq"
+          },
+          {
+            "pc": "0x2925fc",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcNtNtCshD51oFD3Cxo_10dnsmasq_rs9listeners9DnsSocketE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x292610",
+            "callee": "_RNvNtCshD51oFD3Cxo_10dnsmasq_rs7logging16open_destination"
+          },
+          {
+            "pc": "0x2926b4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2926dc",
+            "callee": "socket"
+          },
+          {
+            "pc": "0x2926ec",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x29270c",
+            "callee": "__errno_location"
+          },
+          {
+            "pc": "0x292788",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x2927a8",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger11flush_ready"
+          },
+          {
+            "pc": "0x2927e0",
+            "callee": "__aarch64_swp8_acq_rel"
+          },
+          {
+            "pc": "0x29283c",
+            "callee": "__aarch64_cas8_acq_rel"
+          },
+          {
+            "pc": "0x29286c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll7metrics"
+          },
+          {
+            "pc": "0x2928b0",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x2928d4",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x292928",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x292940",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x2929a8",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2929bc",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x2929f0",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x292a04",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x292a48",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x292a60",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x292aa0",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x292ab8",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x292d8c",
+            "callee": "_RINvYNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateNtNtCs2kXltWtc1W_4core4hash11BuildHasher8hash_oneRNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7forward11SocketTokenECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x29316c",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x29329c",
+            "callee": "_RINvYNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateNtNtCs2kXltWtc1W_4core4hash11BuildHasher8hash_oneRNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7forward11SocketTokenECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2933a4",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x2933f4",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293464",
+            "callee": "_RINvMs6_NtCs11S9oZKZy51_9hashbrown3rawINtB6_8RawTableTNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7forward8ServerIduEE14reserve_rehashNCINvNtB8_3map11make_hasherBQ_uNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE0EBW_"
+          },
+          {
+            "pc": "0x293498",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x2934f4",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x293510",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x29358c",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x2935d4",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293734",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x29378c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2937a4",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x293830",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2938c0",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x29390c",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293940",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293a58",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x293b20",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293b6c",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293bac",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x293cec",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x293cf8",
+            "callee": "_RNvMsz_NtNtNtCshlmZ2E5RoO1_5alloc11collections5btree3mapINtB5_8IntoIterNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrTNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns8upstream14ServerCountersmEE10dying_nextCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x293d88",
+            "callee": "_RNvNtCshD51oFD3Cxo_10dnsmasq_rs15address_logging12address_text"
+          },
+          {
+            "pc": "0x293d9c",
+            "callee": "_RNvMNtCshlmZ2E5RoO1_5alloc6stringNtB2_6String15from_utf8_lossy"
+          },
+          {
+            "pc": "0x293e20",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x293e38",
+            "callee": "free"
+          },
+          {
+            "pc": "0x293e48",
+            "callee": "free"
+          },
+          {
+            "pc": "0x293e58",
+            "callee": "_RNvMsz_NtNtNtCshlmZ2E5RoO1_5alloc11collections5btree3mapINtB5_8IntoIterNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrTNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns8upstream14ServerCountersmEE10dying_nextCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x293e94",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x293eec",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x293ef4",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x293f48",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x294010",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x294068",
+            "callee": "_RINvYNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateNtNtCs2kXltWtc1W_4core4hash11BuildHasher8hash_oneRmECshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x294160",
+            "callee": "_RNvXsj_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv6AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x29416c",
+            "callee": "_RNvXs6_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv4AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x2941a0",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x2941bc",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x2941c8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2941d4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29427c",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2942cc",
+            "callee": "_RNvXs6_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv4AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x294300",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x29431c",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x294328",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294338",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29438c",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump8sanitise"
+          },
+          {
+            "pc": "0x2943b8",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x2943cc",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x2943dc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2944c4",
+            "callee": "_RNvMs1_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x294524",
+            "callee": "__aarch64_ldadd8_relax"
+          },
+          {
+            "pc": "0x294538",
+            "callee": "_RNvMs1_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x294548",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump8sanitise"
+          },
+          {
+            "pc": "0x294558",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294564",
+            "callee": "__aarch64_ldadd8_rel"
+          },
+          {
+            "pc": "0x294578",
+            "callee": "_RNvMsn_NtCshlmZ2E5RoO1_5alloc4syncINtB5_3ArcNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cache11LocalTargetE9drop_slowBM_"
+          },
+          {
+            "pc": "0x2945d8",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x29469c",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2946f4",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x29470c",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x294718",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294728",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29473c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2947d4",
+            "callee": "_RNvXsj_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv6AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x294848",
+            "callee": "_RNvXs6_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv4AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x29487c",
+            "callee": "_RNvMNtCshlmZ2E5RoO1_5alloc6stringNtB2_6String15from_utf8_lossy"
+          },
+          {
+            "pc": "0x2948a4",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2948b8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2948cc",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache3get"
+          },
+          {
+            "pc": "0x2948e0",
+            "callee": "_RNvMs1_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x2948f0",
+            "callee": "_RNvNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemon4dump8sanitise"
+          },
+          {
+            "pc": "0x294900",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294944",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2949c8",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x294a14",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x294a58",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll15step_tcp_accept"
+          },
+          {
+            "pc": "0x294a74",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp"
+          },
+          {
+            "pc": "0x294a98",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20poll_udp_completions"
+          },
+          {
+            "pc": "0x294ab8",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x294ae8",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors"
+          },
+          {
+            "pc": "0x294af0",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll16step_tcp_clients"
+          },
+          {
+            "pc": "0x294af8",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11step_helper"
+          },
+          {
+            "pc": "0x294b00",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24dhcp_packet_work_allowed"
+          },
+          {
+            "pc": "0x294b30",
+            "callee": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener9has_input"
+          },
+          {
+            "pc": "0x294bac",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x294c04",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x294c30",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemon13LocalProviderEE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x294c38",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7service14SocketListenerECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x294c48",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294c58",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x294c70",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemon13LocalProviderEE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x294c98",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x294cb8",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x294d0c",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider16next_maintenance"
+          },
+          {
+            "pc": "0x294d30",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x294dfc",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x294e0c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294e1c",
+            "callee": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener19flush_pending_reply"
+          },
+          {
+            "pc": "0x294ea4",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x294ee4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294ef4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294f04",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x294f30",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemon13LocalProviderEE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x294f38",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7service14SocketListenerECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x294f48",
+            "callee": "free"
+          },
+          {
+            "pc": "0x294f58",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x294f78",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x294f98",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x294fe0",
+            "callee": "_RNvMNtCshD51oFD3Cxo_10dnsmasq_rs9neighborsNtB2_13NeighborCache7refresh"
+          },
+          {
+            "pc": "0x295054",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2950a0",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors"
+          },
+          {
+            "pc": "0x2950a8",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll13step_edns_udp"
+          },
+          {
+            "pc": "0x2950b0",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9step_tftp"
+          },
+          {
+            "pc": "0x2950b8",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll19log_dns_diagnostics"
+          },
+          {
+            "pc": "0x295110",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295150",
+            "callee": "_RNvMs4_NtCshD51oFD3Cxo_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+          },
+          {
+            "pc": "0x295190",
+            "callee": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener19flush_pending_reply"
+          },
+          {
+            "pc": "0x2951e4",
+            "callee": "_RNvMs0_NtCshD51oFD3Cxo_10dnsmasq_rs12ubus_serviceNtB5_12ConnectError20registration_message"
+          },
+          {
+            "pc": "0x295230",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x2952a4",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs11now_seconds"
+          },
+          {
+            "pc": "0x2952b8",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider4tick"
+          },
+          {
+            "pc": "0x295328",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs23report_dhcp_maintenance"
+          },
+          {
+            "pc": "0x295330",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemon17MaintenanceReportECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295340",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider25prepare_packet_interfaces"
+          },
+          {
+            "pc": "0x295378",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x2953ac",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x2953e8",
+            "callee": "_RNvMs4_NtCshD51oFD3Cxo_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+          },
+          {
+            "pc": "0x295424",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295498",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x2954c4",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6result13unwrap_failed"
+          },
+          {
+            "pc": "0x2955e0",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider19tftp_lease_snapshot"
+          },
+          {
+            "pc": "0x2955f8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295630",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs18write_dhcp_metrics"
+          },
+          {
+            "pc": "0x2956ec",
+            "callee": "_RINvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_"
+          },
+          {
+            "pc": "0x295720",
+            "callee": "_RINvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB29_10SinglePoll9step_dhcps6_0EB29_"
+          },
+          {
+            "pc": "0x295740",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x29574c",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtCslhjqNMUq7WX_10dnsmasq_rs11DhcpServiceEEBY_"
+          },
+          {
+            "pc": "0x295760",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x29576c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x295780",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x2958a0",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x295908",
+            "callee": "_RNvMs0_NtCshD51oFD3Cxo_10dnsmasq_rs4dumpNtB5_10DumpHandle16udp_with_context"
+          },
+          {
+            "pc": "0x295950",
+            "callee": "_RNvMNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp5relay5linuxNtB2_12RelayService9intercept"
+          },
+          {
+            "pc": "0x295988",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x295994",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x2959f8",
+            "callee": "_RNvMs0_NtCshD51oFD3Cxo_10dnsmasq_rs4dumpNtB5_10DumpHandle16udp_with_context"
+          },
+          {
+            "pc": "0x295a40",
+            "callee": "_RNvMNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp5relay5linuxNtB2_12RelayService9intercept"
+          },
+          {
+            "pc": "0x295ac4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295ae0",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance"
+          },
+          {
+            "pc": "0x295af0",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x295b00",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance"
+          },
+          {
+            "pc": "0x295b08",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCshD51oFD3Cxo_10dnsmasq_rs6helper13LeaseDeliveryEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295b18",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x295c94",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x295ca0",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6result6ResultNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7runtime13RuntimeReportINtNtCshlmZ2E5RoO1_5alloc5boxed3BoxNtBY_14RuntimeFailureEEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295cb4",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6result6ResultNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7service12ListenerStepNtNtNtB4_2io5error5ErrorEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295cc4",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtNtB4_5array4iter8IntoIterINtNtB4_6result6ResultNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7service12ListenerStepNtNtNtB4_2io5error5ErrorEKj2_EECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295cfc",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x295d64",
+            "callee": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener20take_network_notices"
+          },
+          {
+            "pc": "0x295dcc",
+            "callee": "_RNvMs6_NtCshD51oFD3Cxo_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x295dd8",
+            "callee": "_RINvNtNtNtCs2kXltWtc1W_4core4iter8adapters5chain17and_then_or_clearINtNtNtCshlmZ2E5RoO1_5alloc3vec9into_iter8IntoIterNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventEB1R_NvYB13_NtNtNtB6_6traits8iterator8Iterator4nextECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295e28",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtNtNtB4_4iter8adapters5chain5ChainINtNtNtCshlmZ2E5RoO1_5alloc3vec9into_iter8IntoIterNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventEB1c_EECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295eb0",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs23report_dhcp_maintenance"
+          },
+          {
+            "pc": "0x295eb8",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCshD51oFD3Cxo_10dnsmasq_rs4dhcp6daemon17MaintenanceReportECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295ed4",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x295ee0",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtCslhjqNMUq7WX_10dnsmasq_rs11DhcpServiceEEBY_"
+          },
+          {
+            "pc": "0x295ef0",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x295f0c",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtCslhjqNMUq7WX_10dnsmasq_rs12ParentEventsEE9drop_slowB1f_"
+          },
+          {
+            "pc": "0x295f14",
+            "callee": "_RNvNtNtNtCsiKaSbYLw9fL_3std3sys6random5linux19hashmap_random_keys"
+          },
+          {
+            "pc": "0x295f3c",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295f50",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc5alloc18handle_alloc_error"
+          },
+          {
+            "pc": "0x295f58",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCshD51oFD3Cxo_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x295f70",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x295f88",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295fa0",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x295fd8",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x295fe4",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc5alloc18handle_alloc_error"
+          },
+          {
+            "pc": "0x295ffc",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking5panic"
+          },
+          {
+            "pc": "0x296008",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc5alloc18handle_alloc_error"
+          },
+          {
+            "pc": "0x296020",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x29603c",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core9panicking11panic_const23panic_const_div_by_zero"
+          },
+          {
+            "pc": "0x29604c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x296064",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x29607c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x296088",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13unwrap_failed"
+          },
+          {
+            "pc": "0x2960a0",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking5panic"
+          },
+          {
+            "pc": "0x2960ac",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2960bc",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2960d0",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x2960e4",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x2960f8",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x296104",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x296110",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x296124",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x296130",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x29613c",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x296148",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x296154",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          }
+        ]
+      },
+      {
+        "name": "wait_for_files",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "address": "0x27c4b0",
+        "bytes": 7192,
+        "code_sha256": "0fc4f7b792c3132774e967207b8f9a2ad42fc4bc5a2a1a40153a1b43c0400e11",
+        "asm_sha256": "06b6a29f45f31a4cc29bc96dc87a956b0051b938f85ff890a9448b9e79d29be0",
+        "entry": [
+          "27c4b0: sub sp, sp, #0x160",
+          "27c4b4: stp x29, x30, [sp, #0x100]",
+          "27c4b8: stp x28, x27, [sp, #0x110]",
+          "27c4bc: stp x26, x25, [sp, #0x120]",
+          "27c4c0: stp x24, x23, [sp, #0x130]",
+          "27c4c4: stp x22, x21, [sp, #0x140]",
+          "27c4c8: stp x20, x19, [sp, #0x150]",
+          "27c4cc: add x29, sp, #0x100",
+          "27c4d0: ldr q0, [x0, #0x16b0]",
+          "27c4d4: mov w8, #4",
+          "27c4d8: add x1, sp, #0x70",
+          "27c4dc: mov w2, #1"
+        ],
+        "calls": [
+          {
+            "pc": "0x27c4f8",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll15append_file_fds"
+          },
+          {
+            "pc": "0x27c53c",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27c59c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll18reload_in_progress"
+          },
+          {
+            "pc": "0x27c5b4",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27c674",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27c778",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27c790",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27c88c",
+            "callee": "_RNvMs8_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver15append_poll_fdsCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27cb88",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27ce2c",
+            "callee": "_RNvMs1_NtCs1h9mybHCK4U_9owrt_ubus4connNtB5_10Connection8rx_frame"
+          },
+          {
+            "pc": "0x27cec0",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24dhcp_packet_work_allowed"
+          },
+          {
+            "pc": "0x27cfa8",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24dhcp_packet_work_allowed"
+          },
+          {
+            "pc": "0x27d00c",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27d07c",
+            "callee": "_RNvMs_NtCshD51oFD3Cxo_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE15append_poll_fdsCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d230",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27d250",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x27d49c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d658",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d6ac",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d6c4",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d6d8",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d6f4",
+            "callee": "_RNvMNtCshD51oFD3Cxo_10dnsmasq_rs9neighborsNtB2_13NeighborCache19front_script_change"
+          },
+          {
+            "pc": "0x27d708",
+            "callee": "free"
+          },
+          {
+            "pc": "0x27d724",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d738",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll18files_initializing"
+          },
+          {
+            "pc": "0x27da2c",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27da90",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x27dae0",
+            "callee": "__udivti3"
+          },
+          {
+            "pc": "0x27db3c",
+            "callee": "poll"
+          },
+          {
+            "pc": "0x27db44",
+            "callee": "__errno_location"
+          },
+          {
+            "pc": "0x27dc58",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27dddc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x27de18",
+            "callee": "read"
+          },
+          {
+            "pc": "0x27de48",
+            "callee": "free"
+          },
+          {
+            "pc": "0x27deb0",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27df4c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x27df84",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCs1h9mybHCK4U_9owrt_ubus3sys6PollFdE8grow_oneCshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27dfb8",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27dfc8",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27dfe0",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27dff4",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27e00c",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27e018",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27e024",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27e038",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27e044",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x27e050",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27e068",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x27e074",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x27e080",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27e08c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27e0a4",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x27e0c4",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          }
+        ]
+      }
+    ],
+    "readyframes": [
+      {
+        "name": "step",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll4step",
+        "address": "0x294f60",
+        "bytes": 4692,
+        "code_sha256": "88c9066c89c5efc1a8bc8931402a8015eed0f8b993c98fa165627c253547a3fa",
+        "asm_sha256": "e296b15bd8143380bddfac50467e067141f74042aa6d0b7bbed37cc032ad2c14",
+        "entry": [
+          "294f60: stp x29, x30, [sp, #-0x60]!",
+          "294f64: stp x28, x27, [sp, #0x10]",
+          "294f68: mov x29, sp",
+          "294f6c: stp x26, x25, [sp, #0x20]",
+          "294f70: stp x24, x23, [sp, #0x30]",
+          "294f74: stp x22, x21, [sp, #0x40]",
+          "294f78: stp x20, x19, [sp, #0x50]",
+          "294f7c: sub sp, sp, #0x220",
+          "294f80: ldr x22, [x0, #0x1bf8]",
+          "294f84: mov x9, #0x7fffffffffffffff",
+          "294f88: ldr x8, [x22, #0x10]",
+          "294f8c: cmp x8, x9"
+        ],
+        "calls": [
+          {
+            "pc": "0x295014",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll7metrics"
+          },
+          {
+            "pc": "0x295034",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295074",
+            "callee": "_RNvMs1_NtCsdWgmELMkOKv_9owrt_ubus4connNtB5_10Connection8rx_frame"
+          },
+          {
+            "pc": "0x295104",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x295180",
+            "callee": "_RNvMs1_NtCsbzmNczW2qYq_10dnsmasq_rs12ubus_serviceNtB5_11UbusService27connect_bytes_interruptible"
+          },
+          {
+            "pc": "0x295194",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCsbzmNczW2qYq_10dnsmasq_rs12ubus_service11UbusServiceEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2951a4",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2951b0",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x295230",
+            "callee": "_RNvMs1_NtCsbzmNczW2qYq_10dnsmasq_rs12ubus_serviceNtB5_11UbusService11process_one"
+          },
+          {
+            "pc": "0x2952c4",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2952dc",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x2952ec",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2952fc",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCsbzmNczW2qYq_10dnsmasq_rs12ubus_service11UbusServiceEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x29530c",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x29536c",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x2953e8",
+            "callee": "_RNvMs4_NtCsbzmNczW2qYq_10dnsmasq_rs3netNtB5_14DatagramSocket11bind_device"
+          },
+          {
+            "pc": "0x29542c",
+            "callee": "_RNvMs4_NtCsbzmNczW2qYq_10dnsmasq_rs3netNtB5_14DatagramSocket11bind_device"
+          },
+          {
+            "pc": "0x295474",
+            "callee": "_RNvMs4_NtCsbzmNczW2qYq_10dnsmasq_rs3netNtB5_14DatagramSocket11bind_device"
+          },
+          {
+            "pc": "0x2954ec",
+            "callee": "_RINvMNtNtCshlmZ2E5RoO1_5alloc2io5errorNtNtNtCs2kXltWtc1W_4core2io5error5Error3newReECsiKaSbYLw9fL_3std"
+          },
+          {
+            "pc": "0x29557c",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x295678",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x295688",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2956ec",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x29572c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29573c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295744",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24step_interface_collector"
+          },
+          {
+            "pc": "0x295784",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x2957a4",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger11flush_ready"
+          },
+          {
+            "pc": "0x2957d4",
+            "callee": "__aarch64_cas8_acq_rel"
+          },
+          {
+            "pc": "0x29584c",
+            "callee": "_RNvXsl_NtCsiKaSbYLw9fL_3std4pathNtB5_10ComponentsNtNtCs2kXltWtc1W_4core3cmp9PartialEq2eq"
+          },
+          {
+            "pc": "0x295884",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcNtNtCsbzmNczW2qYq_10dnsmasq_rs9listeners9DnsSocketE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x295898",
+            "callee": "_RNvNtCsbzmNczW2qYq_10dnsmasq_rs7logging16open_destination"
+          },
+          {
+            "pc": "0x295938",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295960",
+            "callee": "socket"
+          },
+          {
+            "pc": "0x295970",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x295990",
+            "callee": "__errno_location"
+          },
+          {
+            "pc": "0x295a0c",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295a2c",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger11flush_ready"
+          },
+          {
+            "pc": "0x295a64",
+            "callee": "__aarch64_swp8_acq_rel"
+          },
+          {
+            "pc": "0x295abc",
+            "callee": "__aarch64_cas8_acq_rel"
+          },
+          {
+            "pc": "0x295ad0",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20dump_requested_cache"
+          },
+          {
+            "pc": "0x295b18",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x295b60",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295ba0",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll15step_tcp_accept"
+          },
+          {
+            "pc": "0x295bbc",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp"
+          },
+          {
+            "pc": "0x295bdc",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20poll_udp_completions"
+          },
+          {
+            "pc": "0x295bfc",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295c2c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors"
+          },
+          {
+            "pc": "0x295c34",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll16step_tcp_clients"
+          },
+          {
+            "pc": "0x295c3c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11step_helper"
+          },
+          {
+            "pc": "0x295c44",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24dhcp_packet_work_allowed"
+          },
+          {
+            "pc": "0x295c5c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll18process_ready_dhcp"
+          },
+          {
+            "pc": "0x295c84",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295ca4",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x295cd8",
+            "callee": "_RNvMs0_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener9has_input"
+          },
+          {
+            "pc": "0x295d44",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider16next_maintenance"
+          },
+          {
+            "pc": "0x295d68",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295db4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295dd8",
+            "callee": "_RNvMs0_NtCsbzmNczW2qYq_10dnsmasq_rs12ubus_serviceNtB5_12ConnectError20registration_message"
+          },
+          {
+            "pc": "0x295e24",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295e84",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x295eac",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x295ecc",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x295f14",
+            "callee": "_RNvMNtCsbzmNczW2qYq_10dnsmasq_rs9neighborsNtB2_13NeighborCache7refresh"
+          },
+          {
+            "pc": "0x295f88",
+            "callee": "free"
+          },
+          {
+            "pc": "0x295fd4",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll17advance_neighbors"
+          },
+          {
+            "pc": "0x295fdc",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll13step_edns_udp"
+          },
+          {
+            "pc": "0x295fe4",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9step_tftp"
+          },
+          {
+            "pc": "0x295fec",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll19log_dns_diagnostics"
+          },
+          {
+            "pc": "0x296018",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x29607c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x296090",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x29609c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x2960b0",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x2960c4",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x2960dc",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2960ec",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventE8grow_oneBQ_"
+          },
+          {
+            "pc": "0x296108",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x29611c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x296148",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc5alloc18handle_alloc_error"
+          },
+          {
+            "pc": "0x296168",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x296180",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x29618c",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x296198",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x2961a4",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x2961b0",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          }
+        ]
+      },
+      {
+        "name": "process_ready_dhcp",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll18process_ready_dhcp",
+        "address": "0x28ba14",
+        "bytes": 4408,
+        "code_sha256": "0749f03053a6c6ae6233d236fb5523cab6bde192802bbccbcbb95afbf1806fc3",
+        "asm_sha256": "79da298a618c2ea7dbb51bc209adcef31ffde0629cfba932b85f5a04e3abef23",
+        "entry": [
+          "28ba14: stp x29, x30, [sp, #-0x60]!",
+          "28ba18: stp x28, x27, [sp, #0x10]",
+          "28ba1c: mov x29, sp",
+          "28ba20: stp x26, x25, [sp, #0x20]",
+          "28ba24: stp x24, x23, [sp, #0x30]",
+          "28ba28: stp x22, x21, [sp, #0x40]",
+          "28ba2c: stp x20, x19, [sp, #0x50]",
+          "28ba30: sub sp, sp, #0x780",
+          "28ba34: str xzr, [sp]",
+          "28ba38: ldr x8, [x0, #0x1928]",
+          "28ba3c: mov w9, #0x1cb1",
+          "28ba40: strb wzr, [x0, x9]"
+        ],
+        "calls": [
+          {
+            "pc": "0x28ba80",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28bad8",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28bb04",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemon13LocalProviderEE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28bb0c",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7service14SocketListenerECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28bb1c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28bb2c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28bb44",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemon13LocalProviderEE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28bbec",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28bbfc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28bc20",
+            "callee": "_RNvMs0_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener19flush_pending_reply"
+          },
+          {
+            "pc": "0x28bca8",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28bce8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28bcf8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28bd08",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28bd34",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemon13LocalProviderEE9drop_slowCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28bd3c",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7service14SocketListenerECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28bd4c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28bd5c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28bdb8",
+            "callee": "_RNvMs4_NtCsbzmNczW2qYq_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+          },
+          {
+            "pc": "0x28bdf8",
+            "callee": "_RNvMs0_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener19flush_pending_reply"
+          },
+          {
+            "pc": "0x28be4c",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs11now_seconds"
+          },
+          {
+            "pc": "0x28be60",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider4tick"
+          },
+          {
+            "pc": "0x28becc",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs23report_dhcp_maintenance"
+          },
+          {
+            "pc": "0x28bed4",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemon17MaintenanceReportECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28bee4",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider25prepare_packet_interfaces"
+          },
+          {
+            "pc": "0x28bf1c",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x28bf7c",
+            "callee": "_RNvMs4_NtCsbzmNczW2qYq_10dnsmasq_rs3netNtB5_14DatagramSocket7receive"
+          },
+          {
+            "pc": "0x28c0c4",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider19tftp_lease_snapshot"
+          },
+          {
+            "pc": "0x28c0dc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28c110",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs18write_dhcp_metrics"
+          },
+          {
+            "pc": "0x28c1cc",
+            "callee": "_RINvMs0_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB29_10SinglePoll18process_ready_dhcps2_0EB29_"
+          },
+          {
+            "pc": "0x28c200",
+            "callee": "_RINvMs0_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7serviceNtB6_14SocketListener24process_once_on_listenerNtNtB8_6daemon13EventProviderNCNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB29_10SinglePoll18process_ready_dhcps2_0EB29_"
+          },
+          {
+            "pc": "0x28c220",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28c228",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtCslhjqNMUq7WX_10dnsmasq_rs11DhcpServiceEEBY_"
+          },
+          {
+            "pc": "0x28c380",
+            "callee": "_RNvMs0_NtCsbzmNczW2qYq_10dnsmasq_rs4dumpNtB5_10DumpHandle16udp_with_context"
+          },
+          {
+            "pc": "0x28c3c8",
+            "callee": "_RNvMNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp5relay5linuxNtB2_12RelayService9intercept"
+          },
+          {
+            "pc": "0x28c45c",
+            "callee": "_RNvMs0_NtCsbzmNczW2qYq_10dnsmasq_rs4dumpNtB5_10DumpHandle16udp_with_context"
+          },
+          {
+            "pc": "0x28c4a4",
+            "callee": "_RNvMNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp5relay5linuxNtB2_12RelayService9intercept"
+          },
+          {
+            "pc": "0x28c520",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28c53c",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance"
+          },
+          {
+            "pc": "0x28c54c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28c55c",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemonNtB5_13LocalProvider29queue_script_from_maintenance"
+          },
+          {
+            "pc": "0x28c564",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCsbzmNczW2qYq_10dnsmasq_rs6helper13LeaseDeliveryEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28c574",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28c6a0",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x28c6ac",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6result6ResultNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7runtime13RuntimeReportINtNtCshlmZ2E5RoO1_5alloc5boxed3BoxNtBY_14RuntimeFailureEEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28c7b4",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x28c7c0",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6result6ResultNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7runtime13RuntimeReportINtNtCshlmZ2E5RoO1_5alloc5boxed3BoxNtBY_14RuntimeFailureEEECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28c800",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtNtB4_5array4iter8IntoIterINtNtB4_6result6ResultNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7service12ListenerStepNtNtNtB4_2io5error5ErrorEKj2_EECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28c834",
+            "callee": "_RNvNtNtCsiKaSbYLw9fL_3std2io5stdio7__eprint"
+          },
+          {
+            "pc": "0x28c894",
+            "callee": "_RNvMs0_NtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp7serviceNtB5_14SocketListener20take_network_notices"
+          },
+          {
+            "pc": "0x28c908",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28c974",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28c994",
+            "callee": "free"
+          },
+          {
+            "pc": "0x28c9f0",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtNtNtB4_4iter8adapters5chain5ChainINtNtNtCshlmZ2E5RoO1_5alloc3vec9into_iter8IntoIterNtNtCsbzmNczW2qYq_10dnsmasq_rs7logging8LogEventEB1c_EECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28ca78",
+            "callee": "_RNvCslhjqNMUq7WX_10dnsmasq_rs23report_dhcp_maintenance"
+          },
+          {
+            "pc": "0x28ca80",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCsbzmNczW2qYq_10dnsmasq_rs4dhcp6daemon17MaintenanceReportECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28ca9c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28caa4",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueINtNtB4_6option6OptionNtCslhjqNMUq7WX_10dnsmasq_rs11DhcpServiceEEBY_"
+          },
+          {
+            "pc": "0x28cab4",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28cad0",
+            "callee": "_RNvMs6_NtCshlmZ2E5RoO1_5alloc2rcINtB5_2RcINtNtCs2kXltWtc1W_4core4cell7RefCellNtCslhjqNMUq7WX_10dnsmasq_rs12ParentEventsEE9drop_slowB1f_"
+          },
+          {
+            "pc": "0x28caf0",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28cb0c",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x28cb20",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x28cb34",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x28cb48",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          }
+        ]
+      },
+      {
+        "name": "dump_requested_cache",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20dump_requested_cache",
+        "address": "0x28ea34",
+        "bytes": 8884,
+        "code_sha256": "2ffe23095f05847a37700f27fe35ff0de6fe90ca10f47d551ee450ccfc132acd",
+        "asm_sha256": "1ca637c9e3cde3dc8d6fde4705f0dbf4dd75739bbd5d9d21eef5b9067b43eaff",
+        "entry": [
+          "28ea34: stp x29, x30, [sp, #-0x60]!",
+          "28ea38: stp x28, x27, [sp, #0x10]",
+          "28ea3c: mov x29, sp",
+          "28ea40: stp x26, x25, [sp, #0x20]",
+          "28ea44: stp x24, x23, [sp, #0x30]",
+          "28ea48: stp x22, x21, [sp, #0x40]",
+          "28ea4c: stp x20, x19, [sp, #0x50]",
+          "28ea50: sub sp, sp, #0x3d0",
+          "28ea54: ldr x19, [x0, #0x1bf8]",
+          "28ea58: ldr x8, [x19, #0x10]",
+          "28ea5c: cbnz x8, #0x290bec",
+          "28ea60: mov x23, x0"
+        ],
+        "calls": [
+          {
+            "pc": "0x28ea78",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll7metrics"
+          },
+          {
+            "pc": "0x28eab4",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x28eadc",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x28eb34",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x28eb4c",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28ebc0",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x28ebd4",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28ec08",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x28ec1c",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28ec60",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x28ec78",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28ecc0",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x28ecd8",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28ef70",
+            "callee": "_RINvYNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateNtNtCs2kXltWtc1W_4core4hash11BuildHasher8hash_oneRNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns7forward11SocketTokenECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28f08c",
+            "callee": "_RINvYNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateNtNtCs2kXltWtc1W_4core4hash11BuildHasher8hash_oneRNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns7forward11SocketTokenECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28f450",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x28f5cc",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28f61c",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28f688",
+            "callee": "_RINvMs6_NtCs11S9oZKZy51_9hashbrown3rawINtB6_8RawTableTNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns7forward8ServerIduEE14reserve_rehashNCINvNtB8_3map11make_hasherBQ_uNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE0EBW_"
+          },
+          {
+            "pc": "0x28f6b8",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x28f710",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28f72c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28f7b0",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28f7fc",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28f950",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x28f9a8",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28f9c0",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28fa50",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x28fae4",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28fb30",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28fb68",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28fc78",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x28fd50",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28fd98",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28fdd4",
+            "callee": "memmove"
+          },
+          {
+            "pc": "0x28ff18",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x28ff24",
+            "callee": "_RNvMsz_NtNtNtCshlmZ2E5RoO1_5alloc11collections5btree3mapINtB5_8IntoIterNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrTNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns8upstream14ServerCountersmEE10dying_nextCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x28ffb4",
+            "callee": "_RNvNtCsbzmNczW2qYq_10dnsmasq_rs15address_logging12address_text"
+          },
+          {
+            "pc": "0x28ffc4",
+            "callee": "_RNvMNtCshlmZ2E5RoO1_5alloc6stringNtB2_6String15from_utf8_lossy"
+          },
+          {
+            "pc": "0x290054",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x29006c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29007c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29008c",
+            "callee": "_RNvMsz_NtNtNtCshlmZ2E5RoO1_5alloc11collections5btree3mapINtB5_8IntoIterNtNtNtCs2kXltWtc1W_4core3net11socket_addr10SocketAddrTNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns8upstream14ServerCountersmEE10dying_nextCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2900c4",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x290120",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x290128",
+            "callee": "malloc"
+          },
+          {
+            "pc": "0x290180",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x29024c",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2902a4",
+            "callee": "_RINvYNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateNtNtCs2kXltWtc1W_4core4hash11BuildHasher8hash_oneRmECsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x29039c",
+            "callee": "_RNvXsj_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv6AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x2903a8",
+            "callee": "_RNvXs6_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv4AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x2903dc",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x2903f8",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x290404",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290410",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2904bc",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x29050c",
+            "callee": "_RNvXs6_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv4AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x290540",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x29055c",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x290568",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290578",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2905cc",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump8sanitise"
+          },
+          {
+            "pc": "0x2905f8",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x29060c",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x29061c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2906f4",
+            "callee": "_RNvMs1_NtNtCsbzmNczW2qYq_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x290754",
+            "callee": "__aarch64_ldadd8_relax"
+          },
+          {
+            "pc": "0x290768",
+            "callee": "_RNvMs1_NtNtCsbzmNczW2qYq_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x29077c",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump8sanitise"
+          },
+          {
+            "pc": "0x29078c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290798",
+            "callee": "__aarch64_ldadd8_rel"
+          },
+          {
+            "pc": "0x2907ac",
+            "callee": "_RNvMsn_NtCshlmZ2E5RoO1_5alloc4syncINtB5_3ArcNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns5cache11LocalTargetE9drop_slowBM_"
+          },
+          {
+            "pc": "0x29080c",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x2908dc",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x29092c",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump3row"
+          },
+          {
+            "pc": "0x290940",
+            "callee": "_RNvMs6_NtCsbzmNczW2qYq_10dnsmasq_rs7loggingNtB5_6Logger4emit"
+          },
+          {
+            "pc": "0x29094c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29095c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x29096c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290a08",
+            "callee": "_RNvXsj_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv6AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x290a80",
+            "callee": "_RNvXs6_NtNtCs2kXltWtc1W_4core3net7ip_addrNtB5_8Ipv4AddrNtNtB9_3fmt7Display3fmt"
+          },
+          {
+            "pc": "0x290ab8",
+            "callee": "_RNvMNtCshlmZ2E5RoO1_5alloc6stringNtB2_6String15from_utf8_lossy"
+          },
+          {
+            "pc": "0x290ae0",
+            "callee": "_RNvNvNtCshlmZ2E5RoO1_5alloc3fmt6format12format_inner"
+          },
+          {
+            "pc": "0x290af4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290b08",
+            "callee": "_RNvMs3_NtNtCsbzmNczW2qYq_10dnsmasq_rs3dns5cacheNtB5_5Cache3get"
+          },
+          {
+            "pc": "0x290b1c",
+            "callee": "_RNvMs1_NtNtCsbzmNczW2qYq_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x290b30",
+            "callee": "_RNvNtNtNtCsbzmNczW2qYq_10dnsmasq_rs3dns6daemon4dump8sanitise"
+          },
+          {
+            "pc": "0x290b40",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290b84",
+            "callee": "free"
+          },
+          {
+            "pc": "0x290be8",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6result13unwrap_failed"
+          },
+          {
+            "pc": "0x290bf4",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x290c00",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x290c0c",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc5alloc18handle_alloc_error"
+          },
+          {
+            "pc": "0x290c10",
+            "callee": "_RNvNtNtNtCsiKaSbYLw9fL_3std3sys6random5linux19hashmap_random_keys"
+          },
+          {
+            "pc": "0x290c34",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x290c48",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x290c54",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc5alloc18handle_alloc_error"
+          },
+          {
+            "pc": "0x290c6c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking5panic"
+          },
+          {
+            "pc": "0x290c78",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core9panicking11panic_const23panic_const_div_by_zero"
+          },
+          {
+            "pc": "0x290c88",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x290c94",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13unwrap_failed"
+          },
+          {
+            "pc": "0x290cac",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking5panic"
+          },
+          {
+            "pc": "0x290cb8",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x290cc8",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x290cd4",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          },
+          {
+            "pc": "0x290ce0",
+            "callee": "_RNvNtCshlmZ2E5RoO1_5alloc7raw_vec12handle_error"
+          }
+        ]
+      },
+      {
+        "name": "wait_for_files",
+        "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+        "address": "0x27c394",
+        "bytes": 7192,
+        "code_sha256": "f91a3777dd494282bab52760f84f0c663e321783690f3b926239a7be30d501fc",
+        "asm_sha256": "a18bc2e6a6a8d2f645d43b09fb43f20332c1cb9b63412a83fa1aa8d717b9bf87",
+        "entry": [
+          "27c394: sub sp, sp, #0x160",
+          "27c398: stp x29, x30, [sp, #0x100]",
+          "27c39c: stp x28, x27, [sp, #0x110]",
+          "27c3a0: stp x26, x25, [sp, #0x120]",
+          "27c3a4: stp x24, x23, [sp, #0x130]",
+          "27c3a8: stp x22, x21, [sp, #0x140]",
+          "27c3ac: stp x20, x19, [sp, #0x150]",
+          "27c3b0: add x29, sp, #0x100",
+          "27c3b4: ldr q0, [x0, #0x16b0]",
+          "27c3b8: mov w8, #4",
+          "27c3bc: add x1, sp, #0x70",
+          "27c3c0: mov w2, #1"
+        ],
+        "calls": [
+          {
+            "pc": "0x27c3dc",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll15append_file_fds"
+          },
+          {
+            "pc": "0x27c420",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27c480",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll18reload_in_progress"
+          },
+          {
+            "pc": "0x27c498",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27c558",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27c65c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27c674",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27c770",
+            "callee": "_RNvMs8_NtNtCsbzmNczW2qYq_10dnsmasq_rs3dns8upstreamNtB5_16UpstreamResolver15append_poll_fdsCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27ca6c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27cd10",
+            "callee": "_RNvMs1_NtCsdWgmELMkOKv_9owrt_ubus4connNtB5_10Connection8rx_frame"
+          },
+          {
+            "pc": "0x27cda4",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24dhcp_packet_work_allowed"
+          },
+          {
+            "pc": "0x27ce8c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll24dhcp_packet_work_allowed"
+          },
+          {
+            "pc": "0x27cef0",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27cf60",
+            "callee": "_RNvMs_NtCsbzmNczW2qYq_10dnsmasq_rs13tftp_listenerINtB4_12TftpListenerNtNtB6_12tftp_runtime14RealFileOpenerE15append_poll_fdsCslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d114",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27d134",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x27d380",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d53c",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d590",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d5a8",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d5bc",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d5d8",
+            "callee": "_RNvMNtCsbzmNczW2qYq_10dnsmasq_rs9neighborsNtB2_13NeighborCache19front_script_change"
+          },
+          {
+            "pc": "0x27d5ec",
+            "callee": "free"
+          },
+          {
+            "pc": "0x27d608",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27d61c",
+            "callee": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll18files_initializing"
+          },
+          {
+            "pc": "0x27d910",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now"
+          },
+          {
+            "pc": "0x27d974",
+            "callee": "_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec12sub_timespec"
+          },
+          {
+            "pc": "0x27d9c4",
+            "callee": "__udivti3"
+          },
+          {
+            "pc": "0x27da20",
+            "callee": "poll"
+          },
+          {
+            "pc": "0x27da28",
+            "callee": "__errno_location"
+          },
+          {
+            "pc": "0x27db3c",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECslhjqNMUq7WX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27dcc0",
+            "callee": "free"
+          },
+          {
+            "pc": "0x27dcfc",
+            "callee": "read"
+          },
+          {
+            "pc": "0x27dd2c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x27dd94",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27de30",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x27de68",
+            "callee": "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCsdWgmELMkOKv_9owrt_ubus3sys6PollFdE8grow_oneCsbzmNczW2qYq_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x27de9c",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27deac",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27dec4",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27ded8",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27def0",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27defc",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27df08",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27df1c",
+            "callee": "_RNvNtNtCs2kXltWtc1W_4core5slice5index16slice_index_fail"
+          },
+          {
+            "pc": "0x27df28",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x27df34",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27df4c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x27df58",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell22panic_already_borrowed"
+          },
+          {
+            "pc": "0x27df64",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27df70",
+            "callee": "_RNvNtCs2kXltWtc1W_4core4cell30panic_already_mutably_borrowed"
+          },
+          {
+            "pc": "0x27df88",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          },
+          {
+            "pc": "0x27dfa8",
+            "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+          }
+        ]
+      }
+    ]
+  },
+  "explicit_frames_bytes": {
+    "6ab_step": 2400,
+    "025_step": 1312,
+    "5c_step": 640,
+    "5c_process_ready_dhcp": 2016,
+    "5c_dump_requested_cache": 1072
+  },
+  "decision": "Hold until bare1df result. 5c includes025; no standalone dump-only measured comparison. step17608\u21924692B is repartition, entirelocalELF only\u2212144B relative6ab (+280B vs025). Extra calls and nested active-path frames retained; no instructioncache/globalstack/CPU assertion."
+}
