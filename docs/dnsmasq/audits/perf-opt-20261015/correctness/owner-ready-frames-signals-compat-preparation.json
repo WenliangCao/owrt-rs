@@ -1,0 +1,63 @@
+{
+  "schema": "owner-ready-frames-runtime-signals-compat-preparation-v1",
+  "status": "LOCAL_SELECTED_FUTURE_CANDIDATE_PREPARATION_EXECUTION_DISABLED",
+  "selected_source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "preceding_current_candidate": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "original_signal_identity_review_commit": "1d8b1a0c",
+  "original_signal_identity_report_sha256": "4a0de855f6eeb865226f4a5297893d35370175c16eda97ae312d2de39ffa38bf",
+  "root_disabled_input_review": {
+    "commit": "be199f1e1b5a942de391602f71ea8b322eee2a77",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/owner-ready-frames-preparation-root-review.json",
+    "sha256": "8c4c96de51a357aa33c29b0902329d62738df7679007d613d86ba14ad6cb9f4f"
+  },
+  "adapter_private_path": "private/owner-ready-signals-preparation/run_signals_compat.py",
+  "adapter_sha256": "f8d35c30e37d86d627178f0bfac47c7a094c42ca81e1780298681712f8ad077a",
+  "pending_plan_private_path": "private/owner-ready-signals-preparation/pending-plan.json",
+  "pending_plan_sha256": "9eac8bcc27055be3d23f3152c400048f110644c5cffe42800bfde516d8384120",
+  "pending_plan": {
+    "status": "SELECTED_FUTURE_5C_WAITING_1DF_CLOSEOUT_THEN_ACTUAL5C_SDK_AND_EXPLICIT_QUIET",
+    "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+    "execution_enabled": false,
+    "SDK": null,
+    "exclusive_slot_release": null,
+    "native_compat_source": null,
+    "native_compat_source_note": "At the actual released slot locate the existing recovered tree under correctness/private/native-reference-compat, verify the original c-native-01 layout and allthree pins; do not rebuild or assume the host old path exists.",
+    "tools_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-owner-ready-frames/tools/dnsmasq",
+    "tool_sha256": {
+      "run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+      "audit_20261011_runtime_signals.py": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+      "audit_20261011_dhcp.py": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+      "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "elf_cost.py": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7"
+    },
+    "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "image_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "native_files_sha256": {
+      "c-native-01/dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "c-native-01/deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+      "c-native-01/deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+    },
+    "output": null,
+    "mapping_receipt": null,
+    "adapter_sha256": "f8d35c30e37d86d627178f0bfac47c7a094c42ca81e1780298681712f8ad077a",
+    "outer_invocation": [
+      "sudo",
+      "-n",
+      "sh",
+      "<samehash run_isolated.sh>",
+      "python3",
+      "<bound run_signals_compat.py>",
+      "<actual bound plan.json>"
+    ],
+    "runtime_scope": "Exact original audit249ae, all12signalrows/3dump/3maintenance originalcomparators; no normal/debug expansion, build, timing or new tests."
+  },
+  "adapter_scope": "Minimal setup around unchanged original audit: requireoriginalisolated environment, bind existingverified recoveredtree tooldpath inprivate mountnamespace, remountread-only, rehashinside mappedview, recordnamespace/argv thenexec originalaudit. Noartifactrebuild, normal-debugmatrix orcomparisonchange.",
+  "actual_native_tree_layout_verified": false,
+  "remaining_bindings": [
+    "Finish current1df allaudits andactualquiet beforeDNS5cfivefreshgroups+canonicalSDK.",
+    "At5cSDK quiet handoff bindexactactualSDK/source/review/release andfreshoutput/receipt, inspectexistingnativecompat layout/3bytepins andoldempty mountpoint.",
+    "Onlythen run originalsignals standalone andretainactualresults; actualsignals plusallSDK/gateindependentreviews andquiet precede owner32+G5cten. No newnative240."
+  ],
+  "frozen_review_terminology_correction": "be199 originalscope calls runtime-signals a family; it is a separate directed audit outside44familyregistry. Prior44/nativeevidence isnot5c runtime orperformance result.",
+  "review_validation": "ASTparse andread-onlysource/identity review only; adapter, audit, mounts, network and remote commands were not executed."
+}
