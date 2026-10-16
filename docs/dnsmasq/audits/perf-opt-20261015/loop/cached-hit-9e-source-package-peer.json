@@ -1,0 +1,39 @@
+{
+  "status": "PASS_LOCAL9E_EXACT_SOURCE_ARCHIVE_CANONICAL_BUNDLE_MAP_AND_DISABLED_EXECUTION",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "preparation_commit": "11569953",
+  "manifest_sha256": "a1238f54a1e8dee83e2b6fa379cba3f28b8c1e8bfd9a1b509a4b3e6bf94e96e4",
+  "source_binding_sha256": "62a526cadafb64c3f1b5fe91c01ee66815a20e28214f3d8f6da674c1dcd6b254",
+  "archive_sha256": "c732c50b2cd4f83f970cb517c36b7e042e39d254b81ffa80624e73463a206f88",
+  "archive_bytes": 21092599,
+  "all4099_Git_blobs_and_exact_modes_verified": true,
+  "archive_regular_members": 4100,
+  "original_helper_exact179_input_enumeration": true,
+  "source_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
+  "Git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
+  "epoch_and179_Git_blob_map_verified": true,
+  "SDK_input_changes_from6ab": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/edns_policy.rs",
+    "components/dnsmasq/src/dns/lease_names.rs",
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/service.rs",
+    "components/dnsmasq/src/dns/upstream.rs",
+    "components/dnsmasq/src/hosts.rs",
+    "components/dnsmasq/src/main.rs"
+  ],
+  "canonical_f454_f280_bundle_verified": true,
+  "original_map_tool_Git_blob_mode_and_sha256_verified": true,
+  "noncanonical_source_tree_builder_excluded_from179_and_not_selected": true,
+  "research_source_selected_execution_still_disabled": true,
+  "remote_source_and_SDK_names_match_selected9e": true,
+  "script_sha256": "69fd3c9d322c707f71506b3ecddfea1ce3891be551f9bfbcac5ac9c913f3d3cb",
+  "scope_limits": [
+    "Immutable9e package and Git objects only; no current worktree assumption or48 artifact reuse.",
+    "Only original frozen helper input-hash function called against private archive snapshot; no product/benchmark/build/test or preparation script executed.",
+    "No Oracle/router access or upload. Original wrappers, actual related965/SDK/signals/quiet and behavioral source review are separately audited by correctness."
+  ]
+}
