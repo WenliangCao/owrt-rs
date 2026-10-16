@@ -1,6 +1,6 @@
 {
   "schema": "dnsmasq-cached-zero-frame-full11-preparation-v1",
-  "status": "LOCAL_PREPARATION_FINAL_SDK_BOUND_SCREENS_AND_FULL_CORRECTNESS_PENDING",
+  "status": "FINAL_SDK_AND_FULL110_TOOLS_REVIEWED_FULL_CORRECTNESS_PENDING",
   "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "artifact": {
     "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
@@ -123,7 +123,7 @@
     ]
   ],
   "full_correctness_required": [
-    "All ordinary and relevant ignored namespace/config/frozen-clock tests; explicit16 hosts_allocations and all original allocation-failure families",
+    "All ordinary and relevant ignored namespace/config/frozen-clock tests; all17 actual hosts_allocations (original F also17) and all original allocation-failure families",
     "Canonical44 C differential families,68 registered/67 executed procedural steps with190 semantic requirements, frozen exactC",
     "Daemon368 pairs/366 identical plus original2 C-invalid qualifiers,8 lifecycles and5 negative controls",
     "F10all13/704observations plus original24 checker controls and approved PTR manifest",
@@ -145,7 +145,8 @@
       "perf_opt_tables.py": "0e786b6f7ea02020c7c198220c3372f6df743e6a162785aa056e174d132a3269",
       "perf_opt_device_group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf"
     },
-    "source": "Unchanged successful F/E recovery1 tool snapshot; no imports, runners or performance work executed during preparation."
+    "source": "Unchanged successful F/E recovery1 tool snapshot; no imports, runners or performance work executed during preparation.",
+    "role": "Oracle110 frozen bundle retained; device full110 uses separate reviewed bundle."
   },
   "measurement_artifacts": {
     "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
@@ -265,7 +266,7 @@
       "owner": "DHCP device owner only",
       "command": [
         "python3",
-        "tools/dnsmasq/perf_opt_device_run.py",
+        "private/cached-zero-frame-full-performance/device-tools-prefix-v1/perf_opt_device_run.py",
         "--out",
         "private/perf-opt-20261015/cached-zero-frame-vs-e",
         "--prefix",
@@ -279,7 +280,7 @@
       ],
       "analysis_command": [
         "python3",
-        "tools/dnsmasq/perf_opt_analyze.py",
+        "private/cached-zero-frame-full-performance/device-tools-prefix-v1/perf_opt_analyze.py",
         "private/perf-opt-20261015/cached-zero-frame-vs-e",
         "private/perf-opt-20261015/cached-zero-frame-vs-e-summary.json"
       ],
@@ -304,9 +305,41 @@
   },
   "full110_tail_capture_alignment_pending": {
     "required_before_launch": true,
-    "scope": "Before any supported185full110 launch, align the generic7c93 full-run tail evidence with the same minimal capture boundary and bind that concrete recipe. Do not run the new prefix verifier against an old full-run log lacking captured prefix. Generic full110 tooling is unchanged in this repair.",
-    "generic_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
-    "implemented": false,
-    "new_statistical_rules": false
+    "implemented": true,
+    "independently_reviewed": true,
+    "pending": false,
+    "review_commit": "52a92e8003a48e1cf9b37d24eb18a7a15a6e9d2f",
+    "independent_report_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/full110-runtime-boundary-independent-review.json",
+    "independent_report_sha256": "263d56cf4bc1d88b5a0ab2085a55c82affc8909822ca0042a618c6c4b18b43e4",
+    "device_bundle": {
+      "local_directory": "private/cached-zero-frame-full-performance/device-tools-prefix-v1",
+      "files_sha256": {
+        "device_health_baseline.py": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+        "m6a_loadgen.c": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+        "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+        "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+        "perf_opt_device_group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+        "perf_opt_device_run.py": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+        "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+        "perf_opt_tables.py": "0e786b6f7ea02020c7c198220c3372f6df743e6a162785aa056e174d132a3269"
+      }
+    },
+    "bundle_rules": {
+      "fresh_health": {
+        "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+        "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+      },
+      "device_full110": {
+        "controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+        "helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e"
+      },
+      "oracle110": {
+        "controller_sha256": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+        "companion_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+        "prefix_consumer": false
+      }
+    },
+    "new_statistical_rules": false,
+    "full_qualification_still_required": true
   }
 }
