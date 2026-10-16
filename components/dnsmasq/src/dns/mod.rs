@@ -28,3 +28,6 @@ pub mod wire;
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod interface_collect;
+
+// Independent excluded diagnostic source, never a release feature.
+pub mod udp_stage_diagnostic;
