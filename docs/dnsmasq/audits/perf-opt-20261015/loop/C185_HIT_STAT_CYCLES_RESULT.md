@@ -8,6 +8,13 @@ bindings and 179 source files. The C TCP sample had 56 descendants, all exited;
 that observed count was not imposed as a validity requirement. Oracle was
 quiet and explicitly handed to correctness for independent raw review.
 
+Independent review subsequently passed in `4ffde164`: all648 raw files,
+16 exact analyzer reproductions and all four perf.data exports matched.
+The311 emitted ranges and27,371 samples, together with all reported numeric
+fields, were independently checked. Review receipt SHA256 is
+`7a2b7999091f77200dd413abc14ab3216c5946995febe39e86cb59cb66eec586`.
+Correctness completed its quiet check before taking the next authorized task.
+
 The result is a diagnostic on Oracle, not physical A53 cost or the frozen
 five-pair performance acceptance. Every traffic window retains the original
 1,000 excluded UDP prewarm operations, then 1,000 warmup plus 4,000 measurement
