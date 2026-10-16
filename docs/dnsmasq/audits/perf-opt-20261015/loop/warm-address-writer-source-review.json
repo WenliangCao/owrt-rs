@@ -1,0 +1,54 @@
+{
+  "status": "PASS_LOCAL_SOURCE_ONLY_WARM_ADDRESS_WRITER_BOUNDARY_REVIEW",
+  "source_commit": "b1fc4225a289c87229cb9e539711417c6b7a624b",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/cache_engine.rs": "df35f3ee9b3572e7f2d554282b6734f145a51109fe33e893c60537fc7a09b2e6",
+    "components/dnsmasq/src/dns/cache.rs": "a562632c3d5e9f68ae2c832d021f5464d96e3695404a56cdcaea1c9b99c921a3",
+    "components/dnsmasq/src/dns/wire.rs": "13f9a954c09ff296d40f27c4925528aad15e3ba8a30e7c2e0e2d4a5ccf4082ea",
+    "components/dnsmasq/src/dns/service.rs": "473da0b55f510c3260cf6755350a27f49cc2e01c0b1efc196ec9c3c814f0baa6",
+    "components/dnsmasq/src/main.rs": "fe010726f45d7a392d05da5d9eaf928fe66c2128b668931a07fd2e0033661cb3"
+  },
+  "production_delta": "One32-line branch in answer_fresh_address; removing it restores all pre-test productionbytes to6ab. Original PacketWriter fallback byte-identical.",
+  "fallback_sha256": "a3ea08f98c65575f362f6d90a8458ec05522c122cf531e0a5f8152982329df35",
+  "checks": [
+    {
+      "source": "cache_engine.rs:275-283;cache.rs:566-586",
+      "finding": "Onlycaller requires IN,ordinaryquery,RD,onequestion,noanswer/authority,noDNSSEC/filter and matchingfreshpositiveA4/AAAA16 single-generation hint. ExistingLRUpromotion occurs beforewriterunchanged."
+    },
+    {
+      "source": "cache_engine.rs:302-312;wire.rs:655-675",
+      "finding": "Directbranch requires loggingfalse,exactdatawidth,completepacketfitslimit,andcapacity>=max(total,min(limit,128)). Afterclear originalreserve_exact(min(limit,128)) needs no growth exactly underthisguard; allgrowth/error cases useoriginalfallback."
+    },
+    {
+      "source": "wire.rs:94-137,188-255;cache_engine.rs:305-327",
+      "finding": "Name privately owns validated uncompressedwire1..255bytes. Maxdirectpacket299bytes avoidsusize/u16overflow and makes original65535limitclamp irrelevant. Question bytespreserve mixedcase/root/binarylabels. RRowner0xc00c points toquestionoffset12 exactly asoriginalrecord_at."
+    },
+    {
+      "source": "cache_engine.rs:316-329;wire.rs:678-694,729-754,803-819",
+      "finding": "Sameid,flags((flags&0x0110)|0x8080),QD1/AN1/NS0/AR0,questionqtype/class,RRtype/INclass,originalreply_ttl andRDATAbytes. Eligibleflags cannotcarryTC; completefit meansfinishcachedheaderparse/truncationcannotaddbehavior."
+    },
+    {
+      "source": "cache_engine.rs:334-344,1644-1667",
+      "finding": "Fallback unchanged for logging/limit<12/questionoverflow/RRoverflow/bufferreserve/invalidwidth. OriginalatomicRRappend,TCandquestion-only truncation/errors retained. Missingentryfirstcheck simply falls intooriginalexpect boundary."
+    },
+    {
+      "source": "cache_engine.rs:1578-1581,228-259;service.rs:279-295",
+      "finding": "Skipped record_cached is a complete no-op whenloggingfalse; no queryevent/counter sideeffect lost. Loggingtrue still originalpath; outerEDNS/truncation handling unchanged. Memtake/clear moves sameVec once;originalpost-send recycler/512capacity policy unchanged."
+    },
+    {
+      "source": "cache.rs:170-176;cache_engine.rs:303-329",
+      "finding": "TTL read is unchanged purecalculation using same now/policy. Sharedcache/Nameborrows and exclusiveLocalDnsService borrow stay valid; no persistentstate/unsafe/newallocation on admittedbranch."
+    },
+    {
+      "source": "cache_engine.rs:2109-2163",
+      "finding": "Existing general-vs-filtered regression expanded root/mixed/binary/maxName,loggingfalse/true,warmcapacities0/64/128/512 and originalflags/TTL/limit/DNSSEC/filter loops;shortnameskeepcache4,maxNamecache16. Inspected only, notrerun."
+    }
+  ],
+  "blocking_findings": [],
+  "scope_limits": [
+    "Source review only; does not verify localcodegen size or CPU gain.",
+    "Prior reported725Mac+8ignored/muslalltargets notrerun or independentlyverified here.",
+    "No newprep/queuechange/tests/build/remote/source edits; current5c remainsunchanged."
+  ]
+}
