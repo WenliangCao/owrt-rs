@@ -1,0 +1,102 @@
+{
+  "status": "PASS_EXISTING_LOCAL_5C_ELF_SYMBOLS_DISASSEMBLY_FRAMES_AND_CONDITIONAL_CALLS",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "contains_prior025": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "comparison_base": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "main_sha256": "3cd3c5b793b2551d37ae963b546fac5794e43f4c697b19d0b16b862c3753b431",
+  "author_inspection_sha256": "da991e8e63ac9685cef9f9aacbf49a24ad53620e4296f6367df07c464cb24c9b",
+  "author_result_sha256": "f89576c709c4b0cff89764d587cee725f2e975bdcd542445090fe75bf02fb242",
+  "ELFs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "readyframes": {
+      "sha256": "5f6d7274a09577d074704df3016a9ee2501883e7cfab05a7c6f91ca024bad88b",
+      "bytes": 5022096
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "step",
+        "address": "0x291c90",
+        "bytes": 17608,
+        "code_sha256": "103007c1ddc4f1fe8fad7904e19f7467c337454b543cf9ec59336c4a100c2600",
+        "asm_sha256": "c886615e57787b4ec1078a9acac33eafe587de5db3460025e41c5d36d545b71a",
+        "frame_bytes_from_actual_prologue": 2400,
+        "full_disassembly_reproduced": true
+      },
+      {
+        "name": "wait_for_files",
+        "address": "0x27c4b0",
+        "bytes": 7192,
+        "code_sha256": "0fc4f7b792c3132774e967207b8f9a2ad42fc4bc5a2a1a40153a1b43c0400e11",
+        "asm_sha256": "06b6a29f45f31a4cc29bc96dc87a956b0051b938f85ff890a9448b9e79d29be0",
+        "frame_bytes_from_actual_prologue": 352,
+        "full_disassembly_reproduced": true
+      }
+    ],
+    "readyframes": [
+      {
+        "name": "step",
+        "address": "0x294f60",
+        "bytes": 4692,
+        "code_sha256": "88c9066c89c5efc1a8bc8931402a8015eed0f8b993c98fa165627c253547a3fa",
+        "asm_sha256": "e296b15bd8143380bddfac50467e067141f74042aa6d0b7bbed37cc032ad2c14",
+        "frame_bytes_from_actual_prologue": 640,
+        "full_disassembly_reproduced": true
+      },
+      {
+        "name": "process_ready_dhcp",
+        "address": "0x28ba14",
+        "bytes": 4408,
+        "code_sha256": "0749f03053a6c6ae6233d236fb5523cab6bde192802bbccbcbb95afbf1806fc3",
+        "asm_sha256": "79da298a618c2ea7dbb51bc209adcef31ffde0629cfba932b85f5a04e3abef23",
+        "frame_bytes_from_actual_prologue": 2016,
+        "full_disassembly_reproduced": true
+      },
+      {
+        "name": "dump_requested_cache",
+        "address": "0x28ea34",
+        "bytes": 8884,
+        "code_sha256": "2ffe23095f05847a37700f27fe35ff0de6fe90ca10f47d551ee450ccfc132acd",
+        "asm_sha256": "1ca637c9e3cde3dc8d6fde4705f0dbf4dd75739bbd5d9d21eef5b9067b43eaff",
+        "frame_bytes_from_actual_prologue": 1072,
+        "full_disassembly_reproduced": true
+      },
+      {
+        "name": "wait_for_files",
+        "address": "0x27c394",
+        "bytes": 7192,
+        "code_sha256": "f91a3777dd494282bab52760f84f0c663e321783690f3b926239a7be30d501fc",
+        "asm_sha256": "a18bc2e6a6a8d2f645d43b09fb43f20332c1cb9b63412a83fa1aa8d717b9bf87",
+        "frame_bytes_from_actual_prologue": 352,
+        "full_disassembly_reproduced": true
+      }
+    ]
+  },
+  "025_ELF": {
+    "sha256": "b106612afd20485dad1146b093166e5fadfe9d790d52d77c28914d39c0fdbc92",
+    "bytes": 5021816
+  },
+  "whole_ELF_delta_from6ab": -144,
+  "whole_ELF_delta_from025": 280,
+  "call_evidence": {
+    "dump": "295aac cbz bypasses295ad0;295abc CAS with295ac8 retry;only successful consumption calls28ea34",
+    "dhcp": "295c44 allowed gate,295c48false bypass;input/has_input path\u2192295c5c;noinput next_maintenance/Instant gate\u2192295d7c w1=0\u2192295c58;notdue\u2192295e94",
+    "each_helper_has_one_direct_step_call": true
+  },
+  "active_pair_stack_bytes_excluding_deeper_callees": {
+    "step_plus_DHCP": 2656,
+    "step_plus_dump": 1712,
+    "helpers_sequential_not_mutually_nested": true,
+    "DHCP_pair_vs6ab_shared_step_only": 256
+  },
+  "wait_size_7192_unchanged_but_machine_bytes_not_equal": true,
+  "scope": [
+    "Existing bundled-musl/rust-lld local finalELF only; not exact SDK or runtime CPU evidence.",
+    "No new build,test,target execution,remote access,source edit or tooling framework.",
+    "Frame arithmetic excludes downstream callees and is not a whole-program peak-stack bound."
+  ]
+}
