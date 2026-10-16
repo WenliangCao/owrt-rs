@@ -12,7 +12,12 @@
     "sha256": "671ac4f17b2755064149705902c77f289cd289818c527028d7777309f4fd66f8",
     "expected_passes": 961
   },
-  "source_review": null,
+  "source_review": {
+    "commit": "c1e9ff9d",
+    "path": "correctness/owner-ready-frames-related-independent-audit.json",
+    "sha256": "18b8d96c6d5751153c2ef8ea28f227d4232b631b78e1f71e69e4e16ee0eb34c5",
+    "scope": "Fresh original961 actualraw/source independentlyaudited; notfull44."
+  },
   "sources": {
     "G": {
       "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
@@ -415,9 +420,9 @@
   "workload": "original driver: 800 names, A/AAAA70/30,1000 full prewarm,5s warmup+20s measured+1s drain; low200/s and highunpaced",
   "placement": "Original controller/driver CPU0 nice0; daemon CPU2 absolute nice10; original upstream/client placement unchanged",
   "analysis": "Original actual warmup+measurement N CPU/PMU denominator, 20s measurement throughput/latency; grouped unscaled same-window user/kernel instructions/cycles. Low original >8tick/W/direction; high variable-N pipeline diagnostic with no invented precision pass.",
-  "reservation": "Localdisabled preparation only. Current1df screens/audits/quiet first; then original5c fivegroups/canonicalSDK and frozen standalone runtime-signals PASS,completeactual independentreview,all pretransfers andexplicitquiet. No5c native240.",
+  "reservation": "Alloriginal961/canonicalSDK/standalonesignals actualindependentreviews bound. Stilldisabled until ownerinputs+devicehealth/fourartifactpretransfers complete andDNS finalquiet isbound.",
   "failure_policy": "Retain every failed/partial original window and stop; no replacements, selective reruns or historical E/G controls pooled.",
-  "status": "ACTUAL_BOUND_PENDING_STANDALONE_SIGNALS_FULL_AUDIT_PRETRANSFER_AND_QUIET",
+  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
   "artifact_transfer": {
     "candidate_elf_bytes": 2145051,
     "local_three_hashes_verified": {
@@ -465,18 +470,34 @@
     "tool": "tools/dnsmasq/audit_20261011_runtime_signals.py",
     "tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
     "required": true,
-    "actual": null,
-    "independent_review": null,
+    "actual": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-signals-20261016/signals/result.json",
+      "sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16"
+    },
+    "independent_review": {
+      "commit": "80f13a76",
+      "path": "correctness/owner-ready-frames-runtime-signals-independent-audit.json",
+      "sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a"
+    },
     "scope": "Frozenstandaloneaudit explicitlyrun throughoriginalisolatedentry; notcalled by44familyregistry, nofull44coverageinheritance."
   },
-  "sdk_independent_review": null,
+  "sdk_independent_review": {
+    "commit": "3c427195",
+    "path": "correctness/owner-ready-frames-sdk-independent-audit.json",
+    "sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925"
+  },
   "screen_plan_independent_review": {
+    "commit": "bec86c7a",
+    "path": "correctness/owner-ready-frames-owner32-actual-root-review.json",
+    "sha256": "5b78e338534462b21d3d3d3d3055c45e57ffc022f06c462ad862b21e20dc988c"
+  },
+  "explicit_slot_release": null,
+  "pretransfer_complete": false,
+  "execution_enabled": false,
+  "protocol_preparation_review": {
     "commit": "9364e070",
     "path": "correctness/owner-ready-frames-owner32-preparation-root-review.json",
     "sha256": "f4081a521e4b1c089bb5da9c3303eefb1dc10e9455a1fd854325d04938a82744",
     "scope": "Disabled originalprotocol preparation only; actualidentity delta pending."
-  },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "execution_enabled": false
+  }
 }

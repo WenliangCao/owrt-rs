@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_BOUND_PENDING_STANDALONE_SIGNALS_FULL_AUDIT_PRETRANSFER_AND_QUIET",
+  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
   "candidate_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
   "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "actual_gate": {
@@ -27,13 +27,35 @@
   },
   "source179_matches_frozen_plan": true,
   "sdk_postflight_sha256": "35eb839874b059bdeea2d5ecf9cd3c2d8e83a35bc247cb355b9eca2c6e24048a",
-  "plan_sha256": "bba07fc6768e0ca6d59e821bb798b557de6991d9d21c92bdb116787db0f5b167",
+  "plan_sha256": "a4caee36b693ca11e4b94758326a850cc81fc021d390691dbfc0176decca29e4",
   "original32_protocol_and_scripts_unchanged": true,
-  "standalone_signal_actual": null,
-  "actualSDK_independent_review": null,
+  "standalone_signal_actual": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-signals-20261016/signals/result.json",
+    "sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16"
+  },
+  "actualSDK_independent_review": {
+    "commit": "3c427195",
+    "path": "correctness/owner-ready-frames-sdk-independent-audit.json",
+    "sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925"
+  },
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "executed": false,
   "remote_accessed": false,
-  "no_native240": true
+  "no_native240": true,
+  "related_independent_review": {
+    "commit": "c1e9ff9d",
+    "path": "correctness/owner-ready-frames-related-independent-audit.json",
+    "sha256": "18b8d96c6d5751153c2ef8ea28f227d4232b631b78e1f71e69e4e16ee0eb34c5"
+  },
+  "standalone_signal_independent_review": {
+    "commit": "80f13a76",
+    "path": "correctness/owner-ready-frames-runtime-signals-independent-audit.json",
+    "sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a"
+  },
+  "actual_plan_review": {
+    "commit": "bec86c7a",
+    "path": "correctness/owner-ready-frames-owner32-actual-root-review.json",
+    "sha256": "5b78e338534462b21d3d3d3d3055c45e57ffc022f06c462ad862b21e20dc988c"
+  }
 }
