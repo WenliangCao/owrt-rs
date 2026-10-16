@@ -46,7 +46,12 @@ for window in plan['windows']:
     assert opened[0][1] == '-1' and all(x[1] == opened[0][2] for x in opened[1:])
     assert all(int(x[0]) == pid for x in opened)
     assert all(re.search(r'^\s*inherit\s+1\s*$', a, re.M) for a in attrs)
-    assert all(re.search(r'^\s*exclude_kernel\s+1\s*$', a, re.M) for a in attrs)
+    for event, attr in zip(expected, attrs):
+        mode = event.rsplit(':', 1)[1]
+        assert mode in ('u', 'k')
+        excluded, counted = ('kernel', 'user') if mode == 'u' else ('user', 'kernel')
+        assert re.search(r'^\s*exclude_' + excluded + r'\s+1\s*$', attr, re.M)
+        assert not re.search(r'^\s*exclude_' + counted + r'\s+1\s*$', attr, re.M)
     events = {}
     for fields in csv.reader(text.splitlines()):
         if len(fields) < 5 or fields[2] not in expected:
@@ -69,6 +74,8 @@ for window in plan['windows']:
         'actual_N':operations,'warmup_N':client['warmup']['correct'],
         'measurement_N':client['measurement']['correct'],'events':events,
         'IPC':events['instructions:u']['raw_count']/events['cycles:u']['raw_count'],
+        'mode_IPC':{mode:events['instructions:'+mode]['raw_count']/events['cycles:'+mode]['raw_count']
+                    for mode in ('u','k') if 'instructions:'+mode in events},
         'controls':controls,'sender_cpu':read(path/'client-cpu.json'),
         'measurement':client['measurement']})
 def stats(values):
@@ -83,6 +90,8 @@ for group in plan['groups']:
             summary.append({'group':group,'side':side,'rate':rate,
                 'actual_N':stats([r['actual_N'] for r in matching]),
                 'IPC':stats([r['IPC'] for r in matching]),
+                'mode_IPC':{mode:stats([r['mode_IPC'][mode] for r in matching])
+                            for mode in matching[0]['mode_IPC']},
                 'events':{event:stats([r['events'][event]['raw_per_query'] for r in matching])
                           for event in plan['groups'][group]['events']}})
 result = {'scope':'Oracle UDP-hit association diagnostic; no physical A53 or causal inference',
