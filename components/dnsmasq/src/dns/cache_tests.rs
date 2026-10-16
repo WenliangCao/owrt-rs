@@ -409,6 +409,31 @@ fn tcp_snapshot_content_and_name_roots_detach_only_on_mutation() {
 }
 
 #[test]
+fn content_roots_keep_partial_capacity_and_clear_only_the_mutated_snapshot() {
+    for capacity in [0, 1, 63, 64, 65, 1000] {
+        let mut parent = Cache::new(capacity, Policy::default());
+        assert_eq!(parent.content.iter().map(|root| root.len()).sum::<usize>(), capacity);
+        assert_eq!(parent.content.len(), capacity.div_ceil(CONTENT_BLOCK_SLOTS));
+        parent.start_insert();
+        let ids: Vec<_> = (0..capacity).map(|index| {
+            parent.insert(record(&format!("block-{index}.test"), Kind::Ipv4, 7), 100, 60).unwrap()
+        }).collect();
+        assert!(parent.commit());
+        let mut child = parent.snapshot();
+        assert!(parent.content.iter().zip(&child.content).all(|(left, right)| Arc::ptr_eq(left, right)));
+        assert!(ids.iter().all(|&id| child.is_valid(id, 100)));
+        child.clear();
+        assert!(parent.content.iter().zip(&child.content).all(|(left, right)| !Arc::ptr_eq(left, right)));
+        assert!(ids.iter().all(|&id| parent.is_valid(id, 100) && child.get(id).is_none()));
+        assert_eq!(child.content.iter().map(|root| root.len()).sum::<usize>(), capacity);
+        let roots: Vec<_> = child.content.iter().map(|root| root.as_ptr()).collect();
+        child.clear();
+        assert_eq!(child.content.iter().map(|root| root.as_ptr()).collect::<Vec<_>>(), roots,
+            "clearing unique blocks must retain their backing storage");
+    }
+}
+
+#[test]
 fn tcp_view_isolates_mutation_shares_payload_and_imports_only_child_transaction() {
     let a = Name::from_ascii("a.snapshot.test").unwrap();
     let b = Name::from_ascii("b.snapshot.test").unwrap();

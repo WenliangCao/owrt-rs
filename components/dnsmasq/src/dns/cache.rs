@@ -249,11 +249,6 @@ fn slot_index(link: Option<NonZeroU32>) -> Option<usize> {
     link.map(|index| index.get() as usize - 1)
 }
 
-#[derive(Clone)]
-struct ContentBlock {
-    entries: Box<[Option<Entry>]>,
-}
-
 type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
 
 #[derive(Clone, Copy)]
@@ -283,7 +278,7 @@ const NAME_SHARDS: usize = 64;
 pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,
-    content: Vec<Arc<ContentBlock>>,
+    content: Vec<Arc<[Option<Entry>]>>,
     names: Vec<Arc<NameIndex>>,
     reverse_chain: Vec<usize>,
     head: Option<usize>,
@@ -306,12 +301,11 @@ impl Cache {
     }
 
     fn entry(&self, slot: usize) -> Option<&Entry> {
-        self.content[slot / CONTENT_BLOCK_SLOTS].entries[slot % CONTENT_BLOCK_SLOTS].as_ref()
+        self.content[slot / CONTENT_BLOCK_SLOTS][slot % CONTENT_BLOCK_SLOTS].as_ref()
     }
 
     fn entry_mut(&mut self, slot: usize) -> &mut Option<Entry> {
-        &mut Arc::make_mut(&mut self.content[slot / CONTENT_BLOCK_SLOTS]).entries
-            [slot % CONTENT_BLOCK_SLOTS]
+        &mut Arc::make_mut(&mut self.content[slot / CONTENT_BLOCK_SLOTS])[slot % CONTENT_BLOCK_SLOTS]
     }
 
     fn key_shard(key: &[u8]) -> usize {
@@ -358,9 +352,7 @@ impl Cache {
             .map(|block| {
                 let start = block * CONTENT_BLOCK_SLOTS;
                 let len = (capacity - start).min(CONTENT_BLOCK_SLOTS);
-                Arc::new(ContentBlock {
-                    entries: vec![None; len].into_boxed_slice(),
-                })
+                std::iter::repeat_with(|| None).take(len).collect::<Arc<[_]>>()
             })
             .collect();
         Self {
@@ -413,7 +405,7 @@ impl Cache {
         // clearing that block, in the same record order, instead of repeating
         // Arc's atomic ownership check for every slot in the block.
         for block in 0..self.content.len() {
-            for entry in &mut Arc::make_mut(&mut self.content[block]).entries {
+            for entry in Arc::make_mut(&mut self.content[block]) {
                 *entry = None;
             }
         }
