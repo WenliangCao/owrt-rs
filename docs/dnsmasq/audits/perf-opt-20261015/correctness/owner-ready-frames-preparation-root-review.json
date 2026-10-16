@@ -1,0 +1,18 @@
+{
+  "status": "PASS_LOCAL_DISABLED_PREPARATION_ONLY",
+  "commit": "4e394a9a",
+  "manifest_sha256": "85813bf47a032c10756861e5ebf0ea9ecc04163ca2940d9b623853403c4a57a2",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "source179_git_archive_verified": true,
+  "relative_to_bare025_only_main_source_changed": true,
+  "four_entries_exact_after_declared_identity_path_replacements": [
+    "run_owner_ready_frames_related.py",
+    "build_owner_ready_frames_allocations.py",
+    "launch_related.py",
+    "verify_related.py"
+  ],
+  "five_argv_canonicalSDK_profile_budgets_original": true,
+  "all_actual_results_and_release_null_execution_disabled": true,
+  "archive_sha256": "68e9febeb2c8416269cd970840b31ecc1fd813a0345eb7de3f2d9a16cfb71411",
+  "scope": "Local preparation review. 5c includes025; source peer70cf08da and codegenpeerb14bf61d remain separate. No selection, remote, build, tests or timing. Existing frozen runtime-signals family already checks repeatedUSR1 andALRM; use original coverage ifselected, no new framework."
+}
