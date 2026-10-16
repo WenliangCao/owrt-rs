@@ -1,0 +1,41 @@
+{
+  "scope": "Independent fixed native240 after exact related gates, SDK build, prior workloads exited and both transfer owners released; no qualification claim",
+  "candidate": "cached-local-miss",
+  "launched_utc": "2026-10-16T00:32:59.651639+00:00",
+  "pid": 641270,
+  "starttime_ticks": 183539686,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-native-screen1/run-native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-native-screen1"
+  ],
+  "plan_commit": "a60d358b",
+  "plan_sha256": "4164adeed24c9a0291a39cdb0ee7dfb6fe6bd86aa9680de2f52411632e69475d",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "gate_receipt_sha256": "cb9ceed13e8e9441a8b3465cd51af23bb67c80fd2405df9b26f2b6a72aac2fa4",
+  "related_test_passes": 938,
+  "sdk_elf_sha256": "36e4cdde1fd0ea25d55599a37cf8fc7eb78e933c953b719c8a09af715d1b1b3f",
+  "sdk_build_receipt_sha256": "2d8d21b716331c68e9446b87c1dea1f32f80765232c71d9bb5ffb906fb619f41",
+  "both_sdk_builds_complete": true,
+  "hot250_build_postflight_released_by_DNS": true,
+  "DNS_owner32_pretransfer_complete": true,
+  "dhcp_gate": "DHCP directly confirmed both SDK bundles (six files) downloaded and 358 source inputs verified before timing; DNS owner32 input/artifact pretransfer also complete",
+  "locks_available_before_launch": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+  ],
+  "root_readable_research_process_inventory": [],
+  "sources_reverified": {
+    "F": 162,
+    "cached-local-miss": 162
+  },
+  "previous_round": null,
+  "windows": 240,
+  "planned_build_commands": 4,
+  "planned_commands": 244,
+  "SDK32_not_authorized": true
+}

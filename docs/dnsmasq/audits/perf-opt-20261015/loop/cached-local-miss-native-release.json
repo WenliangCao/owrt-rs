@@ -1,0 +1,15 @@
+{
+  "status": "CACHED_LOCAL_MISS_NATIVE_COMPLETE_RELEASED_TO_DNS_0161_VS_E_OWNER32",
+  "checked_at_utc": "2026-10-16T00:39:58.982329+00:00",
+  "controller_pid": 641270,
+  "controller_exited": true,
+  "windows": 240,
+  "commands": 244,
+  "research_processes": [],
+  "locks_available": [
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock"
+  ],
+  "metadata_collection_complete": true,
+  "raw_measurements_unchanged": true
+}
