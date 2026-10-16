@@ -1,0 +1,214 @@
+{
+  "status": "PASS_SOURCE_AND_LOCAL_EVIDENCE_NO_SEMANTIC_BLOCKER",
+  "candidate_commit": "2b4f8b1685dd8ab99286617808a795e01614c3c4",
+  "base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "author_report_sha256": "782416b0e2595736c73da639798a7ce66fc45529664a96f12a9f27994595523b",
+  "scope": "Read-only local source, existing logs/count outputs and final ELF byte audit. No build/test/probe execution, SDK, remote or qualification-tool change.",
+  "source_changes": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs"
+  ],
+  "probe_sha256": "c43d5a931411a15c592943e684b9449e55bc825d7d2bdaca85c030c84759bc07",
+  "prior_probe_copy_checked": true,
+  "prior_probe_path": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-review-20261016/private/perf-opt-20261015/cold-metadata-local/snapshot-count.rs",
+  "separate_test_only_parent": "1721e5a1447ba8f21dda4d4f530830fe70e38d31",
+  "commands_verified": 20,
+  "count_controls_verified": 16,
+  "count_errors": 0,
+  "all_final_live_deltas_zero": true,
+  "all_population_drops_balance": true,
+  "host_tests_recorded": "722 pass,0 fail,8 ignored; existing partial-block test passed",
+  "musl_check_recorded": "all-target dev check finished; no Linux execution claim",
+  "six_function_sizes_each_side": {
+    "parent": {
+      "get": 160,
+      "invalid": 232,
+      "is_valid": 176,
+      "answer_fresh_address": 1088,
+      "answer_parsed_with_query_events": 4508,
+      "answer_local_or_cached": 3980
+    },
+    "slice": {
+      "get": 160,
+      "invalid": 232,
+      "is_valid": 176,
+      "answer_fresh_address": 1088,
+      "answer_parsed_with_query_events": 4508,
+      "answer_local_or_cached": 3980
+    }
+  },
+  "all12_code_and_ASM_hashes_verified": true,
+  "key_counts": [
+    {
+      "capacity": 1000,
+      "filled": 0,
+      "mode": "read",
+      "G": {
+        "population_allocation": [
+          99,
+          0,
+          93248,
+          93248,
+          88640
+        ],
+        "clone_allocation": [
+          60,
+          0,
+          332800,
+          332800,
+          332800
+        ],
+        "lookup_allocation": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "peak_extra_requested": 332800
+      },
+      "slice": {
+        "population_allocation": [
+          83,
+          0,
+          93120,
+          93120,
+          88512
+        ],
+        "clone_allocation": [
+          60,
+          0,
+          335360,
+          335360,
+          335360
+        ],
+        "lookup_allocation": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "peak_extra_requested": 335360
+      }
+    },
+    {
+      "capacity": 1000,
+      "filled": 800,
+      "mode": "read",
+      "G": {
+        "population_allocation": [
+          5101,
+          0,
+          337768,
+          257736,
+          253152
+        ],
+        "clone_allocation": [
+          60,
+          0,
+          332800,
+          332800,
+          332800
+        ],
+        "lookup_allocation": [
+          20,
+          0,
+          1280,
+          0,
+          64
+        ],
+        "peak_extra_requested": 332864
+      },
+      "slice": {
+        "population_allocation": [
+          5085,
+          0,
+          337640,
+          257608,
+          253024
+        ],
+        "clone_allocation": [
+          60,
+          0,
+          335360,
+          335360,
+          335360
+        ],
+        "lookup_allocation": [
+          20,
+          0,
+          1280,
+          0,
+          64
+        ],
+        "peak_extra_requested": 335424
+      }
+    },
+    {
+      "capacity": 1000,
+      "filled": 800,
+      "mode": "detach",
+      "G": {
+        "population_allocation": [
+          5101,
+          0,
+          337768,
+          257736,
+          253152
+        ],
+        "clone_allocation": [
+          60,
+          0,
+          332800,
+          332800,
+          332800
+        ],
+        "lookup_allocation": [
+          80,
+          0,
+          92732,
+          91072,
+          91155
+        ],
+        "peak_extra_requested": 423955
+      },
+      "slice": {
+        "population_allocation": [
+          5085,
+          0,
+          337640,
+          257608,
+          253024
+        ],
+        "clone_allocation": [
+          60,
+          0,
+          335360,
+          335360,
+          335360
+        ],
+        "lookup_allocation": [
+          60,
+          0,
+          92412,
+          90752,
+          90835
+        ],
+        "peak_extra_requested": 426195
+      }
+    }
+  ],
+  "source_findings": [
+    "Construction keeps min(64,capacity-start) and uses safe Arc-slice collection; no padding, unsafe or new index.",
+    "Shared content COW clones the same Option<Entry>; Record/LocalTarget Arc sharing and owned authority metadata retain existing semantics.",
+    "Clear detaches each shared block once in original order; unique clear keeps backing and slot generations.",
+    "New filled-capacity cases cover0/1/63/64/65/1000 and every last block via snapshot clear. Existing partial8 mutable snapshot/Record-sharing coverage remains unchanged.",
+    "get keeps160B but replaces a root-to-wrapper pointer load dependency with root16-byte indexing; the final data access includes the Arc header offset. No speed claim."
+  ],
+  "limitations": [
+    "Requested-byte and allocation data are native mechanism evidence, not RSS/fragmentation or performance.",
+    "Whole local ELF grows200B and snapshot requested storage/peak increase; all retained.",
+    "Original full qualification tools remain wrapper-coupled and unchanged; no full qualification claim."
+  ]
+}
