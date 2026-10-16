@@ -1,0 +1,48 @@
+{
+  "schema": "empty-additional-ecs-source-review-v1",
+  "status": "PASS_SOURCE_ONLY_CACHEABILITY_EQUIVALENCE",
+  "source_commit": "86a8d59d62049d3500f0ae5ef2cefdac3f7a75f8",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "changed_file": "components/dnsmasq/src/dns/edns_policy.rs",
+  "source_sha256": "74774b090bf981758f73fdc2aaa120cd5e5ca8fd5bafb03cd5d52bdbd0418097",
+  "product_diff_sha256": "72152787f260722fb6a61e8c1d145ac6669166a29c247d0ad1924dfc9875cff5",
+  "exact_reverse_substitution_removes_only_seven_line_fast_path_and_one_test": true,
+  "wire_parser_and_external_callers_byte_identical": true,
+  "case_analysis": [
+    {
+      "case": "Header parse fails",
+      "old": "find_pseudoheader starts with the identical Header::parse and returns Err; predicate returns true.",
+      "new": "Identical parse failure returns true directly."
+    },
+    {
+      "case": "Valid header, ARCOUNT zero, question skip succeeds",
+      "old": "find_pseudoheader starts with opt=None, skips questions, then returns that empty scan before answer/authority/additional traversal; predicate returns true.",
+      "new": "Returns true before question traversal, without changing observable state."
+    },
+    {
+      "case": "Valid header, ARCOUNT zero, malformed or truncated questions",
+      "old": "Question skip returns Err; predicate returns true.",
+      "new": "Returns true directly. This predicate does not become a packet-admission validator."
+    },
+    {
+      "case": "ARCOUNT zero with undeclared trailing OPT/ECS, arbitrary question/answer/authority counts",
+      "old": "After question skip, either Err or the declared-zero early return prevents selecting OPT. Unused trailing bytes and answer/authority counts cannot change predicate result.",
+      "new": "Same true result based on declared Additional count."
+    },
+    {
+      "case": "ARCOUNT nonzero",
+      "old": "Original find_pseudoheader, last-OPT handling, malformed record behavior and strict TLV loop determine cacheability.",
+      "new": "Additional immutable Header parse succeeds, then every byte of the old implementation runs unchanged. Nonzero ECS source mask still rejects caching; zero or absent/malformed options retain existing behavior."
+    }
+  ],
+  "interface_and_failure_boundary": "Signature remains &[u8] -> bool; no packet mutation, allocation, logging, or state change is introduced. Header and skipped wire parsing are pure. Existing decorate and main UDP cacheable-metadata call sites are unchanged. Main still applies UDP admission and query_metadata before this predicate.",
+  "added_test_review": "One test first rejects declared nonzero-mask ECS, then sets ARCOUNT0 and checks undeclared trailing OPT, question counts0/1/2/65535, every packet prefix including all truncated headers, and invalid first label. This is source inspection, not an independently executed test.",
+  "blocking_findings": [],
+  "scope_limits": [
+    "No test/build/SDK/capture/remote/device execution.",
+    "Author-reported726Mac+8ignored, musl all-target success and local codegen+64B were not independently verified by this source review.",
+    "Additional nonzero packets incur an extra Header parse; no performance improvement is inferred.",
+    "Independent6ab local candidate only; does not enter803/1df queue, authorize deployment, or inherit shipping/full-gate acceptance."
+  ],
+  "reviewer_script_sha256": "b46f45c043129c88a986703121b116db9089c8e72da44ed8c6cf6bb94b63e7c1"
+}
