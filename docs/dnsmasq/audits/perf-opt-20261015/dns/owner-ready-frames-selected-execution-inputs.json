@@ -1,0 +1,64 @@
+{
+  "schema": "selected-owner-ready-frames-local-execution-input-v1",
+  "status": "ROOT_SELECTED_CONDITIONALLY_AUTHORIZED_WAITING_REAL_BARE1DF_RELEASE",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "direct_parent_source_commit": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "frozen_preparation": {
+    "commit": "4e394a9a",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/owner-ready-frames-execution-preparation/manifest.json",
+    "sha256": "85813bf47a032c10756861e5ebf0ea9ecc04163ca2940d9b623853403c4a57a2",
+    "unchanged": true
+  },
+  "frozen_preparation_review": {
+    "commit": "be199f1e1b5a942de391602f71ea8b322eee2a77",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/owner-ready-frames-preparation-root-review.json",
+    "sha256": "8c4c96de51a357aa33c29b0902329d62738df7679007d613d86ba14ad6cb9f4f"
+  },
+  "execution_copy": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/owner-ready-frames-execution-preparation/selected-execution/execution-plan.json",
+    "sha256": "781cdd2739e57037578a702fc4bd9ebc620210f4feb268945e9fdf7c80edacf8",
+    "changed_top_level_fields": [
+      "authorization_condition",
+      "execution_authorized",
+      "execution_entries",
+      "post_signal_measurement_queue",
+      "preparation_commit",
+      "preparation_review",
+      "preparation_sha256",
+      "queue",
+      "required_post_SDK_signal_audit",
+      "status"
+    ],
+    "actual_release": null,
+    "actual_related": null,
+    "actual_SDK": null,
+    "actual_signal": null
+  },
+  "unchanged_original_commands_source_and_budgets": true,
+  "originalsignal_tool_imports_rehashed_from_exact5cGit": true,
+  "signal_audit": {
+    "preparation_commit": "1d8b1a0c",
+    "preparation_sha256": "4a0de855f6eeb865226f4a5297893d35370175c16eda97ae312d2de39ffa38bf",
+    "separate_standalone_not44family": true,
+    "native_private_mount_bytes_and_visibility_required": true,
+    "actual_result": null
+  },
+  "queue": "Waitbare1dfcompleteoriginalscreens+rawaudits+quiet; thenDNS5cfivegroups\u2192canonicalSDK\u2192correctnessstandaloneoriginalruntime-signalsaudit\u2192actualindependentreviews\u2192originalowner32/device10. No native240.",
+  "measurement_queue": {
+    "condition": "Onlyafteractualfresh5cgates/SDKandstandaloneruntime-signalsPASSplusindependentaudits/alltransfers/quiet",
+    "owners": [
+      "loop originalG/5cexactSDKowner32",
+      "DHCP originalG/5cdevice10"
+    ],
+    "native240": false,
+    "reason": "Originalnative240probedoesnotcompilechangedmainownerfunctions; do not repeatit forthisfactorscreen.",
+    "comparison_scope": "G185vs5c(base6abwith025+dump) includesinherited6abchanges; no1df/803 overlay, notdump-onlyeffect."
+  },
+  "source_archive_rehashed": true,
+  "source179_rehashed": true,
+  "remote_accessed": false,
+  "uploaded": false,
+  "build_or_test_run": false,
+  "scope": "Localconditionalexecutionmetadata only; original4e394/be199 unchanged. Release=null enforceswait. No extracandidate/framework/tool orscreen."
+}
