@@ -1,0 +1,98 @@
+{
+  "candidate": "J",
+  "date": "2026-10-17",
+  "independent_review": "PASS_ACCEPTANCE_SUPPORTED",
+  "source_commit": "23aece16463b246eb194f25b84bd40d0446373fb",
+  "ELF_sha256": "9e3326bad7c6ac8c9261994af8d70095ae86186e6ea149511080d2662f8f94b8",
+  "scope": "Continued the existing single review, reusing public confirmation and actual correctness checks. No product reruns, device/Oracle access, or changed thresholds.",
+  "original_simplified_matrix": {
+    "windows": 118,
+    "valid": 118,
+    "reruns": 0,
+    "raw_files_verified": 3850,
+    "review_cached_windows_reused": 29,
+    "new_windows_reviewed": 89,
+    "original_primary_counts": {
+      "faster": 0,
+      "slower": 0,
+      "within_variation_or_resolution": 33
+    },
+    "CPU_clock_scope": "Descriptive only; public-rule A/A is not applied to this different-duration simplified fixture.",
+    "result_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016/i-j-full118-result.json",
+    "result_sha256": "74fd80525d09a9458c143cd3128e178da81b145916cd394ad5fa190535c07667",
+    "closure_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016/i-j-full118/closure.json",
+    "closure_sha256": "d24aa858fab7fff3dce5e1a849294e947cfb6b17d0b20cfe7cde486367051dea",
+    "review_path": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/j1-pgo-qualification/review-j-118-progress.json",
+    "review_sha256": "a9fe62517998259d8ae365b9163b66ae8f1e15828f30db7171f711d3ec4f4b2b",
+    "review_script_sha256": "b76d0e02da2591bcb3f7e80dc006f8f8b6f1627b1567f0f9c4dcbd209f1c5fb0",
+    "final_stdout_sha256": "e5a4f99411ffbac620549769fac3ceb0861ba159b5900cb9a17e0261ac5ec20a"
+  },
+  "reused_prior_successful_checks": {
+    "correctness": {
+      "families": 44,
+      "jobs": 67,
+      "raw_files_verified": 83020,
+      "qualification_summary_sha256": "31ff57dd3aa2045ec8fa618f97b4e378ede355065c82b2713bff3da0217fd9d2"
+    },
+    "public_confirmation": {
+      "windows": 18,
+      "paired_median_CPU_us": -27.07377310000001,
+      "passed": true,
+      "result_sha256": "d2b045987cb6f0440c461be07953a5155cbe0b2bdb309d39e7850aa8fdabad88"
+    }
+  },
+  "artifact_gates": {
+    "ELF_bytes": 2288419,
+    "APK_bytes": 1293163,
+    "PGO_caps_passed": true,
+    "hardening": "static PIE, BIND_NOW, RELRO, NX stack, no W+X; actual runtime RELRO/NX/no-W+X and normal exit passed"
+  },
+  "adverse_observations_retained": {
+    "UDP_miss_paired_median_CPU_us": 8.334748600000012,
+    "UDP_miss_CPU_pairs_slower": 4,
+    "TCP_hit_p95_percent": 24.17137133491167,
+    "HUP_large_p95_percent": 26.702008807704065,
+    "primary_classification": "All remain within original variation or resolution; no claim that regressions do not exist.",
+    "home6_warmup_DORA_max_ms": {
+      "I": 2.555095,
+      "J": 5.298391
+    },
+    "DORA_scope": "Separate original warmup cohort; no pooled quantile or renew-phase attribution.",
+    "RSS_median_change_range_KiB": [
+      -76,
+      64
+    ],
+    "Anon_peak_median_change_range_KiB": [
+      -40,
+      16
+    ],
+    "UDP_miss_FD_range": {
+      "I": [
+        12,
+        13
+      ],
+      "J": [
+        12,
+        14
+      ]
+    },
+    "FD_medians_unchanged_all_scenes": true,
+    "all_pairs_and_resource_spreads_retained_in_review": true
+  },
+  "health": {
+    "guard_segments": 11,
+    "qualified_guard_samples": 4583,
+    "guard_samples": 4586,
+    "external_checks": 304,
+    "minimum_MemAvailable_KiB": 68016,
+    "restored_available_memory_KiB": 73412,
+    "production_and_E_F_restoration_verified": true,
+    "restored_sha256": "771861e080df327921439cc3c4d193977ae77871919973252a2e5ab7cd808067"
+  },
+  "decision_basis": "Frozen public-rule nine-pair gain plus original simplified 118 windows with no discernible regression; retain I as fallback. No deployment, push or main merge.",
+  "limitations": [
+    "Public local=/lan/ plus RFC6761 rules and synthetic fresh singleton queries; not real client traffic replay.",
+    "AD/CD, EDNS OPT, same-name A+AAAA and their real traffic proportions are outside this performance claim.",
+    "Source changes and newly trained PGO are measured together; do not attribute the complete gain to D1 or add historical percentages."
+  ]
+}
