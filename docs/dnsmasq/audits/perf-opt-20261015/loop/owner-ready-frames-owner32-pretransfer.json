@@ -1,0 +1,57 @@
+{
+  "status": "PRETRANSFER_ONLY_UNREADY_OWNER32_INPUTS_REHASHED",
+  "archive_sha256": "f94301c404f3522288d63c245cb7fb1c220bebd2c26d1304fb1d552fd3a80afd",
+  "files": {
+    "run_owner_ready_frames_owner32.py": {
+      "sha256": "0061fb577acd594aeef3252a8bdf28ffbb5236aaa581837937c5593e1919c503",
+      "bytes": 6800
+    },
+    "analyze_owner_ready_frames_owner32.py": {
+      "sha256": "1767512f8d791d815f4ac9a57cbe5a5294667b09adc4b39ae09e377a5af6e0bf",
+      "bytes": 5704
+    },
+    "plan.json": {
+      "sha256": "a4caee36b693ca11e4b94758326a850cc81fc021d390691dbfc0176decca29e4",
+      "bytes": 52128
+    },
+    "analysis-inputs/loop_owner_profile.py": {
+      "sha256": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620",
+      "bytes": 18177
+    },
+    "analysis-inputs/loop_hit_syscalls.py": {
+      "sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e",
+      "bytes": 11368
+    },
+    "analysis-inputs/elf_size_report.py": {
+      "sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+      "bytes": 14113
+    },
+    "analysis-inputs/perf_link_map_profile.py": {
+      "sha256": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d",
+      "bytes": 10666
+    },
+    "analysis-inputs/perf_opt_analyze.py": {
+      "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "bytes": 11018
+    },
+    "analysis-inputs/elf_link_map_report.py": {
+      "sha256": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+      "bytes": 4542
+    },
+    "analysis-inputs/loop_owner_profile_analyze.py": {
+      "sha256": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a",
+      "bytes": 22399
+    },
+    "analysis-inputs/r121_symbolize.py": {
+      "sha256": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12",
+      "bytes": 20808
+    }
+  },
+  "file_count_with_manifest": 12,
+  "plan_sha256": "a4caee36b693ca11e4b94758326a850cc81fc021d390691dbfc0176decca29e4",
+  "directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-ready-frames-owner32-inputs",
+  "owner_uid": 1001,
+  "controller_started": false,
+  "output_exists": false,
+  "epoch": 1792143666.9768076
+}
