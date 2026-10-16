@@ -1269,9 +1269,25 @@ impl<R: Random> DnsDaemon<R> {
         events: Vec<UpstreamEvent>,
         now: i64,
         external_local: Option<&LocalDnsService>,
-        mut doctor: Option<&mut ReplyDoctor<'_>>,
+        doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Vec<ClientResponse> {
         self.query_events.extend(self.upstream.take_query_events());
+        if events.is_empty() {
+            return Vec::new();
+        }
+        self.finish_nonempty_upstream_events(events, now, external_local, doctor)
+    }
+
+    // Cached answers still drain upstream notices, but have no reply work.
+    // Keep the completed-reply frame out of that ordinary empty poll path.
+    #[inline(never)]
+    fn finish_nonempty_upstream_events(
+        &mut self,
+        events: Vec<UpstreamEvent>,
+        now: i64,
+        external_local: Option<&LocalDnsService>,
+        mut doctor: Option<&mut ReplyDoctor<'_>>,
+    ) -> Vec<ClientResponse> {
         let mut responses = Vec::new();
         for event in events {
             let mut reply = match event.result {
