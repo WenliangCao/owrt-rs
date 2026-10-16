@@ -1,0 +1,144 @@
+{
+  "status": "PASS_LOCAL_SOURCE_SEMANTICS_AND_RETAINED_CODEGEN_AUDIT",
+  "source": "210801cfc46db03671c8cbfe45bbb83e513006db",
+  "base": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "changed_product_files": [
+    "components/dnsmasq/src/dns/lease_names.rs"
+  ],
+  "source_sha256": "c50961b17cdb3de122cc3690e31f7dd8848914f4fac9efe2b925a6877d435253",
+  "non_test_change_exactly_one_adapter": true,
+  "semantics": [
+    "Same forward-empty guard and name normalization lookup; as_slice remains pure, with no new allocation or mutation.",
+    "Same ordered IDs and unchanged active/live predicate for every yielded LeaseName; same clock and lifetime inputs.",
+    "Empty/missing maps to empty slice; current callers use next/for/name_exists and do not depend on opaque layout or exact size_hint bounds.",
+    "Original Iterator contract and ordered items remain; opaque representation and valid size_hint upper bound may differ."
+  ],
+  "tests": {
+    "actual_log_rehashed": true,
+    "passed": 726,
+    "failed": 0,
+    "ignored": 8,
+    "all_targets_musl_check": true,
+    "new_matrix": {
+      "stale_policies": 4,
+      "views": 3,
+      "names": 6,
+      "clocks": 8,
+      "combinations": 576,
+      "reference": "Former adapter preserved in test, ordered pointer comparison and two further next calls after exhaustion"
+    },
+    "rerun_by_reviewer": false
+  },
+  "local_codegen": {
+    "inspection_sha256": "2b53df79972830c50a922d21379eab52920ae2646ef55202db386d702c86c5c4",
+    "outputs": {
+      "parent": {
+        "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+        "bytes": 5022240
+      },
+      "slice": {
+        "sha256": "afdb9235f46ce4f17c5995613d741789f5ec1fd278b9f6b847bc7cbc63a818c8",
+        "bytes": 5021352
+      }
+    },
+    "whole_ELF_delta_bytes": -888,
+    "raw_ranges_checked": 10,
+    "ranges": [
+      {
+        "side": "parent",
+        "name": "cached_address_is_unclaimed",
+        "bytes": 528,
+        "raw_ELF_code_sha256": "0cf165aa7c3401999c409fd2e99d02c3cc715b510c2cd7cf99e2af35cab1bea7",
+        "asm_sha256": "59ddf28fe42a8e454da63544ee3a23b1411e005a9ed4fbce790d3ea337fffb43",
+        "first_explicit_sub_sp_bytes": 368
+      },
+      {
+        "side": "parent",
+        "name": "lookup",
+        "bytes": 692,
+        "raw_ELF_code_sha256": "ef4177d7679d7c448f3d2f997fd50a1cbc24a7b70fc33be0de44081bd1f53da3",
+        "asm_sha256": "0f94065db7945d0f7dd70b269e3b2d58a911651e2681c6bcf8c73259e5165ba5",
+        "first_explicit_sub_sp_bytes": 128
+      },
+      {
+        "side": "parent",
+        "name": "answer_parsed_with_query_events",
+        "bytes": 3804,
+        "raw_ELF_code_sha256": "de7a011359b4780fe65ded5c6c3d98e0fbddc5cfc42c349244ae3a8b68cbd859",
+        "asm_sha256": "bdf6738241cd0312a5797ec1a160801a93fc7d4af1cf64d68e5081b0ccef3465",
+        "first_explicit_sub_sp_bytes": 400
+      },
+      {
+        "side": "parent",
+        "name": "name_exists",
+        "bytes": 760,
+        "raw_ELF_code_sha256": "70185a4c4c8deb02a86449ebf1938c096da98efe59d84ae5748fb0a697584ecb",
+        "asm_sha256": "87b4ef89a22c5d2f49199e2746fd707f9463a55d8ae5d89b51d909be8c48eb88",
+        "first_explicit_sub_sp_bytes": 192
+      },
+      {
+        "side": "parent",
+        "name": "iterator-next",
+        "bytes": 816,
+        "raw_ELF_code_sha256": "220edfb81cd5b7b9f639763ab0b42fb1e592be93ab3e03f029633461ca20ea9d",
+        "asm_sha256": "f8bd1c8c2d55e74c8b99ede90667b2e6976c68218387d4009ad09562d575d350",
+        "first_explicit_sub_sp_bytes": null
+      },
+      {
+        "side": "slice",
+        "name": "cached_address_is_unclaimed",
+        "bytes": 528,
+        "raw_ELF_code_sha256": "c35642b03794cee3a94e0523cf12cffd85e101c8d208ce3bd8076f93126e5798",
+        "asm_sha256": "c78660b7536da52b72e8a678fa349b824f9885a0abeb20227057f885aafc8736",
+        "first_explicit_sub_sp_bytes": 336
+      },
+      {
+        "side": "slice",
+        "name": "lookup",
+        "bytes": 712,
+        "raw_ELF_code_sha256": "e741c2968cfe36f91ace04da806c582d90d513f2f34047759dfb08c6a92bd058",
+        "asm_sha256": "acee0fe097a8583bc3129d59cc765553c0762fc940e2ab696747e7c435b3ee82",
+        "first_explicit_sub_sp_bytes": 128
+      },
+      {
+        "side": "slice",
+        "name": "answer_parsed_with_query_events",
+        "bytes": 3804,
+        "raw_ELF_code_sha256": "9d5bdac91b21b5ce22b8026dcaf563fffc3f8bd766fa376494c82078d57ce362",
+        "asm_sha256": "a0eda578acb1dd401f996d585fee6d5bdff0d3f08468dcacde2d50ebaa0a9f9e",
+        "first_explicit_sub_sp_bytes": 400
+      },
+      {
+        "side": "slice",
+        "name": "name_exists",
+        "bytes": 916,
+        "raw_ELF_code_sha256": "927afb995993d7cfe942ddf2872e78c7a970fc4a6e44094ef9b61c3b83f00b9b",
+        "asm_sha256": "10a8955ee6cc9a9c7bee620e0a30962a182f7a5c53446ec2b716547ca8578510",
+        "first_explicit_sub_sp_bytes": 160
+      },
+      {
+        "side": "slice",
+        "name": "iterator-next",
+        "bytes": 240,
+        "raw_ELF_code_sha256": "ed0aa42de4cd0a7445ade3b8bfe35caf7fac604c4b23560672337739dfd94e00",
+        "asm_sha256": "4f31522f96566866a475a4c0dedf6fd9c48a7c9fd6f7afaae2e92ff55c3bba78",
+        "first_explicit_sub_sp_bytes": null
+      }
+    ],
+    "iterator_object_bytes": {
+      "parent": 64,
+      "slice": 32
+    },
+    "iterator_size_receipt_sha256": "3a738a175c15c048853d6073159f9a7eab496733be7a00beb4626e22450a16fe",
+    "scope": "Existing local Rust bundled musl/rust-lld outputs only; no SDK size, runtime, CPU or performance acceptance."
+  },
+  "adverse_observations": [
+    "lookup grows692to712B.",
+    "name_exists grows760to916B while first stack allocation falls192to160B.",
+    "cached ownership guard remains528B and two calls; conditional frame falls368to336B.",
+    "shared answer entry remains3804B."
+  ],
+  "oracle_accessed": false,
+  "product_merged_into_current6ab": false,
+  "reviewer_compile_or_test_run": false
+}
