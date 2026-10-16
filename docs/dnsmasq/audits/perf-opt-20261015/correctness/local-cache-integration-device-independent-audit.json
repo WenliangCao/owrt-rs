@@ -1,0 +1,592 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_EVIDENCE_AUDIT",
+  "scope": "Independent local-only F/local-cache-integration fixed ten-window audit using existing raw/count/statistical/health checks; no device query, build or new load.",
+  "baseline": {
+    "name": "F",
+    "source_commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+    "elf_sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "candidate": {
+    "name": "local-cache-integration",
+    "source_commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "8048d5129f02f643774bd30a3d695f741dfbb94ebaf5eafc5cc7146015e83b83",
+        "bytes": 2140955
+      },
+      "link.map": {
+        "sha256": "641f79fc1faadfacbec4c600db5a2c55426fd69a1eb38c5c5c46ef692c2998cf",
+        "bytes": 3020654
+      },
+      "build.json": {
+        "sha256": "f0567f35ed192cfdc5179866c7fa65927ec38e283ecf111178a44ce69ba5d3f6",
+        "bytes": 44017
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "04507f97",
+    "author_public_result": "../loop/A53_LOCAL_CACHE_INTEGRATION_DEVICE_RESULT.json",
+    "author_public_result_sha256": "f081e45f9b5eb3b20f1d5203f20254eb97017e182036ba943b55c2680aa5aab3",
+    "summary_sha256": "d19eb9eaeee706a72afaf66a3dbb34921a7472c4d9da92f41befa17333b11f3f",
+    "progress_sha256": "1f11013c83b72066c92553bc23ee27f899301e1b8fbbc2750245b6608dc536fe",
+    "identity_sha256": "cb9bd0b9710eb12d270a8dac53142429fd0f2f11eae014576cd29aa937690420",
+    "plan_sha256": "d85fe7df7897c644b7acd37f282cf7a61001fbb17750c35382d17ab24db6cdd5",
+    "launch_sha256": "395ba211f13a2efe7933c4f3cf2aaf9cdb85106f5a954afcdc3b1696e5360dec",
+    "independent_audit_sha256": "952b0b6dd153a3a7a88bb8fa5112c6547bf7d2141d0d7eac5d305eb865684674",
+    "statistical_script_sha256": "dea0d7afbe9e7f6c04b9ac1717541d69b4d2bca1ca9bdf5f5fd007b185fe4036",
+    "health_script_sha256": "7fd673999dc9f70421616f598e9eec5edaa253b3f938d0da1102793c978fdb4c",
+    "subreceipts": {
+      "statistics_sha256": "280a523925f2e8c5d0d29f5b246e3d4e978da56eff935d13cc35cce12a44888c",
+      "health_sha256": "4c6c3230ded66e109a41bcad219baf8540b11d7e35b80aa3fca36affd6648717"
+    }
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 319,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "safe_members_all_manifest_and_extracted_hashes_match": true,
+    "all_local_files_regular_not_symlinks": true,
+    "original_alternating_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_values_match_raw": true,
+    "discrepancies": []
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "comparisons": {
+    "f-vs-local-cache-integration": {
+      "left": [
+        "f",
+        null
+      ],
+      "right": [
+        "local-cache-integration",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.191663,
+            "min": 0.186815,
+            "max": 0.198896,
+            "rounds": [
+              0.196818,
+              0.191663,
+              0.190817,
+              0.198896,
+              0.186815
+            ]
+          },
+          "right": {
+            "median": 0.175582,
+            "min": 0.172581,
+            "max": 0.1862,
+            "rounds": [
+              0.174812,
+              0.172581,
+              0.178198,
+              0.1862,
+              0.175582
+            ]
+          },
+          "relative_change_pct": -8.390247465603696,
+          "W_pct": 7.756489845200528,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.394021,
+            "min": 0.260757,
+            "max": 0.409871,
+            "rounds": [
+              0.397099,
+              0.409871,
+              0.394021,
+              0.340008,
+              0.260757
+            ]
+          },
+          "right": {
+            "median": 0.336314,
+            "min": 0.250831,
+            "max": 0.441956,
+            "rounds": [
+              0.336314,
+              0.250831,
+              0.402408,
+              0.441956,
+              0.267682
+            ]
+          },
+          "relative_change_pct": -14.645666093939159,
+          "W_pct": 56.82933211225224,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 138.0,
+            "min": 128.0,
+            "max": 140.0,
+            "rounds": [
+              138.0,
+              138.0,
+              132.0,
+              140.0,
+              128.0
+            ]
+          },
+          "right": {
+            "median": 126.0,
+            "min": 114.0,
+            "max": 130.0,
+            "rounds": [
+              126.0,
+              114.0,
+              126.0,
+              130.0,
+              120.0
+            ]
+          },
+          "relative_change_pct": -8.695652173913043,
+          "W_pct": 12.698412698412698,
+          "same_direction_pairs": 5,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2432.0,
+            "min": 2364.0,
+            "max": 2436.0,
+            "rounds": [
+              2364.0,
+              2436.0,
+              2436.0,
+              2380.0,
+              2432.0
+            ]
+          },
+          "right": {
+            "median": 2408.0,
+            "min": 2356.0,
+            "max": 2420.0,
+            "rounds": [
+              2408.0,
+              2420.0,
+              2404.0,
+              2408.0,
+              2356.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2432,
+            "min": 2364,
+            "max": 2436,
+            "rounds": [
+              2364,
+              2436,
+              2436,
+              2380,
+              2432
+            ]
+          },
+          "right": {
+            "median": 2408,
+            "min": 2356,
+            "max": 2420,
+            "rounds": [
+              2408,
+              2420,
+              2404,
+              2408,
+              2356
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 516,
+            "min": 512,
+            "max": 520,
+            "rounds": [
+              516,
+              520,
+              520,
+              512,
+              516
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 512,
+            "max": 524,
+            "rounds": [
+              520,
+              524,
+              516,
+              516,
+              512
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1912,
+            "min": 1844,
+            "max": 1912,
+            "rounds": [
+              1844,
+              1912,
+              1912,
+              1864,
+              1912
+            ]
+          },
+          "right": {
+            "median": 1884,
+            "min": 1840,
+            "max": 1892,
+            "rounds": [
+              1884,
+              1892,
+              1884,
+              1888,
+              1840
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 69,
+        "right": 63,
+        "absolute_delta": 6,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          69,
+          69,
+          66,
+          70,
+          64
+        ],
+        "rust": [
+          63,
+          57,
+          63,
+          65,
+          60
+        ]
+      }
+    }
+  },
+  "cpu_precision": {
+    "left": 69,
+    "right": 63,
+    "absolute_delta": 6,
+    "required_delta_exclusive": 8,
+    "same_direction_pairs": 5,
+    "discernible": false,
+    "threshold": "Every CPU window at least10ticks and median absolute difference strictly greater than8ticks; unchanged."
+  },
+  "resource_observation": {
+    "RssAnon_peak_median_kib_F_candidate": [
+      516,
+      516
+    ],
+    "RssAnon_peak_ranges_kib_F_candidate": [
+      [
+        512,
+        520
+      ],
+      [
+        512,
+        524
+      ]
+    ],
+    "scope": "Descriptive only. RssAnon and RSS do not establish private memory or PSS/USS equivalence."
+  },
+  "health": {
+    "baseline": {
+      "sha256": "5fb64556d5110636d2874c13546828d826e7ef9d649b70e49663c7ab1242e602",
+      "samples": 126,
+      "dns_completed": 48,
+      "http_completed": 23,
+      "dns_p95_ms": 0.733,
+      "dns_max_ms": 3.011,
+      "http_max_ms": 79.43,
+      "min_memory_kib": 93864,
+      "start_epoch": 1792107406,
+      "last_sample_epoch": 1792107531,
+      "stop_epoch": 1792107531,
+      "elapsed_seconds": 125.652,
+      "sample_elapsed_step_range_seconds": [
+        0.9989999999999952,
+        1.0010000000000048
+      ],
+      "wall_epoch_step_counts": {
+        "1": 125
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "runtime_guard": {
+      "sha256": "030645e79b399f0c5d61c9dc68e2d7eb05664f8e43cf5b12718c4bd3d84c98c1",
+      "samples": 418,
+      "dns_completed": 165,
+      "http_completed": 76,
+      "dns_p95_ms": 0.679,
+      "dns_max_ms": 6.51,
+      "http_max_ms": 188.117,
+      "min_memory_kib": 83436,
+      "start_epoch": 1792107628,
+      "last_sample_epoch": 1792108045,
+      "stop_epoch": 1792108046,
+      "elapsed_seconds": 417.994,
+      "sample_elapsed_step_range_seconds": [
+        0.9970000000000141,
+        1.002999999999986
+      ],
+      "wall_epoch_step_counts": {
+        "1": 417
+      },
+      "failed_or_cancelled_probes": 0,
+      "health_stop_events": 0
+    },
+    "external_health": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "b6f9c803297a211c816341019991d65652c0924c68cdca47484619749e15eab9"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "d70ba23e3ebc283f5f5c3a466f76b6e6bc2464dfff2252e8d8fa5d33802a6b21"
+      }
+    ],
+    "windows_coverage": [
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r1-c",
+        "start_epoch": 1792107630.0,
+        "end_epoch": 1792107665.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r1-rust",
+        "start_epoch": 1792107673.0,
+        "end_epoch": 1792107708.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r2-rust",
+        "start_epoch": 1792107716.0,
+        "end_epoch": 1792107751.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r2-c",
+        "start_epoch": 1792107759.0,
+        "end_epoch": 1792107794.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r3-c",
+        "start_epoch": 1792107797.0,
+        "end_epoch": 1792107831.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r3-rust",
+        "start_epoch": 1792107835.0,
+        "end_epoch": 1792107870.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r4-rust",
+        "start_epoch": 1792107878.0,
+        "end_epoch": 1792107913.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r4-c",
+        "start_epoch": 1792107921.0,
+        "end_epoch": 1792107957.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r5-c",
+        "start_epoch": 1792107964.0,
+        "end_epoch": 1792108000.0,
+        "covered": true
+      },
+      {
+        "label": "a53-local-cache-integration-f-vs-local-cache-integration-r5-rust",
+        "start_epoch": 1792108003.0,
+        "end_epoch": 1792108038.0,
+        "covered": true
+      }
+    ]
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "7ad18bd17051aed7bb35dce36311e62065e65567a0f2852061e36c34fdec95de",
+    "postflight_script_sha256": "aa6ae391f5363d3c899016fab3253b3aaf1fe97f8d093314a3ca0c4974d3a881",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 85196,
+    "local_controller_pid_absent": 24760,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "conclusion": {
+    "p50": "Discernible improvement under the unchanged strict variation and paired-direction rule.",
+    "p50_relative_change_pct": -8.390247465603696,
+    "p50_W_pct": 7.756489845200528,
+    "p50_same_direction_pairs": 5,
+    "cpu": "Not discernible: relative change does not exceedW and tick difference does not exceed8.",
+    "p95": "Not discernible under the unchanged variation and paired-direction rule.",
+    "promotion": "Exploratory evidence only; no full44 qualification, selectedG, deployment or overall performance acceptance follows from these ten windows."
+  },
+  "limits": [
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "This round uses its own five F controls. Do not pool either side with independent prototype rounds or historical E/C windows.",
+    "No stage cuts or allocation instrumentation entered these production-artifact windows.",
+    "Retained local audit only; no new device observation."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
