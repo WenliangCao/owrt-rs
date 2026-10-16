@@ -1,0 +1,154 @@
+--- a/research_dual_family_case.sh
++++ b/research_dual_family_case.sh
+@@ -61,7 +61,7 @@
+ readlink /proc/self/ns/net > "$out/netns.txt"
+ elf=$root/dnsmasq-$side
+ sha256sum "$elf" > "$out/elf.sha256"
+-sha256sum "$root/m6a_loadgen" "$root/m6a_upstream" "$root/device_perf_resource_probe" "$root/device_perf_lifecycle" "$root/research_local_rules_case.sh" "$root/research_cpu_clock_probe" > "$out/tools.sha256"
++sha256sum "$root/m6a_loadgen" "$root/m6a_upstream" "$root/device_perf_resource_probe" "$root/device_perf_lifecycle" "$root/research_dual_family_case.sh" "$root/research_cpu_clock_probe" > "$out/tools.sha256"
+ case "$mode" in
+ life-startup|life-hup|life-config)
+     # The lifecycle helper keeps every child inside this guarded process group.
+@@ -132,7 +132,8 @@
+ readlink /proc/$daemon/ns/net > "$out/daemon.netns"
+ # Seed the parent cache through UDP; TCP child-only warming is insufficient.
+ if [ "$mode" != dhcp ] && [ "$profile" != miss ]; then
+-    "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.example --profile hit --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/prewarm" > "$out/prewarm.stdout" 2> "$out/prewarm.stderr"
++    "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.example --profile hit --qtype a --cache-names 400 --timeout-ms 1000 --output "$out/prewarm-a" > "$out/prewarm-a.stdout" 2> "$out/prewarm-a.stderr"
++    "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.example --profile hit --qtype aaaa --cache-names 400 --timeout-ms 1000 --output "$out/prewarm" > "$out/prewarm.stdout" 2> "$out/prewarm.stderr"
+ fi
+ "$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/before.jsonl"
+ "$root/research_cpu_clock_probe" read "$daemon" "$daemon_start" > "$out/cpu-before.jsonl"
+@@ -144,7 +145,7 @@
+     clients=$dhcp_clients; port=67
+     extra="--client-port 68 --interface lo --dhcp-first-address 127.0.0.10 --dhcp-renew-only"
+ fi
+-/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.example --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
++/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.example --profile "$profile" --qtype aaaa30 --cache-names 400 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
+ client_timer=$!
+ client_timer_start=$(starttime "$client_timer")
+ i=0
+--- a/research_dual_family_group.sh
++++ b/research_dual_family_group.sh
+@@ -19,4 +19,4 @@
+     [ "$#" = 1 ]
+     exec "$root/nice10" "$root/device_perf_netns" "$root/research_cpu_clock_probe" selftest
+ fi
+-exec "$root/nice10" "$root/device_perf_netns" /bin/sh "$root/research_local_rules_case.sh" "$root" "$@"
++exec "$root/nice10" "$root/device_perf_netns" /bin/sh "$root/research_dual_family_case.sh" "$root" "$@"
+--- a/research_device_run.py
++++ b/research_device_run.py
+@@ -33,13 +33,14 @@
+                             'label': f'research-reset-{group}-r{number}-{side}'})
+ 
+     if d1_pgo_screen or local_rules_screen:
+-        aa_group = 'i-rules-aa95' if local_rules_screen else 'i-aa95'
+-        group = 'i-rules-next95' if local_rules_screen else 'i-d1-pgo95'
+-        candidate = 'j-pgo' if local_rules_screen else 'd1-pgo'
++        aa_group = 'j-dual-aa95' if local_rules_screen else 'i-aa95'
++        group = 'j-k-dual95' if local_rules_screen else 'i-d1-pgo95'
++        candidate = 'k-pgo' if local_rules_screen else 'd1-pgo'
++        baseline = 'j-pgo' if local_rules_screen else 'g-pgo'
+         for number in (1, 2):
+-            pair(aa_group, number, 200, 'g-pgo', 'g-pgo')
++            pair(aa_group, number, 200, baseline, baseline)
+         for number in range(1, 6):
+-            pair(group, number, 200, 'g-pgo', candidate)
++            pair(group, number, 200, baseline, candidate)
+         return [{**row, 'measurement_seconds': 95} for row in windows]
+     if g_pgo_screen:
+         for number in (1, 2):
+@@ -153,10 +154,10 @@
+                 'order_statistic_interval_d2_d8': [ordered[1], ordered[7]],
+                 'three_pair_block_medians': [statistics.median(deltas[i:i + 3]) for i in (0, 3, 6)],
+                 'scope': 'Fixed nine pairs. Nominal 96.09% coverage requires continuous approximately independent differences; this output does not establish those assumptions.'}
+-    aa_group = next((name for name in ('i-rules-aa95', 'i-aa95', 'h-aa', 'g-aa') if name in output), 'g-aa')
++    aa_group = next((name for name in ('j-dual-aa95', 'i-aa95', 'h-aa', 'g-aa') if name in output), 'g-aa')
+     aa = output.get(aa_group, {}).get('cpu_delta')
+     noise = max(abs(v) for v in aa['rounds']) if aa else None
+-    for name in ('e-pgo', 'g-c95', 'h-g-pgo', 'i-d1-pgo95', 'i-rules-next95'):
++    for name in ('e-pgo', 'g-c95', 'h-g-pgo', 'i-d1-pgo95', 'j-k-dual95'):
+         result = output.get(name)
+         if result and result['cpu_delta'] and noise is not None:
+             values = result['cpu_delta']['rounds']
+@@ -239,7 +240,7 @@
+     assert not (out / 'progress.json').exists()
+     original_schedule = schedule(confirmation, residual, g_pgo_screen, residual_candidate,
+                                  d1_pgo_screen, local_rules_screen)
+-    group_helper = 'research_local_rules_group.sh' if local_rules_screen else 'research_device_group.sh'
++    group_helper = 'research_dual_family_group.sh' if local_rules_screen else 'research_device_group.sh'
+     assert group_helper in bindings['new_tools']
+     if any(row['artifact'] == 'exact-c' for row in original_schedule):
+         checks = [f'test "$(sha256sum {path} | cut -d " " -f 1)" = {digest}'
+@@ -263,7 +264,7 @@
+             pair = (window['group'], window['round'])
+             if pair != previous_pair:
+                 shared.set_slots(artifacts, window['left'], window['right']); previous_pair = pair
+-            scene = ('research-hit', 'udp', 'hit', window['rate'], 5, window['measurement_seconds'], 150)
++            scene = ('dual-family-hit' if local_rules_screen else 'research-hit', 'udp', 'hit', window['rate'], 5, window['measurement_seconds'], 150)
+             command = 'setsid /bin/sh ' + run.ROOT + '/' + group_helper + ' ' + shlex.join([window['side'], label, *map(str, scene[1:])])
+             with (out / (label + '.controller.log')).open('xb') as log:
+                 process = subprocess.Popen(['ssh', '-o', 'BatchMode=yes', 'openwrt', command], stdout=log, stderr=log)
+@@ -345,7 +346,7 @@
+     selection.add_argument('--d1-pgo-screen', action='store_true',
+                            help='Fixed I/I two pairs then I/D1 five pairs; 95s measurement')
+     selection.add_argument('--local-rules-screen', action='store_true',
+-                           help='Fixed public local-rule I/I and I/J screen using separate case/group')
++                           help='Fixed dual-family public-rule J/J and J/K fourteen original windows')
+     args = parser.parse_args(); bindings = json.loads(args.bindings.read_text())
+     args.out.mkdir(parents=True, exist_ok=True)
+     if args.prepare: prepare(bindings, args.out)
+--- a/perf_opt_device_run.py
++++ b/perf_opt_device_run.py
+@@ -11,6 +11,7 @@
+ from pathlib import Path
+ import shlex
+ import subprocess
++import struct
+ import tarfile
+ import threading
+ import time
+@@ -151,6 +152,43 @@
+                 errors.append('upstream miss cohort count')
+         elif up['phases']['steady']['requests'] != {'hit':0, 'miss':4000, 'mixed':800}[scene[2]]:
+             errors.append('upstream hit/miss count')
++    if scene[0] == 'dual-family-hit':
++        # Two excluded UDP warmers must cover exactly the same 400 names.
++        warmers = []
++        try:
++            for prefix, qtype, code in [('prewarm-a', 'a', 1), ('prewarm', 'aaaa', 28)]:
++                data = json.loads((folder / (prefix + '.json')).read_text())
++                warmers.append(data)
++                counts = data['measurement']
++                first_sequence = (data['seed'] << 32) + 1
++                records = list(struct.iter_unpack('<QQQHHBBBB',
++                    (folder / (prefix + '.latencies.bin')).read_bytes()))
++                if (data['mode'] != 'udp' or data['profile'] != 'hit'
++                        or data['qtype'] != qtype or data['name_prefix'] != 'm6a.example'
++                        or data['seed'] != 0x293001 or data['rate'] != 200
++                        or data['warmup_seconds'] != 0 or data['measurement_seconds'] != 5
++                        or data['interrupted'] or data['output_failed']
++                        or any(counts[k] != 1000 for k in ('scheduled', 'sent', 'correct'))
++                        or any(counts[k] for k in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
++                        or len(records) != 1000 or {row[0] for row in records} != set(range(first_sequence, first_sequence + 1000))
++                        or any(row[4:] != (code, 0, 1, 0, 0) for row in records)):
++                    errors.append(prefix + ' dual-family prewarm')
++            load = json.loads((folder / 'client.json').read_text())
++            up = json.loads((folder / 'upstream.json').read_text())
++            if (load['qtype'] != 'aaaa30' or load['name_prefix'] != 'm6a.example'
++                    or load['seed'] != 0x293001
++                    or not (warmers[0]['run_end_ns'] <= warmers[1]['warmup_start_ns']
++                            and warmers[1]['run_end_ns'] <= load['warmup_start_ns'])
++                    or load['run_end_ns'] - warmers[0]['warmup_start_ns'] >= 120_000_000_000):
++                errors.append('dual-family fixture identity or freshness')
++            if (up['ttl'] != 120 or up['total']['requests'] != 800
++                    or up['total']['replies'] != 800
++                    or up['phases']['setup_warmup']['requests'] != 800
++                    or any(up['phases'][phase]['requests'] for phase in
++                           ('steady', 'saturation', 'fault', 'recovery'))):
++                errors.append('dual-family exact 800 fills and pure hit')
++        except (OSError, ValueError, KeyError, struct.error) as error:
++            errors.append('dual-family fixture records: ' + str(error))
+     return errors
+ 
+ 
