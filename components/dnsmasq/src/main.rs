@@ -4939,7 +4939,7 @@ impl SinglePoll {
         if self.files_initializing() {
             return false;
         }
-        let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
+        let Some(udp) = self.listeners[index].udp.as_ref() else {
             return false;
         };
         #[cfg(target_os = "linux")]
@@ -5002,6 +5002,11 @@ impl SinglePoll {
         if incoming.len < 12 || self.udp_buffer[2] & 0x80 != 0 {
             return true;
         }
+        // Receiving and discarding do not retain the socket. Take shared
+        // ownership only when admission or processing may queue this packet.
+        let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
+            return false;
+        };
         match self.admit_udp(&udp, incoming) {
             UdpAdmission::Reject => return true,
             UdpAdmission::Accept => {}
