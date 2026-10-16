@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "status": "LOCAL DISABLED DRAFT ONLY; conditional original G/c95 ten; canonical SDK layout is unproven and actual965/SDK/signals are pending; no device action",
+  "scope": "Fresh accepted G185 versus exact c95 integrated product artifact for one original ten-window A53 UDP-hit screen. C95 adds 22 per-method Linux hot-section attributes to integrated9e; G/c95 includes all inherited9e/6ab work. This is a whole-candidate contrast, not isolated grouping attribution, acceptance, full qualification or deployment.",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "forbidden_substitution": "Exact c95c5571 only. No shared-section ffc3 substitute, added inline/KEEP/PGO/linker-script changes, diagnostic or allocation-meter overlay, rebuilt G, replacement artifact or historical median pooling.",
+  "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "related_linux_report_sha256": null,
+  "related_linux_verified_receipt_sha256": null,
+  "entry_sha256": "f1d92b80cff217cce70e3188eabca044606942b9202e84f5cd74a46e522f6a7e",
+  "artifacts": {
+    "e": {
+      "name": "a53-hot-text-group-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-hot-text-group-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "g": {
+      "name": "a53-hot-text-group-artifact-g",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    },
+    "hot-text-group": {
+      "name": "a53-hot-text-group-artifact-hot-text-group",
+      "sha256": null
+    }
+  },
+  "schedule": [
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r1-c"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 1,
+      "side": "rust",
+      "artifact": "hot-text-group",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r1-rust"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 2,
+      "side": "rust",
+      "artifact": "hot-text-group",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r2-rust"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r2-c"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r3-c"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 3,
+      "side": "rust",
+      "artifact": "hot-text-group",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r3-rust"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 4,
+      "side": "rust",
+      "artifact": "hot-text-group",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r4-rust"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r4-c"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r5-c"
+    },
+    {
+      "group": "g-vs-hot-text-group",
+      "round": 5,
+      "side": "rust",
+      "artifact": "hot-text-group",
+      "mode": null,
+      "label": "a53-hot-text-group-g-vs-hot-text-group-r5-rust"
+    }
+  ],
+  "execution_started": false,
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "pending_before_launch": [
+    "Exact canonicalSDK map must establish actual per-method hot-input concentration under the unchanged GNU script; if absent stop proposal, no new linker script/parser/comparator.",
+    "Fresh exactc95 original965 and canonicalSDK identities/budgets, originalstandalone signals12+3+3/native compatibility and independent actual reviews; all pending, no prior9ePASS inherited.",
+    "All original input/artifact transfers and explicit quiet, root scheduling and loop original native/owner readiness; no bulk during device windows.",
+    "Original fresh125s health/production/slot/helper/offline/idle/recovery, four immutablecopies, stage stops before Popen; fixed originalten, strict thresholds/allraw/fail-stop and exactE/F restoration."
+  ],
+  "count_diagnostic_not_a_performance_control": true,
+  "statistics": {
+    "W": "maxrelativefullranges",
+    "paired_direction_minimum": 4,
+    "pairs": 5,
+    "CPU": "everywindow>=10ticks andmediandelta>8ticks",
+    "measurement_seconds": 20,
+    "CPU_denominator": 5000
+  },
+  "restore_only": [
+    "e",
+    "f"
+  ],
+  "source_parent": "ffc3ac37cffc9fb4b522a3ee73934ab971a2d44b",
+  "source_base": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "anticipated_related_gate_passes": 965,
+  "actual_related_linux_tests_passed": null,
+  "actual_SDK_review": null,
+  "standalone_runtime_signals_result": null,
+  "standalone_runtime_signals_independent_review": null,
+  "source_interaction_review": null,
+  "device_plan_independent_review": null,
+  "explicit_queue_release": null,
+  "execution_selected": false,
+  "execution_enabled": false,
+  "native240_excluded_reason": "Only the original device ten is prepared here. Root separately coordinates any original native240/owner32 after actual SDK layout selection and original qualification.",
+  "queue": "Only a local disabled draft now. CanonicalSDK layout validation and all original qualification gates must pass before any device action. After all bulk and explicit root scheduling, the original ten may overlap separately authorized original native/owner work; bind actual intervals. Whole G/c95 effect only.",
+  "source_preparation": null,
+  "canonical_sdk_builder": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+    "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
+  },
+  "declared_profile": {
+    "opt_level": "3",
+    "features": "",
+    "allocator_linker_LTO_codegen1_panic_strip_hardening_unchanged": true
+  },
+  "original_budget": {
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000
+  },
+  "projected_related_test_groups": {
+    "lib": 844,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
+  "projected_added_tests": [],
+  "standalone_runtime_signals_requirement": {
+    "original_tool": "tools/dnsmasq/audit_20261011_runtime_signals.py",
+    "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+    "actual_receipt": null,
+    "independent_review": null,
+    "source_or_full44_PASS_not_a_substitute": true,
+    "scope": "Existing frozen repeated USR1/ALRM audit; no new framework, wire expectations or thresholds. Correctness verifies actual native C visibility and bytes before execution."
+  },
+  "operator_local_preparation": {
+    "scope": "Only source identity, role labels/paths, precedingG9e closure and explanatory whole-candidate scope are adapted from the reviewed original9e operators. Measurement, health, restore and comparisons are unchanged.",
+    "artifacts": {
+      "launch-a53-hot-text-group.py": "0d296ce1d43ec374b52b869c8093d7556da2c4902010ac02471b733714ae64fc",
+      "stage-a53-hot-text-group.py": "fd7605173bdc3cec525980447dccabe323f9d2f08c51349cb3458570d09222a0",
+      "start-a53-hot-text-group.py": "0cd1914e704824eed07931a55c05d7dcf46056ba7442b2dfbd3f1bec20a2ed71",
+      "verify-a53-hot-text-group.py": "00e5a9d110a2bfa4102e5aa7a2bb4c2494513bdcf64ffff1471bdff9fdb18e42",
+      "postflight-a53-hot-text-group.py": "71d77546696d7e798b04aef9d791339ff96c440baf47dea6b5b67f76b7692f71",
+      "report-a53-hot-text-group.py": "750c0c2fbe114f4bee745f99ef81c783fd3a54ecb5f502d41416a6d03e3840c6"
+    },
+    "shared_bundle_files": [
+      {
+        "name": "device_health_baseline.py",
+        "sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+      },
+      {
+        "name": "perf_opt_analyze.py",
+        "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+      },
+      {
+        "name": "perf_opt_device_run.py",
+        "sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df"
+      },
+      {
+        "name": "udp_stage_device_run.py",
+        "sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af"
+      }
+    ],
+    "peer_review": null,
+    "disabled_before_first_SSH": "Actual artifact/source/Linux/SDK/signals fields are null or false; stage/start/launch fail before their first production_identity SSH. Actual canonicalSDK hot-layout selection is also required before these readiness fields can be enabled. No health/staging/queue/launch files exist.",
+    "staging": "Original fresh health and four immutable copies, preserving slots; stage stops before Popen. Only after actual gates, transfers and root scheduling release may start execute.",
+    "preflight_or_windows_started": false,
+    "actual_signal_binding_requirement": "Before enable, rehash actual exactc95 signal result and independent review; verify exact source, shippingSDK ELF, original schema/order and PASS. Nonempty references are not actual evidence."
+  },
+  "artifact_local": null,
+  "related_linux_tests_passed": null,
+  "related_linux_group_passed": null,
+  "actual_related_independent_review": null,
+  "source_interaction_review_sha256": null,
+  "sdk_local_verification_sha256": null,
+  "release_budget": null,
+  "signals_local_binding_sha256": null,
+  "source_interaction_review_PASS": false,
+  "local_preparation_validation": {
+    "scope": "Read-only local identity/path adaptation checks only. No compiler/test/window or router/Oracle action.",
+    "shared_helpers_byte_identical": 4,
+    "operator_syntax_checks": 6,
+    "expected_original_schedule": 10,
+    "new_protocol_or_framework": false,
+    "actual_qualifications_inherited": false
+  },
+  "same_expected_test_cohort_as_9e": "Exact original965 cohort, with no new tests or inherited actual PASS; fresh exact-source execution and independent reviews are required.",
+  "layout_selection_requirement": {
+    "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+    "per_method_section_prefix": ".text.hot.dnsmasq.",
+    "source_attribute_count": 22,
+    "actual_canonical_SDK_layout_report": null,
+    "actual_canonical_SDK_concentration_confirmed": false,
+    "local_LLD_concentration_established": false,
+    "rule": "Proceed to screen readiness only if the exact canonical SDK GNU map shows the selected surviving inputs concentrated under its original .text.hot.* rule. If it does not, stop this proposal without adding a linker script or changing the parser/comparator.",
+    "labels": "Input-section labels and original ranges only; not original mangled symbols, exact function sizes, or a one-label/one-monomorph guarantee.",
+    "source_review_note": "Three DnsDaemon<R:Random> methods inherit a type parameter; mono/clone bodies can share a method section.",
+    "feasibility_report": {
+      "commit": "56377aee",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/HOT_INPUT_SECTION_LAYOUT_FEASIBILITY.md",
+      "sha256": "9b17be5b6f0ee1d73f9cfc96aac89eae4e5d7da0dd55f86917024b843f4c6e68"
+    }
+  },
+  "native240_prepared_by_this_device_task": false,
+  "native240_authorized_by_this_device_plan": false,
+  "preceding_G_9e_ten_archived_restored": true,
+  "preceding_G_9e_ten": {
+    "result_commit": "06ee1e89",
+    "result_sha256": "ea3ad82e348cc49053acd5f4744aa1405d407bdd4f0a4f1e0d920c7643a9fbe9",
+    "postflight_sha256": "0a8105f02be0920b0959919c38d42e19f90d5afe83d397433c16cdd4fadacb23",
+    "independent_audit_commit": "61331c36",
+    "independent_audit_sha256": "11f2dda717ca2c4a5c6ea0a99db6519e5f2b2853fa34b5d5b1dbe00fd6cca411",
+    "audit_link_commit": "78fc0d0a",
+    "scope": "All three original primary metrics unresolved; retained as preceding closure evidence only, no historical pooling."
+  }
+}
