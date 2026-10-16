@@ -35,7 +35,7 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "AUTHOR ACTUAL965 AND CANONICAL SDK LOCALLY BOUND; read-only device preflight passed; independent actual reviews and original standalone signals remain pending; no health/stage/windows",
+  "status": "ACTUAL9E965_CANONICALSDK_ORIGINALSIGNALS_ALL_INDEPENDENTLY_REVIEWED_AND_LOCALLY_BOUND; original freshhealth/staging authorized; stop before Popen pending finalquiet/loop ready",
   "scope": "Fresh accepted G185 versus exact 9e product artifact for one original ten-window A53 UDP-hit screen. The combined source includes inherited 6ab, warm writer, 1df, ready-frame, empty-upstream, small OPT and lease-iterator work. It is not an isolated-component comparison, accepted candidate, full qualification or deployment.",
   "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "forbidden_substitution": "Exact 9e8459dd only. No diagnostic-stage or allocation-meter overlay, rebuilt G, replacement artifact or historical median pooling.",
@@ -46,7 +46,7 @@
   "elf_bytes": 2145051,
   "map_sha256": "346acb9555f6956c7f271e627bd635fe8c32983923a82dffc88052be853f89c0",
   "build_receipt_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
-  "related_linux_report_sha256": null,
+  "related_linux_report_sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
   "related_linux_verified_receipt_sha256": "5c00ebbf355f0a4f5caa7f2c01bd938e2e396548f8cf307f342a742155fdbf33",
   "entry_sha256": "ede37748877fb75897f8eac964be0a2a1f76c6d99ef34a8c26c635c1f4f44351",
   "artifacts": {
@@ -153,10 +153,8 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Independent actual965, canonical SDK and transport audits for exact9e; author receipts and local179source/artifact hashes are bound but do not substitute for these reviews.",
-    "Actual original standalone runtime-signals18 result, native C visibility and original schema, and independent PASS bound to exact9e and exact shipping ELF.",
-    "Exact source interaction review, all required transfers, correctness explicit quiet, root scheduling and loop original build/timing coordination.",
-    "Fresh original125s health/production/slots/helpers/offline/idle/recovery, four immutable artifact copies with stage stopping before Popen, then fixed original ten and exact E/F restoration."
+    "Original fresh125s health plus production/slot/helper/offline/idle/recovery checks and four immutable copies; stage stops before Popen.",
+    "Fresh DNS finalquiet and all necessary transfers plus original loop native readiness, then fixed ten; unchanged thresholds/all raw/fail-stop and exact E/F restore."
   ],
   "count_diagnostic_not_a_performance_control": true,
   "statistics": {
@@ -175,9 +173,31 @@
   "source_base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "anticipated_related_gate_passes": 965,
   "actual_related_linux_tests_passed": 965,
-  "actual_SDK_review": null,
-  "standalone_runtime_signals_result": null,
-  "standalone_runtime_signals_independent_review": null,
+  "actual_SDK_review": {
+    "commit": "6c8ad70d",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-sdk-independent-audit.json",
+    "sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+    "status": "PASS_ACTUAL_BARE9E_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL965_CHAIN"
+  },
+  "standalone_runtime_signals_result": {
+    "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+    "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+    "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+    "actual_result_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/9e-runtime-signals-bindings/result.json",
+    "actual_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+    "passed": true,
+    "isolated": true,
+    "signal_cases": 12,
+    "cache_dump_cases": 3,
+    "alarm_maintenance_cases": 3,
+    "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337"
+  },
+  "standalone_runtime_signals_independent_review": {
+    "commit": "b019256e",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+    "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+    "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+  },
   "source_interaction_review": {
     "commit": "d5f5c1ad",
     "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-composition-source-review.json",
@@ -193,7 +213,12 @@
     "status": "PASS_LOCAL_DISABLED_PREPARATION_ONLY",
     "scope": "Local disabled preparation only; six operator identity/path/cohort/prior-closure adaptations and four unchanged shared helper files. Actual source/Linux/SDK/standalone signal contents and independent reviews, fresh health/recovery/quiet and root scheduling release remain required."
   },
-  "explicit_queue_release": null,
+  "explicit_queue_release": {
+    "scope": "Actual original965/SDK/standalone signals and qualification transport pass; release to DNS original-screen coordination. Measurement still requires original health/staging plus fresh finalquiet and loop readiness.",
+    "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/9e-runtime-signals-bindings/release-to-dns-screens.json",
+    "sha256": "d8bb694a874ece98b76d4e28957afe680bb36dab1b13dfb703a723a2813ab2ab",
+    "raw_status": "EXPLICIT_9E_RELATED_SDK_ORIGINAL_SIGNALS_ALL_INDEPENDENT_PASS_AND_QUIET_RELEASE_TO_DNS_SCREEN_COORDINATION"
+  },
   "execution_selected": true,
   "execution_enabled": false,
   "native240_excluded_reason": "This device task prepares only the original ten. Root separately coordinates original native240 then owner32; their inputs, build and timing are owned by loop. No new probe is introduced.",
@@ -240,8 +265,25 @@
   "standalone_runtime_signals_requirement": {
     "original_tool": "tools/dnsmasq/audit_20261011_runtime_signals.py",
     "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
-    "actual_receipt": null,
-    "independent_review": null,
+    "actual_receipt": {
+      "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+      "actual_result_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/9e-runtime-signals-bindings/result.json",
+      "actual_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+      "passed": true,
+      "isolated": true,
+      "signal_cases": 12,
+      "cache_dump_cases": 3,
+      "alarm_maintenance_cases": 3,
+      "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337"
+    },
+    "independent_review": {
+      "commit": "b019256e",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+      "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+      "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+    },
     "source_or_full44_PASS_not_a_substitute": true,
     "scope": "Existing frozen repeated USR1/ALRM audit; no new framework, wire expectations or thresholds. Correctness verifies actual native C visibility and bytes before execution."
   },
@@ -281,7 +323,7 @@
       "status": "PASS_LOCAL_DISABLED_PREPARATION_ONLY",
       "scope": "Local disabled preparation only; six operator identity/path/cohort/prior-closure adaptations and four unchanged shared helper files. Actual source/Linux/SDK/standalone signal contents and independent reviews, fresh health/recovery/quiet and root scheduling release remain required."
     },
-    "disabled_before_first_SSH": "Actual independent SDK/related reviews and standalone signal result/review remain absent; the source-only interaction review is bound. Original stage/start/launch require them before their first production_identity SSH. A separately root-authorized read-only preflight has completed; no health, queue-release, staging or launch receipt exists. execution_enabled remains false.",
+    "disabled_before_first_SSH": "Actual source, Linux, SDK and standalone signal receipts are now rehashed and bound. Stage is authorized after original fresh health. Start remains blocked by absent staging and final measurement queue-release receipts. execution_enabled stays false until root-coordinated start.",
     "staging": "Original fresh health and four immutable copies, preserving slots; stage stops before Popen. Only after actual gates, transfers and root scheduling release may start execute.",
     "preflight_or_windows_started": false,
     "actual_signal_binding_requirement": "Before enable, rehash original actual signal result and independent review; verify exact 9e source, exact shipping SDK ELF, original schema and PASS. Nonempty references alone are not proof."
@@ -295,7 +337,12 @@
     "lib-ignored-live": 18,
     "bin-ignored-live": 4
   },
-  "actual_related_independent_review": null,
+  "actual_related_independent_review": {
+    "commit": "7ffb1476",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-related-independent-audit.json",
+    "sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+    "status": "PASS_FRESH_9E_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+  },
   "source_interaction_review_sha256": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
   "sdk_local_verification_sha256": "57c34547192e6519848f56779dfa0dca9d8fce60afbcdce7ba1cf0272fc3cb47",
   "release_budget": {
@@ -308,7 +355,7 @@
     "APK_bytes": 1168103,
     "gate_unchanged": true
   },
-  "signals_local_binding_sha256": null,
+  "signals_local_binding_sha256": "acba1381b65685089f2fe32c99f70e8e5f113182cb4ce28d2fac270ebb6f8121",
   "source_interaction_review_PASS": true,
   "preceding_G_stage50_archived_restored": true,
   "preceding_G_stage50": {
@@ -336,7 +383,7 @@
     "commit": "eb40e0f2",
     "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/cached-hit-9e-execution-result.json",
     "sha256": "4a0ebf1d5039a5076bca337c5add34569e8e87d6bfa7690af1f7d943a1168aaa",
-    "actual_independent_review_pending": true
+    "actual_independent_review_pending": false
   },
   "readonly_device_preflight": {
     "sha256": "f1dc0c9dd18bd3abb2f8d5f9d5c0a1a9d0f86a44091e5497a6ddc17806b0c748",
@@ -371,5 +418,12 @@
     "scope": "Existing original native240 and owner32 inputs transferred before any device health; no timing run or shared-host build is implied."
   },
   "native240_prepared_by_this_device_task": false,
-  "native240_authorized_by_this_device_plan": false
+  "native240_authorized_by_this_device_plan": false,
+  "related_linux_report_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-related-independent-audit.json",
+  "retained_local_signal_binding_setup_failure": {
+    "failure": "Initial local binding expected SIGHUP/SIGUSR2/SIGTERM/SIGINT and failed assertion before any binding-directory creation, plan write or device call.",
+    "correction": "Read the unchanged frozen tool; original order is SIGHUP/SIGUSR2/SIGUSR1/SIGALRM, each c-image/c-native/rust. Exact result bytes and all original tests remained unchanged.",
+    "signal_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+    "audit_or_measurement_rerun": false
+  }
 }
