@@ -1,6 +1,6 @@
 {
   "schema": "selected5c-actual-original-gates-canonical-sdk-and-signal-handoff-v1",
-  "status": "ACTUAL961_INDEPENDENTLY_PASSED_SDK_BUILT_DOWNLOADED_QUIET_RELEASED_TO_ORIGINAL_SIGNALS",
+  "status": "ACTUAL961_CANONICAL_SDK_ORIGINAL_SIGNALS_INDEPENDENT_PASS_AND_FINAL_QUIET_RELEASED_TO_SCREENS",
   "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
   "direct_parent_source_commit": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
   "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
@@ -184,7 +184,10 @@
     "original_fakeroot_preload_warning_lines": 21,
     "individual_verbose_rustc_proof_claimed": false,
     "first_and_only_build": true,
-    "independent_actual_review": null,
+    "independent_actual_review": {
+      "commit": "3c427195",
+      "report_sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925"
+    },
     "download": {
       "status": "BARE5C_SDK_AND_PAYLOAD_DOWNLOADED_REHASHED",
       "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/owner-ready-frames-execution-preparation/execution/sdk-immutable-results.tar.gz",
@@ -247,14 +250,78 @@
     "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
     "standalone_not44family": true,
     "required_original_native_C_ELF_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
-    "actual_private_compat_layout_bytes_and_visibility": "Pendingcorrectnesspreflight,notclaimedfromhistoricalpaths",
-    "actual_result": null,
-    "independent_audit": null
+    "actual_private_compat_layout_bytes_and_visibility": "OriginalnativeELFand2libraries rehashedwithinprivateisolatedmapping;namespaceexitedandhistoricalhostpathrestoredemptyunmounted,verifiedbycorrectness.",
+    "actual_result": {
+      "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-signals-20261016/signals/result.json",
+      "sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+      "passed": true,
+      "isolated": true,
+      "signal_cases": 12,
+      "cache_dump_cases": 3,
+      "alarm_maintenance_cases": 3,
+      "first_and_only_run": true
+    },
+    "independent_audit": {
+      "commit": "80f13a76",
+      "report_sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a"
+    },
+    "correctness_actual_quiet_release_sha256": "2cb2f433c85cf7b8c9c658344d0482f35a9cc0d37e6c627de670380c67cc5a2c",
+    "closeout_commit": "ef7f8822",
+    "closeout_report_sha256": "d71b93fcc6db6f5fa4b3fdca4e7b7491bc7f98b72aa4940472f5ea81b479ac3b"
   },
-  "performance_timing_started": false,
-  "device_health_released": false,
   "runtime_hardening_verified": false,
   "native240_excluded": true,
-  "next_queue": "CorrectnessoriginalprivateCcompatpreflight\u2192frozenstandaloneruntime-signals\u2192actualgates/SDK/signalindependentauditsandexplicitquiet\u2192allnecessarypretransfers/originaldevicefreshhealth/finalready\u2192originalG/5cowner32anddevice10. NoperformancebeforeactualsignalPASS.",
-  "comparison_scope": "G185vs5cincludesinherited6abchangesandboth025/dumpoutlines;notisolateddump/frameeffect."
+  "next_queue": "Loopbinds/uploadsfinalreadyowner32 metadataandnotifiesDHCP; thenoriginalG/5cowner32anddevice10. Allactualgates/SDK/signalsalreadyacceptedfortimingentry,notperformancepromotion. No native240.",
+  "comparison_scope": "G185vs5cincludesinherited6abchangesandboth025/dumpoutlines;notisolateddump/frameeffect.",
+  "final_screen_quiet_release": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/owner-ready-frames-execution-preparation/execution/release-to-measurements.json",
+    "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/owner-ready-frames-execution-20261016/release-to-measurements.json",
+    "sha256": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+    "epoch": 1792143953.5567126,
+    "source179_SDK_G_signal_result_and_signal_quiet_chain_rehashed": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "dependencies": {
+      "independent_actual_review": {
+        "status": "PASS",
+        "related_commit": "c1e9ff9d",
+        "related_report_sha256": "18b8d96c6d5751153c2ef8ea28f227d4232b631b78e1f71e69e4e16ee0eb34c5",
+        "SDK_commit": "3c427195",
+        "SDK_report_sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925",
+        "signal_commit": "80f13a76",
+        "signal_report_sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a",
+        "signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16"
+      },
+      "loop_pretransfer_complete": true,
+      "loop_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/pretransfer-receipt.json",
+        "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-ready-frames-owner32-inputs/pretransfer.json",
+        "sha256": "8835ed0990781dbee950057ef446083ad169229da47527ff9ab5bf6ca6f549a4",
+        "ready_metadata_pending_final_release": true
+      },
+      "device_pretransfer_complete": true,
+      "device_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-stage-complete.json",
+        "sha256": "ca82c065a9036d7bd09cad5211554a7018848a4d27dba925d5f1590659189c4d",
+        "preflight_sha256": "b9333db3b401fb4ef198488ae880c35aee291393088502d25ba7df5a8a4ee034",
+        "health_summary_sha256": "7e66b56c58791fcaa1cf0ca196794181261e8d287cc938defecdf552bc5eef8f",
+        "no_workload_started": true
+      },
+      "metadata_order": "Afterthisrelease,loopbinds/uploadsfinalreadyowner32metadataandnotifiesDHCP; onlythenbothoriginalscreensmaystart. Noadditionalbulk.",
+      "native240_excluded": true,
+      "comparison_scope": "G185vs5cincludes025anddump/inherited6ab;no1df/803,notisolatedframe-onlyeffect."
+    },
+    "next_owners": [
+      "loop original G/5c exact-SDK owner32",
+      "DHCP original fresh G/5c device ten"
+    ],
+    "handoff_via_followup_task": true,
+    "DNS_stopped_all_Oracle_and_bulk": true
+  },
+  "device_health_completed_before_final_release": true,
+  "performance_timing_started_by_DNS": false
 }
