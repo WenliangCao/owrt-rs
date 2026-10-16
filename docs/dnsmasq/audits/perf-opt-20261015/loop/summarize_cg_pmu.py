@@ -1,4 +1,4 @@
-"""Summarize all fixed C/G PMU windows, retaining raw counts and actual N."""
+"""Summarize all fixed PMU windows, retaining raw counts and actual N."""
 import argparse
 import csv
 import hashlib
@@ -76,8 +76,8 @@ def stats(values):
 
 summary = []
 for group in plan['groups']:
-    for side in ('C','G'):
-        for rate in (200,0):
+    for side in dict.fromkeys(w['side'] for w in plan['windows']):
+        for rate in dict.fromkeys(w['rate'] for w in plan['windows']):
             matching = [r for r in rows if r['group']==group and r['side']==side and r['rate']==rate]
             assert len(matching) == 3
             summary.append({'group':group,'side':side,'rate':rate,
