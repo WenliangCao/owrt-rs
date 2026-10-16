@@ -51,5 +51,10 @@ Whole-process CPU and PMU include exec/setup/priming/teardown. The public
 library probe omits SinglePoll, owner recycling, private socket Rc and owner
 clocks; this is not exact-SDK or physical-device performance acceptance.
 Existing 6ab adverse results remain evidence and are not replaced by this
-new candidate run. Independent raw review is pending; no promotion follows
-from these native results alone.
+new candidate run. Independent raw review passed in `08d5c527`: the
+[audit](../correctness/inline-address-details-native-independent-audit.json),
+SHA-256 `683c71b957ec36fc515675a2abf12bcb86c46bb90cdd350aef394f42f80bf627`,
+rechecks all 591 downloaded members, 578 command files, 240 windows,
+244 commands and 180 unscaled PMU rows. It reproduces ten faster, one slower
+and four within-variation decisions. No promotion follows from native results
+alone; the miss regression and inherited-comparison scope remain unchanged.
