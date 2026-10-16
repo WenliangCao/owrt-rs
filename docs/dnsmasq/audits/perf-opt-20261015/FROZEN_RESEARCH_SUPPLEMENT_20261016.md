@@ -358,3 +358,10 @@ l1d_cache_refill:u/l1i_tlb_refill:u/l1d_tlb_refill:u/br_mis_pred:u；全部count
 对应回归，不改产品；J1冻结源改为23aece16463b246eb194f25b84bd40d0446373fb，新目录保存，
 原b059及失败日志保留。先重跑受影响udp_dispatch_九项并首次执行余下filters，随后沿用
 本节原训练/公开配置screen/条件完整门；判据、C期望、比较器、I及ba40均不变。
+
+
+J条件完整阶段的“原118”具体沿接受I的原c7cd矩阵：简化UDP-hit九对5+45+1，其余原十场景；
+33项旧tick/W、时延及资源规则均保留，ns列仅描述，不引用公开配置AA判其显著性。
+额外公开规则确认用独立ea71900a补丁的原--scenes udp-hit入口：九对5+95+1，独立prefix，
+只改hit时长/公开group/watchdog，原九对统计不变；引用本公开screen AA5.8929906，不加AA。
+这取代已取消的ba40晋级方案中“简化hit也改95秒”的分支，原I/ba40数据均不改。
