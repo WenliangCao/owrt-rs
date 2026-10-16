@@ -260,11 +260,13 @@ type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
 enum NameSelection {
     Missing,
     One(EntryId),
+    AddressPair { ipv4: EntryId, ipv6: EntryId },
 }
 
 /// A read-only inspection already required by the local/CNAME ordering. This
 /// query-scoped hint owns no index references, so it cannot create extra COW
-/// allocations. Several records retain the ordinary indexed lookup path.
+/// allocations. Only a fresh A/AAAA pair can share the single-address shortcut;
+/// other multi-record names retain the ordinary indexed lookup path.
 pub(crate) struct NameLookup<'a> {
     name: &'a Name,
     owner: usize,
@@ -538,7 +540,23 @@ impl Cache {
         let selection = match indices {
             None | Some(SlotIndices::Empty) => NameSelection::Missing,
             Some(SlotIndices::One(slot)) => NameSelection::One(self.id(*slot)),
-            Some(SlotIndices::Many(_)) => return (cname, None),
+            Some(SlotIndices::Many(slots)) => {
+                let [first, second] = slots.as_slice() else { return (cname, None) };
+                let (ipv4, ipv6) = match (self.entry(*first), self.entry(*second)) {
+                    (Some(a), Some(b)) if a.record.kind == Kind::Ipv4 && b.record.kind == Kind::Ipv6 =>
+                        (*first, *second),
+                    (Some(a), Some(b)) if a.record.kind == Kind::Ipv6 && b.record.kind == Kind::Ipv4 =>
+                        (*second, *first),
+                    _ => return (cname, None),
+                };
+                // Ordinary lookup expires every name member before selecting
+                // a family. Reject both stale/invalid records without mutation
+                // so that the general path retains those expiry side effects.
+                if !self.fresh_address_slot(ipv4, Kind::Ipv4, now)
+                    || !self.fresh_address_slot(ipv6, Kind::Ipv6, now)
+                { return (cname, None); }
+                NameSelection::AddressPair { ipv4: self.id(ipv4), ipv6: self.id(ipv6) }
+            },
         };
         (cname, Some(NameLookup {
             name,
@@ -567,13 +585,26 @@ impl Cache {
         &self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
     ) -> Option<EntryId> {
         let hint = hint?;
-        let NameSelection::One(id) = hint.selection else { return None };
         if !std::ptr::eq(name, hint.name)
             || hint.owner != self as *const Self as usize
             || hint.roots != self.names.as_ptr() as usize
             || hint.revision != self.name_revision
             || self.name_revision == u64::MAX
         { return None; }
+        let id = match hint.selection {
+            NameSelection::One(id) => id,
+            NameSelection::AddressPair { ipv4, ipv6 } => {
+                // Hints may outlive the inspection's clock value. Both members
+                // must still be fresh before bypassing the ordinary expiry walk.
+                self.get(ipv4)?;
+                self.get(ipv6)?;
+                if !self.fresh_address_slot(ipv4.slot, Kind::Ipv4, now)
+                    || !self.fresh_address_slot(ipv6.slot, Kind::Ipv6, now)
+                { return None; }
+                match kind { Kind::Ipv4 => ipv4, Kind::Ipv6 => ipv6, _ => return None }
+            },
+            NameSelection::Missing => return None,
+        };
         let expected_length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return None };
         let entry = self.get(id)?;
         if entry.record.kind != kind || entry.record.negative
@@ -581,6 +612,13 @@ impl Cache {
             || !self.is_valid(id, now)
         { return None; }
         Some(id)
+    }
+
+    fn fresh_address_slot(&self, slot: usize, kind: Kind, now: i64) -> bool {
+        let length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return false };
+        self.entry(slot).is_some_and(|entry| entry.record.kind == kind
+            && !entry.record.negative && entry.record.data.len() == length
+            && !entry.is_stale(now) && !self.invalid(slot, now))
     }
 
     pub(super) fn lookup_with_hint(

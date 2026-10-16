@@ -1,6 +1,28 @@
 use super::*;
 
 #[test]
+fn dual_family_hint_rechecks_other_family_expiry_and_replacement() {
+    let mut cache = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("dual.example").unwrap();
+    cache.start_insert();
+    let ipv4 = cache.insert(Record { name: name.clone(), kind: Kind::Ipv4,
+        negative: false, data: vec![192, 0, 2, 7] }, 100, 60).unwrap();
+    let ipv6 = cache.insert(Record { name: name.clone(), kind: Kind::Ipv6,
+        negative: false, data: vec![7; 16] }, 100, 1).unwrap();
+    assert!(cache.commit());
+    let (_, hint) = cache.inspect_name(&name, 100);
+    assert_eq!(cache.single_fresh_address_id_with_hint(&name, Kind::Ipv4, 100, hint.as_ref()), Some(ipv4));
+    let before = (cache.head, cache.tail, cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name, Kind::Ipv4, 102, hint.as_ref()), None);
+    assert_eq!((cache.head, cache.tail, cache.name_revision), before);
+    assert!(cache.get(ipv6).is_some(), "fallback still owns expiry");
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 102, true, hint.as_ref()), [ipv4]);
+    assert!(cache.get(ipv6).is_none());
+    assert_eq!(cache.single_fresh_address_with_hint(&name, Kind::Ipv4, 100, hint.as_ref()), None,
+        "the old dual-family hint must not survive removal");
+}
+
+#[test]
 fn fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback() {
     let address = |name: &str, value| Record { name: Name::from_ascii(name).unwrap(),
         kind: Kind::Ipv4, negative: false, data: vec![192,0,2,value] };
