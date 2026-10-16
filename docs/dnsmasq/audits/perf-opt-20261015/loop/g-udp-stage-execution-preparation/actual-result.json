@@ -1,0 +1,54 @@
+{
+  "status": "ACTUAL_ORIGINAL_G_STAGE_GATES_AND_CANONICAL_SDK_COMPLETE_PENDING_INDEPENDENT_REVIEW",
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "source_inputs_verified": 180,
+  "related_actual_counts": {
+    "fixture": 1,
+    "bin": 82,
+    "bin_ignored": 4
+  },
+  "total_related_passes": 87,
+  "related_verified_sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+  "SDK_artifacts": {
+    "dnsmasq-rs": {
+      "sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "bytes": 2149147
+    },
+    "link.map": {
+      "sha256": "9f1a05017993363eabdb9f8832d6f3915ccb47ed42de8fb6457e3037ae28e153",
+      "bytes": 3030776
+    },
+    "build.json": {
+      "sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+      "bytes": 44059
+    },
+    "dnsmasq-prestrip": {
+      "sha256": "b645a362dfd63709b24c5ce48936fcff83dcf8cbb3524e1f862a7ee24a284429",
+      "bytes": 2150880
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "sha256": "01af4bd0a73b20cad43fa62e9425005031686a562808987084e6d18cffbc136b",
+      "bytes": 1169636
+    }
+  },
+  "SDK_source_files_match_prepared_manifest": true,
+  "budget": {
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000
+  },
+  "within_existing_budget": true,
+  "SDK_postflight_sha256": "27652efd302a259dd4b81634540e0691923d3d4a6fb748c9379bb5c23d300d1d",
+  "release_to_DNS_warm_sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
+  "related_all27_downloaded_rehashed": true,
+  "SDK_all45_downloaded_rehashed": true,
+  "independent_actual_review": null,
+  "original_gate_and_SDK_reruns": 0,
+  "retained_preparation_failures": [
+    "source-archive-attempt1-failure.json",
+    "source-stage-attempt1-failure.json"
+  ],
+  "diagnostic_only": true,
+  "performance_acceptance": false,
+  "product_candidate_eligible": false,
+  "device_timing_started": false
+}

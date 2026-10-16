@@ -1,0 +1,35 @@
+{
+  "status": "EXPLICIT_G_STAGE_BUILD_COMPLETE_QUIET_RELEASE_TO_DNS_WARM_NON_TIMING",
+  "epoch": 1792147200.034804,
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "related_actual_counts": {
+    "fixture": 1,
+    "bin": 82,
+    "bin_ignored": 4
+  },
+  "related_total_passes": 87,
+  "related_verified_sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+  "SDK_build_sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+  "SDK_postflight_sha256": "27652efd302a259dd4b81634540e0691923d3d4a6fb748c9379bb5c23d300d1d",
+  "source180_rehashed": true,
+  "related_controller_exited": true,
+  "SDK_controller_exited": true,
+  "all_G_stage_downloads_rehashed_locally": true,
+  "local_related_download_receipt_sha256": "8fc73745f059f28a9c29ab4ed755f37a272939e98e0f7870b7d0de748a9fe1d8",
+  "local_SDK_download_receipt_sha256": "36fa5c8508f016df8e917a9ef4106d1e7cef5bb1b18e13d669d3df10f267d223",
+  "warm_all_inputs_pretransfer_sha256": "6b8b3a3808caa3c9122a3bab2fae8e45c6b2a972e5b5e086c4d4a56da4b27ebd",
+  "research_including_exact_image_C": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "root_explicit_authorization": "AfterGstage originalgates/SDK, DNSrunswarm originalfivegroups/canonicalSDK onOracle; Gstage device50 ready mustnotbedelayed. Allfuturebulk avoidsdevicehealth/timing.",
+  "next_owner": "DNS warm non-timing gates and SDK; correctness reviews Gstage actualpackage locally; DHCP prepares originalG-stage50 afterfullactualaudit.",
+  "no_concurrent_shared_SDK_builds": true,
+  "G_stage_device50_has_priority": true,
+  "warm_download_or_bulk_deferred_if_device_observation_active": true,
+  "loop_stops_Oracle_access_after_handoff": true,
+  "diagnostic_product_eligible": false,
+  "no_G_stage_timing_started": true
+}

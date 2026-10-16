@@ -1,0 +1,16 @@
+{
+  "pid": 1036383,
+  "starttime_ticks": 187139372,
+  "epoch": 1792146776.507301,
+  "argv": [
+    "taskset",
+    "-c",
+    "1",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/g-udp-stage-inputs/run-sdk.py"
+  ],
+  "controller_sha256": "1b18ac7476181f2e770b26886bb4e288d781ee4a7e9a0fb9a3701683d9ccf39d",
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "related_actual_passes": 87,
+  "timing_started": false
+}

@@ -1,0 +1,28 @@
+{
+  "returncode": 0,
+  "started_epoch": 1792146776.54793,
+  "finished_epoch": 1792146862.6818595,
+  "argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-g-udp-stage",
+    "--commit",
+    "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+    "--epoch",
+    "1792138331",
+    "--sdk",
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-g-udp-stage",
+    "--cargo",
+    "/home/ubuntu/.cargo/bin/cargo",
+    "--build-slot",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+    "--cargo-target",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+  ],
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "related_receipt_sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+  "scope": "Original canonical SDK diagnostic build once; no device or timing action."
+}
