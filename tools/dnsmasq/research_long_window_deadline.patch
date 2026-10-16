@@ -1,0 +1,10 @@
+--- a/tools/dnsmasq/perf_opt_device_run.py
++++ b/tools/dnsmasq/perf_opt_device_run.py
+@@ -33,0 +34,4 @@
++
++
++def case_deadline_seconds(scene):
++    return 100 if scene[1].startswith('life-') else max(100, scene[4] + scene[5] + 40)
+@@ -285 +289 @@
+-                            if not guard_check(guard) or time.monotonic()-started > 100:
++                            if not guard_check(guard) or time.monotonic()-started > case_deadline_seconds(scene):
