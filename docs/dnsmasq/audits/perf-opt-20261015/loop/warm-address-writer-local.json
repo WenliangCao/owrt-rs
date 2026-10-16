@@ -1,0 +1,467 @@
+{
+  "status": "LOCAL_PROTOTYPE_ONLY_NOT_SELECTED_OR_TIMED",
+  "source": "6dadfec2",
+  "parent": "6ab0f064",
+  "scope": "Onlyprivatefresh-addressreplyassembly; no1df/5c/803overlay. Originalwriterbody preservedbehindguards. NoSDK/fullLinux/device/CPUclaim.",
+  "source_reviews": [
+    "cefc50cd",
+    "190e015c"
+  ],
+  "local_tests": {
+    "Mac_lib": {
+      "passed": 725,
+      "ignored": 8,
+      "failed": 0
+    },
+    "musl_all_targets_exit": 0,
+    "expanded_original_test_comparisons": 18432,
+    "original_test_names_retained": true,
+    "new_test_names": 0,
+    "dimensions": {
+      "names": [
+        "root",
+        "originalmixedcase",
+        "binaryNUL/highbyte",
+        "255-bytewiremaximum"
+      ],
+      "logging": [
+        false,
+        true
+      ],
+      "reply_capacity": [
+        0,
+        64,
+        128,
+        512
+      ],
+      "original_remaining_axes": "2types\u00d73times\u00d73flags\u00d72DO\u00d72filter\u00d78limits; originalshortcasecache4 retained; maximumnamecache16 admitslongname"
+    }
+  },
+  "final_logs_sha256": {
+    "fixed-fields-lib-test.log": "51df58e86b4c3eb058d1e4fc3e2d1455d3e78f43081cbaf14902138472562a34",
+    "fixed-fields-musl-check.log": "84f1a983749bea7cf8511f506bd79704ef2147c7fc50bf083fc6721bea6677db"
+  },
+  "all_variants": [
+    {
+      "source": "b1fc4225",
+      "description": "Twelveappendoperations; originalfallback in samefunction",
+      "codegen_receipt": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016/private/warm-address-encode/cross-daemon-final/inspection-v3.json",
+      "receipt_sha256": "c9763bf38d71da97b14cd9b6047834e6b78684ade47759620a4ce492b5ceb491",
+      "elf": {
+        "sha256": "af2c834e218d1f9714b8abb255cfaf865e333aa53e2476262c5f121d420f1cb6",
+        "bytes": 5022104
+      },
+      "functions": [
+        {
+          "name": "answer_fresh_address",
+          "bytes": 2332,
+          "code_sha256": "26eca7fec414e4a117f9faf318aaabd37955b7acb3313b4c0130e606739fb6fc",
+          "asm_sha256": "1b6835cbcd54710c0b7635bfc0dc7cf6efdaf2de4ff6ea9ecb3c35cf60359015",
+          "entry": [
+            "310314: sub sp, sp, #0x130",
+            "310318: stp x29, x30, [sp, #0xd0]",
+            "31031c: stp x28, x27, [sp, #0xe0]",
+            "310320: stp x26, x25, [sp, #0xf0]",
+            "310324: stp x24, x23, [sp, #0x100]",
+            "310328: stp x22, x21, [sp, #0x110]",
+            "31032c: stp x20, x19, [sp, #0x120]",
+            "310330: add x29, sp, #0xd0",
+            "310334: ldp x22, x24, [x29, #0x60]",
+            "310338: mov x21, x5",
+            "31033c: ldrb w8, [x6, #0x217]",
+            "310340: mov x20, x1"
+          ]
+        },
+        {
+          "name": "answer_local_or_cached",
+          "bytes": 4060,
+          "code_sha256": "7143734fd3982d2fcc2cdfcd5a14523acd3777f8b795c602c2c8613dafe60170",
+          "asm_sha256": "ebf04470b52bc6fd5bef9c44109ffd2d302e6c6b62bb5008db1ddf6f5bfb6b06",
+          "entry": [
+            "2ac930: stp x29, x30, [sp, #-0x60]!",
+            "2ac934: stp x28, x27, [sp, #0x10]",
+            "2ac938: mov x29, sp",
+            "2ac93c: stp x26, x25, [sp, #0x20]",
+            "2ac940: stp x24, x23, [sp, #0x30]",
+            "2ac944: stp x22, x21, [sp, #0x40]",
+            "2ac948: stp x20, x19, [sp, #0x50]",
+            "2ac94c: sub sp, sp, #0x210",
+            "2ac950: ldrb w25, [x29, #0x68]",
+            "2ac954: mov x27, x7",
+            "2ac958: mov x20, x6",
+            "2ac95c: mov x28, x2"
+          ]
+        },
+        {
+          "name": "answer_records_general",
+          "bytes": 13372,
+          "code_sha256": "482a704a30a2f5310eba34be8074743a573538e1a8e0c8bb95c4ade3b183ff1b",
+          "asm_sha256": "4912e10f3c77512539e755b292d39db70c4f69b76628d795bacbfdcef26f9b82",
+          "entry": [
+            "30cc50: stp x29, x30, [sp, #-0x60]!",
+            "30cc54: stp x28, x27, [sp, #0x10]",
+            "30cc58: mov x29, sp",
+            "30cc5c: stp x26, x25, [sp, #0x20]",
+            "30cc60: stp x24, x23, [sp, #0x30]",
+            "30cc64: stp x22, x21, [sp, #0x40]",
+            "30cc68: stp x20, x19, [sp, #0x50]",
+            "30cc6c: sub sp, sp, #0x860",
+            "30cc70: str xzr, [sp]",
+            "30cc74: ldrh w8, [x2, #0x1a]",
+            "30cc78: mov x19, x0",
+            "30cc7c: cmp w8, #1"
+          ]
+        },
+        {
+          "name": "finish_cached_answer_flags",
+          "bytes": 524,
+          "code_sha256": "1de400a163d9bb64ceef9774dabdbe554ebc873db45d79108c79cba1932ffcfa",
+          "asm_sha256": "cb98013f765a3abb640c865427b908f6fefa68c27e4c93a9756e7701ded34a6f",
+          "entry": [
+            "3156f8: sub sp, sp, #0x20",
+            "3156fc: stp x29, x30, [sp, #0x10]",
+            "315700: add x29, sp, #0x10",
+            "315704: ldr x9, [x1, #0x10]",
+            "315708: cmp x9, #0xb",
+            "31570c: b.ls #0x3158dc",
+            "315710: ldrh w8, [x1, #0x28]",
+            "315714: ldr d1, [x1, #0x20]",
+            "315718: ldrh w10, [x1, #0x2a]",
+            "31571c: rev w11, w8",
+            "315720: rev16 v0.8b, v1.8b",
+            "315724: rev w13, w10"
+          ]
+        }
+      ],
+      "fresh_writer_frame_bytes": 304
+    },
+    {
+      "source": "40bc9086",
+      "description": "Onefullresize thenwrites; originalfallback in samefunction",
+      "codegen_receipt": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016/private/warm-address-encode/resized-cross-daemon/inspection-v3.json",
+      "receipt_sha256": "8f4a35387021a1c77fd1f68ac140ffa4b2bda5802af8c5eb10d7bdd5d1b50f7a",
+      "elf": {
+        "sha256": "1ca106e3d97c9f50f8eedc750d83de1eb08f63b496b71107b2f0bdf103cdb97e",
+        "bytes": 5022312
+      },
+      "functions": [
+        {
+          "name": "answer_fresh_address",
+          "bytes": 2056,
+          "code_sha256": "7c0f8dd3c7b139f786836359657dc405d7f0401d79d25241439a851359e4d517",
+          "asm_sha256": "00b43ba6df946fdcbd959ba79bcec6595a422565c1bb2460cdaf845b56814001",
+          "entry": [
+            "31030c: sub sp, sp, #0x130",
+            "310310: stp x29, x30, [sp, #0xd0]",
+            "310314: stp x28, x27, [sp, #0xe0]",
+            "310318: stp x26, x25, [sp, #0xf0]",
+            "31031c: stp x24, x23, [sp, #0x100]",
+            "310320: stp x22, x21, [sp, #0x110]",
+            "310324: stp x20, x19, [sp, #0x120]",
+            "310328: add x29, sp, #0xd0",
+            "31032c: ldp x22, x24, [x29, #0x60]",
+            "310330: mov x21, x5",
+            "310334: ldrb w8, [x6, #0x217]",
+            "310338: mov x20, x1"
+          ]
+        },
+        {
+          "name": "answer_local_or_cached",
+          "bytes": 4060,
+          "code_sha256": "96159fd90e44c400390531e270a1b3fdfecfd54bebc52af99f032017e74e0a82",
+          "asm_sha256": "a4357ece3e6a982ea52d1a2f66f72ce45a02deed1d66ffbe247673ebf1f3213a",
+          "entry": [
+            "2ac930: stp x29, x30, [sp, #-0x60]!",
+            "2ac934: stp x28, x27, [sp, #0x10]",
+            "2ac938: mov x29, sp",
+            "2ac93c: stp x26, x25, [sp, #0x20]",
+            "2ac940: stp x24, x23, [sp, #0x30]",
+            "2ac944: stp x22, x21, [sp, #0x40]",
+            "2ac948: stp x20, x19, [sp, #0x50]",
+            "2ac94c: sub sp, sp, #0x210",
+            "2ac950: ldrb w25, [x29, #0x68]",
+            "2ac954: mov x27, x7",
+            "2ac958: mov x20, x6",
+            "2ac95c: mov x28, x2"
+          ]
+        },
+        {
+          "name": "answer_records_general",
+          "bytes": 13372,
+          "code_sha256": "e3412124d8a18a764a37e8e6c24e8b3f06cd013a4b37fd50ff031f925c78de05",
+          "asm_sha256": "8181a259c89496f0958dda6aab55ffaf06e7233c081e768a1764af9e720cf3ef",
+          "entry": [
+            "30cc48: stp x29, x30, [sp, #-0x60]!",
+            "30cc4c: stp x28, x27, [sp, #0x10]",
+            "30cc50: mov x29, sp",
+            "30cc54: stp x26, x25, [sp, #0x20]",
+            "30cc58: stp x24, x23, [sp, #0x30]",
+            "30cc5c: stp x22, x21, [sp, #0x40]",
+            "30cc60: stp x20, x19, [sp, #0x50]",
+            "30cc64: sub sp, sp, #0x860",
+            "30cc68: str xzr, [sp]",
+            "30cc6c: ldrh w8, [x2, #0x1a]",
+            "30cc70: mov x19, x0",
+            "30cc74: cmp w8, #1"
+          ]
+        },
+        {
+          "name": "finish_cached_answer_flags",
+          "bytes": 524,
+          "code_sha256": "904e98acb2b442b79dbbe345ea01e599914624fbcad2ef192cea901c06c86cfb",
+          "asm_sha256": "aa503c534efdef036595636e31a345c2236d2c0f93cbe2a734a7015bb6978f90",
+          "entry": [
+            "3155dc: sub sp, sp, #0x20",
+            "3155e0: stp x29, x30, [sp, #0x10]",
+            "3155e4: add x29, sp, #0x10",
+            "3155e8: ldr x9, [x1, #0x10]",
+            "3155ec: cmp x9, #0xb",
+            "3155f0: b.ls #0x3157c0",
+            "3155f4: ldrh w8, [x1, #0x28]",
+            "3155f8: ldr d1, [x1, #0x20]",
+            "3155fc: ldrh w10, [x1, #0x2a]",
+            "315600: rev w11, w8",
+            "315604: rev16 v0.8b, v1.8b",
+            "315608: rev w13, w10"
+          ]
+        }
+      ],
+      "fresh_writer_frame_bytes": 304
+    },
+    {
+      "source": "a9f495c9",
+      "description": "Originalfallback outlined; emptybuffer skipsentryread",
+      "codegen_receipt": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016/private/warm-address-encode/outlined-cross-daemon/inspection-v3.json",
+      "receipt_sha256": "c5fd65954d4587662e0e7ec4cbbc777179f2606e6bde5cbf8ced0cc6b1a52ffc",
+      "elf": {
+        "sha256": "635009457dbb7d2e5fa1cb2a79694b841487e7afe2e7d335a8fd908b4d9f8cce",
+        "bytes": 5022736
+      },
+      "functions": [
+        {
+          "name": "answer_fresh_address",
+          "bytes": 1164,
+          "code_sha256": "9c58a253eb27facd185998c718107755aff7e6a9e6414bc815c9dc317c62bb68",
+          "asm_sha256": "d1b5c23b4e3debec1ff1dd8bbf6ed87ba2c11f9fa996e0ad386ef2a728da038a",
+          "entry": [
+            "31034c: sub sp, sp, #0xa0",
+            "310350: stp x29, x30, [sp, #0x40]",
+            "310354: stp x28, x27, [sp, #0x50]",
+            "310358: stp x26, x25, [sp, #0x60]",
+            "31035c: stp x24, x23, [sp, #0x70]",
+            "310360: stp x22, x21, [sp, #0x80]",
+            "310364: stp x20, x19, [sp, #0x90]",
+            "310368: add x29, sp, #0x40",
+            "31036c: ldp x10, x11, [x29, #0x60]",
+            "310370: ldrb w8, [x6, #0x217]",
+            "310374: tbnz w8, #0, #0x310440",
+            "310378: ldr x12, [x6, #0x1d0]"
+          ]
+        },
+        {
+          "name": "answer_address_with_writer",
+          "bytes": 1092,
+          "code_sha256": "683d38d9eb2e0f385916f35137b3534637cdf9cf452319f1cbe9876cdf0f8510",
+          "asm_sha256": "3510de6e60b7a0b654a4146b8b884441b20c47f09a3ce82bbee08e543ed82b99",
+          "entry": [
+            "314b2c: sub sp, sp, #0x120",
+            "314b30: stp x29, x30, [sp, #0xc0]",
+            "314b34: stp x28, x27, [sp, #0xd0]",
+            "314b38: stp x26, x25, [sp, #0xe0]",
+            "314b3c: stp x24, x23, [sp, #0xf0]",
+            "314b40: stp x22, x21, [sp, #0x100]",
+            "314b44: stp x20, x19, [sp, #0x110]",
+            "314b48: add x29, sp, #0xc0",
+            "314b4c: mov x21, x1",
+            "314b50: mov x19, x0",
+            "314b54: mov w8, #1",
+            "314b58: ldp x23, x24, [x29, #0x60]"
+          ]
+        },
+        {
+          "name": "answer_local_or_cached",
+          "bytes": 4060,
+          "code_sha256": "8766c4bb694cf4491b129ad290f7c2aa2b6d939b8313da506efe96ffdd1d72c4",
+          "asm_sha256": "bf10c732fb5e08c974d12b80f562a78a99aecbe1e1ffe918fc7ae588687a6c4c",
+          "entry": [
+            "2ac970: stp x29, x30, [sp, #-0x60]!",
+            "2ac974: stp x28, x27, [sp, #0x10]",
+            "2ac978: mov x29, sp",
+            "2ac97c: stp x26, x25, [sp, #0x20]",
+            "2ac980: stp x24, x23, [sp, #0x30]",
+            "2ac984: stp x22, x21, [sp, #0x40]",
+            "2ac988: stp x20, x19, [sp, #0x50]",
+            "2ac98c: sub sp, sp, #0x210",
+            "2ac990: ldrb w25, [x29, #0x68]",
+            "2ac994: mov x27, x7",
+            "2ac998: mov x20, x6",
+            "2ac99c: mov x28, x2"
+          ]
+        },
+        {
+          "name": "answer_records_general",
+          "bytes": 13372,
+          "code_sha256": "18fd2526689d88f3cf6da84f8eb5aa54fb3a1e59ae67c3010658f077d53dcdeb",
+          "asm_sha256": "badc4374dd7cdf1b74edc1835625ff7d8fdd64b0b109a83bb0fc8d36e1cff508",
+          "entry": [
+            "30cc88: stp x29, x30, [sp, #-0x60]!",
+            "30cc8c: stp x28, x27, [sp, #0x10]",
+            "30cc90: mov x29, sp",
+            "30cc94: stp x26, x25, [sp, #0x20]",
+            "30cc98: stp x24, x23, [sp, #0x30]",
+            "30cc9c: stp x22, x21, [sp, #0x40]",
+            "30cca0: stp x20, x19, [sp, #0x50]",
+            "30cca4: sub sp, sp, #0x860",
+            "30cca8: str xzr, [sp]",
+            "30ccac: ldrh w8, [x2, #0x1a]",
+            "30ccb0: mov x19, x0",
+            "30ccb4: cmp w8, #1"
+          ]
+        },
+        {
+          "name": "finish_cached_answer_flags",
+          "bytes": 524,
+          "code_sha256": "95f08ea3e5c7297361214749a4d042238e23d0c028aa3b3967a458a1aeca031b",
+          "asm_sha256": "84c950f2e8d8d8e4b06d52c4291e717d27d787943247898e87fe8f42cf3ee873",
+          "entry": [
+            "3156e4: sub sp, sp, #0x20",
+            "3156e8: stp x29, x30, [sp, #0x10]",
+            "3156ec: add x29, sp, #0x10",
+            "3156f0: ldr x9, [x1, #0x10]",
+            "3156f4: cmp x9, #0xb",
+            "3156f8: b.ls #0x3158c8",
+            "3156fc: ldrh w8, [x1, #0x28]",
+            "315700: ldr d1, [x1, #0x20]",
+            "315704: ldrh w10, [x1, #0x2a]",
+            "315708: rev w11, w8",
+            "31570c: rev16 v0.8b, v1.8b",
+            "315710: rev w13, w10"
+          ]
+        }
+      ],
+      "fresh_writer_frame_bytes": 160
+    },
+    {
+      "source": "6dadfec2",
+      "description": "Fixed16-byte question/RR fields split once",
+      "codegen_receipt": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016/private/warm-address-encode/fixed-fields-cross-daemon/inspection-v3.json",
+      "receipt_sha256": "67a110ede319ea9af8372791ea862d463caeb1d682719de7e5940d2b97339dcb",
+      "elf": {
+        "sha256": "ce8a2ba037613e07f9cdfd7b4ef92aba123a2cbaebc7ee60c102d5259d1d7ec3",
+        "bytes": 5022224
+      },
+      "functions": [
+        {
+          "name": "answer_fresh_address",
+          "bytes": 952,
+          "code_sha256": "63c16fa1abfb08341392d2f90448169946d13fa59e37c1fd5609940cdf2c12ff",
+          "asm_sha256": "e668a3e20c9dbfdef9578922dd067955bd73262f6f03b5093404cdcc360b1910",
+          "entry": [
+            "31034c: sub sp, sp, #0xa0",
+            "310350: stp x29, x30, [sp, #0x40]",
+            "310354: stp x28, x27, [sp, #0x50]",
+            "310358: stp x26, x25, [sp, #0x60]",
+            "31035c: stp x24, x23, [sp, #0x70]",
+            "310360: stp x22, x21, [sp, #0x80]",
+            "310364: stp x20, x19, [sp, #0x90]",
+            "310368: add x29, sp, #0x40",
+            "31036c: ldp x10, x11, [x29, #0x60]",
+            "310370: ldrb w8, [x6, #0x217]",
+            "310374: tbnz w8, #0, #0x310440",
+            "310378: ldr x12, [x6, #0x1d0]"
+          ]
+        },
+        {
+          "name": "answer_address_with_writer",
+          "bytes": 1092,
+          "code_sha256": "a84faf5fad0e39c30552e1c10bc4586233de6a436e7aa8f8c5c63f66825a1a23",
+          "asm_sha256": "595ec2773e9c3843f7ddc1eb84050036b6ba7462c17304ca6b5bd7f91d1e202e",
+          "entry": [
+            "314a58: sub sp, sp, #0x120",
+            "314a5c: stp x29, x30, [sp, #0xc0]",
+            "314a60: stp x28, x27, [sp, #0xd0]",
+            "314a64: stp x26, x25, [sp, #0xe0]",
+            "314a68: stp x24, x23, [sp, #0xf0]",
+            "314a6c: stp x22, x21, [sp, #0x100]",
+            "314a70: stp x20, x19, [sp, #0x110]",
+            "314a74: add x29, sp, #0xc0",
+            "314a78: mov x21, x1",
+            "314a7c: mov x19, x0",
+            "314a80: mov w8, #1",
+            "314a84: ldp x23, x24, [x29, #0x60]"
+          ]
+        },
+        {
+          "name": "answer_local_or_cached",
+          "bytes": 4060,
+          "code_sha256": "4e8e535568aaf2a8369e8a16103a47f80be37c4f2aabc918d8de29a81a0d9699",
+          "asm_sha256": "76bd8ca6dfa0ded1dcc32602c27c4cb2f029efbf5078d74b78de11cb45594ff9",
+          "entry": [
+            "2ac970: stp x29, x30, [sp, #-0x60]!",
+            "2ac974: stp x28, x27, [sp, #0x10]",
+            "2ac978: mov x29, sp",
+            "2ac97c: stp x26, x25, [sp, #0x20]",
+            "2ac980: stp x24, x23, [sp, #0x30]",
+            "2ac984: stp x22, x21, [sp, #0x40]",
+            "2ac988: stp x20, x19, [sp, #0x50]",
+            "2ac98c: sub sp, sp, #0x210",
+            "2ac990: ldrb w25, [x29, #0x68]",
+            "2ac994: mov x27, x7",
+            "2ac998: mov x20, x6",
+            "2ac99c: mov x28, x2"
+          ]
+        },
+        {
+          "name": "answer_records_general",
+          "bytes": 13372,
+          "code_sha256": "6fc80964272c06d12d86fab4ba7ab1ad245e7d7d3b3b0bd7a7b4d156a2050145",
+          "asm_sha256": "4223f9c0a0a51993e299fb0c1f519e8c9d812ad48d323654e14b66c16da36d05",
+          "entry": [
+            "30cc88: stp x29, x30, [sp, #-0x60]!",
+            "30cc8c: stp x28, x27, [sp, #0x10]",
+            "30cc90: mov x29, sp",
+            "30cc94: stp x26, x25, [sp, #0x20]",
+            "30cc98: stp x24, x23, [sp, #0x30]",
+            "30cc9c: stp x22, x21, [sp, #0x40]",
+            "30cca0: stp x20, x19, [sp, #0x50]",
+            "30cca4: sub sp, sp, #0x860",
+            "30cca8: str xzr, [sp]",
+            "30ccac: ldrh w8, [x2, #0x1a]",
+            "30ccb0: mov x19, x0",
+            "30ccb4: cmp w8, #1"
+          ]
+        },
+        {
+          "name": "finish_cached_answer_flags",
+          "bytes": 524,
+          "code_sha256": "72dff7dab208b066ac2ede2bdf804c6b571b0c8efb1317624845b7716cf433b9",
+          "asm_sha256": "64d8793b7111b42c79f78e795ccee590344e37bea72dbd7f4a31396d72e65bf6",
+          "entry": [
+            "315610: sub sp, sp, #0x20",
+            "315614: stp x29, x30, [sp, #0x10]",
+            "315618: add x29, sp, #0x10",
+            "31561c: ldr x9, [x1, #0x10]",
+            "315620: cmp x9, #0xb",
+            "315624: b.ls #0x3157f4",
+            "315628: ldrh w8, [x1, #0x28]",
+            "31562c: ldr d1, [x1, #0x20]",
+            "315630: ldrh w10, [x1, #0x2a]",
+            "315634: rev w11, w8",
+            "315638: rev16 v0.8b, v1.8b",
+            "31563c: rev w13, w10"
+          ]
+        }
+      ],
+      "fresh_writer_frame_bytes": 160
+    }
+  ],
+  "final_tradeoffs": [
+    "Sourceguardrequiresoriginalreserve_exact(min(limit,128)) alreadyfits, pluscompletepacketfits; no coldallocationboundary shortcut.",
+    "Finallocalfreshwriter952B/frame160 versusparent1092B/frame288, withoriginal1092B/frame288fallbackseparate. EntirelocalELF\u221216B.",
+    "Localfallbackrestoresframeandtailbranches0x310460\u21920x314a58; thisisnotaguaranteeofSDKtailcall.",
+    "Fastpathintroducesfullpacketzeroingandactualmemsetcallbeforefieldwrites; retaincost.",
+    "Originalhot15doesnotrecyclereplybuffer, so itcanonlyobservecoldfallback/layout, neverthiswarmguard."
+  ],
+  "retained_local_edit_failure": "Initialtest-expansion helper expectedtrailingnewline andassertedbeforewriting. First725 runthereforeusedoldlogging-onlymatrix; laterexpanded/final logsprovideactual18432coverage. Alloriginallogsandcodegenvariantsretained.",
+  "decision": "Keepunselectedlocalcandidatewhile5cimmutableowner/devicewindowsrun. No newprobe/measurementframework; ordinaryproductionowner isneededtoexercisewarmedbuffer."
+}
