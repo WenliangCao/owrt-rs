@@ -1,0 +1,72 @@
+{
+  "status": "ACTUAL_RELATED_VERIFIER_PASS_CANONICAL_SDK_RUNNING_RAW_DOWNLOAD_PENDING",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "execution_plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
+  "G_stage_explicit_quiet_release_sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
+  "preflight_summary": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-related-preflight.json",
+    "sha256": "227af54dbca9a068ef7da29b9d59af79bc2e504021106eabf904b0785f7a6a4d",
+    "status": "PASS_EXACT_SOURCE_ORIGINAL_FIVE_GROUP_PREFLIGHT"
+  },
+  "related_launch": {
+    "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+    "argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_warm_address_encode_related.py"
+    ],
+    "pid": 1043193,
+    "start_ticks": 187224764,
+    "epoch": 1792147630.4337583,
+    "preflight_sha256": "227af54dbca9a068ef7da29b9d59af79bc2e504021106eabf904b0785f7a6a4d",
+    "wrapper_sha256": "7b6b9a3e6f15a031555536b992a6c662722951bdd253b9db40e7d34ab67a6f05",
+    "plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
+    "scope": "Original five related Linux groups only; actual results required.",
+    "status": "RUNNING_NOT_YET_PASSED"
+  },
+  "related_verifier_summary": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-related-verified.json",
+    "sha256": "088f8d2ecc4ac5ffebfa4407a6e9de7dd144514890f0cbc56c1440dd6d35293f",
+    "status": "PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET",
+    "counts": {
+      "lib": 840,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "total_passed": 961,
+    "source_files_rehashed": 179,
+    "quiet_epoch": 1792147790.493823
+  },
+  "related_verifier_stdout_sha256": "9a07a0728d87375be24909360a14020253e7f3d5204c65bf23673853d8820f6f",
+  "SDK_launch": {
+    "status": "SDK_CONTROLLER_RUNNING_NOT_YET_PASSED",
+    "epoch": 1792147803.3262756,
+    "pid": 1046254,
+    "start_ticks": 187242054,
+    "argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-execution-20261016/run_warm_sdk.py",
+      "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
+      "088f8d2ecc4ac5ffebfa4407a6e9de7dd144514890f0cbc56c1440dd6d35293f"
+    ],
+    "plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
+    "related_verified_sha256": "088f8d2ecc4ac5ffebfa4407a6e9de7dd144514890f0cbc56c1440dd6d35293f",
+    "controller_sha256": "8661f0ee8171002cb753a53574424a79464130f256a02238ab40bc17b0b511b0",
+    "research": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ]
+  },
+  "independent_execution_plan_review_commit": "c17892bc",
+  "independent_execution_plan_review_sha256": "05e188f8b65f6a24bd450608453df6bb097f35f4a6aae4e7fee9e54266f82710",
+  "raw_logs_test_ELFs_downloaded": false,
+  "actual_related_independent_review_passed": false,
+  "SDK_passed": false,
+  "performance_accepted": false,
+  "timing_started": false,
+  "bulk_hold": "All raw and artifact bulk stays remote until DHCP releases G-stage fresh125/device50 archival and restoration window. Non-timing gates/SDK and small controls only.",
+  "scope": "Exact6dad original five fresh groups, then unchanged canonical opt3 SDK. No native240, no C expectation or source edits; owner32 remains a later separately bound measurement."
+}
