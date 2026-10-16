@@ -649,8 +649,6 @@ impl<'a> LocalAnswerer<'a> {
             || !self.config.interface_records.rules.is_empty()
             || !self.config.synth_domains.domains.is_empty()
             || !self.hosts.is_published()
-            || self.config.rules.iter().any(|rule| matches!(rule.target,
-                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
         { return false; }
         let mut scratch = [0; 253];
         let name = match dotted_name {
@@ -660,6 +658,18 @@ impl<'a> LocalAnswerer<'a> {
                 &scratch[..length]
             }
         };
+        // A local/address rule owns only matching names. Keep every matching
+        // tier on the general path, including upstream overrides; unrelated
+        // RFC6761/LAN rules must not disable all public cache hits. The dotted
+        // scratch omits C's binary label escapes, so those names retain the
+        // general matcher whenever a local rule exists.
+        for rule in &self.config.rules {
+            if matches!(rule.target,
+                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly)
+                && (name.contains(&0) || name.contains(&1)
+                    || matches_domain_bytes(name, &rule.domain))
+            { return false; }
+        }
         !self.hosts.name_exists(name) && leases.names.lookup(name, leases.now).next().is_none()
     }
 
@@ -1746,25 +1756,23 @@ fn matches_domain(name: &Name, pattern: &DomainPattern) -> bool {
     }
     // Keep C's label escapes: an embedded dot cannot become a separator,
     // but later real labels must still match local/address suffix rules.
-    let query = name.dnsmasq_bytes().to_ascii_lowercase();
-    let suffix = pattern.suffix.to_ascii_lowercase();
+    matches_domain_bytes(&name.dnsmasq_bytes(), pattern)
+}
+
+fn matches_domain_bytes(query: &[u8], pattern: &DomainPattern) -> bool {
     if pattern.dotless && (query.is_empty() || query.contains(&b'.')) {
         return false;
     }
+    let suffix = &pattern.suffix;
     if suffix.is_empty() {
         return true;
     }
+    let Some(start) = query.len().checked_sub(suffix.len()) else { return false };
+    if !query[start..].eq_ignore_ascii_case(suffix) { return false; }
     if pattern.wildcard {
-        if pattern.wildcard_dot {
-            query.len() > suffix.len() && query.ends_with(&suffix)
-        } else {
-            query.len() >= suffix.len() && query.ends_with(&suffix)
-        }
+        !pattern.wildcard_dot || start != 0
     } else {
-        query == suffix
-            || (query.len() > suffix.len()
-                && query.ends_with(&suffix)
-                && query[query.len() - suffix.len() - 1] == b'.')
+        start == 0 || query[start - 1] == b'.'
     }
 }
 
