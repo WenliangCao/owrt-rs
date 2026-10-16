@@ -1,0 +1,281 @@
+{
+  "schema": "185-opt2-actual-gates-and-sdk-result-v1",
+  "status": "ACTUAL957_AND_PROFILE2_SDK_DOWNLOADED_PENDING_INDEPENDENT_AUDIT_AND_FINAL_HANDOFF",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "base_source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_files_verified": 179,
+  "source_manifest_sha256": "163a1186fa1f022e5f5b3c4a8c6a9dbca08d0ecb05a0ff55bc5ee744d4246367",
+  "git_identity_sha256": "92dfd48474172faae3aa2bddffa80b3ce4a48e4f484ad3c0a040378feac70216",
+  "source_input_differences": [
+    "components/dnsmasq/Cargo.toml",
+    "components/dnsmasq/src/hosts.rs"
+  ],
+  "inherited_test_only_repair": {
+    "commit": "f8adb016",
+    "file": "components/dnsmasq/src/hosts.rs",
+    "G_sha256": "cf3973555a7d693279618e5158722df2a0bfb88c8e529981c2a37784a4d19d2f",
+    "opt2_sha256": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1",
+    "non_test_prefix_byte_identical": true,
+    "scope": "Collision fixture repair only inside final cfg(test) module; associated audit doc is not an SDK input. Do not call the full source tree or179hashes identical apart fromCargo."
+  },
+  "execution_plan": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/execution/execution-plan.json",
+    "sha256": "18432677984e797f994ebdad16c47fd02b90e4c990a9a81367494938de4c5f84",
+    "release_binding_review_commit": "081f721a",
+    "release_binding_review_sha256": "d96e6f9de77d0e7b4076a5da431a133b45821cc3cca333b4b455b579e8ad7634",
+    "full44_actual_release": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-full-release-to-dns.json",
+      "sha256": "6cb8f83379b1d87b575fcaac1301d3db084eeed1ca2d2f715fc6f27e0296314e",
+      "closeout_commit": "7504c07a",
+      "closeout_report_sha256": "7013b4dd4dc2339215decc0539ee3ff2b6ee0bdef4e39cfdc5c6d1140198ca11"
+    }
+  },
+  "related": {
+    "status": "PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET",
+    "verified_receipt_sha256": "258c39af0aa77dc0c686f38778550ef6098f28b8cb19cd5d011e7c10788b0257",
+    "unit_raw_sha256": "693d36ac092036cf3f88a2de7ef5b21751f4a1f7964b19005b4529d9912a1d7e",
+    "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-185-opt2",
+    "total_passed": 957,
+    "groups": [
+      {
+        "gate": "lib",
+        "exit": 0,
+        "passed": 836,
+        "failed": 0,
+        "ignored": 22,
+        "listed_tests": 858,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "977019bced36630b3860cab6c1bc92e44395fa0ada2e9a2dba5bd996ca887e84",
+        "listing_sha256": "d98bbeb1ced4bda1ce242a418c3027d795d86a34fd28087ee5ce4975cbc42f01",
+        "binary_sha256": "5d4aadcf333a57f7e4e2f85c86683830e5fe195b57a091c24c8ed13d05105104"
+      },
+      {
+        "gate": "bin",
+        "exit": 0,
+        "passed": 82,
+        "failed": 0,
+        "ignored": 4,
+        "listed_tests": 86,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "0cae1974ed75cf2591cffad6dcefa93a790cbde923bbc7a5771bb212121b879f",
+        "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61",
+        "binary_sha256": "0a8edd2d0455a851e3a5be46e9e0ed8af4289fea60b460c048c3f6f7a1bb7a5c"
+      },
+      {
+        "gate": "allocations",
+        "exit": 0,
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 17,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "1e1be75731699f28f345fbcde92da06f294d735bf9edb7803ad7b478d0001851",
+        "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11",
+        "binary_sha256": "42909b391553e9a22700f187d2f5b5a0d04939bfba52459376acbda2e8377b61"
+      },
+      {
+        "gate": "lib-ignored-live",
+        "exit": 0,
+        "passed": 18,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 18,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "c7f4623d22beefaa8c89b75646b5f4000cbfbfec4b30632fbdb1eb3eea0b052f",
+        "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726",
+        "binary_sha256": "5d4aadcf333a57f7e4e2f85c86683830e5fe195b57a091c24c8ed13d05105104"
+      },
+      {
+        "gate": "bin-ignored-live",
+        "exit": 0,
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 4,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+        "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c",
+        "binary_sha256": "0a8edd2d0455a851e3a5be46e9e0ed8af4289fea60b460c048c3f6f7a1bb7a5c"
+      }
+    ],
+    "all_original185_passed_test_names_retained": true,
+    "added_tests_exactly": [],
+    "test_profile_scope": "Original oracle_build.sh kind=tests and allocation entry use dev/test builds without--release. Preserve their original opt_level3 receipt field (helper release-env metadata), never relabel it2. Actual profile2 proof belongs only to08/f26 shippingSDK effective rustc commands.",
+    "first_and_only_run": true,
+    "wrapper_exited": true,
+    "download": {
+      "status": "RELATED_RAW_AND_THREE_TEST_ELFS_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/execution/related-immutable-results.tar.gz",
+      "archive_sha256": "ea7ef6f42fb9ac59e32e7add26e5284433cf3233bfd8b83848337825241f5a45",
+      "archive_bytes": 37480840,
+      "regular_files_including_manifest": 47,
+      "manifest_entries": 46,
+      "manifest_sha256": "7ae7fe5e09496cd8fbf74497023ee0b0b2153665b7afc7e552fe43a6d2f361cd",
+      "raw_bytes": 158487222,
+      "root": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/execution/related-downloaded"
+    }
+  },
+  "SDK": {
+    "status": "built-unqualified",
+    "original_command_returncode": 0,
+    "command": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-opt2-803/perf_opt_sdk_build_opt2.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-185-opt2",
+      "--commit",
+      "8035114257c8706047d2038c2bb8126391331925",
+      "--epoch",
+      "1792119705",
+      "--sdk",
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-185-opt2",
+      "--cargo",
+      "/home/ubuntu/.cargo/bin/cargo",
+      "--build-slot",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+      "--cargo-target",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+    ],
+    "builder_sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
+    "canonical_builder_unchanged_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+    "build_receipt_sha256": "718af94afbd124908a88b430d53494c072f3a052f23a0b2a70657fe133da8bc4",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2046747,
+        "sha256": "2156c7f5f8eb22c64262e6f92939f36ec82b72e30fe2c732baed0993cc1cb3c5"
+      }
+    ],
+    "APK": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1126646,
+      "sha256": "04c99c514a8990b5caaa6f9bf9c0da7161b2e1a8f593686876d651fe57d6403e"
+    },
+    "link_map": {
+      "path": "link.map",
+      "sha256": "13b5ccc9effd40d0588283c77004e96a569b3790799a48442c5e533ad04a0cbe"
+    },
+    "prestrip": {
+      "sha256": "270bff2d9eaca8e69b49609fc19421d240bde511edce036746018a5cc8613d7a",
+      "bytes": 2048480
+    },
+    "release_profile": {
+      "opt-level": 2,
+      "lto": true,
+      "codegen-units": 1,
+      "panic": "abort",
+      "strip": true
+    },
+    "effective_profile2_verified": true,
+    "effective_compiler_codegens": [
+      {
+        "crate_type": "lib",
+        "codegen": [
+          "opt-level=2",
+          "panic=abort",
+          "linker-plugin-lto",
+          "codegen-units=1",
+          "metadata=69bedc443222b235",
+          "extra-filename=-106dcd32d30b0712",
+          "linker=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq/static-pie-linker.py",
+          "strip=symbols",
+          "force-unwind-tables=no",
+          "link-arg=-fuse-ld=bfd",
+          "link-arg=-Wl,-z,max-page-size=4096",
+          "link-arg=-Wl,-z,now",
+          "link-arg=-Wl,-z,relro",
+          "relocation-model=pie",
+          "target-feature=+crt-static"
+        ]
+      },
+      {
+        "crate_type": "bin",
+        "codegen": [
+          "opt-level=2",
+          "panic=abort",
+          "lto",
+          "codegen-units=1",
+          "metadata=2028e62cb653c123",
+          "extra-filename=-7cf121b4d90aaea2",
+          "linker=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq/static-pie-linker.py",
+          "strip=symbols",
+          "force-unwind-tables=no",
+          "link-arg=-fuse-ld=bfd",
+          "link-arg=-Wl,-z,max-page-size=4096",
+          "link-arg=-Wl,-z,now",
+          "link-arg=-Wl,-z,relro",
+          "relocation-model=pie",
+          "target-feature=+crt-static"
+        ]
+      }
+    ],
+    "full_compiler_argv_in_private_build_receipt": true,
+    "ambient_release_profile_overrides": [],
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "elf_layout": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "source_unchanged": true,
+    "SDK_inputs_unchanged": true,
+    "recipe_restored": true,
+    "recipe_restore_basis": "Unchanged helper completed finally restoration; backup absent; current recipe files recorded without inventing a prebuild hash snapshot.",
+    "recipe_current_files": {
+      "Makefile": "be342e2ce19feca34789322644c3938e97c8b70dd238720c47d10cb81887fd7b",
+      "README.md": "977e2372dae8927a5dce8557b73aede00193d017b386acdc46b49e28cb21cbfc"
+    },
+    "compile_warnings": {
+      "opt2_fakeroot_preload_warning_lines": 21,
+      "prior6ab_fakeroot_preload_warning_lines": 21,
+      "scope": "Retained original SDK loader warning class; build exit0 and original payload/static gates pass. No warning suppressed or build retry."
+    },
+    "first_and_only_build": true,
+    "download": {
+      "status": "ACTUAL_OPT2_SDK_AND_PAYLOAD_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/execution/sdk-immutable-results.tar.gz",
+      "archive_sha256": "3fcc3b88b740c51ea3a5ed004b379f91c8c470e18f31d7db759513776737efc6",
+      "archive_bytes": 4877404,
+      "regular_files_including_manifest": 40,
+      "manifest_entries": 39,
+      "manifest_sha256": "47a3a8f405a3858191a1c3a0f3547de88635091f58417fc3036c4c9f006eae51",
+      "raw_bytes": 10628912,
+      "root": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/execution/sdk-downloaded"
+    }
+  },
+  "postflight": {
+    "sha256": "6b3e3cdf4214607f37ca09330901fd0453681a4368d418d2ec311ce5852be81c",
+    "tool_sha256": "183ede95310c2ca91cb312b24616a1036f4f84d9536242f4a600deb5d115a51b",
+    "controller_sha256": "b0c7362c48b5c0285ee25c723692bf865e3aedf35e6a71542f0592acf47a1381",
+    "epoch": 1792135492.5667007,
+    "controller_and_builder_exited": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "accepted_G_unchanged": true
+  },
+  "independent_actual_review": null,
+  "final_quiet_release": null,
+  "performance_timing_started": false,
+  "runtime_hardening_verified": false,
+  "qualification": "Freshoriginaldev/test gates and actualprofile2shippingSDK build/staticbudget evidence only. No owner32/device10/fullperformance or deploymentacceptance.",
+  "next_queue": "Independentactualrelated/SDK audits, allnecessaryowner/devicepretransfers, finalquiet release; originalexactSDKowner32 inparallelwithDHCPG803ten. No native240. Bare1df staysbehindthese screens andtheircloseout."
+}
