@@ -1,6 +1,6 @@
 {
   "schema": "dnsmasq-post185-combined-related-linux-preparation-v1",
-  "status": "ORIGINAL_FIVE_GROUPS_RUNNING_NOT_YET_PASSED",
+  "status": "FRESH_ORIGINAL_FIVE_GROUPS_ACTUAL961_VERIFIED_AND_QUIET",
   "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "source_review_sha256": "57f01b67c884fd699fe75bde09e1235118b1b49229e0232c3f9a2c6f79608374",
   "local_source": "/Users/USER/Developer/owrt-perf-post185-combined-20261016",
@@ -154,7 +154,7 @@
   ],
   "full44_or_full_corpora_prepared": false,
   "shipping_SDK_built": false,
-  "prepared_only": true,
+  "prepared_only": false,
   "uploaded": true,
   "executed": true,
   "new_framework_or_expectations": false,
@@ -171,5 +171,14 @@
     "before_any_build_or_test": true
   },
   "launch_receipt_sha256": "8a791beb8bbdacc46ac4b7e318ea08030209cb18ba1337c0e09415094ee17c24",
-  "preflight_receipt_sha256": "d8741628b17b8f71c126ebd0c0ca20167afc573c7a579dcc8e44baf3ec612a54"
+  "preflight_receipt_sha256": "d8741628b17b8f71c126ebd0c0ca20167afc573c7a579dcc8e44baf3ec612a54",
+  "actual_verified_receipt": {
+    "passed": true,
+    "tests": 961,
+    "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "public_report": "docs/dnsmasq/audits/perf-opt-20261015/correctness/post185-combined-related-linux-gates.json",
+    "public_report_sha256": "f21ac2ce374924d40d0a5c728ff9448277fd06e55f87b8e992e6802903bc35f4",
+    "quiet_sha256": "406f8d4035a8e2bcc298fd017ababd2fa7e4845489623aa7b9c32d28dba583f7"
+  }
 }
