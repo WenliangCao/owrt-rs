@@ -1,0 +1,650 @@
+{
+  "schema": "dnsmasq-image-c-zero-frame-device-independent-audit-v1",
+  "status": "PASS_DIRECT_C_G_DIAGNOSTIC_EVIDENCE_G_REMAINS_SLOWER_FOR_UDP_HIT_CPU_AND_P50",
+  "scope": "FreshdirectexactimageC/immutable185(G) physicalA53fivepairs; independentlocalraw/statistical/health audit plus independentlocalC-runtime/restorationpeer review. No device/Oracle operation for this audit.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "exact_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "G_185_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "author_commit": "d5a3aca4",
+  "author_report_sha256": "fbd1bcc5d7aa64f4f95a15ce569c6fb09db2f572e3e60dd1e4c7c17961f5d1d9",
+  "plan_sha256": "3505a5925ef9e2e991fdf65947ecb490980562f5b4196d18626fc5dd1ade18cd",
+  "launch_sha256": "f56d93f12327ec6b6be0b244de02eb4acfb9ad0f7f8a9048e09c08e2286ab17e",
+  "summary_sha256": "00a77e317296ffe673a73315d35ff1adafa13f467cc003804f41d9764e09b2a2",
+  "progress_sha256": "0a7025727ef9f3844b437e8f07492d1dd30c378139ddf9bbef147e0e32692ab1",
+  "inventory": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 315,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verified": {
+    "archives": 10,
+    "raw_files": 430,
+    "source_files": 179,
+    "thread_observations": 315,
+    "wire_samples": 600,
+    "primary_comparisons": 3,
+    "resource_comparisons": 7,
+    "all_raw_quantiles_lag_CPU_and_cohorts_recomputed": true,
+    "all110_preceding_gate_bound": true,
+    "original_alternating_order_and_tool_rules": true,
+    "no_repeat_supplement_historical_pooling": true
+  },
+  "comparison": {
+    "left": [
+      "exact-c",
+      null
+    ],
+    "right": [
+      "cached-zero-frame",
+      null
+    ],
+    "metrics": {
+      "p50_ms": {
+        "left": {
+          "median": 0.138419,
+          "min": 0.135572,
+          "max": 0.143112,
+          "rounds": [
+            0.14042,
+            0.138419,
+            0.137495,
+            0.143112,
+            0.135572
+          ]
+        },
+        "right": {
+          "median": 0.168811,
+          "min": 0.166734,
+          "max": 0.173504,
+          "rounds": [
+            0.168811,
+            0.173504,
+            0.166734,
+            0.16958,
+            0.168196
+          ]
+        },
+        "relative_change_pct": 21.95652330966125,
+        "W_pct": 5.447229065373968,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.324542,
+          "min": 0.27753,
+          "max": 1.562003,
+          "rounds": [
+            0.31577,
+            0.27753,
+            0.339315,
+            1.562003,
+            0.324542
+          ]
+        },
+        "right": {
+          "median": 0.270606,
+          "min": 0.244291,
+          "max": 0.366322,
+          "rounds": [
+            0.280377,
+            0.366322,
+            0.244291,
+            0.247523,
+            0.270606
+          ]
+        },
+        "relative_change_pct": -16.61911247234564,
+        "W_pct": 395.78020718427814,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 82.0,
+          "min": 82.0,
+          "max": 84.0,
+          "rounds": [
+            84.0,
+            82.0,
+            82.0,
+            84.0,
+            82.0
+          ]
+        },
+        "right": {
+          "median": 114.0,
+          "min": 112.0,
+          "max": 122.0,
+          "rounds": [
+            114.0,
+            122.0,
+            114.0,
+            114.0,
+            112.0
+          ]
+        },
+        "relative_change_pct": 39.02439024390244,
+        "W_pct": 8.771929824561402,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 1244.0,
+          "min": 1232.0,
+          "max": 1244.0,
+          "rounds": [
+            1232.0,
+            1244.0,
+            1244.0,
+            1244.0,
+            1232.0
+          ]
+        },
+        "right": {
+          "median": 2400.0,
+          "min": 2376.0,
+          "max": 2408.0,
+          "rounds": [
+            2392.0,
+            2400.0,
+            2404.0,
+            2376.0,
+            2408.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 1244,
+          "min": 1232,
+          "max": 1244,
+          "rounds": [
+            1232,
+            1244,
+            1244,
+            1244,
+            1232
+          ]
+        },
+        "right": {
+          "median": 2400,
+          "min": 2376,
+          "max": 2408,
+          "rounds": [
+            2392,
+            2400,
+            2404,
+            2376,
+            2408
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 228,
+          "min": 228,
+          "max": 228,
+          "rounds": [
+            228,
+            228,
+            228,
+            228,
+            228
+          ]
+        },
+        "right": {
+          "median": 520,
+          "min": 516,
+          "max": 524,
+          "rounds": [
+            520,
+            516,
+            524,
+            520,
+            516
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 764,
+          "min": 752,
+          "max": 764,
+          "rounds": [
+            752,
+            764,
+            764,
+            764,
+            752
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 252,
+          "min": 252,
+          "max": 252,
+          "rounds": [
+            252,
+            252,
+            252,
+            252,
+            252
+          ]
+        },
+        "right": {
+          "median": 1876,
+          "min": 1852,
+          "max": 1888,
+          "rounds": [
+            1868,
+            1880,
+            1876,
+            1852,
+            1888
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 11,
+          "min": 11,
+          "max": 11,
+          "rounds": [
+            11,
+            11,
+            11,
+            11,
+            11
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 11,
+          "min": 11,
+          "max": 11,
+          "rounds": [
+            11,
+            11,
+            11,
+            11,
+            11
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    "cpu_median_ticks": {
+      "left": 41,
+      "right": 57,
+      "absolute_delta": 16,
+      "required_delta_exclusive": 8
+    },
+    "raw_cpu_ticks": {
+      "c": [
+        42,
+        41,
+        41,
+        42,
+        41
+      ],
+      "rust": [
+        57,
+        61,
+        57,
+        57,
+        56
+      ]
+    }
+  },
+  "interpretation": [
+    "DirectCPU medianC82->G114us/query, +39.024390percent exceedsW8.771930percent,5/5direction,16tickmedian difference; everywindowpasses originalCPUminimum. This is a remaininggap againstexactC, not an E-relative regression.",
+    "Directp50median0.138419->0.168811ms, +21.956523percent exceedsW5.447229percent,5/5direction. p95is not distinguishable: originalCround4p95=1.562003ms remains in its fullrange andW395.780207percent; no outlierremoval.",
+    "C/Gcounter percentages are not composed with historicalE/C or currentE/Gresults. Oracleprofile and A53counts/latencies remain separateenvironments.",
+    "RSS/Anon/File/Shmem/FDcomponents and complete per-side ranges remain. Cdynamiclibrary mappings versusRuststatic tmpfs mappings do not establish privateheap orPSS/USS. No allocator ormicroarchitecturalcause is assigned."
+  ],
+  "health": {
+    "status": "PASS_FRESH_BASELINE_RUNTIME_GUARD_AND_RETAINED_RESTORE",
+    "scope": "Read-only local directC185health and peer C-runtime/postflight crosscheck; no device/Oracle operation.",
+    "baseline": {
+      "sha256": "a6ee89637d0cf6a990e9f6f166dd73db110038e825bcd4f08de8bb97decd093d",
+      "samples": 126,
+      "qualified_samples": 126,
+      "final_tail_samples": 0,
+      "dns_completed": 49,
+      "http_completed": 22,
+      "dns_p95_ms": 0.655,
+      "dns_max_ms": 0.686,
+      "http_max_ms": 64.322,
+      "min_memory_kib": 91048,
+      "start_epoch": 1792123617,
+      "last_sample_epoch": 1792123742,
+      "stop_epoch": 1792123743,
+      "elapsed_seconds": 125.0,
+      "final_elapsed_seconds": 125.464,
+      "sample_elapsed_step_range_seconds": [
+        0.9980000000000047,
+        1.0019999999999953
+      ],
+      "wall_epoch_step_counts": {
+        "1": 125
+      },
+      "failed_or_cancelled_qualified_probes": 0,
+      "health_stop_events": 0,
+      "full_capture_prefix_verified": true,
+      "pre_stop_files": {
+        "pre-stop-prefix.jsonl": "b08c4d089fe810a84f2c0293ad7f4dcd1bf923665a479144c42df7a47830380c",
+        "pre-stop-capture.raw": "b08c4d089fe810a84f2c0293ad7f4dcd1bf923665a479144c42df7a47830380c",
+        "stop-request.json": "01bc91b0a952963e6b56b54f6de635478f470242e611a27bf5b0b4d9c6bdfe20"
+      }
+    },
+    "runtime_guard": {
+      "sha256": "766bcd620c1fd7bbda62d659088e9f3fb9ccc94b157b83d1a11cc855d4ab666e",
+      "samples": 408,
+      "qualified_samples": 408,
+      "final_tail_samples": 0,
+      "dns_completed": 159,
+      "http_completed": 73,
+      "dns_p95_ms": 0.694,
+      "dns_max_ms": 7.384,
+      "http_max_ms": 174.192,
+      "min_memory_kib": 83092,
+      "start_epoch": 1792123768,
+      "last_sample_epoch": 1792124175,
+      "stop_epoch": 1792124175,
+      "elapsed_seconds": 407.0,
+      "final_elapsed_seconds": 407.584,
+      "sample_elapsed_step_range_seconds": [
+        0.9950000000000045,
+        1.0049999999999955
+      ],
+      "wall_epoch_step_counts": {
+        "1": 407
+      },
+      "failed_or_cancelled_qualified_probes": 0,
+      "health_stop_events": 0,
+      "full_capture_prefix_verified": true,
+      "pre_stop_files": {
+        "pre-stop-prefix.jsonl": "0409763644832e5f5660e7b5b53ca738a030ed5289d9b353b152a8324424a694",
+        "pre-stop-capture.raw": "0409763644832e5f5660e7b5b53ca738a030ed5289d9b353b152a8324424a694",
+        "stop-request.json": "92c3c88e71adbfa92efb2c1aae307da7b6e235608ac8d13a528ef4db24399b76"
+      }
+    },
+    "external_health": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "584d246fc29c92e24d94a8a2e644bbd598b06e186a711eea88e75cd74eb62c41"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "8aa943c9ec8362c1265bba11f7faae01a36051d60c9c49ad6049b581e9eb1aef"
+      }
+    ],
+    "windows_coverage": [
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-c",
+        "start_epoch": 1792123769.0,
+        "end_epoch": 1792123804.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-rust",
+        "start_epoch": 1792123807.0,
+        "end_epoch": 1792123843.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-rust",
+        "start_epoch": 1792123850.0,
+        "end_epoch": 1792123886.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-c",
+        "start_epoch": 1792123894.0,
+        "end_epoch": 1792123929.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-c",
+        "start_epoch": 1792123932.0,
+        "end_epoch": 1792123967.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-rust",
+        "start_epoch": 1792123970.0,
+        "end_epoch": 1792124005.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-rust",
+        "start_epoch": 1792124013.0,
+        "end_epoch": 1792124048.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-c",
+        "start_epoch": 1792124056.0,
+        "end_epoch": 1792124091.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-c",
+        "start_epoch": 1792124094.0,
+        "end_epoch": 1792124129.0,
+        "covered": true
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-rust",
+        "start_epoch": 1792124132.0,
+        "end_epoch": 1792124167.0,
+        "covered": true
+      }
+    ],
+    "all_extracted_files_regular_not_symlinks": true,
+    "postflight_sha256": "21fa010344c8ba4be39f53d2e4bde7ce69cd1692b2698d2a0b636dc221af71da",
+    "peer_runtime_review_sha256": "3d3cc94b9c300fad007e7cdea165ffe0e20391f17042645ba9cc5b09ecd67df9",
+    "local_controller_absent": 82505,
+    "limits": [
+      "Postflight scope wordthree is a retainedtemplate typo; actual dictionary and executedhash-then-delete shell cover4sources.",
+      "Freshsetup/runtimefacts are retainedcaptures, not newreviewer queries.",
+      "NativeC dynamicDSO RSS components are not comparable toRuststatic shm as privateheap measurements."
+    ]
+  },
+  "C_runtime_and_restore_peer": {
+    "status": "PASS_LOCAL_C_RUNTIME_AND_RECOVERY_REVIEW",
+    "scope": "Local saved evidence and exact frozen setup/controller/postflight source only; raw10 statistics/health guard are delegated to correctness. No remote access or file execution.",
+    "author_result_sha256": "fbd1bcc5d7aa64f4f95a15ce569c6fb09db2f572e3e60dd1e4c7c17961f5d1d9",
+    "exact_C_interpreter": "/lib/ld-musl-aarch64.so.1",
+    "exact_C_DT_NEEDED": [
+      "libubox.so.20260213",
+      "libubus.so.20251202",
+      "libgcc_s.so.1",
+      "libc.so"
+    ],
+    "libraries": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "fresh_runtime_check": "Frozen setup executes checked set-e library hashes and interpreter symlink assertions before recording preflight and starting controller. The recorded launch binds that exact setup script.",
+    "C_windows": [
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-c",
+        "live_maps_sha256": "f80ecf3dbc70f0cd548758d6a189a65dc3a9e70b2b5ad830641a7a6dd44ec7b1",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "mapped_libraries": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-c",
+        "live_maps_sha256": "68c5a903707ff2749bff4fe184b846c459d29193fd5f860952db3a147ffe9873",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "mapped_libraries": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-c",
+        "live_maps_sha256": "e45fc3db8eac1e292f4ca3203c488eae1ebd85b4186f275eeea1f259e8ae27b4",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "mapped_libraries": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-c",
+        "live_maps_sha256": "82a4ae6ed633033506ae317c8251cda044a5da02aae2932c2d8ce3df20797da5",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "mapped_libraries": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      },
+      {
+        "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-c",
+        "live_maps_sha256": "5bc44d1d63c583d47073f6b2fce81371b5fd7891f997b31e0014d1650b3dc69f",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "mapped_libraries": [
+          "/lib/libc.so",
+          "/lib/libgcc_s.so.1",
+          "/lib/libubox.so.20260213",
+          "/lib/libubus.so.20251202"
+        ]
+      }
+    ],
+    "ten_live_ELF_and_shared_window_tools_checked": true,
+    "four_local_staged_artifacts_rehashed": true,
+    "restoration_and_cleanup": "Frozen finally set_slots(e,f), verify_files and production_identity; restored receipt and zero cleanup errors; postflight exact four hashes before exact rm, all ten remote runs absent, no task executables, actual E/F stdout hashes match.",
+    "preserved_clerical_issues": [
+      "Raw postflight scope says three sources; actual dictionary and executed rm list contain four, each hash-checked before removal.",
+      "Raw preflight nested runtime reference retains fresh_device_reverification_pending=true from the plan; bound setup script nevertheless executes all runtime checks before launch. Final author result records completed re-verification. Neither raw record modified."
+    ],
+    "postflight_sha256": "21fa010344c8ba4be39f53d2e4bde7ce69cd1692b2698d2a0b636dc221af71da",
+    "postflight_script_sha256": "1c4f9e19dbbdebda8577758d951bbaef1b5ed1eff47b915faac2e613ce25bcce",
+    "launch_sha256": "f56d93f12327ec6b6be0b244de02eb4acfb9ad0f7f8a9048e09c08e2286ab17e",
+    "preflight_sha256": "f99fbc859461694d639ac673df686ce4985f9bc7c073840c954341b410f00d46",
+    "tool_sha256": {
+      "image_c_zero_frame_device_run.py": "0d1473497e37850aa82e967602b67c16a854a75d4b4fe4daba37f07b6876a7fd",
+      "udp_stage_device_run.py": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+      "device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+    },
+    "remote_accessed": false,
+    "executed_any_source_script": false
+  },
+  "C_runtime_peer_sha256": "3d3cc94b9c300fad007e7cdea165ffe0e20391f17042645ba9cc5b09ecd67df9",
+  "artifact_checks": {
+    "dnsmasq-rs": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051
+    },
+    "link.map": {
+      "sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+      "bytes": 3023902
+    },
+    "build.json": {
+      "sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+      "bytes": 43975
+    }
+  },
+  "preserved_clerical_notes": [
+    "Raw postflight scope says three sources; actual dictionary and executed rm list contain four, each hash-checked before removal.",
+    "Raw preflight nested runtime reference retains fresh_device_reverification_pending=true from the plan; bound setup script nevertheless executes all runtime checks before launch. Final author result records completed re-verification. Neither raw record modified."
+  ],
+  "raw_unchanged": true,
+  "prior_E_relative_G_acceptance_overturned": false,
+  "direct_C_performance_parity_met": false,
+  "private_independent_evidence": {
+    "audit.py": "e5b405ecba6203d11813d3fe9df7a031e0681ea6befb56295b29b0bd6f182029",
+    "statistical-audit.json": "93d84b9b62b51bf9c4937bc73ea06258a24137b6e6465cfc6093620f9b9f6460",
+    "verify_health.py": "8c488303e01148a1a2f7ee418db78d96fadc0dd7966bb28e73021dddeec13b90",
+    "health-independent.json": "6e32de3c42b1598a81745ad4572f613f896425ed79f960ab85825d175a5239bb",
+    "runtime-peer-review.json": "3d3cc94b9c300fad007e7cdea165ffe0e20391f17042645ba9cc5b09ecd67df9"
+  },
+  "new_workload_or_verifier_framework": false,
+  "production_deployment": false
+}
