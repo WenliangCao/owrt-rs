@@ -1,0 +1,82 @@
+{
+  "schema": "dnsmasq-g-udp-allocation-device-tool-independent-review-v1",
+  "status": "PASS_LOCAL_THREE_WINDOW_COUNT_TOOL_REVIEW_EXACT_SDK_AND_DEVICE_PREFLIGHT_PENDING",
+  "author_commit": "b41b5fd3d4970ba4a190e324692308e721112878",
+  "plan_sha256": "874d4637a532096834ca626f79c8f1d97df947aa119b2a1e7dbc399b8caad3d1",
+  "diagnostic_source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "driver_sha256": "102214b8be56613658ae8387ec2767dcc301c3c28e17f7b65581a5baacc385df",
+  "original_meter_parser_module_sha256": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1",
+  "bundle_hashes": {
+    "runtime": {
+      "device_health_baseline.py": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "g_udp_allocation_device_run.py": "102214b8be56613658ae8387ec2767dcc301c3c28e17f7b65581a5baacc385df",
+      "udp_allocation_device_run.py": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1"
+    },
+    "health": {
+      "device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df"
+    }
+  },
+  "review": [
+    "Exactly3fixedlabels andoriginalrust/UDP-hit caseargs; no scene/mode/resume/counttarget flag. The originalEper-windowcommand/validation/meter/progress/prune body is byte-identical after removing the added archive-attempt marker.",
+    "meter_report is a directfunction alias to the hash-pinned old823fmodule, with no wrapper orarithmetic changes. ActualCached denominator includesprewarm hits; no5000substitution and nozero allocation target. Wholeturn matrices andconditionalcached-onlysubset remain distinct.",
+    "Originalschema/nonnegativeinteger/histogram/conservation checks, singlethread samples and nested/unscoped0 remain. Zero andnonzero allocations bothaccepted only with consistentcounts. Caseexit andCOMPLETE continuebinding normaldaemonexit via the unchangedset-e case.",
+    "Firstarchive_attempted marker is set before archive_run. Failuredoesnot invoke the samearchive again or overwritepartialtar/extractionevidence. If the firsttransfer failed beforecreating localtar, this records anattempt, not a verifiedarchive; remote failedwindowraw remains unpruned.",
+    "Finalcapture happens onlyafterall3windows,CPUendpoints,archives anddurableprogress. Capture/finalJSON/runtimeguardvalidation stay inside failurehandling; unsafe outcomes recordfailure, attemptSTOP andcannot producecomplete. Wholecapturedbytes includingpartiallastline are bound by original8e33runtimehelper.",
+    "Runtime7c93+8e33 uses safety/observedoutcomes without120s orobservationpresence gates; freshhealth remains a distinct7c93+0926bundle with125scollection/>=120s qualification. No padding orhistoricalprefix reuse.",
+    "finally fills onlymissingguardfiles, preserving an alreadycaptured invalidfinal. Cleanup-only copyerrors are recorded incleanup.json andexit nonzero withoutcomplete; they do not necessarilyaddfailure.json. No automaticreplacement orretry ofa measuredwindow exists.",
+    "Complete means3valid countwindows andguardvalidation, not E/Frestoration. Externalpostflight stillmust verifyraw,ensureallownedinstancesexit, restoreexactE/F andverifyproduction as already specified by theplan. InstrumentedCPU/latency andrelease-size acceptance remainexcluded."
+  ],
+  "independent_checks": {
+    "original_parser_and_zero_nonzero_controls": {
+      "tests": 6,
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_g_udp_allocation_device_run",
+        "-v"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "4f0895a1d55f87164e7b93e60bfebdb81b9d1ab6bb2847912a9a7ce082a7bb07",
+      "device_or_Oracle_access": false
+    },
+    "private_controller_boundary_checks": {
+      "exit": 0,
+      "tests": 8,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ee76d1fc0b0683bfed23198f784292e3fe97460796b0e417144df1bc1e2a9ab7",
+      "script_sha256": "2f34467ab8d20602755dc894fb52d3c22f1b3d7238d5b5ab99c66f8b1d5df20e",
+      "scope": "Private mocked controller use of actual reviewed runtimebundle; no source edit, new gate, device or Oracle operation.",
+      "new_boundary_tests": 4,
+      "reused_original_control_tests": 4
+    },
+    "distinct_new_boundary_cases": [
+      "All3archives/progress beforecapture; a90s runtime segment without scheduledprobes completes withoutbaselinepadding; originalnonzero counts retained.",
+      "Firstpartialarchive failure launches/archive-attempts only1, preservesfirstbytes, no prune/complete, attemptsSTOP.",
+      "Originalvalidator failure afterarchive preservesfirstcompletearchive anddoesnotrearchive orprune.",
+      "Unsafepostcapturetail preservesall3windows, recordsfailure andSTOP, no complete."
+    ],
+    "scope": "Private mocked use of actualplannedruntimebundle; no product/testframework/gate addition or remote/device call."
+  },
+  "parallel_source_review": "Loop independently checked exception/finally paths and confirmed firstattempt preservation, nofalsecomplete and externalrestoration responsibility; no source blocker.",
+  "pending": [
+    "Exactsource7c5b SDK ELF/map/build receipt and independentreview delivered; keep all failedbuild records and original releasebudget result, no sizegate relaxation.",
+    "Correctness reviews newGdriver identity/label and capture-boundary adaptation with original meter_report unchanged.",
+    "Fresh originalhealth+offlinebackups+production/slot/helper/idle recoverygates, then atomically stage ownedrustslot only.",
+    "Three original fixedwindows only, failstop/no selective replacement; verifyallraw then restoreoriginalE/F."
+  ],
+  "source_review_reference": {
+    "commit": "98367eec",
+    "sha256": "ccbd9bc4f472c0b8716fb62aa38ee330137ab445c19e3812942d94ea69925bc6"
+  },
+  "diagnostic_SDK_identity_pending": true,
+  "device_launch_released_by_this_review": false,
+  "observed_allocation_result": null,
+  "timing_eligible": false,
+  "zero_count_required": false,
+  "remote_or_router_accessed": false
+}
