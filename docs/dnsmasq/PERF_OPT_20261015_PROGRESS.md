@@ -7,9 +7,10 @@
 0可辨退化/33未分辨。未命中CPUclock配对+8.33µs与TCP-hit/HUP-large尾延迟上升仍保留。
 ELF2,288,419B/APK1,293,163B符合新PGO上限；生产未改，无部署、推送或产品合入main。
 正式身份和证据见[candidate-j-acceptance.json](audits/perf-opt-20261015/candidate-j-acceptance.json)。
-当前K（4ce24c62）已过实际44/67和运行资格；接续600秒真实查询采样、公开C/J16、
-v0.2.0/J10，再K14双栈筛选。采样只留聚合，AD/CD/OPT的普通fresh路径已证实仍零分配，
-不能按D1回退占比折减整个J的收益；实际覆盖及下一决定等待样本。
+K（4ce24c62）已过实际44/67和运行资格；公开C/J16、v0.2.0/J10直接对照后跑K14双栈筛选。
+600秒夜间真实样本只有19条：AD/CD 0/19，18条可解析查询OPT 0/18，备用原型新增覆盖0；
+另1条body未知，样本不能外推全天。暂不启用备用；AD/CD/空OPT的普通fresh路径仍零分配，
+不能按D1回退占比折减整个J的收益。全部新数字见统一结果。
 后续以[统一计划](audits/perf-opt-20261015/FROZEN_RESEARCH_SUPPLEMENT_20261016.md)和
 [统一结果](audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md)为准，下面保留旧阶段事实。
 
