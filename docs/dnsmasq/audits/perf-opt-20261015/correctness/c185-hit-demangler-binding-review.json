@@ -1,0 +1,48 @@
+{
+  "schema": "dnsmasq-c185-demangler-path-independent-review-v1",
+  "status": "PASS_MINIMAL_PRECAPTURE_ANALYSIS_PATH_SUPPLEMENT",
+  "reviewed_commit": "e6d42ac08c77b255c4a6c3c18a61dbb0a60e3191",
+  "original_plan_sha256": "f413ce0507f4047d0d701de59ab2118418fac024c4858d317833850221444c86",
+  "binding_sha256": "434eeba65071f4d2d30e30921adffcbe64ada86c73e882bc328f3492eea5671c",
+  "original_plan_review_commit": "2e5ff275",
+  "verified": {
+    "analysis_commands": 16,
+    "all_argv_equal_original_plus_two_arguments": true,
+    "added_arguments": [
+      "--demangler",
+      "/usr/bin/llvm-cxxfilt-18"
+    ],
+    "original_plan_bytes_unchanged": true,
+    "all8_tool_private_bytes_rehashed_unchanged": true,
+    "capture_order_argv_events_intervals_unchanged": true,
+    "analyzer_computations_and_unknown_denominator_unchanged": true,
+    "both_original_CE_Rust_cycle_records_match_path_and_version_exactly": true,
+    "no_instruction_sampling_added": true
+  },
+  "demangler": {
+    "path": "/usr/bin/llvm-cxxfilt-18",
+    "resolved": "/usr/lib/llvm-18/bin/llvm-cxxfilt",
+    "sha256": "02844bb3fb31912de262f92211730c26796229190bd6b2814e5983a38b476bb6",
+    "version": "/usr/bin/llvm-cxxfilt-18\nUbuntu LLVM version 18.1.3\n  Optimized build."
+  },
+  "retained_demangler_identity_sha256": "cdf7e39a9ce6048bd7043447ce35618b4b1999392783424221d46535484ca35f",
+  "failure_preservation": {
+    "reason": "Bare llvm-cxxfilt unavailable in sudoPATH; explicit originalversion path supplied before firstcapture.",
+    "original_receipt": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/preflight-attempt1-failure.json",
+    "capture_count_before_fix": 0,
+    "failure_receipt_and_zero_capture_status": "Reported by executionowner; no remote read by reviewer."
+  },
+  "owner_preflight": {
+    "reported_sha256": "13f1da37a1f150fa8c418e2eda1b7af0e5a0b9877105b6788ee81b3c33e977c9",
+    "reported_checks": "21bindings,179sourcefiles,no researchprocesses,3locks available.",
+    "scope": "Ownerperformed remoteverification; review confirms localbindings and originalhistoricaldemangler metadata, not a secondremote executable read."
+  },
+  "serial_launcher_review": {
+    "sha256": "23922c616c6766ca642bd63ecd8553d01c01d67b4ac1044b1cf2c30b062fe2a4",
+    "behavior": "Pinsplan andsupplement hashes, rechecks preflightbindings/versions, creates freshoutputroot, runs original16captureargv serially then16supplementanalysisargv, records eachreturn and stops/preservesfailure on nonzero. No observationtool change."
+  },
+  "disposition": "Supplementapproved; executionowner notified immediately to proceed under rootexisting release/authorization. No new userpermission or favorablecapture retry.",
+  "remote_accessed_by_reviewer": false,
+  "new_test_or_observer_framework": false,
+  "performance_acceptance": false
+}
