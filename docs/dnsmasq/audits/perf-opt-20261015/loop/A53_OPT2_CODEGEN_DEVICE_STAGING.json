@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "status": "ORIGINAL_FRESH_HEALTH_AND_FOUR_IMMUTABLE_COPIES_COMPLETE_BEFORE_ANY_TIMING",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "elf_sha256": "2156c7f5f8eb22c64262e6f92939f36ec82b72e30fe2c732baed0993cc1cb3c5",
+  "source_files_verified": 179,
+  "original_slots_unchanged": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "stage_receipt_sha256": "28baa946a11d628874534ba5e0360cabdf0c81c62276f8e03aa018becc2497e7",
+  "stage_receipt": {
+    "scope": "Original operator preflight and four immutable source copies complete; no windows or slot changes started.",
+    "plan_sha256": "691bace9192ee5ae0e68130f04ec26a75cdbb879c8c63e6356ea9735cdb0e7ec",
+    "health_summary_sha256": "02fa8c7587266238e0922dc9f0adc6f10cd850c966f957a72afb18787712878c",
+    "preflight_sha256": "ccef87fd59a75d9d64deb71bdae4287b7049facb97e65962fa78f074d24b07c6",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "original_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "script_sha256": "795baccd5b0006d1fee46c6ee45d8ec2d77bfce2c563eff3c57f4a3ba9fdb0b0",
+    "epoch": 1792136733.244939
+  },
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.447,
+    "dns_samples": 50,
+    "dns_p95_ms": 0.668,
+    "dns_max_ms": 1.948,
+    "http_samples": 23,
+    "http_max_ms": 158.782,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "11958d42ee08d829347679d27d2aa3a62695ee088cf46ee774933c9ac84c7836",
+    "raw_sha256": "caf31f36dfa5ddd28968221c68cda97ce57f927323a89174ddc23853f6f6a1ed"
+  },
+  "available_memory_before_staging_kib": 94616,
+  "immutable_sources": {
+    "e": {
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "f": {
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "g": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    },
+    "opt2-codegen": {
+      "sha256": "2156c7f5f8eb22c64262e6f92939f36ec82b72e30fe2c732baed0993cc1cb3c5",
+      "bytes": 2046747,
+      "verified_before_rename": true
+    }
+  },
+  "staged_bytes": 8465516,
+  "measurement_started_at_this_checkpoint": false,
+  "pending_before_start": "DNS actualfinalquiet/allnecessarytransfers receipt andloopfinalready metadata, thenoriginalstart rechecks alloriginalprod/slot/identity/idle/memory gates."
+}
