@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "scope": "Local Mac synchronous prepared UDP API and explicit returned-reply recycle; not sockets/whole owner/A53 CPU",
+  "source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "probe_sha256": "7d62b8237323bd29e5f2e76255ac2cfec48cc2c50be390427422c4db447d7ae4",
+  "controller_sha256": "a7d69f9e6b6458565a311cae021753e3384ffb68444c2e901e6bd51a9b1470dc",
+  "commands": [
+    {
+      "label": "accepted-E-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-accepted-e-readonly-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7f3a10121006f8213cad740f81dd1c6d6425c37aa3f5a8b66192161c6d451ce6"
+    },
+    {
+      "label": "accepted-E-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/accepted-E"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "accepted-E-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/accepted-E",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e990b2b7af7107c2c37034b967070fa98bf3e604995f6363a07fc29c1291d593",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "recycled-lib",
+      "argv": [
+        "cargo",
+        "+1.98.1",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target-dir",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/cargo",
+        "-j",
+        "1"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a95eb93e878420295c0858e1cdc5057d0c4ce509c468754e14ff3aeea590f352"
+    },
+    {
+      "label": "recycled-probe",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--cfg",
+        "allocation_tracking",
+        "--cfg",
+        "recycle_reply",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "panic=abort",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/cargo/release/libdnsmasq_rs.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/cargo/release/deps",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/probe.rs",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/recycled"
+      ],
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "recycled-counts",
+      "argv": [
+        "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cached-zero-frame-count/recycled",
+        "8000"
+      ],
+      "exit": 0,
+      "stdout_sha256": "2f986662ec4a82ea470773e31664a0aab43f75e8994247ca111b89a59781e428",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rows": [
+    {
+      "side": "accepted-E",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 0,
+      "requested_bytes": 2216000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "side": "recycled",
+      "operations": 8000,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    }
+  ],
+  "binaries": {
+    "accepted-E": "6d5c3fe8c1326b1b24f40687133e23a5543dcc65845e6ef85197965571e64626",
+    "recycled": "c25dd5f9cd418f2af3574d5e087c7e4a2ac9204963b7099ef14b354b52e96c9e"
+  },
+  "tests": {
+    "library": "721 passed,8 ignored",
+    "musl_all_target_check": "passed",
+    "log_hashes": {
+      "private/cached-zero-frame-lib.stdout": "d4da349dba27427db4e933f27c7147ffa3ec1b53870bf04a06a1e8dbf2003cfd",
+      "private/cached-zero-frame-lib.stderr": "4ef240f3af60699538743f4c4a012fc08008c1b6d9e76ce346394aae3bb07912",
+      "private/cached-zero-frame-musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "private/cached-zero-frame-musl.stderr": "063d47ee4916c9589b14764949357ec342f83c5e705bc2e2236246138817dcff"
+    }
+  },
+  "limits": [
+    "Fresh E comparison in the same local probe; not derived by summing earlier counters.",
+    "Per-operation E5allocations/277requested bytes vs185zero after1000 prewarm; retains one response allocation and name scratch.",
+    "Probe fixture differs from earlier physical E allocation fixture5/270B. Do not conflate requested-byte values.",
+    "Equal checksum468800,zero reallocations and net live-byte deltas; no latency or CPU result."
+  ]
+}
