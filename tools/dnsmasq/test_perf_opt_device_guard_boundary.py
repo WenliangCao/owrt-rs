@@ -21,7 +21,8 @@ def encode(rows):
 
 
 class GuardBoundaryTests(unittest.TestCase):
-    def simulate(self, scenes=('udp-hit',), fault=None):
+    def simulate(self, scenes=('udp-hit',), fault=None, completed=None, elapsed=325,
+                 probes=True, external_rows=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
@@ -29,11 +30,43 @@ class GuardBoundaryTests(unittest.TestCase):
         baseline = root / 'baseline.json'
         baseline.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
         segments, launches, archives, deletions = [], [], [], []
-        external = [dict(ip_version=v, exit=0, result='200 0.08') for v in (4, 6)]
+        external = ([dict(ip_version=v, exit=0, result='200 0.08') for v in (4, 6)]
+                    if external_rows is None else external_rows)
         start = dict(event='start', production_pid=3086, production_starttime=2115, ipv4_default_initial=1)
         sample = dict(event='sample', elapsed_s=0, production_pid=3086, production_starttime=2115,
                       mem_available_kib=90000, ipv4_default=1, dns_ok=1, dns_rtt_ms=.5,
                       http_status=403, http_rtt_ms=50)
+        if not probes:
+            sample.update(dns_ok=-1, http_status=-1)
+        completed = completed or {}
+        retained = {}
+        if completed:
+            out.mkdir()
+            progress = []
+            for scene, count in completed.items():
+                labels = [(pair, side) for pair in range(1, 6)
+                          for side in (('c', 'rust') if pair % 2 else ('rust', 'c'))]
+                for pair, side in labels[:count]:
+                    label = f'boundary-{scene}-r{pair}-{side}'
+                    folder = out / 'runs' / label
+                    folder.mkdir(parents=True)
+                    raw = b'previous immutable final CPU endpoint\n'
+                    (folder / 'final.stat').write_bytes(raw)
+                    (out / (label + '.archive.json')).write_text(json.dumps({
+                        'files': {'final.stat': hashlib.sha256(raw).hexdigest()}}))
+                    progress.append(dict(label=label, scene=scene, round=pair, side=side,
+                                         valid=True, errors=[], epoch=1))
+            (out / 'progress.json').write_text(json.dumps(progress))
+            (out / 'identity.json').write_text(json.dumps({
+                'production_pid_start': [3086, 2115], 'comparison': {'c': 'c', 'rust': 'r'},
+                'threshold_ms': 200, 'health_baseline_sha256': hashlib.sha256(baseline.read_bytes()).hexdigest(),
+                'controller_sha256': hashlib.sha256(Path(run.__file__).read_bytes()).hexdigest(),
+                'health_evidence_sha256': run.HEALTH_EVIDENCE_SHA}))
+            previous = out / 'previous-segment'
+            previous.mkdir()
+            (previous / 'pre-stop-capture.raw').write_bytes(b'old evidence must never be borrowed or changed')
+            retained = {p: p.read_bytes() for p in out.rglob('*') if p.is_file()
+                        and p.name != 'progress.json'}
 
         class Monitor:
             def __init__(self, target, args, daemon):
@@ -52,28 +85,30 @@ class GuardBoundaryTests(unittest.TestCase):
 
         def guard_start(pid, label, threshold):
             self.assertEqual((pid, threshold), (3086, 200))
-            prefix = [copy.deepcopy(start), copy.deepcopy(sample), {**sample, 'elapsed_s': 325}]
-            tail = {**sample, 'elapsed_s': 326, 'http_status': 0, 'dns_ok': 0}
+            prefix = [copy.deepcopy(start), copy.deepcopy(sample), {**sample, 'elapsed_s': elapsed}]
+            tail = {**sample, 'elapsed_s': elapsed + 1, 'http_status': 0, 'dns_ok': 0}
             if fault == 'prefix-http':
                 prefix[-1]['http_status'] = 0
             if fault == 'unsafe-tail':
                 tail['mem_available_kib'] = 65535
-            final = prefix + [tail, dict(event='monitor_stopped', elapsed_s=326.1)]
+            final = prefix + [tail, dict(event='monitor_stopped', elapsed_s=elapsed + 1.1)]
             if fault == 'missing-stopped':
                 final.pop()
             capture = encode(prefix) + encode([tail])[:17]
             if fault == 'partial-capture-changed':
                 capture = encode(prefix) + b'{"event": "sample", "elapsed_s": 999'
             segments.append(dict(label=label, prefix=encode(prefix), capture=capture,
-                                 final=encode(final), stopped=False, archives_at_start=len(archives)))
+                                 final=encode(final), stopped=False, archives_at_start=len(archives),
+                                 pending=10-next((count for scene, count in completed.items()
+                                                  if label.startswith('boundary-' + scene + '-guard-')), 0)))
             return (100 + len(segments), 200 + len(segments))
 
         def ssh(command, **kwargs):
             if command.startswith('cat ') and command.endswith('.jsonl'):
                 segment = segments[-1]
                 if not segment['stopped']:
-                    self.assertEqual(len(archives) - segment['archives_at_start'], 10)
-                    for label in archives[-10:]:
+                    self.assertEqual(len(archives) - segment['archives_at_start'], segment['pending'])
+                    for label in archives[segment['archives_at_start']:]:
                         self.assertTrue((out / 'runs' / label / 'final.stat').exists())
                         self.assertTrue((out / (label + '.archive.json')).exists())
                 raw = segment['final'] if segment['stopped'] else segment['capture']
@@ -85,7 +120,7 @@ class GuardBoundaryTests(unittest.TestCase):
         def stop(identity):
             segment = segments[-1]
             evidence = out / segment['label']
-            self.assertEqual(len(archives) - segment['archives_at_start'], 10)
+            self.assertEqual(len(archives) - segment['archives_at_start'], segment['pending'])
             self.assertEqual((evidence / 'pre-stop-capture.raw').read_bytes(), segment['capture'])
             self.assertEqual((evidence / 'pre-stop-prefix.jsonl').read_bytes(), segment['prefix'])
             self.assertTrue((evidence / 'stop-request.json').exists())
@@ -109,7 +144,9 @@ class GuardBoundaryTests(unittest.TestCase):
             (destination / 'external-health.jsonl').write_bytes(encode(external))
 
         argv = ['full-run', '--out', str(out), '--prefix', 'boundary',
-                '--health-baseline', str(baseline)]
+                '--health-baseline', str(baseline), '--c-hash', 'c', '--rust-hash', 'r']
+        if completed:
+            argv.append('--resume')
         if scenes is not None:
             argv += ['--scenes', *scenes]
         with patch('sys.argv', argv), patch.object(run, 'ssh', side_effect=ssh), \
@@ -122,13 +159,17 @@ class GuardBoundaryTests(unittest.TestCase):
              patch.object(run, 'archive_run', side_effect=archive), \
              patch.object(run, 'validate', return_value=[]), \
              patch.object(run.subprocess, 'Popen', side_effect=launch), \
-             patch.object(run.threading, 'Thread', Monitor), patch.object(run.time, 'sleep'), \
+             patch.object(run.threading, 'Thread', Monitor), patch.object(run.time, 'sleep') as sleep, \
              contextlib.redirect_stdout(io.StringIO()):
             if fault:
                 with self.assertRaises((AssertionError, RuntimeError)):
                     run.main()
             else:
                 run.main()
+        if fault != 'missing-stopped':
+            sleep.assert_not_called()
+        for path, data in retained.items():
+            self.assertEqual(path.read_bytes(), data)
         return out, segments, launches, archives, deletions, emergency_stop.call_count
 
     def test_all_original_110_windows_archive_before_11_distinct_stop_boundaries(self):
@@ -170,6 +211,36 @@ class GuardBoundaryTests(unittest.TestCase):
                 self.assertEqual((len(launches), len(archives), stops), (10, 10, 1))
                 self.assertTrue((out / 'failure.json').exists())
                 self.assertFalse((out / 'complete.json').exists())
+
+    def test_resume_skips_complete_scene_and_runs_only_one_remaining_short_window(self):
+        out, segments, launches, archives, deletions, stops = self.simulate(
+            scenes=('udp-hit', 'udp-miss'), completed={'udp-hit': 10, 'udp-miss': 9},
+            elapsed=31, probes=False, external_rows=[])
+        self.assertEqual((len(segments), len(launches), len(archives), len(deletions), stops), (1, 1, 1, 1, 0))
+        self.assertEqual(archives, ['boundary-udp-miss-r5-rust'])
+        self.assertIn('udp-miss-guard-', segments[0]['label'])
+        evidence = json.loads((out / segments[0]['label'] / 'guard-verification.json').read_text())
+        self.assertEqual(evidence['pre_stop_elapsed_seconds'], 31)
+        self.assertEqual(json.loads((out / 'complete.json').read_text())['windows'], 20)
+
+    def test_resume_all_completed_starts_no_guard_or_window(self):
+        out, segments, launches, archives, deletions, stops = self.simulate(
+            scenes=('udp-hit', 'udp-miss'), completed={'udp-hit': 10, 'udp-miss': 10}, external_rows=[])
+        self.assertEqual((segments, launches, archives, deletions, stops), ([], [], [], [], 0))
+        self.assertEqual(json.loads((out / 'complete.json').read_text())['windows'], 20)
+
+    def test_short_hup_remainder_keeps_runtime_safety_without_sample_minimum(self):
+        out, _, launches, archives, _, stops = self.simulate(
+            scenes=('hup-small',), completed={'hup-small': 9}, elapsed=.1, probes=False, external_rows=[])
+        self.assertEqual((len(launches), archives, stops), (1, ['boundary-hup-small-r5-rust'], 0))
+        self.assertTrue((out / 'complete.json').exists())
+
+    def test_bad_probe_in_short_resume_still_stops_without_replacing_windows(self):
+        out, _, launches, archives, _, stops = self.simulate(
+            scenes=('udp-hit',), completed={'udp-hit': 9}, elapsed=31, fault='prefix-http')
+        self.assertEqual((len(launches), archives, stops), (1, ['boundary-udp-hit-r5-rust'], 1))
+        self.assertFalse((out / 'complete.json').exists())
+        self.assertEqual(len(json.loads((out / 'failure.json').read_text())['results']), 10)
 
     def test_helper_identity_failure_precedes_any_device_action(self):
         with patch('sys.argv', ['full-run', '--out', '/unused', '--health-baseline', '/unused']), \

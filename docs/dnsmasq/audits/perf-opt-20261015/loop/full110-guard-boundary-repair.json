@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL_TOOL_FIX_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "status": "SUPERSEDED_UNAPPROVED_RUNTIME_COVERAGE_DEFECT",
   "scope": "Per-scene guard evidence boundary after all original timed windows/endpoints/archives; no product,workload,CLI or statistical change; not a formal110 launch",
   "old_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "controller_sha256": "c4f196805889abf996e006d52ef53539423f4ad8d88d9d512180dadf76791a2c",
@@ -71,5 +71,7 @@
   "Oracle_accessed": false,
   "formal110_executed": false,
   "private185ten_snapshot_modified": false,
-  "independent_review_passed": false
+  "independent_review_passed": false,
+  "superseded_by": "full110-runtime-boundary-repair.json",
+  "remaining_blocker_found_after_initial_tests": "Initialruntimeconsumerincorrectlyrequired120s/probecoverage; shortresume was not represented in the first42tests. New48testscoverresume and explicitseparation."
 }

@@ -17,7 +17,7 @@ import time
 
 ROOT = '/tmp/dnsmasq-perf-20261015'
 PRODUCTION = '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'
-HEALTH_EVIDENCE_SHA = '0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad'
+HEALTH_EVIDENCE_SHA = '8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e'
 SCENES = [
     ('udp-hit', 'udp', 'hit', 200, 5, 20, 150),
     ('udp-miss', 'udp', 'miss', 200, 5, 20, 150),
@@ -308,23 +308,23 @@ def main():
             # now; its complete final log is checked again after joining below.
             external_capture = (args.out / 'external-health.jsonl').read_bytes()
             (guard_out / 'external-health-capture.raw').write_bytes(external_capture)
-            external_prefix = health_evidence.complete_prefix(external_capture)
-            qualified, samples, end = health_evidence.validate_guard_evidence(
+            external_prefix = external_capture[:external_capture.rfind(b'\n') + 1]
+            qualified, samples, end = health_evidence.validate_runtime_guard_evidence(
                 prefix, final, [json.loads(line) for line in external_prefix.splitlines()], identity,
                 (guard_out / 'pre-stop-capture.raw').read_bytes())
             write(guard_out / 'guard-verification.json', {
                 'health_evidence_sha256':helper_sha,
                 'qualified_samples':len(qualified), 'final_samples':len(samples),
                 'final_tail_samples':len(samples)-len(qualified),
-                'pre_stop_elapsed_seconds':qualified[-1]['elapsed_s'],
+                'pre_stop_elapsed_seconds':qualified[-1]['elapsed_s'] if qualified else None,
                 'final_elapsed_seconds':end['elapsed_s'],
                 'final_sha256':hashlib.sha256(final).hexdigest()})
         finished.set(); monitor.join(timeout=12)
         if monitor.is_alive() or failed.is_set():
             raise RuntimeError('external health failed or did not finish')
         external = [json.loads(line) for line in (args.out / 'external-health.jsonl').read_text().splitlines()]
-        if ({row['ip_version'] for row in external} != {4, 6}
-                or any(row['exit'] != 0 or not row['result'].startswith('200 ') for row in external)):
+        if any(row['ip_version'] not in (4, 6) or row['exit'] != 0
+               or not row['result'].startswith('200 ') for row in external):
             raise RuntimeError('final external health evidence failed')
         write(args.out / 'complete.json', {'complete':True, 'windows':len(results), 'valid':sum(r['valid'] for r in results)})
     except BaseException as error:
