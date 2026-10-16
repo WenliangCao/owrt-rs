@@ -1,0 +1,67 @@
+{
+  "scope": "Compile-time sizeof public opaque iterator type; no process workload or timing",
+  "probe_sha256": "9748e681e79af61f2e442f4f18684180ae73d2d1e1f2ae9aa7c28307340653a5",
+  "commands": [
+    {
+      "side": "parent",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--crate-type=lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Cpanic=abort",
+        "--emit=asm",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libdnsmasq_rs-afef59975d55ca03.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/parent-iterator-size.s",
+        "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/iterator-size.rs"
+      ],
+      "exit": 0,
+      "rlib_sha256": "86880635c69411cd28fc659de27a4b2df13e1f726746b2c645d43ded4c3572bc",
+      "assembly_sha256": "0179ce1b6f97cde2478edc80d5a00052733a39e145d0220ed0aecff1847e3708",
+      "assembly": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/parent-iterator-size.s"
+    },
+    {
+      "side": "slice",
+      "argv": [
+        "rustc",
+        "+1.98.1",
+        "--edition=2021",
+        "--crate-type=lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Cpanic=abort",
+        "--emit=asm",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libdnsmasq_rs-a0a3631dbddef52f.rlib",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/slice-iterator-size.s",
+        "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/iterator-size.rs"
+      ],
+      "exit": 0,
+      "rlib_sha256": "eb5b5b9b87a984b578a7860b7de96416bb77e067e022e15d73f13894d20dbc7c",
+      "assembly_sha256": "c90bfa6beb549bc58b9e830653ea394de32d085a4f5599da361c3fcddc5f6989",
+      "assembly": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/slice-iterator-size.s"
+    }
+  ],
+  "source": "210801cfc46db03671c8cbfe45bbb83e513006db",
+  "iterator_size_bytes": {
+    "parent6ab": 64,
+    "slice210": 32
+  },
+  "cached_ownership_frame_bytes": {
+    "parent6ab": 368,
+    "slice210": 336
+  },
+  "private_receipt_sha256": "3a738a175c15c048853d6073159f9a7eab496733be7a00beb4626e22450a16fe",
+  "scope_limit": "Pure compile-time layout extraction and existing code decoding; no measurement, allocation, A53 or CPU inference."
+}
