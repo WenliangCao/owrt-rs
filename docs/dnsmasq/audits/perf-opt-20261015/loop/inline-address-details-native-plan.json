@@ -375,7 +375,7 @@
   "build_lock": "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
   "stop_file": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/inline-address-details-native-screen1/STOP",
   "retry_policy": "Stop on any failed window, preserve all attempts; no replacement or selective rerun",
-  "reservation": "PREPARATION ONLY. No upload/build/measurement. Requires prior803 complete quiet release, fresh original1df related963 actual gate, canonical original SDK triple, independent actual audit, source/pretransfer checks and explicit exclusive native slot release.",
+  "reservation": "DNS explicitquiet received after fullactualaudit and bothpretransfers. Native240 executesfirst; owner32 launch additionally requires completednative240 rawidentity/postflight/quiet. No bulk or unrelated builds duringtiming.",
   "builds": "Pinned original native opt3 fat LTO codegen1; both G and bare1df libraries/probes build before any timing.",
   "sdk_followup": {
     "scope": "Separate exact-SDK G/1df original owner32 after native quiet handoff; no pooling.",
@@ -426,7 +426,7 @@
   "protocol_commit": "b17f4010",
   "reused_runner_sha256": "119d49a162d47c9dc7b8f7b88de6f4a0119b6a0126cca4ce19fb81ca138d94be",
   "mechanism_limit": "Original public hot15 can screen cache/lease paths and inherited regressions but omits SinglePoll, private socket Rc, owner clocks and owner reply recycling. Whole-process measurements include setup/priming/teardown.",
-  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
+  "status": "FROZEN_ACTUAL_G1DF_NATIVE240_READY_AFTER_PRETRANSFER",
   "linux_gate": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/inline-address-details-related-verified.json",
     "sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
@@ -479,9 +479,14 @@
     "path": "correctness/inline-address-details-actual-screen-root-review.json",
     "sha256": "61a54290f1021d8b650445ce1a387f23e95d924b4483acf084eb4095384f01a4"
   },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "execution_enabled": false,
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/inline-address-details-execution-20261016/release-to-measurements.json",
+    "sha256": "9f2b03fc7a110bc8d8fa3274961df06970ff5f09548a8b3c2bf9520f6e01961c",
+    "epoch": 1792139848.4481058,
+    "scope": "Both pretransfers and fullactual independent audits complete; originalnative240 thenowner32, device10 separately."
+  },
+  "pretransfer_complete": true,
+  "execution_enabled": true,
   "not_included": "No 210/849/2b/803 combination, lazy metrics, new scene, longer window, compiler experiment, updated loadgen or changed original workload/analyzer formula. Bare 1df source only.",
   "queue": "803 original owner32 and routerten plus complete raw audits/transfers and explicit quiet release first; then fresh 1df original five related groups and canonical SDK, actual independent review, exact source/artifact bindings and pretransfer, native240 then owner32 with separate quiet boundary. Current preparation remains disabled.",
   "declared_plan_commit": "21a8ffcb",
@@ -492,5 +497,13 @@
     "path": "correctness/inline-address-details-screen-root-review.json",
     "sha256": "7e9c1fafcbbdb38b95bd73b5467fc485b33be25b9dc2733b7f328e696a4b87d7",
     "scope": "Original disabled preparation protocol only; actual identity delta review pending."
+  },
+  "pretransfer_inputs_archive_sha256": "5fd0a370d9aa846f4a0cb0a400c1e69ef28879ddcda26273ca3eb018e3753a63",
+  "device_pretransfer": {
+    "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-inline-address-details-device-stage-complete.json",
+    "sha256": "2199bffccaefcee6413c86ec764cd149d3b1847daafb1902958613d12cc3ae11",
+    "preflight_sha256": "a98b57508c05c77635297a38a590ca5918d3fac15066da45ad2f571f996479da",
+    "health_summary_sha256": "70b278a7a8bd778cb8aae3c62210d27ec4cf69d52193576f796ae037352ff643",
+    "no_workload_started": true
   }
 }

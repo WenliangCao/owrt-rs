@@ -1,0 +1,24 @@
+{
+  "scope": "Original G185/bare1df native240; includes inherited6ab changes, no isolated inline-only attribution.",
+  "pid": 996086,
+  "starttime_ticks": 186458238,
+  "epoch": 1792139965.1649783,
+  "utc": "2026-10-16 08:39:25 UTC",
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/inline-address-details-native-screen1/run_inline_address_details_native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/inline-address-details-native-screen1"
+  ],
+  "native_plan_sha256": "d16217a0864a5ccf64c9e2e4f355b29f52386667a087f2b855075c52f85d90fd",
+  "owner32_plan_sha256": "54c1536a3499f68b802bad388118d90e8ecc0bfd2c6bbfceb0a4c4f930c746d3",
+  "controller_sha256": "d07635e57dab56533425d1ba65dd4635b7670bcce02c80e58d507d34a8fef74b",
+  "explicit_release_sha256": "9f2b03fc7a110bc8d8fa3274961df06970ff5f09548a8b3c2bf9520f6e01961c",
+  "preflight_sha256": "2979b8b06727ad40d4400043fa3ed0442e82366e8f0d5b8204516ec3700809f5",
+  "windows": 240,
+  "commands": 244,
+  "owner32_not_started": true,
+  "transfers_held_during_measurement": true
+}

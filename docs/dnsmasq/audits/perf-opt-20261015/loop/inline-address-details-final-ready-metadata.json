@@ -1,0 +1,11 @@
+{
+  "status": "FINAL_READY_NATIVE_OWNER_METADATA_REHASHED_BEFORE_ANY_MEASUREMENT",
+  "plans": {
+    "native": "d16217a0864a5ccf64c9e2e4f355b29f52386667a087f2b855075c52f85d90fd",
+    "owner32": "54c1536a3499f68b802bad388118d90e8ecc0bfd2c6bbfceb0a4c4f930c746d3"
+  },
+  "release_sha256": "9f2b03fc7a110bc8d8fa3274961df06970ff5f09548a8b3c2bf9520f6e01961c",
+  "all_original_tools_rehashed": true,
+  "controllers_started": false,
+  "epoch": 1792139921.00792
+}
