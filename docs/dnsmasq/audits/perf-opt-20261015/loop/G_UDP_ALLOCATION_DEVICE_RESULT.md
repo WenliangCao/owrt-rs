@@ -19,3 +19,5 @@
 健康采集前的一次只读预检因路由器 PATH 无 stat 而失败，完整说明已保留。改用 ls -ldn 验证同一权限门后通过；该次没有启动健康采集、计数窗口或修改临时槽。
 
 [完整结果](G_UDP_ALLOCATION_DEVICE_RESULT.json) · [固定计划](G_UDP_ALLOCATION_DEVICE_PLAN.json)
+
+独立审计通过：`14c7e7e7`，[归档、计数与恢复复核](../correctness/g-udp-allocation-device-independent-audit.json)。
