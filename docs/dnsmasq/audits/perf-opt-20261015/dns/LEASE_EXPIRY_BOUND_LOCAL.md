@@ -36,9 +36,11 @@ is **not** all-pass:722 tests pass, one old hosts fixture cannot find a target
 bucket in its fixed10,000-name pool, and8 are ignored. Its exact executable,
 source patch and logs are retained. The hosts source is byte-identical to185;
 independent runs reproduced the generator failure in the preserved executable
-and in unmodified185 hosts code with read-only bucket observation. A separate
-test-only repair is being prepared for the next candidate. No current185
-source, measured artifact or frozen correctness input is changed.
+and in unmodified185 hosts code with read-only bucket observation. Separate test-only repair7c2708f6 is now applied to this child asf3e0a145.
+Its final Mac library run passes723 with8 ignored, and the musl all-target
+check passes. The original5e allocation counts and failed run above retain
+their original identities. No current185 source, measured artifact or frozen
+correctness input is changed.
 
 This remains local research. Exact-source related Linux gates, SDK construction
 and any fixed performance screen must wait for the current185 acceptance work

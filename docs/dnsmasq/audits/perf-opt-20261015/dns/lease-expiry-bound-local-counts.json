@@ -175,5 +175,19 @@
     "Counts do not establish CPU/latency or zero allocations for expired/negative-time/fallback/configured-owner paths.",
     "No related Linux or SDK run yet. Frozen185 and its qualification inputs remain unchanged.",
     "The retained fixture failure is being repaired independently for a subsequent candidate; it is not hidden by rerunning the failed source."
-  ]
+  ],
+  "subsequent_fixture_repair": {
+    "source": "f3e0a145efad148c4fbf8893aaaa20fabb4c52cc",
+    "product_commit": "5e67562f8dd80ee0ca59897cedcc6e2997ad3c58",
+    "fixture_commit": "7c2708f6",
+    "scope": "Test-only repair; original counted5e source and initial failed run above remain unchanged.",
+    "library_result": "723 passed;0 failed;8 ignored",
+    "musl_all_target_check": "passed",
+    "logs": {
+      "private/lease-expiry-bound-lib-fixed.stdout": "2ccd54106ce7cbeee8bb0720c3e47e2b3b73d9606dd861ab8b2cec52bb086540",
+      "private/lease-expiry-bound-lib-fixed.stderr": "9ab36a242aa9621cf2cf5cfe8caba00c1513cbc72790c62e29415861cff7f96d",
+      "private/lease-expiry-bound-musl-fixed.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "private/lease-expiry-bound-musl-fixed.stderr": "b06b48a6f54b07f40f7d81fe419e920b75132571bd70f8ccff6cd6916d729225"
+    }
+  }
 }

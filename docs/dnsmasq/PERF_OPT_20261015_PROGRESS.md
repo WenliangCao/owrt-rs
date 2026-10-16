@@ -1107,3 +1107,47 @@ archive/perf-20261016 tags and clean detached worktrees. Their files, raw
 evidence and all negative results remain. Active185/722 and operational agent
 branches are intact. Accepted E and production remain unchanged; G is not yet
 selected or qualified.
+
+## 185 passes full functionality and A53 screening, 2026-10-16
+
+The E/185 A53ten passes the original CPU improvement rule:138→114us/query,
+69→57ticks,12tick delta>8,W8.772%,5/5 improving. p50 improves14.420%;p95
+is inconclusive. All ten windows and430 archived files have independent
+verification. This is a screen, not completed full performance qualification.
+No new candidate has been selected or deployed. Production and E/F restored
+identities remain unchanged;160 physical windows have completed overall.
+
+The first health baseline failed before any performance window. Its apparent
+last-probe cancellation remains a tool hypothesis, not a proven excuse. All
+original logs and STOP were retained. The reviewed capture-before-stop repair
+retains complete capture/final logs and qualifies all complete captured probes.
+Fresh125s baseline passed without excluding a failed probe. Full110 runtime
+validation separately preserves short-scene resume semantics; only the fresh
+baseline imposes120s coverage. Final tool52a92e80 and independent48-test review
+f95f83a4 bind controllerd2bb00f7/helper8e3367d9; the superseded runtime120s
+version must never be used. Oracle tools and timed loops remain unchanged.
+
+185 native240 has6 improvements,7 regressions,2 withinW; hit gains are
+18.320–33.530%. Miss,miss-leases,raw,synth,lease,RRset and configured-CNAME
+regressions all remain visible. The hot15 fixture does not recycle replies.
+Owner32 low CPU is inconclusive; high variable-N CPU falls12.109% but sendlag
+p50/p95 rises305.882%/75.309%. These diagnostics do not override original
+full11/33 acceptance. All small raw files and PMU groups have independent
+checks; owner large latency/sendlag binaries remain remote with original hashes.
+
+Exact185 full functionality now PASS:957 short checks,44families/67jobs and
+all original boundary corpora, receipt d76634eab46459a2a38e672da8e1eb86d79a250cf5b4b0c367ee79392fe2d4be.
+Original28PTR,F39,2C defects and2UID lease differences remain unchanged. An
+initial root-owned output-directory setup failure occurred before comparisons;
+logs remain and only that directory ownership was repaired. Original corpora
+then completed in a separate attempt. Source179/ELF/comparators were reverified.
+The final quiet/lock audit released Oracle to DNS. DNS and DHCP are authorized
+to execute the unchanged full11-scene110 matrices in parallel on separate
+machines after their actual preflights. They are not yet complete.
+
+Next source f3e0a145 contains5e67562f conservative lease-expiry bound plus
+the separate hosts collision-fixture repair. With64 unrelated live lease names
+the original5e local count gives185one/21B→zero allocations; no CPU claim.
+Finalf3 Mac723/8ignored and musl all-target checks pass. The prior failed run,
+its executable, and the independently reproduced fixture defect remain retained.
+722d2762 owner-clock is another separate child; neither is part of185 timing.
