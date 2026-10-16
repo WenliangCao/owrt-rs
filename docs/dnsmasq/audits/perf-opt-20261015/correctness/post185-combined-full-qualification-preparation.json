@@ -1,0 +1,335 @@
+{
+  "schema": "post185-combined-full-qualification-preparation-v1",
+  "status": "PREPARED_PENDING_LOOP_SCREENS_RAW_AUDIT_TRANSFERS_AND_QUIET_RELEASE",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+  "sdk_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-post185-combined",
+  "shipping_elf_sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+  "shipping_elf_bytes": 2145051,
+  "same_build_map_sha256": "3c92b784b606b5eb50a968e8605b6e88d17d04436a25dfec3fd6e2cdf4698cf5",
+  "same_build_receipt_sha256": "3d77809b0552a91f384248b9cc21aba17fab0d1d0776f2d401becc27d4e0859c",
+  "git_identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+  "immutable_input_hashes": {
+    "tools/dnsmasq/m5_final_families.draft.json": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+    "tools/dnsmasq/m5_final_validation.py": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+    "tools/dnsmasq/audit_20261011_families.py": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py": "6c56077e3ccf8d2ea605271da14751d2c4ea7f318c52b59818dcf68af2b41db3",
+    "docs/dnsmasq/audits/full-20261014/f10-contract/qualifier/approved/manifest.json": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+    "tools/dnsmasq/oracle_build.sh": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+    "tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "tools/dnsmasq/f10_contract_probe.py": "debcd90c767a9b8378142d8742aa7373183e297bcc29c0efc6185cc8ca7d3e36",
+    "tools/dnsmasq/f10_contract_check.py": "fecf70b5730f1dc7f76d710fe50d611f5f18a1a7adf3767c5e5bf235a3774c62",
+    "tools/dnsmasq/audit_20261011_dns.py": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb",
+    "tools/dnsmasq/check_full_audit_dns.py": "f92f1d3bbf3cde2a3ed8b1b65b2ca832fcf111d87dc23b004bd9cae137624020",
+    "tools/dnsmasq/tcp_upstream_parity.py": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf",
+    "tools/dnsmasq/cache_answer_diff.py": "11c0b93f275e071beeff904bd8101405cd3cf5eb76685cbe26c2e20add267549",
+    "tools/dnsmasq/cache_transfer_rust_diff.py": "6e0abfb57cb7c8e2931cd235c55173b60525c276a1f8fea3abc1bb14acdcf891",
+    "tools/dnsmasq/stale_metadata_diff.py": "abfb7aa54e7411b18bd04fc16263c33d2a660875eb58f40b3f25a1ff7777209b",
+    "tools/dnsmasq/lease_insert_diff.py": "66f30aaa7a2b64b343a5e53694a684129064e4f34f0a13f9871ef5a351ad705d",
+    "tools/dnsmasq/test_f10_contract_check.py": "85a3d7907b2fea2731fd17a06ce43af894bed00640475382c4ff6c72ba52adfd",
+    "tools/dnsmasq/test_tcp_upstream_parity.py": "1e19df29e0bd4446d6e68303dd19a5926caf99c548e68d91915d1bb2d0fa707c"
+  },
+  "family_base_identity": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "expected_sha256": "0a317a758e1933a160abc58d8ee5ac93abb461b547c74d270ed49c86af6211d9",
+    "provenance": "Retained E/C full44 identity receipts and the identical successful F command; actual remote file must be rehashed before launch.",
+    "rehashed_this_preparation": false
+  },
+  "family_command": [
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/docs/dnsmasq/audits/perf-opt-20261015/correctness/run_family_gates.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+    "--elf",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-post185-combined/dnsmasq-rs",
+    "--link-map",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-post185-combined/link.map",
+    "--commit",
+    "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "--base-identity",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/family-base-identity.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-families-attempt1",
+    "--jobs",
+    "3"
+  ],
+  "families": 44,
+  "jobs": 67,
+  "family_ids": [
+    "m5_option_matrix",
+    "m5_option_matrix_next",
+    "m5_option_matrix_third",
+    "m5_option_matrix_tag_if",
+    "m5_option_matrix_dhcp",
+    "m5_option_matrix_dhcp_v4",
+    "m5_option_matrix_lease_names",
+    "m5_local_records",
+    "m5_boot",
+    "m5_helper",
+    "m5_rr_filter",
+    "m5_config_inputs",
+    "m5_lease_recovery",
+    "m5_listeners",
+    "m5_tftp",
+    "m5_dump",
+    "m5_script_arp",
+    "dhcp-proxy",
+    "bridge-interface",
+    "shared-network",
+    "dhcp-reply-delay",
+    "m5_relay",
+    "m5_pxe",
+    "m5_leasequery",
+    "dhcp-tags-options",
+    "dhcp-identities",
+    "dhcp-range",
+    "dhcp-files",
+    "loop-detect",
+    "logging-all-scopes",
+    "cli-test",
+    "cli-log-malloc",
+    "m5_edns",
+    "m5_dns_cache",
+    "m5_dns_endpoints",
+    "m5_interface_records",
+    "dns-files",
+    "tftp-errors",
+    "filterwin2k",
+    "helper-shutdown",
+    "ubus-ordinary",
+    "logging-dhcp-companion",
+    "dhcp-device-binding",
+    "query-id-wrap-source-controls"
+  ],
+  "job_ids": [
+    "bridge-interface-paired",
+    "cli-log-malloc-paired",
+    "cli-test-paired",
+    "dhcp-device-binding-c",
+    "dhcp-device-binding-compare",
+    "dhcp-device-binding-rust",
+    "dhcp-files-paired",
+    "dhcp-identities-paired",
+    "dhcp-proxy-paired",
+    "dhcp-range-paired",
+    "dhcp-reply-delay-paired",
+    "dhcp-tags-options-paired",
+    "dns-files-paired",
+    "filterwin2k-paired",
+    "helper-shutdown-paired",
+    "logging-all-scopes-paired",
+    "logging-dhcp-companion-all",
+    "logging-dhcp-companion-overflow-seven",
+    "loop-detect-paired",
+    "m5_boot-paired",
+    "m5_config_inputs-paired",
+    "m5_dns_cache-c",
+    "m5_dns_cache-c-reverse-1",
+    "m5_dns_cache-c-reverse-2",
+    "m5_dns_cache-c-reverse-3",
+    "m5_dns_cache-c-reverse-4",
+    "m5_dns_cache-c-reverse-5",
+    "m5_dns_cache-c-reverse-6",
+    "m5_dns_cache-c-reverse-7",
+    "m5_dns_cache-c-reverse-8",
+    "m5_dns_cache-compare",
+    "m5_dns_cache-lease-tcp-caller",
+    "m5_dns_cache-rust",
+    "m5_dns_endpoints-service",
+    "m5_dns_endpoints-source-row-audit",
+    "m5_dns_endpoints-syntax",
+    "m5_dump-paired",
+    "m5_edns-c",
+    "m5_edns-compare",
+    "m5_edns-rust",
+    "m5_helper-paired",
+    "m5_interface_records-closeout-rust-refusals",
+    "m5_interface_records-closeout-service",
+    "m5_interface_records-closeout-syntax",
+    "m5_interface_records-qualify",
+    "m5_interface_records-service",
+    "m5_interface_records-syntax",
+    "m5_lease_recovery-paired",
+    "m5_leasequery-paired",
+    "m5_listeners-paired",
+    "m5_local_records-paired",
+    "m5_option_matrix-paired",
+    "m5_option_matrix_dhcp-paired",
+    "m5_option_matrix_dhcp_v4-paired",
+    "m5_option_matrix_lease_names-paired",
+    "m5_option_matrix_next-paired",
+    "m5_option_matrix_tag_if-paired",
+    "m5_option_matrix_third-paired",
+    "m5_pxe-paired",
+    "m5_relay-paired",
+    "m5_rr_filter-paired",
+    "m5_script_arp-paired",
+    "m5_tftp-paired",
+    "query-id-wrap-source-controls-sdk-source-probe",
+    "shared-network-paired",
+    "tftp-errors-paired",
+    "ubus-ordinary-all"
+  ],
+  "wrappers": {
+    "run_post185_combined_tcp.py": {
+      "sha256": "a19af6937b8825b3c2d5eecf87edd6fb71f972b713f0027e99602bb13ccbca9f",
+      "parent_file": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-zero-frame-full-qualification/run_cached_zero_frame_tcp.py",
+      "parent_sha256": "8bdbdffea2a6dc5fa4bd4d1ac214086cddec016f8398112e1ed033055470bac7",
+      "changes": [
+        {
+          "from": "cached-zero-frame",
+          "to": "post185-combined",
+          "occurrences": 4
+        }
+      ],
+      "original_comparisons_and_assertions_preserved": true
+    },
+    "run_post185_combined_corpus.py": {
+      "sha256": "398253e90b95591ce81cedb0a97c4faf1efb0afe4286065b648f4c8453f3bd5b",
+      "parent_file": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-zero-frame-full-qualification/run_cached_zero_frame_corpus.py",
+      "parent_sha256": "21f299db45ea241550db77da241966e631e9c92b02823f2aa10cc7f753ddd3b0",
+      "changes": [
+        {
+          "from": "cached-zero-frame",
+          "to": "post185-combined",
+          "occurrences": 9
+        }
+      ],
+      "original_comparisons_and_assertions_preserved": true
+    },
+    "run_post185_combined_remaining.py": {
+      "sha256": "52d8a15540438d021fa029e1e101572ca478b3cf4ba2644904b674167127b1e4",
+      "parent_file": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-zero-frame-full-qualification/run_cached_zero_frame_remaining.py",
+      "parent_sha256": "5dc87be76486dae9132eacd88fda53f59005ca9cfc7ce2bbbf4cb53c34e6a697",
+      "changes": [
+        {
+          "from": "cached-zero-frame",
+          "to": "post185-combined",
+          "occurrences": 17
+        },
+        {
+          "from": "cached_zero_frame",
+          "to": "post185_combined",
+          "occurrences": 2
+        },
+        {
+          "from": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+          "to": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+          "occurrences": 1
+        }
+      ],
+      "original_comparisons_and_assertions_preserved": true
+    },
+    "audit_post185_combined_families_final.py": {
+      "sha256": "a7fb1b3bda5f26a6603dd422fc515def164bb44cbdb0b2313a343f8df2058ca9",
+      "parent_file": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-zero-frame-full-qualification/audit_cached_zero_frame_families_final.py",
+      "parent_sha256": "da5f83dac597e0aad6665cab88065e36d3804512b6f3376198ff7094b5cc6a58",
+      "changes": [
+        {
+          "from": "cached-zero-frame",
+          "to": "post185-combined",
+          "occurrences": 4
+        },
+        {
+          "from": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+          "to": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+          "occurrences": 1
+        },
+        {
+          "from": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+          "to": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+          "occurrences": 1
+        }
+      ],
+      "original_comparisons_and_assertions_preserved": true
+    },
+    "audit_post185_combined_boundary.py": {
+      "sha256": "7c46c6400f8616cb26b42b5b8428dbb7de4de1ae7533345c525c46f370f7dc87",
+      "parent_file": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-zero-frame-full-qualification/audit_cached_zero_frame_boundary.py",
+      "parent_sha256": "898447ac61580dcb79693cb2b6a7a192058af765b6d947c9b8b5175c58c1b572",
+      "changes": [
+        {
+          "from": "cached-zero-frame",
+          "to": "post185-combined",
+          "occurrences": 18
+        },
+        {
+          "from": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+          "to": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+          "occurrences": 1
+        },
+        {
+          "change": "Replace historical PID319592 with the fresh remaining-worker launch PID/start_ticks; exited, zombie or PID-reused means original worker exited."
+        }
+      ],
+      "original_comparisons_and_assertions_preserved": true
+    },
+    "preflight_post185_combined_full.py": {
+      "local_file": "preflight.py",
+      "sha256": "92ccbce846f64ebdaa81b3cee71c2ec947e6f59e905473cac7aba3888defe83d",
+      "scope": "Launch/preflight orchestration only; original tests/comparators/expectations unchanged."
+    },
+    "launch_post185_combined_full.py": {
+      "local_file": "launch_full.py",
+      "sha256": "2177838f662c353a9415feaa57350106607c09e4dd2cd047e28a9bf9dd0f1712",
+      "scope": "Launch/preflight orchestration only; original tests/comparators/expectations unchanged."
+    }
+  },
+  "SDK_independent_review": {
+    "commit": "94608544",
+    "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+  },
+  "related_gate": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "total_passed": 961,
+    "groups": {
+      "lib": 840,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "reuse_only_after_rehashing_same_source_original_logs_binaries_listings_and_receipts": true,
+    "rerun_short_groups": false
+  },
+  "fresh_probe_command": [
+    "sh",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined/tools/dnsmasq/oracle_build.sh",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/source-post185-combined",
+    "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-probe-tests",
+    "probe-tests"
+  ],
+  "exclusive_slot_release": null,
+  "authorization": "Root authorized direct original full44/67 and F10/protocol/TCP/four corpora after loop native240 and owner32 raw audits/transfers/quiet release. No additional permission required.",
+  "schedule": "Verify exact source/SDK/961 evidence and quiet state; original fresh release probe build; original family coordinator jobs3 plus one serial remaining worker. No overlap with builds or performance timing owned by another task.",
+  "preserved_comparisons": {
+    "exact_image_C_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "F10": "Original13cases/704observations and exact approved PTR qualifier. Preserve actual raw order-difference count as outcome; historical F39 and18528 are not new hardcoded expectations.",
+    "protocol": "Original368pairs/366exact; exact same two historical C forward-pointer defects.",
+    "TCP": "Original13conditions/50pairs; all three groups and resolver order unchanged.",
+    "cache_answer": "Original764commands/164queries/382metrics.",
+    "transfer": "Original307comparisons.",
+    "stale": "Original1100comparisons.",
+    "lease": "Exact same source-a two UID mismatches and cohort counts; preserve raw comparator exit1 and corpus exits[0,0,0,1].",
+    "ubus": "Approved346 paired observations; unchanged original checks and26negative controls; no new amendment.",
+    "historical_references": "All exact-C baselines, source-a lease comparisons and historical E inventory/protocol comparisons remain unchanged."
+  },
+  "failure_policy": "Preserve every failed or partial output and stop; no blanket retry, replacement window, source/expectation change or new waiver.",
+  "output_parent_gate": "Require existing real source/private directory owned by source user and writable before privileged family work.",
+  "executed": false,
+  "uploaded": false,
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "source_files_count": 179,
+  "source_files_manifest_sha256": "2b02edc33ebdafb2446c72fd2719c60698cd9ab1a2b71263b7b0771fa1866143",
+  "private_plan_sha256": "ecec9a108ac9bdc249d290f28eb9ee8a305426437ab63796e1f46b61ef8baa8f",
+  "local_directory": "private/post185-combined-full-qualification",
+  "peer_review": {
+    "commit": "a052ce31",
+    "report": "dns/post185-full44-adaptation-peer-review.json",
+    "sha256": "aa70301f4c6892dd22e17731919f4ece600fe9180c5c7d36f935e9872e18b1b0",
+    "passed": true
+  },
+  "verification": "Seven wrappers parsed, five original functional wrappers and family argv matched declared substitutions; 18 input files matched exact185 and6ab Git bytes. Independent DNS peer checked original expectations and release gate. No build/test/remote action."
+}
