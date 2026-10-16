@@ -19,3 +19,5 @@ CPU 中位 tick 差为 4；门限要求严格大于 8，并同时满足 W 与同
 [完整结果](A53_OWNER_READY_FRAMES_DEVICE_RESULT.json) · [固定计划](A53_OWNER_READY_FRAMES_DEVICE_PLAN.json)
 
 测量前的 owner32 元数据检查曾因旧脚本文件名而失败；该次发生在计划写入和测量启动之前，原失败收据已保留。更正文件名并核验最终元数据后才启动本轮，设备窗口未重跑。
+
+独立审计通过：`e99b91a1`，[十窗、原始数据、signal 绑定与恢复复核](../correctness/owner-ready-frames-device-independent-audit.json)。
