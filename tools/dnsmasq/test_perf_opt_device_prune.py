@@ -20,6 +20,12 @@ class PruneTests(unittest.TestCase):
         health = base / 'health.json'
         health.write_text(json.dumps({'valid': True, 'elapsed_seconds': 125, 'threshold_ms': 200}))
         archived, deleted = [], []
+        stopped = False
+        start = dict(event='start', production_pid=1, production_starttime=2, ipv4_default_initial=1)
+        sample = dict(event='sample', elapsed_s=125, production_pid=1, production_starttime=2,
+                      mem_available_kib=90000, ipv4_default=1, dns_ok=1, dns_rtt_ms=.5,
+                      http_status=403, http_rtt_ms=50)
+        encode = lambda rows: b''.join((json.dumps(row) + '\n').encode() for row in rows)
 
         def archive(folder, label):
             if archive_failure:
@@ -34,6 +40,11 @@ class PruneTests(unittest.TestCase):
             return ['fixture invalid'] if invalid_first and folder.name.endswith('-r1-c') else []
 
         def ssh(command, **kwargs):
+            if command.startswith('cat ') and command.endswith('.jsonl'):
+                rows = [start, sample]
+                if stopped:
+                    rows.append(dict(event='monitor_stopped', elapsed_s=126))
+                return SimpleNamespace(stdout=encode(rows), returncode=0)
             if command.startswith('rm -rf -- '):
                 label = Path(command.removeprefix('rm -rf -- ')).name
                 self.assertIn(label, archived)
@@ -46,13 +57,21 @@ class PruneTests(unittest.TestCase):
                     raise RuntimeError('fixture prune failure')
             return SimpleNamespace(stdout=b'', returncode=0)
 
+        def stop(identity):
+            nonlocal stopped
+            stopped = True
+
+        def external(destination, finished, failed):
+            (destination / 'external-health.jsonl').write_bytes(encode([
+                dict(ip_version=v, exit=0, result='200 0.08') for v in (4, 6)]))
+
         process = SimpleNamespace(poll=lambda: 0, returncode=0)
         argv = ['run', '--out', str(out), '--prefix', 'fixture', '--health-baseline', str(health),
                 '--scenes', 'udp-hit']
         with patch('sys.argv', argv), patch.object(run, 'ssh', side_effect=ssh), \
              patch.object(run, 'production_identity', return_value=[1, 2]), \
-             patch.object(run, 'external_health'), patch.object(run, 'guard_start', return_value=(3, 4)), \
-             patch.object(run, 'guard_check', return_value=True), patch.object(run, 'guard_stop'), \
+             patch.object(run, 'external_health', side_effect=external), patch.object(run, 'guard_start', return_value=(3, 4)), \
+             patch.object(run, 'guard_check', return_value=True), patch.object(run, 'guard_stop', side_effect=stop), \
              patch.object(run, 'stop_owned'), patch.object(run, 'archive_run', side_effect=archive), \
              patch.object(run, 'validate', side_effect=validate), \
              patch.object(run.subprocess, 'Popen', return_value=process), \
