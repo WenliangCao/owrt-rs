@@ -632,3 +632,27 @@ manifest SHA78390d225193a2697062b81b5f8935ef61741102dbcdf8acac5889ef0906e423。�
 另备好未选择的空OPT/AD/CD原型4fca22ef（独立J源基）：窄准入、规范OPT原地追加、DO仍回退，
 保持原+15判界及两层限额；738lib/31bin/14专项、Linuxcheck通过。没有SDK/PGO/真机收益数据，
 不混入J/K，也不因准备好了就排在双栈方向前。它只降低未来扩面实现的不确定性。
+
+## 断流接管与报文覆盖模型（2026-10-17）
+
+原5个直接子代理会话均已结束：loop/next_coverage正常完成，correctness/dns/dhcp于
+22:07–22:09UTC记录stream-disconnected。J118本机81010/81023仍活跃，继续原进程/目录；
+设备由新device代理独占，生产PID3086未变。Oracle无活跃旧工作负载，K实际新三项、50份
+profile及use产物已完成，只接续尚未执行的smoke与正确性，不重复构建/训练。
+K ELF f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08，2296611B；
+APK1296161B，caps与实际smoke/硬化通过。原shipping/source边界通过，44/67仍在执行；
+J118与K尚未最终接受，I仍为已接受回退。原成功门和检查缓存均复用。
+
+主代理新增一次非计时诊断c541540a，沿已有whole-owner分配计数器，K诊断源码的singleton
+路径与J相同，公开七规则、单fresh A、各20warm+200计数。plain/AD/CD/AD+CD/空OPT/
+AD+CD+空OPT六形状各D1开关，共12窗，全部0alloc/dealloc/realloc/bytes。普通路径每查询
+3次general name walk、4次encoded skip；空OPT为3/8；只有plain+D1为0/0/1次plain scan。
+正确ID/单回答/CD保留与AD清除/OPT数量均验证，日志`owrt-perf-d1-count-20261016/private/
+d1-count/flag-shape-release.log` SHA c1e63e8b2cb0e6a3ab1ded4143813c52ab0a1a9587ebc724300c0b72a961a23c。
+这是native插桩计数，不是实际PGO或A53时间；未把计数窗口的elapsed列为收益。
+
+当前模型：AD/CD/非DO空OPT排除D1，但没有重新引入这里的分配。J规则修正和K双族hint也
+服务于普通fresh路径；不能按D1覆盖率折减整个J的27.07µs收益。备用原型的价值主要待验证于
+少走解析/入口及减小触碰范围。下一步固定600秒被动真实UDP样本决定扩面优先级，再决定
+是否对其单独测量；DO仍保留原有转发/LRU语义。采样工具24f8c9bc仅输出聚合，已过131072
+flags/OPT组合、24个cBPF分支及ASan/UBSan，实际隔离Linux验证和设备样本仍待完成。
