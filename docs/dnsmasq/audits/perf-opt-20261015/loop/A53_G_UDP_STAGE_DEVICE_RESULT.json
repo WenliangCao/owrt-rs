@@ -5584,7 +5584,7 @@
   "postflight_sha256": "881d051f3064395cf1c7c4430e5d04e66b2e062c6aad85408f47eb74c8e4e1d6",
   "concurrent_Oracle_work": {
     "schema": 1,
-    "scope": "Actual original warm owner32 run interval overlaps the original G-stage device50 run interval on a separate Oracle host. This records scheduling scope, not identical hardware, timing isolation, IPC or attribution. Other permitted non-timing Oracle work is recorded separately when existing receipts are available.",
+    "scope": "Actual original warm owner32 timing, author analysis/postflight/collection, and independent full-bin analyzer replay overlapped the original G-stage device50 run on a separate Oracle host. Subsequent statistics and phase audit receipts fall after the last window archive and before device50 closure. This records scheduling scope, not identical hardware, timing isolation, IPC or attribution.",
     "coordination": "Root explicitly authorized concurrent original owner32 and device50. All bulk transfers were held until device50 archive verification and E/F restoration completed; the safe gap was released at the recorded postflight epoch. Only small control and receipts overlapped measurement.",
     "warm_owner32": {
       "launch_receipt_sha256": "6a1532d6f1cdcc21dae0c3a6dc0db0251adb0ddde97bdf74ab1b50d801db87ab",
@@ -5789,7 +5789,43 @@
       }
     },
     "independent_warm_additional_raw_audit": {
-      "scope": "After the original analyzer replay and raw hashing, correctness reported continuing the original metadata, CPU, PMU and statistical audit on Oracle CPU0 while the last device50 window was active. No extra measurement or analyzer-quantile replay was performed. This observation does not provide exact phase start/end timestamps."
+      "scope": "The recorded statistics and phase audit ran after the last device50 window archive, during device50 closure and before the final postflight safe-gap release. These receipts do not establish overlap of those audit phases with measurement. No extra measurement or analyzer-quantile replay was performed.",
+      "receipts": {
+        "statistics-exit.json": {
+          "sha256": "b77850a94390841c82ebcf259b273e04c5384e92d2cb1ccc7198b8730e588abb",
+          "receipt": {
+            "argv": [
+              "taskset",
+              "-c",
+              "0",
+              "python3",
+              "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/audit-statistics.py"
+            ],
+            "returncode": 0,
+            "started_epoch": 1792150216.52227,
+            "finished_epoch": 1792150224.4979737
+          }
+        },
+        "phase-exit.json": {
+          "sha256": "6cc6138368f9d863389da1401b23529903c76c75da9523812ef46bb83ac3823e",
+          "receipt": {
+            "argv": [
+              "taskset",
+              "-c",
+              "0",
+              "python3",
+              "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/audit-phase.py",
+              "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+              "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+              "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+              "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/phase-receipt.json"
+            ],
+            "returncode": 0,
+            "started_epoch": 1792150224.4981546,
+            "finished_epoch": 1792150224.5695543
+          }
+        }
+      }
     }
   },
   "known_interventions": [
@@ -5808,7 +5844,7 @@
     "a53-g-stage-device-launch.json": "21b5e59d65b8da07e3cb883e2ae533aa131f9c57c6dc9cc0c665d5da890d5e1f",
     "a53-g-stage-device-local-verification.json": "4171044cde5c7f6e2b4bda1323a87f772701ac7bb38caceae57f2cfa1684ed25",
     "a53-g-stage-device-postflight-check-batches.json": "9ee29dc1b599350448801fa3ea4ef0b86d502a964927eca67f61ef1704cc4243",
-    "a53-g-stage-device-concurrency.json": "3877fab2d4793170ed9677e575a2513a95e8848daf76b0e883e74e27be43be90",
+    "a53-g-stage-device-concurrency.json": "dbc2e562360de7e87a79af0df743015a84f01a9290f238881d9e931afaa10b91",
     "stage-a53-g-stage.py": "4282672cb9fa78968a5199c3847506a87004bdf2b1f7b6ffed4b29e812c53de7",
     "start-a53-g-stage.py": "36287e7982bb58ce65a117cd37609962925894a00f31f256d7c112ffae2c3f39",
     "verify-a53-g-stage.py": "9094a871b2f83d942c78d33fde3bdcb78b68d5f362367d262d3318ec1eccc793",
