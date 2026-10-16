@@ -633,8 +633,6 @@ impl<'a> LocalAnswerer<'a> {
             || !self.config.interface_records.rules.is_empty()
             || !self.config.synth_domains.domains.is_empty()
             || !self.hosts.is_published()
-            || self.config.rules.iter().any(|rule| matches!(rule.target,
-                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
         { return false; }
         let mut scratch = [0; 253];
         let name = match dotted_name {
@@ -644,6 +642,18 @@ impl<'a> LocalAnswerer<'a> {
                 &scratch[..length]
             }
         };
+        // A local/address rule owns only matching names. Keep every matching
+        // tier on the general path, including upstream overrides; unrelated
+        // RFC6761/LAN rules must not disable all public cache hits. The dotted
+        // scratch omits C's binary label escapes, so those names retain the
+        // general matcher whenever a local rule exists.
+        for rule in &self.config.rules {
+            if matches!(rule.target,
+                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly)
+                && (name.contains(&0) || name.contains(&1)
+                    || matches_domain_bytes(name, &rule.domain))
+            { return false; }
+        }
         !self.hosts.name_exists(name) && leases.names.lookup(name, leases.now).next().is_none()
     }
 
@@ -1730,25 +1740,23 @@ fn matches_domain(name: &Name, pattern: &DomainPattern) -> bool {
     }
     // Keep C's label escapes: an embedded dot cannot become a separator,
     // but later real labels must still match local/address suffix rules.
-    let query = name.dnsmasq_bytes().to_ascii_lowercase();
-    let suffix = pattern.suffix.to_ascii_lowercase();
+    matches_domain_bytes(&name.dnsmasq_bytes(), pattern)
+}
+
+fn matches_domain_bytes(query: &[u8], pattern: &DomainPattern) -> bool {
     if pattern.dotless && (query.is_empty() || query.contains(&b'.')) {
         return false;
     }
+    let suffix = &pattern.suffix;
     if suffix.is_empty() {
         return true;
     }
+    let Some(start) = query.len().checked_sub(suffix.len()) else { return false };
+    if !query[start..].eq_ignore_ascii_case(suffix) { return false; }
     if pattern.wildcard {
-        if pattern.wildcard_dot {
-            query.len() > suffix.len() && query.ends_with(&suffix)
-        } else {
-            query.len() >= suffix.len() && query.ends_with(&suffix)
-        }
+        !pattern.wildcard_dot || start != 0
     } else {
-        query == suffix
-            || (query.len() > suffix.len()
-                && query.ends_with(&suffix)
-                && query[query.len() - suffix.len() - 1] == b'.')
+        start == 0 || query[start - 1] == b'.'
     }
 }
 
@@ -1869,6 +1877,117 @@ fn labels(wire: &[u8]) -> Vec<&[u8]> {
 mod tests {
     use super::*;
     use crate::config::{lex_line, validate_directive};
+
+    #[test]
+    fn borrowed_domain_match_preserves_frozen_binary_and_wildcard_semantics() {
+        // The pre-4cd1d7c6 predicate is the independent reference. In
+        // particular, compare escaped names rather than unescaped dotted keys.
+        let previous = |name: &Name, pattern: &DomainPattern| {
+            if !pattern.dotless && pattern.suffix.is_empty() { return true; }
+            let query = name.dnsmasq_bytes().to_ascii_lowercase();
+            let suffix = pattern.suffix.to_ascii_lowercase();
+            if pattern.dotless && (query.is_empty() || query.contains(&b'.')) { return false; }
+            if suffix.is_empty() { return true; }
+            if pattern.wildcard {
+                (if pattern.wildcard_dot { query.len() > suffix.len() }
+                 else { query.len() >= suffix.len() }) && query.ends_with(&suffix)
+            } else {
+                query == suffix || (query.len() > suffix.len() && query.ends_with(&suffix)
+                    && query[query.len() - suffix.len() - 1] == b'.')
+            }
+        };
+        let mut config = DnsConfig::default();
+        for directive in ["local=//", "local=/#/", "local=/TEST/", "local=/*test/",
+                          "local=/*.test/", "local=/*./", "local=/.test/", "local=/aZ/"] {
+            apply(&mut config, directive.as_bytes());
+        }
+        let mut names = vec![Name::root(), Name::from_ascii("test").unwrap(),
+            Name::from_ascii("badTEST").unwrap(), Name::from_ascii("x.TeSt").unwrap()];
+        for byte in 0..=255 {
+            for suffix in [false, true] {
+                let mut wire = vec![3, b'a', byte, b'Z'];
+                if suffix { wire.extend_from_slice(b"\x04TeSt"); }
+                wire.push(0);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        for name in names {
+            for rule in &config.rules {
+                assert_eq!(matches_domain(&name, &rule.domain), previous(&name, &rule.domain),
+                    "name={:?} pattern={:?}", name.as_wire(), rule.domain);
+            }
+        }
+    }
+
+    #[test]
+    fn existing_cached_shortcut_with_local_rules_matches_full_record_lookup() {
+        use super::super::cache::{Policy, Record};
+        use super::super::cache_engine::CacheContext;
+        use super::super::daemon::{DnsDaemon, QueryResult};
+        use super::super::service::LocalDnsService;
+        use super::super::upstream::OsRandom;
+        for rrtype in [TYPE_A, TYPE_AAAA] {
+            for (directives, eligible) in [
+                (["local=/lan/", "local=/invalid/"], true),
+                (["local=//", "local=/localhost/"], true),
+                (["local=/example/", "local=/invalid/"], false),
+                (["address=/example/#", "server=/Public.Example/#"], false),
+            ] {
+                let mut config = DnsConfig::default();
+                for directive in directives { apply(&mut config, directive.as_bytes()); }
+                let packet = query("Public.Example", rrtype);
+                let header = Header::parse(&packet).unwrap();
+                let question = super::super::forward::Question::parse(&packet).unwrap();
+                let mut cache = Cache::new(2, Policy::default());
+                let record = Record {
+                    name: question.name.clone(),
+                    kind: if rrtype == TYPE_A { Kind::Ipv4 } else { Kind::Ipv6 },
+                    negative: false,
+                    data: if rrtype == TYPE_A { vec![192, 0, 2, 7] } else { vec![7; 16] },
+                };
+                for name in [&question.name, &Name::from_ascii("other.test").unwrap()] {
+                    cache.start_insert();
+                    cache.insert(Record { name: name.clone(), ..record.clone() }, 100, 60).unwrap();
+                    assert!(cache.commit());
+                }
+                let mut reference_cache = cache.snapshot();
+                let mut local = LocalDnsService::new(config.clone(), Hosts::new(), 60, 1232);
+                let mut reference = LocalDnsService::new(config, Hosts::new(), 60, 1232);
+                let answerer = LocalAnswerer { config: &local.config, hosts: &mut local.hosts,
+                    local_ttl: 60, max_packet: 512 };
+                assert_eq!(answerer.cached_address_is_unclaimed(&question, None, LeaseView {
+                    names: &local.leases, synth: &local.config.synth_domains, now: 101,
+                    local_ttl: 60, local_network: None, interfaces: &local.interfaces,
+                }), eligible, "{directives:?}");
+
+                // Force the pre-shortcut local record path, then the original
+                // cache state machine without a single-address hint. A domain
+                // rule answer remains deferred behind the existing cache hit.
+                let mut answerer = LocalAnswerer { config: &reference.config,
+                    hosts: &mut reference.hosts, local_ttl: 60, max_packet: 512 };
+                let local_answer = answerer.answer_local_records(&packet, header, &question,
+                    &mut reference.leases, 101, None, Some(&mut reference_cache),
+                    &reference.interfaces, false, false, None).unwrap();
+                assert!(local_answer.is_none_or(|answer| answer.forward_rule));
+                let expected = CacheContext::answer_from_cache(&mut reference_cache, &packet,
+                    header, &question, 101, &mut reference, 1232, 1232, false, false, None)
+                    .unwrap().packet.unwrap();
+                let actual = DnsDaemon::<OsRandom>::answer_local_or_cached(Some(&mut cache),
+                    &packet, header, &question, &mut local, 101, true, false).unwrap().answer;
+                assert_eq!(actual, Some(QueryResult::Cached(expected)));
+                assert!(local.take_query_events().is_empty());
+                // A full cache makes the LRU touch observable through eviction.
+                for selected in [&mut cache, &mut reference_cache] {
+                    selected.start_insert();
+                    selected.insert(Record { name: Name::from_ascii("evict.test").unwrap(),
+                        ..record.clone() }, 101, 60).unwrap();
+                    assert!(selected.commit());
+                    assert!(selected.contains_forward_name(&question.name, 101));
+                    assert!(!selected.contains_forward_name(&Name::from_ascii("other.test").unwrap(), 101));
+                }
+            }
+        }
+    }
 
     #[test]
     fn query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names() {
