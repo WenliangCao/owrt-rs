@@ -1,0 +1,101 @@
+{
+  "purpose": "Measure no performance now. Restore minimal runtime confidence in the already built PGO use ELF before a separately scheduled diagnostic device comparison.",
+  "model": "If PGO layout changes reduce cold-query footprint, E-versus-PGO may differ even though PGO increases overall text; this smoke establishes startup/protection only and cannot decide the model.",
+  "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "comparison": "Exact E versus its PGO use build only. G is a different source and cannot isolate PGO.",
+  "output": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-existing-runtime-20261016/runtime",
+  "artifacts": {
+    "E": {
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-e",
+      "files": {
+        "dnsmasq-rs": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "build.json": "ec4becb104e5ba2be6431eebbbed871016d974344a060a5c9a2e31cea1660cc3",
+        "link.map": "cbf8655450a025a51be7a3c8630fa84ff48aba5ca5c641a9a3f53fd0bf4637fd"
+      },
+      "elf_bytes": 2136859
+    },
+    "PGO": {
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-train1/use",
+      "files": {
+        "dnsmasq-rs": "0910b49aa24e6fba72e7a45aaf2de2490fe60ab0eda23e1e71ad86b663cb9127",
+        "build.json": "da83d1726ba5b6c70ddfa1c4a3621091786ca338f38235f687b8622b3d440148",
+        "link.map": "6d85acb0dff7b2b7814cc1fcf112f235bf598dfd272d41b0d075c043a77adf7c"
+      },
+      "elf_bytes": 2288419
+    }
+  },
+  "static_elf_layout": {
+    "type": "ET_DYN",
+    "machine": "AArch64",
+    "linkage": "static-pie",
+    "interpreter": null,
+    "needed": [],
+    "pie": true,
+    "bind_now": true,
+    "gnu_relro": true,
+    "nx_stack": true,
+    "writable_executable_load": false,
+    "runtime_protections_verified": false
+  },
+  "training_profile": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-train1/training.profdata",
+    "sha256": "71adfc9533505fbe8ec7f564ad7029626e7cb504cd5287c246b1897d9d46b723"
+  },
+  "training_summary": {
+    "scenes": 11,
+    "raw_profiles": 50,
+    "plan_sha256": "1ff57e91a438a2b56e161d688fc19e65aa9214c6c0827c8a7aa20a344be9af26",
+    "profile_use_only_added_flags": "-Cprofile-use=/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-train1/training.profdata -Cllvm-args=-pgo-warn-missing-function"
+  },
+  "budget": {
+    "E_elf_bytes": 2136859,
+    "use_elf_bytes": 2288419,
+    "elf_budget_bytes": 2200000,
+    "elf_over_budget_bytes": 88419,
+    "elf_growth_vs_E_bytes": 151560,
+    "E_apk_bytes": 1162059,
+    "use_apk_bytes": 1293382,
+    "apk_budget_bytes": 1200000,
+    "apk_over_budget_bytes": 93382,
+    "apk_growth_vs_E_bytes": 131323
+  },
+  "budget_policy": "Both original release-budget failures remain. Only diagnostic execution is authorized; no package install or promotion.",
+  "existing_smoke_helper": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/pgo-sdk-smoke3/inputs/pgo_sdk_smoke.py",
+    "sha256": "4157e50ae1d53a422c6365d426c3ae3f23c957d086e17d1913c4980d0e49ae66"
+  },
+  "isolator": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-e/tools/dnsmasq/run_isolated.sh",
+    "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+  },
+  "config_lines": [
+    "no-hosts",
+    "no-resolv",
+    "no-poll",
+    "user=root",
+    "group=root",
+    "interface=lo",
+    "bind-interfaces",
+    "listen-address=127.0.0.1",
+    "port=15353",
+    "host-record=pgo-smoke.test,192.0.2.1,2001:db8::1",
+    "local-ttl=120",
+    "log-facility=-"
+  ],
+  "queries": [
+    {
+      "name": "pgo-smoke.test",
+      "qtype": "A",
+      "expected_address": "192.0.2.1"
+    },
+    {
+      "name": "pgo-smoke.test",
+      "qtype": "AAAA",
+      "expected_address": "2001:db8::1"
+    }
+  ],
+  "runner_sha256": "e43297d85f92f239cd0a9db19b5839ab91de9d08cdcee57d333783d070c6cb14",
+  "scope": "Each existing artifact starts once, answers the original two local A/AAAA questions, checks live identity/RELRO/NX/noWX, exits normally on SIGTERM. Existing smoke helpers reused. No training/profile generation/build/full44/native/owner/performance window. Fresh failed/partial output retained, no automatic retry.",
+  "scheduling": "After correctness c95 closeout, DHCP CPUclock helper and loop PMU; run only in their released non-timing gap. Device measurement requires root supplemental protocol and original device health/recovery boundary.",
+  "remaining_after_smoke": "Whole feature equivalence remains unqualified; actual diagnostic traffic validates its own response/completion. Release budgets remain failed."
+}
