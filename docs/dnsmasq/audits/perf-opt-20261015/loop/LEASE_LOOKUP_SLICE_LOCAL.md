@@ -28,3 +28,9 @@ review and existing screening follow current frozen6ab work; nothing is added
 to its running artifact, and no qualification tool or C expectation is changed.
 
 [Exact source, check logs and generated-code receipt](lease-lookup-slice-local.json).
+
+The [compile-time type-size supplement](lease-lookup-slice-state-size.json)
+confirms the returned opaque iterator shrinks64→32B in the same two libraries.
+Each size probe compiles to a constant return only, without running lookup.
+The ownership guard retains528B of code but its conditional stack frame shrinks
+368→336B. Independent source/codegen review is b0d63b76.
