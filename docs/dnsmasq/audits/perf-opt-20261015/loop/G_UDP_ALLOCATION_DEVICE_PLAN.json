@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "status": "LOCAL PREPARATION ONLY; exactG7c5b SDK/relatedreview identities pending; no device action",
+  "scope": "Three fixed count-only A53 windows on frozenG185 plus byte-reused original allocationmeter. All instrumentedCPU/latency and release-size acceptance EXCLUDED. No expected-zero allocation gate.",
+  "diagnostic_source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+  "diagnostic_ELF_sha256": null,
+  "diagnostic_build_receipt_sha256": null,
+  "diagnostic_map_sha256": null,
+  "labels": [
+    "g-udp-allocation-r1-rust",
+    "g-udp-allocation-r2-rust",
+    "g-udp-allocation-r3-rust"
+  ],
+  "case_argv": [
+    "rust",
+    "LABEL",
+    "udp",
+    "hit",
+    "200",
+    "5",
+    "20",
+    "150"
+  ],
+  "environment": "DNSMASQ_UDP_ALLOC_OUT=/tmp/dnsmasq-perf-20261015/runs/LABEL/udp-alloc.json",
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "reused_tool_source_commit": "43f7fc58",
+  "validator_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "measurement_artifacts": {
+    "device_perf_case.sh": {
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+      "bytes": 7564
+    },
+    "device_perf_guard": {
+      "sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "bytes": 561456
+    },
+    "device_perf_lifecycle": {
+      "sha256": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+      "bytes": 635928
+    },
+    "device_perf_netns": {
+      "sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "bytes": 348152
+    },
+    "device_perf_resource_probe": {
+      "sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+      "bytes": 544576
+    },
+    "group.sh": {
+      "sha256": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+      "bytes": 692
+    },
+    "m6a_loadgen": {
+      "sha256": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+      "bytes": 544760
+    },
+    "m6a_upstream": {
+      "sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "bytes": 449464
+    },
+    "nice10": {
+      "sha256": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+      "bytes": 162800
+    }
+  },
+  "output_requirements": [
+    "Case/group exit0 and COMPLETE; unchanged set-e case must pass final wait for the daemon, establishing normal daemon exit0.",
+    "Original validate() plus complete1000-query prewarm, zero wrong/timeout/transport/skips; upstream hit rules unchanged.",
+    "Live and file diagnostic ELF identity; exactly one daemon thread in before/resources/after observations.",
+    "udp-alloc.json exists after owner exit; nested_steps=0 and unscoped_classifications=0.",
+    "Keep all kind/query/totals/turn matrices and histogram; reject malformed dimensions or inconsistent cached denominator/histogram sums."
+  ],
+  "accounting": {
+    "cached_step": "Scope covers entire step_udp including receive, admission, process_udp, send and owned drops; classify only actual QueryResult::Cached.",
+    "denominator": "Read actual meter queries[cached]. This includes true cache hits during the1000-query prewarm as well as warmup/measurement; never substitute5000.",
+    "whole_turn": "Record all no-packet/cached-only/mixed-or-other owner turns separately; cached-only turns are conditional and include wait/control work. Sum all rows for whole normal-owner-loop totals, not process-lifetime startup/output/shutdown.",
+    "bytes": "Requested/released allocator bytes, not RSS/USS or physical malloc footprint; successful realloc recorded separately."
+  },
+  "policy": {
+    "runs": 3,
+    "optional_extensions": false,
+    "retry_for_counts_or_favorable_result": false,
+    "abnormal_outcome": "stop and retain; no automatic replacement",
+    "guard": "Originalproduction8472/PIDstart/DNS/LuCI/routes/memory>=64MiB/dualstack; new125s>=120s freshhealth. Wholecount-runtime observedprobe/safety gate has no baseline120s duration requirement.",
+    "cleanup": "Preserve first partial/completearchive attempt; archive/hash all raw before pruningvaliddevicecopies. Afterallownedinstancesexit and rawverification, restoreexactE/F from verifiedofflinecopies. No productionconfiguration/install/restart/flash."
+  },
+  "pre_run_pending": [
+    "Exactsource7c5b SDK ELF/map/build receipt and independentreview delivered; keep all failedbuild records and original releasebudget result, no sizegate relaxation.",
+    "Correctness reviews newGdriver identity/label and capture-boundary adaptation with original meter_report unchanged.",
+    "Fresh originalhealth+offlinebackups+production/slot/helper/idle recoverygates, then atomically stage ownedrustslot only.",
+    "Three original fixedwindows only, failstop/no selective replacement; verifyallraw then restoreoriginalE/F."
+  ],
+  "input_source_hashes": {
+    "components/dnsmasq/src/main.rs": "6469de4be0b02c6803a04790460c767bfc0c8ab3c7d22e53501706b419417e18",
+    "components/dnsmasq/src/udp_allocation_diagnostic.rs": "e62ae10c6ca094152db543243d5963537f31aa50bf5491e386b934df8d1dc1c4"
+  },
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "base_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "meter_parser_module_sha256": "823f05473519b898413471b39c10c7ef80627c8932c007f6902ada12ec021be1",
+  "driver_sha256": "102214b8be56613658ae8387ec2767dcc301c3c28e17f7b65581a5baacc385df",
+  "runtime_health_helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+  "fresh_health_helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "fresh_health_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "runtime_capture_scope": "Reuse reviewed before-stop fullraw/wholeline-prefix capture. Runtime8e33 safety-onlyAPI has no120s or probe-count gate/padding; freshhealth separately keeps original125scollection/>=120s qualification via7c93+0926.",
+  "release_size_acceptance_eligible": false,
+  "measured_count_zero_required": false,
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  }
+}
