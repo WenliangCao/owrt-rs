@@ -5181,7 +5181,11 @@ impl SinglePoll {
             Ok(event) => event,
             Err(_) => return,
         };
-        let mut metrics = self.metrics(&event);
+        // Only a DNS subscription callback consumes this snapshot. Keep its
+        // original pre-processing state boundary when one is needed.
+        let metrics = event.ubus.as_ref()
+            .is_some_and(UbusService::dns_has_subscribers)
+            .then(|| self.metrics(&event));
         let mut parent = match self.service.try_borrow_mut() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -5190,12 +5194,6 @@ impl SinglePoll {
         let Some(daemon) = daemon.as_mut() else {
             return;
         };
-        write_dns_metrics(
-            &mut metrics,
-            daemon.cache_counters(),
-            daemon.forward_counters(),
-            event.local_answered,
-        );
         if let Ok(interfaces) = self.interfaces.try_borrow_mut() {
             local.local_network = listeners::local_network(&interfaces, client.destination);
         }
@@ -5306,11 +5304,7 @@ impl SinglePoll {
                 }
             }
         };
-        let responses = if event
-            .ubus
-            .as_ref()
-            .is_some_and(UbusService::dns_has_subscribers)
-        {
+        let responses = if let Some(mut metrics) = metrics {
             let mut doctor = |name: &[u8], ttl, address, cache, forward| {
                 write_dns_metrics(&mut metrics, cache, forward, event.local_answered);
                 event.doctor(&DnsResult { name, ttl, address }, &metrics)
@@ -5444,7 +5438,11 @@ impl SinglePoll {
             Ok(event) => event,
             Err(_) => return,
         };
-        let mut metrics = self.metrics(&event);
+        // Only a DNS subscription callback consumes this snapshot. Keep its
+        // original pre-processing state boundary when one is needed.
+        let metrics = event.ubus.as_ref()
+            .is_some_and(UbusService::dns_has_subscribers)
+            .then(|| self.metrics(&event));
         let mut parent = match self.service.try_borrow_mut() {
             Ok(parent) => parent,
             Err(_) => return,
@@ -5453,17 +5451,7 @@ impl SinglePoll {
         let Some(daemon) = daemon.as_mut() else {
             return;
         };
-        write_dns_metrics(
-            &mut metrics,
-            daemon.cache_counters(),
-            daemon.forward_counters(),
-            event.local_answered,
-        );
-        let responses = if event
-            .ubus
-            .as_ref()
-            .is_some_and(UbusService::dns_has_subscribers)
-        {
+        let responses = if let Some(mut metrics) = metrics {
             let mut doctor = |name: &[u8], ttl, address, cache, forward| {
                 write_dns_metrics(&mut metrics, cache, forward, event.local_answered);
                 event.doctor(&DnsResult { name, ttl, address }, &metrics)
