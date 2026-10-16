@@ -957,6 +957,7 @@ impl<R: Random> DnsDaemon<R> {
     /// The owner decorates after preserving the original client metadata and
     /// completing MAC I/O. Local/cache envelopes still use the original UDP
     /// query, while forward.c stashes and retries the decorated packet.
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     pub fn answer_udp_prepared_with_local(
         &mut self,
         original: &[u8],
@@ -1233,6 +1234,7 @@ impl<R: Random> DnsDaemon<R> {
         self.poll_inner(wait, Some(local), Some(doctor))
     }
 
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     fn poll_inner(
         &mut self,
         wait: Duration,
@@ -1882,6 +1884,7 @@ impl<R: Random> DnsDaemon<R> {
     /// A miss retains C's transport-specific forwarding name without a second
     /// cache lookup, rotation, or expiry pass.
     #[allow(clippy::too_many_arguments)]
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     pub fn answer_local_or_cached(
         mut cache: Option<&mut Cache>,
         query: &[u8],

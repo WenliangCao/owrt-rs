@@ -235,6 +235,7 @@ impl<'a> LocalAnswerer<'a> {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     pub(crate) fn answer_parsed_with_query_events<'q>(
         &mut self,
         query: &[u8],
@@ -624,6 +625,7 @@ impl<'a> LocalAnswerer<'a> {
     // an entry keep the original lookup; local/cache coexistence falls back.
     // Lease expiry has already run, and its converted name can be reused.
     #[inline(never)]
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     fn cached_address_is_unclaimed(
         &self, question: &super::forward::Question, dotted_name: Option<&[u8]>, leases: LeaseView<'_>,
     ) -> bool {
@@ -987,6 +989,7 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
 
 /// Query-scoped counterpart of wire_to_dotted. A valid 255-byte wire name
 /// needs at most 253 dotted bytes; no escaped-name expansion belongs here.
+#[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
 fn query_dotted_name(name: &Name, out: &mut [u8; 253]) -> Option<usize> {
     let wire = name.as_wire();
     let mut pos = 0;

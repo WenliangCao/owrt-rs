@@ -577,6 +577,7 @@ impl DatagramSocket {
 
     /// Truncated datagrams/ancillary data and zero source ports are discarded.
     /// Only initialized `buffer[..len]` is returned for protocol processing.
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     pub fn receive(&self, buffer: &mut [u8]) -> io::Result<Option<Datagram>> {
         let mut peer = Address {
             storage: [0; 4],
@@ -692,6 +693,7 @@ impl DatagramSocket {
         )
     }
 
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     fn send_with_interface(
         &self,
         bytes: &[u8],

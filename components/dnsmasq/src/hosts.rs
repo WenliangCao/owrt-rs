@@ -1502,6 +1502,7 @@ impl Hosts {
 
     /// Query-local dotted converters already fold ASCII case. Reuse that
     /// spelling without another uppercase scan.
+    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
     pub(crate) fn name_exists_canonical(&self, name: &[u8]) -> bool {
         debug_assert!(!name.iter().any(u8::is_ascii_uppercase));
         if self.records.forward.is_empty() && self.records.non_terminals.is_empty() {
