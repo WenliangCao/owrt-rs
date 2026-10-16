@@ -1,0 +1,60 @@
+{
+  "status": "PASS_LOCAL_ISOLATED_OPT2_BUILDER_COPY_AND_ORIGINAL_CONTROL_REVIEW",
+  "author_commit": "08ccde5201c77c9d3bd86ea0aa535cc7889438ec",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "builder_sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
+  "canonical_builder_unchanged_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "canonical_helper_unchanged_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "reverse_declared_edits_reproduces_canonical_bytes": true,
+  "source_files_rehashed_against_Git": 179,
+  "source_manifest_sha256": "163a1186fa1f022e5f5b3c4a8c6a9dbca08d0ecb05a0ff55bc5ee744d4246367",
+  "git_identity_sha256": "92dfd48474172faae3aa2bddffa80b3ce4a48e4f484ad3c0a040378feac70216",
+  "expected_release_profile": {
+    "opt-level": 2,
+    "lto": true,
+    "codegen-units": 1,
+    "panic": "abort",
+    "strip": true
+  },
+  "allowed_changes": [
+    "Receipt opt_level2, fixed803 source identity and exact source release profile.",
+    "Reject all ambient CARGO_PROFILE_RELEASE_* before source/SDK input operations, with failed local receipt retained.",
+    "Cargo verbosity/quiet/color logging environment only.",
+    "Retain and verify exactly one product lib and one bin rustc command before built-unqualified status."
+  ],
+  "unchanged_boundaries": [
+    "SDK input hashing, source Git blob checks, recipe helper and restore finally.",
+    "Original make variables, compile/link/strip/package commands and artifact audit.",
+    "Original ELF2200000/APK1200000 limits and unqualified status."
+  ],
+  "test_command": [
+    "/opt/homebrew/bin/python3.14",
+    "-m",
+    "unittest",
+    "test_perf_opt_sdk_build_opt2",
+    "-v"
+  ],
+  "independent_unittest_passed": 4,
+  "unittest_exit": 0,
+  "test_source_sha256": "d07fbf1245578040fccc30423ed5788b0231c3ffa1c640d8da13db078bfcbade",
+  "tests_cover": [
+    "Separate/joined -C flags.",
+    "Absent, duplicate or wrong lib/bin invocations.",
+    "Conflicting/wrong opt, codegen-units, panic, strip, LTO and target.",
+    "Ambient release overrides rejected before source/SDK input calls."
+  ],
+  "retained_tiny_control_sha256": "315b7c9882f45e7de5854ade2cec49050f7e29c762fab9144e530acc1b6e0b56",
+  "retained_actual_cargo_log_sha256": "2705a488c735be851c96d9a1aec51541eb49850ba1d34a8be58ac96f051783a2",
+  "actual_lib_bin_commands_reparsed_identically": true,
+  "tiny_control_scope": "Only a pre-existing local tiny Rust1.98.1 musl/rust-lld logging fixture; no803 source build, SDK artifact, runtime or performance inference. No tiny build repeated by reviewer.",
+  "source_lineage_note": "803 preserves inherited f8 test-only hosts collision-pair repair; product profile is2. No6ab composition or functional qualification is inherited.",
+  "python_requirement": "Python>=3.11 for stdlib tomllib; verify actual Oracle interpreter before any future SDK entry.",
+  "queue_requirement": "No remote build until loop native240/owner32 and correctness full44 queue releases Oracle and root selects803.",
+  "product_built": false,
+  "Oracle_accessed": false,
+  "device_accessed": false,
+  "timing_started": false,
+  "deployment_authorized": false,
+  "schema": "803-opt2-sdk-builder-independent-review-v1",
+  "review_verifier_sha256": "98d63d819b0e058c08aa5b4b71e6ad369a5b50f3d90ae0801b59a199e9528c6c"
+}
