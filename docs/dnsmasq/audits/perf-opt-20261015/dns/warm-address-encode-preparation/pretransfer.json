@@ -1,0 +1,43 @@
+{
+  "status": "ALL_WARM_SOURCE_AND_ORIGINAL_INPUTS_PRETRANSFERRED_HASH_ONLY_WAIT_LOOP_QUIET",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "preparation_commits": [
+    "c9b23c06",
+    "a1fc89b2"
+  ],
+  "frozen_preparation_sha256": "5699d227446ce790bc11283c3730297a03bee5c7a8e39f4f3ba6b03695008e02",
+  "original_preparation_preserved": true,
+  "actual_pretransfer_receipt": {
+    "local_path": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/execution/pretransfer-receipt.json",
+    "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-inputs-20261016/pretransfer.json",
+    "sha256": "6b8b3a3808caa3c9122a3bab2fae8e45c6b2a972e5b5e086c4d4a56da4b27ebd",
+    "epoch": 1792146703.98612,
+    "source_files_verified": 179,
+    "source_manifest_sha256": "4a9150645236b4eaf55a03a24efdf769cd61095ec99a2c0f0bdb6aeeb9240348",
+    "git_identity_sha256": "455a63fd3b087c37ddd9d63e605c12412efb08e2997be9a92847d8765a9fc746",
+    "archive_sha256": "f3e0c8101891c6d85a97e24ab290487f894a1a3667ab513d0aa64992ef83956a",
+    "transferred_files": {
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-source.tar.gz": "f3e0c8101891c6d85a97e24ab290487f894a1a3667ab513d0aa64992ef83956a",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-source-files.json": "4a9150645236b4eaf55a03a24efdf769cd61095ec99a2c0f0bdb6aeeb9240348",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_warm_address_encode_related.py": "7b6b9a3e6f15a031555536b992a6c662722951bdd253b9db40e7d34ab67a6f05",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/build_warm_address_encode_allocations.py": "2f7da0be81723b46107b768872489be5d06984dbd025f85313cc8b87750fe456",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-inputs-20261016/manifest.json": "5699d227446ce790bc11283c3730297a03bee5c7a8e39f4f3ba6b03695008e02",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-inputs-20261016/commands.json": "f2afbc4c3b5206215173e33bf2c57f9e547a5101798c45bc1457d1ae6a0ac9d2",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-inputs-20261016/preflight_related.py": "ee7753082c3c5641804ad39a015f3e69721fe306d04ba072fb7675a77858d7a0",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-inputs-20261016/launch_related.py": "967a726e7aa5c90f8471c16041ed2de974d964fbe25fdabc4f30cd2c72816b9c",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-inputs-20261016/verify_related.py": "b628eba0d8509db49d637f3bcd1524f769ae4ccc037b6d4c8d6dea26afc23e09",
+      "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-execution-20261016/run_warm_sdk.py": "8661f0ee8171002cb753a53574424a79464130f256a02238ab40bc17b0b511b0"
+    },
+    "all_archive_modes_preserved": true,
+    "canonical_builder_helper_rehashed": true
+  },
+  "loop_G_stage_retains_shared_build_slot": true,
+  "actual_related_counts": null,
+  "actual_related_receipt": null,
+  "actual_SDK_artifacts": null,
+  "explicit_loop_execution_release": null,
+  "gates_or_SDK_run": false,
+  "related_or_SDK_outputs_created": false,
+  "scope": "Rootandloopexplicitlyauthorized fileprepare/hash onlyinopenpredevicewindowgap. No gate/SDKconcurrency,productchange ortestexecution.",
+  "next": "WaitloopG-stagegates/SDKactualcompletionandexplicitquiet. Warmoriginalfivegroups/canonicalSDK onlyafterhandoff. Do notdelaystage50;ifresultbulk cannotfinishbeforeitshealth/timing, retainremoteoutputsanddownloadafter50."
+}
