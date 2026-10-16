@@ -33,9 +33,17 @@
   "explicit_slot_release": null,
   "pretransfer_complete": false,
   "executed": false,
-  "remote_accessed": false,
+  "remote_accessed": true,
   "owner32_plan_sha256": "a858c763fa49f7b34bab8c7681ae9b4f138248ba74b2cf5b8872ebbb571f5eea",
   "sdk_postflight_sha256": "6b3e3cdf4214607f37ca09330901fd0453681a4368d418d2ec311ce5852be81c",
   "original32_protocol_and_scripts_unchanged": true,
-  "full_independent_review_pending": true
+  "full_independent_review_pending": true,
+  "owner_input_pretransfer": {
+    "path": "loop/185-opt2-owner32-pretransfer.json",
+    "sha256": "b77cc84b863b9b3416dd57b10cc801776aa238114e7720c13b751af2337ba889",
+    "complete": true,
+    "remote_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/185-opt2-owner32-inputs",
+    "pending_plan_uploaded_not_ready": true
+  },
+  "pretransfer_remaining": "DHCP four immutable device artifact copies, actual independent audit and DNS finalquiet. Ready-plan release metadata is filled/self-checked before any measurement."
 }
