@@ -1320,3 +1320,50 @@ ambient release-profile overrides; originalf454 builder stays unchanged.
 No803 product SDK or timing has run. Its build remains after the active
 native→owner32→full44 queue. AcceptedG and the original stopping rule remain;
 this checkpoint is not task completion.
+
+## 6ab screen closed; next compiler and inline-address sources, 2026-10-16
+
+6ab is not promoted. Original A53ten and independent5a2263a1 pass10/10valid
+but all three primary comparisons are inconclusive:122→116us CPU,5/5,3ticks,
+change4.918% belowW6.897%. Oracle native240/owner32 and independentd68522c6
+are complete. Native has9gains/2regressions/4within; synth-address+2.621% and
+cname-config+4.765% remain. Owner32 plainCPU/throughput/latency/sendlag are all
+inconclusive. All raw bins, including3.58GB independently replayed, remain.
+Oracle release35dda22f passed to correctness; fullqualificatione1db339f is
+running with originaljobs3, same-source961rehash and one fresh release probe.
+Probe exit0/receipt402f9e93; original remaining/full families still pending.
+
+After actual fullfunctional/audits/quiet, correctness must use followup_task
+to wake DNS for authorized803originalfivegroups→reviewedopt2SDK. The disabled
+package d7957509 and independentfb1cf84b are ready. Then actualSDK/gates/review/
+transfers/quiet bind the original G/803 owner32 and independent A53ten in
+parallel. Loop preparationb1efce28/7e344d5b and DHCP57ce2cc0 are reviewed.
+There is no native240 for this compiler experiment: its original probe's
+finalopt3 flags would not establish a profile2 single-factor comparison.
+
+Root's next product source1df135dc is an independent6ab child, not combined
+with210/849/2b/803. EntryDetails stores valid positive A/AAAA bytes inline;
+Other retains separate CNAMEtarget and negativeauthority. OriginalArc<Record>
+ownership remains. Source/count independent5ec04eed passes; Mac727/8ignored
+and muslalltargets pass. Originalc43count16 has8pairs with every field equal
+exceptside, including construction,20snapshots,COW,peak anddrop. Entry and
+Option remain72/72B in actualhostcounts and purecompile-time Linuxtargetprobe.
+Localcodegen removes the Record/RDATA dependence on the fresh address path,
+but outlines eligibility384B; writer+56B,invalid+8B,wholelocalELF+976B remain.
+No SDK, Linuxruntime, RSS/PSS or CPU improvement is claimed.
+
+Bare1df originalrelated/SDK preparation0d90579d and independent0aca751f are
+disabled/actualnull; expected963 is only a projection. It is the priority
+product experiment after803, using originalG controls and unchanged full gates.
+The live6ab/full44 and future803 artifacts must not be modified. DHCP's read-only
+resource review finds no1df-specific representation blocker; actualoriginal
+resource thresholds remain. Legacycompanion clockanchor drift and oldmemory
+layout assumptions predate this change and are not called by currentfull44;
+only recorded in844a797c, with no repair or new framework.
+
+Other preserved local evidence:210directleaseiterator64→32B andguardframe
+368→336B;84912e54 expirytraversal frame split passes source0a202a2b and725local
+tests but remains unmeasured. G/A53target-cpu source478acea6 replays the original
+F flag with a separatefixture fix. Local.text grows8.68%, not a demonstrated
+SDK budget failure or runtime outcome; retain below803 priority. Local evidence
+and Git refs are preserved; no new source has replaced acceptedG.
