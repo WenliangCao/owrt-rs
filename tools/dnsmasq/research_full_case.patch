@@ -1,0 +1,39 @@
+--- a/tools/dnsmasq/perf_opt_device_case.sh
++++ b/tools/dnsmasq/perf_opt_device_case.sh
+@@ -1,5 +1,6 @@
+ #!/bin/sh
+-# Run only via device_perf_netns inside the task's independently guarded group.
++# Research supplement: same case with paired CPU-clock/tick endpoints.
++# Run only via device_perf_netns inside the independently guarded group.
+ # No production configuration, interfaces, Unix sockets or DHCP hooks are used.
+ set -eu
+ root=$1
+@@ -60,7 +61,7 @@
+ readlink /proc/self/ns/net > "$out/netns.txt"
+ elf=$root/dnsmasq-$side
+ sha256sum "$elf" > "$out/elf.sha256"
+-sha256sum "$root/m6a_loadgen" "$root/m6a_upstream" "$root/device_perf_resource_probe" "$root/device_perf_lifecycle" "$root/device_perf_case.sh" > "$out/tools.sha256"
++sha256sum "$root/m6a_loadgen" "$root/m6a_upstream" "$root/device_perf_resource_probe" "$root/device_perf_lifecycle" "$root/research_full_case.sh" "$root/research_cpu_clock_probe" > "$out/tools.sha256"
+ case "$mode" in
+ life-startup|life-hup|life-config)
+     # The lifecycle helper keeps every child inside this guarded process group.
+@@ -126,6 +127,9 @@
+     "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.test --profile hit --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/prewarm" > "$out/prewarm.stdout" 2> "$out/prewarm.stderr"
+ fi
+ "$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/before.jsonl"
++if [ "$mode" = udp ]; then
++    "$root/research_cpu_clock_probe" read "$daemon" "$daemon_start" > "$out/cpu-before.jsonl"
++fi
+ clients=32
+ [ "$mode" != tcp ] || clients=8
+ extra=
+@@ -148,6 +152,9 @@
+ wait "$client_timer"
+ client= client_timer=
+ sleep 1
++if [ "$mode" = udp ]; then
++    "$root/research_cpu_clock_probe" read "$daemon" "$daemon_start" > "$out/cpu-after.jsonl"
++fi
+ "$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/after.jsonl"
+ cat /proc/$daemon/stat > "$out/final.stat"
+ owned_signal "$observer" "$observer_start" TERM
