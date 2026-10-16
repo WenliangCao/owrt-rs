@@ -321,6 +321,7 @@ impl CacheContext<'_> {
                     }.write(header_bytes)?;
                     let (question_name, fields) = body.split_at_mut(name.len());
                     question_name.copy_from_slice(name);
+                    let (fields, address_bytes) = fields.split_at_mut(16);
                     fields[..2].copy_from_slice(&question.rrtype.to_be_bytes());
                     fields[2..4].copy_from_slice(&question.class.to_be_bytes());
                     fields[4..6].copy_from_slice(&[0xc0, 12]);
@@ -328,7 +329,7 @@ impl CacheContext<'_> {
                     fields[8..10].copy_from_slice(&1u16.to_be_bytes());
                     fields[10..14].copy_from_slice(&entry.reply_ttl(now, cache.policy()).to_be_bytes());
                     fields[14..16].copy_from_slice(&(data.len() as u16).to_be_bytes());
-                    fields[16..].copy_from_slice(data);
+                    address_bytes.copy_from_slice(data);
                     return Ok(CachedAnswer {
                         packet: Some(packet), stale: false, filtered: false, forward_name: None,
                     });
