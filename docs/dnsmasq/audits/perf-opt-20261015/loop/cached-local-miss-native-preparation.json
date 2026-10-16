@@ -1,0 +1,84 @@
+{
+  "status": "LOCAL_PREPARATION_ONLY_NOT_UPLOADED_OR_EXECUTED",
+  "plan_commit": "a60d358b",
+  "plan_file": "dns/cached-local-miss-native-plan.json",
+  "plan_sha256": "4164adeed24c9a0291a39cdb0ee7dfb6fe6bd86aa9680de2f52411632e69475d",
+  "source_inputs": {
+    "F": {
+      "commit": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-f",
+      "git_blob_sha256_matches": 162
+    },
+    "cached-local-miss": {
+      "commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+      "directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-miss",
+      "git_blob_sha256_matches": 162
+    }
+  },
+  "runner_file": "dns/run_layout_native_screen.py",
+  "runner_sha256": "e5c6e155a351e9f77dd9012fb11a3dddcf53732acf13b4ca078801daf99fe6ff",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "unchanged_fixed_fields": [
+    "probe",
+    "scenes",
+    "stat_pairs",
+    "plain_pairs",
+    "stat_event",
+    "stat_scope",
+    "plain_scope",
+    "plain_decision",
+    "cpu",
+    "nice",
+    "build_cpu",
+    "native_target",
+    "build_lock",
+    "retry_policy",
+    "stat_operations",
+    "plain_operations",
+    "duration_rationale",
+    "expected_checksum_per_2000000_operations"
+  ],
+  "scenes": 15,
+  "stat_windows": 90,
+  "plain_windows": 150,
+  "unique_window_labels": 240,
+  "build_commands_before_measurements": 4,
+  "total_commands": 244,
+  "local_staging": "private/perf-opt-20261015/cached-local-miss-native-inputs",
+  "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-native-screen1",
+  "analyzer_file": "loop/analyze_cached_local_miss_native.py",
+  "analyzer_sha256": "f58b58c30d09356ecd7a34d4b95b653ab9e987b222601bd78dbf48da12642fd7",
+  "analyzer_changes_only": [
+    "input/output path",
+    "plan path",
+    "scope text",
+    "240rows/244commands cardinalities"
+  ],
+  "qualification_reported_by_coordinator": {
+    "path": "correctness/private/cached-local-miss-linux-gates-20261016/verified-receipt.json",
+    "sha256": "cb9ceed13e8e9441a8b3465cd51af23bb67c80fd2405df9b26f2b6a72aac2fa4",
+    "related_test_passes": 938,
+    "scope": "Reported completed; not read from Oracle in this local-only preparation"
+  },
+  "SDK_binding": null,
+  "device_download_confirmed": false,
+  "root_timing_release_received": false,
+  "required_before_launch": [
+    "Exact final qualification receipt is rechecked and source matched",
+    "Unchanged SDK build completes and exact ELF/map/build identities and original budget pass",
+    "DHCP completes required artifact pre-download and verification",
+    "Any hot250 or other Oracle build/workload ends and locks release",
+    "Root explicitly releases the new timing reservation and root-readable inventory is idle"
+  ],
+  "scope_limits": [
+    "No source change or prior sample pooling",
+    "Earlier 8d integration results retained; c44/owned remaining unstarted plans unchanged",
+    "Native and owner32 not started; no new measurement framework",
+    "Inherited builds prose says three probes, but the executable plan has two sources and four build commands"
+  ],
+  "oracle_accessed": false,
+  "uploaded": false,
+  "native_started": false,
+  "owner32_started": false,
+  "product_changed": false
+}
