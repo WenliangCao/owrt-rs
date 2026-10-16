@@ -1,0 +1,76 @@
+{
+  "schema": "185-opt2-isolated-sdk-preparation-v1",
+  "status": "LOCAL_STATIC_PREPARATION_ONLY_LOWER_PRIORITY_NOT_AUTHORIZED_TO_BUILD",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "local_source": "/Users/USER/Developer/owrt-perf-185-opt2-20261016",
+  "source_date_epoch": "1792119705",
+  "full_diff_to_G": [
+    "components/dnsmasq/Cargo.toml",
+    "components/dnsmasq/src/hosts.rs",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/hosts-collision-pair-fixture-repair.json"
+  ],
+  "single_release_profile_change": "release opt-level3to2",
+  "inherited_test_only_repair": {
+    "commit": "f8adb016",
+    "file": "components/dnsmasq/src/hosts.rs",
+    "G_sha256": "cf3973555a7d693279618e5158722df2a0bfb88c8e529981c2a37784a4d19d2f",
+    "opt2_sha256": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1",
+    "non_test_prefix_byte_identical": true,
+    "scope": "Collision fixture repair only inside final cfg(test) module; associated audit doc is not an SDK input. Do not call the full source tree or179hashes identical apart fromCargo."
+  },
+  "profile": {
+    "opt-level": 2,
+    "lto": true,
+    "codegen-units": 1,
+    "panic": "abort",
+    "strip": true,
+    "features": []
+  },
+  "source_files": 179,
+  "source_manifest_sha256": "163a1186fa1f022e5f5b3c4a8c6a9dbca08d0ecb05a0ff55bc5ee744d4246367",
+  "source_digest": "2b0c72d8c841b08dc3f4a7c3f0df5c02ab168a46534747f432c31c7ef4792fba",
+  "git_identity_sha256": "92dfd48474172faae3aa2bddffa80b3ce4a48e4f484ad3c0a040378feac70216",
+  "private_manifest": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/185-opt2/source-files.json",
+  "private_identity": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/185-opt2/research-git-identity.json",
+  "canonical_recipe": {
+    "path": "packaging/openwrt/owrt-dnsmasq/Makefile",
+    "sha256": "0438d7ad8dcf6f2b986cdffb9afdba4dee2857078e3b23a49f33fe1386f244ab",
+    "byte_identical_to_G": true,
+    "RUSTFLAGS_line": "RUSTFLAGS=\"-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static\" \\",
+    "RUSTFLAGS_opt_level_override_present": false,
+    "cargo_command": "build --release --frozen with prepared source Cargo.toml; no opt-level CLI override",
+    "LTO_codegen_units_hardening_allocator_features_unchanged": true
+  },
+  "canonical_builder": {
+    "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "clears_inherited_flags": [
+      "CARGO_ENCODED_RUSTFLAGS",
+      "RUSTFLAGS",
+      "RUSTC_WRAPPER",
+      "RUSTC_WORKSPACE_WRAPPER",
+      "RUSTC",
+      "CARGO_BUILD_TARGET",
+      "CARGO_TARGET_DIR"
+    ],
+    "codegen_opt_level3_override_present": false,
+    "report_opt_level_field_hardcoded": "3",
+    "reporting_caveat": "Metadata only, not an injected compiler flag. Any future803run must bind accurate profile2/effective rustc invocation via separately reviewed receipt or minimal metadata-only builder snapshot. Do not modify7c/6ab canonical builder."
+  },
+  "future_preflight_requirements": [
+    "Exclude inherited CARGO_PROFILE_RELEASE_OPT_LEVEL/LTO/CODEGEN_UNITS and other overrides changing the single release factor. Original recipe itself sets panic=abort.",
+    "Verify prepared Cargo.tomlopt2, identical fatLTO/codegen1/panic/strip/features, the test-only repair boundary and actual effective rustc invocation. Static source inspection is not an SDK result.",
+    "Keep803 source/output separate from6ab and originalG. No newallocator/compiler/linker/hardening change.",
+    "Only run after root separately selects this lower-priority compiler experiment;6abrelated and7c/6abSDK come first."
+  ],
+  "local_rust_lld_text_reduction_scope": "About-5.15percent local rust-lld text is local codegen only, not original SDK ELF/APK size, CPU or deployment evidence.",
+  "planned_remote_source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-185-opt2",
+  "planned_remote_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-185-opt2",
+  "actual_sdk_artifacts": null,
+  "mixed_with_6ab": false,
+  "uploaded": false,
+  "built": false,
+  "oracle_accessed": false,
+  "executed": false,
+  "retained_local_preparation_correction": "Initial exact-only-Cargo diff assertion rejected the inherited cfg(test) repair before any archive/build/upload. This final manifest records actual differences; source and product were not changed."
+}
