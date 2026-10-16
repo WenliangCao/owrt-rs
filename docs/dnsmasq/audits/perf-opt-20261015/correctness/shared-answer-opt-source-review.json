@@ -1,0 +1,72 @@
+{
+  "schema": "shared-answer-opt-source-review-v1",
+  "status": "PASS_SOURCE_ONLY_SAME_QUERY_UDP_SCAN_REUSE",
+  "source_commit": "bdfcc382380b0d05c6a1a2e4bdba7a23bd0714d4",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "changed_files": [
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/service.rs"
+  ],
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/cache_engine.rs": "d5f9e5c7b0c8f46dae61d648a385ffe71ca123967faef6869cea808470eb8b3a",
+    "components/dnsmasq/src/dns/daemon.rs": "7fe4388ee5de0d1ba73ab674cca423def5fc506799d8b63d3d9e240c09f354a4",
+    "components/dnsmasq/src/dns/service.rs": "23b2374c21cfd5479cba47ea453d88f615dd72a3b8a3b974a27c62885b197de5"
+  },
+  "product_diff_sha256": "abe2c6ec7953d4f06c35ab1b6c84050f3ca79fdfe670ddef57516c6a7f82e9dd",
+  "exact_reverse_substitutions_restore_all_three_base_files": true,
+  "all_other_source_files_and_tests_unchanged": true,
+  "callers": {
+    "lookup_local_parsed": "Exactly two call sites: handle_local_parsed passes fresh temporary None; answer_local_or_cached passes its fresh local None. Only UDP fills it with find_pseudoheader(query,true).ok().",
+    "answer_from_cache": "Exactly three call sites: direct answer_udp_with_edns and answer_tcp pass None; answer_local_or_cached passes the same local slot after local lookup.",
+    "answer_local_or_cached": "Both UDP daemon callers, current-generation wrapper, both main TCP owner branches and tests converge on a fresh stack slot for each invocation. Prepared UDP local/cache use original, never decorated, bytes."
+  },
+  "lifetime_and_ownership": [
+    "EdnsScan contains an optional EdnsRef/RecordRef borrowing the immutable query. lookup_local_parsed ties that borrow explicitly to query lifetime p, separately from decoded Question lifetime q.",
+    "The slot is local to one synchronous answer_local_or_cached invocation. The exact same query slice is passed to local and cache; no stored scan or escaping reference is added. Local/cache mutate separate state and response vectors, not query bytes.",
+    "answer_from_cache itself accepts a borrowed scan without a type-level proof that it came from query; correctness therefore relies on its current three verified internal call sites. New future callers must preserve that association.",
+    "TCP does not fill the output slot. Current callers always start with None, so no stale UDP scan reaches TCP. Its temporary tcp_scan remains local to appending the local response OPT."
+  ],
+  "case_analysis": [
+    {
+      "case": "UDP scan returns Ok with OPT",
+      "result": "Local limit/DO/append methods borrow the same EdnsRef values formerly moved out of scan. On local miss or deferred forward-rule answer, cache reuses the identical successful scan. Immutable wire parsing is pure; removing its second invocation cannot change packet data."
+    },
+    {
+      "case": "UDP scan returns Ok without OPT",
+      "result": "The whole successful EdnsScan is retained as Some even with opt=None. This preserves valid no-OPT and malformed-additional cases where find_pseudoheader intentionally returns Ok after clearing opt. Cache gets the same no-OPT result that its old rescan produced."
+    },
+    {
+      "case": "UDP scan returns Err",
+      "result": "The slot becomes None. Local still suppresses this scan error exactly as before. If local subsequently errors, the same UDP propagation occurs; if cache is reached, it performs its original scan and propagates its error at the original position."
+    },
+    {
+      "case": "Cache interface-name guard, invalid header checks and DO lookup effects",
+      "result": "Interface-name/NXDOMAIN early return still precedes selecting or recomputing scan. Header rejection, DO-dependent cache lookup/rotation/expiry, answer records and append logic remain byte-identical. No cache mutation is moved across an error boundary."
+    },
+    {
+      "case": "Signed, TKEY, TSIG, multiple OPT, malformed later Additional",
+      "result": "Every producer still calls find_pseudoheader(query,true); last-OPT selection, signed metadata and malformed-later-record clearing remain in unchanged wire.rs. Current local/cache logic ignores signed as before and consumes the unchanged opt fields."
+    },
+    {
+      "case": "TCP local miss, hit, error and deferred forward-rule",
+      "result": "No scan is moved before local lookup. TCP scans only after a local hit for local OPT append, suppresses that scan failure as before, leaves the shared slot None, and cache retains its original independent scan and error propagation. Daemon continues suppressing local TCP errors before cache/fallback."
+    },
+    {
+      "case": "Forward-rule ordering and output selection",
+      "result": "Real local answers still return before cache; forward-rule answers remain deferred. Cache can still replace a provisional rule answer; selected local events are still committed only when sent. TCP terminal-name rule reevaluation and its independent scan remain unchanged."
+    },
+    {
+      "case": "Direct cache wrappers and disabled/unavailable cache",
+      "result": "Direct wrappers pass None and keep old parser behavior. If caching is disabled or cache is absent, the unused stack slot creates no extra parse or observable action."
+    }
+  ],
+  "blocking_findings": [],
+  "scope_limits": [
+    "Read-only source audit and exact byte substitution proof only; no test/build/capture/Oracle/device operations.",
+    "Author-reported725Mac+8ignored and musl all-target success are not independent runtime evidence here; local codegen and frame/size effects were not reviewed.",
+    "No allocation or performance improvement is inferred. Other independent EDNS scans, including filter_win2k and forwarding policy paths, remain untouched.",
+    "Independent6ab local candidate only; does not enter803/1df queue or inherit shipping/functionality/performance/deployment acceptance."
+  ],
+  "reviewer_script_sha256": "1a361e4d9088ccaae3401ffb11d8b127d7eef50137ec38cd90af32a12dea92ff"
+}
