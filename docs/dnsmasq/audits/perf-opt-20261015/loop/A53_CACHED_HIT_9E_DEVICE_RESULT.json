@@ -1,0 +1,1212 @@
+{
+  "derived_report_generator": {
+    "sha256": "033749972c6b1ce3fdc0fa972f59bbcc7825587d7e1b55746c93c5734b6c2d57",
+    "frozen_preparation_sha256": "25d1127b5bbe615504e3f2f6b0b00b6f31feda29a493d6fae5e1cfa80b28f74b",
+    "scope": "Only actual concurrency receipt fields, retained local binding setup failure and explanatory prose were added after preparation. All original calculations and runtime tools remain unchanged; original generator bytes are retained privately."
+  },
+  "schema": 1,
+  "status": "10/10 fixed fresh G/9e UDP-hit windows valid, archived, E/F restored; independent exploratory screen",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+  "elf_bytes": 2145051,
+  "map_sha256": "346acb9555f6956c7f271e627bd635fe8c32983923a82dffc88052be853f89c0",
+  "build_receipt_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+  "source_files_verified": 179,
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2145051,
+    "APK_bytes": 1168103,
+    "gate_unchanged": true
+  },
+  "sdk_independent_review": {
+    "commit": "6c8ad70d",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-sdk-independent-audit.json",
+    "sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+    "status": "PASS_ACTUAL_BARE9E_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL965_CHAIN"
+  },
+  "related_linux_report_sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+  "related_linux_verified_receipt_sha256": "5c00ebbf355f0a4f5caa7f2c01bd938e2e396548f8cf307f342a742155fdbf33",
+  "device_plan_independent_review": {
+    "commit": "aac5dad2",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/cached-hit-9e-device-preparation-peer.json",
+    "sha256": "649d7ac56461a3bf5a9cf0b2772e7e6aa137b56e3af860b26775732816dd3909",
+    "reviewed_preparation_plan_sha256": "8e95a24d0fb15bec5beb3e80f4d3bd151465c6a0266ba90b72885bebaf08cea6",
+    "status": "PASS_LOCAL_DISABLED_PREPARATION_ONLY",
+    "scope": "Local disabled preparation only; six operator identity/path/cohort/prior-closure adaptations and four unchanged shared helper files. Actual source/Linux/SDK/standalone signal contents and independent reviews, fresh health/recovery/quiet and root scheduling release remain required."
+  },
+  "source_parent": "8bf21ff256c5211ca4a3353b75c7564fb0ec5c0a",
+  "source_base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "standalone_runtime_signals_result": {
+    "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+    "SDK_elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+    "SDK_build_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+    "actual_result_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/9e-runtime-signals-bindings/result.json",
+    "actual_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+    "passed": true,
+    "isolated": true,
+    "signal_cases": 12,
+    "cache_dump_cases": 3,
+    "alarm_maintenance_cases": 3,
+    "original_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337"
+  },
+  "standalone_runtime_signals_independent_review": {
+    "commit": "b019256e",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+    "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+    "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+  },
+  "retained_local_signal_binding_setup_failure": {
+    "failure": "Initial local binding expected SIGHUP/SIGUSR2/SIGTERM/SIGINT and failed assertion before any binding-directory creation, plan write or device call.",
+    "correction": "Read the unchanged frozen tool; original order is SIGHUP/SIGUSR2/SIGUSR1/SIGALRM, each c-image/c-native/rust. Exact result bytes and all original tests remained unchanged.",
+    "signal_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+    "audit_or_measurement_rerun": false
+  },
+  "concurrent_Oracle_work": {
+    "schema": 1,
+    "scope": "Original native controller and native timing overlapped the device10 run on a separate Oracle host under root coordination. No claim of Oracle idle, physical isolation, synchronized-host causal attribution, additive costs or IPC. Owner32 started after device archive/restoration closure and did not overlap device measurement.",
+    "coordination": "All original qualification/input/staging transfers completed before launch; only small control and receipts were allowed. Device safe gap after archive verification/restoration does not release global bulk while later owner32 timing remains active.",
+    "device10": {
+      "launch_epoch": 1792153794.270386,
+      "last_window_archived_epoch": 1792154222.756068,
+      "postflight_epoch": 1792154276.051283,
+      "launch_sha256": "14ea15f8fb03d09e46d746eb959a7daa0ff59e43a2869cdb1ad335a6aaf7691a",
+      "postflight_sha256": "0a8105f02be0920b0959919c38d42e19f90d5afe83d397433c16cdd4fadacb23"
+    },
+    "original_native": {
+      "launch_epoch": 1792153754.620194,
+      "first_measured_command_started_epoch": 1792153802.3786392,
+      "last_command_started_epoch": 1792154122.2049572,
+      "last_command_elapsed_ns": 4613934340,
+      "derived_last_command_end_epoch": 1792154126.8188915,
+      "derived_last_command_end_utc": "2026-10-16T12:35:26.818892+00:00",
+      "end_basis": "Derived from the existing last command started_epoch plus elapsed_ns. The original controller has no separate measured-finish epoch; this is not an original end field.",
+      "premeasurement_scope": "The interval from controller launch to first measured command includes the original four builds, setup and fixed wait; it is not all measurement or a precise build-only duration.",
+      "postflight_epoch": 1792154220.406933,
+      "result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4"
+    },
+    "later_owner32": {
+      "launch_epoch": 1792154415.366088,
+      "launched_after_device_postflight": true,
+      "overlap_with_device_measurement": false
+    },
+    "receipts": {
+      "native-launch.json": {
+        "sha256": "141a3c30727354f43ecb1f12db74352abcb95eecf06f3ce4eec70b0080a653d9",
+        "original_local_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-launch.json",
+        "receipt": {
+          "scope": "Original G185/integrated9e native240 after actual965/canonicalSDK/originalstandalone signals independent gates, all bulk complete and fresh release. Original hot15 does not cover warm recycling or main owner; no isolated component attribution.",
+          "pid": 1082050,
+          "starttime_ticks": 187837183,
+          "epoch": 1792153754.620194,
+          "utc": "2026-10-16 12:29:14 UTC",
+          "argv": [
+            "taskset",
+            "-c",
+            "0",
+            "python3",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-native-screen1/run_cached_hit_9e_native.py",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-native-screen1"
+          ],
+          "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+          "owner32_plan_sha256": "1ca73b0ed6886de563f42d2bcab74157f2ea956122937ea0c9d470c24dec2c73",
+          "owner_prerequisites_sha256": "cd144a6af4dd4c1047f26877305c44cb1dd56348ac7acaa14a8628d7495d48bf",
+          "controller_sha256": "045a9ee0baefc926508322acbc2a0634805a37a5c4ce849f3ba575311afd7b32",
+          "explicit_release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba",
+          "preflight_sha256": "7143c986657af153cf516c8b1e7e1cf9e7177da8f42bb1f2d061ec771fed3323",
+          "windows": 240,
+          "commands": 244,
+          "owner32_not_started": true,
+          "transfers_held_during_measurement": true
+        }
+      },
+      "native-status-latest.json": {
+        "sha256": "75812bcbcd255784fe4d4e37dd19985b727a294e5c18a931e7e0b4674e2da9eb",
+        "original_local_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-status-latest.json",
+        "receipt": {
+          "epoch": 1792154194.2816913,
+          "status": "complete",
+          "commands": 244,
+          "windows": 240,
+          "active": null,
+          "controller_exists": false,
+          "all_recorded_commands_exit0": true,
+          "result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+          "first_window_started_epoch": 1792153802.3786392,
+          "last_command_started_epoch": 1792154122.2049572,
+          "last_command_elapsed_ns": 4613934340,
+          "error": null
+        }
+      },
+      "native-postflight.stdout": {
+        "sha256": "5204a07a7a8d2125d1dd02925000081637a6483e6d5200680fbefd80abd8b0a7",
+        "original_local_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-postflight.stdout",
+        "receipt": [
+          {
+            "status": "PASS_NATIVE240_RAW_IDENTITY_AND_QUIET_READY_FOR_OWNER32",
+            "epoch": 1792154220.406933,
+            "windows": 240,
+            "commands": 244,
+            "stat_windows": 90,
+            "plain_windows": 150,
+            "all180_PMU_events_unscaled": true,
+            "raw_command_file_count": 578,
+            "source_files_verified_each": 162,
+            "artifact_hashes": {
+              "G": {
+                "elf_sha256": "1edf4fb912e10441f3ab075e922fff9d9b6ee4539af48ba8f816452444dfee63",
+                "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+              },
+              "cached-hit-9e": {
+                "elf_sha256": "de2a75019a5dc93b598ae1a2e8d4434561677f9faa49b403bbf3a02452c08f68",
+                "rlib_sha256": "891d02c0c3428c1609cdd8204c86f7e4d561070c4ca7ceb6b603da870e7b52f9"
+              }
+            },
+            "result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+            "controller_exited": true,
+            "no_measurement_retries": true,
+            "cross_window_statistics": "Original local analyzer after both measurement slots and transfer; no selection or replacement.",
+            "comparison_scope": "G185 versus9e includes inherited6ab and integrated changes; no isolated component attribution. Preserve all previous adverse screens. No runtime/product promotion from local preparation."
+          },
+          {
+            "postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849"
+          }
+        ]
+      },
+      "owner-launch.json": {
+        "sha256": "f13c4425abd7ea4fb0bae3bae138936aae9804078fc574eecc217c68966131aa",
+        "original_local_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/owner-launch.json",
+        "receipt": {
+          "scope": "Original exact-SDK G185/integrated9e owner32 after actual965/canonicalSDK/originalsignals independent audits, originalnative240 complete raw/postflight and fresh quiet; no isolated component attribution.",
+          "pid": 1085860,
+          "starttime_ticks": 187903258,
+          "epoch": 1792154415.366088,
+          "utc": "2026-10-16 12:40:15 UTC",
+          "argv": [
+            "taskset",
+            "-c",
+            "0",
+            "python3",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-owner32-inputs/run_cached_hit_9e_owner32.py",
+            "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-owner32-inputs/plan.json"
+          ],
+          "plan_sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+          "controller_sha256": "1deaae97c98e5e2526d454b7b46ade42f50ad33e4420eb3d243047cb89a80147",
+          "explicit_release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba",
+          "final_metadata_sha256": "aa18dfb79d207beea2950dea8063ab577e9afaeea5fa9db445d72b8f44bb16d5",
+          "native_postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+          "native_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+          "research": [],
+          "windows": 32,
+          "stat_windows": 12,
+          "plain_windows": 20,
+          "no_measurement_retries": true,
+          "transfers_held_during_both_measurement_slots": true
+        }
+      }
+    }
+  },
+  "plan_sha256": "b5d6fecfb1da7faf25278f81f02efc6306c2a7fb70649ebf86cd851c759779fa",
+  "tool_hashes": {
+    "entry_sha256": "ede37748877fb75897f8eac964be0a2a1f76c6d99ef34a8c26c635c1f4f44351",
+    "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "fixed_windows": 10,
+  "valid_windows": 10,
+  "primary_gains": 0,
+  "primary_regressions": 0,
+  "primary_indistinguishable": 3,
+  "comparison": {
+    "left": [
+      "g",
+      null
+    ],
+    "right": [
+      "cached-hit-9e",
+      null
+    ],
+    "metrics": {
+      "p50_ms": {
+        "left": {
+          "median": 0.17512,
+          "min": 0.166503,
+          "max": 0.184123,
+          "rounds": [
+            0.17512,
+            0.184123,
+            0.175506,
+            0.166503,
+            0.170273
+          ]
+        },
+        "right": {
+          "median": 0.166503,
+          "min": 0.162656,
+          "max": 0.191201,
+          "rounds": [
+            0.166041,
+            0.166503,
+            0.18897,
+            0.191201,
+            0.162656
+          ]
+        },
+        "relative_change_pct": -4.920625856555497,
+        "W_pct": 17.14383524621179,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.324927,
+          "min": 0.277146,
+          "max": 0.37517,
+          "rounds": [
+            0.277146,
+            0.324927,
+            0.369784,
+            0.295612,
+            0.37517
+          ]
+        },
+        "right": {
+          "median": 0.311077,
+          "min": 0.279146,
+          "max": 0.416873,
+          "rounds": [
+            0.279146,
+            0.306153,
+            0.357319,
+            0.416873,
+            0.311077
+          ]
+        },
+        "relative_change_pct": -4.262495883690807,
+        "W_pct": 44.27424721210504,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 118.0,
+          "min": 112.0,
+          "max": 124.0,
+          "rounds": [
+            116.0,
+            124.0,
+            120.0,
+            112.0,
+            118.0
+          ]
+        },
+        "right": {
+          "median": 114.0,
+          "min": 108.0,
+          "max": 120.0,
+          "rounds": [
+            114.0,
+            110.0,
+            120.0,
+            120.0,
+            108.0
+          ]
+        },
+        "relative_change_pct": -3.389830508474576,
+        "W_pct": 10.526315789473683,
+        "same_direction_pairs": 3,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 2396.0,
+          "min": 2368.0,
+          "max": 2412.0,
+          "rounds": [
+            2368.0,
+            2396.0,
+            2412.0,
+            2392.0,
+            2396.0
+          ]
+        },
+        "right": {
+          "median": 2404.0,
+          "min": 2396.0,
+          "max": 2416.0,
+          "rounds": [
+            2396.0,
+            2404.0,
+            2396.0,
+            2408.0,
+            2416.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 2396,
+          "min": 2368,
+          "max": 2412,
+          "rounds": [
+            2368,
+            2396,
+            2412,
+            2392,
+            2396
+          ]
+        },
+        "right": {
+          "median": 2404,
+          "min": 2396,
+          "max": 2416,
+          "rounds": [
+            2396,
+            2404,
+            2396,
+            2408,
+            2416
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 520,
+          "min": 516,
+          "max": 520,
+          "rounds": [
+            520,
+            520,
+            516,
+            520,
+            520
+          ]
+        },
+        "right": {
+          "median": 516,
+          "min": 516,
+          "max": 516,
+          "rounds": [
+            516,
+            516,
+            516,
+            516,
+            516
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 1872,
+          "min": 1844,
+          "max": 1892,
+          "rounds": [
+            1844,
+            1872,
+            1892,
+            1868,
+            1872
+          ]
+        },
+        "right": {
+          "median": 1884,
+          "min": 1876,
+          "max": 1896,
+          "rounds": [
+            1876,
+            1884,
+            1876,
+            1888,
+            1896
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    }
+  },
+  "cpu_ticks_by_artifact": {
+    "g": [
+      58,
+      62,
+      60,
+      56,
+      59
+    ],
+    "cached-hit-9e": [
+      57,
+      55,
+      60,
+      60,
+      54
+    ]
+  },
+  "absolute_median_cpu_tick_difference": 2,
+  "cases": [
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r1-c",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 58,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "cpu_endpoint_seconds": 27.015504795,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087406,
+        "p50": 0.17512,
+        "p95": 0.277146,
+        "p99": null,
+        "max": 5.260537
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060093,
+        "p50": 0.099575,
+        "p95": 0.146435,
+        "p99": null,
+        "max": 1.568684
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.164914,
+        "p50": 0.276206,
+        "p95": 0.4145,
+        "p99": null,
+        "max": 5.429635
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2368.0,
+      "rss_peak_kib": 2368,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_rss_peak_kib": 2368,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r1-rust",
+      "round": 1,
+      "side": "rust",
+      "artifact": "cached-hit-9e",
+      "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 57,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 114.0,
+      "cpu_endpoint_seconds": 27.015551623,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.083714,
+        "p50": 0.166041,
+        "p95": 0.279146,
+        "p99": null,
+        "max": 6.805998
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065742,
+        "p50": 0.098696,
+        "p95": 0.147697,
+        "p99": null,
+        "max": 1.942834
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.161068,
+        "p50": 0.265626,
+        "p95": 0.424663,
+        "p99": null,
+        "max": 6.960855
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 30
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r2-rust",
+      "round": 2,
+      "side": "rust",
+      "artifact": "cached-hit-9e",
+      "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 55,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "cpu_endpoint_seconds": 27.01716184,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.083174,
+        "p50": 0.166503,
+        "p95": 0.306153,
+        "p99": null,
+        "max": 11.11222
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055182,
+        "p50": 0.09907,
+        "p95": 0.151534,
+        "p99": null,
+        "max": 8.526381
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.162871,
+        "p50": 0.266681,
+        "p95": 0.455894,
+        "p99": null,
+        "max": 13.773453
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_rss_peak_kib": 2404,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r2-c",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.014741363,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088253,
+        "p50": 0.184123,
+        "p95": 0.324927,
+        "p99": null,
+        "max": 8.802339
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.067255,
+        "p50": 0.102857,
+        "p95": 0.158551,
+        "p99": null,
+        "max": 1.018593
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.168846,
+        "p50": 0.289041,
+        "p95": 0.478226,
+        "p99": null,
+        "max": 8.956197
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r3-c",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.015408269,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086867,
+        "p50": 0.175506,
+        "p95": 0.369784,
+        "p99": null,
+        "max": 11.791005
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.041396,
+        "p50": 0.099313,
+        "p95": 0.172317,
+        "p99": null,
+        "max": 5.230522
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.165188,
+        "p50": 0.276076,
+        "p95": 0.548166,
+        "p99": null,
+        "max": 12.032498
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2412.0,
+      "rss_peak_kib": 2412,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1892,
+      "tree_rss_peak_kib": 2412,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r3-rust",
+      "round": 3,
+      "side": "rust",
+      "artifact": "cached-hit-9e",
+      "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.016367094,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.081097,
+        "p50": 0.18897,
+        "p95": 0.357319,
+        "p99": null,
+        "max": 13.495505
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.05477,
+        "p50": 0.114332,
+        "p95": 0.170171,
+        "p99": null,
+        "max": 8.707359
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.159484,
+        "p50": 0.306354,
+        "p95": 0.527704,
+        "p99": null,
+        "max": 13.677121
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r4-rust",
+      "round": 4,
+      "side": "rust",
+      "artifact": "cached-hit-9e",
+      "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.01528657,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.085252,
+        "p50": 0.191201,
+        "p95": 0.416873,
+        "p99": null,
+        "max": 10.053573
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.053848,
+        "p50": 0.114777,
+        "p95": 0.216384,
+        "p99": null,
+        "max": 6.193175
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.165948,
+        "p50": 0.309449,
+        "p95": 0.633379,
+        "p99": null,
+        "max": 11.15632
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_rss_peak_kib": 2408,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r4-c",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 56,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 112.0,
+      "cpu_endpoint_seconds": 27.015456738,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088022,
+        "p50": 0.166503,
+        "p95": 0.295612,
+        "p99": null,
+        "max": 7.003662
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.062427,
+        "p50": 0.09524,
+        "p95": 0.151256,
+        "p99": null,
+        "max": 2.604216
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.166276,
+        "p50": 0.26201,
+        "p95": 0.436739,
+        "p99": null,
+        "max": 7.119871
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2392.0,
+      "rss_peak_kib": 2392,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1868,
+      "tree_rss_peak_kib": 2392,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r5-c",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 59,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "cpu_endpoint_seconds": 27.015962605,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087483,
+        "p50": 0.170273,
+        "p95": 0.37517,
+        "p99": null,
+        "max": 11.495085
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060895,
+        "p50": 0.096802,
+        "p95": 0.171308,
+        "p99": null,
+        "max": 18.418499
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.165955,
+        "p50": 0.268046,
+        "p95": 0.555769,
+        "p99": null,
+        "max": 18.859377
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-cached-hit-9e-g-vs-cached-hit-9e-r5-rust",
+      "round": 5,
+      "side": "rust",
+      "artifact": "cached-hit-9e",
+      "elf_sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "cpu_ticks": 54,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 108.0,
+      "cpu_endpoint_seconds": 27.016979523,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.081097,
+        "p50": 0.162656,
+        "p95": 0.311077,
+        "p99": null,
+        "max": 8.688311
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055648,
+        "p50": 0.098517,
+        "p95": 0.148854,
+        "p99": null,
+        "max": 6.21143
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.158374,
+        "p50": 0.262368,
+        "p95": 0.466718,
+        "p99": null,
+        "max": 8.826168
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1896,
+      "tree_rss_peak_kib": 2416,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "correct_queries_including_prewarm": 6000,
+      "thread_samples": 31
+    }
+  ],
+  "archive_verification": {
+    "complete": true,
+    "windows": 10,
+    "archives": {
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r1-c": {
+        "files": 43,
+        "sha256": "d13c84013d7d69e47eb71c0b7985ee430f2a93c4539114f42aa63cc06ef37a00"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r1-rust": {
+        "files": 43,
+        "sha256": "9ae6a441f5a5844408631c8e062e899c75a4b8788d337f3446b74673f0fdc8e9"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r2-rust": {
+        "files": 43,
+        "sha256": "32326aa1983eb5f0339c6bb550f492975a177aeffd973a4c1c60ddd51a120195"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r2-c": {
+        "files": 43,
+        "sha256": "3c3b748ab06d1fc004fa11dd01a0d67643b40e8f42aeadec5c1dc9b7b4aff6d6"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r3-c": {
+        "files": 43,
+        "sha256": "359b9a200b96b186e75d2c3a16fe4781dff16fb1b6dd69406ee477c9dc2b2fcd"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r3-rust": {
+        "files": 43,
+        "sha256": "06a4bb9ab713a915e7615bc7be59e6b80b3a1edba52de3992c24696d620d7b25"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r4-rust": {
+        "files": 43,
+        "sha256": "a6637ba728d0919431c830fb0cf61b3cdcccbe65aceb4c6acd068442938fce13"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r4-c": {
+        "files": 43,
+        "sha256": "5149850b4c70f6d6f70103cd27d7a81e2d180b38222d2aece218e713b5e190f3"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r5-c": {
+        "files": 43,
+        "sha256": "4d13d5806615b51e65d2f531452562085c6c60585cbdeedbda477147fdac6be7"
+      },
+      "a53-cached-hit-9e-g-vs-cached-hit-9e-r5-rust": {
+        "files": 43,
+        "sha256": "745d47aee3cf4eaac9526410316ce101404b4910cc2b8039ea7fec65aa47bc67"
+      }
+    },
+    "raw_files": 430,
+    "thread_samples": 313,
+    "guard_samples": 428,
+    "qualified_guard_samples": 428,
+    "guard_tail_samples": 0,
+    "external_checks": 30,
+    "dns_samples": 168,
+    "http_samples": 78,
+    "minimum_available_memory_kib": 77860,
+    "guard_sha256": "c3ef32430a980d8aff8be053fc48cb06ac34380bdf7985ddaf8f7408e202f0c0",
+    "summary_sha256": "351c68ebe0eabd51fac2bb516af9f0beb01967f83e424e735de03e55c51a00b5",
+    "progress_sha256": "627287f6246a426a92fea74e739eff9e1a3c495d61249b6a23c17c6d42ba13e8",
+    "verifier_sha256": "1641e3932e26520d983632327fa771e0d411a699cb44fddce0673b2edefbe3a0"
+  },
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.891,
+    "dns_samples": 49,
+    "dns_p95_ms": 0.623,
+    "dns_max_ms": 0.749,
+    "http_samples": 22,
+    "http_max_ms": 140.71,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "2aa4d0b29a46b149288e1e7dec5bce83cf720d4b994d4a0c79a4ad42b84a854d",
+    "raw_sha256": "a3dde7e1b6aa0a93f4b9c9df6f654925076d09b3db00ca48e4d2f24286916d68"
+  },
+  "postflight": {
+    "epoch": 1792154276.051283,
+    "scope": "10/10exploratory windows archived/verified; restore exactE/F and reclaim only four new hash-verified immutable source copies. No production changes.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all10_verified_remote_window_copies_pruned": true,
+    "immutable_sources_pruned": {
+      "e": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-cached-hit-9e-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      },
+      "f": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-cached-hit-9e-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "g": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-cached-hit-9e-artifact-g",
+        "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+      },
+      "cached-hit-9e": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-cached-hit-9e-artifact-cached-hit-9e",
+        "sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087"
+      }
+    },
+    "available_memory_kib": 89572,
+    "production_namespace": "net:[4026531840]",
+    "postflight_script_sha256": "1cc058956e14a934a416ed88793b75af7cf26687dbd345970e9517b28a44c56b",
+    "stdout": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n89572\nnet:[4026531840]\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "postflight_sha256": "0a8105f02be0920b0959919c38d42e19f90d5afe83d397433c16cdd4fadacb23",
+  "candidate_eligible_from_this_screen": false,
+  "full_qualification_completed_by_this_screen": false,
+  "evidence": {
+    "a53-cached-hit-9e-device-preflight.json": "23723936cc9f1266ab00a7a111542f41d7c1af0dfa317101f36fc83de9473eb1",
+    "a53-cached-hit-9e-device-stage-complete.json": "c0a4881e5e787b07a55039a69f2187a34acddbf2752187eabc670626929cd38b",
+    "a53-cached-hit-9e-device-queue-release.json": "f6135134d46b4f0f8bc5bdbe5ecd694622124b345d2ce25bd717837166012a35",
+    "a53-cached-hit-9e-device-launch.json": "14ea15f8fb03d09e46d746eb959a7daa0ff59e43a2869cdb1ad335a6aaf7691a",
+    "a53-cached-hit-9e-device-local-verification.json": "e35315010ddfba8669fe74bddeb4d22ecb27c54bb85a9a49380e39f84d01e74c",
+    "a53-cached-hit-9e-device-concurrency.json": "dd9093a129f3c7a514f935fedbea2b684f3ef48a270c9be6547ae192df62676c",
+    "stage-a53-cached-hit-9e.py": "8b0f83efdd0448a31326f07197a820c307dd0cd31fb40ac0f1913e2a274d2793",
+    "start-a53-cached-hit-9e.py": "7b61f84faa6d61be5f1aa4b975bce7b1a1eaed4f58b7e6a62ff0da5e596bf9e3",
+    "verify-a53-cached-hit-9e.py": "1641e3932e26520d983632327fa771e0d411a699cb44fddce0673b2edefbe3a0",
+    "postflight-a53-cached-hit-9e.py": "5673de6e2a2e40b75944edaee6f2e6c417534dce5756c38bf1b5cc385c329e0d"
+  },
+  "scope_limits": [
+    "Fresh exact G185 control and exact 9e combined product artifact only. The direct comparison includes inherited 6ab, warm writer, 1df, ready-frame, empty-upstream, small OPT and lease-iterator changes; no isolated-component attribution. Neither side contains allocation-meter instrumentation. No historical median pooling or subtraction.",
+    "Original200/s UDP-hit,1000prewarm,5s warmup+20s measurement,800names,A/AAAA70/30 and unchangedtools. CPU denominator5000 correctwarmup+measurement; separate count3 cached5200 denominators are not reused.",
+    "Five alternating pairs; absolute relative median change strictly greater thanW, >=4/5 same direction. CPU requires eachwindow>=10ticks and absolute median difference strictly>8ticks.",
+    "All fullranges and everyoriginalwindow retained; no selective replacement, discarded outlier or extra favorable repeat.",
+    "p99 is unavailable for4000 latency samples. RSS/RssAnon/file/shmem ranges are descriptive and are not privateheap/PSS/USS attribution.",
+    "The original native controller ran on a separate Oracle host under root coordination. Its controller launch, first measured command and derived last-command end are recorded in concurrent_Oracle_work; the premeasurement interval includes builds, setup and waiting. Controller launch is not treated as measurement start. No Oracle-idle, hardware-isolation, additive-cost or IPC claim is made.",
+    "This ten-window UDP screen doesnot complete full44 or full110 qualification and cannot establish otherworkload performance. Production/kernel/drivers/configuration were unchanged."
+  ]
+}
