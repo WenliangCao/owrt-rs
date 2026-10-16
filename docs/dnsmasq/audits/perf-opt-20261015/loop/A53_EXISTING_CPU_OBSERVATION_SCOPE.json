@@ -1,0 +1,98 @@
+{
+  "schema": "existing-A53-CPU-observation-scope-v1",
+  "status": "LOCAL_READ_ONLY_EVIDENCE_SCOPE_CONFIRMED_NO_NEW_MEASUREMENT",
+  "receipt": {
+    "local_path": "private/perf-opt-20261015/a53-existing-cpu-observation-binding.json",
+    "sha256": "4329524e2c6449183335957994bccaab20739a5b6ac0640de3238c22a2c63c1f"
+  },
+  "scope": [
+    {
+      "corpus": "cached-zero-frame-vs-e",
+      "original_windows": 110,
+      "final_stat_endpoints": 70,
+      "process_observations": 2200,
+      "final_last_processor_histogram": {
+        "0": 31,
+        "1": 39
+      }
+    },
+    {
+      "corpus": "a53-image-c-zero-frame-device",
+      "original_windows": 10,
+      "final_stat_endpoints": 10,
+      "process_observations": 315,
+      "final_last_processor_histogram": {
+        "1": 6,
+        "0": 4
+      }
+    },
+    {
+      "corpus": "a53-inline-address-details-device",
+      "original_windows": 10,
+      "final_stat_endpoints": 10,
+      "process_observations": 314,
+      "final_last_processor_histogram": {
+        "1": 8,
+        "0": 2
+      }
+    },
+    {
+      "corpus": "a53-stage-device",
+      "original_windows": 50,
+      "final_stat_endpoints": 50,
+      "process_observations": 1578,
+      "final_last_processor_histogram": {
+        "1": 34,
+        "0": 16
+      }
+    }
+  ],
+  "observed": {
+    "CPU_time": "Originalbefore/after/resource JSON keeps PID/start and/procPIDstat user/system/waitedchild ticks. _SC_CLK_TCK=100 is kernel CPU-timeaccounting unitspersecond, not CPU MHz/GHz or PMU cycles.",
+    "wall_time": "CLOCK_MONOTONIC timestamps andelapsed duration; no relationship toinstantaneous processorfrequency ismeasured.",
+    "host_load": "Resourceprobe host_cpu_ticks andguardcpu_pct useaggregate /proc/stat accounting; no percorefrequency orPMU. Guard cpu_policy=record_only meansutilization isrecorded,notgovernor selection.",
+    "final_processor": "Eachnonlifecyclewindow retainsonefull final.stat afterload+sleep+afterendpoint. Field39(last_processor),tailindex36, isavailable asoneendsnapshot. Its PID/start andmanifestSHA werechecked. Thisisnot CPUaffinity oramigrationhistory.",
+    "nice": "All140 retainednonlifecyclefinal.stat endpoints shownice10. Frozen group execsnice10,whose code callssetpriority/getpriority; it doesnotset CPUaffinity."
+  },
+  "unknown_not_collected": [
+    "A53 dynamicfrequency history, effectiveclock rate andfrequency equality acrosswindows.",
+    "Governor orfrequency-policy values duringthetimedwindows.",
+    "Perdaemon Cpus_allowed/Cpus_allowed_list orsched_getaffinity mask atstart,duringorend.",
+    "Perdaemon CPUmigration counts,perCPU residency orscheduler trace. DifferentfinalCPUindices acrossdistinctdaemon instances cannotprove intra-windowmigration; samefinalCPUcannotprove itsabsence.",
+    "CLOCK_PROCESS_CPUTIME_ID/CLOCK_THREAD_CPUTIME_ID orperf CPU-clock observations ofthedevice daemon.",
+    "A53hardware instructions/cycles/IPC; available IPC attribution remainsOracle evidence.",
+    "Actualproduct clock/vDSO invocationcounts/clockIDs/fallbacks/cost. MappingavDSO doesnotproveexecutedcalls."
+  ],
+  "prior_idle_capability": {
+    "report": "A53_CPUFREQ_IDLE_CAPABILITY.json",
+    "sha256": "9b4f0b90124c22c5d0d7866d59a85b13d64948b732706b047fe5c29328b27c70",
+    "retained_result": "NO_POLICY_DIRECTORY /sys/devices/system/cpu/cpufreq/policy*",
+    "limit": "Oneoldidle filesystemcapabilityread; nofreqtrace orgovernorvalue. Itcannotestablish fixedfrequency or eliminatefrequency asconfounder."
+  },
+  "collector_source_sha256": {
+    "tools/dnsmasq/device_perf_resource_probe.c": "3ff3c4aa5e7a0fbea7c2c51c69c504c3c42066d4839eee716a1e76dd84b803ea",
+    "tools/dnsmasq/device_perf_guard.c": "81d7cd6cfa2cf16c8d769d75eff114489e19c8980f770176002343a329607e7a",
+    "tools/dnsmasq/perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "tools/dnsmasq/perf_opt_device_group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "tools/dnsmasq/perf_opt_nice10.c": "a641b57d814b9261824d30873e253976e06c3c9823e0f5ae047a9fb625cdc047",
+    "tools/dnsmasq/device_perf_netns.c": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4",
+    "tools/dnsmasq/perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+  },
+  "source_locations": {
+    "resource_fields": "device_perf_resource_probe.c:59-104,126-140 parse/output processidentity,ticks,memory,threads withoutaffinity/processor/frequency.",
+    "host_and_clock": "device_perf_resource_probe.c:47-50,157-169,216-217 useMONOTONIC,/proc/stat,_SC_CLK_TCK.",
+    "guard_cpu": "device_perf_guard.c:110-126,409,465-472 aggregateCPU loadonly; cpu_policy record_only isnotgovernor.",
+    "final_snapshot": "perf_opt_device_case.sh:148-152 waitsclient,sleeps1s,capturesafter.jsonl,thenfullfinal.stat.",
+    "nice_scope": "perf_opt_device_group.sh:18 invokesnice10; perf_opt_nice10.c:6 setspriority10 withoutaffinity.",
+    "reported_CPU_time": "perf_opt_analyze.py:56-78 computes tickdelta/_SC_CLK_TCK/correctwarmup+measurementN. No hardwarecycle conversion."
+  },
+  "interpretation": [
+    "Static/proc/cpuinfo hardware identification ornominal values mustnot beused asactualdynamicfrequency/equalfrequency evidence.",
+    "Existingcomparisons retain theiroriginalmeasurement/variation gates; thisaudit neither invalidates norstrengthens theircausal attribution.",
+    "No claimthat observedgap iskernel-vs-user cost. Rootseparatelyderives coarseuser/system endpoints; not recomputed orinterpreted here."
+  ],
+  "no_new_collection_or_gate": true,
+  "new_tools_or_framework": false,
+  "remote_or_router_accessed": false,
+  "product_or_raw_evidence_modified": false
+}
