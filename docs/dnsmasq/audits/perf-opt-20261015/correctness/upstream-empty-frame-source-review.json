@@ -1,0 +1,28 @@
+{
+  "schema": "upstream-empty-frame-source-review-v1",
+  "status": "PASS_LOCAL_SOURCE_ONLY_TWO_EMPTY_PATH_FRAME_EXTRACTIONS",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "completion_commit": "4f256499350f85b54a376cc5ca23fcca4461876e",
+  "active_poll_commit": "117d3e61d132a04ecef6b2e4951e37f6da22afea",
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/daemon.rs": "ba1bb4257116d74fe0e329644b209d46cf893df6dda825342248e3ce221b4193",
+    "components/dnsmasq/src/dns/upstream.rs": "d441f855198c4f7ced5a3ef60cc0bfb3c3dc09338765c34fa11e964605ce2ed0"
+  },
+  "exact_reverse_substitution_restores_both_complete_base_files": true,
+  "helper_callers_each": 1,
+  "findings": [
+    "Completion still extends query_events from upstream.take_query_events before testing events.is_empty. Upstream notices therefore drain even on cached/no-completion turns. The notice drain and the caller error/clock decisions remain outside the added empty check; per-event notices remain in the unchanged nonempty body.",
+    "Old empty completion allocated only Vec::new, skipped the event loop and returned it. New empty return has the same empty Vec and consumes/drops the input Vec once; spare input capacity is freed rather than leaked or newly retained. Option references to local/doctor have no owned destructor effects.",
+    "Every nonempty completion statement is byte-identical: timeout/upstream error counters, doctor/local-generation reply processing, recipient packet projection, duplicate/truncation notices, counters and response order remain unchanged. No unconditional post-loop action beyond returning responses was bypassed.",
+    "Upstream no_timer_or_socket_work guard, consume_releases and events.drain(..).collect return remain before the new helper exactly as before. Public signatures and Fn(&[u8],&Pending)->bool bound are unchanged.",
+    "All active polling body bytes are identical, including call deadline, scratch take/clear/reserve/restore, timers before and after socket work, poll EINTR/error handling, receive order, ignored-reply filter borrow and returned result. Moving the owned Fn into one private helper adds no invocation or state retention.",
+    "Each helper has one caller; all other product source and tests remain unchanged. This review reads committed Git objects, not the author working tree."
+  ],
+  "scope_limits": [
+    "No builds, tests, codegen, Oracle/router access or performance timing. Author725Mac+8ignored/musl/codegen claims were not independently rerun or attested here.",
+    "Extra call and stack/layout effects are performance questions for later exact-artifact measurements; no speed, allocation or runtime qualification is inferred.",
+    "Both commits remain independent6ab local candidates, not selected remote and not folded into G-stage or warm6dad."
+  ],
+  "blocking_findings": [],
+  "reviewer_script_sha256": "3b81489e06ad125fdd6246feb116236f159472f2e9a83ba471e6ca30af006508"
+}
