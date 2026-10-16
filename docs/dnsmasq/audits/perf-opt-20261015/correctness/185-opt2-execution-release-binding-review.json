@@ -1,0 +1,42 @@
+{
+  "schema": "803-execution-release-binding-review-v1",
+  "status": "PASS_LOCAL_METADATA_ONLY_ACTUAL_CLOSEOUT_BINDING_RESULTS_PENDING",
+  "execution_plan_sha256": "18432677984e797f994ebdad16c47fd02b90e4c990a9a81367494938de4c5f84",
+  "preparation_manifest_sha256": "23148c2eff34f1dd31e694e93d038069b9912d9247ad8cf4c6fb7da0cdb025bb",
+  "changed_fields_only": [
+    "ambient_release_profile_overrides_observed",
+    "exclusive_slot_release",
+    "independent_preparation_review",
+    "post_SDK_queue",
+    "preparation_commit",
+    "preparation_sha256",
+    "status",
+    "verified_remote_python"
+  ],
+  "source179_original_five_argv_wrappers_SDK_argv_and_budgets_unchanged": true,
+  "actual6ab_closeout_and_release_bytes_rehashed": true,
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-full-release-to-dns.json",
+    "sha256": "6cb8f83379b1d87b575fcaac1301d3db084eeed1ca2d2f715fc6f27e0296314e",
+    "closeout_commit": "7504c07a",
+    "closeout_report_sha256": "7013b4dd4dc2339215decc0539ee3ff2b6ee0bdef4e39cfdc5c6d1140198ca11"
+  },
+  "preparation_review": {
+    "commit": "fb1cf84b",
+    "report_sha256": "633a4a28ddda4a378fb617c6dee11589de0c8ef1f5a6520d59f7347b51be1613"
+  },
+  "SDK_builder_review": {
+    "commit": "f26d9261",
+    "report_sha256": "9994d56c0c4100f301480f6a6690051c489cc0cf497882070b5d4e1160cde6fe"
+  },
+  "author_reported_prelaunch_environment": {
+    "python": "3.12.3",
+    "ambient_release_overrides": []
+  },
+  "reviewer_live_environment_query": false,
+  "metadata_scope": "Preparation-level uploaded/executed/oracle_accessed flags and prose remain frozen template metadata; actual run/preflight/log/artifact receipts are authoritative, not this plan.",
+  "related_actual_result_verified": false,
+  "SDK_actual_result_verified": false,
+  "reviewer_remote_access": false
+}
