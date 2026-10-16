@@ -5,15 +5,17 @@ Branch: `perf/dnsmasq-20261015`; worktree:
 Starting main: `51b03959`. Do not merge main, push, or deploy.
 Original main worktree has user prompt edits; leave them intact.
 
-Current research status, 2026-10-16: G is accepted after complete correctness
-and both110-window matrices. Its A53 UDP-hit CPU is138→116us versus E; a
-separate direct C/G comparison remains82→114us.6ab has full functional PASS
-but no discernible performance increment.803opt2 is closed with no device
-gain and an owner32 high-p95 regression. Bare1df and5c physical screens are
-inconclusive.5c owner32 retains a high-load send-lag regression; its independent
-full-bin audit passed and the screen is closed without promotion. Next: original four-mode/50-window G A53 diagnostic,
-plus local preparation of warm writer6dad for a separate Oracle experiment.
-See the latest section at the end for exact evidence and execution boundaries.
+Current research status, 2026-10-16: G remains accepted after full correctness
+and both110 matrices. G-stage50 and warm6dad owner32 are complete and audited;
+neither is a new delivery. Frozen 9e has passed actual965, canonical SDK and
+original standalone signals, with independent reviews. Its original G/9e
+physical ten is all valid but inconclusive: CPU118→114µs, W10.526%,3/5,2ticks.
+Restoration is verified; independent raw review is finishing. Native240 and
+raw/source postflight completed; original owner32 began12:40:15UTC and owns
+Oracle until completion. No full110/promotion is triggered by the ten result.
+Root is researching local-only name-copy/code-layout directions; source9e,
+all measured artifacts and the frozen comparators remain unchanged.
+See latest reports and the chronological sections below for exact evidence.
 Production remains v0.2.0 SHA256
 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
 The following sections retain the chronological evidence and superseded plans.
@@ -1611,3 +1613,30 @@ complete-file substitution proofcovers45 bothindependentlyandintegration.
 DNS mayfreeze onlylocal48source179/archive andexistinggateinputreferences;
 no newrunner/upload/remoteexecution/source-selection isauthorizedyet. Decide
 nextproductaftercompleteG-stage andwarm results, not byaddingoldmedians.
+
+
+## 9e actual qualification and initial device outcome
+
+Original965 (844/82/17/18/4), SDK, original standalone12+3+3 signals and all
+corresponding independent reviews PASS. Actual9e SDK ELF a91f0c88 is2145051B;
+APK1168103B. Complete actual/independent receipts and the original source162
+native manifest correction are integrated. Native240 started12:29:14UTC and
+completed244commands/240windows with original578raw/180unscaledPMU checks.
+Owner32 began12:40:15UTC after original postflight and freshquiet; statistics
+and bulk wait until both phases end. No repeated or supplemental windows.
+
+The router10 began12:29:54UTC and restoredE/F by12:37:56UTC. All10valid,
+430files/313thread observations/428qualifiedguard/30external checks pass.
+G118→9e114µs is belowW10.526% at2ticks and3/5 direction; bothlatency metrics
+are also inconclusive. All ties/adverse pairs retained. Correctness is doing
+original localraw independent review. No full110 launched; acceptedG stays.
+
+Root4348 warmchunks is source-only reviewed and locally validated. It removes
+whole-packet memset but adds4out-of-line append calls; no runtime claim or
+remote selection. Its report includes the initial helper-symbol assertion
+failure and exact called-helper correction. New root365d80d6, independent9e
+child, copies warm contiguous query names once; growth/pointers/errors retain
+the original walk.730Mac/8ignored and muslalltargets pass. First-version growth
+mismatch was caught by an unchanged original test; the failure is retained.
+Localcodegen expands the containingfunction2484→2840B and frame688→720B,
+so fewer per-label copies are not assumed to improve CPU. Sourcepeer pending.
