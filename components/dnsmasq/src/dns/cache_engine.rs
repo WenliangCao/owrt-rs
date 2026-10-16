@@ -315,23 +315,26 @@ impl CacheContext<'_> {
                 {
                     let mut packet = std::mem::take(&mut local.cached_reply_buffer);
                     packet.clear();
-                    packet.resize(length, 0);
-                    let (header_bytes, body) = packet.split_at_mut(12);
+                    let mut header_bytes = [0; 12];
                     Header {
                         id: header.id, flags: (header.flags & 0x0110) | 0x8080,
                         questions: 1, answers: 1, ..Header::default()
-                    }.write(header_bytes)?;
-                    let (question_name, fields) = body.split_at_mut(name.len());
-                    question_name.copy_from_slice(name);
-                    let (fields, address_bytes) = fields.split_at_mut(16);
-                    fields[..2].copy_from_slice(&question.rrtype.to_be_bytes());
-                    fields[2..4].copy_from_slice(&question.class.to_be_bytes());
-                    fields[4..6].copy_from_slice(&[0xc0, 12]);
-                    fields[6..8].copy_from_slice(&question.rrtype.to_be_bytes());
-                    fields[8..10].copy_from_slice(&1u16.to_be_bytes());
-                    fields[10..14].copy_from_slice(&entry.reply_ttl(now, cache.policy()).to_be_bytes());
-                    fields[14..16].copy_from_slice(&(data.len() as u16).to_be_bytes());
-                    address_bytes.copy_from_slice(data);
+                    }.write(&mut header_bytes)?;
+                    let rrtype = question.rrtype.to_be_bytes();
+                    let class = question.class.to_be_bytes();
+                    let ttl = entry.reply_ttl(now, cache.policy()).to_be_bytes();
+                    let data_length = (data.len() as u16).to_be_bytes();
+                    // The existing capacity guard covers all four appends.
+                    // Write only initialized bytes instead of zeroing the
+                    // complete reply before immediately overwriting it.
+                    packet.extend_from_slice(&header_bytes);
+                    packet.extend_from_slice(name);
+                    packet.extend_from_slice(&[
+                        rrtype[0], rrtype[1], class[0], class[1],
+                        0xc0, 12, rrtype[0], rrtype[1], 0, 1,
+                        ttl[0], ttl[1], ttl[2], ttl[3], data_length[0], data_length[1],
+                    ]);
+                    packet.extend_from_slice(data);
                     return Ok(CachedAnswer {
                         packet: Some(packet), stale: false, filtered: false, forward_name: None,
                     });
