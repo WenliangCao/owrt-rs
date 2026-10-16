@@ -1,0 +1,2342 @@
+{
+  "status": "ALL_578_ORIGINAL_NATIVE_RAW_FILES_DOWNLOADED_AND_HASH_VERIFIED",
+  "source_root": "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-native-screen1",
+  "native_result_sha256": "dd81b34e96a63ac9b7e7d7438dc369778744b2ba3d56da29f5f75acf3aa67c6a",
+  "release": {
+    "explicit_DNS_release_received": true,
+    "all_owner32_analysis_and_transfers_finished": true,
+    "owner32_windows": 32,
+    "analysis_exit_code": 0,
+    "analysis_stderr_bytes": 0,
+    "owner_controller_pid": 644847,
+    "owner_controller_exited": true,
+    "owner_postflight_research_processes": [],
+    "owner_postflight_SDK_native_locks_available": true,
+    "DNS_small_files_downloaded_and_verified": 1211,
+    "local_recorded_utc": "2026-10-16T00:59:56.042487+00:00",
+    "basis": "DNS direct completion/release message; root authorized54bd578raw transfer next"
+  },
+  "file_count": 578,
+  "archive_bytes": 18784,
+  "archive_sha256": "586d9d2fbe236389d2b9fae87934120e3061ab672dcf6213f763305e45f6026a",
+  "raw_bytes": 211944,
+  "elapsed_seconds": 0.7053897380828857,
+  "files": {
+    "F-lib-build.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "F-lib-build.stderr": {
+      "bytes": 13686,
+      "sha256": "040b968cb7b668428d7a99c09bcbce858bc1c29ead3f6423160634d7842d89c7"
+    },
+    "F-probe-build.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "F-probe-build.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lib-build.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lib-build.stderr": {
+      "bytes": 13917,
+      "sha256": "5ce24319be800b14e99e2bd9cc938d8ab0ddd2326fc8309bed3326e5e5706a9c"
+    },
+    "cached-local-miss-probe-build.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-probe-build.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-stat-r1-F.stdout": {
+      "bytes": 131,
+      "sha256": "1adf704a6dfbd76195c2c24d747780cb0d6c0e6019faa451e350bc2cef2219e8"
+    },
+    "cached-local-miss-hit-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "7dd6935aa4a9032ea805393b3cdd3d841bc400e1047b6a1a42d2e8e8d3ec7360"
+    },
+    "cached-local-miss-hit-stat-r1-cached-local-miss.stdout": {
+      "bytes": 131,
+      "sha256": "1adf704a6dfbd76195c2c24d747780cb0d6c0e6019faa451e350bc2cef2219e8"
+    },
+    "cached-local-miss-hit-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "3ab590267120772ffd0b43dd717714c5f2c77b8395dde252cb0fc74518cc37cd"
+    },
+    "cached-local-miss-hit-stat-r2-cached-local-miss.stdout": {
+      "bytes": 131,
+      "sha256": "1adf704a6dfbd76195c2c24d747780cb0d6c0e6019faa451e350bc2cef2219e8"
+    },
+    "cached-local-miss-hit-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "d57ed50d5f76a0b2288857077f21ae2e5daee509b4aa6c00af9413c5233d785a"
+    },
+    "cached-local-miss-hit-stat-r2-F.stdout": {
+      "bytes": 131,
+      "sha256": "1adf704a6dfbd76195c2c24d747780cb0d6c0e6019faa451e350bc2cef2219e8"
+    },
+    "cached-local-miss-hit-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "1aca9d51e6b412667690269b57a4e61ef64a35ad145290f8b23f89e8c2c28155"
+    },
+    "cached-local-miss-hit-stat-r3-F.stdout": {
+      "bytes": 131,
+      "sha256": "1adf704a6dfbd76195c2c24d747780cb0d6c0e6019faa451e350bc2cef2219e8"
+    },
+    "cached-local-miss-hit-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "68a80e937eb4de4284c0cc3b9842c6c09f8d479c2620fdae38ed54f4361ab214"
+    },
+    "cached-local-miss-hit-stat-r3-cached-local-miss.stdout": {
+      "bytes": 131,
+      "sha256": "1adf704a6dfbd76195c2c24d747780cb0d6c0e6019faa451e350bc2cef2219e8"
+    },
+    "cached-local-miss-hit-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "3f35017d4e9fdcb331e24131e9721c500101c3c83d51e0ffd246cab3afda02d3"
+    },
+    "cached-local-miss-hit-plain-r1-F.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r1-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r2-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r2-F.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r3-F.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r3-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r4-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r4-F.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r5-F.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-plain-r5-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "89836ce1d59358829b4b78caee42b26a9536a7742c680fac3fd4bcecbc089f14"
+    },
+    "cached-local-miss-hit-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-stat-r1-F.stdout": {
+      "bytes": 137,
+      "sha256": "92fc0f0a1a637dd655d3cad6cc41c19ee5b8fd5a22ef011050f4841585666aa6"
+    },
+    "cached-local-miss-hit-upper-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "1b6f3a55844aeb07568a1db6dd33d672901591da79d31fb5a9ad786a3b1c7fb4"
+    },
+    "cached-local-miss-hit-upper-stat-r1-cached-local-miss.stdout": {
+      "bytes": 137,
+      "sha256": "92fc0f0a1a637dd655d3cad6cc41c19ee5b8fd5a22ef011050f4841585666aa6"
+    },
+    "cached-local-miss-hit-upper-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "18597db36a86302c8e362a0a46cc038c7119d2533638c46f3f614d34d2d280b3"
+    },
+    "cached-local-miss-hit-upper-stat-r2-cached-local-miss.stdout": {
+      "bytes": 137,
+      "sha256": "92fc0f0a1a637dd655d3cad6cc41c19ee5b8fd5a22ef011050f4841585666aa6"
+    },
+    "cached-local-miss-hit-upper-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "660834dc4d45aa82b0f4739083b5b5b6f128e45368bf8b8e40e9a564ac440df0"
+    },
+    "cached-local-miss-hit-upper-stat-r2-F.stdout": {
+      "bytes": 137,
+      "sha256": "92fc0f0a1a637dd655d3cad6cc41c19ee5b8fd5a22ef011050f4841585666aa6"
+    },
+    "cached-local-miss-hit-upper-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "cf7f91e7b001035d249a75970f1e72987455e3a69a8f64571b786ab96150ec1f"
+    },
+    "cached-local-miss-hit-upper-stat-r3-F.stdout": {
+      "bytes": 137,
+      "sha256": "92fc0f0a1a637dd655d3cad6cc41c19ee5b8fd5a22ef011050f4841585666aa6"
+    },
+    "cached-local-miss-hit-upper-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "de69dab95d48a8940621f858198a2cf6334e228e066b6a23d24e529eec5b2d05"
+    },
+    "cached-local-miss-hit-upper-stat-r3-cached-local-miss.stdout": {
+      "bytes": 137,
+      "sha256": "92fc0f0a1a637dd655d3cad6cc41c19ee5b8fd5a22ef011050f4841585666aa6"
+    },
+    "cached-local-miss-hit-upper-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "d74e2a7f152e27b4d02249df975eec8efb12f309dd2592fb5a053b6d3d680d09"
+    },
+    "cached-local-miss-hit-upper-plain-r1-F.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r1-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r2-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r2-F.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r3-F.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r3-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r4-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r4-F.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r5-F.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-upper-plain-r5-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "f10f25ccabc03dc564abc92dfcf41d47c41bf30fdc93c2ad281a1b55c1825892"
+    },
+    "cached-local-miss-hit-upper-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-stat-r1-F.stdout": {
+      "bytes": 138,
+      "sha256": "e39348b252eb08eab1a3312f76c09c0ab2e2dc25d152b012b8e2c5d3a4dbcb6f"
+    },
+    "cached-local-miss-hit-leases-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "4f006d5a08d6e77af22c7599d2ad4bbff53829ac629694c45ce133ac8237dac9"
+    },
+    "cached-local-miss-hit-leases-stat-r1-cached-local-miss.stdout": {
+      "bytes": 138,
+      "sha256": "e39348b252eb08eab1a3312f76c09c0ab2e2dc25d152b012b8e2c5d3a4dbcb6f"
+    },
+    "cached-local-miss-hit-leases-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "f4ad04584849b56bb6813c15e30a7bc9fadec08a62da139e410928dd17a064ed"
+    },
+    "cached-local-miss-hit-leases-stat-r2-cached-local-miss.stdout": {
+      "bytes": 138,
+      "sha256": "e39348b252eb08eab1a3312f76c09c0ab2e2dc25d152b012b8e2c5d3a4dbcb6f"
+    },
+    "cached-local-miss-hit-leases-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "7f96ef5d9b2aa9ed6396a8c8d141a92309bf1b0a743fe784b06688d81b3de9ba"
+    },
+    "cached-local-miss-hit-leases-stat-r2-F.stdout": {
+      "bytes": 138,
+      "sha256": "e39348b252eb08eab1a3312f76c09c0ab2e2dc25d152b012b8e2c5d3a4dbcb6f"
+    },
+    "cached-local-miss-hit-leases-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "0ed9555b6fcc6dc62dee77ef8576d516736b00ebe8288d51e1937142f066d58f"
+    },
+    "cached-local-miss-hit-leases-stat-r3-F.stdout": {
+      "bytes": 138,
+      "sha256": "e39348b252eb08eab1a3312f76c09c0ab2e2dc25d152b012b8e2c5d3a4dbcb6f"
+    },
+    "cached-local-miss-hit-leases-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "475026d815f4154b558bfd731287a067761bdfca16d950753472f24c9bad398a"
+    },
+    "cached-local-miss-hit-leases-stat-r3-cached-local-miss.stdout": {
+      "bytes": 138,
+      "sha256": "e39348b252eb08eab1a3312f76c09c0ab2e2dc25d152b012b8e2c5d3a4dbcb6f"
+    },
+    "cached-local-miss-hit-leases-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "9359096b3bc97262bd741a8564525fa704d731bb503eea5de7e1fef6f81d9569"
+    },
+    "cached-local-miss-hit-leases-plain-r1-F.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r1-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r2-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r2-F.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r3-F.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r3-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r4-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r4-F.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r5-F.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-leases-plain-r5-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "651ae9fc4774e85d615e01ac92693c58b4bf72a460ba59e3d9c3f8ea7e8ca3f8"
+    },
+    "cached-local-miss-hit-leases-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-stat-r1-F.stdout": {
+      "bytes": 137,
+      "sha256": "a9cfd804a9bfb96d1b7457cb0d30ff484fc50a93322e50494008676b2d544687"
+    },
+    "cached-local-miss-hit-typed-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "85dd17816293a1138259827383dafeef8aa071466246462c3d34bf712e7b3d24"
+    },
+    "cached-local-miss-hit-typed-stat-r1-cached-local-miss.stdout": {
+      "bytes": 137,
+      "sha256": "a9cfd804a9bfb96d1b7457cb0d30ff484fc50a93322e50494008676b2d544687"
+    },
+    "cached-local-miss-hit-typed-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "3aa63e7fb27ee12808896a0de085892a60c603a5f9374cc668a1c843f828cd50"
+    },
+    "cached-local-miss-hit-typed-stat-r2-cached-local-miss.stdout": {
+      "bytes": 137,
+      "sha256": "a9cfd804a9bfb96d1b7457cb0d30ff484fc50a93322e50494008676b2d544687"
+    },
+    "cached-local-miss-hit-typed-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "965083bbbd7390c4da15734217f792b4562de421662891c8bac11446192b2158"
+    },
+    "cached-local-miss-hit-typed-stat-r2-F.stdout": {
+      "bytes": 137,
+      "sha256": "a9cfd804a9bfb96d1b7457cb0d30ff484fc50a93322e50494008676b2d544687"
+    },
+    "cached-local-miss-hit-typed-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "b67cd45a052c0003ea23c97f664eff6701471e23f3544e93303a153cd12c53f2"
+    },
+    "cached-local-miss-hit-typed-stat-r3-F.stdout": {
+      "bytes": 137,
+      "sha256": "a9cfd804a9bfb96d1b7457cb0d30ff484fc50a93322e50494008676b2d544687"
+    },
+    "cached-local-miss-hit-typed-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "2fb6c20a79bb8ac7eee46c509e10e51d7812121f9c7a1a08c92a01942fcc9d06"
+    },
+    "cached-local-miss-hit-typed-stat-r3-cached-local-miss.stdout": {
+      "bytes": 137,
+      "sha256": "a9cfd804a9bfb96d1b7457cb0d30ff484fc50a93322e50494008676b2d544687"
+    },
+    "cached-local-miss-hit-typed-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "7b064cdb00937affa864b53b05595d3364bdb958ac4d6f0af9ffe1bb11cbad0c"
+    },
+    "cached-local-miss-hit-typed-plain-r1-F.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r1-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r2-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r2-F.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r3-F.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r3-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r4-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r4-F.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r5-F.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-typed-plain-r5-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "b67973bdaaabcac27209546d3ceab1b2edcd3bb333a129b34057f4cf1d900ac3"
+    },
+    "cached-local-miss-hit-typed-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-stat-r1-F.stdout": {
+      "bytes": 125,
+      "sha256": "ff8e423bf3c2dffa9238114e9043d1c3c3cb2ca355bd3b2010809d0f112805bf"
+    },
+    "cached-local-miss-miss-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "6987bb20e06f61001958100292b4a7481923c0c615e306b60a84d70d9af16c44"
+    },
+    "cached-local-miss-miss-stat-r1-cached-local-miss.stdout": {
+      "bytes": 125,
+      "sha256": "ff8e423bf3c2dffa9238114e9043d1c3c3cb2ca355bd3b2010809d0f112805bf"
+    },
+    "cached-local-miss-miss-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "64f835b32502bb4d6cfd02ab882df8573b343a33f316fb3cb6fded560a2e248d"
+    },
+    "cached-local-miss-miss-stat-r2-cached-local-miss.stdout": {
+      "bytes": 125,
+      "sha256": "ff8e423bf3c2dffa9238114e9043d1c3c3cb2ca355bd3b2010809d0f112805bf"
+    },
+    "cached-local-miss-miss-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "d4d2801e3472c966a8859934569017c5ad9e1b401f9dcfb9338799cb739d61aa"
+    },
+    "cached-local-miss-miss-stat-r2-F.stdout": {
+      "bytes": 125,
+      "sha256": "ff8e423bf3c2dffa9238114e9043d1c3c3cb2ca355bd3b2010809d0f112805bf"
+    },
+    "cached-local-miss-miss-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "a834afae602eaebda9581ba002f3d6f6c22c952bd4205d117cadad19f2192064"
+    },
+    "cached-local-miss-miss-stat-r3-F.stdout": {
+      "bytes": 125,
+      "sha256": "ff8e423bf3c2dffa9238114e9043d1c3c3cb2ca355bd3b2010809d0f112805bf"
+    },
+    "cached-local-miss-miss-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "348d6ff00459992c8ab22972691960f82fc37f599c56000a5c36dad2ae75b9a2"
+    },
+    "cached-local-miss-miss-stat-r3-cached-local-miss.stdout": {
+      "bytes": 125,
+      "sha256": "ff8e423bf3c2dffa9238114e9043d1c3c3cb2ca355bd3b2010809d0f112805bf"
+    },
+    "cached-local-miss-miss-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "2d815c30657d4b26f174de417223460f04b19f7eda89970a5b84d4baf86d6acf"
+    },
+    "cached-local-miss-miss-plain-r1-F.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r1-cached-local-miss.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r2-cached-local-miss.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r2-F.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r3-F.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r3-cached-local-miss.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r4-cached-local-miss.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r4-F.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r5-F.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-plain-r5-cached-local-miss.stdout": {
+      "bytes": 126,
+      "sha256": "669c060f6a3aea1e0a69eb5e6980beeab93d0f715f14e0ecc5dd8e3e4b222a94"
+    },
+    "cached-local-miss-miss-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-stat-r1-F.stdout": {
+      "bytes": 132,
+      "sha256": "7e6d5efd27fb51cb94be80ebd203a5199be3981e29659906b56a3b9713e02e45"
+    },
+    "cached-local-miss-miss-leases-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "8ee8f1b820335480783c39bd1efd51aa623d06c4e933101ca751532605aa688c"
+    },
+    "cached-local-miss-miss-leases-stat-r1-cached-local-miss.stdout": {
+      "bytes": 132,
+      "sha256": "7e6d5efd27fb51cb94be80ebd203a5199be3981e29659906b56a3b9713e02e45"
+    },
+    "cached-local-miss-miss-leases-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "7556103bda2a947f529864a4abdf7e189092b80cff79c4ba8c8a86a29ee694b5"
+    },
+    "cached-local-miss-miss-leases-stat-r2-cached-local-miss.stdout": {
+      "bytes": 132,
+      "sha256": "7e6d5efd27fb51cb94be80ebd203a5199be3981e29659906b56a3b9713e02e45"
+    },
+    "cached-local-miss-miss-leases-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "8fce3dbe5579d5063e7c45068cbb4c48362eef0cc2aabcb46ca7bf00ff8b8b53"
+    },
+    "cached-local-miss-miss-leases-stat-r2-F.stdout": {
+      "bytes": 132,
+      "sha256": "7e6d5efd27fb51cb94be80ebd203a5199be3981e29659906b56a3b9713e02e45"
+    },
+    "cached-local-miss-miss-leases-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "432655287fc900a3754aad7d87e244a4eb6e3be7dc965b76e069402d16d3adb2"
+    },
+    "cached-local-miss-miss-leases-stat-r3-F.stdout": {
+      "bytes": 132,
+      "sha256": "7e6d5efd27fb51cb94be80ebd203a5199be3981e29659906b56a3b9713e02e45"
+    },
+    "cached-local-miss-miss-leases-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "b8541333ad4842d301eecc1500d91469dc4db1eb0336e83f39adcac8f6769143"
+    },
+    "cached-local-miss-miss-leases-stat-r3-cached-local-miss.stdout": {
+      "bytes": 132,
+      "sha256": "7e6d5efd27fb51cb94be80ebd203a5199be3981e29659906b56a3b9713e02e45"
+    },
+    "cached-local-miss-miss-leases-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "f0866c63f367cc0699071dd4757a39d9b59cb91525e3f5ab3ffb9fe157582a2b"
+    },
+    "cached-local-miss-miss-leases-plain-r1-F.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r1-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r2-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r2-F.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r3-F.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r3-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r4-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r4-F.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r5-F.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-miss-leases-plain-r5-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "a5fdcebb0e9c8354c30dc9fdd1d92f040be4b0f26264138cf02685c54a39dc04"
+    },
+    "cached-local-miss-miss-leases-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-stat-r1-F.stdout": {
+      "bytes": 132,
+      "sha256": "6e5588b7e58f1dfa1b283785b70890312c5c20df2c890c54c1ca0afbb7d0decf"
+    },
+    "cached-local-miss-host-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "a163c8f2a424239bbd18e5b9ecc3a68fe39d11fd2137292452677f3be0890306"
+    },
+    "cached-local-miss-host-stat-r1-cached-local-miss.stdout": {
+      "bytes": 132,
+      "sha256": "6e5588b7e58f1dfa1b283785b70890312c5c20df2c890c54c1ca0afbb7d0decf"
+    },
+    "cached-local-miss-host-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "29168a85fe463248655174cdee355713d72ecb9c668fa092dd7585758769d24c"
+    },
+    "cached-local-miss-host-stat-r2-cached-local-miss.stdout": {
+      "bytes": 132,
+      "sha256": "6e5588b7e58f1dfa1b283785b70890312c5c20df2c890c54c1ca0afbb7d0decf"
+    },
+    "cached-local-miss-host-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "f1c2d39c8d5840c0dd3ebd70073b68e864c9e628c6fc1edabfd9eb5d041f8c6b"
+    },
+    "cached-local-miss-host-stat-r2-F.stdout": {
+      "bytes": 132,
+      "sha256": "6e5588b7e58f1dfa1b283785b70890312c5c20df2c890c54c1ca0afbb7d0decf"
+    },
+    "cached-local-miss-host-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "e0c798c8a2a3dcc01da50d3fa9d50a3e1da248f71e73715ba37719964e988125"
+    },
+    "cached-local-miss-host-stat-r3-F.stdout": {
+      "bytes": 132,
+      "sha256": "6e5588b7e58f1dfa1b283785b70890312c5c20df2c890c54c1ca0afbb7d0decf"
+    },
+    "cached-local-miss-host-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "bc9e4b83e141640664274b46dcb7de70e62569258d062544b911cd4cfb468821"
+    },
+    "cached-local-miss-host-stat-r3-cached-local-miss.stdout": {
+      "bytes": 132,
+      "sha256": "6e5588b7e58f1dfa1b283785b70890312c5c20df2c890c54c1ca0afbb7d0decf"
+    },
+    "cached-local-miss-host-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "fbb90795a4e7f4a59dc1901a0e57e2f15ace49d7bbe19a936e4d1a7727721cf7"
+    },
+    "cached-local-miss-host-plain-r1-F.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r1-cached-local-miss.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r2-cached-local-miss.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r2-F.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r3-F.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r3-cached-local-miss.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r4-cached-local-miss.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r4-F.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r5-F.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-plain-r5-cached-local-miss.stdout": {
+      "bytes": 134,
+      "sha256": "0167951ba38f2692a82e460aac3299ca9b04fa8a40215da782f99c92cfd399c6"
+    },
+    "cached-local-miss-host-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-stat-r1-F.stdout": {
+      "bytes": 141,
+      "sha256": "5135b53dd3a3dd98afdd73cb3dbeb6672a9b9aae71542cdb54cef3064643346e"
+    },
+    "cached-local-miss-host-localise-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "8e279f2f199443e1fd7fa288b336ea36884419ca5a5d8d05d2212a672f052d71"
+    },
+    "cached-local-miss-host-localise-stat-r1-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "5135b53dd3a3dd98afdd73cb3dbeb6672a9b9aae71542cdb54cef3064643346e"
+    },
+    "cached-local-miss-host-localise-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "741d62afc1cb611a14fbafe9b2acd1d3ed02be1e76ce81b1acacef8a6e16df2a"
+    },
+    "cached-local-miss-host-localise-stat-r2-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "5135b53dd3a3dd98afdd73cb3dbeb6672a9b9aae71542cdb54cef3064643346e"
+    },
+    "cached-local-miss-host-localise-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "e7c9ad0216715a42aff7b53a32256d00a5ee0899925f85e7dfbfb4abd9394efe"
+    },
+    "cached-local-miss-host-localise-stat-r2-F.stdout": {
+      "bytes": 141,
+      "sha256": "5135b53dd3a3dd98afdd73cb3dbeb6672a9b9aae71542cdb54cef3064643346e"
+    },
+    "cached-local-miss-host-localise-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "cd518a1e3832bd9f1ba42547f97fb2dcf6b6c069a60e30803536c1e95feec529"
+    },
+    "cached-local-miss-host-localise-stat-r3-F.stdout": {
+      "bytes": 141,
+      "sha256": "5135b53dd3a3dd98afdd73cb3dbeb6672a9b9aae71542cdb54cef3064643346e"
+    },
+    "cached-local-miss-host-localise-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "022d71ef8492aff71f5dac5f6f8e21e7a9bc5ff6d5ef4996bcfd82b12ca39d59"
+    },
+    "cached-local-miss-host-localise-stat-r3-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "5135b53dd3a3dd98afdd73cb3dbeb6672a9b9aae71542cdb54cef3064643346e"
+    },
+    "cached-local-miss-host-localise-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "f0e272943435bf6a1cbc27c75c400343a11ae2f71b113d83c94c89e6b7eb2995"
+    },
+    "cached-local-miss-host-localise-plain-r1-F.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r1-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r2-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r2-F.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r3-F.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r3-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r4-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r4-F.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r5-F.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-host-localise-plain-r5-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "a3bccefd5795335e255a54a9d761febbb8c14c705567416b7a4552aa59fb29d7"
+    },
+    "cached-local-miss-host-localise-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-stat-r1-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "7fad40db69d02c2679c768af0abd417da915e4e2c573830a25e4a7a8ff284dad"
+    },
+    "cached-local-miss-raw-address-stat-r1-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "dcd0c3db008dd1e34979175bd68f7dd005216d8c2a97c219135c6429dd8f7d83"
+    },
+    "cached-local-miss-raw-address-stat-r2-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "1d991ce6b9df894963534ea7baa5256a15ce2a963e092bddbd7885627437245d"
+    },
+    "cached-local-miss-raw-address-stat-r2-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "2b645a23d46d51ca4c7d87beeb6c62e681555301edb2f4caad328ac0584725f2"
+    },
+    "cached-local-miss-raw-address-stat-r3-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "044bdda0becec0e672259bcc4a30f11b4d092162af72408da92c488d0c2aa49c"
+    },
+    "cached-local-miss-raw-address-stat-r3-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "46ecd1ca89f8063ccd8c42800fec9b1e6b2664acd25b6fa238890dce2137f36f"
+    },
+    "cached-local-miss-raw-address-plain-r1-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r1-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r2-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r2-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r3-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r3-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r4-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r4-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r5-F.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-raw-address-plain-r5-cached-local-miss.stdout": {
+      "bytes": 139,
+      "sha256": "1f5ccbac065a01f00187b8b002c8d98c30bdb44a49a1db28795ca4c05132b7a0"
+    },
+    "cached-local-miss-raw-address-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-stat-r1-F.stdout": {
+      "bytes": 141,
+      "sha256": "af401c244d1118a9336873f67f2d6253892ebac074085fb9f8b174986eca6a27"
+    },
+    "cached-local-miss-synth-address-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "8082158bd849408f41582e9795351b271493b49133e566ec4bc67e3e33739984"
+    },
+    "cached-local-miss-synth-address-stat-r1-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "af401c244d1118a9336873f67f2d6253892ebac074085fb9f8b174986eca6a27"
+    },
+    "cached-local-miss-synth-address-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "e8b3b13f345c000e9ce87a80ebf7024b8d303659ad21977f3827e7aac91f79d5"
+    },
+    "cached-local-miss-synth-address-stat-r2-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "af401c244d1118a9336873f67f2d6253892ebac074085fb9f8b174986eca6a27"
+    },
+    "cached-local-miss-synth-address-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "ae614fb20d66b07fba056cf472645585393c18838ca4945184093536476f7c7a"
+    },
+    "cached-local-miss-synth-address-stat-r2-F.stdout": {
+      "bytes": 141,
+      "sha256": "af401c244d1118a9336873f67f2d6253892ebac074085fb9f8b174986eca6a27"
+    },
+    "cached-local-miss-synth-address-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "600cac07c8b3b767572a055c36e0c89a81eb453ff353be7c247760b75fc4b50d"
+    },
+    "cached-local-miss-synth-address-stat-r3-F.stdout": {
+      "bytes": 141,
+      "sha256": "af401c244d1118a9336873f67f2d6253892ebac074085fb9f8b174986eca6a27"
+    },
+    "cached-local-miss-synth-address-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "427440da9e6c8e313f778fce60ec7a59c65181d6f30f82548219199ca2f193a8"
+    },
+    "cached-local-miss-synth-address-stat-r3-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "af401c244d1118a9336873f67f2d6253892ebac074085fb9f8b174986eca6a27"
+    },
+    "cached-local-miss-synth-address-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "9af936f59a0c4f6bbbf01b3b9e454f63810456581908cdf3088eb4640d2bc496"
+    },
+    "cached-local-miss-synth-address-plain-r1-F.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r1-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r2-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r2-F.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r3-F.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r3-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r4-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r4-F.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r5-F.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-synth-address-plain-r5-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "7abfe2001911c7a4835b53b69e1a24d411825ce701652204c5a7f0984cde84cd"
+    },
+    "cached-local-miss-synth-address-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-stat-r1-F.stdout": {
+      "bytes": 141,
+      "sha256": "43e72f0d439bed4f09e8e1187963f712969fcb26470bf06e2b2192bf6e1ffd61"
+    },
+    "cached-local-miss-lease-address-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "2c45f62793c154a93826035690f97a2a71d7eae730a422205023b1d73f9305bd"
+    },
+    "cached-local-miss-lease-address-stat-r1-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "43e72f0d439bed4f09e8e1187963f712969fcb26470bf06e2b2192bf6e1ffd61"
+    },
+    "cached-local-miss-lease-address-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "00b069ec0857b35df31c466450fa9433e1d00323418323c597f8f02ae0b58679"
+    },
+    "cached-local-miss-lease-address-stat-r2-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "43e72f0d439bed4f09e8e1187963f712969fcb26470bf06e2b2192bf6e1ffd61"
+    },
+    "cached-local-miss-lease-address-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "dc168a081a60139c3471dbc908ebc407747f5251190f6775839ac7a592fd3137"
+    },
+    "cached-local-miss-lease-address-stat-r2-F.stdout": {
+      "bytes": 141,
+      "sha256": "43e72f0d439bed4f09e8e1187963f712969fcb26470bf06e2b2192bf6e1ffd61"
+    },
+    "cached-local-miss-lease-address-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "c2ee1028f69b1d3879e2b865deefbc5b034f64e563cce5f660e14ff592a88117"
+    },
+    "cached-local-miss-lease-address-stat-r3-F.stdout": {
+      "bytes": 141,
+      "sha256": "43e72f0d439bed4f09e8e1187963f712969fcb26470bf06e2b2192bf6e1ffd61"
+    },
+    "cached-local-miss-lease-address-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "e058b74ec4bed8cc1697638d31e7a73bb6d0bc08be991b0661f27f89ec19d0ef"
+    },
+    "cached-local-miss-lease-address-stat-r3-cached-local-miss.stdout": {
+      "bytes": 141,
+      "sha256": "43e72f0d439bed4f09e8e1187963f712969fcb26470bf06e2b2192bf6e1ffd61"
+    },
+    "cached-local-miss-lease-address-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "b64ca8ee5c70c1ddab2376447244c8b130138c8cc4882b3a882aa5cbed725910"
+    },
+    "cached-local-miss-lease-address-plain-r1-F.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r1-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r2-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r2-F.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r3-F.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r3-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r4-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r4-F.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r5-F.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-lease-address-plain-r5-cached-local-miss.stdout": {
+      "bytes": 143,
+      "sha256": "44e2f7d37748d6c82175b0f1127919b3e49a020c8e9a33f1c2fe443adfcd341a"
+    },
+    "cached-local-miss-lease-address-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-stat-r1-F.stdout": {
+      "bytes": 133,
+      "sha256": "171e79ab57d425a152c196867d6c37fb835194a9e666000f98e7df5144eb879f"
+    },
+    "cached-local-miss-rrset-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "2f7b8f73512a4f18a86c25c2bb31cbc82d526b04cebc1739d7fba438d57aa1bd"
+    },
+    "cached-local-miss-rrset-stat-r1-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "171e79ab57d425a152c196867d6c37fb835194a9e666000f98e7df5144eb879f"
+    },
+    "cached-local-miss-rrset-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "eb50a58642472b5d6978b5d8bfbe1322fa89862642244ecdb8b063ef7443a238"
+    },
+    "cached-local-miss-rrset-stat-r2-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "171e79ab57d425a152c196867d6c37fb835194a9e666000f98e7df5144eb879f"
+    },
+    "cached-local-miss-rrset-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "d5e30a4312acdb47195b39a5b12e7162f4f8f64384121929c6b81c06bab28930"
+    },
+    "cached-local-miss-rrset-stat-r2-F.stdout": {
+      "bytes": 133,
+      "sha256": "171e79ab57d425a152c196867d6c37fb835194a9e666000f98e7df5144eb879f"
+    },
+    "cached-local-miss-rrset-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "9490f248b1db74e661e3b9bc17870db6de82c8031f03f87b7126203e1817a40c"
+    },
+    "cached-local-miss-rrset-stat-r3-F.stdout": {
+      "bytes": 133,
+      "sha256": "171e79ab57d425a152c196867d6c37fb835194a9e666000f98e7df5144eb879f"
+    },
+    "cached-local-miss-rrset-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "682ea9607a24d2fbf6eaf37d096f0712ec14aa0b8fc6f067ab8beb68e7b50f0c"
+    },
+    "cached-local-miss-rrset-stat-r3-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "171e79ab57d425a152c196867d6c37fb835194a9e666000f98e7df5144eb879f"
+    },
+    "cached-local-miss-rrset-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "cf39e6e963f1c1115fa4398fcbcc3b54bc97289e2bc949ebce8ca0f4f7ff2e27"
+    },
+    "cached-local-miss-rrset-plain-r1-F.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r1-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r2-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r2-F.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r3-F.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r3-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r4-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r4-F.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r5-F.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-rrset-plain-r5-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "3858967f85a39f9c8b424254ca269592dd5c2a8f6f0d7763d079b260fb3df05d"
+    },
+    "cached-local-miss-rrset-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-stat-r1-F.stdout": {
+      "bytes": 133,
+      "sha256": "8f64b8b59b0d78d5b14b030a28cd7f8923b5ea8a1f4050ed1dfd84b7b0626d2a"
+    },
+    "cached-local-miss-cname-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "654a8753cbb47976a4f2e591848ce6dde76829228f227018f421129fb88be9e5"
+    },
+    "cached-local-miss-cname-stat-r1-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "8f64b8b59b0d78d5b14b030a28cd7f8923b5ea8a1f4050ed1dfd84b7b0626d2a"
+    },
+    "cached-local-miss-cname-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "4daf850bbfddf8b08f010fd1b37159436a003f59e6df7895a21916d76dfd2079"
+    },
+    "cached-local-miss-cname-stat-r2-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "8f64b8b59b0d78d5b14b030a28cd7f8923b5ea8a1f4050ed1dfd84b7b0626d2a"
+    },
+    "cached-local-miss-cname-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "587609fda30f8915209111a258c2e860108fdfc0158c79f8640062fa2481ed66"
+    },
+    "cached-local-miss-cname-stat-r2-F.stdout": {
+      "bytes": 133,
+      "sha256": "8f64b8b59b0d78d5b14b030a28cd7f8923b5ea8a1f4050ed1dfd84b7b0626d2a"
+    },
+    "cached-local-miss-cname-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "b6f6f6f78cdf4d66276d044e51e03cd7354d1a6a06380893a50728f09e5f1a15"
+    },
+    "cached-local-miss-cname-stat-r3-F.stdout": {
+      "bytes": 133,
+      "sha256": "8f64b8b59b0d78d5b14b030a28cd7f8923b5ea8a1f4050ed1dfd84b7b0626d2a"
+    },
+    "cached-local-miss-cname-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "bba3e32237b8ef759c235b53c996cafc71fcc193945d2a6ca9bcfd499bec75d5"
+    },
+    "cached-local-miss-cname-stat-r3-cached-local-miss.stdout": {
+      "bytes": 133,
+      "sha256": "8f64b8b59b0d78d5b14b030a28cd7f8923b5ea8a1f4050ed1dfd84b7b0626d2a"
+    },
+    "cached-local-miss-cname-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "8d552d55689455c3961157d6f294a53ce25a42244645edb02cf35c3685a7ce4c"
+    },
+    "cached-local-miss-cname-plain-r1-F.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r1-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r2-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r2-F.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r3-F.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r3-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r4-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r4-F.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r5-F.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-plain-r5-cached-local-miss.stdout": {
+      "bytes": 135,
+      "sha256": "cf27d52a1f1160c541f79118e6887451ca7f3965e4ee5ea0fc652270df50a9b4"
+    },
+    "cached-local-miss-cname-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-stat-r1-F.stdout": {
+      "bytes": 140,
+      "sha256": "20e8d3fea7ef4487222f5c153fca425fb9b284576f59a7c4422d863c6f657376"
+    },
+    "cached-local-miss-cname-leases-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "76c42ee00994c687ba14bd1a0c70e9cbac3653b2d7dd8d1adcab268d6d217471"
+    },
+    "cached-local-miss-cname-leases-stat-r1-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "20e8d3fea7ef4487222f5c153fca425fb9b284576f59a7c4422d863c6f657376"
+    },
+    "cached-local-miss-cname-leases-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "b14f8d4d9c5ad8b6fd4d5010d333a5286baa16857980b1e345d636c0d019e267"
+    },
+    "cached-local-miss-cname-leases-stat-r2-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "20e8d3fea7ef4487222f5c153fca425fb9b284576f59a7c4422d863c6f657376"
+    },
+    "cached-local-miss-cname-leases-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "328ef850c68b638b0a1898eed78f0afc6ddd00927cff83e34fdc345957da730f"
+    },
+    "cached-local-miss-cname-leases-stat-r2-F.stdout": {
+      "bytes": 140,
+      "sha256": "20e8d3fea7ef4487222f5c153fca425fb9b284576f59a7c4422d863c6f657376"
+    },
+    "cached-local-miss-cname-leases-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "3fb0699ae114de4ee9153c0a85819c7952fe737a59b3a85b5e1e9eb8f4644cb2"
+    },
+    "cached-local-miss-cname-leases-stat-r3-F.stdout": {
+      "bytes": 140,
+      "sha256": "20e8d3fea7ef4487222f5c153fca425fb9b284576f59a7c4422d863c6f657376"
+    },
+    "cached-local-miss-cname-leases-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "ce6e6c7b09ea97c04029af8a44878d20d416f3da8fe2af0c9adca1a632106f0a"
+    },
+    "cached-local-miss-cname-leases-stat-r3-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "20e8d3fea7ef4487222f5c153fca425fb9b284576f59a7c4422d863c6f657376"
+    },
+    "cached-local-miss-cname-leases-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "1cf3c01e740fc25342e412a504a987c8ff2a65365cb9370b0ecb5d07bed19f3c"
+    },
+    "cached-local-miss-cname-leases-plain-r1-F.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r1-cached-local-miss.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r2-cached-local-miss.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r2-F.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r3-F.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r3-cached-local-miss.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r4-cached-local-miss.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r4-F.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r5-F.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-leases-plain-r5-cached-local-miss.stdout": {
+      "bytes": 142,
+      "sha256": "77e9a45b121940416e0e5d4cb7a3c362d3d1a0a30b6e9e1df8bce77a993156b8"
+    },
+    "cached-local-miss-cname-leases-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-stat-r1-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-stat-r1-F.stderr": {
+      "bytes": 1360,
+      "sha256": "c49e2e211f573f3c51a975dd860c6ec73f393e4642f015ca1770f9e239895453"
+    },
+    "cached-local-miss-cname-config-stat-r1-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-stat-r1-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "0523e682dc2a4deae9061c5df2c64f436367d030dd76aa041117c82adf5174ae"
+    },
+    "cached-local-miss-cname-config-stat-r2-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-stat-r2-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "15860bd9dd5171346a0d34048a1aea47a2f047ca78fe1f5a15696756aa0456ff"
+    },
+    "cached-local-miss-cname-config-stat-r2-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-stat-r2-F.stderr": {
+      "bytes": 1360,
+      "sha256": "6cca97fd855a99de5809b4cb9a24fb00406df5cf0263e56dcc5ac01da757b3a0"
+    },
+    "cached-local-miss-cname-config-stat-r3-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-stat-r3-F.stderr": {
+      "bytes": 1360,
+      "sha256": "fff84513b65c36f1ada1a8e5bd28bb8e2657be2c42ce3fa74a2cc73c33f9b8d1"
+    },
+    "cached-local-miss-cname-config-stat-r3-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-stat-r3-cached-local-miss.stderr": {
+      "bytes": 1360,
+      "sha256": "4b3d667bd67616e540cfc201371bb68dedca153f7e77f1c0ac1ee2425dee21bd"
+    },
+    "cached-local-miss-cname-config-plain-r1-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r1-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r1-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r1-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r2-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r2-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r2-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r2-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r3-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r3-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r3-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r3-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r4-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r4-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r4-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r4-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r5-F.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r5-F.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-cname-config-plain-r5-cached-local-miss.stdout": {
+      "bytes": 140,
+      "sha256": "cb773afb9b15090470a8e1c74d4275c5092d95b633c2b85c8f591a155fa1e35b"
+    },
+    "cached-local-miss-cname-config-plain-r5-cached-local-miss.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cached-local-miss-hit-stat-r1-F.csv": {
+      "bytes": 321,
+      "sha256": "8c256f401b8b642e8580dece9bcf64f8090f9fa50d57eca59d016bf2bac0dd4f"
+    },
+    "cached-local-miss-hit-stat-r1-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "7b34a55e61968e9d3c024f389c41c9a298834bc3cd11d74fa5e8c81f80b30a8b"
+    },
+    "cached-local-miss-hit-stat-r2-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "808d50e0b5da89cc25d4e576bb4d1c079500e1d1016eb4d3eeb0756658b533cb"
+    },
+    "cached-local-miss-hit-stat-r2-F.csv": {
+      "bytes": 321,
+      "sha256": "e7bcc07b354148b6774102ba38a3e8d1600857490d191f1d17b0fe6be2535d73"
+    },
+    "cached-local-miss-hit-stat-r3-F.csv": {
+      "bytes": 321,
+      "sha256": "a083ce4b639bea814c42733e95800d2b7bf4dcf905e62f92cff6d4af5ef70c15"
+    },
+    "cached-local-miss-hit-stat-r3-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "fa87cdb78a569b8a6ec32a1ad3324064a3367a924d6c2501466095710e122b61"
+    },
+    "cached-local-miss-hit-upper-stat-r1-F.csv": {
+      "bytes": 321,
+      "sha256": "84aba5aad231665fbeebff09cfed5a8b677b34a0efe6be275a998a1f0b1507b6"
+    },
+    "cached-local-miss-hit-upper-stat-r1-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "dd04d5b346213591e14b29850af37d2fd3136ff4d21440ebba4b06ebebab4cde"
+    },
+    "cached-local-miss-hit-upper-stat-r2-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "e21767a2d7f73571b163c60065686787a26ef47ccba164e6ded687f695e87f22"
+    },
+    "cached-local-miss-hit-upper-stat-r2-F.csv": {
+      "bytes": 321,
+      "sha256": "ea9b65355b4e5c27316a524fde9af488713a2689ce09e04438f60cd6b21ebbbd"
+    },
+    "cached-local-miss-hit-upper-stat-r3-F.csv": {
+      "bytes": 321,
+      "sha256": "d116c7f2d2ef14f23275dc1e6c8cafcf6ee3cd5a5f4f5b374437da1a9fb73bb1"
+    },
+    "cached-local-miss-hit-upper-stat-r3-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "f315f68ab880283621a4fa1f1227b03001ad3ad87beac456e660e3ac76e913d2"
+    },
+    "cached-local-miss-hit-leases-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "be1decd60de3740c9c7c072413ef57ad46a8dffd181988c4d20f6ccdd6b57232"
+    },
+    "cached-local-miss-hit-leases-stat-r1-cached-local-miss.csv": {
+      "bytes": 321,
+      "sha256": "81a3f7433c3ebce1147e5a7e79ac630b702fc4988a4868cc02f29f9d675d606f"
+    },
+    "cached-local-miss-hit-leases-stat-r2-cached-local-miss.csv": {
+      "bytes": 321,
+      "sha256": "aa8eb0004840ce7a6f2048cda219aad7887b197af4bbbfdfdb3c2b609f2c26c5"
+    },
+    "cached-local-miss-hit-leases-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "77bb292a86da7bcff6673fcbe23d992dce44fdbc445e67ef4a1c7131d62a8e48"
+    },
+    "cached-local-miss-hit-leases-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "c7caf5b8ce903e6a9abf4eeaa65a8b209faf095ba4104d6cd9b59d3941bcdc20"
+    },
+    "cached-local-miss-hit-leases-stat-r3-cached-local-miss.csv": {
+      "bytes": 321,
+      "sha256": "39339db458203ab121fc00b9d8909954fb127e5331291dec45cda771b067f123"
+    },
+    "cached-local-miss-hit-typed-stat-r1-F.csv": {
+      "bytes": 321,
+      "sha256": "26f102ce62e793f805525f1e1cb22a44cc0b9b882f63681c32251258373ff2da"
+    },
+    "cached-local-miss-hit-typed-stat-r1-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "2ee0cf69b9f1568ad5b1e16c1a8548fdaa6ba11caf84a7e7881ce38978cce1f5"
+    },
+    "cached-local-miss-hit-typed-stat-r2-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "1d6a221fed35fdcb882145a3521210b6af3d5637dfd1925dea09e913fcdef61d"
+    },
+    "cached-local-miss-hit-typed-stat-r2-F.csv": {
+      "bytes": 321,
+      "sha256": "131e32c45423f25179a1e89ebb5ce8e022da82ea6e811aba59555a6057372215"
+    },
+    "cached-local-miss-hit-typed-stat-r3-F.csv": {
+      "bytes": 321,
+      "sha256": "2343a87fa917c6c3289c40b44ed77f648beed63afc46f211f5f8e15f13b7f19e"
+    },
+    "cached-local-miss-hit-typed-stat-r3-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "2dc4f0f702f4ee725f61cd8b402ecc7fc335d9949e12d34a46fe1e0fd662c49b"
+    },
+    "cached-local-miss-miss-stat-r1-F.csv": {
+      "bytes": 311,
+      "sha256": "199bc0f7dabf853264344020e1121950cba835b936ee9a0e8c24b8e8da0bf0a8"
+    },
+    "cached-local-miss-miss-stat-r1-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "0115c6fb167a9e48470b32b426c5ad699d8c650cb686ad7d7833b332a291e8e5"
+    },
+    "cached-local-miss-miss-stat-r2-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "eea9d77bb6c6abe933bdd2e1db8130da61e3b27094e466b5bf293b2b80b298d3"
+    },
+    "cached-local-miss-miss-stat-r2-F.csv": {
+      "bytes": 311,
+      "sha256": "9a76af23d8457b0b422edee002a8208ccae0a094e1c9ee9bb9bae40db8057c26"
+    },
+    "cached-local-miss-miss-stat-r3-F.csv": {
+      "bytes": 311,
+      "sha256": "a2aaab7faf6ce85849e1b2fd49482273faf7d5e23d1e5551b44fd4b244506eee"
+    },
+    "cached-local-miss-miss-stat-r3-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "426bb591c5bc3dbc62f4212a6640512acf34d0b226172716ac9b76daae15198a"
+    },
+    "cached-local-miss-miss-leases-stat-r1-F.csv": {
+      "bytes": 311,
+      "sha256": "8dcfb9266f976d189ac178e33f6fc2b664da97eb9d367231d8812822ebbd7be4"
+    },
+    "cached-local-miss-miss-leases-stat-r1-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "cc8d5836598df78a75e0d66221e412881937c4105ed5ac1223b2833b3fcbe9ae"
+    },
+    "cached-local-miss-miss-leases-stat-r2-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "c490c892af73843f7b7c0d4aac8d7c0cd6e0232face513a6d7d2211fa890bf5e"
+    },
+    "cached-local-miss-miss-leases-stat-r2-F.csv": {
+      "bytes": 311,
+      "sha256": "9e3c94af2a934652baf316f4d1573e04c270dc1e9d6694b4cb7cc3e27c483a11"
+    },
+    "cached-local-miss-miss-leases-stat-r3-F.csv": {
+      "bytes": 311,
+      "sha256": "772419b7d244593bbb02f8e0cdfb01ba5694f541ca08c74973ca962f0fdca251"
+    },
+    "cached-local-miss-miss-leases-stat-r3-cached-local-miss.csv": {
+      "bytes": 311,
+      "sha256": "9aac38a3dd08656ce672a02046edf97d8a99bc284c0375b7868525647570b4ea"
+    },
+    "cached-local-miss-host-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "1a4c42bdc81146c2cbea3436cd7b7348fe0ba31747e1241f7e160995dc9ff9dd"
+    },
+    "cached-local-miss-host-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "78401f35d14865855e73294daf3377e333ea788727a957d94c31fc7005f137bc"
+    },
+    "cached-local-miss-host-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "dda0e2831e96530217450753b0ca86d439344d5fa6f8b417d0cc1798ff908866"
+    },
+    "cached-local-miss-host-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "df85c29843f16142de1ea116222a243749c34a4b7e2a3f5a75434946cbc175a5"
+    },
+    "cached-local-miss-host-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "d3fb50bff8162211222a6318358d451e3567be8edee9ee635c8ccaf33451bf83"
+    },
+    "cached-local-miss-host-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "a687eb8efa8b10905fc7e6dfdc8aca07eb92cf9cea1424dd869adbf416d76e5b"
+    },
+    "cached-local-miss-host-localise-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "91730c3206b3bdd500659a466217cff36b239086d4fbf1d76e4c99e653b177b6"
+    },
+    "cached-local-miss-host-localise-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "79cb22c147a1928f2daab1fb473c85c54b5eee999ed4f8a2ae516f3cdd64bb7a"
+    },
+    "cached-local-miss-host-localise-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "82fa474b29ad84135a10b625196cac9ac880a34a8fdb198eb8d368408ea263eb"
+    },
+    "cached-local-miss-host-localise-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "84c153764b4e1fabf3ee48b23c8af1513dbd9e30ab48ae6973f9ec16b0e33bf8"
+    },
+    "cached-local-miss-host-localise-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "adc75456d56d397d67cdc8f2fa388c40236b34d169cab2310714f524362c6a45"
+    },
+    "cached-local-miss-host-localise-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "44ed837d0a4e0ef139df56d7e860919394b54a0fab1bd2a12881d6e7448c6685"
+    },
+    "cached-local-miss-raw-address-stat-r1-F.csv": {
+      "bytes": 340,
+      "sha256": "181b72ad76af356981a395abc0cfbf32dd85e9cc264ac5a341856c7848f0c140"
+    },
+    "cached-local-miss-raw-address-stat-r1-cached-local-miss.csv": {
+      "bytes": 340,
+      "sha256": "8cf28ca69f671b7518cbc39253e9fdbd8ac1d905ea0bd8c201c15314df83e962"
+    },
+    "cached-local-miss-raw-address-stat-r2-cached-local-miss.csv": {
+      "bytes": 340,
+      "sha256": "d062883e8005ddc34e3c5897e7f6553e8c90914d27e1dbf6f1a3b22277af135d"
+    },
+    "cached-local-miss-raw-address-stat-r2-F.csv": {
+      "bytes": 340,
+      "sha256": "5124fe265ca420fe65469e91d5808fadca5212ef5dfbd9fa0c619efe3c70148e"
+    },
+    "cached-local-miss-raw-address-stat-r3-F.csv": {
+      "bytes": 340,
+      "sha256": "fea49d1691136b5cc4c64be5acc7dfa374995de31fb3c6bc4712163f0d407f01"
+    },
+    "cached-local-miss-raw-address-stat-r3-cached-local-miss.csv": {
+      "bytes": 340,
+      "sha256": "6737727236b9b15e982f3a32479fe55b6b4999befa4db8a16883bb94658f0f84"
+    },
+    "cached-local-miss-synth-address-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "5ec35c12a27034d2d082bff9de4675b75353d401ef639141e427fd2fe0136f74"
+    },
+    "cached-local-miss-synth-address-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "d48ab02069d36d3792dd3478ccdd226d924bf6627193c817e37f612b891bf942"
+    },
+    "cached-local-miss-synth-address-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "3cfaf09962682323973a9adedaf36fbee6d0e78a6ab91574bdf6af78f455d7cb"
+    },
+    "cached-local-miss-synth-address-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "3487958cd43f4cfaf6d005c9c6cccabda03399bb0c72bee50f2cef09a351fe96"
+    },
+    "cached-local-miss-synth-address-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "eb823191c999f5d60dfbc8cb9576a7707dbe9cb2bce884ddc1462a41e49d5a7e"
+    },
+    "cached-local-miss-synth-address-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "9aee58f45ad7a647bbf22d51d94140fa4c47fa41a89d9113af24fba4e3625736"
+    },
+    "cached-local-miss-lease-address-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "57c69c8dc4a09784c5dde9594b78bad3f9452a04a11c66e944e0810b4794e713"
+    },
+    "cached-local-miss-lease-address-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "b7cf0d0698ff9693bac3e70c7bc640e94ab0e07b22567b4f2d73d0af5ca4f6b1"
+    },
+    "cached-local-miss-lease-address-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "df5a0f2d3bf25317bef12c2bd54968581cbbebb25f4222b7124b0b9caad6cbf9"
+    },
+    "cached-local-miss-lease-address-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "3c0795e61d735f526bed805a78b08660e9ab518106fd1b708cd6fbce9c2e0061"
+    },
+    "cached-local-miss-lease-address-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "26c3e92541cc78d120cb360206f5326d4134a6c0d8ab67ee140628180389e04b"
+    },
+    "cached-local-miss-lease-address-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "3229688f594a750cc4fc5f6b8a3adea934bd3fbe2c8edd2156ae1730b414cb2a"
+    },
+    "cached-local-miss-rrset-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "4cf0ae812cbb3aec1a6da6924d080ea46cfe0d61af3138fdd88b5c14a3d11303"
+    },
+    "cached-local-miss-rrset-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "d443fb679dc6a132cf1298abf874d380ea07126d468163842d4e7fc31ec663a8"
+    },
+    "cached-local-miss-rrset-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "3d7e0b0f13168d32fcd079881c6226fce7709f1078a0e81d687748dc223346b6"
+    },
+    "cached-local-miss-rrset-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "f87b3ec62229f2250f9badc2ef38aef09aea3505b69d1fe079b13ec68aa5b0ef"
+    },
+    "cached-local-miss-rrset-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "5b6e8d6e02e7e0c8410dfc458bdd08fc5007ad81756cff238aad5267f90bcd3b"
+    },
+    "cached-local-miss-rrset-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "2362c84b5dcc90b88e8ec21106efee2ba21d94d04e3f3c39bf99f000c75e651d"
+    },
+    "cached-local-miss-cname-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "2097c388ee592181d708accd45e5f6f6dfc435d6a837dcefc450483fbf3fb31b"
+    },
+    "cached-local-miss-cname-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "3e15a82159d63dc4377ebb561b5c213904f20909e1a91b4f97ba4e9a8bf7f127"
+    },
+    "cached-local-miss-cname-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "5a7ed6c8d8529840d28522663ebbc72640b2858336ade606250f5c3844d4fde1"
+    },
+    "cached-local-miss-cname-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "8a96d7e79fb8ef46177449efdd1475c4ed4c41ade00a1b16b98d5d147970a055"
+    },
+    "cached-local-miss-cname-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "465f91ebf01c4383102ee40aa2f3fbd17dfe19730677139591cbc5f7ed9d90bf"
+    },
+    "cached-local-miss-cname-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "0de78d5dd1690f298c80c3579c722dd4bf9ea18e29485957b0b8a9fe0ba8ea58"
+    },
+    "cached-local-miss-cname-leases-stat-r1-F.csv": {
+      "bytes": 324,
+      "sha256": "09ea1317cbfe822c50bfd9c3e6e6a877d84042ffadddc1ad76512c30eeb83fb3"
+    },
+    "cached-local-miss-cname-leases-stat-r1-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "34b5e1acf8dbb6950db77316584e654dbca7e60fd3f87093eb2981453fa2acf7"
+    },
+    "cached-local-miss-cname-leases-stat-r2-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "b52f41ba2572fcfed718db85d33f088978a4a4f11f0970c94da3a67759fed1ee"
+    },
+    "cached-local-miss-cname-leases-stat-r2-F.csv": {
+      "bytes": 324,
+      "sha256": "6b7dea60074143cbf40d7123cc29e874b6f580741e54de0627a28b0dc756fa68"
+    },
+    "cached-local-miss-cname-leases-stat-r3-F.csv": {
+      "bytes": 324,
+      "sha256": "99a1030ae0b874b689f1c598e3545c0dbd7729a8a26d9824a351ad82ac11d8bb"
+    },
+    "cached-local-miss-cname-leases-stat-r3-cached-local-miss.csv": {
+      "bytes": 324,
+      "sha256": "ad0c1fdfaeb961037c5c289ce1ddee91391637518c7a7f62461aff905858fff9"
+    },
+    "cached-local-miss-cname-config-stat-r1-F.csv": {
+      "bytes": 343,
+      "sha256": "2da172e8738fafc2c855fe9647a7fc3bcea95ccd099485398a0e986efa011741"
+    },
+    "cached-local-miss-cname-config-stat-r1-cached-local-miss.csv": {
+      "bytes": 343,
+      "sha256": "263612313c41904097551b739e4fa208a6e00e11d321d8d281326d6baf051f59"
+    },
+    "cached-local-miss-cname-config-stat-r2-cached-local-miss.csv": {
+      "bytes": 343,
+      "sha256": "0b5406347f627d3f756362c1bd17c73bb197b0b10d9509d6eebd1090ca0db37c"
+    },
+    "cached-local-miss-cname-config-stat-r2-F.csv": {
+      "bytes": 343,
+      "sha256": "aeec330eb513ec6c9b5e8663948e645f701f99ba321e1a3a7f6ebd25b96bfb06"
+    },
+    "cached-local-miss-cname-config-stat-r3-F.csv": {
+      "bytes": 343,
+      "sha256": "f6ce243e81826cced93399735d692355debf2a493da5da84f6b6dbe5450f5b79"
+    },
+    "cached-local-miss-cname-config-stat-r3-cached-local-miss.csv": {
+      "bytes": 343,
+      "sha256": "d7a18ea5cf4cebd22780091c1cb49231a5d8ef81094c5b3fffc3367916cde9fb"
+    }
+  },
+  "scope": "All original 244 command stdout/stderr plus 90 PMU CSVs; no ELF or unrelated device data. This establishes transfer integrity, not an independent reparse of raw PMU semantics.",
+  "local_raw_directory": "/Users/USER/Developer/owrt-perf-cached-child-sdk-prep-20261016/private/perf-opt-20261015/cached-local-native-raw-transfer/raw",
+  "independent_raw_semantic_audit_complete": false,
+  "raw_audit_owner": "correctness; pending separate original raw parsing/statistical derivation"
+}
