@@ -74,11 +74,20 @@ The [quiet handoff](owner-ready-frames-owner32-release-to-correctness.json),
 SHA-256 `7ece1ca9db618742ef692cd111fbbedaadc5b6070af27492da0514ece7a7d04d`,
 records exited controller/analyzer, completed transfers, no research processes
 including exact C, three free locks and the unchanged actual standalone signal
-result. Correctness now owns original full-bin replay and raw audit; that
-review is pending. The device ten-window independent audit `e99b91a1`,
+result. The completed [independent audit](../correctness/owner-ready-frames-owner32-independent-audit.json),
+commit `732e7884`, SHA-256
+`24dc7833258c7f2400cd2015caa100e57b1aad8eccbf0ba8ae076674b7fc374d`,
+rechecked all 1,264 raw files, CPU/PMU/statistical calculations and 128 bins.
+Its original full-bin analyzer replay produced the byte-identical result
+`c4b3b656878a7bc2424fe2fb8aeaf58a6950c8e0327101661f5752268f3daafa`
+and retained the high-load send-lag p95 regression. The
+[completed closeout](../correctness/owner-ready-frames-screen-closeout-and-root-handoff.json),
+commit `457b640e`, records the final quiet release SHA-256
+`7420a7cc401c2a28b6d14f1c38b400f050aee155d9f7133e156e2ce30bd66c8d`.
+The device ten-window independent audit `e99b91a1`,
 SHA-256 `b4a08d198e4ac86427e78e779902726d4cadd7e642cb897ad3ddf6c8c228c22a`,
 found all three primary comparisons inconclusive and verified restoration.
 These host diagnostics establish neither physical-device gain nor complete
-qualification. After independent review and quiet release, the next queue
-remains subject to root selection; no full110 or new experiment is authorized
+qualification. Independent review and quiet release are complete; the next
+queue remains subject to root selection. No full110 or new experiment is authorized
 by this result alone.
