@@ -2292,7 +2292,7 @@ struct SinglePoll {
     // One wait may authorize one UDP-only turn. Never infer idle work from
     // a ready descriptor alone, or reuse the witness after another step.
     #[cfg(any(target_os = "linux", test))]
-    udp_only_wake: Option<SocketToken>,
+    udp_only_wake: Option<(SocketToken, Option<Instant>)>,
     ubus_ready: bool,
     #[cfg(target_os = "linux")]
     ready_fds: Vec<owrt_ubus::sys::PollFd>,
@@ -4460,15 +4460,16 @@ impl SinglePoll {
                     .iter()
                     .any(|fd| fd.revents != 0);
             }
-            // A timer, queued work, error/HUP, or another ready fd retains
-            // the full turn. The step rechecks logical state and signal flags
+            // Queued work, error/HUP, or another ready fd retains the full
+            // turn. Preserve the earliest timer: it may expire after poll.
+            // The step rechecks logical state and signal flags
             // because the outer file/reload phase runs between wait and step.
-            if !runnable && deadline.is_none() && self.ready_fds.len() == 1 {
+            if !runnable && self.ready_fds.len() == 1 {
                 let ready = self.ready_fds[0];
                 if ready.revents == POLLIN {
                     self.udp_only_wake = self.listeners.iter().find_map(|listener| {
                         listener.udp.as_ref().filter(|udp| udp.as_raw_fd() == ready.fd)
-                            .map(|_| listener.token)
+                            .map(|_| (listener.token, deadline))
                     });
                 }
             }
@@ -4607,15 +4608,15 @@ impl SinglePoll {
         Ok(())
     }
 
-    // Conservative first dispatch subset: no auxiliary service whose owner
-    // performs work independently of poll readiness. In particular DHCP bind
-    // retry/helper delivery and script-ARP wake accounting remain full turns.
+    // A lone ready UDP socket is insufficient: queues may have become ready
+    // since poll, and future timers may now be due. Helpers/TFTP/neighbors
+    // retain the full turn; idle DHCP uses its existing in-memory state.
     #[cfg(any(target_os = "linux", test))]
-    fn udp_dispatch_idle(&self) -> bool {
+    fn udp_dispatch_idle(&self, now: Instant) -> bool {
         if self.m6b.enabled() || self.ubus_ready || !self.clients.is_empty()
             || !self.pending_edns_udp.is_empty() || self.edns_udp_runnable
             || self.full_reload_pending || self.interface_refresh.requested
-            || self.interface_refresh.retry_at.is_some() || self.hosts_staged.is_some()
+            || self.interface_refresh.retry_at.is_some_and(|due| due <= now) || self.hosts_staged.is_some()
             || self.hosts_reload_failed || self.pending_interface_udp.is_some()
             || self.pending_interface_tcp.is_some()
             || STOP_REQUESTED.load(Ordering::Acquire)
@@ -4625,25 +4626,39 @@ impl SinglePoll {
             || ALARM_REQUESTED.load(Ordering::Acquire) != 0
         { return false; }
         #[cfg(target_os = "linux")]
-        if self.upstream_ready || self.upstream_next_due.is_some()
-            || self.route_retry_at.is_some() || self.files_runnable
+        if self.upstream_ready || self.upstream_next_due.is_some_and(|due| due <= now)
+            || self.route_retry_at.is_some_and(|due| due <= now) || self.files_runnable
             || self.hosts_bulk || self.hosts_full_reload || self.hosts_work_pending()
             || self.pending_interface_files.is_some()
             || self.dns_files.as_ref().is_some_and(|files| files.has_work() || files.initializing())
             || self.early_logger.iter().chain(self.logger.iter())
-                .any(|logger| logger.has_pending() || logger.retry_deadline().is_some())
+                .any(|logger| logger.has_pending() || logger.retry_deadline().is_some_and(|due| due <= now))
         { return false; }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.dhcp.is_some() || self.helper.is_some() || self.tftp.is_some()
+        if self.helper.is_some() || self.tftp.is_some()
             || self.neighbors.is_some() || self.interface_work_pending()
             || self.pending_udp_admission.is_some() || self.helper_init.is_some()
             || self.helper_init_error.is_some() || self.pending_delivery.is_some()
             || self.script_arp || self.arp_awake || self.dhcp_ready || self.tftp_ready
             || self.neighbors_ready || self.tftp_next_due.is_some()
         { return false; }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(dhcp) = &self.dhcp {
+            // Do not repeat has_input()/poll here: readiness belongs to the
+            // existing wait. A reply already queued in userspace is different.
+            if dhcp.listener.has_pending_reply() { return false; }
+            if let Some(provider) = &dhcp.provider {
+                let Ok(provider) = provider.try_borrow() else { return false };
+                if provider.files_initializing() || provider.file_work_pending()
+                    || provider.files_runnable() || provider.packet_interfaces_pending()
+                    || provider.packet_interfaces_runnable() || provider.maintenance_due(now)
+                    || provider.script_delivery_enabled() || provider.has_frozen_script_delivery()
+                { return false; }
+            }
+        }
         let Ok(event) = self.parent_events.try_borrow() else { return false };
         if event.ubus.as_ref().is_some_and(UbusService::has_pending)
-            || (event.ubus_name.is_some() && event.ubus.is_none())
+            || (event.ubus_name.is_some() && event.ubus.is_none() && event.ubus_retry_at <= now)
         { return false; }
         #[cfg(target_os = "linux")]
         if !event.ubus_notices.is_empty() { return false; }
@@ -4653,23 +4668,39 @@ impl SinglePoll {
     }
 
     #[cfg(any(target_os = "linux", test))]
-    fn take_udp_only_listener(&mut self) -> Option<usize> {
-        let token = self.udp_only_wake.take()?;
-        if !self.udp_dispatch_idle() { return None; }
+    fn take_udp_only_listener(&mut self, now: Instant) -> Option<(usize, Option<Instant>)> {
+        let (token, deadline) = self.udp_only_wake.take()?;
+        if deadline.is_some_and(|due| due <= now) || !self.udp_dispatch_idle(now) { return None; }
         self.listeners.iter().position(|listener| listener.token == token && listener.udp.is_some())
+            .map(|index| (index, deadline))
     }
 
     fn step(&mut self) -> io::Result<()> {
         self.m6b.record_loop();
+        // DHCP binding is retried on every turn even after prior success.
+        // Keep the original UBus-before-binding prefix on both dispatch paths.
+        self.process_ubus_if_ready()?;
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(dhcp) = &mut self.dhcp {
+            dhcp.listener.retry_device_binding();
+            if let Some(logger) = &mut self.logger {
+                for notice in dhcp.listener.take_network_notices() {
+                    logger.emit(notice);
+                }
+            }
+        }
         #[cfg(any(target_os = "linux", test))]
-        if let Some(index) = self.take_udp_only_listener() {
+        if let Some((index, deadline)) = self.udp_only_wake.is_some()
+            .then(|| self.take_udp_only_listener(Instant::now())).flatten()
+        {
             let mut budget = UDP_PACKETS_PER_TURN;
             self.step_udp_batch(index, &mut budget);
             // The unchanged UDP path still polls upstream with ZERO, drains
             // query events, sends/recycles the reply and counts local answers.
             // A miss, deferred MAC/interface query or callback may have made
             // new work; continue the original tail in that same owner turn.
-            if !self.udp_dispatch_idle() {
+            let after_udp = Instant::now();
+            if deadline.is_some_and(|due| due <= after_udp) || !self.udp_dispatch_idle(after_udp) {
                 self.step_after_udp();
             } else {
                 #[cfg(target_os = "linux")]
@@ -4682,16 +4713,6 @@ impl SinglePoll {
 
     #[inline(never)]
     fn step_full(&mut self) -> io::Result<()> {
-        self.process_ubus_if_ready()?;
-        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if let Some(dhcp) = &mut self.dhcp {
-            dhcp.listener.retry_device_binding();
-            if let Some(logger) = &mut self.logger {
-                for notice in dhcp.listener.take_network_notices() {
-                    logger.emit(notice);
-                }
-            }
-        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_interface_collector();
         #[cfg(target_os = "linux")]

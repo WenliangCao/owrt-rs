@@ -863,6 +863,17 @@ impl LocalProvider {
         }
     }
 
+    /// Check a caller's single clock sample without turning immediate startup
+    /// or external alarm work into a newly sampled, apparently future deadline.
+    pub fn maintenance_due(&self, now: Instant) -> bool {
+        !self.initialized || self.pending_alarms != 0
+            || self.alarm_deadline.is_some_and(|deadline| deadline <= now)
+    }
+
+    pub fn script_delivery_enabled(&self) -> bool {
+        self.config.script.is_some()
+    }
+
     fn observe_alarm(&mut self) {
         if self
             .alarm_deadline
@@ -3573,6 +3584,24 @@ fn generated_hostname(
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn dispatch_maintenance_uses_the_supplied_clock_and_keeps_immediate_work() {
+        let mut provider = LocalProvider::new(DhcpConfig {
+            no_ping: true, lease_read_only: true, ..Default::default()
+        }, Vec::new(), 53, || false).unwrap();
+        let now = Instant::now();
+        assert!(provider.maintenance_due(now), "startup is due even if the caller clock is earlier");
+        provider.initialize(100);
+        let due = now + Duration::from_secs(60);
+        provider.alarm_deadline = Some(due);
+        provider.pending_alarms = 0;
+        assert!(!provider.maintenance_due(now));
+        assert!(provider.maintenance_due(due));
+        provider.request_alarms(1);
+        assert!(provider.maintenance_due(now), "external alarm is not a future deadline");
+        assert_eq!(provider.pending_alarms, 1, "eligibility must not consume the alarm");
+    }
 
     #[test]
     fn failed_forced_dns_publication_gets_an_idle_retry_without_delaying_an_alarm() {

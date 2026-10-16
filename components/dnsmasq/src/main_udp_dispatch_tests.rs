@@ -60,7 +60,7 @@ impl Fixture {
         // Darwin has no production poll witness. Exercise the same private
         // dispatch/state checks locally; Linux tests use the real poll latch.
         #[cfg(not(target_os = "linux"))]
-        { self.owner.udp_only_wake = Some(SocketToken(1)); }
+        { self.owner.udp_only_wake = Some((SocketToken(1), None)); }
     }
 
     fn answer_upstream(&self) {
@@ -98,8 +98,8 @@ fn udp_dispatch_cached_and_local_answers_match_full_turn() {
         let packet = query(name, 21);
         fast.ready(&packet);
         full.ready(&packet);
-        assert_eq!(fast.owner.udp_only_wake, Some(SocketToken(1)));
-        assert!(fast.owner.udp_dispatch_idle());
+        assert_eq!(fast.owner.udp_only_wake, Some((SocketToken(1), None)));
+        assert!(fast.owner.udp_dispatch_idle(Instant::now()));
         full.owner.udp_only_wake = None;
         fast.owner.step().unwrap();
         full.owner.step().unwrap();
@@ -124,14 +124,14 @@ fn udp_dispatch_keeps_the_original_budget_then_repolls() {
     }
     fixture.owner.wait_for_files().unwrap();
     #[cfg(not(target_os = "linux"))]
-    { fixture.owner.udp_only_wake = Some(SocketToken(1)); }
+    { fixture.owner.udp_only_wake = Some((SocketToken(1), None)); }
     fixture.owner.step().unwrap();
     assert_eq!(fixture.owner.parent_events.borrow().local_answered as usize, UDP_PACKETS_PER_TURN);
     for _ in 0..UDP_PACKETS_PER_TURN { receive(&fixture.peer); }
     assert!(fixture.peer.recv(&mut [0; 2048]).is_err(), "the last packet must await another owner turn");
     fixture.owner.wait_for_files().unwrap();
     #[cfg(not(target_os = "linux"))]
-    { fixture.owner.udp_only_wake = Some(SocketToken(1)); }
+    { fixture.owner.udp_only_wake = Some((SocketToken(1), None)); }
     fixture.owner.step().unwrap();
     assert_eq!(Header::parse(&receive(&fixture.peer).0).unwrap().id, UDP_PACKETS_PER_TURN as u16);
 }
@@ -140,10 +140,10 @@ fn udp_dispatch_keeps_the_original_budget_then_repolls() {
 fn udp_dispatch_new_forwarding_work_completes_on_original_owner() {
     let mut fixture = Fixture::new();
     fixture.ready(&query("miss.dispatch.test", 44));
-    assert!(fixture.owner.udp_dispatch_idle());
+    assert!(fixture.owner.udp_dispatch_idle(Instant::now()));
     fixture.owner.step().unwrap();
     assert_eq!(fixture.owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 1);
-    assert!(!fixture.owner.udp_dispatch_idle(), "a newly submitted transaction is not idle");
+    assert!(!fixture.owner.udp_dispatch_idle(Instant::now()), "a newly submitted transaction is not idle");
     fixture.answer_upstream();
     fixture.owner.wait_for_files().unwrap();
     assert!(fixture.owner.udp_only_wake.is_none());
@@ -159,32 +159,32 @@ fn udp_dispatch_rechecks_work_queued_after_poll_without_consuming_it() {
     let mut fixture = Fixture::new();
     fixture.ready(&query("local.dispatch.test", 7));
     fixture.owner.full_reload_pending = true;
-    assert_eq!(fixture.owner.take_udp_only_listener(), None);
+    assert_eq!(fixture.owner.take_udp_only_listener(Instant::now()), None);
     assert!(fixture.owner.full_reload_pending);
     fixture.owner.full_reload_pending = false;
-    assert_eq!(fixture.owner.take_udp_only_listener(), None, "rejected witness cannot be reused");
-    fixture.owner.udp_only_wake = Some(SocketToken(1));
+    assert_eq!(fixture.owner.take_udp_only_listener(Instant::now()), None, "rejected witness cannot be reused");
+    fixture.owner.udp_only_wake = Some((SocketToken(1), None));
     fixture.owner.pending_edns_udp.push(PendingEdnsUdp {
         query_context: Default::default(), listener: SocketToken(1),
         client: ClientRequest { source: fixture.peer.local_addr().unwrap(),
             destination: fixture.address.ip(), interface: 0 },
         query: query("local.dispatch.test", 8), deadline: Instant::now() + Duration::from_secs(3),
     });
-    assert_eq!(fixture.owner.take_udp_only_listener(), None);
+    assert_eq!(fixture.owner.take_udp_only_listener(Instant::now()), None);
     assert_eq!(fixture.owner.pending_edns_udp.len(), 1);
     fixture.owner.pending_edns_udp.clear();
     for signal in [&RELOAD_REQUESTED, &LOG_REOPEN_REQUESTED, &CACHE_DUMP_REQUESTED, &ALARM_REQUESTED] {
-        fixture.owner.udp_only_wake = Some(SocketToken(1));
+        fixture.owner.udp_only_wake = Some((SocketToken(1), None));
         let old = signal.swap(1, Ordering::AcqRel);
-        let result = fixture.owner.take_udp_only_listener();
+        let result = fixture.owner.take_udp_only_listener(Instant::now());
         signal.store(old, Ordering::Release);
         assert_eq!(result, None);
     }
-    fixture.owner.udp_only_wake = Some(SocketToken(1));
-    fixture.owner.interface_refresh.retry_at = Some(Instant::now() + Duration::from_secs(1));
-    assert_eq!(fixture.owner.take_udp_only_listener(), None);
+    fixture.owner.udp_only_wake = Some((SocketToken(1), None));
+    fixture.owner.interface_refresh.retry_at = Some(Instant::now());
+    assert_eq!(fixture.owner.take_udp_only_listener(Instant::now()), None);
     fixture.owner.interface_refresh.retry_at = None;
-    fixture.owner.udp_only_wake = Some(SocketToken(1));
+    fixture.owner.udp_only_wake = Some((SocketToken(1), None));
     fixture.owner.remove_listener(SocketToken(1));
     assert!(fixture.owner.udp_only_wake.is_none());
 }
@@ -207,7 +207,7 @@ fn udp_dispatch_does_not_starve_a_tcp_frame_already_in_memory() {
     work.input = encode_tcp_frame(&query("local.dispatch.test", 52)).unwrap();
     #[cfg(target_os = "linux")]
     assert_eq!(fixture.owner.clients[0].ready_events, 0);
-    assert!(!fixture.owner.udp_dispatch_idle());
+    assert!(!fixture.owner.udp_dispatch_idle(Instant::now()));
     fixture.owner.step().unwrap();
     assert_eq!(Header::parse(&receive(&fixture.peer).0).unwrap().id, 51);
     let mut length = [0; 2];
@@ -216,6 +216,50 @@ fn udp_dispatch_does_not_starve_a_tcp_frame_already_in_memory() {
     peer.read_exact(&mut answer).unwrap();
     assert_eq!(Header::parse(&answer).unwrap().id, 52);
     assert!(answer.ends_with(&[192, 0, 2, 7]));
+}
+
+#[test]
+fn udp_dispatch_rechecks_the_poll_deadline_at_step_time() {
+    let mut fixture = Fixture::new();
+    let returned = Instant::now();
+    let due = returned + Duration::from_secs(60);
+    fixture.owner.udp_only_wake = Some((SocketToken(1), Some(due)));
+    assert_eq!(fixture.owner.take_udp_only_listener(returned), Some((0, Some(due))),
+        "a future deadline permits the bounded UDP turn");
+    fixture.owner.udp_only_wake = Some((SocketToken(1), Some(due)));
+    assert_eq!(fixture.owner.take_udp_only_listener(due), None,
+        "the timer may become due after poll returns, without another fd event");
+    assert!(fixture.owner.udp_only_wake.is_none());
+}
+
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[test]
+fn udp_dispatch_allows_idle_dhcp_but_rejects_a_queued_alarm() {
+    let mut fixture = Fixture::new();
+    let mut provider = DhcpProvider::new(DhcpConfig {
+        no_ping: true, lease_read_only: true, ..Default::default()
+    }, Vec::new(), 53, || false).unwrap();
+    provider.initialize(now_seconds());
+    let provider = Rc::new(RefCell::new(provider));
+    let mut listener = DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(),
+        DhcpListener::Dhcp, &[]).unwrap();
+    assert!(listener.configure_device_binding(Some(b"lo".to_vec()), true).unwrap());
+    fixture.owner.dhcp = Some(DhcpService {
+        provider: Some(Rc::clone(&provider)), listener, pxe_next: false,
+        output: vec![0; 16_384],
+    });
+    fixture.ready(&query("local.dispatch.test", 61));
+    assert!(fixture.owner.udp_dispatch_idle(Instant::now()));
+    assert!(fixture.owner.udp_only_wake.is_some());
+    fixture.owner.step().unwrap();
+    assert_eq!(Header::parse(&receive(&fixture.peer).0).unwrap().id, 61);
+    fixture.ready(&query("local.dispatch.test", 62));
+    provider.borrow_mut().request_alarms(1);
+    assert_eq!(fixture.owner.take_udp_only_listener(Instant::now()), None);
+    assert!(provider.borrow().maintenance_due(Instant::now()), "gate leaves queued work intact");
+    fixture.owner.step().unwrap();
+    assert!(!provider.borrow().maintenance_due(Instant::now()));
+    assert_eq!(Header::parse(&receive(&fixture.peer).0).unwrap().id, 62);
 }
 
 #[cfg(target_os = "linux")]
@@ -238,5 +282,6 @@ fn udp_dispatch_real_wait_rejects_other_readiness_and_queued_work() {
     fixture.owner.full_reload_pending = false;
     fixture.owner.route_retry_at = Some(Instant::now() + Duration::from_secs(1));
     fixture.owner.wait_for_files().unwrap();
-    assert!(fixture.owner.udp_only_wake.is_none(), "even a future timer excludes the narrow subset");
+    assert!(fixture.owner.udp_only_wake.is_some(), "a future timer does not prevent UDP work");
+    assert!(fixture.owner.take_udp_only_listener(Instant::now()).is_some());
 }
