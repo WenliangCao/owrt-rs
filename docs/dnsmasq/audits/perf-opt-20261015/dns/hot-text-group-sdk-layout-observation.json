@@ -1,0 +1,187 @@
+{
+  "status": "ACTUAL_CANONICAL_GNU_HOT_INPUTS_GROUPED",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "build_receipt_sha256": "54f0bb07563ec23a808f2af6862c72169c04fd7da8bb2feeb7c88449fca520dd",
+  "shipping_ELF_sha256": "dc2dddfe0a627946506e7fd6d5dcf86c0803da1f40987a96d5130f6b2ba51b70",
+  "same_link_map_sha256": "b0995e7a1d2716670ea4a8a80305bb2e0ebb6499de0bec14893e6dcadca54474",
+  "original_parser_sha256": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+  "original_ELF_reader_sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+  "original_sectionless_LOAD_adapter_sha256": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a",
+  "source_method_label_count": 22,
+  "all_executable_input_range_count": 2710,
+  "actual_surviving_range_count": 19,
+  "actual_surviving_label_count": 19,
+  "source_labels_without_surviving_range": [
+    ".text.hot.dnsmasq.answer_from_cache",
+    ".text.hot.dnsmasq.answer_records_filtered",
+    ".text.hot.dnsmasq.inspect_name"
+  ],
+  "actual_ranges": [
+    {
+      "executable_LOAD_index": 0,
+      "address": 124840,
+      "end": 129500,
+      "bytes": 4660,
+      "input_section_label": ".text.hot.dnsmasq.process_udp",
+      "original_parser_name": "dnsmasq.process_udp"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 129500,
+      "end": 136692,
+      "bytes": 7192,
+      "input_section_label": ".text.hot.dnsmasq.wait_for_files",
+      "original_parser_name": "dnsmasq.wait_for_files"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 136692,
+      "end": 139992,
+      "bytes": 3300,
+      "input_section_label": ".text.hot.dnsmasq.process_admitted_udp",
+      "original_parser_name": "dnsmasq.process_admitted_udp"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 139992,
+      "end": 144684,
+      "bytes": 4692,
+      "input_section_label": ".text.hot.dnsmasq.step",
+      "original_parser_name": "dnsmasq.step"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 144684,
+      "end": 146384,
+      "bytes": 1700,
+      "input_section_label": ".text.hot.dnsmasq.step_udp",
+      "original_parser_name": "dnsmasq.step_udp"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 146384,
+      "end": 149052,
+      "bytes": 2668,
+      "input_section_label": ".text.hot.dnsmasq.admit_udp",
+      "original_parser_name": "dnsmasq.admit_udp"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 149052,
+      "end": 149580,
+      "bytes": 528,
+      "input_section_label": ".text.hot.dnsmasq.poll_inner",
+      "original_parser_name": "dnsmasq.poll_inner"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 149580,
+      "end": 153428,
+      "bytes": 3848,
+      "input_section_label": ".text.hot.dnsmasq.answer_local_or_cached",
+      "original_parser_name": "dnsmasq.answer_local_or_cached"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 153428,
+      "end": 155912,
+      "bytes": 2484,
+      "input_section_label": ".text.hot.dnsmasq.answer_udp_prepared_with_local",
+      "original_parser_name": "dnsmasq.answer_udp_prepared_with_local"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 155912,
+      "end": 156552,
+      "bytes": 640,
+      "input_section_label": ".text.hot.dnsmasq.send_with_interface",
+      "original_parser_name": "dnsmasq.send_with_interface"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 156552,
+      "end": 157200,
+      "bytes": 648,
+      "input_section_label": ".text.hot.dnsmasq.receive",
+      "original_parser_name": "dnsmasq.receive"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 157200,
+      "end": 158464,
+      "bytes": 1264,
+      "input_section_label": ".text.hot.dnsmasq.find_pseudoheader",
+      "original_parser_name": "dnsmasq.find_pseudoheader"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 158464,
+      "end": 158940,
+      "bytes": 476,
+      "input_section_label": ".text.hot.dnsmasq.name_exists_canonical",
+      "original_parser_name": "dnsmasq.name_exists_canonical"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 158940,
+      "end": 159324,
+      "bytes": 384,
+      "input_section_label": ".text.hot.dnsmasq.single_fresh_address_id_with_hint",
+      "original_parser_name": "dnsmasq.single_fresh_address_id_with_hint"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 159324,
+      "end": 160352,
+      "bytes": 1028,
+      "input_section_label": ".text.hot.dnsmasq.answer_fresh_address",
+      "original_parser_name": "dnsmasq.answer_fresh_address"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 160352,
+      "end": 160732,
+      "bytes": 380,
+      "input_section_label": ".text.hot.dnsmasq.names_for",
+      "original_parser_name": "dnsmasq.names_for"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 160732,
+      "end": 164316,
+      "bytes": 3584,
+      "input_section_label": ".text.hot.dnsmasq.answer_parsed_with_query_events",
+      "original_parser_name": "dnsmasq.answer_parsed_with_query_events"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 164316,
+      "end": 164844,
+      "bytes": 528,
+      "input_section_label": ".text.hot.dnsmasq.cached_address_is_unclaimed",
+      "original_parser_name": "dnsmasq.cached_address_is_unclaimed"
+    },
+    {
+      "executable_LOAD_index": 0,
+      "address": 164844,
+      "end": 165548,
+      "bytes": 704,
+      "input_section_label": ".text.hot.dnsmasq.query_dotted_name",
+      "original_parser_name": "dnsmasq.query_dotted_name"
+    }
+  ],
+  "range_start": 124840,
+  "range_end": 165548,
+  "span_bytes": 40708,
+  "selected_input_bytes": 40708,
+  "gaps_between_selected_ranges": [],
+  "other_input_ranges_inside_selected_span": [],
+  "actual_grouping_established": true,
+  "definition": "Surviving named hot input ranges occupy one shipping ELF executable LOAD with no other parsed executable input range inside their address span. Gaps are reported explicitly; no fixed emitted count or runtime gain is assumed.",
+  "source_or_linker_or_parser_or_profile_modified": false,
+  "build_or_link_rerun": false,
+  "performance_measured": false,
+  "identity_scope": "Each method has a unique section label. Generic monomorphizations or clones may share it; do not claim one function per input section or independent GC per monomorphization.",
+  "retained_initial_local_observer_failure_sha256": "9028f0d58935bd1f1cbe9d91815121276d219c35716e0b6fda37bf893b66f4b8",
+  "next_boundary": "Original independent actual qualification and standalone signals remain before any selected screen."
+}
