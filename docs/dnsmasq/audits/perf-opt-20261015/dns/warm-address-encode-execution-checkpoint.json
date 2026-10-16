@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_RELATED_VERIFIER_PASS_CANONICAL_SDK_RUNNING_RAW_DOWNLOAD_PENDING",
+  "status": "ACTUAL_RELATED_AND_CANONICAL_SDK_POSTFLIGHT_PASS_RAW_DOWNLOAD_AND_INDEPENDENT_REVIEW_PENDING",
   "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
   "execution_plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
   "G_stage_explicit_quiet_release_sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
@@ -68,5 +68,23 @@
   "performance_accepted": false,
   "timing_started": false,
   "bulk_hold": "All raw and artifact bulk stays remote until DHCP releases G-stage fresh125/device50 archival and restoration window. Non-timing gates/SDK and small controls only.",
-  "scope": "Exact6dad original five fresh groups, then unchanged canonical opt3 SDK. No native240, no C expectation or source edits; owner32 remains a later separately bound measurement."
+  "scope": "Exact6dad original five fresh groups, then unchanged canonical opt3 SDK. No native240, no C expectation or source edits; owner32 remains a later separately bound measurement.",
+  "SDK_postflight_summary": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-execution-20261016/sdk-postflight.json",
+    "sha256": "d1301266d9b8fde5fffa2e0b5006ff46d7aaf9493e7e2eec65b1b0d4bd357921",
+    "status": "PASS_ACTUAL_WARM6DAD_CANONICAL_SDK_STATIC_BUDGET_SOURCE_AND_QUIET",
+    "ELF": {
+      "bytes": 2145051,
+      "sha256": "ba8268ed05529bbeeafbaa4e43371316204862e178eb853d64f7acf836a9026d"
+    },
+    "APK": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1167812,
+      "sha256": "2705a59e99992d18d0b6bfc215dc7d1c80d102a1e0d84b7f155780ae8e2f1a55"
+    }
+  },
+  "SDK_command_returncode_observed": 0,
+  "SDK_remote_postflight_passed": true,
+  "SDK_passed_definition": "Full SDK acceptance requires downloaded raw artifact rehash and independent actual audit; remote postflight already passed.",
+  "postflight_tool_peer": "Loop locally verified exact name/status/plan-only adaptation from prior canonical verifier; collectors also preserve both actual underscore wrapper filenames."
 }
