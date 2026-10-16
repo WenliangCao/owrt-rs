@@ -1,0 +1,85 @@
+{
+  "status": "ACTUAL965_SDK_BOUND_LOCALLY_STILL_DISABLED",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "author_report_commit": "eb40e0f2",
+  "author_report_sha256": "4a0ebf1d5039a5076bca337c5add34569e8e87d6bfa7690af1f7d943a1168aaa",
+  "actual_related": "5c00ebbf355f0a4f5caa7f2c01bd938e2e396548f8cf307f342a742155fdbf33",
+  "actual_SDK": {
+    "build_receipt_sha256": "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2145051,
+        "sha256": "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087"
+      }
+    ],
+    "APK": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1168103,
+      "sha256": "cdb5335ec50d4869906e701baf39b7a077e9301286ea5b6f1f8d2548f42090cd"
+    },
+    "link_map": {
+      "path": "link.map",
+      "sha256": "346acb9555f6956c7f271e627bd635fe8c32983923a82dffc88052be853f89c0"
+    },
+    "prestrip": {
+      "sha256": "dbf100271a575967a2a20deffc17667faf4ac13fb1e37bf35b1258376366eb56",
+      "bytes": 2146784
+    },
+    "opt_level": "3",
+    "features": "",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "source_unchanged": true,
+    "sdk_recipe_restored": true,
+    "elf_layout": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "postflight_sha256": "31962a1087552a38b3ff393c21adf0e36613cb19d818815b10a9494c0949d8fc",
+    "controller_and_builder_exited": true,
+    "download": {
+      "status": "CACHED9E_SDK_AND_PAYLOAD_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016/private/perf-opt-20261015/cached-hit-9e-preparation/execution/sdk-immutable-results.tar.gz",
+      "archive_sha256": "b583f5bc04cc7c51a4e806d64297cea82618422a3708a46604fcb8d8035b5e8d",
+      "archive_bytes": 5046426,
+      "regular_files_including_manifest": 39,
+      "manifest_entries": 38,
+      "manifest_sha256": "6c6d49b349ed2e02c850df5103f51fe46c542b2f80c18abd6ca89935af085543",
+      "raw_bytes": 10953378,
+      "root": "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016/private/perf-opt-20261015/cached-hit-9e-preparation/execution/sdk-downloaded"
+    }
+  },
+  "static_peer_sha256": "60d35bfd6471d08e0c3ad9c002df5102b5e85c067e6dc70c60e86cdf0d86840a",
+  "screen_peer_commit": "44a38987",
+  "screen_peer_sha256": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+  "local_pending_plans": {
+    "native": {
+      "path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-actual-metadata-disabled.json",
+      "sha256": "035ccf1cd0a492fee821647e719f8313dd28ca7ac3a41491a4e081b081ac19c8"
+    },
+    "owner32": {
+      "path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/owner32-actual-metadata-disabled.json",
+      "sha256": "ace74feea7d1f6a61afaef1336a3656c23366cfcd6887671671f1a5a4ea4f84a"
+    }
+  },
+  "actual_gate_SDK_independent_reviews": null,
+  "actual_signals": null,
+  "explicit_quiet": null,
+  "execution_enabled": false,
+  "remote_plans_changed": false,
+  "native_or_owner_started": false,
+  "scope": "Actual identities and completed author downloads only. Final actual audits/signals/slot release and all device bulk must bind before originalnative controller starts; it builds then begins timing without a new pause. No source/probe/workload changes."
+}
