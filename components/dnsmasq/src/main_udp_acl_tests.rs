@@ -34,12 +34,12 @@ fn assert_reply(peer: &std::net::UdpSocket) {
 #[test]
 fn udp_live_ingress_accepts_a_real_received_index_absent_from_the_old_snapshot() {
     let mut owner = owner(b"lo");
-    let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+    let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
     assert!(owner.interfaces.borrow().is_empty(), "the accepted ingress is absent from the old generation");
     peer.send_to(&query(), udp.local_addr().unwrap()).unwrap();
-    owner.add_listener(SocketToken(71), Some(Arc::clone(&udp)), None);
+    owner.add_listener(SocketToken(71), Some(Rc::clone(&udp)), None);
     owner.wait_for_files().unwrap();
     assert!(owner.step_udp(0));
     assert_reply(&peer);
@@ -64,7 +64,7 @@ fn udp_live_ingress_accepts_a_real_received_index_absent_from_the_old_snapshot()
 fn udp_restricted_interface_implicitly_accepts_unlisted_loopback_through_step_udp() {
     for interface in [b"lan".as_slice(), b"".as_slice()] {
         let mut owner = owner(interface);
-        let udp = Arc::new(DnsSocket::bind("0.0.0.0:0".parse().unwrap()).unwrap());
+        let udp = Rc::new(DnsSocket::bind("0.0.0.0:0".parse().unwrap()).unwrap());
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
         let destination = SocketAddr::new("127.0.0.2".parse().unwrap(), udp.local_addr().unwrap().port());
@@ -140,7 +140,7 @@ fn udp_alias_admission_collects_without_publication_rules_and_resumes_the_origin
         .args(["addr", "add", "127.0.0.42/8", "dev", "lo", "label", "lo:acl42"])
         .status().unwrap().success());
     let _alias = Alias;
-    let udp = Arc::new(DnsSocket::bind("0.0.0.0:0".parse().unwrap()).unwrap());
+    let udp = Rc::new(DnsSocket::bind("0.0.0.0:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
     let destination = SocketAddr::new("127.0.0.42".parse().unwrap(), udp.local_addr().unwrap().port());
