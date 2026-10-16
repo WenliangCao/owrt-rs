@@ -1,0 +1,108 @@
+{
+  "schema": "dnsmasq-post185-small-combination-source-review-v1",
+  "status": "NO_COMBINATION_SOURCE_BLOCKER_RELATED_LINUX_NOT_RUN",
+  "source_commit": "a15d3ca27a44527f2e5d443d4069cf8af2e316c0",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_worktree_clean": true,
+  "original_patch_identity_checks": [
+    {
+      "original": "5e67562f",
+      "applied": "79ce6f32",
+      "stable_patch_id": "4b31b7759fb0a299f0ee6fccea1f2f965b9de702"
+    },
+    {
+      "original": "7c2708f6",
+      "applied": "a0ed8758",
+      "stable_patch_id": "6ffd442fdce5d2290acd129a4b379d4263e07f74"
+    },
+    {
+      "original": "722d2762",
+      "applied": "35b93086",
+      "stable_patch_id": "fe3d018e191299eb726abe9266eaeff800998aae"
+    },
+    {
+      "original": "0958f89c",
+      "applied": "882a6010",
+      "stable_patch_id": "3e86715229544df806c08873cb7f9b257870043d"
+    },
+    {
+      "original": "99b519dc",
+      "applied": "a15d3ca2",
+      "stable_patch_id": "cc2e1550cb5998f9f03088167197bad80e86df18"
+    }
+  ],
+  "changed_files_sha256": {
+    "components/dnsmasq/src/dns/cache.rs": "a562632c3d5e9f68ae2c832d021f5464d96e3695404a56cdcaea1c9b99c921a3",
+    "components/dnsmasq/src/dns/cache_tests.rs": "3aa1622ed597c5d6cd46b7dcc2fa5fb3f5c3d530e0234185aceaefa042e1d2c9",
+    "components/dnsmasq/src/dns/lease_names.rs": "65c55788b6c6e2e78b59470c8d6a36d80fcd1f2bdd0141dda7fd0d11686d9291",
+    "components/dnsmasq/src/dns/local.rs": "c9f8e89af02d1d66eb43bda6d3b9d077d201b6b13b724aa087312a0a957b1a3f",
+    "components/dnsmasq/src/hosts.rs": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1",
+    "components/dnsmasq/src/main.rs": "cd81924fa303e1e641ba46258a265fd3ee08b50cea159b834bd4c6c8ec3f4e89",
+    "docs/dnsmasq/audits/perf-opt-20261015/correctness/hosts-collision-pair-fixture-repair.json": "8798df61c633afaf64f85e7e70af2a28117cf391fab4f9ad65fbc46f665f44d6"
+  },
+  "exact_component_reconstruction": {
+    "lease_names_and_local_equal5e67562f": true,
+    "cache_and_cache_tests_equal0958f89c": true,
+    "hosts_equal7c2708f6": true,
+    "removing_clock_edit_from_combined_main_equals99b519dc": true,
+    "removing_listener_borrow_edit_from_combined_main_equals722d2762": true
+  },
+  "interaction_review": [
+    "Lease-bound skips only globally impossible lease removals; fresh-address validity still checks the same cache expiry/stale predicate. Their expiry stores and policies stay distinct; neither changes the captured now argument or owner precedence.",
+    "Lease-bound returnNone uses the existing stack-name converter or original owned conversion. Fresh validity does not consume/extend this buffer and retains all query-scoped hint guards.",
+    "Owner-clock changes only no-deadline poll timestamps with disabled diagnostics. Active deadlines, wall-clock cache expiry/TTL reads and enabled diagnostics keep original paths. No wall time is shared across owner turns.",
+    "Listener borrow delays only a temporary Arc; the listener owns the socket duringreceive and the ownedArc remains beforeadmission/deferred work. Cache/lease operations cannot remove a listener in the intervening sequence.",
+    "Original16packet fairness, readiness/return semantics, resend invalidation, deferred interface/MAC ownership, reply recycling and logging remain. No meter or synthetic result is added.",
+    "Hosts fixture remains test-only with productprefix unchanged; independent negative controls and originalfailure evidence are retained."
+  ],
+  "prior_independent_reviews": {
+    "lease-expiry-bound-source-review.json": "5d748bf846de96a1ad1e8f0b132dfe577a6cd3c0498007919dfdc3af9ec5d5d2",
+    "owner-clock-source-review.json": "f2d9a3a49ce211b1bc47acabd47b560dbea783948c7836f6f0c803a3114cb7f2",
+    "fresh-validity-source-review.json": "cac2617415039c78b045c86a4c020cba92b0971438c1ceeb7446f6079d73b4a4",
+    "udp-listener-borrow-source-review.json": "e0709be6404b33a2b7267a992e6bbe38f3cb6ae5d1ad51e5792af7bf73a26774",
+    "hosts-collision-pair-fixture-repair.json": "8798df61c633afaf64f85e7e70af2a28117cf391fab4f9ad65fbc46f665f44d6"
+  },
+  "author_local_validation": {
+    "source": "a15d3ca27a44527f2e5d443d4069cf8af2e316c0",
+    "rows": {
+      "lib": {
+        "result_lines": [
+          "test result: ok. 724 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.91s",
+          "    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.61s"
+        ],
+        "stdout_sha256": "5c51cfef95232efcb5fb201f3acc621bc5fc0881cc32ba28565538f27cc8d431",
+        "stderr_sha256": "670e9a66403ee90854ae3aba7c69be129edc652b0942b4cb72efa18ab1402c2f"
+      },
+      "bin": {
+        "result_lines": [
+          "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s",
+          "    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.34s"
+        ],
+        "stdout_sha256": "afd2c68e00c4c10f46649c867498e0b728f704239c4bdb6738f61b6783561ca1",
+        "stderr_sha256": "36518abb8523b0a8365aa22c27aa62d075b86cfe00d0b072144809c78e0ad934"
+      },
+      "musl": {
+        "result_lines": [
+          "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.68s"
+        ],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "cb5934a2e22ddab69eff5d4b0404ce62287196b5d40f5287d4b8d8b3223175c4"
+      },
+      "diagnostics": {
+        "result_lines": [
+          "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.96s"
+        ],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "c3156a4579bf0d9b42800d2a52c6cba0765a3d2fd77e46724df0d6dd781d585f"
+      }
+    }
+  },
+  "reviewer_validation": "All8author logs rehashed; all5stable patch IDs matched; component bytes and overlapping main edits reconstructed. No reviewer build/test/remote execution; author724lib/23bin and both muslchecks are not full qualification.",
+  "related_preparation": "post185-small-related-linux-preparation.json",
+  "profile_dependency": "Keep unscreened until current110/rawaudits and freshC/185profile finish; decide from profile and await explicitOracle release.",
+  "full44_prepared": false,
+  "full_qualification_passed": false,
+  "runtime_performance_claim": false,
+  "frozen185_modified": false,
+  "Oracle_or_router_accessed": false
+}
