@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "status": "NO_SOURCE_REVIEW_BLOCKER_LOCAL_CHECKS_ONLY",
+  "source_commit": "a8dcdacc9567b6f6fa4c2edc11445842db049587",
+  "base_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "source_sha256": "151fe84fb596746c461680b88e53aded2c42d076ecbd235586f67ea6cfabee32",
+  "changed_files": [
+    "components/dnsmasq/src/dns/local.rs"
+  ],
+  "scope": "Read-only review of independent local record assembly frame extraction. No build/test execution, Oracle access or product edits by reviewer; not part of0161acceptance.",
+  "preserved_interface_and_order": [
+    "Entry retains header/opcode/question/answer/authority validation, interfaceNXprefix boundary, lease expiry, configuredCNAME discovery, cachedCNAME inspection and fresh-address eligibility in original order.",
+    "ConfiguredCNAME skips cache inspection and fresh shortcut exactly as original elsechain. CachedCNAME still returns before subsequent branch. Non-IN skips class-specific work and reaches same general local-only boundary.",
+    "NameLookup still borrows the original Question and remains in caller; extracted helper does not retain/change it. The helper receives the same cache reference, originalquery/header, network/interfaces and already-converted dottedname.",
+    "Exactly one expire_lease_lookups occurs before helper; existing lookup/expiry behavior within unchanged Additional address traversal remains untouched."
+  ],
+  "assembly_equality": {
+    "complete_tail_byte_identical": true,
+    "complete_tail_sha256": "e9d8677fb05156c172820ed4e3ef2a4471df34829b80dfc6607d6fd5f90b9813",
+    "configured_CNAME_block_byte_identical": true,
+    "configured_CNAME_block_sha256": "1528d0774e6653f793d0de586515c1acec7bb232407e0922f2c45e849b10ac10"
+  },
+  "logging_and_lease_ownership": [
+    "QueryEvents::new only stores enabled and Vec::new, with no allocation or visible side effect. Moving construction past earlyreturns loses no emitted event. All events created during actual record assembly are unchanged.",
+    "The helper takes the original &mutArc<LeaseNames>. It recreates only an immutable LeaseView for the unchanged assembly; append_mail_addresses later receives the same mutableArc owner. There is noArcclone, snapshot, or replacementLeaseNames.",
+    "The initial attempt passed only immutable &LeaseNames and failed compilation at append_mail_addresses; original failed logs remain. Finalcode restores existing mutable-owner contract rather than narrowing its behavior."
+  ],
+  "retained_author_checks": {
+    "ordinary_lib": "720passed/8ignored",
+    "musl_all_targets_check": "Finisheddevsuccessfully; warnings retained.",
+    "sha256": {
+      "cached-local-frame-test.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cached-local-frame-musl.stderr": "338c2f2dd81cf5d0c9cd55ae57f58b2b40901e5db7b4d340a6e52360a348f536",
+      "cached-local-frame-test2.stdout": "fcbbcb9409dd4c616675b9174efa0debf066cd80b971bd34e49322118892b66b",
+      "cached-local-frame-musl2.stderr": "cc30cc603d277839792414283aae84f00cc53315a18b7fd84041e81bef227396"
+    },
+    "reviewer_reran_tests": false
+  },
+  "cross_ELF_receipt": {
+    "path": "private/cached-local-frame/cross-daemon-final/result.json",
+    "sha256": "6415b434479b31bc5a68cea48d1472a51ea825ed34c3c9d3603fa958d4de0192",
+    "scope": "Retained locally cross-linked Linux-target ELF evidence is not SDK or runtime/performance evidence; no frame-size or performance claim derived by this review."
+  },
+  "new_tests_or_framework": false,
+  "remaining_source_review_blockers": [],
+  "related_Linux_gates_run": false,
+  "full44_qualified": false,
+  "included_in_0161_qualification": false,
+  "performance_accepted": false,
+  "deployment": false
+}
