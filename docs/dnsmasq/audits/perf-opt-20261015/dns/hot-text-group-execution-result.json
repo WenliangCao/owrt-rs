@@ -158,7 +158,15 @@
       "manifest_sha256": "76681d023d91f97f317098d8a20acd83a8e89c3fada9782a9f0d27f0469a2f82",
       "raw_bytes": 10956490,
       "root": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/sdk-downloaded",
-      "actual_wrapper_plan_hashes_matched": false
+      "actual_wrapper_plan_hashes_matched": null,
+      "actual_wrapper_plan_hashes_scope": "Not applicable to SDK; this field belongs to the related-group wrapper checks.",
+      "sdk_controller_plan_hashes_matched": true,
+      "original_raw_receipt_sha256": "56063d28b3aa04f6b97e2668e205d6135915967f2a2121e1ce7b63d659de8957",
+      "original_raw_wrapper_field": false,
+      "field_clarification": {
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-sdk-download-field-clarification.json",
+        "sha256": "8b825235f17bfc81c539e52516c7006aefb80a7dca92e677e90f76a98326d3d5"
+      }
     }
   },
   "actual_GNU_layout": {
