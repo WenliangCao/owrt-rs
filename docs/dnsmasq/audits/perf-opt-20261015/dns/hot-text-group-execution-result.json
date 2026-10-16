@@ -1,0 +1,232 @@
+{
+  "status": "ACTUAL965_CANONICAL_SDK_GNU_LAYOUT_GROUPING_PASS_QUIET_RELEASED_FOR_ORIGINAL_INDEPENDENT_AUDITS_AND_SIGNALS",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "prepared_manifest_sha256": "e901026b6e17dad29ec445548cd5c6f2786f7637f7650ddc1fe5cd50f559ca96",
+  "source_manifest_sha256": "5ddf3803be7f1dd7709b5b17bda3602d8a35266e4183b12a2e64cb3d5e8e6bdc",
+  "git_identity_sha256": "ca7ba1782c6267f373fe906db8533610019ddcf2d0af3338bda86f1492f7b304",
+  "execution_plan_sha256": "477e2c982126a512cf17630766fa715e25bfdc52302822e2fca663aeb7f07389",
+  "source_only_review": {
+    "commit": "1df84d569a7f44ead3dca759d5c94bbdea6bd8b5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/hot-text-layout-source-review.json",
+    "sha256": "822de7802e101a1dd67b05cc6c0033099d09f90a35ea561dab343b06b58ca763"
+  },
+  "exclusive_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/hot-text-group-inputs-20261016/root-slot-handoff.json",
+    "sha256": "cc26ea0ee6d008a407920f5a3a9bd693e21da77475bd0e8107efa05a23b5e96f",
+    "epoch": 1792157761.5224078
+  },
+  "pretransfer_receipt": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/hot-text-group-inputs-20261016/pretransfer.json",
+    "sha256": "ffc9ff7b8b7fe899e965c554c73b550a10c9b6de60ddd4c2fde4dce5f9fe48e0"
+  },
+  "related": {
+    "receipt_sha256": "957e81458eb7e57f02bc5bb9605098fe41eb0ee4691b260db3bc0f144e8f78d5",
+    "total_passed": 965,
+    "groups": [
+      {
+        "gate": "lib",
+        "passed": 844,
+        "failed": 0,
+        "ignored": 22,
+        "listed_tests": 866,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "1f99a0a82e0f87f90e0fa07127a82c54a2ead309c09a244449d7a5500f2175e4",
+        "listing_sha256": "4ba313414cd4a6d25aba9ce3c766a427d508d1378d2d2bd0f7a694587343f871",
+        "binary_sha256": "fe2ea647b37613f2071972afd07c43373f741bd44f8773f17157d328d577c563"
+      },
+      {
+        "gate": "bin",
+        "passed": 82,
+        "failed": 0,
+        "ignored": 4,
+        "listed_tests": 86,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "933b97a3fb5dcf27fccd71ab8f8ca565196341d90c261a928193afc81c58c978",
+        "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61",
+        "binary_sha256": "474f7877a6a3b10f4f52a78a2795dd9b6d8aac624b92e122ca017eeb102ae247"
+      },
+      {
+        "gate": "allocations",
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 17,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "60f1ad783a289ce996272a5af122cbb776ec5a687eeee387e07981c2e4030645",
+        "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11",
+        "binary_sha256": "1bb04d0473b790b232a76ae50090b18690b088744cc2c5cb70952095dfa1576b"
+      },
+      {
+        "gate": "lib-ignored-live",
+        "passed": 18,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 18,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "3dde2e1575b018395272b465998eab687fd947671f983d94a7bdf51bf75d2f4f",
+        "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726",
+        "binary_sha256": "fe2ea647b37613f2071972afd07c43373f741bd44f8773f17157d328d577c563"
+      },
+      {
+        "gate": "bin-ignored-live",
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 4,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+        "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c",
+        "binary_sha256": "474f7877a6a3b10f4f52a78a2795dd9b6d8aac624b92e122ca017eeb102ae247"
+      }
+    ],
+    "added_tests_exactly": [
+      "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+      "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent",
+      "dns::edns_policy::tests::ecs_absence_uses_declared_additional_count_and_accepts_bad_questions",
+      "dns::lease_names::tests::direct_slice_lookup_keeps_order_and_expiry_across_retained_views"
+    ],
+    "all_original6ab_passed_test_names_retained": true,
+    "source_files_rehashed": 179,
+    "download": {
+      "status": "C95_RELATED_RAW_THREE_TEST_ELFS_ACTUAL_WRAPPERS_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/related-immutable-results.tar.gz",
+      "archive_sha256": "f71c8cb30be39bb73efe71d0a3b8d0445d4a5b6240ecba97b43264983db78f7e",
+      "archive_bytes": 37581919,
+      "regular_files_including_manifest": 47,
+      "manifest_entries": 46,
+      "manifest_sha256": "ec093c9f1f00536fcfa6032f1edce4b09ae587edaec07cf42a8a93454cb65d04",
+      "raw_bytes": 158740935,
+      "root": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/related-downloaded",
+      "actual_wrapper_plan_hashes_matched": true
+    }
+  },
+  "SDK": {
+    "build_receipt_sha256": "54f0bb07563ec23a808f2af6862c72169c04fd7da8bb2feeb7c88449fca520dd",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2145051,
+        "sha256": "dc2dddfe0a627946506e7fd6d5dcf86c0803da1f40987a96d5130f6b2ba51b70"
+      }
+    ],
+    "artifact": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1168633,
+      "sha256": "a3b866bdef32eca6a2a06a8bb95dc0b238c17d359367f50cae6a686c1d324b2b"
+    },
+    "link_map": {
+      "path": "link.map",
+      "sha256": "b0995e7a1d2716670ea4a8a80305bb2e0ebb6499de0bec14893e6dcadca54474"
+    },
+    "prestrip": {
+      "sha256": "a799e39f8a778b903b7f1ca10451b05312aeae783458d3cef10c4cc2d37c27a1",
+      "bytes": 2146784
+    },
+    "opt_level": "3",
+    "features": "",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "source_unchanged": true,
+    "sdk_recipe_restored": true,
+    "elf_layout": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "postflight_sha256": "2836386ad2285c5a19ddaadf0ece0efffd624271f66bf1b75a3528ed930c6c68",
+    "postflight_original_parent_sha256": "3951e4523125f1b3f818536d1d058647541d4b1a72ac186afe998ea19da3da95",
+    "postflight_identity_adapter_sha256": "5e2f50bf10aa5ffb3681836a9a26caab3434a6d585a42560ca344f5d9213164f",
+    "controller_and_builder_exited": true,
+    "download": {
+      "status": "C95_SDK_AND_PAYLOAD_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/sdk-immutable-results.tar.gz",
+      "archive_sha256": "3f773835cd3d8965648ca5150d5413dbba79ffaa13b2b3abbd4ea93db6af0669",
+      "archive_bytes": 5048301,
+      "regular_files_including_manifest": 39,
+      "manifest_entries": 38,
+      "manifest_sha256": "76681d023d91f97f317098d8a20acd83a8e89c3fada9782a9f0d27f0469a2f82",
+      "raw_bytes": 10956490,
+      "root": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/sdk-downloaded",
+      "actual_wrapper_plan_hashes_matched": false
+    }
+  },
+  "actual_GNU_layout": {
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-sdk-layout-observation.json",
+    "sha256": "da5a8f21ed05b0e459e398fe86c155e48a21db73a8f69b32de54fa35c80d1678",
+    "actual_grouping_established": true,
+    "actual_surviving_range_count": 19,
+    "actual_surviving_label_count": 19,
+    "span_bytes": 40708,
+    "selected_input_bytes": 40708,
+    "gaps_between_selected_ranges": [],
+    "other_input_ranges_inside_selected_span": [],
+    "identity_scope": "Each method has a unique section label. Generic monomorphizations or clones may share it; do not claim one function per input section or independent GC per monomorphization.",
+    "performance_benefit_proven": false
+  },
+  "signals_handoff": {
+    "local": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/release-to-correctness-signals.json",
+    "remote": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/hot-text-group-execution-20261016/release-to-correctness-signals.json",
+    "sha256": "8013a624e03efc9a057d0d8ede850b1d19ea53a49a6963b8ef8a02cc82b07b78",
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "all_required_author_raw_downloads_complete": true,
+    "DNS_stopped_Oracle_and_bulk": true,
+    "original_case_counts_expected_only": [
+      12,
+      3,
+      3
+    ],
+    "actual_signals": null
+  },
+  "preparation_peers": {
+    "screen": {
+      "commit": "02050924",
+      "sha256": "e7139a3c475209bb07b2157f05f459f4c487bcfe25e4f3d4afbf6910b98a92ee"
+    },
+    "device": {
+      "commit": "04606fab",
+      "sha256": "35b908ce28876713370caeb19080792a15ddcb7e90657e3a45d6b39a6699b72d"
+    }
+  },
+  "retained_local_observer_failure": {
+    "path": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/layout-observer-attempt1-failure.json",
+    "sha256": "9028f0d58935bd1f1cbe9d91815121276d219c35716e0b6fda37bf893b66f4b8",
+    "failed_script_sha256": "8a3e4bdfdb7d7524a236483b17348a871aa5e5e03d66406912664fcb15a06192",
+    "corrected_observer_sha256": "cdc5650531b170ca1f2cd2d45e139d013670aad473acb9c631849cc5dcc33e6a",
+    "reason": "Initial observer used a section-table reader on the intentionally sectionless shipping ELF. Existing original owner32 LoadElf adapter handles PT_LOAD bounds. Same artifact/map reread; parser and adapter unchanged, no rebuild or remeasurement.",
+    "failed_attempt_grouping_evaluated": false
+  },
+  "product_execution_failures": [],
+  "actual_independent_gate_SDK_layout_audits_pending": true,
+  "runtime_hardening_verified": false,
+  "candidate_promoted": false,
+  "full110_authorized": false,
+  "native240_device10_owner32_started": false,
+  "retained_adverse_context": [
+    "6ab native synth-address/configured-CNAME regressions and inconclusive device/owner screen remain.",
+    "1df native miss regression and inconclusive physical screen remain.",
+    "5c high-load send-lag p95 regression and inconclusive physical screen remain.",
+    "Warm6dad owner32 high-load small gain and send-lag adverse remain;9e combines inherited changes andcannotclaimisolatedwarmbenefit.",
+    "G-stage50 excluded cumulative interventions arediagnostic, notacceptedadditivefunctioncost orperformance.",
+    "48 archive009b anditsindependent16164a47 peer remain immutable history; not9e evidence.",
+    "9e device G118\u2192114us remainedindistinguishable; notacceptedgain. Original9e native/owner outcome andaudits remainseparate.",
+    "Singlecommonhotsection ffc3 and all other independent cbb/chunks/cache-scan experiments remain archived; they are notmixed into exactc95.",
+    "CachedOPT guard c2a52bf4 passedlocal730 tests butaddsbytewisebcmp andboundschecks withno demonstratednet benefit; remainsunselected."
+  ],
+  "scope": "Fresh original965 and unchanged canonicalSDK, original raw collectors and same-link GNU input-range observation. Source22 labels yielded19 surviving ranges; generic monomorphizations/clones may share labels. No runtime benefit inferred. Original independent audits and signals12+3+3 precede original screens; no extra preparation approval. No old9e PASS inherited, no historical subtraction or pooled controls."
+}
