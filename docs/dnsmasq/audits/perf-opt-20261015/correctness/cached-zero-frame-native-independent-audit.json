@@ -1,0 +1,881 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_ALL240_WINDOWS_578_RAW_FILES_AND90_PMU_REPARSED",
+  "scope": "Independent local-only direct acceptedE/185 native hot15 audit. All578original stdout/stderr/CSV files and240window metadata verified; CPU/W/pairs/PMU/IPC recomputed without remote access or new measurement.",
+  "candidate_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+  "input_sha256": {
+    "raw_result": "f85d804f8ddf24f10f70315b2bb16f2b5c9db3a1cea2667be41531170023dc92",
+    "original_owner_raw_hash_audit": "2de5da32d82b8ebbcbe4d33a5d57e1dfd0284b14b81c43b873f889c21c516e53",
+    "summary": "6cf63fd62743388e4d308412fb5e10a27873970f006f34719e52a56cd2eae484",
+    "published_result": "6cf63fd62743388e4d308412fb5e10a27873970f006f34719e52a56cd2eae484",
+    "plan": "beb36e4de69550564afb00d5c7f7456f767edad7e0022818330ed398f061e3bc",
+    "runner": "119d49a162d47c9dc7b8f7b88de6f4a0119b6a0126cca4ce19fb81ca138d94be",
+    "probe": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd"
+  },
+  "verification": {
+    "original_order_windows": 240,
+    "plain_windows": 150,
+    "grouped_PMU_windows": 90,
+    "commands_including_four_premeasurement_builds": 244,
+    "recorded_returncodes_all_zero": true,
+    "all_expected_N_checksum_fields_match": true,
+    "all_plain_CPU_fields_equal_recorded_user_plus_system_rusage": true,
+    "all_PMU_recorded_fields_unscaled_and_same_group_window": true,
+    "all15_cpu_stats_PMUmedians_and_IPC_recomputed": true,
+    "all_published_fields_match_recomputed_results": true,
+    "source_files_checked_against_git_each": 162,
+    "original_raw_log_files_rehashed_locally": 488,
+    "original_raw_csv_files_reparsed_locally": 90,
+    "owner_prior_raw_hash_audit_count": 578
+  },
+  "native_artifacts_from_retained_receipt": {
+    "E": {
+      "elf_sha256": "e3cc2656dbd8638a2a043e66a04ad34b1d2b4df11d8de0ae8b8eb0b975e19130",
+      "rlib_sha256": "9e617148e0b13d66f9ec47264e4d0ff6de355699e9a4bef07b60de83da916402"
+    },
+    "cached-zero-frame": {
+      "elf_sha256": "3e5f770af9115c2fdd48a408dd00ca8684bf0e6ada5bc59de3a694414a14ccfa",
+      "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+    }
+  },
+  "counts": {
+    "faster": 6,
+    "slower": 7,
+    "within_variation_or_resolution": 2
+  },
+  "summaries": [
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 580.24,
+          "min": 579.785,
+          "max": 582.0635,
+          "rounds": [
+            579.83,
+            582.0635,
+            579.785,
+            580.24,
+            581.4465
+          ]
+        },
+        "right": {
+          "median": 428.133,
+          "min": 427.4465,
+          "max": 428.4095,
+          "rounds": [
+            427.4465,
+            428.133,
+            428.025,
+            428.4095,
+            428.341
+          ]
+        },
+        "relative_change_pct": -26.214497449331315,
+        "W_pct": 0.3926823383427562,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 4653.89749,
+          "cycles:u": 1744.630625,
+          "ipc": 2.667564152727171
+        },
+        "cached-zero-frame": {
+          "instructions:u": 3348.803335,
+          "cycles:u": 1281.38003,
+          "ipc": 2.6134349346774197
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -28.043036139156563,
+        "cycles:u": -26.552932658739724,
+        "ipc": -2.029162747385571
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 599.5265,
+          "min": 598.601,
+          "max": 602.7395,
+          "rounds": [
+            598.601,
+            601.1445,
+            598.728,
+            602.7395,
+            599.5265
+          ]
+        },
+        "right": {
+          "median": 443.181,
+          "min": 441.2075,
+          "max": 443.653,
+          "rounds": [
+            443.208,
+            441.2075,
+            443.181,
+            443.653,
+            442.311
+          ]
+        },
+        "relative_change_pct": -26.078163350577505,
+        "W_pct": 0.6902947576128864,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 4768.45093,
+          "cycles:u": 1799.558865,
+          "ipc": 2.649785535078898
+        },
+        "cached-zero-frame": {
+          "instructions:u": 3484.421005,
+          "cycles:u": 1332.54788,
+          "ipc": 2.614723052202822
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -26.92761116449194,
+        "cycles:u": -25.9514147651958,
+        "ipc": -1.3232196497378723
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 676.7145,
+          "min": 674.4155,
+          "max": 678.0605,
+          "rounds": [
+            674.4155,
+            678.0605,
+            676.7145,
+            677.0265,
+            675.2445
+          ]
+        },
+        "right": {
+          "median": 552.7415,
+          "min": 551.7205,
+          "max": 553.002,
+          "rounds": [
+            552.7415,
+            552.6995,
+            552.783,
+            553.002,
+            551.7205
+          ]
+        },
+        "relative_change_pct": -18.319837981896363,
+        "W_pct": 0.538631875037419,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 5528.943675,
+          "cycles:u": 2035.043735,
+          "ipc": 2.716867249538497
+        },
+        "cached-zero-frame": {
+          "instructions:u": 4584.912525,
+          "cycles:u": 1664.44385,
+          "ipc": 2.754621325916161
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -17.074349197453177,
+        "cycles:u": -18.210905182339964,
+        "ipc": 1.3896180015448678
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 642.699,
+          "min": 641.381,
+          "max": 647.323,
+          "rounds": [
+            642.4015,
+            647.323,
+            644.646,
+            642.699,
+            641.381
+          ]
+        },
+        "right": {
+          "median": 427.2005,
+          "min": 425.6985,
+          "max": 428.3085,
+          "rounds": [
+            425.6985,
+            428.3085,
+            427.369,
+            427.0045,
+            427.2005
+          ]
+        },
+        "relative_change_pct": -33.530237327271394,
+        "W_pct": 0.9245385475938204,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 5214.212135,
+          "cycles:u": 1928.420065,
+          "ipc": 2.7038777648271357
+        },
+        "cached-zero-frame": {
+          "instructions:u": 3348.885485,
+          "cycles:u": 1285.123605,
+          "ipc": 2.6058859023136534
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -35.773892617048276,
+        "cycles:u": -33.35873089455745,
+        "ipc": -3.624123242115096
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 377.918,
+          "min": 377.408,
+          "max": 379.106,
+          "rounds": [
+            379.106,
+            377.918,
+            377.856,
+            378.0615,
+            377.408
+          ]
+        },
+        "right": {
+          "median": 387.0685,
+          "min": 386.8095,
+          "max": 388.499,
+          "rounds": [
+            388.499,
+            387.518,
+            386.8095,
+            386.925,
+            387.0685
+          ]
+        },
+        "relative_change_pct": 2.421292449684843,
+        "W_pct": 0.4493038172301873,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 3011.867885,
+          "cycles:u": 1131.74488,
+          "ipc": 2.6612634509996633
+        },
+        "cached-zero-frame": {
+          "instructions:u": 2977.223735,
+          "cycles:u": 1160.69022,
+          "ipc": 2.565048760383283
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.1502546367501143,
+        "cycles:u": 2.557585239528537,
+        "ipc": -3.61537639500662
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 473.187,
+          "min": 471.0095,
+          "max": 475.524,
+          "rounds": [
+            472.685,
+            471.0095,
+            473.187,
+            475.524,
+            473.234
+          ]
+        },
+        "right": {
+          "median": 485.9045,
+          "min": 485.12,
+          "max": 490.323,
+          "rounds": [
+            490.323,
+            485.9045,
+            485.12,
+            486.171,
+            485.15
+          ]
+        },
+        "relative_change_pct": 2.6876266676810587,
+        "W_pct": 1.0707865434462893,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 3887.4788,
+          "cycles:u": 1419.283345,
+          "ipc": 2.7391574407575394
+        },
+        "cached-zero-frame": {
+          "instructions:u": 3862.658885,
+          "cycles:u": 1455.581505,
+          "ipc": 2.6539323402573736
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.6384578868957491,
+        "cycles:u": 2.5574991863235086,
+        "ipc": -3.1113618820171274
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 871.953,
+          "min": 869.5375,
+          "max": 876.137,
+          "rounds": [
+            871.953,
+            876.137,
+            869.5375,
+            871.798,
+            873.902
+          ]
+        },
+        "right": {
+          "median": 885.1695,
+          "min": 872.475,
+          "max": 905.6445,
+          "rounds": [
+            872.475,
+            889.019,
+            874.5475,
+            885.1695,
+            905.6445
+          ]
+        },
+        "relative_change_pct": 1.51573536647044,
+        "W_pct": 3.7472484083556847,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 6816.3123,
+          "cycles:u": 2611.893745,
+          "ipc": 2.6139118600420086
+        },
+        "cached-zero-frame": {
+          "instructions:u": 6943.738355,
+          "cycles:u": 2664.6592,
+          "ipc": 2.598611368707881
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 1.8694280630305204,
+        "cycles:u": 2.020199140987655,
+        "ipc": -0.5853484032120937
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1604.744,
+          "min": 1594.7645,
+          "max": 1683.8995,
+          "rounds": [
+            1597.0075,
+            1604.744,
+            1594.7645,
+            1679.1675,
+            1683.8995
+          ]
+        },
+        "right": {
+          "median": 1631.646,
+          "min": 1601.34,
+          "max": 1661.404,
+          "rounds": [
+            1601.34,
+            1608.0725,
+            1661.404,
+            1631.646,
+            1641.8345
+          ]
+        },
+        "relative_change_pct": 1.6764044607738084,
+        "W_pct": 5.5544685008948464,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 13018.706545,
+          "cycles:u": 4896.41097,
+          "ipc": 2.6632821956496606
+        },
+        "cached-zero-frame": {
+          "instructions:u": 13049.93502,
+          "cycles:u": 4933.201495,
+          "ipc": 2.6533622615396286
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.2398738683605739,
+        "cycles:u": 0.7513773910199362,
+        "ipc": -0.3724702596756613
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6673.545,
+          "min": 6670.325,
+          "max": 6694.19,
+          "rounds": [
+            6673.545,
+            6694.19,
+            6678.755,
+            6670.325,
+            6670.91
+          ]
+        },
+        "right": {
+          "median": 6705.635,
+          "min": 6690.835,
+          "max": 6711.09,
+          "rounds": [
+            6705.635,
+            6711.09,
+            6710.515,
+            6697.45,
+            6690.835
+          ]
+        },
+        "relative_change_pct": 0.4808538790103333,
+        "W_pct": 0.35760603996825946,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 58146.621795,
+          "cycles:u": 19843.03963,
+          "ipc": 2.927825188805997
+        },
+        "cached-zero-frame": {
+          "instructions:u": 58294.29175,
+          "cycles:u": 19930.015855,
+          "ipc": 2.9249495923193285
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.2539613660112794,
+        "cycles:u": 0.4383210769206336,
+        "ipc": -0.09821612634739463
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 820.249,
+          "min": 819.368,
+          "max": 823.046,
+          "rounds": [
+            819.368,
+            820.249,
+            819.4625,
+            823.046,
+            821.455
+          ]
+        },
+        "right": {
+          "median": 833.913,
+          "min": 830.202,
+          "max": 839.1865,
+          "rounds": [
+            830.617,
+            834.408,
+            839.1865,
+            830.202,
+            833.913
+          ]
+        },
+        "relative_change_pct": 1.6658356182086154,
+        "W_pct": 1.0773905671215132,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 6597.646265,
+          "cycles:u": 2455.47254,
+          "ipc": 2.6869153177335066
+        },
+        "cached-zero-frame": {
+          "instructions:u": 6590.615285,
+          "cycles:u": 2505.39534,
+          "ipc": 2.6305695252071475
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.10656800497624852,
+        "cycles:u": 2.0331239379284494,
+        "ipc": -2.0970438537634473
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 707.1225,
+          "min": 705.8955,
+          "max": 708.434,
+          "rounds": [
+            707.1225,
+            705.8955,
+            707.1075,
+            707.8485,
+            708.434
+          ]
+        },
+        "right": {
+          "median": 722.1385,
+          "min": 720.9845,
+          "max": 723.256,
+          "rounds": [
+            723.256,
+            720.9845,
+            721.675,
+            722.6535,
+            722.1385
+          ]
+        },
+        "relative_change_pct": 2.1235358795682613,
+        "W_pct": 0.35899013254421963,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 5818.46642,
+          "cycles:u": 2121.263465,
+          "ipc": 2.7429249199839494
+        },
+        "cached-zero-frame": {
+          "instructions:u": 5817.673145,
+          "cycles:u": 2168.35076,
+          "ipc": 2.683528602632537
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.013633747154973008,
+        "cycles:u": 2.219775891911646,
+        "ipc": -2.1654372279267475
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1500.3515,
+          "min": 1497.185,
+          "max": 1511.6225,
+          "rounds": [
+            1511.6225,
+            1502.6795,
+            1500.3515,
+            1500.3495,
+            1497.185
+          ]
+        },
+        "right": {
+          "median": 1517.166,
+          "min": 1516.442,
+          "max": 1519.264,
+          "rounds": [
+            1517.166,
+            1516.668,
+            1518.978,
+            1516.442,
+            1519.264
+          ]
+        },
+        "relative_change_pct": 1.120704048351333,
+        "W_pct": 0.9622745070071914,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 12726.15094,
+          "cycles:u": 4468.6741,
+          "ipc": 2.8478583703385305
+        },
+        "cached-zero-frame": {
+          "instructions:u": 12758.665335,
+          "cycles:u": 4526.82309,
+          "ipc": 2.8184590122782995
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": 0.25549276567042867,
+        "cycles:u": 1.3012582412308848,
+        "ipc": -1.0323321681455777
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1185.749,
+          "min": 1181.128,
+          "max": 1192.228,
+          "rounds": [
+            1181.128,
+            1192.003,
+            1192.228,
+            1185.304,
+            1185.749
+          ]
+        },
+        "right": {
+          "median": 1081.4845,
+          "min": 1075.174,
+          "max": 1087.921,
+          "rounds": [
+            1087.921,
+            1080.904,
+            1081.4845,
+            1075.174,
+            1084.8025
+          ]
+        },
+        "relative_change_pct": -8.7931341287237,
+        "W_pct": 1.1786576691575397,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 9424.342845,
+          "cycles:u": 3534.581645,
+          "ipc": 2.6663248416772674
+        },
+        "cached-zero-frame": {
+          "instructions:u": 8731.483755,
+          "cycles:u": 3225.50197,
+          "ipc": 2.707015477345996
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.351802681579967,
+        "cycles:u": -8.744448595132127,
+        "ipc": 1.526094459035665
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1412.31,
+          "min": 1409.96,
+          "max": 1420.5765,
+          "rounds": [
+            1409.96,
+            1412.31,
+            1417.0925,
+            1420.5765,
+            1412.0335
+          ]
+        },
+        "right": {
+          "median": 1344.574,
+          "min": 1338.849,
+          "max": 1347.4155,
+          "rounds": [
+            1338.849,
+            1347.4155,
+            1344.6525,
+            1344.574,
+            1342.058
+          ]
+        },
+        "relative_change_pct": -4.796114167569435,
+        "W_pct": 0.7517117346758049,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 11552.55529,
+          "cycles:u": 4219.149275,
+          "ipc": 2.7379743680673636
+        },
+        "cached-zero-frame": {
+          "instructions:u": 11226.3838,
+          "cycles:u": 4020.026165,
+          "ipc": 2.7926146097608795
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -2.823370949649018,
+        "cycles:u": -4.719508531728822,
+        "ipc": 1.995644748569525
+      }
+    },
+    {
+      "candidate": "cached-zero-frame",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 22617.32,
+          "min": 22573.09,
+          "max": 22637.285,
+          "rounds": [
+            22631.11,
+            22617.32,
+            22637.285,
+            22573.09,
+            22598.51
+          ]
+        },
+        "right": {
+          "median": 22959.53,
+          "min": 22940.725,
+          "max": 22976.78,
+          "rounds": [
+            22969.485,
+            22959.53,
+            22951.165,
+            22940.725,
+            22976.78
+          ]
+        },
+        "relative_change_pct": 1.513043985759582,
+        "W_pct": 0.2838311524088606,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "slower"
+      },
+      "pmu_medians": {
+        "E": {
+          "instructions:u": 220120.926935,
+          "cycles:u": 67297.56499,
+          "ipc": 3.2717240255678974
+        },
+        "cached-zero-frame": {
+          "instructions:u": 220096.66579,
+          "cycles:u": 68424.488775,
+          "ipc": 3.2173185705324987
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.01102173488809477,
+        "cycles:u": 1.6745387224150754,
+        "ipc": -1.6628986616912256
+      }
+    }
+  ],
+  "limitations": [
+    "NativeCPU is whole probe processRUSAGE_CHILDREN, including setup/priming/teardown and tasksetexec; this original native screen uses W/5pair direction without the daemon100Hztick acceptance gate. precision_ok=true in the original comparator is not a claim of physical>8tickprecision.",
+    "Allocation fields are zero because the native probe build disables allocation_tracking, not because the path allocatesnothing.",
+    "Sevenretaineddiscernibleregressions remain. Native15scenes do not replaceSDKowner32, physicalA53screen, full44 or original11scene matrices.",
+    "185/E result must not be pooled with prior54bd/F,0161/E or laterchild comparisons.",
+    "The native hot15 probe does not call the prepared UDP owner reply recycle path. It can screen this combined source and fallback behavior but does not measure the reply-buffer mechanism or socket/whole-owner effects.",
+    "All seven above-W regressions are retained; no trim, replacement, relaxed threshold or prior-result pooling. Physical185performance still had zero windows at the failed health preflight."
+  ],
+  "performance_accepted": false,
+  "deployment": false,
+  "audit_script_sha256": "1acd3ef44e30cace0cabe47259dabd71e935780bd21ddc62a6908ac19fff8842",
+  "raw_file_verification": {
+    "schema": 1,
+    "status": "PASS_ALL578_RAW_FILES_AND90_GROUPED_PMU_REPARSED",
+    "original_metadata_audit_sha256": "795f3c83c03b76c156e2bbe934c592f97ea7e63c56c2de7e3aa1f468f606f625",
+    "result_sha256": "f85d804f8ddf24f10f70315b2bb16f2b5c9db3a1cea2667be41531170023dc92",
+    "transfer_receipt_sha256": "1463bc457c7b9a048421ef0ab513b65dffaf64b37604214b41e273edee866f7f",
+    "archive_sha256": "4f00e6e2818859aaa88e74deb14bd1b13becb46f9ddf74e5e17f09f724a3d2d4",
+    "archive_bytes": 18787,
+    "raw_files": 578,
+    "raw_bytes": 212152,
+    "all_archive_members_local_files_and_original_command_hashes_match": true,
+    "all240_probe_JSON_outputs_match_recorded_fields": true,
+    "all150_plain_stderr_empty": true,
+    "grouped_PMU_runs_reparsed": 90,
+    "all90_actual_stderr_twoevents_inherit_useronly_samePID_samegroup": true,
+    "all90_actualCSV_unscaled_samewindow_counts_andIPC_match": true,
+    "original15scene_6gain_7regression_2within_decisions_unchanged": true,
+    "audit_script_sha256": "f10d278485d5c30cbb5baed10a138fb21713fd500c6d6c231385c4df24811a73",
+    "private_receipt_sha256": "8945822eba3cf81f70757d0fdd352526bd915d26da3a21696047b916e6a13e2d",
+    "metadata_receipt_sha256": "795f3c83c03b76c156e2bbe934c592f97ea7e63c56c2de7e3aa1f468f606f625"
+  },
+  "author_report": {
+    "commit": "ed4dfa41",
+    "sha256": "57367362d93eb2637422f18418820b776f16055f6ab7aa4f2377b2ce79a3aec3",
+    "all_original_summary_fields_equal": true
+  }
+}
