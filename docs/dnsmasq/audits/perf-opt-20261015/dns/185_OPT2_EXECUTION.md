@@ -29,12 +29,15 @@ compile/readelf/extract logs and extracted package payload. Every downloaded
 file was rehashed. Full identities and private paths are in the
 [execution result](185-opt2-execution-result.json).
 
-The postflight observed both workers exited, no research/exactC processes and
-all three build locks available. Independent actual-result review and final
-transfer/handoff are still pending in this checkpoint. No performance timing,
-runtime-hardening acceptance or deployment was performed.
+Independent actual-result review passed at `3ce1e7e5`. The original125-second
+device health/preflight and four immutable artifact transfers completed, as did
+loop's original script/import pretransfer. The final fresh check rehashed
+source179, SDK andG artifacts, observed no research/exactC processes and all
+three free build locks, then issued quiet release `f9533ce8…` to loop and DHCP.
+DNS stopped all Oracle access and bulk transfer at that handoff. No performance
+timing, runtime-hardening acceptance or deployment was performed by this task.
 
-After review and necessary pretransfers, the authorized next steps are original
-exact-SDK owner32 and freshG/803 device ten in parallel. Native240 is excluded
+Loop first binds the final ready metadata and notifies DHCP. The authorized
+next steps are original exact-SDK owner32 and freshG/803 device ten in parallel. Native240 is excluded
 because its original probe compilation fixes opt3. Bare1df remains a separate
 subsequent experiment.
