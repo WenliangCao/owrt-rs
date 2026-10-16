@@ -315,3 +315,29 @@ upstream覆盖的层）仍保守回退，binary escape也回退，不重做本�
 后缀匹配保留普通/字符wildcard/点wildcard/dotless及大小写语义。未改计时ba40、I或其profile。
 这属于性能覆盖扩展，不列为行为错误修复。下一候选在原D1 screen返回后结合D2选择，先在此
 固定最终源和补充的公开local规则配置对照，再新训练/新计时；不复用旧profile，不追加ba40样本。
+
+
+## 带公开本地域规则的下一轮（在原D1 screen结果前固定）
+
+本机整条owner计数显示仅加local=/lan/就令旧general/D1每query均分配5次/118B；规则按名
+匹配修正后两侧均零。因此后继的主变量是让已有缓存快捷路径在常见配置下仍可用，D1/D2为
+可叠加的路径缩减；不把裸fixture零分配外推全配置。预测该公开配置相对I净省5–20µs，若
+不足5µs且未过新AA，便不再把分配次数视为主导A53成本，不逐个追逐本区域的小变体。
+
+只新建一个profile：原ba40 screen若CPU≥4/5方向改善且无真实退化，选已准备的D1+规则+D2
+源b059fc43；否则选D2+规则源f56fdd49。它们均基于最新接受I的G源；无论ba40 screen是否过门，
+不先验收已知全局回退的ba40。源级本机及实际Linux新增路径通过后，原canonical SDK/11场景
+单次训练/seed0x20261016/新profile/use/smoke/硬化/2.5M和1.4M caps照旧，不调权重或复用profile。
+
+下一screen沿95秒14窗（两对I/I、五对I/新候选，组内AB/BA），只在独立case副本加公开
+local=/lan/及包内RFC6761的bind/invalid/local/localhost/onion/test六规则；两侧相同。
+prewarm和测量name-prefix都固定m6a.example，以避开明确本地的.test，其他参数不变。
+这代表配置因素，不冒充真实LAN流量回放。93a07a87仅准备case/schedule补丁，旧D1工具未改；
+新组i-rules-aa95/i-rules-next95，独立目录与原始证据。CPU/时延分母及实际报文字节长度以
+本轮输入报告，不同后缀和上下文不与旧裸fixture绝对数相减。仍须纯命中/零steady上游/全正确。
+
+screen条件仍≥4/5、配对中位改善≥5µs且超过同长度新AA、无真实用户退化。通过后执行原
+44/67+shipping/受改动影响的原source语料与I/新候选原118窗，并在公开规则配置独立九对
+确认（同5+95+1、新AA、d8<0、三个block各超过AA、整体≥5）。原118保持全部33项、资源与
+不利结果，不要求简化UDP场景也证明5µs收益；接受必须在公开配置完成确认且原完整门没有
+可辨退化。若screen未达门不追加样本，保留I和所有结果，不启动C骨架或D3来凑收益。
