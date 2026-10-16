@@ -1,10 +1,11 @@
-# Prepare the original complete E/185 Oracle matrix
+# The original complete E/185 Oracle matrix
 
 This implements the Oracle half of recipe `893eed29`, with the exact source
 and SDK artifact already measured in the separate owner32/A53 screens. It is
-local preparation only. Full functional qualification and its explicit quiet
-handoff, plus the independently reviewed full-run tail-capture tool binding,
-must precede any performance launch. The original preparation recipe remains
+now bound in a separate [frozen execution plan](cached-zero-frame-oracle-full-plan.json).
+Full functional qualification `3c8d46e9` and its explicit quiet handoff, plus
+the independently reviewed full-run tail-capture tool boundary, are complete.
+Immediate source/artifact/tool/quiet checks still precede launch. The original preparation recipe remains
 unchanged; its SHA256 is
 `824f8c16fe8cb0b0f23ee8c7462a94628b52ba7d547c75a949c158e51a7cb096`.
 
@@ -19,8 +20,13 @@ The [machine preparation](cached-zero-frame-oracle-full-preparation.json) binds
 both 179-file source manifests and artifact triples, the original seven tool
 source hashes, measurement ELF/script hashes, all eleven scene tuples and all
 110 labels. The complete qualification, quiet and reviewed final tool fields
-remain null until their actual receipts exist. The related 940-test receipt
-alone cannot open the full-run gate. No artifact is changed for this matrix.
+remain null in that historical preparation. The final execution plan binds
+actual qualification SHA `d76634ea…d4be`, quiet SHA `2c0b9add…ce3b` and the
+44-family/67-job audit SHA `06569ee2…ef38`. Its actual short inventory is 957,
+including 17 allocation tests; the earlier related940 receipt is not reused as
+full qualification. Approved PTR-order/two-C-defect/two-UID differences and the
+zero-comparison corpus-directory setup failure remain in the full receipt.
+No artifact is changed for this matrix.
 
 The original scenes are UDP hit/miss/mixed, TCP hit/miss, DHCP with 6 and 150
 clients, startup small, configuration small, hosts HUP small and hosts HUP
@@ -34,12 +40,12 @@ directory, nice10 helper and isolated network namespace remain unchanged.
 
 The Oracle runner imports `SCENES`, `validate` and `write` from its original
 companion snapshot `7c93cfb1…8e21df`. The generic device tail-capture repair
-`da49cb69` changes no Oracle path or these exports; its author explicitly
-confirms that Oracle keeps this original bundle and does not load the device
-prefix consumer. Its independent review still precedes the final binding. The
+`52a92e80` changes no Oracle path or these exports. Independent review
+`f95f83a4`, SHA `263d56cf…b43e4`, confirms Oracle keeps this original bundle and
+does not load the device prefix consumer. The earlier `da49cb69` device-only
+preparation was superseded before deployment and is not used here. The
 Oracle controller remains `1e80a915…0ecb3`, and the analyzer `10addedf…d2283`.
-Current preparation copies original source bytes only; it does not import or
-execute a controller and does not stage anything remotely.
+Only these original source bytes are staged for Oracle.
 
 All 33 p50/p95/CPU comparisons are reported under the original median/full-range
 W and at-least-4-of-5 direction rule. CPU additionally needs every window at
@@ -70,11 +76,14 @@ F/E 110-window auditor with only the output/summary paths and candidate ELF
 identity changed. Reversing those substitutions restores the original
 `f84dac49…0f30` bytes. Its [preparation receipt](cached-zero-frame-oracle-audit-preparation.json)
 records that boundary; it retains the original all-valid-path assumptions and
-does not choose supplemental pairs. Independent review/run remains pending.
+does not choose supplemental pairs. Loop independently verified the exact
+two substitutions and byte reversal before launch; its full raw execution
+follows the original110 and author analysis.
 
 The same receipt records the additional final-delivery artifact: original SDK
 `dnsmasq-2.93-r4.apk`, 1,167,095 bytes, SHA256
 `5bb29803bceaf70eecc9a88d582e67a4440c53aa8ec498d3990b06eab82fe032`.
-It was not found among the shared local private APKs. Download and hash it in
-the explicitly released non-timing gap after full44 and before full110, retain
-it privately without overwriting an earlier artifact, and do not install it.
+It was downloaded in the explicitly released non-timing gap after full44,
+verified against the original SDK hash and size, and retained mode0444 under
+the new worktree's private artifact directory. It was not installed or sent
+to the router. All remote pretransfers must finish before timing.
