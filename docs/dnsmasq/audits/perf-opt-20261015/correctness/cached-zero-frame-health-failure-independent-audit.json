@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "status": "FAILED_HEALTH_GATE_PRESERVED_TERMINATION_CLASSIFICATION_DEFECT_IDENTIFIED",
+  "scope": "Independent local-only review of the original failed185preflight, guard/collector code and retained postflight. No device/Oracle access, rebuild, product edit, health retry or performance window.",
+  "candidate_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "candidate_staged_or_launched": false,
+  "performance_windows": 0,
+  "author_report": {
+    "commit": "32042372",
+    "sha256": "91b233e8c7b8ab7ff62568b29c79d3f892099c5f8f7811ba0d8f666a656d67e7"
+  },
+  "raw_files": {
+    "external-health.jsonl": {
+      "bytes": 964,
+      "sha256": "a8a0be308e0087e88184ade8d62bdc34e9074969c65400e8f3ebce862c590ca5"
+    },
+    "health-baseline.jsonl": {
+      "bytes": 32779,
+      "sha256": "0c87d217eb5cbbe261e6e862ab08d43736007283b61eae5e1b6828a952dff3db"
+    },
+    "collect.py": {
+      "bytes": 4856,
+      "sha256": "075635061302521db0208999696a86d5f5d18f5d56287549ecd3d498b1f0f8aa"
+    },
+    "health-baseline.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "failed-guard.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "start.json": {
+      "bytes": 290,
+      "sha256": "30e46168579f62bab0aecf8ec207a89200ac9bdfc0acc8444393a0b938ca8ea7"
+    },
+    "failed-guard.jsonl": {
+      "bytes": 32779,
+      "sha256": "0c87d217eb5cbbe261e6e862ab08d43736007283b61eae5e1b6828a952dff3db"
+    },
+    "failure.json": {
+      "bytes": 127,
+      "sha256": "c016559b362bcd5b9ca45f40c31e0c650bce2a77f08feddf5f6e651cf95812b6"
+    }
+  },
+  "events": {
+    "start": 1,
+    "sample": 127,
+    "monitor_stopped": 1
+  },
+  "health_observations": {
+    "sample_count": 127,
+    "DNS_successes": 48,
+    "DNS_failures": 0,
+    "DNS_max_ms": 3.393,
+    "completed_HTTP_403": 23,
+    "completed_HTTP_max_ms": 66.005,
+    "terminal_HTTP_status_zero_count": 1,
+    "terminal_sample": {
+      "event": "sample",
+      "epoch": 1792113236,
+      "elapsed_s": 126.0,
+      "cpu_pct": 5.67,
+      "mem_available_kib": 98420,
+      "production_pid": 3086,
+      "production_starttime": 2115,
+      "dns_ok": 1,
+      "dns_rtt_ms": 0.505,
+      "slow_dns_probes": 0,
+      "http_status": 0,
+      "http_rtt_ms": 43.009,
+      "ipv4_default": 1
+    },
+    "monitor_stopped": {
+      "event": "monitor_stopped",
+      "epoch": 1792113236,
+      "elapsed_s": 126.044
+    },
+    "external_HTTPS_successes": 10,
+    "external_versions": {
+      "IPv4": 5,
+      "IPv6": 5
+    },
+    "minimum_available_memory_kib": 95228,
+    "production_PID_start_consistent": [
+      3086,
+      2115
+    ],
+    "default_route_preserved_in_all_samples": true,
+    "no_guard_stop_event": true
+  },
+  "source_review": {
+    "collector_sha256": "075635061302521db0208999696a86d5f5d18f5d56287549ecd3d498b1f0f8aa",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "guard_source_sha256": "81d7cd6cfa2cf16c8d769d75eff114489e19c8980f770176002343a329607e7a",
+    "target": "127.0.0.1:80 GET /cgi-bin/luci/",
+    "collector_sequence": "After its125second wait, the collector explicitly calls guard_stop(SIGTERM), then downloads the complete log and requires every sample HTTPstatus to be in the success/not-sampled list. That assertion rejects the final0.",
+    "guard_cancellation_path": "SIGTERM sets interrupted. wait_fd returns\u22121 once interrupted, http_health exits with defaultstatus0, and the loop still prints the sample. The !interrupted checks suppress luci_http_failed/stop; the guard then prints monitor_stopped.",
+    "defect": "The collector applies a completed-probe status gate to an interrupted terminal probe without distinguishing cancellation. This is a real producer/consumer termination boundary defect, not a new pass allowance.",
+    "evidence_limit": "There is no signal-delivery or socket trace. The observed terminal0 plus immediate monitor_stopped is consistent with intentional cancellation, but a coincident HTTP/transport failure cannot be excluded."
+  },
+  "classification": {
+    "observed_service_or_network_failure_proven": false,
+    "terminal_probe_cancellation_consistent_with_raw_and_code": true,
+    "all_health_was_successful_claimed": false,
+    "original_baseline_valid": false,
+    "original_failure_reclassified_as_pass": false,
+    "STOP_cleared": false,
+    "retry_authorized_by_this_review": false
+  },
+  "failure": {
+    "error": "AssertionError()",
+    "label": "a53-cached-zero-frame-health-1792113109982192000",
+    "epoch": 1792113237.334358
+  },
+  "retained_postflight": {
+    "sha256": "41da0890cfa20cd59b9eee6032d1bbb93656e9d08791c0802cdc191852b607f7",
+    "value": {
+      "epoch": 1792113306.404623,
+      "scope": "Read-only after failed health; STOP retained, no clear/retry/staging/workload",
+      "production_pid_start": [
+        3086,
+        2115
+      ],
+      "stdout": "a53_cached_zero_frame_health_preflight_failed\n8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n97476\n",
+      "stderr": "",
+      "exit": 0,
+      "no_active_group_or_owned_live_executable": true
+    },
+    "scope": "Captured owner inspection, not a fresh query by this reviewer."
+  },
+  "zero_window_basis": {
+    "owner_record": "No185staging/launch/performance window before failed baseline.",
+    "local_launch_and_measurement_artifacts_absent": [
+      "a53-cached-zero-frame-device",
+      "a53-cached-zero-frame-device-preflight.json",
+      "a53-cached-zero-frame-device-launch.json"
+    ],
+    "old_E_F_task_slots_retained_in_postflight": true
+  },
+  "next_boundary": "Keep all original files and STOP. Any recovery inspection, tool correction or new baseline requires the device owner and root decision; do not reuse this failed baseline or silently discard the final sample.",
+  "performance_acceptance": false,
+  "deployment": false
+}
