@@ -341,3 +341,13 @@ screen条件仍≥4/5、配对中位改善≥5µs且超过同长度新AA、无�
 确认（同5+95+1、新AA、d8<0、三个block各超过AA、整体≥5）。原118保持全部33项、资源与
 不利结果，不要求简化UDP场景也证明5µs收益；接受必须在公开配置完成确认且原完整门没有
 可辨退化。若screen未达门不追加样本，保留I和所有结果，不启动C骨架或D3来凑收益。
+
+
+下一实际候选上A53 screen时，可在独立Oracle空闲槽用原owner PMU工具做一次非晋级诊断：
+同公开local/RFC6761配置和m6a.example，I/新ELF三对AB/BA/AB，200qps、原5+20+1/N5000，
+原独立1000prewarm排除。固定已验证同组instructions:u/cycles:u/l1i_cache_refill:u/
+l1d_cache_refill:u/l1i_tlb_refill:u/l1d_tlb_refill:u/br_mis_pred:u；全部counter须无复用/缩放。
+预测实际PGO用户指令至少减少10%，refill可能同向；若指令不降则削弱由本机计数推断实际
+工作缩减的模型，但N1结果不独自否决A53。只执行这六窗，失败保留不补试，不拓展工具框架；
+所有输入随源码在设备gap预传、输出bulk等设备恢复，Oracle不与构建/正确性竞争。不增加
+审计或报告，只写现有结果文件；本机23→0并不预先等于PGO动态调用数或CPU收益。
