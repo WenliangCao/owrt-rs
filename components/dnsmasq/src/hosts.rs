@@ -2075,12 +2075,12 @@ mod tests {
 
     const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";
 
-    fn bulk_fixture(retained_lease: Option<bool>, input: &[u8]) -> Hosts {
+    fn bulk_fixture(retained_lease: Option<(&[u8], bool)>, input: &[u8]) -> Hosts {
         let mut hosts = Hosts::new();
         hosts.begin_bulk(1497, 1000, 1000).unwrap();
-        if let Some(immortal) = retained_lease {
+        if let Some((name, immortal)) = retained_lease {
             hosts
-                .add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, immortal)
+                .add_bulk_lease(name, "192.0.2.1".parse().unwrap(), true, immortal)
                 .unwrap();
         }
         assert!(!hosts.read(input, 2, 37, false, |_| None).allocation_failed);
@@ -2128,21 +2128,23 @@ mod tests {
 
     #[test]
     fn retained_finite_and_immortal_lease_links_follow_exact_c_counterexample() {
-        // The counterexample needs the old owner outside a.test's name bucket.
-        // Otherwise cache_hash inserts the hosts a.test before the immortal
-        // lease, and its next link makes that lease suppress y.test's PTR too.
+        // Both earlier names must be outside the retained lease's bucket.
+        // Either can separate the immortal lease from the later same-name host,
+        // reversing their lookup links and suppressing y.test's PTR too.
         // Name hashing includes process pointers, so fixed names cannot ensure it.
-        let old = (0..10000)
-            .map(|id| format!("old{id}.test"))
+        let lease = (0..10000)
+            .map(|id| format!("a{id}.test"))
             .find(|name| {
-                name_hash_bucket(name.as_bytes(), 1000) != name_hash_bucket(b"a.test", 1000)
+                let bucket = name_hash_bucket(name.as_bytes(), 1000);
+                bucket != name_hash_bucket(b"old.test", 1000)
+                    && bucket != name_hash_bucket(b"x.test", 1000)
             })
             .expect("bounded name pool has a separate bucket");
         let input = std::str::from_utf8(REPEATED_ADDRESS_FIXTURE)
             .unwrap()
-            .replace("old.test", &old);
-        let finite = bulk_fixture(Some(false), input.as_bytes());
-        let immortal = bulk_fixture(Some(true), input.as_bytes());
+            .replace("a.test", &lease);
+        let finite = bulk_fixture(Some((lease.as_bytes(), false)), input.as_bytes());
+        let immortal = bulk_fixture(Some((lease.as_bytes(), true)), input.as_bytes());
         assert_eq!(reverse_names(&finite, "192.0.2.1"), [b"x.test".to_vec()]);
         assert_eq!(
             reverse_names(&immortal, "192.0.2.1"),
@@ -2150,7 +2152,7 @@ mod tests {
         );
         assert_eq!(finite.entries().len(), 6);
         assert_eq!(immortal.entries().len(), 6);
-        assert!(finite.entries().iter().all(|entry| entry.name != b"a.test"
+        assert!(finite.entries().iter().all(|entry| entry.name != lease.as_bytes()
             || entry.address != "192.0.2.1".parse::<IpAddr>().unwrap()));
     }
 
