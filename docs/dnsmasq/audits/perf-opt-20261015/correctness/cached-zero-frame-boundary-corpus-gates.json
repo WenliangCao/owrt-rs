@@ -1,0 +1,583 @@
+{
+  "scope": "Cached-zero-frame exact SDK boundary/TCP and fresh same-source corpus gates; original exceptions and raw exits retained. Full44 still in progress.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "shipping_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "same_build_map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+  "same_build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "f10": {
+    "cases": 13,
+    "observations": 704,
+    "passed": true,
+    "unqualified_failures": [],
+    "raw_matches_c": false,
+    "raw_difference_counts": {
+      "ptr-order-only": 28
+    },
+    "ptr_sequence_checks": 72,
+    "source_bound_checks": 4,
+    "raw_result_sha256": "aaadb1323fd50d6c327cc2c9d8dd6933a29fa7c3780fcb137990debc94b0900e",
+    "checker_result_sha256": "b6b956a5c52dba40f113e58c27d57efa9b85ee00387cbc1695fa33fe18cf2e39",
+    "approved_manifest_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+    "original_C_reference_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+    "all_running_elf_hashes_verified": true
+  },
+  "protocol": {
+    "paired_cases": 368,
+    "exact_client_matches": 366,
+    "profiles": {
+      "local": {
+        "paired_cases": 116,
+        "upstream_requests_each_side": 0
+      },
+      "forward": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "filter": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "rebind": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      }
+    },
+    "differences": [
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "udp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      },
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "tcp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      }
+    ],
+    "daemon_lifecycles": 8,
+    "input_sha256": "3683124aa816bb9656c0b9c9a94a15ddae4ee795b46c2cef4023bc8efcb277e6",
+    "expected_rust_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "checker_sha256": "f92f1d3bbf3cde2a3ed8b1b65b2ca832fcf111d87dc23b004bd9cae137624020",
+    "negative_controls": [
+      {
+        "control": "missing-case",
+        "rejected": true
+      },
+      {
+        "control": "changed-wire",
+        "rejected": true
+      },
+      {
+        "control": "failed-health",
+        "rejected": true
+      },
+      {
+        "control": "forged-comparison",
+        "rejected": true
+      },
+      {
+        "control": "wrong-rust-identity",
+        "rejected": true
+      }
+    ]
+  },
+  "protocol_checker_result_sha256": "c79f361048fbfc5b4d90fe9a7c0b4c093373dbd774a037ab26bb8529d0af5935",
+  "tcp": {
+    "conditions": 13,
+    "query_pairs": 50,
+    "totals_per_side": {
+      "reference": {
+        "conditions": 13,
+        "tcp": 37,
+        "udp": 13,
+        "expected_timeout": 1
+      },
+      "rust": {
+        "conditions": 13,
+        "tcp": 37,
+        "udp": 13,
+        "expected_timeout": 1
+      }
+    },
+    "groups": [
+      {
+        "group": "long",
+        "summary_sha256": "c0a992d88267e431d6679ed53172353aff0e27d253ec6c40734bf58d0d8f965c",
+        "settings": {
+          "case": null,
+          "client_timeout": 25.0,
+          "udp_timeout": 5.0,
+          "recover_after": 2.0,
+          "cache_size": 0,
+          "resolver_order": [
+            "v4a",
+            "v4b",
+            "v6a",
+            "v6b"
+          ]
+        },
+        "difference_count": 0,
+        "rows": [
+          {
+            "case": "cold-rst",
+            "side": "reference",
+            "result_sha256": "5a81bbe1ba9d45d84c4e5c09fa59f9d3f7c9df1279675a5b77954668698eaba6",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 3
+          },
+          {
+            "case": "cold-rst",
+            "side": "rust",
+            "result_sha256": "d3c4b4adb6c480e56c138252b324cd7179cfd7019e250143e70e980f46f01371",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 3
+          },
+          {
+            "case": "v4-warm-rst",
+            "side": "reference",
+            "result_sha256": "b45178a48f5c2ef2db55f150cc8900febb7bfa290b37c35103c1f37bcb8caaac",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-rst",
+            "side": "rust",
+            "result_sha256": "9d24046f4c44c57389179d788181067fba58fcfb2a6d6e3b7cf70249643e02b3",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v6-warm-rst",
+            "side": "reference",
+            "result_sha256": "a2d943575113b850fed170f9ae6abe80df47f22c538c9584a9b646cac3cdf244",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v6-warm-rst",
+            "side": "rust",
+            "result_sha256": "159fa8789a4d8b1af125f9202f755bad6b59e9324c1cf088cfe24807c793015b",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-reselect-rst",
+            "side": "reference",
+            "result_sha256": "ec8772f73468d1923b33795580f838daed0b08d00df82ca3c03dba8d57ebe011",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 7
+          },
+          {
+            "case": "v4-warm-reselect-rst",
+            "side": "rust",
+            "result_sha256": "827d364c528e6c5b8fe0f1daca6553bc83970a6bc0038bfe07586bb84c38d386",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 7
+          },
+          {
+            "case": "v4-warm-drop",
+            "side": "reference",
+            "result_sha256": "c60ef77adee25d583152b78a0f67764d68e351b31e7ea43ba8820dfd10da839a",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 2
+          },
+          {
+            "case": "v4-warm-drop",
+            "side": "rust",
+            "result_sha256": "e03d5a5a604366aba6c23f64141daf80254a5a7f534c317062f531ae970d5538",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 2
+          },
+          {
+            "case": "v6-warm-drop",
+            "side": "reference",
+            "result_sha256": "5270e52259c30805250342aae1c3d747eee08d81ad21981bd1ac8c7a618daafb",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v6-warm-drop",
+            "side": "rust",
+            "result_sha256": "017f93f3a0add4a5011b190a8d43e4a65542b47184260c49531ee027ba6dbfd2",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-drop-session",
+            "side": "reference",
+            "result_sha256": "d9fd7c46e4cf09f50b1b6b4432b787d9f8d81dbd9899fc24a3cc31abd417fee4",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-drop-session",
+            "side": "rust",
+            "result_sha256": "c87e6fde70c1298cb9d21dddcff0260f8ed0819df84feb605bab6d946478ee2b",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-drop-restore",
+            "side": "reference",
+            "result_sha256": "f1016dce76a6930986475c89c11f2e217401d68dd1ec650cb758a73fa06f6d42",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-drop-restore",
+            "side": "rust",
+            "result_sha256": "867827e412766c4dacf83d8f055585a5f93be8c7a8150def6d74d83fe82f6add",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v4-warm-drop-recover",
+            "side": "reference",
+            "result_sha256": "567d08fe464f3b5b1a78236bc4e182cb1e0188eb9cd291ce1ac333f765f9f868",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 6
+          },
+          {
+            "case": "v4-warm-drop-recover",
+            "side": "rust",
+            "result_sha256": "908b3b663b31940edac6579fb550b4bf6543a4233f78fb7ca7023943c59677c0",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 6
+          }
+        ]
+      },
+      {
+        "group": "short",
+        "summary_sha256": "3ea88e5b80e7b89ba7634dc3e3385d992c467f879fc7727af3564e1a474ebc72",
+        "settings": {
+          "case": [
+            "v4-warm-drop",
+            "v6-warm-drop"
+          ],
+          "client_timeout": 2.0,
+          "udp_timeout": 5.0,
+          "recover_after": 10.0,
+          "cache_size": 0,
+          "resolver_order": [
+            "v4a",
+            "v4b",
+            "v6a",
+            "v6b"
+          ]
+        },
+        "difference_count": 0,
+        "rows": [
+          {
+            "case": "v4-warm-drop",
+            "side": "reference",
+            "result_sha256": "1218147b5137bb11eed6969afd0c382fbffa62c24bcf16d0a2700d0fdbcf4249",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 2
+          },
+          {
+            "case": "v4-warm-drop",
+            "side": "rust",
+            "result_sha256": "98c841a3ae192a886665aeef8e91a12b0bf07b66e330a29ae1a0ecba3f7b487c",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 2
+          },
+          {
+            "case": "v6-warm-drop",
+            "side": "reference",
+            "result_sha256": "e1b580a2714e75018f62f1689ff838f4acf4bd8948305ac20f0a37d67ecd8220",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v6-warm-drop",
+            "side": "rust",
+            "result_sha256": "8cd7d1f4b1bf4185734b722f11e0a909a4ca3639560da7ff7033efb215c886bc",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          }
+        ]
+      },
+      {
+        "group": "cache1000",
+        "summary_sha256": "a8b5263284e00c89a08e49d895c991e77843b1dd983b1de674653091667148be",
+        "settings": {
+          "case": [
+            "v4-warm-drop",
+            "v6-warm-drop"
+          ],
+          "client_timeout": 25.0,
+          "udp_timeout": 5.0,
+          "recover_after": 10.0,
+          "cache_size": 1000,
+          "resolver_order": [
+            "v4a",
+            "v4b",
+            "v6a",
+            "v6b"
+          ]
+        },
+        "difference_count": 0,
+        "rows": [
+          {
+            "case": "v4-warm-drop",
+            "side": "reference",
+            "result_sha256": "bfbcfd826a6692516a4bd62f272d890d91d258662e5f8045b178ebc3c13a24b8",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 2
+          },
+          {
+            "case": "v4-warm-drop",
+            "side": "rust",
+            "result_sha256": "fd9d4bd060ccf4ee601cb7eb4b18c1372dccb85a3ee46d2841835ec3bd76a1b7",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 2
+          },
+          {
+            "case": "v6-warm-drop",
+            "side": "reference",
+            "result_sha256": "aec382810f6b4a2d51c7371e327a024652b27b0dcbc19c0c4be6f9abcc3ebf25",
+            "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          },
+          {
+            "case": "v6-warm-drop",
+            "side": "rust",
+            "result_sha256": "42cfd831fa23237eae3aeb20f7987dc3683149d85522f523e018609eac43617e",
+            "live_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+            "health_and_clean_exit": true,
+            "query_count": 4
+          }
+        ]
+      }
+    ]
+  },
+  "source_corpora": {
+    "cache-answer": {
+      "result_sha256": "1846490f71a650e368bebd86984168474b3911ecca6c6c52dcba4c91eff81710",
+      "queries": 164,
+      "metric_snapshots": 382,
+      "mismatches": 0,
+      "commands": 764
+    },
+    "transfer": {
+      "result_sha256": "1a42d34ab5f37c438378e66114249c5f681b390a5bad97f4bb7425c7e0a48568",
+      "compared": 307,
+      "passed": 307,
+      "failed": 0,
+      "probe_sha256": "cbf19490df893ea16a56f5fe3635c74dc0aacc975de563d37743318e88573e2b"
+    },
+    "stale": {
+      "result_sha256": "7e06dce4854d292c4e52a7becdd864a8d50f6fa44a7aacd6c27393806e9a248d",
+      "compared": 1100,
+      "planned": 1100,
+      "not_compared": 0,
+      "passed": 1100,
+      "mismatches": 0,
+      "rust_driver_sha256": "3d6dee5982a379b596d7522890563129830e5a2acc888a13ea890428a167f5f9"
+    },
+    "lease": {
+      "result_sha256": "c6f9330e9f0e6b3f5750281a1991a19e8fd8615cf7894ed2554408945901dc96",
+      "queries": 95,
+      "mismatches": [
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 9,
+          "command": "Q 102 29300100000100000000000005616c6961730000050001",
+          "c": {
+            "id": 10544,
+            "flags": 34176,
+            "questions": [
+              [
+                "alias",
+                5,
+                1
+              ]
+            ],
+            "sections": [
+              [
+                "answer",
+                [
+                  [
+                    "alias",
+                    5,
+                    1,
+                    58,
+                    [
+                      "example"
+                    ]
+                  ]
+                ]
+              ],
+              [
+                "authority",
+                []
+              ],
+              [
+                "additional",
+                []
+              ]
+            ]
+          },
+          "rust": null
+        },
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 10,
+          "command": "N 102 29300100000100000000000005616c6961730000050001",
+          "c": "N 1",
+          "rust": "N 0"
+        }
+      ],
+      "commands": 269,
+      "dynamic_lookups": 43,
+      "cohorts": {
+        "ordinary_insertion_mismatches": 0,
+        "layout_reuse_mismatches": 2
+      },
+      "c_hits": 59,
+      "rust_hits": 58,
+      "c_misses": 36,
+      "rust_misses": 37,
+      "rust_driver_sha256": "3d6dee5982a379b596d7522890563129830e5a2acc888a13ea890428a167f5f9"
+    }
+  },
+  "corpus_raw_exits": {
+    "cache-answer": 0,
+    "transfer": 0,
+    "stale": 0,
+    "lease": 1
+  },
+  "corpus_command_receipt_sha256": "8ac454b83c792bafc8c0fa93902b47bef5677818c3081037bcb08a52060fbd23",
+  "known_UID_two_nonblocking_under_explicit_user_instruction": true,
+  "new_or_unclassified_failure": false,
+  "release_probe": {
+    "build_receipt_sha256": "35e9a056ae9d7549dc6e6987629bff67a8fb32552b7f716231fdf7a687295749",
+    "artifacts": [
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 5783696,
+        "sha256": "cbf19490df893ea16a56f5fe3635c74dc0aacc975de563d37743318e88573e2b"
+      }
+    ],
+    "source_before_sha256": "4cf49d0f187357e6ef4a8eaacca5bcecf72513789cab1e8e44ef7a47b6bf755a"
+  },
+  "remaining_state": {
+    "state": "complete",
+    "known_UID_raw_comparator_exit": 1,
+    "epoch": 1792116510.5240788
+  },
+  "fourth_worker_exited": true,
+  "source_files_rechecked": 179,
+  "prior_output_setup_failure": {
+    "classification": "Output-parent setup permission failure before first corpus comparison; secondary missing lease file is not a product difference.",
+    "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame/private",
+    "before": {
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o755",
+      "inode": 4932739,
+      "symlink": false
+    },
+    "first_output_directories_absent": true,
+    "completed_corpus_comparisons": 0,
+    "files": {
+      "cached-zero-frame-corpus-cache-answer.log": {
+        "sha256": "3fccbdc149b4064a42b752100d599d6e92c3dd9ba9b1c42eb72a95b3b5670bef",
+        "bytes": 631
+      },
+      "cached-zero-frame-corpus.log": {
+        "sha256": "009de323be8e65ba70426ac49d9c96c631c61e40e98f6ef0f7474764f4d089d0",
+        "bytes": 15
+      },
+      "cached-zero-frame-corpus-commands.json": {
+        "sha256": "70b6a6e32d5e30b77e03ae4fea6ac9f0d4c498c262a2b75a86569ea242e886c4",
+        "bytes": 2291
+      },
+      "cached-zero-frame-remaining.stderr": {
+        "sha256": "bfc00ca785a75be65f8b2caf0c730801ef024e0c22b46dc854cd1452799291f6",
+        "bytes": 960
+      },
+      "cached-zero-frame-remaining.stdout": {
+        "sha256": "ce03fbc9253294514b63a1dd40e6b830b592dfda7f613a95cdf2b3ad8a1e861b",
+        "bytes": 3697
+      },
+      "cached-zero-frame-remaining-commands.json": {
+        "sha256": "ef98d4aba94148d75a81a6a443f484bb3842acd7b2cd3a34e028b705b026371c",
+        "bytes": 4364
+      },
+      "cached-zero-frame-remaining-state.json": {
+        "sha256": "dca582317191072e6de11f9190b32c19c9f5e77c4635835b6deef8f51de66c0f",
+        "bytes": 201
+      }
+    },
+    "correction": "Only chown the real source/private parent to the source owner; no recursive change or active family child mutation.",
+    "epoch": 1792116503.6466177,
+    "after": {
+      "uid": 1001,
+      "gid": 1001,
+      "mode": "0o755",
+      "inode": 4932739
+    }
+  },
+  "corpus_recovery_receipt": {
+    "status": "ORIGINAL_CORPORA_COMPLETE_KNOWN_UID_RAW_EXIT_RETAINED",
+    "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "shipping_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "original_remaining_commands_sha256": "ef98d4aba94148d75a81a6a443f484bb3842acd7b2cd3a34e028b705b026371c",
+    "original_failure_receipt_sha256": "64bbadddb47e2508eabd8d316105697d9708152a26ac9d9b7f9906e34f529bc8",
+    "successful_prior_gates_reused_without_rerun": [
+      "f10",
+      "f10-recheck",
+      "protocol",
+      "protocol-recheck",
+      "f10-checker-tests",
+      "tcp-tool-tests",
+      "tcp"
+    ],
+    "attempt_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame/private/correctness-cached-zero-frame-corpus-attempt2",
+    "corpus_commands_sha256": "8ac454b83c792bafc8c0fa93902b47bef5677818c3081037bcb08a52060fbd23",
+    "corpus_raw_exits": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "known_UID_differences": 2,
+    "raw_comparator_exit": 1,
+    "user_explicitly_nonblocking": true,
+    "source_files_rechecked": 179,
+    "completed_epoch": 1792116510.5239193
+  },
+  "verified_private_receipt_sha256": "e8829d578703221faf7f1f38c84b0bfe57b04f62a2dc4e2df69208ee2242f30c",
+  "F10_scope_note": "This run has28raw ptr-order-only differences under the unchanged approvedmanifest and source-bound/sequence checker. HistoricalF39 remain in their original reports; no new expected difference or comparator was introduced."
+}

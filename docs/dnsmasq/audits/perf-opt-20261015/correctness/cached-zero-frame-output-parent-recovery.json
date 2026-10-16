@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "status": "OUTPUT_SETUP_FAILURE_REPAIRED_ORIGINAL_COMPARISONS_COMPLETED",
+  "scope": "Preparation-order/directory ownership repair only; no product,179source,SDK,comparator or C expectation change.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "original_failure": {
+    "classification": "Output-parent setup permission failure before first corpus comparison; secondary missing lease file is not a product difference.",
+    "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame/private",
+    "before": {
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o755",
+      "inode": 4932739,
+      "symlink": false
+    },
+    "first_output_directories_absent": true,
+    "completed_corpus_comparisons": 0,
+    "files": {
+      "cached-zero-frame-corpus-cache-answer.log": {
+        "sha256": "3fccbdc149b4064a42b752100d599d6e92c3dd9ba9b1c42eb72a95b3b5670bef",
+        "bytes": 631
+      },
+      "cached-zero-frame-corpus.log": {
+        "sha256": "009de323be8e65ba70426ac49d9c96c631c61e40e98f6ef0f7474764f4d089d0",
+        "bytes": 15
+      },
+      "cached-zero-frame-corpus-commands.json": {
+        "sha256": "70b6a6e32d5e30b77e03ae4fea6ac9f0d4c498c262a2b75a86569ea242e886c4",
+        "bytes": 2291
+      },
+      "cached-zero-frame-remaining.stderr": {
+        "sha256": "bfc00ca785a75be65f8b2caf0c730801ef024e0c22b46dc854cd1452799291f6",
+        "bytes": 960
+      },
+      "cached-zero-frame-remaining.stdout": {
+        "sha256": "ce03fbc9253294514b63a1dd40e6b830b592dfda7f613a95cdf2b3ad8a1e861b",
+        "bytes": 3697
+      },
+      "cached-zero-frame-remaining-commands.json": {
+        "sha256": "ef98d4aba94148d75a81a6a443f484bb3842acd7b2cd3a34e028b705b026371c",
+        "bytes": 4364
+      },
+      "cached-zero-frame-remaining-state.json": {
+        "sha256": "dca582317191072e6de11f9190b32c19c9f5e77c4635835b6deef8f51de66c0f",
+        "bytes": 201
+      }
+    },
+    "correction": "Only chown the real source/private parent to the source owner; no recursive change or active family child mutation.",
+    "epoch": 1792116503.6466177,
+    "after": {
+      "uid": 1001,
+      "gid": 1001,
+      "mode": "0o755",
+      "inode": 4932739
+    }
+  },
+  "original_failure_private_receipt_sha256": "64bbadddb47e2508eabd8d316105697d9708152a26ac9d9b7f9906e34f529bc8",
+  "cause": "Privileged family preparation created source/private asroot before the unprivileged corpus runner. The first cache-answer invocation failed at mkdir before executing comparisons; the secondary missing lease result is not a product difference.",
+  "recovery": {
+    "status": "ORIGINAL_CORPORA_COMPLETE_KNOWN_UID_RAW_EXIT_RETAINED",
+    "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "shipping_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "original_remaining_commands_sha256": "ef98d4aba94148d75a81a6a443f484bb3842acd7b2cd3a34e028b705b026371c",
+    "original_failure_receipt_sha256": "64bbadddb47e2508eabd8d316105697d9708152a26ac9d9b7f9906e34f529bc8",
+    "successful_prior_gates_reused_without_rerun": [
+      "f10",
+      "f10-recheck",
+      "protocol",
+      "protocol-recheck",
+      "f10-checker-tests",
+      "tcp-tool-tests",
+      "tcp"
+    ],
+    "attempt_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame/private/correctness-cached-zero-frame-corpus-attempt2",
+    "corpus_commands_sha256": "8ac454b83c792bafc8c0fa93902b47bef5677818c3081037bcb08a52060fbd23",
+    "corpus_raw_exits": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "known_UID_differences": 2,
+    "raw_comparator_exit": 1,
+    "user_explicitly_nonblocking": true,
+    "source_files_rechecked": 179,
+    "completed_epoch": 1792116510.5239193
+  },
+  "recovery_private_receipt_sha256": "0a947ba7e8482e1a92ee36ddd7c4ced99e7e665c0a5a564d384ad363868364d2",
+  "permission_change": "Only chown the real source/private parent from0:0 to1001:1001, preserving inode/mode0755. No recursive change, no active family child touched.",
+  "rerun_scope": "Only the unexecuted four source corpora in a new attempt directory. Prior F10/protocol/TCP/checker successes reused without rerun. First command/log/state files remain unchanged.",
+  "dependent_audit": "Original boundary audit retained all assertions; only corpus output/receipt paths and current worker PID identities rebound to the new attempt.",
+  "minimal_future_preflight_fix": {
+    "original_script_sha256": "c4ea4910c1ec95c0a0c219a92d2b59706c0ac22fde55dc06ffa1ccf0e72fe6ab",
+    "corrected_private_template_sha256": "54ac2f4a4f251529916046c057441d27f5497718516e843ad43f13dfc2714d3d",
+    "behavior": "Create and verify a real source/private parent owned by the source owner and writable by the unprivileged coordinator before any sudo family jobs. Existing inaccessible parents fail preflight rather than changing their recursive contents.",
+    "executed_against_running_qualification": false
+  },
+  "full44_still_in_progress": true,
+  "performance_acceptance": false,
+  "deployment": false
+}
