@@ -1,0 +1,59 @@
+{
+  "schema": "G-UDP-stage-source-peer-review-v1",
+  "status": "PASS_LOCAL_SOURCE_REVIEW_ONLY_NOT_SELECTED_NOT_EXECUTED",
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "candidate_source": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "original_E_stage_source": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+  "source_hooks_commit": "58f96e8e",
+  "buffer_adaptation_commit": "a34e7310",
+  "changed_files": [
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/mod.rs",
+    "components/dnsmasq/src/dns/udp_stage_diagnostic.rs",
+    "components/dnsmasq/src/main.rs"
+  ],
+  "source_sha256": {
+    "components/dnsmasq/src/dns/local.rs": "430935a8fb338b891945d7dbfcc85f49d1e0ae2b140bfd60bee0261c4ec3dac8",
+    "components/dnsmasq/src/dns/mod.rs": "e527e22d055879214d9a73c3ff0ce45c40adb1f23c729f84216fcf2fb369d108",
+    "components/dnsmasq/src/dns/udp_stage_diagnostic.rs": "aaeee005ed7f9ded2bd786c17d969d7da948fe174182df2ea1ed4def71682213",
+    "components/dnsmasq/src/main.rs": "53c9773bd8a168f7adfddd64254929a43e610db1c43a9bae3b0f79b439d5a09e"
+  },
+  "byte_checks": {
+    "removing_all_stage_hooks_reconstructs_G_main_local_mod": true,
+    "receive_and_skip_local_hook_bodies_identical_to_original_E": true,
+    "reversing_only_declared_buffer_and_fixture_reuse_edits_reconstructs_original_stage_module": true,
+    "G_service_cache_engine_writer_and_recycler_unchanged": true,
+    "no_measurement_tools_protocol_or_product_features_changed": true
+  },
+  "review": [
+    "Initialize remains before originalownerloop, report remains afterloop nexttoexistingm6b write. No envfeature or diagnostic mode enters productsourceG.",
+    "Receivehook stays after consumedpacket/invalidation/size checks andbefore admission. Originalexact32byte/800names/A/AAAA eligibility andfirst1000matching-receives threshold retained.",
+    "SkipLocal remains at answer_parsed_with_query_events entrybeforeheader/localwork, not G answer_local_records coldframe; it retains originalinspect_name hint and realcacheanswer path.",
+    "BeforeAnswer stays after admission/metadata/interface readiness andbefore originaldaemonanswer call. Only thisselectedbranch sets cached_reply=true and returns originalsynthetic fixedTTL120 answer.",
+    "owned_answer now takes G local.cached_reply_buffer,clear/reserve_exact128 thenunchangedpacketcopy/resize/syntheticwriter/truncate. In fixedfixture thismatches G PacketWriter buffer lifecycle; mainusesunchangedpost-send recycle_cached_reply afterdroppingparentborrow. No fresh128 allocation forced percut; no growth/newbuffer ownership elsewhere.",
+    "NormaloriginalG Cached/Local/Stale handling,upstream polling,logging,UDPsend andrefreshorder unchanged. Fullmode stillruns allproductwork plusdiagnosticchecks andneedsindependentG/full calibration.",
+    "Fourmodes,atomiccounters,sidecar fields/scope,6000matched/1000prewarm/5000cut contract and48/60byte syntheticreply remainunchanged. No allocationcounter or newhealth rule introduced."
+  ],
+  "retained_author_local_checks": {
+    "method": "Read existingauthorlogs only; reviewer didnot rerun or inferSDK/runtimetiming qualification.",
+    "fixture": "Oneoriginaltest loops800names x2qtypes andoriginalnegative/thresholdcontrols, nowaddsreturnedbuffer pointer/capacity128 assertions. Retainedlog1pass0fail.",
+    "musl": "Retainedcompilecheck log ends successfuldevcheck,withwarnings. Thisreview didnot reexecute orindependently attest invocationargv.",
+    "log_hashes": {
+      "fixture-test.log": "93565fe684f188b2b1ddfd1306d51b6ec8408e1281099e2405f214d517acbdc4",
+      "musl-check.log": "58c70a54ba0616ad6ed7eec87d86b2d768988b2d199b8e8836a798cef1a2dde1",
+      "patch-check.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "patch-check.stderr": "50ce9c292739ad55400faa4337d2f3c3780f3ff1c0bf688f2d2e612a82a744dd"
+    },
+    "first_patch_check": "OriginalE patch failed atlocal.rs becauseG splitframe/contextchanged; rawfailure retained. Currenthookremoval exactlyreconstructsG, so manualplacement adds no undeclaredproductedits."
+  },
+  "limitations": [
+    "SyntheticTTL/writer andbranch/cache/layout effects remain. Differences are cumulativeinterventions, not additivefunction costs, allocationCPUprice or exactC wireequivalence.",
+    "Nativefixture pointer/capacity andsource reasoning are not actualSDK/A53 allocationcounts orzeroallocationmeasurement.",
+    "Futureonlyifselected: original50window C/G,G/full,full/receive,full/before-answer,full/skip-local withoneimmutableSDK; source/SDK/review/freshhealth/recoverygates stillrequired. Current803/1dfqueue unchanged."
+  ],
+  "new_tests_or_builds_run": false,
+  "router_or_Oracle_accessed": false,
+  "execution_selected": false,
+  "SDK_artifact_built_by_review": false,
+  "product_candidate_eligible": false
+}
