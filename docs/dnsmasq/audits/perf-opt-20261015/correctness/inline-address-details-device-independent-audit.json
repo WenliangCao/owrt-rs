@@ -1,0 +1,332 @@
+{
+  "status": "PASS_RAW_TEN_SCREEN_WITH_NO_DISCERNIBLE_PRIMARY_GAIN_OR_REGRESSION",
+  "author_commit": "bdc6bee3",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "author_result_sha256": "6807d776825b30d3ea44560fb8b9583bb650a50ef50551829e641df26bdd21d9",
+  "plan_sha256": "a025e97f660464fc0f586edfb8dcea4555c9992f5d8936f9ae1804b94a9b8c60",
+  "verified_archives": 10,
+  "verified_raw_files": 430,
+  "single_thread_observations": 314,
+  "wire_samples": 600,
+  "all_raw_latency_send_lag_and_scheduled_latency_bins_recomputed": true,
+  "all_CPU_ticks_actual_denominator_and_three_primary_comparisons_recomputed": true,
+  "original_full_field_verifier_result_byte_identical": true,
+  "comparisons": {
+    "g-vs-inline-address-details": {
+      "p50": {
+        "left_median": 0.171889,
+        "right_median": 0.167965,
+        "relative_change_pct": -2.2828685954307626,
+        "W_pct": 17.86503140535231,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "p95": {
+        "left_median": 0.289457,
+        "right_median": 0.358627,
+        "relative_change_pct": 23.896468214622534,
+        "W_pct": 58.03467112069086,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false
+      },
+      "cpu": {
+        "left_median": 118.0,
+        "right_median": 114.0,
+        "relative_change_pct": -3.389830508474576,
+        "W_pct": 21.052631578947366,
+        "same_direction_pairs": 3,
+        "precision_ok": false,
+        "discernible": false
+      }
+    }
+  },
+  "windows": [
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r1-c",
+      "artifact": "g",
+      "cpu_ticks": 62,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086329,
+        "p50": 0.179275,
+        "p95": 0.388865,
+        "p99": null,
+        "max": 7.002736
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r1-rust",
+      "artifact": "inline-address-details",
+      "cpu_ticks": 56,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 112.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086022,
+        "p50": 0.167734,
+        "p95": 0.26899,
+        "p99": null,
+        "max": 9.717639
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r2-rust",
+      "artifact": "inline-address-details",
+      "cpu_ticks": 59,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088714,
+        "p50": 0.173043,
+        "p95": 0.375554,
+        "p99": null,
+        "max": 7.368056
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r2-c",
+      "artifact": "g",
+      "cpu_ticks": 58,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088484,
+        "p50": 0.175736,
+        "p95": 0.286763,
+        "p99": null,
+        "max": 10.359875
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r3-c",
+      "artifact": "g",
+      "cpu_ticks": 60,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086868,
+        "p50": 0.171889,
+        "p95": 0.289457,
+        "p99": null,
+        "max": 4.025382
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r3-rust",
+      "artifact": "inline-address-details",
+      "cpu_ticks": 67,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 134.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090176,
+        "p50": 0.195279,
+        "p95": 0.453189,
+        "p99": null,
+        "max": 9.027622
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r4-rust",
+      "artifact": "inline-address-details",
+      "cpu_ticks": 57,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 114.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.085021,
+        "p50": 0.167965,
+        "p95": 0.358627,
+        "p99": null,
+        "max": 19.913397
+      },
+      "thread_samples": 32
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r4-c",
+      "artifact": "g",
+      "cpu_ticks": 59,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087176,
+        "p50": 0.170504,
+        "p95": 0.385249,
+        "p99": null,
+        "max": 45.254137
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r5-c",
+      "artifact": "g",
+      "cpu_ticks": 56,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 112.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086329,
+        "p50": 0.163656,
+        "p95": 0.241983,
+        "p99": null,
+        "max": 2.603722
+      },
+      "thread_samples": 31
+    },
+    {
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r5-rust",
+      "artifact": "inline-address-details",
+      "cpu_ticks": 55,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.083251,
+        "p50": 0.165272,
+        "p95": 0.245061,
+        "p99": null,
+        "max": 7.182549
+      },
+      "thread_samples": 31
+    }
+  ],
+  "primary_gains": 0,
+  "primary_regressions": 0,
+  "primary_indistinguishable": 3,
+  "absolute_median_cpu_tick_difference": 2,
+  "retained_G_all_rounds_p95_ms": [
+    0.388865,
+    0.286763,
+    0.289457,
+    0.385249,
+    0.241983
+  ],
+  "health": {
+    "fresh": {
+      "qualified": 126,
+      "final": 126,
+      "tail": 0,
+      "DNS": 48,
+      "HTTP": 24,
+      "HTTPS": 10,
+      "minimum_available_memory_kib": 89084,
+      "raw_sha256": "7d8a4b1d69a9f7dc9710eb5c4740a9dca27a8449ce9cd599aa34901b8fc008ce",
+      "elapsed_seconds": 125.0
+    },
+    "run": {
+      "qualified": 427,
+      "final": 427,
+      "tail": 0,
+      "DNS": 164,
+      "HTTP": 77,
+      "HTTPS": 30,
+      "minimum_available_memory_kib": 79700,
+      "raw_sha256": "72264876e1d31bf9890d0478ad3d3c265c0940aae5c0bf605484921db6a277fb",
+      "elapsed_seconds": 426.0
+    }
+  },
+  "fresh_health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.553,
+    "dns_samples": 48,
+    "dns_p95_ms": 1.675,
+    "dns_max_ms": 2.766,
+    "http_samples": 24,
+    "http_max_ms": 74.505,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "17a2a606db458e461ceb4600f664b9d9cf5d4172ac089b8f90de7b9f7614e3d5",
+    "raw_sha256": "7d8a4b1d69a9f7dc9710eb5c4740a9dca27a8449ce9cd599aa34901b8fc008ce"
+  },
+  "postflight_sha256": "9e65481addb675b05dd3f439cde019b3b3ed5b3fd643cca11bb678eec41006bd",
+  "postflight_shell_reconstructed_exactly": true,
+  "postflight_available_memory_kib": 88796,
+  "scope_limits": [
+    "Fresh exactG185 control and exactbare1df product artifact only. Bare1df inherits6ab; this directGcomparison doesnot isolateinline-address effects. Neither side contains allocationmeter instrumentation; no olda15/E/F/timing subtraction or historical pooling.",
+    "Original200/s UDP-hit,1000prewarm,5s warmup+20s measurement,800names,A/AAAA70/30 and unchangedtools. CPU denominator5000 correctwarmup+measurement; separate count3 cached5200 denominators are not reused.",
+    "Five alternating pairs; absolute relative median change strictly greater thanW, >=4/5 same direction. CPU requires eachwindow>=10ticks and absolute median difference strictly>8ticks.",
+    "All fullranges and everyoriginalwindow retained; no selective replacement, discarded outlier or extra favorable repeat.",
+    "p99 is unavailable for4000 latency samples. RSS/RssAnon/file/shmem ranges are descriptive and are not privateheap/PSS/USS attribution.",
+    "This ten-window UDP screen doesnot complete full44 or full110 qualification and cannot establish otherworkload performance. Production/kernel/drivers/configuration were unchanged."
+  ],
+  "retained_restoration_limit": "Retained exact controller/shell, receipts and local artifacts checked; no new live router observation. /proc/1 namespace is not an independently queried production-PID namespace.",
+  "candidate_eligible_from_screen": false,
+  "full_functional_qualification_complete": false,
+  "full110_eligible": false,
+  "deployment_authorized": false,
+  "reviewer_remote_access": false,
+  "reviewer_repeated_windows": 0,
+  "schema": "inline-address-details-device-independent-audit-v1",
+  "identity_and_phase_review": {
+    "status": "PASS_LOCAL_BARE1DF_IDENTITY_ORIGINAL963_CANONICAL_PROFILE_AND_HEALTH_STAGE_QUIET_READY_START_CHAIN",
+    "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+    "source179_git_bytes_rehashed": true,
+    "actual963_independent_report_sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560",
+    "actualSDK_independent_report_sha256": "e35b50bbda5ec42741ea67cebd7cacd9564c8694dc60c0e0236ddc94cae2c471",
+    "actual_logged_Cargo_recipe_command_bound_to_independent_SDK_review": true,
+    "canonical_source_release_profile3_verified": true,
+    "individual_effective_rustc_invocations_logged": false,
+    "entry_and_original_shared_tools_rehashed": true,
+    "original_measurement_artifact_hash_map_bound": true,
+    "four_immutable_staging_artifacts_rehashed": true,
+    "original_EF_slots_and_production_identity_bound_through_postflight": true,
+    "phase_epochs": {
+      "fresh_health_end": 1792139768,
+      "preflight": 1792139788.985238,
+      "stage_complete": 1792139788.987183,
+      "DNS_quiet": 1792139848.4481058,
+      "loop_ready": 1792139921.00792,
+      "operator_release_binding": 1792139966.631774,
+      "device_launch": 1792139968.142247,
+      "guard_start": 1792139969,
+      "guard_end": 1792140396,
+      "postflight": 1792140423.840624
+    },
+    "plan_sha256": "a025e97f660464fc0f586edfb8dcea4555c9992f5d8936f9ae1804b94a9b8c60",
+    "stage_sha256": "2199bffccaefcee6413c86ec764cd149d3b1847daafb1902958613d12cc3ae11",
+    "DNS_quiet_sha256": "9f2b03fc7a110bc8d8fa3274961df06970ff5f09548a8b3c2bf9520f6e01961c",
+    "loop_finalready_sha256": "a3eb06dc9a783ce21d3102c47ff09980d4f1fc6a29f92727c7f6318ab5f0d2f3",
+    "device_queue_release_sha256": "3bba08a0b64a16d55440bfd51218408eec5af80ad1f1f8383cb837b2453d9354",
+    "launch_sha256": "4e592e343d28823b711bac5bd0c55ced6d29b7826671d951bd5c6c9da892fef0",
+    "scope_limits": [
+      "All observations are retained local receipts/raw bytes; no fresh router or Oracle inspection.",
+      "Stage/start scripts were read and hash-verified, never executed by reviewer. Actual loop-ready content was independently checked; start script itself only hashes the DNS quiet receipt, so this is a verified operator binding rather than a claim of an additional script assertion.",
+      "Preparation plan retains execution_started=false/pending prose; actual launch, raw windows and postflight receipts are authority."
+    ],
+    "reviewer_script_sha256": "87b7b04210ddf53c254049891c16bef1d9823b72232279fa598271bff380db1f"
+  },
+  "reviewer_scripts": {
+    "raw_audit_sha256": "bbd9f287456673cfc31971977bd788592a03ff041519c9b0d37af24c2d78194b",
+    "binding_audit_sha256": "87b7b04210ddf53c254049891c16bef1d9823b72232279fa598271bff380db1f",
+    "adapted_original_verifier_sha256": "ba1bb5c0a9c1a1c6a055a1f65b248b3656db47aca9363a5c879baa9e68cb90e3"
+  },
+  "reviewer_raw_result_sha256": "d3a62a8bb763736541b91cc0dc011e72ebcf736b213d2d5b67d8c3f10043bb2c",
+  "reviewer_bindings_result_sha256": "0b5c60e00c5d97e50e428ef26cbe35c2a45c1b86b44800cb0668da18a59002d0",
+  "original_verifier_adaptation": "Original frozen verifier output redirected to reviewer private file; injected SSH-denial sentinel. All validation logic kept and output byte-identical to original author result.",
+  "retained_candidate_round3": {
+    "cpu_us_per_operation": 134.0,
+    "p50_ms": 0.195279,
+    "p95_ms": 0.453189
+  },
+  "comparison_scope": "Direct G185 versus bare1df(parent6ab), including inherited6ab changes; no attribution solely to inline-address details.",
+  "reviewer_test_build_or_capture_rerun": false
+}
