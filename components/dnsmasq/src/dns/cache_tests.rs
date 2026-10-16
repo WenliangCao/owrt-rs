@@ -1,6 +1,39 @@
 use super::*;
 
 #[test]
+fn fresh_address_hint_keeps_exact_expiry_and_stale_policy_boundaries() {
+    for (policy, at_expiry) in [
+        (StalePolicy::Disabled, false),
+        (StalePolicy::Seconds(0), false),
+        (StalePolicy::Seconds(1), true),
+        (StalePolicy::Seconds(u32::MAX), true),
+        (StalePolicy::Forever, true),
+    ] {
+        for kind in [Kind::Ipv4, Kind::Ipv6] {
+            for expires in [i64::MIN + 1, -1, 0, 100, i64::MAX - 1] {
+                let mut cache = Cache::new(2, Policy { stale: policy, ..Policy::default() });
+                cache.start_insert();
+                let id = cache.insert(Record {
+                    name: Name::from_ascii("fresh.test").unwrap(), kind,
+                    negative: false, data: vec![1; if kind == Kind::Ipv4 { 4 } else { 16 }],
+                }, 0, 60).unwrap();
+                assert!(cache.commit());
+                cache.entry_mut(id.slot).as_mut().unwrap().expires = expires;
+                let name = Name::from_ascii("fresh.test").unwrap();
+                for (now, eligible) in [(expires - 1, true), (expires, at_expiry), (expires + 1, false)] {
+                    let (_, hint) = cache.inspect_name(&name, now);
+                    let before = (cache.head, cache.tail, cache.name_revision);
+                    assert_eq!(cache.single_fresh_address_id_with_hint(&name, kind, now, hint.as_ref()),
+                        eligible.then_some(id), "{policy:?}/{kind:?}, expires={expires}, now={now}");
+                    assert_eq!((cache.head, cache.tail, cache.name_revision), before);
+                    assert!(cache.get(id).is_some(), "eligibility cannot prune an expired record");
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback() {
     let address = |name: &str, value| Record { name: Name::from_ascii(name).unwrap(),
         kind: Kind::Ipv4, negative: false, data: vec![192,0,2,value] };
