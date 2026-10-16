@@ -1881,6 +1881,7 @@ impl<R: Random> DnsDaemon<R> {
     /// supply its accepted cache view; UDP supplies the current generation.
     /// A miss retains C's transport-specific forwarding name without a second
     /// cache lookup, rotation, or expiry pass.
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     pub fn answer_local_or_cached(
         mut cache: Option<&mut Cache>,
