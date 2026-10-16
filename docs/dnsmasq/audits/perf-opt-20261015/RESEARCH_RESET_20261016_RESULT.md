@@ -390,3 +390,25 @@ Anon504→504，FD12/线程1/进程1不变。不能在screen阶段宣称尾延�
 决定按ff878699预写分支，直接执行actualI44/67+shipping边界和H/I完整118窗，不加独立18窗。
 三个九对block必须各自超过本批AA7.5815366；H仍为接受候选，I暂未晋级。
 H/I源码与新profile均变化，所以这是整体组合效果；不会将历史E/G和E/H收益相加。
+
+
+## D1重新落在G源码上的原地入口：本机完成，尚未实测
+
+主代理独立树`owrt-perf-d1-inplace-20261016`从精确G185开始，产品提交7081d3dd/f769dcd0，
+当前4c0dbc59另含单独cfg(test)夹具修正；没有继承9e/6ab的其他优化。入口在原ACL/admission
+通过后、仅同步持有receive buffer的路径使用。普通无EDNS单IN A/AAAA新鲜命中原地保留问题
+并写入header/c00c/RR/TTL；None不改包、LRU或local语义状态，容量不足/本地所有权/到期租约
+原路回退。保留成功后的resend失效、query ID、local_answered、零等待upstream poll，以及
+先当前回答、再上游完成回答的顺序；deferred路径继续原实现。未改变EAGAIN行为。
+
+730lib+25bin本机全部通过（8ignored），aarch64-musl all-targets检查通过；未声称Linux专项
+实际运行。新增差分覆盖bytes/TTL/LRU/过期/本地优先级/长名/容量边界/回退不改包，真实UDP
+owner测试覆盖原地buffer、计数、queued upstream完成顺序和功能开关回退。
+新长名夹具最初因cache4的C long-name quota失败，c0b3257d单独将该夹具容量提高到10，
+不改产品上限。旧hosts夹具修正4c0dbc59是已有05bfb529的移植，不混作性能优化。
+
+独立计数树`owrt-perf-d1-count-20261016`复用原whole-owner allocator（4d32c412/ce4ff745），
+同进程一次测原路径和新路径，各20warm后2000次cache hit；两个scope都是alloc/dealloc/
+realloc/requested/released全部0。计数含原step_udp收取/准入/处理/发送，不含client/harness；
+是本机计数，不是未插桩A53计时。初次--exact漏模块名跑0test保留，正式全名仅运行一次。
+日志分别在两树private/d1-local与private/d1-count；插桩树不作为产品候选或计时输入。
