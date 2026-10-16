@@ -51,3 +51,15 @@ precede screening. A supported artifact may continue to the fixed32-window SDK
 low/high owner diagnostic and independent ten-window A53 comparison. No source
 or result from the completed integration8d/c44 rounds changes; no prior samples
 are pooled. No new candidate is selected or fully qualified by this preparation.
+
+[Thirty local allocation controls](cached-local-miss-local-allocation.json)
+retain every output checksum and zero live-byte deltas. Ordinary, uppercase
+and typed-config hits save two allocations/85 fixture bytes; hits with leases
+save only the64-byte IDs vector, retaining the original lease-expiry conversion.
+Miss, host, lease-address, raw, synthetic, RRset and configured-CNAME allocation
+counts match F. Dynamic CNAME saves one23-byte terminal-name allocation;
+CNAME-with-leases stays equal. Host-localise's independent process-dependent
+rotation variation remains: −0.08625 reallocations and86.8 requested bytes per
+operation in this pair, without a causal savings claim. All34 commands/log hashes
+were rechecked. Related Linux qualification now passes938 tests on exact54bd;
+SDK and runtime CPU measurements remain pending.
