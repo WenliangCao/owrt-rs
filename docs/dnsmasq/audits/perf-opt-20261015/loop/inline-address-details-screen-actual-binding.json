@@ -1,5 +1,5 @@
 {
-  "status": "NATIVE240_STARTED_AFTER_ACTUAL_AUDITS_ALL_PRETRANSFERS_AND_DNS_QUIET",
+  "status": "NATIVE240_COMPLETE_OWNER32_STARTED_ORIGINAL_PROTOCOL",
   "candidate_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
   "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "actual_gate": {
@@ -74,5 +74,8 @@
     "path": "correctness/inline-address-details-actual-screen-root-review.json",
     "sha256": "61a54290f1021d8b650445ce1a387f23e95d924b4483acf084eb4095384f01a4"
   },
-  "native_launch_sha256": "8f3ab0d05e3103987ef4f771ff5047c415d4f69a729cded04d8b0f8c73c1d496"
+  "native_launch_sha256": "8f3ab0d05e3103987ef4f771ff5047c415d4f69a729cded04d8b0f8c73c1d496",
+  "native_raw_result_sha256": "239912cb5c076a1f80d3ba91ebdb4127cdc6a0af097103f94febff7e864e7ecf",
+  "native_postflight_sha256": "f43a44e0f44d9bc00d65aeb67e26e8016d57dad5db02bbdbd221179d1a4c2818",
+  "owner_launch_sha256": "1163c0ba8448792b0fa92c03bbbb40cc5b748ebeaf69a499c36347cd9f50e86c"
 }
