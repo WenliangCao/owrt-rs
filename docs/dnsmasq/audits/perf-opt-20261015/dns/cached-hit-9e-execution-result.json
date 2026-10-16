@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL965_AND_CANONICAL_SDK_ARCHIVES_VERIFIED_QUIET_RELEASED_TO_ORIGINAL_SIGNALS_ACTUAL_INDEPENDENT_REVIEW_PENDING",
+  "status": "ACTUAL965_CANONICAL_SDK_ORIGINAL_SIGNALS_AND_ARCHIVE_INDEPENDENT_PASS_RELEASED_TO_ORIGINAL_SCREEN_COORDINATION",
   "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "source_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
   "git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
@@ -167,7 +167,22 @@
     "all_required_author_raw_downloads_complete": true,
     "correctness_awakened_with_followup_task": true,
     "DNS_stopped_Oracle_and_bulk": true,
-    "actual_signals": null,
+    "actual_signals": {
+      "result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+      "counts": [
+        12,
+        3,
+        3
+      ],
+      "independent_review": {
+        "commit": "b019256e",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+        "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+        "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+      },
+      "phase_peer_commit": "2503ca2f",
+      "phase_peer_sha256": "23054264afd13b75f4387f8a015782c4cb616158f2623984d4ed892ce9ee170e"
+    },
     "original_case_counts_expected_only": [
       12,
       3,
@@ -180,8 +195,35 @@
   },
   "failures_this_execution": [],
   "runtime_hardening_verified": false,
-  "actual_independent_gate_SDK_audits_pending": true,
+  "actual_independent_gate_SDK_audits_pending": false,
   "performance_timing_started": false,
   "candidate_promoted": false,
-  "scope": "Original fresh965, canonicalSDK, original archive transport and freshquiet only. Correctness owns original actual audits and unchangedstandalone signals next. No newtests/tools/thresholds or native/device/owner timing initiated by DNS. Retain all previous adverse results; future screens need actual audit/signal PASS and root scheduling."
+  "scope": "Original fresh965, canonicalSDK, original archive transport and freshquiet only. Correctness owns original actual audits and unchangedstandalone signals next. No newtests/tools/thresholds or native/device/owner timing initiated by DNS. Retain all previous adverse results; future screens need actual audit/signal PASS and root scheduling.",
+  "independent_actual_reviews": {
+    "related": {
+      "commit": "7ffb1476",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-related-independent-audit.json",
+      "sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+      "status": "PASS_FRESH_9E_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+    },
+    "SDK": {
+      "commit": "6c8ad70d",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-sdk-independent-audit.json",
+      "sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+      "status": "PASS_ACTUAL_BARE9E_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL965_CHAIN"
+    },
+    "signals": {
+      "commit": "b019256e",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+      "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+      "status": "PASS_EXACT9E_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+    }
+  },
+  "correctness_release_to_screens": {
+    "local": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/cached-hit-9e-signals/release-to-dns-screens.json",
+    "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-hit-9e-release-to-dns-screens.json",
+    "sha256": "d8bb694a874ece98b76d4e28957afe680bb36dab1b13dfb703a723a2813ab2ab",
+    "scope": "Actual original gates/SDK/signals complete; original screen coordination only, not full44/two110, candidate promotion or deployment."
+  },
+  "next_boundary": "DHCP originalfresh125/recovery/fourcopies and loop actual original inputs/ready, then DNSfreshfinalquiet; native240 andoriginaldevice10 precedeowner32. No timing begun by DNS."
 }
