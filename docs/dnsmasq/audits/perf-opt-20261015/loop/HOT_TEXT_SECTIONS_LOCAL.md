@@ -33,7 +33,7 @@ The successor assigns unique `.text.hot.dnsmasq.<function>` input sections.
 The local rust-lld default leaves them dispersed: it has **not** established
 that the selected layout works under the deployment linker. A map-only relink
 produced an identical ELF and explicitly shows 19 such surviving input sections.
-The other annotated methods are inlined. The original GNU SDK map has an empty
+The other annotated methods have no separately emitted range. The original GNU SDK map has an empty
 `.text.hot.*` selection before ordinary text, making the canonical SDK build
 the next layout check. If its own map does not actually cluster these sections,
 stop this experiment; do not alter the linker or choose a favorable rerun.
