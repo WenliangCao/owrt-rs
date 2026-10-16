@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_RELATED_AND_SDK_INDEPENDENT_REMOTE_AUDIT_PASS_ORIGINAL_OWNER32_RUNNING_BULK_PENDING",
+  "status": "ACTUAL_WARM_ORIGINAL961_CANONICAL_SDK_OWNER32_AND_LOCAL_TRANSPORT_INDEPENDENT_AUDITS_CLOSED_NO_PROMOTION",
   "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
   "execution_plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
   "G_stage_explicit_quiet_release_sha256": "29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7",
@@ -62,9 +62,9 @@
   },
   "independent_execution_plan_review_commit": "c17892bc",
   "independent_execution_plan_review_sha256": "05e188f8b65f6a24bd450608453df6bb097f35f4a6aae4e7fee9e54266f82710",
-  "raw_logs_test_ELFs_downloaded": false,
+  "raw_logs_test_ELFs_downloaded": true,
   "actual_related_independent_review_passed": true,
-  "SDK_passed": false,
+  "SDK_passed": true,
   "performance_accepted": false,
   "timing_started": true,
   "bulk_hold": "All raw and artifact bulk stays remote until DHCP releases G-stage fresh125/device50 archival and restoration window. Non-timing gates/SDK and small controls only.",
@@ -85,7 +85,7 @@
   },
   "SDK_command_returncode_observed": 0,
   "SDK_remote_postflight_passed": true,
-  "SDK_passed_definition": "Independent original raw/source/static SDK audit passed remotely; required downloaded raw artifact/archive rehash remains pending after DHCP safe gap. No full qualification or promotion implied.",
+  "SDK_passed_definition": "Original static/source/budget/SDK and required archive transport independently audited. This does not imply full qualification or performance promotion.",
   "postflight_tool_peer": "Loop locally verified exact name/status/plan-only adaptation from prior canonical verifier; collectors also preserve both actual underscore wrapper filenames.",
   "remote_read_only_actual_audit_handoff": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/warm-address-encode-execution-20261016/release-to-correctness-remote-audit.json",
@@ -162,8 +162,20 @@
       "no_measurement_retries": true,
       "transfers_held_during_both_measurement_slots": true
     },
-    "result": null,
+    "result": {
+      "commit": "813f6a86",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-owner32-independent-audit.json",
+      "sha256": "705ecac6a8de3527e6cca304e8e66ff8e0a7c9fc16edba81bd240dff541d6629",
+      "status": "PASS_WARM_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY"
+    },
     "performance_accepted": false
   },
-  "timing_started_by_DNS": false
+  "timing_started_by_DNS": false,
+  "final_result_report_sha256": "7c6c9c751a1498eaf753c82d9c3f8d5ee594e3fbecc5de9023daf152daf777f6",
+  "transport_independent_review": {
+    "commit": "c8b4cd31",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-local-transport-independent-audit.json",
+    "sha256": "b32f161c6a5f95fa1f928a4acb8b4614858df57333f0e23fa11eb5d6af89368e",
+    "status": "PASS_ALL_ORIGINAL_REQUIRED_WARM961_SDK_OWNER32_AND_REVIEWER_ARCHIVES_LOCALLY_VERIFIED"
+  }
 }

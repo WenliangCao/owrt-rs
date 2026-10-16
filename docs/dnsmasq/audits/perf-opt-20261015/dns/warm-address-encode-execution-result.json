@@ -1,0 +1,186 @@
+{
+  "status": "ACTUAL_WARM_ORIGINAL961_CANONICAL_SDK_OWNER32_AND_LOCAL_TRANSPORT_INDEPENDENT_AUDITS_CLOSED_NO_PROMOTION",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "source_manifest_sha256": "4a9150645236b4eaf55a03a24efdf769cd61095ec99a2c0f0bdb6aeeb9240348",
+  "git_identity_sha256": "455a63fd3b087c37ddd9d63e605c12412efb08e2997be9a92847d8765a9fc746",
+  "execution_plan_sha256": "d3edf2b7339fe85aecb527569382ccb60573d5f3aa15ef8140eeb9dcd56e2418",
+  "related": {
+    "verified_receipt_sha256": "088f8d2ecc4ac5ffebfa4407a6e9de7dd144514890f0cbc56c1440dd6d35293f",
+    "total_passed": 961,
+    "groups": [
+      {
+        "gate": "lib",
+        "passed": 840,
+        "failed": 0,
+        "ignored": 22,
+        "listed_tests": 862,
+        "log_sha256": "93095b1de66cc72b22a36940a4e618667e15ea4de91db1d00c3d7dcef62144f1",
+        "listing_sha256": "b0807f414ad40dc075088a0a1706158efc31d7e5b6be0c76deeab9118f90c273",
+        "binary_sha256": "32d7bfbf09d9b08060fdef99a572eda4ed711b07ce323e9c3dc78f17b74cf30d"
+      },
+      {
+        "gate": "bin",
+        "passed": 82,
+        "failed": 0,
+        "ignored": 4,
+        "listed_tests": 86,
+        "log_sha256": "933b97a3fb5dcf27fccd71ab8f8ca565196341d90c261a928193afc81c58c978",
+        "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61",
+        "binary_sha256": "bbd875fdb9a777dfdc9d38852892b7698f0062de51dd9020a61c248fd51927e1"
+      },
+      {
+        "gate": "allocations",
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 17,
+        "log_sha256": "60f1ad783a289ce996272a5af122cbb776ec5a687eeee387e07981c2e4030645",
+        "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11",
+        "binary_sha256": "0100d31a1c5ab8d9b3007b0d9f2b25a80040ded431dfcf3543969c5cf34a03a4"
+      },
+      {
+        "gate": "lib-ignored-live",
+        "passed": 18,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 18,
+        "log_sha256": "fc22c44b4b331502263c2e7855c36813d6c1557c8e5a67f91cda7d9a2f0ffb3c",
+        "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726",
+        "binary_sha256": "32d7bfbf09d9b08060fdef99a572eda4ed711b07ce323e9c3dc78f17b74cf30d"
+      },
+      {
+        "gate": "bin-ignored-live",
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 4,
+        "log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+        "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c",
+        "binary_sha256": "bbd875fdb9a777dfdc9d38852892b7698f0062de51dd9020a61c248fd51927e1"
+      }
+    ],
+    "original6ab_passed_names_retained": true,
+    "added_names": [],
+    "download": {
+      "status": "WARM_RELATED_RAW_THREE_TEST_ELFS_ACTUAL_WRAPPERS_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/execution/related-immutable-results.tar.gz",
+      "archive_sha256": "01e90cdfc8d3f4e3e5845f40c444b8021a848bfc4bb1042bd8f3aa267148d0d0",
+      "archive_bytes": 37591774,
+      "regular_files_including_manifest": 47,
+      "manifest_entries": 46,
+      "manifest_sha256": "b3e0a03729cbc6181f6226d90360497f8c47170d10e8f6e1844bc190bf569524",
+      "raw_bytes": 158773437,
+      "root": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/execution/related-downloaded",
+      "actual_wrapper_plan_hashes_matched": true
+    }
+  },
+  "SDK": {
+    "build_receipt_sha256": "b7928cc0dc828795344af41176aeee58eed9e4673569d4f7a9bd626a39298264",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2145051,
+        "sha256": "ba8268ed05529bbeeafbaa4e43371316204862e178eb853d64f7acf836a9026d"
+      }
+    ],
+    "APK": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1167812,
+      "sha256": "2705a59e99992d18d0b6bfc215dc7d1c80d102a1e0d84b7f155780ae8e2f1a55"
+    },
+    "link_map": {
+      "path": "link.map",
+      "sha256": "2fdbddf014261636972a5c869912759167622897c3b43907c3de80f865dbf45f"
+    },
+    "opt_level": "3",
+    "features": "",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "source_unchanged": true,
+    "sdk_recipe_restored": true,
+    "elf_layout": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "download": {
+      "status": "WARM_SDK_AND_PAYLOAD_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/execution/sdk-immutable-results.tar.gz",
+      "archive_sha256": "23fec483966492f980e923e1e56c5bb8aead4ecd49373d65e6968514819f9164",
+      "archive_bytes": 5043778,
+      "regular_files_including_manifest": 40,
+      "manifest_entries": 39,
+      "manifest_sha256": "83c20e27224ee3e5813b9b57feee3649ead14e7ab7ac1e2ed531b85e04db09bc",
+      "raw_bytes": 10944149,
+      "root": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/execution/sdk-downloaded"
+    }
+  },
+  "independent_reviews": {
+    "related": {
+      "commit": "7f189cf6",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-related-independent-audit.json",
+      "sha256": "dbd269282eca73f7ed8971db33eb32cf3d3b18a40f93fbd6a055536a171c3711",
+      "status": "PASS_FRESH_6DAD_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+    },
+    "SDK": {
+      "commit": "7db02ead",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-sdk-independent-audit.json",
+      "sha256": "e94817dd91324dd75ef4b1e9cca7036b50d72778ce9be5222930fb4a13bae7fd",
+      "status": "PASS_ACTUAL_BARE6DAD_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL961_CHAIN"
+    },
+    "owner32": {
+      "commit": "813f6a86",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-owner32-independent-audit.json",
+      "sha256": "705ecac6a8de3527e6cca304e8e66ff8e0a7c9fc16edba81bd240dff541d6629",
+      "status": "PASS_WARM_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY"
+    },
+    "transport": {
+      "commit": "c8b4cd31",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-local-transport-independent-audit.json",
+      "sha256": "b32f161c6a5f95fa1f928a4acb8b4614858df57333f0e23fa11eb5d6af89368e",
+      "status": "PASS_ALL_ORIGINAL_REQUIRED_WARM961_SDK_OWNER32_AND_REVIEWER_ARCHIVES_LOCALLY_VERIFIED"
+    }
+  },
+  "owner32_phase_peer": {
+    "before_commit": "f4bbad8b",
+    "before_receipt_sha256": "9672babe27ae23205ddeae818fbda0f6e10db712943c46b122bce7b81a3c61a0",
+    "actual_commit": "90e360c3",
+    "actual_receipt_sha256": "fbfe948bcd0be2168b86761f0e894a4c30a8da46f2f0fbbb4c05acf9826830aa"
+  },
+  "retained_transport_validator_failure": {
+    "path": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/execution/related-transport-validator-attempt1-failure.json",
+    "sha256": "e73291eda8d4651032bd557706422451053ac4976b5a7103795176f7f85594f0",
+    "value": {
+      "status": "LOCAL_TRANSPORT_VALIDATOR_WRAPPER_SCOPE_ERROR_AFTER_ARCHIVE_EXTRACT_AND_MANIFEST_HASH_PASS",
+      "script_sha256": "a37c7a41b27f490722433a4d9749284e3c04d5a45613932ce853c346b1d362d6",
+      "archive_sha256": "01e90cdfc8d3f4e3e5845f40c444b8021a848bfc4bb1042bd8f3aa267148d0d0",
+      "archive_bytes": 37591774,
+      "manifest_entries_rehashed": 46,
+      "regular_files_including_manifest": 47,
+      "exception": "FileNotFoundError: related-downloaded/new/receipts/launch_related.py",
+      "cause": "The plan lists five control scripts, while original collector and actual preflight wrapper_hashes intentionally contain only the two executed runner/allocation wrappers. Validator incorrectly demanded all five inside the original archive.",
+      "archive_or_extracted_bytes_overwritten": false,
+      "remote_download_retried": false,
+      "product_or_content_test_rerun": false,
+      "resolution": "Rehash preserved archive and extracted bytes without extraction/writes, require both actual preflight wrappers against plan, separately bind three control scripts through existing frozen preparation/pretransfer. Continue original SDK collector once."
+    },
+    "resolution": "Original47-member archive was already fully present and manifest-hashed. Exact preflight two actual wrapper names checked against plan; three control scripts separately bound to frozen prep/pretransfer. Same original archive/extracted bytes retained, no download/product/content rerun."
+  },
+  "all_original_downloads_completed": true,
+  "all_original_remote_evidence_retained": true,
+  "runtime_hardening_verified": false,
+  "full44_or_two110_inherited": false,
+  "performance_promoted": false,
+  "scope": "Original G185/warm6dad owner comparison includes inherited6ab changes. Preserve its high-load small gain and send-lag adverse; no isolatedwriter benefit or CPU acceptance from nativeprobe, which does not recycle returned replies. root selected separate9e for next research; warm evidence remains frozen."
+}
