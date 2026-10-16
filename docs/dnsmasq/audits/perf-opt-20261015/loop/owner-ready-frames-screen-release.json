@@ -1,0 +1,110 @@
+{
+  "status": "QUIET_RELEASE_DNS_ACTUAL5C_AND_ORIGINAL_SIGNALS_TO_OWNER32_DEVICE10",
+  "epoch": 1792143953.5567126,
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "source_files_rehashed": 179,
+  "git_identity_sha256": "1e889f6741ab61b40da98685f9ca6e36308bf7424004299297b6691f5daa24e1",
+  "source_manifest_sha256": "099fc1cefbab4a1238a511ac303c587368af8dea35f4ac2de11e799e92e68b29",
+  "related_verified_sha256": "671ac4f17b2755064149705902c77f289cd289818c527028d7777309f4fd66f8",
+  "actual_related_passed": 961,
+  "sdk_postflight_sha256": "35eb839874b059bdeea2d5ecf9cd3c2d8e83a35bc247cb355b9eca2c6e24048a",
+  "sdk_artifacts_rehashed": {
+    "build.json": {
+      "bytes": 43982,
+      "sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66"
+    },
+    "cargo-version.log": {
+      "bytes": 36,
+      "sha256": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503"
+    },
+    "compile.log": {
+      "bytes": 153190,
+      "sha256": "1954432e6a726f527cf01bae2c1d54ceb2bc773c32a3ecbff58aae9d5a143033"
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "bytes": 1167379,
+      "sha256": "98144d551bcb44b93a47152ae91a28bbf4b0a7f135d702f0c94177c65efbde48"
+    },
+    "dnsmasq-prestrip": {
+      "bytes": 2146784,
+      "sha256": "4aa2514480fc9e092c92a3a605f31d2c2a87f2678431ddc7ed38ab4c34725ae5"
+    },
+    "dnsmasq-rs": {
+      "bytes": 2145051,
+      "sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45"
+    },
+    "extract.log": {
+      "bytes": 105,
+      "sha256": "c34fbddaf251d5aadb45cbb7b569a8bd79eae787881251f421dfc4a7d855f3d2"
+    },
+    "invalidate-product.log": {
+      "bytes": 37,
+      "sha256": "a93efe9c6e3e5cd16e90a7ee3afdc2af73731dc58d4a51977f976b4ca20dcd65"
+    },
+    "link.map": {
+      "bytes": 3023638,
+      "sha256": "b9a3bf7fc440fa2dba745d5e8cebc7e4c4f668cc4801fb8956985a59efad92c4"
+    },
+    "prepare.log": {
+      "bytes": 7309,
+      "sha256": "410a2b594b2850d04a04175f0c250aadd65d1fc237db6d17d2ab166cf5d6f842"
+    },
+    "readelf.log": {
+      "bytes": 2788,
+      "sha256": "56c32a1c44075b27e62a2b2c6bf393caf66755c3aa3dca14d11f28b280108065"
+    },
+    "rustc-version.log": {
+      "bytes": 197,
+      "sha256": "eab8ee6e77a5c1774f73d75eb08f5c51fc56a577f352d22f4d9ae6d7fce56e14"
+    }
+  },
+  "unchanged_canonical_opt3_verified": true,
+  "original_budget_passed": true,
+  "accepted_G_unchanged": true,
+  "research_including_exact_image_C": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "dependencies": {
+    "independent_actual_review": {
+      "status": "PASS",
+      "related_commit": "c1e9ff9d",
+      "related_report_sha256": "18b8d96c6d5751153c2ef8ea28f227d4232b631b78e1f71e69e4e16ee0eb34c5",
+      "SDK_commit": "3c427195",
+      "SDK_report_sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925",
+      "signal_commit": "80f13a76",
+      "signal_report_sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a",
+      "signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16"
+    },
+    "loop_pretransfer_complete": true,
+    "loop_pretransfer": {
+      "local_path": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/owner-ready-frames-owner32-preparation/pretransfer-receipt.json",
+      "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-ready-frames-owner32-inputs/pretransfer.json",
+      "sha256": "8835ed0990781dbee950057ef446083ad169229da47527ff9ab5bf6ca6f549a4",
+      "ready_metadata_pending_final_release": true
+    },
+    "device_pretransfer_complete": true,
+    "device_pretransfer": {
+      "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-stage-complete.json",
+      "sha256": "ca82c065a9036d7bd09cad5211554a7018848a4d27dba925d5f1590659189c4d",
+      "preflight_sha256": "b9333db3b401fb4ef198488ae880c35aee291393088502d25ba7df5a8a4ee034",
+      "health_summary_sha256": "7e66b56c58791fcaa1cf0ca196794181261e8d287cc938defecdf552bc5eef8f",
+      "no_workload_started": true
+    },
+    "metadata_order": "Afterthisrelease,loopbinds/uploadsfinalreadyowner32metadataandnotifiesDHCP; onlythenbothoriginalscreensmaystart. Noadditionalbulk.",
+    "native240_excluded": true,
+    "comparison_scope": "G185vs5cincludes025anddump/inherited6ab;no1df/803,notisolatedframe-onlyeffect."
+  },
+  "original_standalone_signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+  "signals_independent_quiet_release_sha256": "2cb2f433c85cf7b8c9c658344d0482f35a9cc0d37e6c627de670380c67cc5a2c",
+  "native240_excluded": true,
+  "next_owners": [
+    "loop original G/5c exact-SDK owner32",
+    "DHCP original fresh G/5c device ten"
+  ],
+  "comparison_scope": "G185 versus5c contains025 plusdump andinherited6abchanges; no1df/803, notisolatedframe-onlyeffect",
+  "DNS_stops_Oracle_access_after_this_handoff": true,
+  "future_experiments_wait_for_5c_measurement_and_audit_release": true
+}

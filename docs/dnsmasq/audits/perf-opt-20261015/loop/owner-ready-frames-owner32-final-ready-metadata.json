@@ -1,0 +1,10 @@
+{
+  "status": "FINAL_READY_METADATA_UPDATED_AND_REHASHED_BEFORE_ANY_MEASUREMENT",
+  "plan_sha256": "c6c6db1fc43e5809ef78c7d605b1dc9026f8293c3e844e25bb7107d04b7858a3",
+  "release_sha256": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+  "all_original_tools_verified": true,
+  "owner_uid": 1001,
+  "output_exists": false,
+  "controller_started": false,
+  "epoch": 1792144054.0919123
+}

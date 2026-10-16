@@ -1,0 +1,9 @@
+{
+  "stage": "finalready metadata verification beforeplanrename/write",
+  "error": "Adapter retained run_185_opt2_owner32.py/analyze_185_opt2_owner32.py filenames; missing originalfilename check failed before any remoteplanmutation or measurement.",
+  "script_sha256": "f17f133d94196590515ee193bdc0db1bf63287d55d482c1de8576c6e2c11a330",
+  "remote_plan_mutated": false,
+  "measurement_started": false,
+  "measurement_retries": 0,
+  "epoch": 1792144053.4630778
+}
