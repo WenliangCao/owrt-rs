@@ -7,6 +7,10 @@ Local preparation only. Frozen G remains
 related gate, independent SDK review and exclusive release remain null.
 Nothing was transferred, built or measured.
 
+The later actual plans retain the same G/1df comparison. Because 1df inherits
+6ab, any result includes those inherited changes as well as 1df; it cannot
+isolate the inline-address change. No 1df/6ab timing or attribution is implied.
+
 The [native preparation](inline-address-details-native-preparation.json)
 retains the original 15 scenes, 90 stat windows, 150 plain windows and four
 build commands. Operation counts, checksums, zero-allocation assertions,
