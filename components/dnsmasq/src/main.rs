@@ -4404,7 +4404,13 @@ impl SinglePoll {
             // Active timers retain the existing one-hour recheck cadence.
             // An idle owner has no periodic deadline.
             let deadline = deadline.map(|due| due.min(now + Duration::from_secs(3600)));
-            let started = Instant::now();
+            // An indefinite poll needs no fresh deadline clock. The earlier
+            // timestamp is unused unless optional wait diagnostics are active.
+            let started = if deadline.is_some() || self.m6b.enabled() {
+                Instant::now()
+            } else {
+                now
+            };
             let timeout = owner_poll_timeout(deadline, started, runnable);
             debug_assert!(!runnable || timeout == 0);
             let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
@@ -4415,7 +4421,7 @@ impl SinglePoll {
                     return Err(error);
                 }
             };
-            let waited = started.elapsed();
+            let waited = if self.m6b.enabled() { started.elapsed() } else { Duration::ZERO };
             let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
             let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
             let signal_ready = signal_fd_index
