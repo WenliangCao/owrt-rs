@@ -1,0 +1,104 @@
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -1578,6 +1578,79 @@
+ }
+ #endif
+  
++/* Excluded loopback UDP fixture cut. Both modes use this one diagnostic ELF.
++   The first 1000 eligible requests use the original cache/forward path. */
++static int receive_stage_mode = -1;
++static unsigned long long receive_stage_matched, receive_stage_cuts;
++
++static void receive_stage_report(void)
++{
++  const char *path = getenv("DNSMASQ_UDP_STAGE_OUT");
++  FILE *out;
++  if (!path)
++    return;
++  if (!(out = fopen(path, "w")))
++    {
++      perror("DNSMASQ_UDP_STAGE_OUT");
++      return;
++    }
++  fprintf(out, "{\"mode\":%d,\"matched_queries\":%llu,"
++          "\"prewarm_threshold\":1000,\"receive_cuts\":%llu}\n",
++          receive_stage_mode, receive_stage_matched, receive_stage_cuts);
++  if (fclose(out) != 0)
++    perror("DNSMASQ_UDP_STAGE_OUT");
++}
++
++static size_t receive_stage_answer(unsigned char *packet, size_t length)
++{
++  static const unsigned char question_header[] = {1,0,0,1,0,0,0,0,0,0};
++  static const unsigned char suffix[] = {3,'m','6','a',4,'t','e','s','t',0};
++  static const unsigned char answer_header[] = {0x81,0x80,0,1,0,1,0,0,0,0};
++  static const unsigned char address4[] = {192,0,2,1};
++  static const unsigned char address6[] = {0x20,0x01,0x0d,0xb8,0,0,0,0,0,0,0,0,0,0,0,1};
++  unsigned char record[] = {0xc0,0x0c,0,0,0,1,0,0,0,120,0,0};
++  unsigned int index = 0, i, digit, type;
++
++  if (receive_stage_mode == -1)
++    {
++      const char *mode = getenv("DNSMASQ_UDP_STAGE");
++      if (mode && strcmp(mode, "full") && strcmp(mode, "receive"))
++        die(_("invalid diagnostic UDP stage"), NULL, EC_BADCONF);
++      receive_stage_mode = mode && !strcmp(mode, "receive");
++      if (atexit(receive_stage_report) != 0)
++        die(_("cannot register diagnostic report"), NULL, EC_MISC);
++    }
++  if (length != 32 || memcmp(packet + 2, question_header, 10) ||
++      packet[12] != 5 || packet[13] != 'q' ||
++      memcmp(packet + 18, suffix, 10) || packet[28] != 0 ||
++      (packet[29] != 1 && packet[29] != 28) || packet[30] != 0 || packet[31] != 1)
++    return 0;
++  for (i = 14; i < 18; i++)
++    {
++      if (packet[i] >= '0' && packet[i] <= '9')
++        digit = packet[i] - '0';
++      else if (packet[i] >= 'a' && packet[i] <= 'f')
++        digit = packet[i] - 'a' + 10;
++      else
++        return 0;
++      index = index * 16 + digit;
++    }
++  if (index >= 800)
++    return 0;
++  receive_stage_matched++;
++  if (!receive_stage_mode || receive_stage_matched <= 1000)
++    return 0;
++
++  type = packet[29];
++  record[3] = type;
++  record[11] = type == 1 ? 4 : 16;
++  memcpy(packet + 2, answer_header, 10);
++  memcpy(packet + 32, record, sizeof(record));
++  memcpy(packet + 44, type == 1 ? address4 : address6, record[11]);
++  receive_stage_cuts++;
++  return 44 + record[11];
++}
++
+ void receive_query(struct listener *listen, time_t now)
+ {
+   struct dns_header *header = (struct dns_header *)daemon->packet;
+@@ -1659,6 +1732,21 @@
+       (msg.msg_flags & MSG_TRUNC) ||
+       (header->hb3 & HB3_QR))
+     return;
++
++  /* Match the existing G receive cut only in the isolated bound IPv4
++     loopback fixture. Socket creation, recvmsg and send_from stay original.
++     Every byte sent is initialized; the unused packet tail is not sent. */
++  if (family == AF_INET && option_bool(OPT_NOWILD) && listen->iface &&
++      listen->addr.in.sin_addr.s_addr == htonl(INADDR_LOOPBACK) &&
++      source_addr.in.sin_addr.s_addr == htonl(INADDR_LOOPBACK) &&
++      source_addr.in.sin_port != 0 && daemon->edns_pktsz >= 60 &&
++      (m = receive_stage_answer((unsigned char *)header, (size_t)n)) != 0)
++    {
++      source_addr.sa.sa_family = family;
++      send_from(listen->fd, option_bool(OPT_NOWILD) || option_bool(OPT_CLEVERBIND),
++                (char *)header, m, &source_addr, &dst_addr, if_index);
++      return;
++    }
+ 
+   /* Clear buffer beyond request to avoid risk of
+      information disclosure. */
