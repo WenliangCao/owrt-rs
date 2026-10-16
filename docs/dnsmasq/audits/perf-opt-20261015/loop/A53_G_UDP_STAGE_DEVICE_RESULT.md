@@ -29,3 +29,5 @@ One diagnostic ELF `686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fdded
 The original warm owner32 timing run overlapped this device50 on a separate Oracle host. Its actual launch and completion receipts, subsequent author analysis/postflight, and independent original-analyzer replay are bound in the JSON; no bulk transfer was allowed before archive verification and E/F restoration.
 
 [Full result](A53_G_UDP_STAGE_DEVICE_RESULT.json) · [Frozen plan](A53_G_UDP_STAGE_DEVICE_PLAN.json)
+
+Independent local raw audit PASS: [report](../correctness/g-stage-device-independent-audit.md), commit `94166598`, JSON SHA256 `8e15f20e9376104578da0bdd7285ae8a13c751932285950b40b18630e39a916d`. It recomputes all 15 primary and 35 resource comparisons and verifies the archive, counter, health and restoration evidence. The original result JSON remains unchanged at `1bb4ba246de1dc42181609bc2e4bf1c6097d89a1fad64c6e0662e90a4e4d3327`.
