@@ -1,0 +1,54 @@
+{
+  "scope": "Retire completed/rejected standalone experiment branches only. Exact archived source and all private evidence/worktrees retained; active0161/03ace/a8, E/F, all agent timing/qualification branches unchanged.",
+  "rows": [
+    {
+      "worktree": "owrt-perf-pgo-local-plan-20261015",
+      "retired_branch": "research/dnsmasq-pgo-local-plan-20261015",
+      "commit": "577e7dff67551bf68323fa0b78ce29f41c96635e",
+      "archive_tag": "archive/perf-20261016/pgo-local-plan",
+      "status": "clean worktree detached; all files/private evidence retained"
+    },
+    {
+      "worktree": "owrt-perf-pgo-sdk-smoke-20261016",
+      "retired_branch": "research/dnsmasq-pgo-sdk-smoke-20261016",
+      "commit": "f396d69952eb3c55ef137b03dfb65091bdd1d067",
+      "archive_tag": "archive/perf-20261016/pgo-sdk-smoke",
+      "status": "clean worktree detached; all files/private evidence retained"
+    },
+    {
+      "worktree": "owrt-perf-local-cache-integration-20261016",
+      "retired_branch": "perf/dnsmasq-local-cache-integration-20261016",
+      "commit": "8d572ba1348037420da6c6a36dd8623a08572f25",
+      "archive_tag": "archive/perf-20261016/local-cache-integration",
+      "status": "clean worktree detached; all files/private evidence retained"
+    },
+    {
+      "worktree": "owrt-perf-local-address-miss-20261016",
+      "retired_branch": "perf/dnsmasq-local-address-miss-20261016",
+      "commit": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+      "archive_tag": "archive/perf-20261016/local-address-miss",
+      "status": "clean worktree detached; all files/private evidence retained"
+    },
+    {
+      "worktree": "owrt-perf-local-address-miss-stack-20261016",
+      "retired_branch": "perf/dnsmasq-local-address-miss-stack-20261016",
+      "commit": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+      "archive_tag": "archive/perf-20261016/local-address-miss-stack",
+      "status": "clean worktree detached; all files/private evidence retained"
+    },
+    {
+      "worktree": "owrt-perf-host-miss-index-20261016",
+      "retired_branch": "perf/dnsmasq-host-miss-index-20261016",
+      "commit": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+      "archive_tag": "archive/perf-20261016/host-miss-index",
+      "status": "clean worktree detached; all files/private evidence retained"
+    },
+    {
+      "worktree": "owrt-perf-fresh-address-frame-20261016",
+      "retired_branch": "perf/dnsmasq-fresh-address-frame-20261016",
+      "commit": "b343df112e430f16e21026645e56755f2d0fc391",
+      "archive_tag": "archive/perf-20261016/fresh-address-frame",
+      "status": "clean worktree detached; all files/private evidence retained"
+    }
+  ]
+}
