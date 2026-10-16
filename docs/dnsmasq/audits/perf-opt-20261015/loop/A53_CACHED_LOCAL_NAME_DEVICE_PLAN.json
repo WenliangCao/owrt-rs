@@ -142,7 +142,7 @@
   ],
   "measurement_environment": "No DNSMASQ_UDP_STAGE or allocation-meter variables. Both normal product ELFs use the unchanged real cache/local answer.",
   "output_requirements": [
-    "10 attempts in five alternating F/address-dispatch pairs; no extra windows, supplements or replacement.",
+    "10 attempts in five alternating acceptedE/cached-local-name0161 pairs; no extra windows, supplements or replacement without the original explicit evidence-based tool-invalid rule.",
     "Each6000 fixture replies correct, including1000 prewarm; original steady upstream0, file/live ELF, single process/thread samples and final endpoint, isolated namespace, case/daemon exit0.",
     "Original20s measurement and100Hz CPU endpoint over5000 completed warmup+measurement queries; original W/direction and exclusive8tick median-difference gate.",
     "First archive attempt retained even if partial; any failed gate stops; verify all raw bytes before pruning valid device copies.",
