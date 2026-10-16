@@ -1,0 +1,42 @@
+{
+  "status": "LOCAL_EXCLUDED_DIAGNOSTIC_SOURCE_ONLY_NOT_SELECTED",
+  "source": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "base_G": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "original_stage": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+  "rebase_commit": "58f96e8e",
+  "buffer_lifecycle_adaptation": "a34e7310",
+  "original_fixed_modes": [
+    "full",
+    "receive",
+    "before-answer",
+    "skip-local"
+  ],
+  "fixture_contract_unchanged": {
+    "names": 800,
+    "types": [
+      "A",
+      "AAAA"
+    ],
+    "prewarm_receive_threshold": 1000,
+    "matched_per_window": 6000,
+    "selected_cut_per_window": 5000,
+    "TTL": 120
+  },
+  "local_checks": {
+    "fixture": "1testPASS: original1600replies/negative/thresholdcontrols plus retained128Bbuffer identity across replies",
+    "musl_all_targets": "exit0"
+  },
+  "logs_sha256": {
+    "original-stage.patch": "9f61290690e857b18665ea5c20719722ec65fbb52149296011573bb23cab6013",
+    "patch-check.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "patch-check.stderr": "50ce9c292739ad55400faa4337d2f3c3780f3ff1c0bf688f2d2e612a82a744dd",
+    "fixture-test.log": "93565fe684f188b2b1ddfd1306d51b6ec8408e1281099e2405f214d517acbdc4",
+    "musl-check.log": "58c70a54ba0616ad6ed7eec87d86b2d768988b2d199b8e8836a798cef1a2dde1"
+  },
+  "retained_local_failure": "OriginalE patch context did not apply to G local.rs because its record assembly frame moved. No file changed by failed --check; same hook was explicitly inserted at shared entry, not cold record helper. Other original hooks applied.",
+  "SDK_artifacts": null,
+  "actual_linux_fixture": null,
+  "device_plan": null,
+  "remote_executed": false,
+  "scope": "Only a possible freshG coarse intervention if pendingbare1df cannot resolve devicegap. Original50window method can be reused; no immediate selection, tool change or measurement. No synthetic cut can be product/promoted; calibration and nonadditive limitations mandatory."
+}
