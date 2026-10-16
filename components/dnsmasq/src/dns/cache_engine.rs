@@ -120,6 +120,62 @@ impl CacheContext<'_> {
             dnssec_requested, self.filter_rr.contains(&question.rrtype), None)
     }
 
+    /// A plain fresh address answer can reuse the received packet. None leaves
+    /// packet/cache/local state unchanged; no fallible work remains after LRU.
+    pub(super) fn try_plain_udp_in_place(
+        cache: &mut Cache, packet: &mut [u8], query_len: usize,
+        local: &mut LocalDnsService, now: i64, scratch: &mut Vec<u8>,
+    ) -> Option<usize> {
+        if local.query_logging || local.config.edns.active() || scratch.capacity() == 0
+            || query_len > usize::from(local.edns_packet_max.max(512))
+        { return None; }
+        let query = packet.get(..query_len)?;
+        let header = Header::parse(query).ok()?;
+        if header.flags != 0x0100 || header.questions != 1 || header.answers != 0
+            || header.authorities != 0 || header.additionals != 0
+        { return None; }
+        let question = super::forward::Question::parse_with_header_reusing(query, header, scratch).ok()?;
+        let result = (|| {
+            let (kind, data_len) = match question.rrtype {
+                1 => (Kind::Ipv4, 4), 28 => (Kind::Ipv6, 16), _ => return None,
+            };
+            let name = question.name.as_wire();
+            let answer_len = query_len.checked_add(12 + data_len)?;
+            if question.class != 1 || query_len != 12 + name.len() + 4
+                || packet.get(12..12 + name.len()) != Some(name)
+                || local.config.filter_rr.contains(&question.rrtype)
+                || answer_len > local.max_udp.min(512) || answer_len > packet.len()
+            { return None; }
+            let (_, lookup) = cache.inspect_name(&question.name, now);
+            cache.single_fresh_address_id_with_hint(&question.name, kind, now, lookup.as_ref())?;
+            let answerer = super::local::LocalAnswerer {
+                config: &local.config, hosts: &mut local.hosts,
+                local_ttl: local.local_ttl, max_packet: 512,
+            };
+            if !answerer.plain_cached_address_is_unclaimed(
+                &question, &local.leases, now, &local.interfaces,
+            ) { return None; }
+            let id = cache.single_fresh_address_with_hint(&question.name, kind, now, lookup.as_ref())
+                .expect("read-only checks preserve the selected address");
+            let entry = cache.get(id).expect("selected address remains live");
+            let ttl = entry.reply_ttl(now, cache.policy());
+            // Same question bytes and c00c owner as PacketWriter::record_at.
+            // Capacity and the complete address length were checked above.
+            packet[2..4].copy_from_slice(&0x8180u16.to_be_bytes());
+            packet[6..8].copy_from_slice(&1u16.to_be_bytes());
+            let rr = &mut packet[query_len..answer_len];
+            rr[..2].copy_from_slice(&[0xc0, 0x0c]);
+            rr[2..4].copy_from_slice(&question.rrtype.to_be_bytes());
+            rr[4..6].copy_from_slice(&1u16.to_be_bytes());
+            rr[6..10].copy_from_slice(&ttl.to_be_bytes());
+            rr[10..12].copy_from_slice(&(data_len as u16).to_be_bytes());
+            rr[12..].copy_from_slice(&entry.record.data);
+            Some(answer_len)
+        })();
+        *scratch = question.name.into_wire_buffer();
+        result
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub(super) fn answer_from_cache(
         cache: &mut Cache,
@@ -2927,3 +2983,7 @@ mod tests {
         assert!(answer.packet.is_none());
     }
 }
+
+#[cfg(test)]
+#[path = "cache_plain_udp_tests.rs"]
+mod plain_udp_tests;

@@ -954,6 +954,20 @@ impl<R: Random> DnsDaemon<R> {
         self.forward_udp_inner(query, client, listener, Some(local))
     }
 
+    /// Return the response length only after a complete in-place cached hit.
+    /// Rejected packets keep the general owner's admission and expiry path.
+    pub fn try_plain_cached_udp_in_place(
+        &mut self, packet: &mut [u8], query_len: usize, local: &mut LocalDnsService,
+    ) -> Option<usize> {
+        let answer = CacheContext::try_plain_udp_in_place(self.cache.as_mut()?, packet, query_len,
+            local, unix_seconds(), &mut self.udp_name_buffer);
+        if answer.is_some() {
+            // Deferred admission can follow a newer upstream resend save.
+            self.invalidate_udp_resend();
+        }
+        answer
+    }
+
     /// The owner decorates after preserving the original client metadata and
     /// completing MAC I/O. Local/cache envelopes still use the original UDP
     /// query, while forward.c stashes and retries the decorated packet.

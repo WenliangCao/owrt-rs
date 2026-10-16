@@ -620,6 +620,22 @@ impl<'a> LocalAnswerer<'a> {
         }))
     }
 
+    pub(super) fn plain_cached_address_is_unclaimed(
+        &self, question: &super::forward::Question, leases: &LeaseNames, now: i64,
+        interfaces: &super::interface_records::InterfaceRecords,
+    ) -> bool {
+        let mut scratch = [0; 253];
+        let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
+        let name = &scratch[..length];
+        // Let the general lookup perform sticky expiry before any shortcut.
+        // CNAMEs are excluded below, so only this original name is traversed.
+        !leases.has_expired_name(name, now)
+            && self.cached_address_is_unclaimed(question, Some(name), LeaseView {
+                synth: &self.config.synth_domains, names: leases, now,
+                local_ttl: self.local_ttl, local_network: None, interfaces,
+            })
+    }
+
     // Only an existing fresh address reaches this check. Paths without such
     // an entry keep the original lookup; local/cache coexistence falls back.
     // Lease expiry has already run, and its converted name can be reused.

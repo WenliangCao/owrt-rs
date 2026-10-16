@@ -130,3 +130,49 @@ fn cache_hit_clears_parent_udp_save_but_plain_tcp_snapshot_keeps_it() {
     assert_eq!(daemon.pending_count(), 1);
     assert_eq!(daemon.forward_counters().queries_forwarded, 2);
 }
+
+#[test]
+fn plain_cached_udp_clears_deferred_resend_without_cancelling_pending() {
+    let (mut daemon, server) = daemon();
+    let seed = packet("cached.route.test");
+    assert!(matches!(daemon.handle_udp(&seed, client()).unwrap(), QueryResult::Forwarded(_)));
+    let (wire, peer) = received(&server);
+    let question = WireQuestion::parse(&wire, 12).unwrap();
+    let mut writer = PacketWriter::new(Header::parse(&wire).unwrap().id, 0x8180, 512).unwrap();
+    writer.question(&question.name, 1, 1).unwrap();
+    writer.record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 55]).unwrap();
+    server.send_to(&writer.finish(), peer).unwrap();
+    assert_eq!(daemon.poll(Duration::from_secs(1)).unwrap().len(), 1);
+
+    let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+    let metadata = super::super::forward_service::query_metadata(&seed, 1232).unwrap();
+    let QueryResult::Cached(answer) = daemon.answer_udp_prepared_with_local(
+        &seed, &seed, metadata, client(), None, &mut local,
+    ).unwrap() else { panic!("expected warm cache hit"); };
+    local.recycle_cached_reply(answer);
+    assert!(daemon.udp_name_buffer.capacity() > 0);
+
+    // The received hit cleared scratch before an asynchronous admission wait.
+    // A later upstream send during that wait can repopulate the saved packet.
+    daemon.invalidate_udp_resend();
+    let saved = pending(&mut daemon, &server);
+    let counts = daemon.forward_counters();
+    daemon.resend_udp_query();
+    assert_eq!(received(&server), saved, "the deferred interval must leave a live resend");
+
+    let mut answer = vec![0xa5; 512];
+    answer[..seed.len()].copy_from_slice(&seed);
+    let length = daemon.try_plain_cached_udp_in_place(&mut answer, seed.len(), &mut local)
+        .expect("warm plain address hit must select the shortcut");
+    assert_eq!(&answer[length - 4..length], &[192, 0, 2, 55]);
+    assert_eq!(daemon.pending_count(), 1, "scratch invalidation is not cancellation");
+    assert_eq!(daemon.forward_counters(), counts);
+    daemon.resend_udp_query();
+    // A nonblocking read can race local UDP delivery on macOS.
+    server.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
+    let received = server.recv_from(&mut [0; 2048]);
+    assert!(received.is_err(), "cached hit retained the deferred resend: {received:?}");
+    assert!(matches!(received.unwrap_err().kind(), io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut));
+    assert_eq!(daemon.pending_count(), 1);
+    assert_eq!(daemon.forward_counters(), counts);
+}
