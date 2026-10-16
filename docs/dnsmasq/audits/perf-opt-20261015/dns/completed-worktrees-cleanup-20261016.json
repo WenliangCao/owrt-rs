@@ -1,23 +1,48 @@
 {
-  "scope": "Completed research worktrees explicitly assigned for cleanup; current PGO, PMU, CPUclock and c95 input paths were inspected. No current input or capture path changed. No remote action or push.",
+  "scope": "Completed research worktrees explicitly assigned for cleanup; current PGO, PMU, CPUclock, D1, device batch bindings, c95 and possible C skeleton inputs/imports were inspected. Current input/capture paths, active trees, user files and prompts remain unchanged. Local only; no push.",
   "evidence_root": "/Users/USER/Developer/owrt-perf-evidence-20261016",
   "moves_are_same_volume_atomic_renames": true,
   "active_input_roots_checked": [
-    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/tools/dnsmasq/pgo_existing_runtime.py",
-    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/docs/dnsmasq/audits/perf-opt-20261015/dns/pgo-existing-runtime-plan.json",
-    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/pgo-existing-runtime-20261016",
-    "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/private/cg-pmu-20261016",
+    "/Users/USER/Developer/owrt-control-plane-rs/tools",
+    "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private",
+    "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/tools",
+    "/Users/USER/Developer/owrt-diagnostic-g-udp-stages-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-accepted-e-readonly-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-cached-zero-frame-oracle-full-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-cached-zero-frame-owner32-20261016/tools",
     "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/docs/dnsmasq/audits/perf-opt-20261015/loop/run_cg_pmu.py",
     "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/docs/dnsmasq/audits/perf-opt-20261015/loop/summarize_cg_pmu.py",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cpu-clock-capability",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/clock-source",
+    "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/private/cg-pmu-20261016",
+    "/Users/USER/Developer/owrt-perf-cg-pmu-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-correctness-20261015/private/c-receive-diagnostic",
+    "/Users/USER/Developer/owrt-perf-correctness-20261015/private/hot-text-group-signals",
+    "/Users/USER/Developer/owrt-perf-correctness-20261015/tools",
     "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/A53_HOT_TEXT_GROUP_DEVICE_PLAN.json",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/stage-a53-hot-text-group.py",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/report-a53-hot-text-group.py",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/verify-a53-hot-text-group.py",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/start-a53-hot-text-group.py",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/tools",
+    "/Users/USER/Developer/owrt-perf-hot-text-group-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution",
+    "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/clock-source",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/cpu-clock-capability",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/launch-a53-hot-text-group.py",
     "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/postflight-a53-hot-text-group.py",
-    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/launch-a53-hot-text-group.py"
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/report-a53-hot-text-group.py",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-hot-text-group",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/stage-a53-hot-text-group.py",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/start-a53-hot-text-group.py",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/verify-a53-hot-text-group.py",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/tools",
+    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/docs/dnsmasq/audits/perf-opt-20261015/dns/pgo-existing-runtime-plan.json",
+    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/pgo-existing-runtime-20261016",
+    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016/tools/dnsmasq/pgo_existing_runtime.py",
+    "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016/private",
+    "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-post185-combined-20261016/tools",
+    "/Users/USER/Developer/owrt-perf-udp-idle-batch-20261015/tools"
   ],
   "trees": [
     {
@@ -253,9 +278,1628 @@
         }
       ],
       "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-diagnostic-185-udp-alloc-20261016",
+      "status": "removed",
+      "head": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+      "preserved_tag": "refs/tags/archive/perf/owrt-diagnostic-185-udp-alloc-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-diagnostic-185-udp-alloc-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-diagnostic-185-udp-alloc-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-diagnostic-e-udp-alloc-20261015",
+      "status": "removed",
+      "head": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+      "preserved_tag": "refs/tags/archive/perf/owrt-diagnostic-e-udp-alloc-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-diagnostic-e-udp-alloc-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-diagnostic-e-udp-alloc-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-diagnostic-e-udp-alloc-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-diagnostic-e-udp-alloc-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-diagnostic-e-udp-stages-20261015",
+      "status": "removed",
+      "head": "acec64f2d3f393ef45c958dedbcf715c4cd6d09f",
+      "preserved_tag": "refs/tags/archive/perf/owrt-diagnostic-e-udp-stages-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-diagnostic-e-udp-stages-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-diagnostic-e-udp-stages-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-diagnostic-e-udp-stages-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-diagnostic-e-udp-stages-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-fix-initial-hosts-20261015",
+      "status": "removed",
+      "head": "ec0e3f4a0cc98eca60362901d3eae54cdc8e062f",
+      "preserved_tag": "refs/tags/archive/perf/owrt-fix-initial-hosts-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/E_UDP_HIT_ALLOCATION_AUDIT.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-fix-initial-hosts-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-fix-initial-hosts-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-fix-loadgen-queue-20261015",
+      "status": "removed",
+      "head": "ab7f3695c8438ec0e6cf3b88656992b5ec90ca83",
+      "preserved_tag": "refs/tags/archive/perf/owrt-fix-loadgen-queue-20261015-20261016",
+      "original_branch": "refs/heads/fix/perf-loadgen-queue-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/correctness/loadgen-queue-repair.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-fix-loadgen-queue-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-fix-loadgen-queue-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-fix-loadgen-queue-20261015/tools/dnsmasq/__pycache__",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-fix-loadgen-queue-20261015/other-ignored/tools/dnsmasq/__pycache__",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-185-a53-20261016",
+      "status": "removed",
+      "head": "8231edda703ae49acc11ed5e00bd5040ae59e11e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-185-a53-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-185-a53-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/185-a53-local-codegen.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-185-a53-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-185-a53-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-185-integration-20261016",
+      "status": "removed",
+      "head": "35a6ff6cde0dbde741290a54e0c1e61776b75c1b",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-185-integration-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-185-integration-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-185-integration-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-185-opt2-20261016",
+      "status": "removed",
+      "head": "8035114257c8706047d2038c2bb8126391331925",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-185-opt2-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-185-opt2-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-185-opt2-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-a53-codegen-20261015",
+      "status": "removed",
+      "head": "01f2712dcb3d40eaf1e8ebc3c40ab5990591c56d",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-a53-codegen-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-a53-codegen-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/A53_LOCAL_CODEGEN.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-a53-codegen-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-a53-codegen-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-address-dispatch-20261015",
+      "status": "removed",
+      "head": "8147c6467ef76e767702867f8c9c86bf2337ed4a",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-address-dispatch-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-address-dispatch-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-address-dispatch-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-address-dispatch-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-bound-ipv4-20261015",
+      "status": "removed",
+      "head": "2884ab07af763c9957610e26f3df304048f9e994",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-bound-ipv4-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-bound-ipv4-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/BOUND_IPV4_PKTINFO_CANDIDATE.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-bound-ipv4-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-bound-ipv4-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-c-e-hit-20261015",
+      "status": "removed",
+      "head": "6090172de6c140b2e645f6c4f459aff1ede82902",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-c-e-hit-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-c-e-hit-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-c-e-hit-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cache-20261015",
+      "status": "removed",
+      "head": "f05c69bdb2cec643237ad6a2edb6a19bf50033ed",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cache-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cache-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cache-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-20261016",
+      "status": "removed",
+      "head": "40cc86fef86553f12834af36e0e2ccc23aa913ef",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cache-cold-metadata-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cache-cold-metadata-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cache-cold-metadata-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-review-20261016",
+      "status": "removed",
+      "head": "87b21e616ab356ffbdfd771ef3dc8aecbe895146",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cache-cold-metadata-review-20261016-20261016",
+      "original_branch": "refs/heads/review/dnsmasq-cold-metadata-local-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/COLD_METADATA_LOCAL_REVIEW.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cache-cold-metadata-review-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cache-cold-metadata-review-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-child-sdk-prep-20261016",
+      "status": "removed",
+      "head": "ed4dfa414d5024370036975b5cf4b37e8970f518",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-child-sdk-prep-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-child-sdk-prep-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-child-sdk-prep-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016",
+      "status": "removed",
+      "head": "08d94d21eeeffa0bd8f7340fec5be0da0433658b",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-hit-9e-screen-prep-20261016-20261016",
+      "original_branch": "refs/heads/perf/cached-hit-9e-native-owner-prep-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/CACHED_HIT_9E_NATIVE240_RESULT.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-hit-9e-screen-prep-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-local-frame-20261016",
+      "status": "removed",
+      "head": "a8dcdacc9567b6f6fa4c2edc11445842db049587",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-local-frame-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-frame-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016",
+      "status": "removed",
+      "head": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-local-miss-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-miss-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-miss-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-miss-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-local-miss-inputs-20261016",
+      "status": "removed",
+      "head": "57f476cd2ff0d52d506510ba47bad92d21a1210e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-local-miss-inputs-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-miss-inputs-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-miss-inputs-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-local-name-20261016",
+      "status": "removed",
+      "head": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-local-name-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-name-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-name-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-name-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-name-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-local-name-owner32-20261016",
+      "status": "removed",
+      "head": "c69f39fcebca54338ec581ce86265b690e801846",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-local-name-owner32-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-local-name-owner32-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-local-name-owner32-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cached-reply-buffer-20261016",
+      "status": "removed",
+      "head": "03ace8ecaaf513847c43943bfd61c8826789bedf",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cached-reply-buffer-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cached-reply-buffer-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cached-reply-buffer-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-canonical-host-presence-20261016",
+      "status": "removed",
+      "head": "b265023cdeeb4d17beab502cdcfde635d893fcf9",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-canonical-host-presence-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-canonical-host-presence-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/CANONICAL_HOST_PRESENCE_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-canonical-host-presence-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-canonical-host-presence-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cname-20261015",
+      "status": "removed",
+      "head": "dec70adde61b976bf2eb5007766707b98acfece1",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cname-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cname-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cname-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cname-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cname-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-cursor-20261015",
+      "status": "removed",
+      "head": "32ef5964b1c1cec984cc98df93f1ade3c9aa2c94",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-cursor-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cursor-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cursor-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-cursor-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-cursor-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-dhcp-20261015",
+      "status": "removed",
+      "head": "a2ddc8048433ec4c0ce61f5f9795e645d8943b90",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-dhcp-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/experiments.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-dhcp-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-dhcp-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-dhcp-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-dhcp-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-dhcp-ready-frame-20261016",
+      "status": "removed",
+      "head": "b5cbb35b7c8d6fc06ab4e9e4a59d1d2bd96bbdb7",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-dhcp-ready-frame-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-dhcp-ready-frame-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/DHCP_READY_FRAME_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-dhcp-ready-frame-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-dhcp-ready-frame-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-dhcp-ready-frame-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-dhcp-ready-frame-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-empty-additional-ecs-20261016",
+      "status": "removed",
+      "head": "22a3d0d48ef595bc348f4ae386a9dc088d0c4980",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-empty-additional-ecs-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-empty-additional-ecs-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/EMPTY_ADDITIONAL_ECS_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-empty-additional-ecs-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-empty-additional-ecs-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-empty-additional-ecs-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-empty-additional-ecs-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-expiry-20261015",
+      "status": "removed",
+      "head": "b5c058bc2e86f1bf934b0034d298b773cc45bd3f",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-expiry-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-expiry-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-expiry-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-expiry-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-expiry-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-fresh-address-answer-20261015",
+      "status": "removed",
+      "head": "2a9d53b00fb009bfa494de4e1de9fd37d2e5c2fb",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-fresh-address-answer-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-fresh-address-answer-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-fresh-address-answer-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-fresh-address-answer-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-fresh-address-answer-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-fresh-address-frame-20261016",
+      "status": "removed",
+      "head": "b343df112e430f16e21026645e56755f2d0fc391",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-fresh-address-frame-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-fresh-address-frame-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-fresh-address-frame-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-fresh-address-frame-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-fresh-address-frame-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-fresh-address-native-20261016",
+      "status": "removed",
+      "head": "a538fac3a2c65a413de092d828003994a28b2bfa",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-fresh-address-native-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-fresh-address-native-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-fresh-address-native-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-hit-f-20261015",
+      "status": "removed",
+      "head": "3a3d8e3e848b93b0309353acfa0033d0b01a7cd0",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-hit-f-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-hit-f-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-hit-f-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-hit-f-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-hit-f-20261015/tools/dnsmasq/__pycache__",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-hit-f-20261015/other-ignored/tools/dnsmasq/__pycache__",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-hit-singleton-20261015",
+      "status": "removed",
+      "head": "de8bfdc400e7b9e46b32fc5ebfe8581172df7bff",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-hit-singleton-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-hit-singleton-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/hinted-singleton-local-counts.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-hit-singleton-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-hit-singleton-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-hit-singleton-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-hit-singleton-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-host-miss-index-20261016",
+      "status": "removed",
+      "head": "5d94139b4ad19753e0a14a725a7128f110a83e13",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-host-miss-index-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-host-miss-index-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-host-miss-index-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-host-miss-index-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-host-miss-index-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-hosts-collision-pair-20261016",
+      "status": "removed",
+      "head": "7c2708f65422f9c3e432e646588063f47f1441a6",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-hosts-collision-pair-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-hosts-collision-pair-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-hosts-collision-pair-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-inline-address-details-20261016",
+      "status": "removed",
+      "head": "b59138f2f604a77d0e68b2bf40db5dd718cba523",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-inline-address-details-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-inline-address-details-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/INLINE_ADDRESS_DETAILS_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-inline-address-details-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-inline-address-details-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-insert-20261015",
+      "status": "removed",
+      "head": "2076fe1a29fa31102315400ff60a828aa44110e4",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-insert-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-insert-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-insert-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-insert-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-insert-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-insert-key-20261015",
+      "status": "removed",
+      "head": "df4e73cd3373850120639b5475fd1024506ad509",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-insert-key-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-insert-key-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-insert-key-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-insert-key-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-insert-key-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016",
+      "status": "removed",
+      "head": "664c89eaf6fb3e4091623c28656ddb360203d964",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-lazy-doctor-metrics-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lazy-doctor-metrics-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016",
+      "status": "removed",
+      "head": "88adacc392a99223a2f6a6fc76874bfa78e667fa",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-lease-address-presence-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-address-presence-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-lease-expiry-bound-20261016",
+      "status": "removed",
+      "head": "f3e0a145efad148c4fbf8893aaaa20fabb4c52cc",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-lease-expiry-bound-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-lease-expiry-bound-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/correctness/hosts-collision-pair-fixture-repair.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lease-expiry-bound-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-expiry-bound-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-lease-expiry-frame-20261016",
+      "status": "removed",
+      "head": "9eaa78fc71cdcc8995244bbbca0d30ef9b065135",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-lease-expiry-frame-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-lease-expiry-frame-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/LEASE_EXPIRY_FRAME_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lease-expiry-frame-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-expiry-frame-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016",
+      "status": "removed",
+      "head": "f83af5da429da646e51eaec55f80cdd8f75c4040",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-lease-lookup-slice-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-lease-lookup-slice-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/LEASE_LOOKUP_SLICE_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-lookup-slice-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-address-miss-20261016",
+      "status": "removed",
+      "head": "1676fbb696bd7a5f76d3e92d2ae5bf0eee22e983",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-address-miss-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-address-miss-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-address-miss-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-address-miss-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-address-miss-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-address-miss-stack-20261016",
+      "status": "removed",
+      "head": "c44cd116283b9e358f7cfedab13ee5eb3d9b920e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-address-miss-stack-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-address-miss-stack-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-address-miss-stack-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-address-miss-stack-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-address-miss-stack-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-cache-inputs-20261016",
+      "status": "removed",
+      "head": "f95562dc8cdd23ec6b5857c6fe747c5729247dac",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-cache-inputs-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-cache-inputs-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-cache-inputs-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-cache-integration-20261016",
+      "status": "removed",
+      "head": "8d572ba1348037420da6c6a36dd8623a08572f25",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-cache-integration-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-cache-integration-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-cache-integration-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-cache-integration-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-cache-integration-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-empty-opt-20261016",
+      "status": "removed",
+      "head": "6d3bf0d10c676a4a4865c1e3f8dc78c1f1e3458e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-empty-opt-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-local-empty-opt-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/LOCAL_EMPTY_OPT_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-empty-opt-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-empty-opt-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-empty-opt-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-empty-opt-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-hit-20261015",
+      "status": "removed",
+      "head": "6f143ec50177778742657e7092a19025ed2cd37a",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-hit-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-hit-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-hit-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-hit-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-hit-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-reply-layout-20261015",
+      "status": "removed",
+      "head": "ae2858ef2a67d4371a99e3d40da050826f0b4fff",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-reply-layout-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-reply-layout-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-reply-layout-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-reply-layout-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-reply-layout-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-local-residual-20261015",
+      "status": "removed",
+      "head": "b3e36e120dc1a68b624dee3d2877256fc8b9ef39",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-local-residual-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-local-residual-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/layout-screen-timing-review.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-residual-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-residual-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-local-residual-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-local-residual-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-loop-20261015",
+      "status": "removed",
+      "head": "181e3dbedd8740a977ea69d5f9b93d467bd5bf3f",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-loop-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-loop-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-loop-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-loop-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-loop-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-name-buffer-review-20261016",
+      "status": "removed",
+      "head": "e17b834e0288a45d17049fb288d7bf018be60457",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-name-buffer-review-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-name-buffer-review-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-name-buffer-review-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-next-cache-native-20261016",
+      "status": "removed",
+      "head": "c8571ba7c92689cc58d4f264b8a94373f8cdf708",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-next-cache-native-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-next-cache-native-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-next-cache-native-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015",
+      "status": "removed",
+      "head": "99eedf4591809869ac6f91ff20e16ce50173e14e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-opt2-codegen-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-opt2-codegen-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/OPT2_LOCAL_CODEGEN.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-opt2-codegen-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-opt2-codegen-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-opt2-codegen-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-oracle-f-20261015",
+      "status": "removed",
+      "head": "6c282be3118bb24ffe6084b682610d0d50f74be7",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-oracle-f-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-oracle-f-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/ORACLE_F_RESULT.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-oracle-f-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-oracle-f-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-owner-ready-frames-20261016",
+      "status": "removed",
+      "head": "26f9171807ce11214340a16278f2c1a2734f2d48",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-owner-ready-frames-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-owner-ready-frames-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/OWNER_READY_FRAMES_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-owner-ready-frames-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-owner-ready-frames-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-owner-ready-frames-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-owner-ready-frames-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-post-f-cpu-screen-20261015",
+      "status": "removed",
+      "head": "ea4c0cf45f7992dbf355ad3d0bbaa66103012974",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-post-f-cpu-screen-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-post-f-cpu-screen-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/POST_F_NATIVE_CPU_RESULT.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-post-f-cpu-screen-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-post-f-cpu-screen-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016",
+      "status": "removed",
+      "head": "75ac6ea7d3f6b133829808a098ead3c57e3a25bc",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-post185-screen-prep-20261016-20261016",
+      "original_branch": "refs/heads/perf/post185-native-owner-prep-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/OWNER_READY_FRAMES_OWNER32_RESULT.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-post185-screen-prep-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-post185-small-20261016",
+      "status": "removed",
+      "head": "a15d3ca27a44527f2e5d443d4069cf8af2e316c0",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-post185-small-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-post185-small-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-post185-small-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-post185-small-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-read-one-review-20261015",
+      "status": "removed",
+      "head": "37f40ed797292eb4f716b3c7a9222dafecd3a220",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-read-one-review-20261015-20261016",
+      "original_branch": "refs/heads/review/dnsmasq-read-one-derived-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/udp-stage-source-review.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-read-one-review-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-read-one-review-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-readiness-20261015",
+      "status": "removed",
+      "head": "e2277360f26922e5bb1b0904a772a627fdd68da1",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-readiness-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-readiness-hybrid-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/HYBRID_PROTOTYPE.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-readiness-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-readiness-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-retained-lease-fixture-20261016",
+      "status": "removed",
+      "head": "16a95086cb3a90992a18bab2425a5ad15504ebad",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-retained-lease-fixture-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-retained-lease-fixture-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-retained-lease-fixture-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-shared-answer-opt-20261016",
+      "status": "removed",
+      "head": "4b4d91217356a05233b724c6bd0379620b6d8f62",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-shared-answer-opt-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-shared-answer-opt-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/SHARED_ANSWER_OPT_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-shared-answer-opt-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-shared-answer-opt-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-shared-answer-opt-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-shared-answer-opt-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-singleton-slice-20261015",
+      "status": "removed",
+      "head": "c868979a4cc9411c9caa48ce5ad397251d207be8",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-singleton-slice-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-singleton-slice-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/SINGLETON_SLICE_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-singleton-slice-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-singleton-slice-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-tables-20261015",
+      "status": "removed",
+      "head": "b3506f8d5d82968eba4ad3dadf51059fa759e881",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-tables-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-tables-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-tables-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-udp-admission-20261015",
+      "status": "removed",
+      "head": "155ceeec1d650bf89f4b8aa7ff750c31b1ce4f4f",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-udp-admission-20261015-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-udp-admission-20261015",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/dns/udp-admission-plain-summary.json",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-admission-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-admission-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-admission-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-admission-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016",
+      "status": "removed",
+      "head": "ae3cbfa387132b302f0466a1c6c8922f95335a49",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-udp-listener-borrow-20261016-20261016",
+      "original_branch": "refs/heads/perf/udp-listener-borrow-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/CONTENT_SLICE_LOCAL_INDEPENDENT.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-listener-borrow-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-listener-borrow-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-udp-name-buffer-20261015",
+      "status": "removed",
+      "head": "f404ed754a26f9385c733e7474f28e4595520957",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-udp-name-buffer-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-name-buffer-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-name-buffer-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-name-buffer-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-name-buffer-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-udp-read-one-20261015",
+      "status": "removed",
+      "head": "0618a3dfb42a827559874032d0abfca0af89e744",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-udp-read-one-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-read-one-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-read-one-20261015/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-udp-read-one-20261015/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-udp-read-one-20261015/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-upstream-completion-frame-20261016",
+      "status": "removed",
+      "head": "5443d4a6487cfd5e0f4c67016d0b881ecece4657",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-upstream-completion-frame-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-upstream-completion-frame-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Committed local outcome at HEAD: docs/dnsmasq/audits/perf-opt-20261015/loop/UPSTREAM_COMPLETION_FRAME_LOCAL.md",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-upstream-completion-frame-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-upstream-completion-frame-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-upstream-completion-frame-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-upstream-completion-frame-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016",
+      "status": "removed",
+      "head": "869285f8645901dd4f2f0b4fdb764ae79a907e50",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-warm-address-encode-20261016-20261016",
+      "original_branch": "refs/heads/perf/dnsmasq-warm-address-encode-20261016",
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-warm-address-encode-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-warm-address-encode-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-profile-c185-hit-20261016",
+      "status": "removed",
+      "head": "515acc33f26ef75b561d5757ddf4c7fd0f282ef3",
+      "preserved_tag": "refs/tags/archive/perf/owrt-profile-c185-hit-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-profile-c185-hit-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-profile-c185-hit-20261016/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-profile-image-c-e-20261015",
+      "status": "removed",
+      "head": "7e872c9769d6a2dc6c7347a29d80eb1efafc080c",
+      "preserved_tag": "refs/tags/archive/perf/owrt-profile-image-c-e-20261015-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "completion_basis": "Existing archive/tag contains HEAD",
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-profile-image-c-e-20261015/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-profile-image-c-e-20261015/private",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
     }
   ],
-  "removed_worktrees": 12,
-  "removed_obsolete_branches": 6,
-  "preserved_tags": 12
+  "removed_worktrees": 88,
+  "removed_obsolete_branches": 37,
+  "preserved_tags": 88,
+  "preserved_active_worktrees": [
+    "/Users/USER/Developer/owrt-control-plane-rs",
+    "/Users/USER/Developer/owrt-perf-opt-20261015",
+    "/Users/USER/Developer/owrt-perf-correctness-20261015",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015",
+    "/Users/USER/Developer/owrt-perf-cg-pmu-20261016",
+    "/Users/USER/Developer/owrt-perf-pgo-sdk-smoke-20261016",
+    "/Users/USER/Developer/owrt-perf-plain-cached-entry-20261016",
+    "/Users/USER/Developer/owrt-perf-hot-text-group-20261016",
+    "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016",
+    "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016",
+    "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016",
+    "/Users/USER/Developer/owrt-perf-cached-zero-frame-oracle-full-20261016",
+    "/Users/USER/Developer/owrt-perf-cached-zero-frame-owner32-20261016",
+    "/Users/USER/Developer/owrt-perf-accepted-e-readonly-20261016",
+    "/Users/USER/Developer/owrt-perf-udp-idle-batch-20261015",
+    "/Users/USER/Developer/owrt-perf-post185-combined-20261016",
+    "/Users/USER/Developer/owrt-diagnostic-g-udp-stages-20261016",
+    "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016"
+  ],
+  "skipped_candidates": [
+    {
+      "worktree": "/Users/USER/Developer/owrt-fix-miss-cohort-20261015",
+      "reason": "completion not established",
+      "references": []
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-content-slice-20261016",
+      "reason": "completion not established",
+      "references": []
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-fresh-validity-20261016",
+      "reason": "completion not established",
+      "references": []
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-full110-guard-boundary-20261016",
+      "reason": "completion not established",
+      "references": []
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-hot-text-group-screen-prep-20261016",
+      "reason": "current input reference",
+      "references": [
+        "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/observe-sdk-layout.py"
+      ]
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-owner-clock-20261016",
+      "reason": "completion not established",
+      "references": []
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-udp-local-owner-20261016",
+      "reason": "completion not established",
+      "references": []
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-written-question-owner-20261016",
+      "reason": "completion not established",
+      "references": []
+    }
+  ],
+  "latest_batch": {
+    "worktrees_before": 102,
+    "removed": 76,
+    "skipped_candidates": 8,
+    "explicitly_preserved": 18,
+    "worktrees_after": 26
+  }
 }
