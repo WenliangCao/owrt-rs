@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "status": "LOCAL PREPARATION ONLY; exact6ab related961gates/SDK/sourceinteraction review/coordinator screenplan pending; no device action",
+  "scope": "Independent freshG185/6ab UDP-hit A53ten exploratory comparison, not full qualification or deployment; prior sources/probes/controls not pooled.",
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "forbidden_substitution": "a15 is not this source; only exact6ab0f064 is permitted.",
+  "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "related_linux_report_sha256": null,
+  "related_linux_verified_receipt_sha256": null,
+  "screen_plan_commit": null,
+  "screen_plan_sha256": null,
+  "entry_sha256": "8874455796a4776a7bb1f239e449671a974fb44b6fd478f438ddb7cbec8a7118",
+  "artifacts": {
+    "e": {
+      "name": "a53-udp-thread-local-handles-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-udp-thread-local-handles-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "g": {
+      "name": "a53-udp-thread-local-handles-artifact-g",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    },
+    "udp-thread-local-handles": {
+      "name": "a53-udp-thread-local-handles-artifact-udp-thread-local-handles",
+      "sha256": null
+    }
+  },
+  "schedule": [
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r1-c"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 1,
+      "side": "rust",
+      "artifact": "udp-thread-local-handles",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r1-rust"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 2,
+      "side": "rust",
+      "artifact": "udp-thread-local-handles",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r2-rust"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r2-c"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r3-c"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 3,
+      "side": "rust",
+      "artifact": "udp-thread-local-handles",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r3-rust"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 4,
+      "side": "rust",
+      "artifact": "udp-thread-local-handles",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r4-rust"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r4-c"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r5-c"
+    },
+    {
+      "group": "g-vs-udp-thread-local-handles",
+      "round": 5,
+      "side": "rust",
+      "artifact": "udp-thread-local-handles",
+      "mode": null,
+      "label": "a53-udp-thread-local-handles-g-vs-udp-thread-local-handles-r5-rust"
+    }
+  ],
+  "execution_started": false,
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "pending_before_launch": [
+    "Bind successful actualexact6ab961relatedLinux gates, sourceinteraction review and originalscreenplan.",
+    "Canonical unchangedSDK6ab ELF/map/build receipt delivered and verified; no olda15/185/counterartifact substitution.",
+    "PrecedingGcount-only diagnostic complete/archived/restored; countinstrumentation cannot join either timedside.",
+    "Newfresh125shealth, originalprod/slot/tool/offline/idle/recovery gates; sameoriginalten/W/direction/>8ticks and allraw."
+  ],
+  "count_diagnostic_not_a_performance_control": true,
+  "statistics": {
+    "W": "maxrelativefullranges",
+    "paired_direction_minimum": 4,
+    "pairs": 5,
+    "CPU": "everywindow>=10ticks andmediandelta>8ticks",
+    "measurement_seconds": 20,
+    "CPU_denominator": 5000
+  },
+  "restore_only": [
+    "e",
+    "f"
+  ]
+}
