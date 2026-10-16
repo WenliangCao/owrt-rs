@@ -256,7 +256,8 @@ def execute(bindings, out, health_path, confirmation=None, residual=False, g_pgo
                 process = subprocess.Popen(['ssh', '-o', 'BatchMode=yes', 'openwrt', command], stdout=log, stderr=log)
                 started = time.monotonic()
                 while process.poll() is None:
-                    if failed.wait(5) or not run.guard_check(guard) or time.monotonic() - started > 100:
+                    if (failed.wait(5) or not run.guard_check(guard)
+                            or time.monotonic() - started > run.case_deadline_seconds(scene)):
                         raise RuntimeError('health/guard/case deadline')
             if not run.guard_check(guard): raise RuntimeError('guard lost')
             run.ssh(f'rm -f {run.ROOT}/active.group')

@@ -32,6 +32,10 @@ SCENES = [
 ]
 
 
+def case_deadline_seconds(scene):
+    return 100 if scene[1].startswith('life-') else max(100, scene[4] + scene[5] + 40)
+
+
 def ssh(command, check=True, timeout=20):
     return subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
                            'openwrt', command], capture_output=True, check=check,
@@ -256,7 +260,7 @@ def main():
                         while p.poll() is None:
                             if failed.wait(5):
                                 raise RuntimeError('external health failed')
-                            if not guard_check(guard) or time.monotonic()-started > 100:
+                            if not guard_check(guard) or time.monotonic()-started > case_deadline_seconds(scene):
                                 raise RuntimeError('guard unavailable or case deadline')
                         exit_code = p.returncode
                     if not guard_check(guard):
