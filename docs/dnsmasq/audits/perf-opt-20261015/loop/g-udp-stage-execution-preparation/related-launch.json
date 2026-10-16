@@ -1,0 +1,22 @@
+{
+  "status": "ORIGINAL3_G_STAGE_RELATED_GATES_STARTED",
+  "pid": 1034063,
+  "starttime_ticks": 187116786,
+  "epoch": 1792146550.6471248,
+  "argv": [
+    "taskset",
+    "-c",
+    "2",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/g-udp-stage-inputs/run_g_udp_stage_related.py"
+  ],
+  "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "manifest_sha256": "cddb9c52ac486a1a150102f659efcda7dd8ab31ae7264daf27abadfbee303a89",
+  "runner_sha256": "2ef11c6b8bfe169e167007e795a4b84fb147e4fef39764f276e2eafb0e216346",
+  "preflight_sha256": "d793974f2a839474580bdc96cbb5c6feb9d9706e209105204f63578680b7c27c",
+  "actual_counts": null,
+  "SDK_or_timing_started": false
+}
