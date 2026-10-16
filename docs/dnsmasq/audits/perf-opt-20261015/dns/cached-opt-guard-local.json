@@ -1,0 +1,242 @@
+{
+  "status": "LOCAL_SAFE_OPT_SHORTCUT_RETAINED_UNSELECTED_NO_DEMONSTRATED_RUNTIME_GAIN",
+  "source_commit": "c2a52bf46201a50d9d4d710aff9fbc412fdc23bc",
+  "base_product_source": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "scope": "Independent9e child only; measured9e and layout experiments unchanged. No Oracle/router, SDK build, performance measurement or new framework.",
+  "interface_and_error_boundary": "Cache caller consumes only OPT. Fastpath requires realpacket QD1/AR0 plus complete fixedquestion bytes and exact prefix equality to validuncompressed Name. It never trusts callerheader; all other packet/name shapes retain original find_pseudoheader(query,true)? before unchanged cache selection/sideeffects. No new publicAPI/state/unsafe.",
+  "semantic_validation": {
+    "existing_plus_one_boundary_test_Mac_lib": {
+      "passed": 730,
+      "ignored": 8,
+      "failed": 0,
+      "stdout_sha256": "135685f860e95a5c7d3596335b847abd6697786191c56296383c31da0f62dc0f",
+      "stderr_sha256": "f9f80ce330811e8e9646c0e92555fb9d195f2d3827f3468a2729f183f6ed7ee7"
+    },
+    "boundary_test": "Everytruncation and eightclassifyingbyte substitutions at everyoffset across root/mixedcase/binary/maxnames with0 or2OPT, matching/mismatching callerquestion; explicit compressionloop andbitstring cases. Compared original errorandOPTrecordrange/lastselection.",
+    "musl_all_targets": {
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "1d27d5ccb5de0ffae9e95b0e9801dba6436b75e68be7c5a03a8a0cae52d75d86"
+    }
+  },
+  "codegen": {
+    "kind": "Existing local full-daemon Linux target build with Rustbundled musl/rust-lld; notcanonicalSDK",
+    "parent_source_binding": {
+      "product_source": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "worktree": "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016",
+      "worktree_doc_HEAD": "3495f8914a9a6d64fe74a93d34e6855911119313",
+      "source179_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
+      "all179_actual_bytes_matched": true
+    },
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/parent-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-ddcf9411a0aef60b.rlib"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "cargo",
+          "build",
+          "--frozen",
+          "--release",
+          "--lib",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "--manifest-path",
+          "/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/components/dnsmasq/Cargo.toml",
+          "--message-format=json-render-diagnostics"
+        ],
+        "returncode": 0
+      },
+      {
+        "argv": [
+          "rustc",
+          "--edition=2021",
+          "--crate-name",
+          "dnsmasq_rs",
+          "--crate-type",
+          "bin",
+          "--target",
+          "aarch64-unknown-linux-musl",
+          "-Copt-level=3",
+          "-Clto=fat",
+          "-Ccodegen-units=1",
+          "-Cpanic=abort",
+          "-Cforce-unwind-tables=no",
+          "-Crelocation-model=pie",
+          "-Ctarget-feature=+crt-static",
+          "--emit=link",
+          "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+          "-Clinker-flavor=ld.lld",
+          "-Clink-self-contained=yes",
+          "-o",
+          "/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/guard-daemon-elf",
+          "-L",
+          "dependency=/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/target/aarch64-unknown-linux-musl/release/deps",
+          "/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/components/dnsmasq/src/main.rs",
+          "--extern",
+          "dnsmasq_rs=/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+          "--extern",
+          "owrt_ubus=/Users/USER/Developer/owrt-perf-cached-opt-guard-20261016/private/cached-opt-guard/cross-daemon/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-71f80c198d7d7bed.rlib"
+        ],
+        "returncode": 0
+      }
+    ],
+    "outputs": {
+      "parent": {
+        "sha256": "605fa1e8c30dd44a35be2220c87161abf2fd84cb710dfb92f4e5dec2ed80015a",
+        "bytes": 5024664
+      },
+      "guard": {
+        "sha256": "6bd87f775f48969acc81c6e5ed544a111082cc2e7dfe94b156ff68a73e6ca084",
+        "bytes": 5023752
+      }
+    },
+    "inspection_sha256": "89ca389206afa129ce0f3edaaf6e263394033968a029ebc0b945dc1e3acf56ab",
+    "functions": {
+      "parent": [
+        {
+          "name": "find_pseudoheader",
+          "address": "0x2e2850",
+          "bytes": 1264,
+          "code_sha256": "c61193d2acaea49433665cee2040a5144e4651174cc64da6f3ac0d6fd92089cf",
+          "asm_sha256": "7cca6e0438b6f3279ab70174f3417f8cf13dd2d2290cc7e7409c91d3de041096",
+          "entry": [
+            "2e2850: sub sp, sp, #0x120",
+            "2e2854: stp x29, x30, [sp, #0xc0]",
+            "2e2858: stp x28, x27, [sp, #0xd0]",
+            "2e285c: stp x26, x25, [sp, #0xe0]",
+            "2e2860: stp x24, x23, [sp, #0xf0]",
+            "2e2864: stp x22, x21, [sp, #0x100]",
+            "2e2868: stp x20, x19, [sp, #0x110]",
+            "2e286c: add x29, sp, #0xc0",
+            "2e2870: cmp x2, #0xb",
+            "2e2874: b.hi #0x2e2880",
+            "2e2878: strb wzr, [x0]",
+            "2e287c: b #0x2e2aa8"
+          ]
+        },
+        {
+          "name": "answer_local_or_cached",
+          "address": "0x2ab56c",
+          "bytes": 3848,
+          "code_sha256": "3d19f4ed2ef3bcdd42a587d956e38eebd8be968fa6257923a187a219d4d4559e",
+          "asm_sha256": "f0fa8d2625c36625be4195051b5b122eb4d4c1b1080dd6bd593ee003ac67d654",
+          "entry": [
+            "2ab56c: stp x29, x30, [sp, #-0x60]!",
+            "2ab570: stp x28, x27, [sp, #0x10]",
+            "2ab574: mov x29, sp",
+            "2ab578: stp x26, x25, [sp, #0x20]",
+            "2ab57c: stp x24, x23, [sp, #0x30]",
+            "2ab580: stp x22, x21, [sp, #0x40]",
+            "2ab584: stp x20, x19, [sp, #0x50]",
+            "2ab588: sub sp, sp, #0x1f0",
+            "2ab58c: ldrb w24, [x29, #0x68]",
+            "2ab590: mov x20, x6",
+            "2ab594: mov x23, x3",
+            "2ab598: mov x27, x1"
+          ]
+        }
+      ],
+      "guard": [
+        {
+          "name": "find_pseudoheader",
+          "address": "0x2e28f4",
+          "bytes": 1264,
+          "code_sha256": "0cd67c7e57a4ca5d7d3a4e1236a8b9606afe8cd94ecbbbf9564703b1349b73e7",
+          "asm_sha256": "0ceee546d7e29cd827dd8c9711e3b12ccba40e2ee4b2ec73d233383a3e05fe50",
+          "entry": [
+            "2e28f4: sub sp, sp, #0x120",
+            "2e28f8: stp x29, x30, [sp, #0xc0]",
+            "2e28fc: stp x28, x27, [sp, #0xd0]",
+            "2e2900: stp x26, x25, [sp, #0xe0]",
+            "2e2904: stp x24, x23, [sp, #0xf0]",
+            "2e2908: stp x22, x21, [sp, #0x100]",
+            "2e290c: stp x20, x19, [sp, #0x110]",
+            "2e2910: add x29, sp, #0xc0",
+            "2e2914: cmp x2, #0xb",
+            "2e2918: b.hi #0x2e2924",
+            "2e291c: strb wzr, [x0]",
+            "2e2920: b #0x2e2b4c"
+          ]
+        },
+        {
+          "name": "answer_local_or_cached",
+          "address": "0x2ab57c",
+          "bytes": 3996,
+          "code_sha256": "840d566c3d087a810e52538352cd45cc4272d6574a1b11ab9855bfa0693d4092",
+          "asm_sha256": "d1ea22d4d5405b8e9bf780f0f6d685cbd702c4e2560e29f2f0776ccd33141d7f",
+          "entry": [
+            "2ab57c: stp x29, x30, [sp, #-0x60]!",
+            "2ab580: stp x28, x27, [sp, #0x10]",
+            "2ab584: mov x29, sp",
+            "2ab588: stp x26, x25, [sp, #0x20]",
+            "2ab58c: stp x24, x23, [sp, #0x30]",
+            "2ab590: stp x22, x21, [sp, #0x40]",
+            "2ab594: stp x20, x19, [sp, #0x50]",
+            "2ab598: sub sp, sp, #0x200",
+            "2ab59c: ldrb w23, [x29, #0x68]",
+            "2ab5a0: mov x20, x6",
+            "2ab5a4: mov x26, x3",
+            "2ab5a8: mov x27, x1"
+          ]
+        }
+      ]
+    },
+    "observations": [
+      "Helper inlines; ordinarymatchingAR0 skips one find_pseudoheader call. Original1264B scanner remainsforother paths andhas288Bframe.",
+      "Newguardaddsrealpacketcount/bounds checksandbcmp at2abf38; inthislocalELF bcmpis4Bbranchto52Bmemcmpbyte-loop. It readsallnamebytes, whereasoldskip_name jumpslabels.",
+      "answer_local_or_cached grows3848\u21923996B; its frame grows592\u2192608B(+16). Thesearecodegenfacts, notCPUcostmeasurements.",
+      "WholelocalELF5024664\u21925023752(-912B) doesnotestablishcycleorlatencybenefit. ParentdocHEAD differsfromproductsource9e butall179inputbytes verifiedagainstfrozen9e manifest."
+    ],
+    "comparison_code_sha256": {
+      "bcmp": "53a113737b2493520d9122820ce2af39939769a478c911da418045a2e8a0a69e",
+      "memcmp": "2225edbaba9c9a8233261579eb20f186efb3d919a9da1c34ceb16d5e9f4e9117"
+    }
+  },
+  "decision": "No obvious net hotpath work reduction: extra bounds/whole-name bytecompare may offset the avoidedlabel walk andcall/frame. Retain asunselected localprototype withcode/tests/evidence; do notautomaticallyschedule remote timing or mixinto hot-text layout source. No evidence of>16us realgain."
+}
