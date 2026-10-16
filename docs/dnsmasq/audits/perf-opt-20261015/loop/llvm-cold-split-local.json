@@ -1,0 +1,427 @@
+{
+  "scope": "Independent local-only compiler-option experiment, product source exactly9e. No c95 section attributes, PGO profile, SDK qualification or remote measurement.",
+  "source_commit": "d5e97d78edee12eec45e3addffa7fab237a1a09f",
+  "only_change": "Add -Cllvm-args=--hot-cold-split to canonical recipe flags; defaults for all splitting heuristics retained.",
+  "compiler": "rustc1.98.1 / LLVM22.1.8",
+  "artifacts": {
+    "parent": {
+      "sha256": "fd2fa9ffe57ae5b3b1c3ac596b9508ae31a54ce58508104c8a6d47d725884a77",
+      "bytes": 5024648
+    },
+    "integration": {
+      "sha256": "88ef2a68111f98ba8206dacebe0d814c8947aec96eee79845f7715c1f2d8c4d4",
+      "bytes": 5211920
+    }
+  },
+  "local_release_test": {
+    "passed": 729,
+    "ignored": 8,
+    "failed": 0,
+    "log_sha256": "79739ba5505d82764e333c4c5d8b3c3cdf691c8ca3fd62caed3525f1ad2e53d6"
+  },
+  "inspection": {
+    "parent": {
+      "alloc_sections": {
+        ".rodata": 93636,
+        ".gcc_except_table": 5640,
+        ".eh_frame_hdr": 18932,
+        ".eh_frame": 96992,
+        ".text": 1824680,
+        ".init": 16,
+        ".fini": 16,
+        ".tbss": 48,
+        ".fini_array": 8,
+        ".init_array": 24,
+        ".data.rel.ro": 46480,
+        ".got": 192,
+        ".relro_padding": 1768,
+        ".data": 2840,
+        ".bss": 4441
+      },
+      "cold_symbols": 0,
+      "cold_bytes": 0,
+      "load_file_bytes": 2090032,
+      "hot": [
+        {
+          "name": "poll_inner",
+          "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2a5cc4",
+          "bytes": 528,
+          "code_sha256": "1090e6c852271feee97db915ceee200431eef87689662ab7bda63376da93c6e6",
+          "asm_sha256": "cf3931e8943bfe9ef7d7e29747142cb2d8dd1b790438504793fa345df37d7bac"
+        },
+        {
+          "name": "finish_nonempty_upstream_events",
+          "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon31finish_nonempty_upstream_eventsCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2ae514",
+          "bytes": 5664,
+          "code_sha256": "fec4887a17f6903e53afcc03034d13ed331868d38eb8ea535b3e7fabf6693db4",
+          "asm_sha256": "4c981a0f0ee24ea270e0fb271a65bf06a035d763cfa8a0e301836c2636544eb2"
+        },
+        {
+          "name": "process_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+          "address": "0x27a888",
+          "bytes": 4660,
+          "code_sha256": "6ca8eae6228742fafcc13e769024b715947914f64a49a38e14a4acd6119778d6",
+          "asm_sha256": "b2264165592306e3659563b85be530692043e7ab1a783e0be9fd3ac1f12adcc1"
+        },
+        {
+          "name": "poll_active_with_context_filter",
+          "symbol": "_RINvMs8_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver31poll_active_with_context_filterNCINvB2_16poll_with_filterNCNvMsb_NtB8_6daemonNtB2f_9DnsDaemon10poll_inner0E0ECslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x25343c",
+          "bytes": 6260,
+          "code_sha256": "228836fe2a576e18289e0009f0d242ba8eb1c48e8e2a24b06bc4cd826779778b",
+          "asm_sha256": "ab86c64771cb00bf96ac14e45f0c6cb481cefcfe9c5227f4f2060b62e1026b9d"
+        },
+        {
+          "name": "step",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll4step",
+          "address": "0x2969d0",
+          "bytes": 4692,
+          "code_sha256": "350bbb477cc1b9982ddd7f586993c043390a26d33b180ba26fe7e434eab5dc27",
+          "asm_sha256": "50e4156a37076ca9cd688765000121ce4f78eff788f1c2ba391339cdff493acf"
+        },
+        {
+          "name": "answer_fresh_address",
+          "symbol": "_RNvMs0_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+          "address": "0x31034c",
+          "bytes": 1028,
+          "code_sha256": "7714d90f3d1a3e342c124b4363d3b79793c32e1eebd75aa2447a39a44a04f598",
+          "asm_sha256": "6fe7321f85e7091a10cf4e85a44b1b72152a2c0cd67002e7967e0e4bf901f4a1"
+        },
+        {
+          "name": "answer_address_with_writer",
+          "symbol": "_RNvMs0_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext26answer_address_with_writer",
+          "address": "0x314b04",
+          "bytes": 1148,
+          "code_sha256": "fb29e154db8343d4bdaee456bb0c109774f5e71e039b5dbf1ff994d953c8498f",
+          "asm_sha256": "c544a6d7d9189d06a96f4ec0e63c662a779ec8bbc1521a026f892d74054b4d5f"
+        },
+        {
+          "name": "single_fresh_address_id_with_hint",
+          "symbol": "_RNvMs4_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns5cacheNtB5_5Cache33single_fresh_address_id_with_hint",
+          "address": "0x30ffe4",
+          "bytes": 384,
+          "code_sha256": "af0c43a5e7be44ca8df88156b91a0047ac274a97480730202a8410cce32997e6",
+          "asm_sha256": "7d009549731404ac14679977247bdc9325517ac4f224a6cf84979410850affc1"
+        },
+        {
+          "name": "cached_address_is_unclaimed",
+          "symbol": "_RNvMs_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed",
+          "address": "0x31e170",
+          "bytes": 528,
+          "code_sha256": "b644f04ea3ebf755b23a6348fb07010d50e0443a27f26a9405eeb48a45272433",
+          "asm_sha256": "31fb5e1bbabcb946b447937011aad4792e2cfff856e18d9d86efe72f4ca0fbd9"
+        },
+        {
+          "name": "answer_local_or_cached",
+          "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2ab55c",
+          "bytes": 3848,
+          "code_sha256": "ebc5ec11b793a74db35937d59f027eb319adc9ea659eddc13539bdffd654a2c9",
+          "asm_sha256": "876032b04c6599ae60f346109ea4d7caf1f131b8b9f426a656ab3b1899218fef"
+        },
+        {
+          "name": "wait_for_files",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+          "address": "0x27dde8",
+          "bytes": 7192,
+          "code_sha256": "15f4601bd843344d2d9d3609d9d2de4dd035cb2305767291ff2094f3be8c6ffd",
+          "asm_sha256": "223a323d073f593344c363cb4f08d384e7f06b8cba665131e4a95ba29f8ed737"
+        },
+        {
+          "name": "step_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+          "address": "0x297e8c",
+          "bytes": 1700,
+          "code_sha256": "e4a2633293592064141154f8f48487d4f67c0c8d358768d91facdaed2b286f3c",
+          "asm_sha256": "bc586cf236bd8820461d637f8fa08915808a37546848a62b3a3808c2d2f8df35"
+        },
+        {
+          "name": "poll_udp_completions",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20poll_udp_completions",
+          "address": "0x292fbc",
+          "bytes": 1432,
+          "code_sha256": "b6890f2005d50716fd98f2e3b8e74177873e7db1eb729fe4208d023cca8dec4e",
+          "asm_sha256": "788a22286c17e0a00362942ee8f257d38cc82e96c9ef4b2d70ea52148159ae65"
+        },
+        {
+          "name": "admit_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+          "address": "0x298530",
+          "bytes": 2668,
+          "code_sha256": "28eecbcdcd20955f3c1ffb303b4394dc10df7118c58baa720e34eb09e113a66d",
+          "asm_sha256": "8e51dc47854b1d026a41397d2b3ef60238ed7b2da4dc235c77fe5cff93316137"
+        },
+        {
+          "name": "process_admitted_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20process_admitted_udp",
+          "address": "0x293554",
+          "bytes": 3300,
+          "code_sha256": "2ccfcfa33a180ed5fa97c59a959f361b58340a8669c5c0c0564bb8de7cea467a",
+          "asm_sha256": "4dd23963c9127e40f517c8fc15a39805e8fcd284b28c5ece117687b3a7ad598b"
+        },
+        {
+          "name": "answer_udp_prepared_with_local",
+          "symbol": "_RNvMsb_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon30answer_udp_prepared_with_localCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2adb60",
+          "bytes": 2484,
+          "code_sha256": "ce285ec65dcf09ddb7b753dea0eea63291d834a6c6da2b14e29bcbd79dcd0802",
+          "asm_sha256": "db5fa2d3a35c3f72cf5dedfa8bfdf4b29cd7912900cdc536dc148bbcd0821527"
+        },
+        {
+          "name": "name_exists_canonical",
+          "symbol": "_RNvMs5_NtCsdit5ht95l7V_10dnsmasq_rs5hostsNtB5_5Hosts21name_exists_canonical",
+          "address": "0x2e4abc",
+          "bytes": 476,
+          "code_sha256": "394e895462e695af08720ed3eb635d2261afd3cc4e35bd81adfaf6cfbb231ccb",
+          "asm_sha256": "2840cec2d5404b5ac7cadce390a4aae1ed06ee28008c5552fb5e5cd539b7eaee"
+        },
+        {
+          "name": "names_for",
+          "symbol": "_RNvMs4_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for",
+          "address": "0x313858",
+          "bytes": 380,
+          "code_sha256": "bcbee0e7c1e207e97055c0af8503a097a84c3b1fd124af634c3a8fe474c973a3",
+          "asm_sha256": "a51ac1d9c86867e7cd2759af0dbf9ec832a9a7ae4089ad0b7d7c6e012362e166"
+        },
+        {
+          "name": "query_dotted_name",
+          "symbol": "_RNvNtNtCsdit5ht95l7V_10dnsmasq_rs3dns5local17query_dotted_name",
+          "address": "0x31e380",
+          "bytes": 704,
+          "code_sha256": "a5eb77b615b46b53215e012d1d9369f6eb78cc8940490ff99965e7fe98708fba",
+          "asm_sha256": "435600a8411da85839bba97994406d5b340fd88b96e23533f07a50c6c97fa0c5"
+        },
+        {
+          "name": "find_pseudoheader",
+          "symbol": "_RNvNtNtCsdit5ht95l7V_10dnsmasq_rs3dns4wire17find_pseudoheader",
+          "address": "0x2e2840",
+          "bytes": 1264,
+          "code_sha256": "1d6d3e1752adcb075bf2ba2e4cd46745a53f606c6b9ea8b0ff2e0dcd7166c6eb",
+          "asm_sha256": "ff0886a6bd7ae464c7319c774f2ac55dbc10efcdb4e91bf545aa5bde66d25a36"
+        },
+        {
+          "name": "answer_parsed_with_query_events",
+          "symbol": "_RNvMs_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "address": "0x318cc4",
+          "bytes": 3584,
+          "code_sha256": "a66fca708ff7aae63c9401358016e488e7be2bc362ff2efd0b10ae610fc679de",
+          "asm_sha256": "5557897a9b43390b31f63d745f333bba051b9ed1a2969421f68376d8063ef469"
+        }
+      ]
+    },
+    "integration": {
+      "alloc_sections": {
+        ".rodata": 93636,
+        ".gcc_except_table": 5688,
+        ".eh_frame_hdr": 28444,
+        ".eh_frame": 126472,
+        ".text": 1807768,
+        ".init": 16,
+        ".fini": 16,
+        ".tbss": 48,
+        ".fini_array": 8,
+        ".init_array": 24,
+        ".data.rel.ro": 46480,
+        ".got": 192,
+        ".relro_padding": 120,
+        ".data": 2840,
+        ".bss": 4441
+      },
+      "cold_symbols": 810,
+      "cold_bytes": 19636,
+      "load_file_bytes": 2112160,
+      "hot": [
+        {
+          "name": "poll_inner",
+          "symbol": "_RNvMsb_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon10poll_innerCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2abf00",
+          "bytes": 528,
+          "code_sha256": "7974966d410a03e421398df44b042c9f289b2b47e79d0dbc1ceee8cb86825a2f",
+          "asm_sha256": "094ab0b24aee8a65a1757cc7203e45f74dc7f159f430b5bac4b2447f6b749da2"
+        },
+        {
+          "name": "finish_nonempty_upstream_events",
+          "symbol": "_RNvMsb_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon31finish_nonempty_upstream_eventsCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2b4654",
+          "bytes": 5852,
+          "code_sha256": "561cbeab8235275102c425ffcf8e58a2e68f5d4c1d4fe67e4dd69680ac9557dd",
+          "asm_sha256": "31c625458d081e1cf3c097aeae9d21713eb05f71a2d5b15ac807ff91e3252e22"
+        },
+        {
+          "name": "process_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll11process_udp",
+          "address": "0x281478",
+          "bytes": 4652,
+          "code_sha256": "d8200c2bfc3c09f22a8090837dca686196c8bc4a75c00c1fcfc69772901f5c77",
+          "asm_sha256": "38279c3479edfd320aae100911fad26f09361449900eaf8265bc599eef5fa48e"
+        },
+        {
+          "name": "poll_active_with_context_filter",
+          "symbol": "_RINvMs8_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns8upstreamNtB6_16UpstreamResolver31poll_active_with_context_filterNCINvB2_16poll_with_filterNCNvMsb_NtB8_6daemonNtB2f_9DnsDaemon10poll_inner0E0ECslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x25ad38",
+          "bytes": 6260,
+          "code_sha256": "17596164a20cf15d08fa7704030f428892e0a1697e25e61c65e506669cba8804",
+          "asm_sha256": "3ceb0855f86a8aba750613bceeb64de7a253d8ccb69cb04aa5c9679c0e730172"
+        },
+        {
+          "name": "step",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll4step",
+          "address": "0x29cee8",
+          "bytes": 4596,
+          "code_sha256": "1af1932a05927b5b0c20c9aedc808908a729d9db674116db320f453a74c813b7",
+          "asm_sha256": "9e29179de84ff4c5a105eb018b82c266d29a2e3ede44610ea17a9375e0741fa3"
+        },
+        {
+          "name": "answer_fresh_address",
+          "symbol": "_RNvMs0_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+          "address": "0x312f9c",
+          "bytes": 1028,
+          "code_sha256": "c5581fc8f5e08bf3e8e9d648e451b70c64d8b33f33ab58b692829032dfdd4e08",
+          "asm_sha256": "28a90f94d781395b8f464833b8f1cc7cff87a11d561a02a51a9df246ec5bb214"
+        },
+        {
+          "name": "answer_address_with_writer",
+          "symbol": "_RNvMs0_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext26answer_address_with_writer",
+          "address": "0x317620",
+          "bytes": 1148,
+          "code_sha256": "52e5fc45ace0a2d7f01ebdee91fb51af6424eb8ba6c75509d6ef97ddbf433693",
+          "asm_sha256": "7211e78607eee88550d459a44e7a8569331ec150c3adff9c7c8932487ef5962f"
+        },
+        {
+          "name": "single_fresh_address_id_with_hint",
+          "symbol": "_RNvMs4_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns5cacheNtB5_5Cache33single_fresh_address_id_with_hint",
+          "address": "0x312c5c",
+          "bytes": 384,
+          "code_sha256": "ec588c23ecf8d62655a908585bfdbfae7ddb63c62bd946d42226942fa4b0c8de",
+          "asm_sha256": "7600daaf2de541ea62189aabc94fbd22c751029913b3077349f9834f9e23ee1e"
+        },
+        {
+          "name": "cached_address_is_unclaimed",
+          "symbol": "_RNvMs_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed",
+          "address": "0x320a90",
+          "bytes": 528,
+          "code_sha256": "fe64626dc2bfb6407b99608cf5636c857b54c934cde72473692073f2ae05c507",
+          "asm_sha256": "7b991fbd8f6c8972e8e2e4323456e8619f0089a6a08bd0add5d096f3bd2b5572"
+        },
+        {
+          "name": "answer_local_or_cached",
+          "symbol": "_RNvMsb_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2b16d8",
+          "bytes": 3848,
+          "code_sha256": "0694dbc7078c02dddee20ae4c9147fdf84da4d9075ac736601ffc6fea27619d8",
+          "asm_sha256": "65d9452a792b33190734dcfd08ada57826ab161251fcf49d54f73dc1dfe52cd1"
+        },
+        {
+          "name": "wait_for_files",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+          "address": "0x284988",
+          "bytes": 7048,
+          "code_sha256": "8fd2be03812b6ce9ce2c94a4d74937e5185270489b83fb58f7c00dc9d2068b6c",
+          "asm_sha256": "931f6efd037c62ca191a128c598ffc1adee3bb407a9864464735e12551e7b3e1"
+        },
+        {
+          "name": "step_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll8step_udp",
+          "address": "0x29e334",
+          "bytes": 1672,
+          "code_sha256": "25ad37ca78a613b0326236c117f7ef92b315218e5d6fc5556332be502c7e7571",
+          "asm_sha256": "fbe9aff93b2d5532716ac4d894078a8752cce0792a55b91ec861e246039c4258"
+        },
+        {
+          "name": "poll_udp_completions",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20poll_udp_completions",
+          "address": "0x2995a8",
+          "bytes": 1424,
+          "code_sha256": "930cd8cd3ee2f83c7464a7f435ab54eaaf44483bd97af665c7bea5f7340c2dd6",
+          "asm_sha256": "2595acbc48cb3468255d80a76aba6bdd05d3d92eb38618173661090d50c9a59b"
+        },
+        {
+          "name": "admit_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll9admit_udp",
+          "address": "0x29e9bc",
+          "bytes": 2668,
+          "code_sha256": "fa58ef3b894635754bd0648fefaaf5ce3ab6b8c94ae40a1e72bc0d018b435a46",
+          "asm_sha256": "cb25c6aa734bbf218f23a57f0fe57fc883c3ea05860ff58bc97decd4f3f8b016"
+        },
+        {
+          "name": "process_admitted_udp",
+          "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll20process_admitted_udp",
+          "address": "0x299b38",
+          "bytes": 3256,
+          "code_sha256": "f7352760888e95252a95284e5bde19fe4a926de592833c0c22680c93a97927ae",
+          "asm_sha256": "623c09e681efa3939aa2dd455be44b9e0dd203f782de6f1df94df9d895c3ab5d"
+        },
+        {
+          "name": "answer_udp_prepared_with_local",
+          "symbol": "_RNvMsb_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon30answer_udp_prepared_with_localCslhjqNMUq7WX_10dnsmasq_rs",
+          "address": "0x2b3cb0",
+          "bytes": 2468,
+          "code_sha256": "0d2e25d37977af5ce42baf6bc305fd15d433fb2521e8f895caa368d5c069a319",
+          "asm_sha256": "6256a0e841297d02a6acb651ec6a767c342367b49fe2582e6d38776666b600c7"
+        },
+        {
+          "name": "answer_udp_prepared_with_local",
+          "symbol": "_RNvMsb_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon30answer_udp_prepared_with_localCslhjqNMUq7WX_10dnsmasq_rs.cold.1",
+          "address": "0x3e39f0",
+          "bytes": 28,
+          "code_sha256": "c7d7dba434abe81096b6ccb58062cd2e3a77b0f7cefdf3033aecb0240badbb9d",
+          "asm_sha256": "92ec21cefce74880d1e44ffd83a5d128103de3df1f31273b9c6261d27d796180"
+        },
+        {
+          "name": "name_exists_canonical",
+          "symbol": "_RNvMs5_NtCsgisvh8j3Tdo_10dnsmasq_rs5hostsNtB5_5Hosts21name_exists_canonical",
+          "address": "0x2e81c0",
+          "bytes": 476,
+          "code_sha256": "a7a2c7d22d1cf01c25edd662f1b97080b8d26ce8a4938e3518a21a8641bfa99f",
+          "asm_sha256": "12152465702ca6a7db93ab4f0f7aea02430d2b6300e739d9d2a37b3991cc8c1e"
+        },
+        {
+          "name": "names_for",
+          "symbol": "_RNvMs4_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns5cacheNtB5_5Cache9names_for",
+          "address": "0x3163a0",
+          "bytes": 380,
+          "code_sha256": "fc30780ec47ec80d7b3519914911df4358d4065df8484fea5487ab2234b8b623",
+          "asm_sha256": "b2a1c30a2fa1823c7796763804a15d32fa8909c82689fe7df9ff0e87238b506b"
+        },
+        {
+          "name": "query_dotted_name",
+          "symbol": "_RNvNtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns5local17query_dotted_name",
+          "address": "0x320ca0",
+          "bytes": 704,
+          "code_sha256": "a5eb77b615b46b53215e012d1d9369f6eb78cc8940490ff99965e7fe98708fba",
+          "asm_sha256": "eb7e603a3da35f952e0f636d28d415479852f448d3f418e5876c976ec088e7e9"
+        },
+        {
+          "name": "find_pseudoheader",
+          "symbol": "_RNvNtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns4wire17find_pseudoheader",
+          "address": "0x2e5f44",
+          "bytes": 1264,
+          "code_sha256": "ad08c13b2817ae85c14b30d682fb149e3203134d9eeeeed2eaa380ab3ff6c898",
+          "asm_sha256": "150c7b7c194bf0c8ce63e2d55a283286a10bef2edc16df7c0a4dcd9449f2b598"
+        },
+        {
+          "name": "answer_parsed_with_query_events",
+          "symbol": "_RNvMs_NtNtCsgisvh8j3Tdo_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+          "address": "0x31b600",
+          "bytes": 3584,
+          "code_sha256": "47516885d9903a998befdf75836ff6eb4904a7d488fa5c4890ff4692b77b1079",
+          "asm_sha256": "5aa1aad3cae19830009f1facd5496e2d054d9740740b9f083a081d05a7d0bf7f"
+        }
+      ]
+    }
+  },
+  "private_receipts": {
+    "private/llvm-cold-split/cross-daemon/result.json": "9aeaccc10e441f344e9d204c99be4bf770f09e003c62ab136885cb5029ecb984",
+    "private/llvm-cold-split/cross-daemon/inspection-v3.json": "67c8eeaff1f15d5a25c77415465bc984db518f442061b053383000e5273eb9cc",
+    "private/llvm-cold-split/cross-daemon/sizes.json": "fd1c9545de99dfdf05692ed09911f7e735f1e577f889739e35d1af5a073d3f84",
+    "private/llvm-cold-split/inspection-first-display-note.json": "949ada94216952decd5e2c611f5e20b19b6157dae6d74cb9358d019e869517df",
+    "private/llvm-cold-split/cross-daemon/sizes-first-display-collision.json": "19e692ac5efab57d589ac4127e99853e0d69152db5c2584a6c57108f1d2b9f15"
+  },
+  "references": [
+    "https://github.com/llvm/llvm-project/blob/release/22.x/llvm/lib/Transforms/IPO/HotColdSplitting.cpp"
+  ],
+  "decision": "Unselected/deferred: no runtime gain measured; selected hot methods mostly unchanged, text shrinks but file-backed loads grow. No parameter sweep or remote screen is selected."
+}
