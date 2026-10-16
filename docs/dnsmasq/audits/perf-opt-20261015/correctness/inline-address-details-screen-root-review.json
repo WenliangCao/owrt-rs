@@ -1,0 +1,56 @@
+{
+  "scope": "Root independent local preparation audit only; no executor/build/test/remote or new protocol",
+  "status": "PASS_DISABLED_BARE_1DF_NATIVE_OWNER_DEVICE_PREPARATIONS",
+  "native_owner_binding_sha256": "1a133ddf4c58d63b92a1f1e9f6973210995f3fa7ce739000e2cbd7ca84ffbc43",
+  "scripts": [
+    {
+      "path": "run_inline_address_details_native.py",
+      "sha256": "d07635e57dab56533425d1ba65dd4635b7670bcce02c80e58d507d34a8fef74b",
+      "exact_declared_replacements": true
+    },
+    {
+      "path": "analyze_inline_address_details_native.py",
+      "sha256": "040508608b4fb083d0199baa7efbe76fae526414a5a1b4a0bae0c670dc989558",
+      "exact_declared_replacements": true
+    },
+    {
+      "path": "run_inline_address_details_owner32.py",
+      "sha256": "8636eddfdb595101d7928173668b2a76a84a43edb3c7dd1f475d77b0d632c6ef",
+      "exact_declared_replacements": true
+    },
+    {
+      "path": "analyze_inline_address_details_owner32.py",
+      "sha256": "53856cab516bd04335f8b44937c90d8c5d50feb616f37d4df167b8023e803d96",
+      "exact_declared_replacements": true
+    }
+  ],
+  "source_checks": [
+    {
+      "side": "G",
+      "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "files": 179
+    },
+    {
+      "side": "inline-address-details",
+      "commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+      "files": 179
+    }
+  ],
+  "native_source_files_per_side": 162,
+  "sdk_source_files_per_side": 179,
+  "native_windows": 240,
+  "owner_windows": 32,
+  "device_windows": 10,
+  "device_plan_sha256": "59a616a9343cfa8a13c5340608e3eb69b7a94f8d2b95b4f5b65523b3f9e2472c",
+  "device_entry_sha256": "5405f8c84b0dbfede1baba2688d85b6676a13fc9d03f5e69461aa5208f34d0be",
+  "original_protocol_fields_equal": true,
+  "actual_identities_null_and_disabled": true,
+  "limits": [
+    "Projected963 is not PASS. Actual fresh gates/SDK/audit/quiet/pretransfer required.",
+    "Native runner and shared device entry have no metadata-based global disabled guard; operator enforces original launch gates.",
+    "G/1df includes inherited6ab changes and cannot isolate address copying alone.",
+    "803 actual measurements/audits/quiet have priority; no native240 for803."
+  ],
+  "checker_sha256": "3fed8adbd0f2bb77ea7b1c9a7eca6b293d1c9c649b4fe9fd7a2882a5b0fb6b3c",
+  "retained_initial_reviewer_failure": "Local KeyError for binding owner32/owner key spelling; before any candidate execution or measurement. Initial checker and failure retained privately."
+}
