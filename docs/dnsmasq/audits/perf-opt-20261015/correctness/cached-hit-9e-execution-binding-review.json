@@ -1,0 +1,47 @@
+{
+  "status": "PASS_LOCAL_9E_EXECUTION_METADATA_BINDING_TO_REVIEWED_PREPARATION_AND_ROOT_SLOT",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "preparation_manifest_sha256": "a1238f54a1e8dee83e2b6fa379cba3f28b8c1e8bfd9a1b509a4b3e6bf94e96e4",
+  "execution_plan_sha256": "00c5cf74eb81cd9a6aa5b74c0a80b68a4c9b644fa439d32746505b61e6609333",
+  "only_changed_fields": [
+    "exclusive_slot_release",
+    "execution_authorized",
+    "execution_enabled",
+    "independent_preparation_review",
+    "prepared_manifest_sha256",
+    "pretransfer_receipt",
+    "status"
+  ],
+  "all_source179_original5argv_wrappers_canonicalSDK_profile_budget_and_signal_requirements_unchanged": true,
+  "independent_preparation_review_commit": "e2681a8a",
+  "independent_preparation_report_sha256": "0117ddc7c816bb8be516b7c1bbd3daacfb69d9cc9aa2aa58c29a7d0ccb808c36",
+  "root_slot_sha256": "746e45c18c3245b4ab7e66ec89c3e667973a799a3ffb9e49cee266d148f7c69a",
+  "preceding_warm_release_sha256": "a2ce53a7cc184249802838ac99759c3679cd0e4c883d2f33c2191c6a3943635d",
+  "preceding_transport_complete_report_sha256": "b32f161c6a5f95fa1f928a4acb8b4614858df57333f0e23fa11eb5d6af89368e",
+  "ten_pretransferred_local_input_hashes_bound": true,
+  "pretransfer_sha256": "40eeba9c0ea96fbe1b07deea672390f58ebb21d38721fb42820dec44d1fab761",
+  "declared_actual_preflight_sha256": "f32c617ee912455a70ab11046e17a19ae8ac724343adc16f6df405ce7320e740",
+  "local_preflight_body_available": false,
+  "local_preflight_scope": "Only author stdout envelope available now; full raw preflight body must bind actual related audit.",
+  "launch": {
+    "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+    "argv": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_cached_hit_9e_related.py"
+    ],
+    "pid": 1067138,
+    "start_ticks": 187608742,
+    "epoch": 1792151470.206732,
+    "preflight_sha256": "f32c617ee912455a70ab11046e17a19ae8ac724343adc16f6df405ce7320e740",
+    "wrapper_sha256": "d803ace74de9ad103b4ca71c23bd6c56c39ada4d5dca38855c38c6ed13353cc2",
+    "plan_sha256": "00c5cf74eb81cd9a6aa5b74c0a80b68a4c9b644fa439d32746505b61e6609333",
+    "scope": "Original five related Linux groups only; actual results required.",
+    "status": "RUNNING_NOT_YET_PASSED"
+  },
+  "source_and_original_gates_unchanged": true,
+  "actual_related_PASS_claimed": false,
+  "actual_SDK_PASS_claimed": false,
+  "actual_signal_PASS_claimed": false,
+  "reviewer_remote_access": false,
+  "reviewer_script_sha256": "e2cdac1f768d760a8c3afc7222696d7846098d7330ed6a9acf7ccb516e80fa24"
+}

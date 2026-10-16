@@ -1,0 +1,20 @@
+{
+  "status": "LOCAL_IDENTITY_ONLY_ORIGINAL_SIGNAL_ADAPTER_AND_DISABLED_TEMPLATE_PREPARED",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "original_adapter_sha256": "ce8e3b3da0f57d7282cd621e0a8c9f09f7c828ce673414b21c6020920d00d4ee",
+  "adapted_adapter_sha256": "b2dd2239280c6ce41525083fbe72b9d878ead174fa6866fbfd19f7e40694fb69",
+  "only_adapter_diff": "Exactly one source commit literal; sameoriginaltool and nativeCprivate read-only mount/three-byte-pins/visibility checks.",
+  "pending_plan_sha256": "ff36a7100549c0ab9c871d17b56336a7c91f28a408e894a1397099201b47209c",
+  "original_launcher_sha256": "cf1a7e9bcbc250dac3f876aa93e9b09b5bda98635a6e7589e155f387497d4cb9",
+  "template_sha256": "e1b76f0974a6adbb172b3edd1a364073ba365e751abfaa9daf033cffbb2a8861",
+  "original_cases": [
+    12,
+    3,
+    3
+  ],
+  "actualSDK": null,
+  "actual_signal_result": null,
+  "execution_enabled": false,
+  "remote_access": false,
+  "next": "Bind actual independently audited9e SDK ELF/build plus explicitDNS quiet only after original related and SDK completion; retain original preflight/comparators/args, run once, preserve failures."
+}
