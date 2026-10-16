@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_EXACT_SDK_CODE_AND_FRAME_RECORD_BINDING",
+  "scope": "Read-only verification of exactSDKcode ranges against originalmaps/ELFs and retained disassembly bytes. No build, remote action, runtime sampling or new disassembler run.",
+  "author_report_sha256": "144ed3d6016c9e632f85b1de68e5008afdd43bf5198f9446fd804240a6e02002",
+  "verified_function_ranges": 19,
+  "each_range_uniquely_matches_original_GNU_map_and_executable_file_backed_LOAD": true,
+  "all_stored_assembly_hex_bytes_equal_actual_ELF_range": true,
+  "all_code_and_assembly_hashes_match": true,
+  "frame_arithmetic": "Independently summed retained entry pre-index reservations and subsp immediates; stored disassembly mnemonics came from the original Capstone run.",
+  "checks": {
+    "E": [
+      {
+        "function": "answer_local_or_cached",
+        "code_bytes": 3540,
+        "prologue_reserved_bytes": 592,
+        "code_sha256": "066e9170601107f7bcd96b7ba1f58267d0da79b9c80e32cde519043293745a92",
+        "asm_sha256": "4c439f1b90928d5c0ede70337b091d780ee75359103331740bbd29d80aaf941c"
+      },
+      {
+        "function": "answer_parsed_with_query_events",
+        "code_bytes": 14032,
+        "prologue_reserved_bytes": 848,
+        "code_sha256": "47af81e899d684359db8f579dbb85a1f7c2ecdc9ebad23105949ffca1de904c2",
+        "asm_sha256": "b6543805090fce155e3b5e9bdd1edc04b1b28f468b7366dfe22a260a171dfd2f"
+      },
+      {
+        "function": "process_udp",
+        "code_bytes": 4484,
+        "prologue_reserved_bytes": 1056,
+        "code_sha256": "179c14957133f37ac1e2c4711f7dee7ed845b086a4d83919c5cf2b32d6f6bea0",
+        "asm_sha256": "48c26a44bb80d0384b90964711bfce73390c73279a5b16fb0a773d27302a4cf1"
+      },
+      {
+        "function": "wait_for_files",
+        "code_bytes": 7296,
+        "prologue_reserved_bytes": 352,
+        "code_sha256": "17ba9fb051c6d285165fc97234ed35b78b0bf1ebf087bd24e5967a8d42577719",
+        "asm_sha256": "3342ebac481231846f247a8b31e5720bcc76e411f97c9065f902dbe3c20fa2f1"
+      }
+    ],
+    "0161": [
+      {
+        "function": "answer_local_or_cached",
+        "code_bytes": 3980,
+        "prologue_reserved_bytes": 608,
+        "code_sha256": "a8b48ab692d2a3c28b65054eb2c01fc79fe88332edaf5a99465caa8fae12b91b",
+        "asm_sha256": "d1b36f492df853284af930cf4895e4b60a7e36a2becb3d1f3bdc24ba4c6d60c3"
+      },
+      {
+        "function": "answer_parsed_with_query_events",
+        "code_bytes": 14768,
+        "prologue_reserved_bytes": 848,
+        "code_sha256": "fedb3452c29eeb93d53a29f279111b11678e9d3c8ff17b1fbb726fc78df90dc2",
+        "asm_sha256": "afe7f194ad2f0a1910477e7d950962f5e85670b4e2caa0b2d78ae8ec152411a3"
+      },
+      {
+        "function": "cached_address_is_unclaimed",
+        "code_bytes": 528,
+        "prologue_reserved_bytes": 368,
+        "code_sha256": "f5bbe3dec131b1bb07b8c60cb041cdc5d6986ded0aa362e751ccd01db0831aa2",
+        "asm_sha256": "6bf30f52b7e4aad8ed335c2a02bcb10c9e151c2fe809642ddc4c19c2cd961b95"
+      },
+      {
+        "function": "answer_fresh_address",
+        "code_bytes": 1004,
+        "prologue_reserved_bytes": 288,
+        "code_sha256": "d94fdf429bc2024994a4e88d9dc036519e8ceed1f176c1d59a5eec815c66df02",
+        "asm_sha256": "78fdf4dbb8120cafbdee717cc740c1001ac4c6e5438f5e0a789b9f16cd7f3ce8"
+      },
+      {
+        "function": "answer_records_general",
+        "code_bytes": 13524,
+        "prologue_reserved_bytes": 2256,
+        "code_sha256": "208416eaa9cb9a668473b8837d4073f5f7c29eeb7d5ffb7924b73338918345dd",
+        "asm_sha256": "f16e03b325df557ff119162b660ac5bb7192e58e2f52f32d68b2e05efb50e4b7"
+      },
+      {
+        "function": "process_udp",
+        "code_bytes": 4480,
+        "prologue_reserved_bytes": 1056,
+        "code_sha256": "89e983ef2ffaa74319f036d2a6fcb775967f068b5df22b5bb9cd964109892b04",
+        "asm_sha256": "11674958def29dc3d403eeb9bce6ee293d4d81b429f1f5fecd457a198de732dd"
+      },
+      {
+        "function": "wait_for_files",
+        "code_bytes": 7304,
+        "prologue_reserved_bytes": 352,
+        "code_sha256": "f5a6cf47b82ec119afb5bff1d6af16530e2dc64898700216af90eeed2f20caad",
+        "asm_sha256": "6f0e563f497d3c88f2d0c356be72d2ef162465e648726fa8a4502ffd2a12d02b"
+      }
+    ],
+    "185": [
+      {
+        "function": "answer_local_or_cached",
+        "code_bytes": 3980,
+        "prologue_reserved_bytes": 608,
+        "code_sha256": "bd17932fa4d4cd529a9f4b1ab60b001e3e8575ce1c6b1d7999715a0ab89c962b",
+        "asm_sha256": "630078697026d0bf9fa0e857f55e733a7f3d50b24fa6bf95245d84528d096323"
+      },
+      {
+        "function": "answer_parsed_with_query_events",
+        "code_bytes": 4508,
+        "prologue_reserved_bytes": 384,
+        "code_sha256": "eaf5ec01dc7b3d812512f45e02cbd8603c71d0dc143669771eea6cfb0388dfd0",
+        "asm_sha256": "c049bdf32160a72c3784399deb5c180abe29bac09684ea613da73559743f946f"
+      },
+      {
+        "function": "cached_address_is_unclaimed",
+        "code_bytes": 528,
+        "prologue_reserved_bytes": 368,
+        "code_sha256": "32ac6ef6e80738a3eb79af607b813c5c2d8993a34f575e03c39727ec7135b5ed",
+        "asm_sha256": "2b84116b8fa709989c9679d55aa6f96d2e6878e6ed3d0efe8c040106717d95ac"
+      },
+      {
+        "function": "answer_local_records",
+        "code_bytes": 12132,
+        "prologue_reserved_bytes": 784,
+        "code_sha256": "87c641b347fdb00a208b1dcc22b03ea465cf342e23a89161412b8f409876bf0d",
+        "asm_sha256": "cc3d166521e1f138b697423def3d504576bc9d76920fcb976de223c5fa755de9"
+      },
+      {
+        "function": "answer_fresh_address",
+        "code_bytes": 1088,
+        "prologue_reserved_bytes": 288,
+        "code_sha256": "8e25b2b41ffc8c4695a6f973d3d53886ca4648e9e4b4a5f682bef6ec1e807c89",
+        "asm_sha256": "f095bd4130299850175a38cdd030f7b7c5d388987cb481840e38ddb4346e54b2"
+      },
+      {
+        "function": "answer_records_general",
+        "code_bytes": 13364,
+        "prologue_reserved_bytes": 2240,
+        "code_sha256": "ecf95ca73745003f2c80f04d8d1da04d05e3199feec5af534476a34e2fb69d76",
+        "asm_sha256": "1ad37f2c24f455d4df7d3d1f388ee11b95701ff7c942e20be83baf58b8cd7c66"
+      },
+      {
+        "function": "process_udp",
+        "code_bytes": 4672,
+        "prologue_reserved_bytes": 1056,
+        "code_sha256": "3c074687ad6fa5048d70f7f1105ac6160fe63c7c80ed07ece5f4e3a1c5a37199",
+        "asm_sha256": "0ff34d14312af0a7c502a4ad349f7bbf284bb319c5843efe0b81cc8f058c4c6a"
+      },
+      {
+        "function": "wait_for_files",
+        "code_bytes": 7304,
+        "prologue_reserved_bytes": 352,
+        "code_sha256": "adbbe534d6018672112325732bc8faab36a275e48fc55b667ce5468a257d881f",
+        "asm_sha256": "8305e339c501700c0d6a41b056e8a440e55ddf30e929016e0031ce1ee7613f0d"
+      }
+    ]
+  },
+  "fallback_observation": {
+    "old0161_local_entry_bytes": 848,
+    "185_local_entry_bytes": 384,
+    "185_record_helper_bytes": 784,
+    "two_frame_subtotal_bytes": 1168,
+    "increase_over_old_entry_bytes": 320
+  },
+  "preliminary_read_only_extraction_failures_retained_and_hashed": true,
+  "limits": [
+    "Static code extents and prologue reservations are not memory traffic, I-cache occupancy, runtime stack high water or CPU attribution.",
+    "Map and ELF identities are verified against each exact build receipt; sectionless ELFs use real executable file-backed LOAD bounds, not guessed adjacent-symbol extents.",
+    "The two preliminary read-only extraction failures are not measurement failures or replacement windows.",
+    "No185source,artifact,protocol,controller or measurement was modified."
+  ],
+  "performance_accepted": false,
+  "deployment": false
+}
