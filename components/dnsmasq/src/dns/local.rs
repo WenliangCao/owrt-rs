@@ -276,7 +276,9 @@ impl<'a> LocalAnswerer<'a> {
         // Lease expiry and the subsequent local lookup use the same original
         // name. Retain that conversion; a configured CNAME still changes only
         // the expiry traversal cursor, not the caller's question.
-        let dotted_name = if class_in {
+        let dotted_name = if class_in && !lease_names.entries().is_empty()
+            && lease_names.may_have_expired(now)
+        {
             expire_lease_lookups(
                 self.config,
                 lease_names,
@@ -878,6 +880,9 @@ fn append_mail_addresses(
 /// These are the name/reverse lookup boundaries in answer_request, including
 /// lookups that ultimately produce no local answer. Keep removals sticky when
 /// wall time moves backwards without expiring untouched names globally.
+/// The caller checks the same conservative expiry bound before reserving this
+/// traversal's frame; live-only generations do not need its CNAME/PTR work.
+#[inline(never)]
 fn expire_lease_lookups(
     config: &DnsConfig,
     leases: &mut Arc<LeaseNames>,
@@ -885,9 +890,6 @@ fn expire_lease_lookups(
     qtype: u16,
     now: i64,
 ) -> Option<Vec<u8>> {
-    if leases.entries().is_empty() || !leases.may_have_expired(now) {
-        return None;
-    }
     let query_name = wire_to_dotted(query)?;
     let mut name = query_name.as_slice();
     for _ in 0..100 {
