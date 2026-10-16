@@ -1,0 +1,58 @@
+{
+  "schema": "dnsmasq-c185-hit-profile-plan-independent-review-v1",
+  "status": "PASS_LOCAL_PLAN_REVIEW_NOT_LAUNCH_RELEASE",
+  "plan_commit": "ac6b2cf6",
+  "plan_sha256": "f413ce0507f4047d0d701de59ab2118418fac024c4858d317833850221444c86",
+  "preparation_review_commit": "95b62e3a",
+  "preparation_review_sha256": "49435829754d0a838e3ff27f3a22576686809a0bb917ad7144b990abd0b9f359",
+  "verified": {
+    "original12stat_plus4cycles_order": true,
+    "all16capture_and_analysis_argv_exact": true,
+    "original_workload_placement_interval_count_unchanged": true,
+    "all8tool_git_objects_and_private_files_rehashed": true,
+    "analyzer_only_two_literal_substitutions": true,
+    "all_original_parser_assertions_computations_unchanged": true,
+    "C_185_artifact_symbol_map_library_bindings_exact": true,
+    "full_period_unknown_denominator_and_lineage_rules_retained": true,
+    "fresh_unique_output_paths": 16,
+    "no_instruction_samples": true
+  },
+  "tool_cli_import_checks": [
+    {
+      "tool": "original_stat_driver.py",
+      "exit": 0,
+      "stdout_sha256": "fe3296dff566f5cbbd480b8cdce15dbc7ba6e1bf2c25fc72d4f17a3cb0bb4ab7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "loop_owner_profile.py",
+      "exit": 0,
+      "stdout_sha256": "b09fbdb63aa5fad1e6176fe6f77e7a91254aa89c14b7c1fab27d51af462f40ee",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "loop_owner_profile_analyze.py",
+      "exit": 0,
+      "stdout_sha256": "409a953e35a99ade904482fae84b1d6a87d5c0cf4e00c752cdff13265501f03e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "remaining_launch_conditions": [
+    "Current complete110timing and its required raw audits must finish and owners explicitly release their slots. Then recheck no owned research/timing workloads, original pinned files, available build locks if relevant, and fresh output paths.",
+    "Concrete author plan must bind all16argv/order, original netns/loadgen/upstream binaries, the two exact observer revisions, candidate build/source/map, C image/symbols and analyzer/import dependency hashes before launch.",
+    "Only candidate identity/path/output and labeling substitutions permitted. Private analyzer adaptation currently changes exactly the EELF pin and output scope text; every original parser assertion and computation is byte-identical.",
+    "Retain every attempted capture and failure. No deletion, silent retry, best-run selection or favorable substitution. Profiling completion does not alter the original110acceptance.",
+    "No current remote access or transfer. Original full110 collection, original analyzer, raw independent audits and explicit owner release must finish first.",
+    "After release, verify every original artifact/tool hash locally on Oracle, record Python/perf/demangler identity/version, compare all source build identities, and assert every planned output/analysis path is fresh.",
+    "Execute windows strictly in declared order with no concurrent observer/workload. Stop and retain on any failed capture or audit; do not retry, replace, delete or change fixed drain.",
+    "Run the unchanged adapted analyzer on all16captures; independently inspect actual perf attributes and control ACKs, preserving original validation. Complete all analyses before deriving medians/shares."
+  ],
+  "limitations": [
+    "Runtimepreflight is still required for original wrapper/loadgen/upstream/Csymbol/SDK files at their declared remote paths; no remote files were read in this review.",
+    "Current110captures and required raw audits must finish and owners explicitly release observation slots; this source-plan PASS does not release them.",
+    "Original event attributes/control ACKs, sample/perf totals and descendant evidence require postcapture audit; no new observer or arithmetic is introduced."
+  ],
+  "remote_accessed": false,
+  "uploaded": false,
+  "executed": false
+}
