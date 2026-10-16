@@ -1,0 +1,198 @@
+{
+  "scope": "Local-only source/codegen screen of 4348. No SDK qualification, remote staging, runtime measurement, or promotion.",
+  "target": "aarch64-unknown-linux-musl",
+  "codegen_flags": [
+    "-Cforce-unwind-tables=no",
+    "-Crelocation-model=pie",
+    "-Ctarget-feature=+crt-static"
+  ],
+  "sources": {
+    "parent": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+    "integration": "4348b6d39490777cfbab2da41ff192141730cddb"
+  },
+  "outputs": {
+    "parent": {
+      "sha256": "fd2fa9ffe57ae5b3b1c3ac596b9508ae31a54ce58508104c8a6d47d725884a77",
+      "bytes": 5024648
+    },
+    "integration": {
+      "sha256": "aa75faef8bdc14410be615ef926afc4e23306e170266493d280590d7619a6403",
+      "bytes": 5024112
+    }
+  },
+  "reused_local_control_receipt": {
+    "path": "/Users/USER/Developer/owrt-perf-cached-hit-integration-20261016/private/cached-hit-integration/direct-lease-slice-cross-daemon/result.json",
+    "sha256": "0478e80d3a58ba5bdfae56a0078771ede69f9c97fc38d2bc44236ed787e5d5ca",
+    "scope": "Exact existing control ELF copied without rebuilding; same9e source/flags/toolchain"
+  },
+  "validation": {
+    "mac_lib": {
+      "passed": 729,
+      "failed": 0,
+      "ignored": 8,
+      "log_sha256": "8c729227c81f17583f360be4616a321a9b3e8aee202db5e175ca76979c808a96"
+    },
+    "musl_all_targets": {
+      "exit": 0,
+      "log_sha256": "1b259ee5f01b689d02bd1ac156f4e91fce39e98ff776537b5ea0bb63694586be"
+    },
+    "existing_reply_comparisons": 18432,
+    "source_review_commit": "2bc0f64b",
+    "source_review_sha256": "33609f01c9b3aa0d3fc13d7ee6c40b6ccadf5319f92e2218290de2eac46865a3"
+  },
+  "fresh_writer": {
+    "parent": {
+      "name": "answer_fresh_address",
+      "symbol": "_RNvMs0_NtNtCsdit5ht95l7V_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+      "address": "0x31034c",
+      "bytes": 1028,
+      "code_sha256": "7714d90f3d1a3e342c124b4363d3b79793c32e1eebd75aa2447a39a44a04f598",
+      "asm_sha256": "6fe7321f85e7091a10cf4e85a44b1b72152a2c0cd67002e7967e0e4bf901f4a1",
+      "entry": [
+        "31034c: sub sp, sp, #0xa0",
+        "310350: stp x29, x30, [sp, #0x40]",
+        "310354: stp x28, x27, [sp, #0x50]",
+        "310358: stp x26, x25, [sp, #0x60]",
+        "31035c: stp x24, x23, [sp, #0x70]",
+        "310360: stp x22, x21, [sp, #0x80]",
+        "310364: stp x20, x19, [sp, #0x90]",
+        "310368: add x29, sp, #0x40",
+        "31036c: ldp x10, x11, [x29, #0x60]",
+        "310370: ldrb w8, [x6, #0x217]",
+        "310374: tbnz w8, #0, #0x31044c",
+        "310378: ldr x12, [x6, #0x1d0]"
+      ],
+      "calls": [
+        {
+          "pc": "0x3104d8",
+          "callee": "memset"
+        },
+        {
+          "pc": "0x310568",
+          "callee": "memcpy"
+        },
+        {
+          "pc": "0x31060c",
+          "callee": "memcpy"
+        },
+        {
+          "pc": "0x310660",
+          "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+        },
+        {
+          "pc": "0x310698",
+          "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsdit5ht95l7V_10dnsmasq_rs"
+        },
+        {
+          "pc": "0x3106e4",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking9panic_fmt"
+        },
+        {
+          "pc": "0x3106fc",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking9panic_fmt"
+        },
+        {
+          "pc": "0x31070c",
+          "callee": "_RNvNvNtCs2kXltWtc1W_4core5slice20copy_from_slice_impl17len_mismatch_fail"
+        },
+        {
+          "pc": "0x310720",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+        },
+        {
+          "pc": "0x310734",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+        },
+        {
+          "pc": "0x31074c",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking9panic_fmt"
+        }
+      ]
+    },
+    "integration": {
+      "name": "answer_fresh_address",
+      "symbol": "_RNvMs0_NtNtCs2iV0i5RHWLY_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+      "address": "0x310344",
+      "bytes": 704,
+      "code_sha256": "f47c12f45d34c8fa6788d451e5adb9e76acc43a3fce94687451ef850d5a8f2b7",
+      "asm_sha256": "3118333ba8a2aed3875c85dd1f27f5b8de3cdbb3263a35eded38dd7487e13685",
+      "entry": [
+        "310344: sub sp, sp, #0xa0",
+        "310348: stp x29, x30, [sp, #0x40]",
+        "31034c: stp x28, x27, [sp, #0x50]",
+        "310350: stp x26, x25, [sp, #0x60]",
+        "310354: stp x24, x23, [sp, #0x70]",
+        "310358: stp x22, x21, [sp, #0x80]",
+        "31035c: stp x20, x19, [sp, #0x90]",
+        "310360: add x29, sp, #0x40",
+        "310364: ldp x10, x11, [x29, #0x60]",
+        "310368: ldrb w8, [x6, #0x217]",
+        "31036c: tbnz w8, #0, #0x310444",
+        "310370: ldr x12, [x6, #0x1d0]"
+      ],
+      "calls": [
+        {
+          "pc": "0x310524",
+          "callee": "_RNvMs_NtCshlmZ2E5RoO1_5alloc3vecINtB4_3VechE15append_elementsCs2iV0i5RHWLY_10dnsmasq_rs"
+        },
+        {
+          "pc": "0x310534",
+          "callee": "_RNvMs_NtCshlmZ2E5RoO1_5alloc3vecINtB4_3VechE15append_elementsCs2iV0i5RHWLY_10dnsmasq_rs"
+        },
+        {
+          "pc": "0x310578",
+          "callee": "_RNvMs_NtCshlmZ2E5RoO1_5alloc3vecINtB4_3VechE15append_elementsCs2iV0i5RHWLY_10dnsmasq_rs"
+        },
+        {
+          "pc": "0x310588",
+          "callee": "_RNvMs_NtCshlmZ2E5RoO1_5alloc3vecINtB4_3VechE15append_elementsCs2iV0i5RHWLY_10dnsmasq_rs"
+        },
+        {
+          "pc": "0x3105d8",
+          "callee": "_RNvNtCs2kXltWtc1W_4core6option13expect_failed"
+        },
+        {
+          "pc": "0x3105ec",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+        },
+        {
+          "pc": "0x310600",
+          "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+        }
+      ]
+    }
+  },
+  "called_append_helper": [
+    {
+      "symbol": "_RNvMs_NtCshlmZ2E5RoO1_5alloc3vecINtB4_3VechE15append_elementsCs2iV0i5RHWLY_10dnsmasq_rs",
+      "bytes": 128,
+      "address": "0x314e34",
+      "entry": [
+        "314e34: stp x29, x30, [sp, #-0x30]!",
+        "314e38: stp x22, x21, [sp, #0x10]",
+        "314e3c: stp x20, x19, [sp, #0x20]",
+        "314e40: mov x29, sp",
+        "314e44: ldr x21, [x0, #0x10]",
+        "314e48: ldr x8, [x0]",
+        "314e4c: mov x19, x2",
+        "314e50: mov x20, x0",
+        "314e54: sub x8, x8, x21",
+        "314e58: cmp x2, x8"
+      ],
+      "calls": [
+        {
+          "pc": "0x314e70",
+          "callee": "memcpy"
+        },
+        {
+          "pc": "0x314ea4",
+          "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECs2iV0i5RHWLY_10dnsmasq_rs"
+        }
+      ],
+      "code_sha256": "6cf695ee134e48b4c211d0bfee6e324f3e9e7a829c609cf839f76c86ffa9d296"
+    }
+  ],
+  "inspection_sha256": "303270765585f12fe02e85bc253bd761241c05b4d14bae29031b8052231ce431",
+  "retained_initial_helper_inspection_failure_sha256": "45decfafe61b42345ba7f52f5216415671784275d284f612c788d3ae14c0f40a",
+  "decision": "Unselected local prototype: removes zero overwrite but adds four out-of-line append calls. Need measured evidence before selecting; no assumed improvement from code size."
+}
