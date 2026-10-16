@@ -1,0 +1,74 @@
+{
+  "schema": "1df-execution-release-binding-review-v1",
+  "status": "PASS_LOCAL_METADATA_ONLY_ACTUAL803_CLOSEOUT_BINDING_RESULTS_PENDING",
+  "execution_plan_sha256": "ca4b8235ac1526f149d8ee8ec670f0ba4b64c0e3f7aa6eaa56398cd1ef8c0398",
+  "preparation_manifest_sha256": "e913ee10beaaf34cc2d38e510f5bd8ba69c838384b23fe03380e2eba7c544d03",
+  "changed_fields_only": [
+    "ambient_release_profile_overrides_observed",
+    "authorization",
+    "exclusive_slot_release",
+    "execution_authorized",
+    "independent_preparation_review",
+    "preparation_commit",
+    "preparation_sha256",
+    "status",
+    "verified_remote_python"
+  ],
+  "source179_original_five_argv_wrappers_canonical_SDK_argv_profile_and_budgets_unchanged": true,
+  "frozen_source_archive_bytes_rehashed": true,
+  "actual803_release_and_closeout_bytes_rehashed": true,
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/185-opt2-owner32-release-to-dns-bare1df.json",
+    "sha256": "a0e3fd07ea97490196da80eaad36cd852b18c463196e29cacd986d231a33ea39",
+    "closeout_commit": "03d9c6c6",
+    "closeout_report_sha256": "baedf464b88e139eed160761631a9f6ece6bcd5882a71f911004cc4247d5dc8d"
+  },
+  "preparation_review": {
+    "commit": "0aca751f",
+    "report_sha256": "ff2976b283521cc62d3b350339452c4c918ae753e1b0b3f1001007e396846117"
+  },
+  "canonical_builder": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+    "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
+  },
+  "shipping_profile": {
+    "opt_level": "3",
+    "features": "",
+    "allocator_linker_LTO_codegen1_panic_strip_hardening_unchanged": true
+  },
+  "related_comparison": {
+    "base_verified_receipt_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "base_verified_receipt_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "base_actual_passed": 961,
+    "expected_added_tests": [
+      "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+      "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
+    ],
+    "expected_counts_only": {
+      "lib": 842,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "expected_total_only": 963,
+    "actual_counts": null,
+    "actual_verified_receipt": null,
+    "authority": "Actualfresh1df binaries/logs/original--list names; preserveall6ab passednames andexactlytwo addedlibtests. Historical961 isonlycomparison, never1dfPASS."
+  },
+  "author_reported_prelaunch_environment": {
+    "python": "3.12.3",
+    "ambient_release_overrides": []
+  },
+  "reviewer_live_environment_query": false,
+  "metadata_scope": "Preparation-level archive uploaded/executed/oracle_accessed flags and queue/entry prose remain frozen template metadata; actual fresh preflight/log/receipt/artifact outputs are authoritative. This review verifies authorization/identity binding only.",
+  "related_actual_result_verified": false,
+  "SDK_actual_result_verified": false,
+  "reviewer_test_or_build_rerun": false,
+  "reviewer_remote_access": false,
+  "reviewer_script_sha256": "99ebb7f56f7b27424d6af70b060e69834978a5890d45228b456ccb2fc0eaab34"
+}
