@@ -1151,3 +1151,59 @@ the original5e local count gives185one/21B→zero allocations; no CPU claim.
 Finalf3 Mac723/8ignored and musl all-target checks pass. The prior failed run,
 its executable, and the independently reproduced fixture defect remain retained.
 722d2762 owner-clock is another separate child; neither is part of185 timing.
+
+## Complete110 matrices running; separate next work prepared, 2026-10-16
+
+The original full Oracle E/18511scene110 started02:45:12UTC (PID776427),
+and the independent router matrix started02:45:40UTC. Artifact/source/plan
+identities and actual full functional PASS were bound before launch. The original
+APK is now retained locally and hash-verified:5bb29803bceaf70eecc9a88d582e67a4440c53aa8ec498d3990b06eab82fe032.
+Neither complete performance matrix is yet qualified. The first30 device
+windows have independent verification of all1230 raw members and3guards.
+In this formal round UDP-hit CPU138→116us passes the original rule, UDP-mixed
+208→186us also passes, UDP-miss448→456us is inconclusive; none of these partial
+results is a final33-comparison acceptance decision.
+
+Root continued entirely locally. Independent0958f89c replaces repeated generic
+cache validity traversal after positive A/AAAA selection with the identical
+expiry predicate on the already fetched entry. Mac722/8ignored and musl
+all-target checks pass; independent source review9cfd9649 verifies equivalence.
+Local final codegen removes two is_valid call sites but grows the local/shared
+entries32/80B; no SDK/runtime gain is claimed. Loop's independent99b519dc
+delays the listener Arc clone until received packet work, preserving recv
+counts,16packet budget,invalid/resend boundaries and pending-work ownership.
+Its23bin/default+m6b checks and independent967ddae8 source/codegen review pass.
+
+Combined sourcea15d3ca2 applies5e lease-bound,7c270 fixture,722 clock,0958
+positive-validity and99 listener-borrow as five separate clean cherry-picks.
+Local724lib/8ignored+23bin+default/m6b musl all-target checks pass; original
+64live-lease prepared-query control remains185one/21B→zero with equal468800
+checksum. Composition reviewad77431a passes; only the original five related
+Linux groups are prepared (expected960, actual fresh listing still required).
+No SDK or timing has run for this combination.
+
+Compiler experiment80351142 is separate185+fixture+opt-level2; fatLTO and
+codegen-units1 remain. Local.text decreases5.15% but shared cache/writer/wait
+frames grow64/32/16B. ReleaseMac721/8ignored and musl checks pass; no IPC or
+performance claim. Sourceb65e9a9c is another separate pending-review prototype:
+record_at reuses the validated first question only atHEADER_LEN with a written
+question; all other offsets retain original validation. Mac722/8ignored and
+musl checks pass; local final-codegen work is pending. None alters185 timing.
+
+Excluded diagnostic7c5b4c58 reuses the original E allocation meter/control
+byte-for-byte on185; independent98367eec source review and original controls
+pass. Its SDK and fixed three A53 count windows remain pending; whole-owner
+zero-allocation and timing claims are explicitly absent. recvmmsg is deferred
+after8dd138bd owner-boundary review: shared-pool tails add lifecycle/runnable
+state, and partial-success errors cannot preserve currentresend classification
+without another observation. No new batching implementation was made.
+
+After DNS completes full110 raw checks/postflight/quiet, loop must independently
+audit it before executing authorized C/185 profiling: original12stat+4cycles,
+no instruction-sample repeat, exact original drivers/loadgen/symbol proof.
+Planac6b2cf6 and independent2e5ff275 are frozen; no pretransfer yet. After device
+full110 audit/restore/no-product-failure, DHCP is authorized for fresh exactC/185
+UDP-hit five pairs, original thresholds and freshhealth/recovery. Plan8e56ce33
+and independent8bcdfe38 pass locally. These two new diagnostics may run in
+parallel on separate machines. Preserve pending timing exclusivity until the
+actual releases, not just the last timed window.
