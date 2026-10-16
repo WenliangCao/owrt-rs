@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "status": "TEST_ONLY_FIXTURE_REPAIR_VERIFIED",
+  "scope": "Independent repair for the next candidate only. No frozen185source,SDK,remotequalificationinput or timed sample was changed.",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "original_failure": {
+    "record": {
+      "base": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "binary_sha256": "e831d2723fe133c455c8a7b83b318756f0bc7a2d2c6d63ecb26d9995d8162080",
+      "patch_sha256": "eb467b4111abadbeb57ff52d585098d072d58d225a2c5845e87de985477b8e5f",
+      "stdout_sha256": "62030d7a714a7abb7ccbfecdcddfcdf9ec996401acab2d4802a2219fc46d96d0",
+      "stderr_sha256": "5237b2a96846cae978495b436cf1da049b35efa9fe70729598157673f47d5fbe",
+      "failure": "hosts::tests::staged_alias_line_rehashes_only_after_the_same_boundary_as_streaming_read"
+    },
+    "preserved_directory": "/Users/USER/Developer/owrt-perf-hosts-collision-pair-20261016/private/collision-original-failure",
+    "preserved_files": {
+      "initial-failed-lib-test": {
+        "bytes": 19643208,
+        "sha256": "e831d2723fe133c455c8a7b83b318756f0bc7a2d2c6d63ecb26d9995d8162080"
+      },
+      "initial-product.patch": {
+        "bytes": 5184,
+        "sha256": "eb467b4111abadbeb57ff52d585098d072d58d225a2c5845e87de985477b8e5f"
+      },
+      "lease-expiry-bound-lib.stdout": {
+        "bytes": 67981,
+        "sha256": "62030d7a714a7abb7ccbfecdcddfcdf9ec996401acab2d4802a2219fc46d96d0"
+      },
+      "lease-expiry-bound-lib.stderr": {
+        "bytes": 842,
+        "sha256": "5237b2a96846cae978495b436cf1da049b35efa9fe70729598157673f47d5fbe"
+      },
+      "initial-failure.json": {
+        "bytes": 508,
+        "sha256": "d7845ba857311e17a4bd8f3bcbe3e5c55606a441707339542c20a346313f091b"
+      }
+    },
+    "test": "hosts::tests::staged_alias_line_rehashes_only_after_the_same_boundary_as_streaming_read"
+  },
+  "unchanged_failed_binary_reproduction": {
+    "runs": 128,
+    "passed": 127,
+    "failed": 1,
+    "failed_indices": [
+      15
+    ],
+    "receipt_sha256": "fcbeaeb4b8eaec46f1a9d05ba797f40a5361dd8d6b13086e2715a739510d355f",
+    "scope": "Fixed number chosen before execution; no rebuild or gate retry."
+  },
+  "immutable185_source_diagnostic": {
+    "original_hosts_source_sha256": "cf3973555a7d693279618e5158722df2a0bfb88c8e529981c2a37784a4d19d2f",
+    "diagnostic_source_sha256": "6468afd3e1adeaf1fd5e1f545cead44ffd3432fec66fae9d6ed36a075f419711",
+    "binary_sha256": "2ca7e8e019a5c5eac75fc20f17195b88a6094def749ada4e8678a5c28977f885",
+    "scope": "Immutable185hosts.rs plus bucket-pool observation before the original unchanged test; product logic, fixedpool and assertions unchanged.",
+    "runs": 256,
+    "passed": 253,
+    "failed": 3,
+    "failures": [
+      {
+        "index": 116,
+        "hash_size": 256,
+        "target": 160,
+        "occupied": 248,
+        "reachable": false
+      },
+      {
+        "index": 181,
+        "hash_size": 256,
+        "target": 160,
+        "occupied": 254,
+        "reachable": false
+      },
+      {
+        "index": 228,
+        "hash_size": 256,
+        "target": 160,
+        "occupied": 254,
+        "reachable": false
+      }
+    ],
+    "all_original_test_failures_exactly_match_unreachable_target_bucket": true,
+    "receipt_sha256": "63271ec291cfd09593010115f83dca08a682e06278417cc91495d77004d37c06"
+  },
+  "cause": "name_hash_bucket uses process-relocated pointer bytes. A fixed10000crossN.test pool is not guaranteed to cover a preselected x.test bucket. In three immutable185processes, target160 was absent even though248/254/254 of256 buckets were reached. This is a test fixture search-coverage assumption, not a product hashing or staged-loader regression.",
+  "repair": {
+    "new_helper": "colliding_pair(capacity) stores the first name for each actual bucket and returns the first duplicate bucket.",
+    "finite_guarantee": "name_hash_size(2100)=256. At most257distinct pairN.test names force a collision by the pigeonhole principle; no seed override, retries, larger arbitrary pool or unbounded loop.",
+    "scope": "Only the large-capacity staged alias fixture uses the pair. Other colliding_name callers remain unchanged.",
+    "fixture_roles": "Replace the former x/y names consistently in both initial records, the final alias and the two address queries. All addresses,1001extraaliases,4096byte feed chunks and1002end count remain.",
+    "assertions": "Original staged/streaming forward addresses,reverse order and entries assertions are byte-identical after normalizing the selected x argument.",
+    "product_prefix_before_cfg_test_byte_identical": true
+  },
+  "verification": {
+    "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "fixed_source_sha256": "84db45756275fb603f2141d0001c157157a18df69874ea6763f8f393f2be97f1",
+    "product_prefix_unchanged": true,
+    "fixed_binary_sha256": "47e3a572dca614a55179ff7e3f5002450e1bece3469603938a436e96d7334f77",
+    "command": [
+      "rustc",
+      "--edition=2024",
+      "--test",
+      "components/dnsmasq/src/hosts.rs",
+      "-o",
+      "private/collision-pair-verification/hosts-fixed"
+    ],
+    "all_hosts_summary": "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s",
+    "fixed_target_runs": 256,
+    "fixed_passed": 256,
+    "fixed_failed": 0,
+    "negative_control_scope": "Private test-only variant supplies each alias as a line boundary (1..=1002) to the unchanged staged loader, reproducing the original per-alias rehash error; streaming input still one physical line. Original result assertions unchanged.",
+    "negative_control_command": [
+      "rustc",
+      "--edition=2024",
+      "--test",
+      "private/collision-pair-verification/hosts_per_alias_negative_control.rs",
+      "-o",
+      "private/collision-pair-verification/hosts-per-alias"
+    ],
+    "negative_control_source_sha256": "a3606428677fbd961caca4eceb47b68c1f09af848f65bd85d7442e81fae7d101",
+    "negative_control_binary_sha256": "ce516deb6fa8448d48af54e27285303fab5fcbb02e548f1524a98f91add763c7",
+    "negative_control_runs": 16,
+    "negative_control_rejected": 16,
+    "negative_control_accepted": 0
+  },
+  "verification_receipt_sha256": "632baffd908c83eb21e6bda0befb667ff12f57dfc16fe5a66835c67b57ff2d43",
+  "negative_control_result": "All16private runs replacing the single physical line endpoint with per-alias endpoints were rejected by the original regression assertions; no product mutation or new acceptance expectation was committed.",
+  "old_failures_retained": true,
+  "new_framework_or_C_expectation": false,
+  "deployed_or_flashing": false
+}
