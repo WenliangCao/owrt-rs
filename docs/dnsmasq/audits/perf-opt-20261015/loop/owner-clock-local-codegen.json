@@ -1,0 +1,205 @@
+{
+  "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+  "target": "aarch64-unknown-linux-musl",
+  "codegen_flags": [
+    "-Cforce-unwind-tables=no",
+    "-Crelocation-model=pie",
+    "-Ctarget-feature=+crt-static"
+  ],
+  "sources": {
+    "parent": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "clock": "722d2762a275c7d29c2caf80088d9ecb2c5738d5"
+  },
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/parent-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-620fe96dc5800825.rlib"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-owner-clock-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/clock-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-owner-clock-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-owner-clock-20261016/private/owner-clock/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-c2395a379dd5e675.rlib"
+      ],
+      "returncode": 0
+    }
+  ],
+  "outputs": {
+    "parent": {
+      "sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+      "bytes": 5022408
+    },
+    "clock": {
+      "sha256": "49ee44ab5519bcffa91b38373c8aea8bdac17184dfd43ec73f8a9d6669eb0727",
+      "bytes": 5022280
+    }
+  },
+  "source": "722d2762a275c7d29c2caf80088d9ecb2c5738d5",
+  "source_sha256": "8dd446eb68419523a57877745dfb098da4a90f5da0d998f8e95b5eb2a81eeacf",
+  "wait_function": {
+    "parent": {
+      "elf_sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+      "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+      "address": "000000000027c424",
+      "size": 7304,
+      "asm_sha256": "9e1ef0625ba31afbc5f04d126c35ce217d1645d2f17ce476e1b4b1a623a1506b",
+      "clock_sites": [
+        "  27c4ac: 94056dbd     \tbl\t0x3d7ba0 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27cf44: 94056b17     \tbl\t0x3d7ba0 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27d178: 94056a8a     \tbl\t0x3d7ba0 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27d998: 94056882     \tbl\t0x3d7ba0 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27d9b4: 9405687b     \tbl\t0x3d7ba0 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27db00: 94056828     \tbl\t0x3d7ba0 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>"
+      ],
+      "entry": [
+        "",
+        "private/owner-clock/cross-daemon-final/parent-daemon-elf:\tfile format elf64-littleaarch64",
+        "",
+        "Disassembly of section .text:",
+        "",
+        "000000000027c424 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files>:",
+        "  27c424: d10583ff     \tsub\tsp, sp, #0x160",
+        "  27c428: a9107bfd     \tstp\tx29, x30, [sp, #0x100]",
+        "  27c42c: a9116ffc     \tstp\tx28, x27, [sp, #0x110]",
+        "  27c430: a91267fa     \tstp\tx26, x25, [sp, #0x120]",
+        "  27c434: a9135ff8     \tstp\tx24, x23, [sp, #0x130]",
+        "  27c438: a91457f6     \tstp\tx22, x21, [sp, #0x140]",
+        "  27c43c: a9154ff4     \tstp\tx20, x19, [sp, #0x150]",
+        "  27c440: 910403fd     \tadd\tx29, sp, #0x100",
+        "  27c444: 3dc5ac00     \tldr\tq0, [x0, #0x16b0]",
+        "  27c448: 52800088     \tmov\tw8, #0x4                // =4"
+      ]
+    },
+    "clock": {
+      "elf_sha256": "49ee44ab5519bcffa91b38373c8aea8bdac17184dfd43ec73f8a9d6669eb0727",
+      "symbol": "_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+      "address": "000000000027c414",
+      "size": 7192,
+      "asm_sha256": "1601d41e34136b2d64e00e87eaa559881ea6cb97b826c2b0a59741ac3adf6485",
+      "clock_sites": [
+        "  27c4a0: 94056da0     \tbl\t0x3d7b20 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27cf70: 94056aec     \tbl\t0x3d7b20 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27d194: 94056a63     \tbl\t0x3d7b20 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>",
+        "  27d990: 94056864     \tbl\t0x3d7b20 <_RNvMNtNtNtNtCsiKaSbYLw9fL_3std3sys3pal4unix4timeNtB2_8Timespec3now>"
+      ],
+      "entry": [
+        "",
+        "private/owner-clock/cross-daemon-final/clock-daemon-elf:\tfile format elf64-littleaarch64",
+        "",
+        "Disassembly of section .text:",
+        "",
+        "000000000027c414 <_RNvMs8_CslhjqNMUq7WX_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files>:",
+        "  27c414: d10583ff     \tsub\tsp, sp, #0x160",
+        "  27c418: a9107bfd     \tstp\tx29, x30, [sp, #0x100]",
+        "  27c41c: a9116ffc     \tstp\tx28, x27, [sp, #0x110]",
+        "  27c420: a91267fa     \tstp\tx26, x25, [sp, #0x120]",
+        "  27c424: a9135ff8     \tstp\tx24, x23, [sp, #0x130]",
+        "  27c428: a91457f6     \tstp\tx22, x21, [sp, #0x140]",
+        "  27c42c: a9154ff4     \tstp\tx20, x19, [sp, #0x150]",
+        "  27c430: 910403fd     \tadd\tx29, sp, #0x100",
+        "  27c434: 3dc5ac00     \tldr\tq0, [x0, #0x16b0]",
+        "  27c438: 52800088     \tmov\tw8, #0x4                // =4"
+      ]
+    }
+  },
+  "check_logs": {
+    "private/owner-clock-default.stderr": "b8e15d5f9fb207226ab1c702c86d3193d36385ca6544c2d297f5ce3c44aa28f5",
+    "private/owner-clock-default.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/owner-clock-cross.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/owner-clock-diagnostics.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/owner-clock-cross.stdout": "e91403f89d680ff5d21fb181013ef31e63d4d8524c0c926d4aba8db607947d95",
+    "private/owner-clock-diagnostics.stderr": "afc8fd09a28f43425366c1ba55812f516a67d9310d1f6ff7bbca47f33b279601"
+  },
+  "controller_sha256": "354e1bd45e1746993ffbfcdd9f77e566e70e5b642b1561b44b5400da9cdea0da",
+  "limits": [
+    "Local final Linux-target cross-link with Rust bundled musl/rust-lld, not exact OpenWrt SDK.",
+    "Static callsites to Timespec::now are six in185 wait_for_files and four in722; no claim of six/four runtime calls on every query.",
+    "Function size7304->7192 bytes; frame stays352. No whole-path timing, A53 count or CPU benefit.",
+    "Default and m6b-diagnostics musl all-target checks passed; original Linux tests have not run for722.",
+    "Source722 remains separate from frozen185; no active measured input changed."
+  ]
+}
