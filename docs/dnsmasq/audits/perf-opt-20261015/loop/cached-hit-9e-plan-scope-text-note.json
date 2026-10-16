@@ -1,0 +1,30 @@
+{
+  "status": "RETAINED_PREPARATION_SCOPE_TEXT_IN_FROZEN_EXECUTED_PLANS",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "plans": {
+    "native": {
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-native-plan.json",
+      "sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+      "retained_scope_text": "Disabled original G185/9e complete native hot15/240 screen. Original cold/general library-path coverage; no warm-buffer, owner or device acceptance inference.",
+      "actual_status": "READY_ORIGINAL_NATIVE240_AFTER_ACTUAL_GATES_BULK_AND_EXCLUSIVE_RELEASE",
+      "actual_execution_enabled": true,
+      "actual_execution_authorized": true,
+      "actual_release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba"
+    },
+    "owner32": {
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-owner32-plan.json",
+      "sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+      "retained_scope_text": "Disabled original exact-SDK G185/9e owner32; actual gates/SDK/signals/native prerequisite and reviews unset.",
+      "actual_status": "FROZEN_EXACT_SDK_READY_AFTER_EXCLUSIVE_SLOT_RELEASE",
+      "actual_execution_enabled": true,
+      "actual_execution_authorized": true,
+      "actual_release_sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba"
+    }
+  },
+  "issue": "The free-text scope fields retain disabled/actual-unset preparation prose. The final status/flags, precise actual audit and signal bindings, release, ready and launch receipts correctly authorize and identify the original executed screens.",
+  "effect": "Metadata wording only. Native controller does not use this prose for commands; owner controller copies it to identity. Actual readiness and measurement behavior use explicit fields and the unchanged original tool code.",
+  "resolution": "Frozen timed plans and resulting identities remain byte-identical. This report states the inconsistency; no plan edit, measurement replacement or re-analysis is used to hide it.",
+  "source_modified": false,
+  "workload_or_comparator_or_threshold_changed": false,
+  "measurement_retries": 0
+}

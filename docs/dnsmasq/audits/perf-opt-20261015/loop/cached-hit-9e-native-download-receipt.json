@@ -1,0 +1,14 @@
+{
+  "status": "PASS_ORIGINAL_NATIVE_ARCHIVE_AND_ALL_LOCAL_MEMBER_BYTES",
+  "kind": "native",
+  "archive_sha256": "9cb6efe5e7e0597be6f7705e9c9a921fbc9f57ec17aab8ac319d48294965f913",
+  "archive_bytes": 1541825,
+  "collection_sha256": "f772b6079fc8ecfc2e5fa091d837dc818f3b52c9ada0020b0ad68706bd0b5eaf",
+  "files_rehashed": 592,
+  "raw_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "retained_remote_omitted_files": 0,
+  "safe_regular_unique_members": true,
+  "timing_finished_before_download": true,
+  "all_original_remote_evidence_retained": true,
+  "no_analysis_or_measurement_rerun": true
+}
