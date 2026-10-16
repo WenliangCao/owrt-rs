@@ -179,7 +179,14 @@
   "standalone_runtime_signals_result": null,
   "standalone_runtime_signals_independent_review": null,
   "source_interaction_review": null,
-  "device_plan_independent_review": null,
+  "device_plan_independent_review": {
+    "commit": "04606fab",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-device-preparation-peer.json",
+    "sha256": "35b908ce28876713370caeb19080792a15ddcb7e90657e3a45d6b39a6699b72d",
+    "reviewed_preparation_plan_sha256": "947b1fdbb90c3e1fd8722ebcc0656e93a4742e0477b843d2260a7a05e20098fa",
+    "status": "PASS_DISABLED_LOCAL_PREPARATION_ONLY",
+    "scope": "Local disabled preparation only: original identity/path/prior-closure adaptations and unchanged shared helper bytes. Actual exact GNU same-link map concentration, original965/SDK/signals content and all original readiness/health/recovery gates remain required; this review does not enable device execution."
+  },
   "explicit_queue_release": null,
   "execution_selected": false,
   "execution_enabled": false,
@@ -245,7 +252,14 @@
         "sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af"
       }
     ],
-    "peer_review": null,
+    "peer_review": {
+      "commit": "04606fab",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-device-preparation-peer.json",
+      "sha256": "35b908ce28876713370caeb19080792a15ddcb7e90657e3a45d6b39a6699b72d",
+      "reviewed_preparation_plan_sha256": "947b1fdbb90c3e1fd8722ebcc0656e93a4742e0477b843d2260a7a05e20098fa",
+      "status": "PASS_DISABLED_LOCAL_PREPARATION_ONLY",
+      "scope": "Local disabled preparation only: original identity/path/prior-closure adaptations and unchanged shared helper bytes. Actual exact GNU same-link map concentration, original965/SDK/signals content and all original readiness/health/recovery gates remain required; this review does not enable device execution."
+    },
     "disabled_before_first_SSH": "Actual artifact/source/Linux/SDK/signals fields are null or false; stage/start/launch fail before their first production_identity SSH. Actual canonicalSDK hot-layout selection is also required before these readiness fields can be enabled. No health/staging/queue/launch files exist.",
     "staging": "Original fresh health and four immutable copies, preserving slots; stage stops before Popen. Only after actual gates, transfers and root scheduling release may start execute.",
     "preflight_or_windows_started": false,
