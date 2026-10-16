@@ -405,3 +405,8 @@ m6a.example不变，cache-size1000、cache-names400。已有生成器先A再AAAA
 通过后原44/67+shipping/相关source语料、原118和同双栈条件九对确认（d8<0、三个block各超过
 本screen AA、整体≥5）；不要求简化hit也证明5µs，原33指标不得有可辨退化。
 此形状同时测源码和新profile的整体效果，不独立归因；单族/空OPT/真实流量占比不得外推。
+
+排程补充（K训练完成、use尚未验收前）：K实际产物smoke通过后，空闲Oracle可提前完成上述
+原44/67、shipping及相关source语料，与J的独立设备118并行。不改变测试、期望、失败处理、
+性能门或晋级条件；若screen未通过，提前完成的正确性只记事实，不据此接受K。不重复已过门。
+新目录绑定K实际ELF/source/profile，bulk仍仅设备恢复gap；原J最终审阅不受影响。
