@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "LOCAL PREPARATION; exact185 full qualification and generic full-tail repair independent review/binding pending",
+  "status": "LOCAL PREPARATION; reviewed generic full-tail tool binding complete; actual exact185 fullqualification and quiet still pending",
   "execution_started": false,
   "conditional_execution_authorization": "Root explicitly permits freshhealth/recovery/fullE185110 after actual exact-source complete qualification PASS and reviewed generic-full-tail repair hashes bound. No additional approval is required then. These conditions are not yet met.",
   "scope": "PhysicalA53 acceptedE/185 complete11-scene matrix, separate from exploratoryten and all Oracle/historical controls. No installation/restart/configuration/flash change.",
@@ -31,7 +31,7 @@
   "supporting_ten": {
     "author_commit": "29518d65",
     "result_sha256": "b7fa4f017942645520a1ef5062258fdd477e24cfb8843226685eeaf88dc8e498",
-    "independent_audit_commit": null,
+    "independent_audit_commit": "0bff69e6",
     "cpu_gate_passed_in_exploratory_only": true,
     "p50_gate_passed_in_exploratory_only": true,
     "p95_gate_passed": false,
@@ -41,7 +41,7 @@
     "actual_PASS": false,
     "receipt_sha256": null,
     "required": [
-      "All ordinary and relevant ignored namespace/config/frozen-clock tests; explicit16 hosts_allocations and all original allocation-failure families",
+      "All ordinary and relevant ignored namespace/config/frozen-clock tests; entire original hosts_allocations target (17 existing cases, not16) and all original allocation-failure families",
       "Canonical44 C differential families,68 registered/67 executed procedural steps with190 semantic requirements, frozen exactC",
       "Daemon368 pairs/366 identical plus original2 C-invalid qualifiers,8 lifecycles and5 negative controls",
       "F10all13/704observations plus original24 checker controls and approved PTR manifest",
@@ -54,15 +54,16 @@
     "complete_44_families": 44,
     "registered_steps": 68,
     "executed_steps": 67,
-    "related_Linux940_not_a_substitute": true
+    "related_Linux940_not_a_substitute": true,
+    "hosts_allocations_count_clarification": "Derived text corrected from16 to the actual complete original target17; no frozen test selection, expectation or rule changed. Current185 short groups957 passed, still not fullqualification."
   },
   "tools": {
     "historical_generic_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
-    "new_full_tail_controller_sha256": null,
-    "new_health_evidence_sha256": null,
-    "repair_commit": null,
-    "independent_repair_review_commit": null,
-    "health_collector_sha256": null,
+    "new_full_tail_controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+    "new_health_evidence_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+    "repair_commit": "52a92e8003a48e1cf9b37d24eb18a7a15a6e9d2f",
+    "independent_repair_review_commit": "f95f83a4",
+    "health_collector_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
     "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
     "measurement_artifacts": {
       "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
@@ -75,7 +76,19 @@
       "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
       "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
     },
-    "required_tail_boundary": "Each completed scene/guard segment preserves capture.raw and complete JSONL prefix before SIGTERM; final must begin with entire captured bytes. PrefixDNS/HTTP qualification; allfinal PID/memory/route/no-stop gates. Segment naming/new receipt/hash final binding pending loop review."
+    "required_tail_boundary": "After every completed scene segment, out/<prefix>-<scene>-guard-<ns>/ has pre-stop-capture.raw/pre-stop-prefix.jsonl/stop-request.json/external-health-capture.raw/guard-verification.json; top-level<guardlabel>.jsonl/stderr are completefinal. Fullcapture including partial bytes must prefix final. RuntimeAPI excludes baselinecoverage rules; observed outcomes/fullfinal safety remain.",
+    "independent_repair_review_sha256": "263d56cf4bc1d88b5a0ab2085a55c82affc8909822ca0042a618c6c4b18b43e4",
+    "fresh_health_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "runtime_validation_scope": "Per-scene/short-resume guard safety+observed probe outcomes only; no baseline120s or per-segment sample count requirement. Fresh baseline still original125s collection/>=120s qualification.",
+    "full_run_bundle_files": {
+      "perf_opt_device_run.py": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+      "device_health_baseline.py": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+      "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+    },
+    "fresh_health_bundle_files": {
+      "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+    }
   },
   "matrix": {
     "prefix": "cached-zero-frame-vs-e",
@@ -962,7 +975,8 @@
     "out": "private/perf-opt-20261015/cached-zero-frame-vs-e",
     "health": "private/perf-opt-20261015/health-cached-zero-frame-vs-e-prefix-v1",
     "tools": "private/perf-opt-20261015/tools-cached-zero-frame-full-prefix-v1",
-    "summary": "private/perf-opt-20261015/cached-zero-frame-vs-e-summary.json"
+    "summary": "private/perf-opt-20261015/cached-zero-frame-vs-e-summary.json",
+    "health_tools": "private/perf-opt-20261015/tools-cached-zero-frame-full-health-prefix-v1"
   },
   "prepared_command": [
     "python3",
@@ -1039,7 +1053,7 @@
   },
   "prelaunch_sequence": [
     "Recheck independentten audit and actual185fullqualification success against exactsource/ELF, including original allowed raw corpus exits only.",
-    "Bind loop new generic controller/health helper/collector/verifier hashes and independentrepair review, retain old7c93 snapshot/history.",
+    "Verify bound52a92e80 d2bb controller/8e33runtimehelper/f95f83a4review; freshhealth uses separate7c93+0926bundle. Preserve all prior bundles and originalhealthFAILED.",
     "Create new original125s healthattempt with actualprestopcapture; recheck productionfile/live/[PID,start], idle-owned state, root0700, originalslots/offline restore, >=65536KiB.",
     "Atomic .new stage candidate185 into task rustslot only after freshhealth; acceptedE taskc; allnine helperhashes match. No production action.",
     "Persist launchreceipt before new110 with fullqualification/health/source/ELF/map/build/tools/plan and fullcommand, no--scenes.",
@@ -1047,5 +1061,18 @@
     "Verifytar/member/manifests/bytes and durableprogress before validremoteprune. Retainfailedattempts/STOP; no automatic healthbypass/resume without completeexistinggate.",
     "Independent raw/stat/healthaudit, original33primary/allresource tables, no pooling; postflightprod/idle and restoreexactE/F; noG claim until complete gates."
   ],
-  "optional_deployed_comparison": "Not part of this newly authorized E-relative110. A future direct v0.2.0 baseline claim requires a separately requested freshB/185whole11scene110; historicalE/B cannot substitute."
+  "optional_deployed_comparison": "Not part of this newly authorized E-relative110. A future direct v0.2.0 baseline claim requires a separately requested freshB/185whole11scene110; historicalE/B cannot substitute.",
+  "fresh_health_command": [
+    "python3",
+    "private/perf-opt-20261015/tools-cached-zero-frame-full-health-prefix-v1/device_health_baseline.py",
+    "--out",
+    "private/perf-opt-20261015/health-cached-zero-frame-vs-e-prefix-v1",
+    "--label-prefix",
+    "cached-zero-frame-vs-e-health"
+  ],
+  "superseded_unlaunched_tool_binding": {
+    "commit": "da49cb69",
+    "controller_sha256": "c4f196805889abf996e006d52ef53539423f4ad8d88d9d512180dadf76791a2c",
+    "reason": "Corrected before any full110 launch because it reused baseline120s/probe sufficiency for short runtime resumes. Never scheduled or measured."
+  }
 }
