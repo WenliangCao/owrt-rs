@@ -161,6 +161,23 @@ impl Name {
         result
     }
 
+    /// Narrow plain-question constructor: no pointers or trailing bytes.
+    /// Validate first, then copy once into the existing bounded name scratch.
+    pub(super) fn from_uncompressed_reusing(wire: &[u8], scratch: &mut Vec<u8>) -> Option<Self> {
+        if wire.len() > MAX_NAME_LEN { return None; }
+        let mut pos = 0;
+        loop {
+            match *wire.get(pos)? {
+                0 if pos + 1 == wire.len() => break,
+                1..=63 => pos += 1 + usize::from(wire[pos]),
+                _ => return None,
+            }
+        }
+        scratch.clear();
+        scratch.extend_from_slice(wire);
+        Some(Self(std::mem::take(scratch)))
+    }
+
     /// dnsmasq's internal escaped byte string, without its C NUL terminator.
     pub fn dnsmasq_bytes(&self) -> Vec<u8> {
         let mut result = Vec::with_capacity(self.0.len().saturating_sub(2));

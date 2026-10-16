@@ -361,3 +361,35 @@ fn unrelated_expired_lease_does_not_disable_a_plain_hit_or_expire_globally() {
     assert_eq!(candidate.leases.active_entries().count(), 1);
     assert_eq!(eviction_trace(&left, counters), eviction_trace(&right, counters));
 }
+
+
+#[test]
+fn plain_name_constructor_matches_general_decode_and_rejects_pointers() {
+    let mut names = vec![vec![0]];
+    for byte in 0..=255 {
+        for length in [1, 63] {
+            let mut wire = vec![length];
+            wire.extend(std::iter::repeat_n(byte, usize::from(length)));
+            wire.extend_from_slice(&[1, b'A', 0]);
+            names.push(wire);
+        }
+    }
+    let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+    names.push(name(&longest).as_wire().to_vec());
+    let mut scratch = Vec::with_capacity(256);
+    for wire in names {
+        let (expected, end) = super::super::wire::decode_name(&wire, 0, 0).unwrap();
+        assert_eq!(end, wire.len());
+        let actual = Name::from_uncompressed_reusing(&wire, &mut scratch).unwrap();
+        assert_eq!(actual, expected);
+        scratch = actual.into_wire_buffer();
+        for end in 0..wire.len() {
+            let before = scratch.clone();
+            assert!(Name::from_uncompressed_reusing(&wire[..end], &mut scratch).is_none());
+            assert_eq!(scratch, before, "a rejected plain parse keeps scratch too");
+        }
+    }
+    for invalid in [vec![], vec![0, 0], vec![0xc0, 0], vec![64, 0], vec![0; 256]] {
+        assert!(Name::from_uncompressed_reusing(&invalid, &mut scratch).is_none());
+    }
+}
