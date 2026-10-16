@@ -150,18 +150,56 @@ pub struct Record {
 }
 
 #[derive(Debug, Clone)]
+enum EntryDetails {
+    // Record is immutable after insertion. Keep a small positive address
+    // beside expiry so its common read path need not chase Record and Vec.
+    Ipv4([u8; 4]),
+    Ipv6([u8; 16]),
+    Other {
+        target: Option<CnameTarget>,
+        authority_name: Option<Name>,
+    },
+}
+
+impl EntryDetails {
+    fn new(record: &Record) -> Self {
+        if !record.negative {
+            match (record.kind, record.data.as_slice()) {
+                (Kind::Ipv4, [a, b, c, d]) => return Self::Ipv4([*a, *b, *c, *d]),
+                (Kind::Ipv6, data) if data.len() == 16 => {
+                    return Self::Ipv6(data.try_into().unwrap());
+                }
+                _ => {}
+            }
+        }
+        Self::Other { target: None, authority_name: None }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Entry {
     /// Record payloads are immutable after insertion. A TCP fork view shares
     /// these bytes while owning its own expiry, links and generation state.
     pub record: Arc<Record>,
     pub expires: i64,
-    target: Option<CnameTarget>,
-    authority_name: Option<Name>,
+    details: EntryDetails,
     referenced: bool,
     committed: bool,
 }
 
 impl Entry {
+    pub(super) fn positive_address(&self, kind: Kind) -> Option<&[u8]> {
+        match (&self.details, kind) {
+            (EntryDetails::Ipv4(data), Kind::Ipv4) => Some(data),
+            (EntryDetails::Ipv6(data), Kind::Ipv6) => Some(data),
+            _ => None,
+        }
+    }
+
+    fn is_cname(&self) -> bool {
+        matches!(self.details, EntryDetails::Other { .. }) && self.record.kind == Kind::Cname
+    }
+
     /// C marks a record stale strictly after expiry, unlike its expiry test.
     pub fn is_stale(&self, now: i64) -> bool {
         now > self.expires
@@ -177,11 +215,17 @@ impl Entry {
     }
 
     pub fn cname_target(&self) -> Option<CnameTarget> {
-        self.target.clone()
+        match &self.details {
+            EntryDetails::Other { target, .. } => target.clone(),
+            _ => None,
+        }
     }
 
     pub fn negative_authority_name(&self) -> Option<&Name> {
-        self.authority_name.as_ref()
+        match &self.details {
+            EntryDetails::Other { authority_name, .. } => authority_name.as_ref(),
+            _ => None,
+        }
     }
 }
 
@@ -529,7 +573,7 @@ impl Cache {
         };
         let indices = self.names_for(key);
         let cname = indices.is_some_and(|slots| slots.iter().any(|&slot| {
-            self.entry(slot).is_some_and(|entry| entry.record.kind == Kind::Cname)
+            self.entry(slot).is_some_and(Entry::is_cname)
                 && !self.invalid(slot, now)
         }));
         if self.name_revision == u64::MAX {
@@ -574,13 +618,11 @@ impl Cache {
             || hint.revision != self.name_revision
             || self.name_revision == u64::MAX
         { return None; }
-        let expected_length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return None };
         let entry = self.get(id)?;
         // get already checked the generation and presence. For an A/AAAA
         // entry, invalid has only the expiry predicate; no CNAME target needs
         // another traversal through the content block.
-        if entry.record.kind != kind || entry.record.negative
-            || entry.record.data.len() != expected_length || entry.is_stale(now)
+        if entry.positive_address(kind).is_none() || entry.is_stale(now)
             || self.policy.expired(entry.expires, now)
         { return None; }
         Some(id)
@@ -900,10 +942,9 @@ impl Cache {
         }
         self.long_names += usize::from(long);
         *self.entry_mut(slot) = Some(Entry {
+            details: EntryDetails::new(&record),
             record: Arc::new(record),
             expires,
-            target: None,
-            authority_name: None,
             referenced: preserved.is_some(),
             committed: false,
         });
@@ -976,7 +1017,10 @@ impl Cache {
         if !entry.record.negative {
             return false;
         }
-        entry.authority_name = Some(authority);
+        let EntryDetails::Other { authority_name, .. } = &mut entry.details else {
+            unreachable!("negative records keep general details");
+        };
+        *authority_name = Some(authority);
         true
     }
 
@@ -990,7 +1034,11 @@ impl Cache {
             return false;
         }
         self.entry_mut(target.slot).as_mut().unwrap().referenced = true;
-        self.entry_mut(cname.slot).as_mut().unwrap().target = Some(CnameTarget::Dynamic(target));
+        let EntryDetails::Other { target: entry_target, .. } =
+            &mut self.entry_mut(cname.slot).as_mut().unwrap().details else {
+                unreachable!("CNAME records keep general details");
+            };
+        *entry_target = Some(CnameTarget::Dynamic(target));
         true
     }
 
@@ -1012,7 +1060,11 @@ impl Cache {
         {
             return false;
         }
-        self.entry_mut(cname.slot).as_mut().unwrap().target = Some(CnameTarget::Local(target));
+        let EntryDetails::Other { target: entry_target, .. } =
+            &mut self.entry_mut(cname.slot).as_mut().unwrap().details else {
+                unreachable!("CNAME records keep general details");
+            };
+        *entry_target = Some(CnameTarget::Local(target));
         true
     }
 
@@ -1101,7 +1153,7 @@ impl Cache {
                         },
                     },
                     expires: entry.expires,
-                    authority_name: entry.authority_name.clone(),
+                    authority_name: entry.negative_authority_name().cloned(),
                 });
             }
         }
@@ -1280,20 +1332,21 @@ impl Cache {
 
     fn outdated_cname(&self, slot: usize) -> bool {
         let entry = self.entry(slot).unwrap();
-        entry.record.kind == Kind::Cname
-            && match &entry.target {
-                None => true,
-                Some(CnameTarget::Dynamic(id)) => self.get(*id).is_none(),
-                Some(CnameTarget::Local(target)) => target
+        entry.is_cname()
+            && match &entry.details {
+                EntryDetails::Other { target: None, .. } => true,
+                EntryDetails::Other { target: Some(CnameTarget::Dynamic(id)), .. } => self.get(*id).is_none(),
+                EntryDetails::Other { target: Some(CnameTarget::Local(target)), .. } => target
                     .lease_generation
                     .is_some_and(|generation| generation != self.lease_generation),
+                _ => false,
             }
     }
 
     fn invalid(&self, slot: usize, now: i64) -> bool {
         let entry = self.entry(slot).unwrap();
         self.policy.expired(entry.expires, now)
-            || (entry.record.kind == Kind::Cname && self.outdated_cname(slot))
+            || (entry.is_cname() && self.outdated_cname(slot))
     }
 
     fn remove(&mut self, slot: usize) {
