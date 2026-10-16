@@ -1665,3 +1665,43 @@ GC or per-function range guarantee. LocalLLD unique sections remain24pages;
 map-only relink is byte-identical. ActualcanonicalGNU SDK has a precedinghot
 wildcard and is the next validation. If its ownmap doesnot cluster, stop the
 experiment without linker/parser changes. No remote qualification claimed yet.
+
+
+## Local research while original 9e raw review closes
+
+Finalc95 preparation64bb2f07 freezes sourcec95c5571 with179source inputs,
+original965 selections and canonicalSDK tools. Device originalten disabled
+preparation9653c446/4b7a3f85 and originalnative240/owner32 disabled8ed7d292
+are complete; allactual qualification/layout fields remain pending. The next
+SDK's ownGNUmap must show real hotinput clustering before timing is enabled.
+No addedlinkerscript/KEEP/profileparser/comparator or newwaiting gate is allowed.
+Root authorized overlapping non-timingc95 qualification with read-only9e raw
+review only if originalreview predicates/locks permit; newtiming still requires
+both workloads finished andfreshquiet. Neither nextsource qualification nor
+nextdevice activity is claimed as executed here.
+
+Two completed rootlocal task branches were retired under durable refs in
+6d6d7080: warmchunksbc189ae0 and contiguousnames9eec5389. Their exact clean
+worktrees remain detached and allprivate artifacts remain; no activebranch or
+file was deleted. Both remain unselected experiments available for later reuse.
+
+The apparent lazydoctor-metrics opportunity was already prototyped as
+a2c2cabe/664c89ea. Its oldreview covers subscription stability through the
+ParentEvents exclusive borrow; code/frame growth and absentCPU evidence kept
+it unselected. No sourceedit/build/review was duplicated after finding it.
+
+New independentcompiler experimentd5e97d78 adds only LLVMhot-cold-split to9e's
+recipe, with defaultheuristics and noPGOprofile.729Macrelease/8ignored pass;
+localELFtext−16912B butfile-backedloads+22128B dueunwind growth.810coldhelpers
+are present; mainhotmethods barely change. A localdisplay keycollision briefly
+showed a28Bhelper as its2468Bmainmethod; fullraw hadboth and correction is
+retained. Combined2496B exceeds old2484B. Report764a4022 and independent
+readonly23496e36 preserve actuals; noSDK/runtime qualification orremote
+selection follows. OfficialLLVM22source and pinnedcompiler help motivated
+this singleoption trial; no parameter sweep was done.
+
+Independenta7b5fa1a inlines the sharedlocal/cache answer without changing its
+body/API/flags.729Macrelease/8ignored pass andlocalLinux links. Shared3848B
+range disappears buttwo newhelpers884/1620B emerge; preparedentry2484→3044B,
+frame688→816B; wholelocalELF+2544B. This doesnot prove fewer runtimecalls or
+CPU cost. Report6258e1e1 keeps the unselected experiment separate fromc95.
