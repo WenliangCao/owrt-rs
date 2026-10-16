@@ -1,0 +1,83 @@
+{
+  "status": "LOCAL_ONLY_DISABLED_ORIGINAL_INPUT_BUNDLES",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "native": {
+    "archive_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-inputs.tar.gz",
+    "archive_sha256": "cdeaedd49220f65e7e6b04a33e07cb3704c887dd104641dbe7da4fd3d6aa1322",
+    "archive_bytes": 19213,
+    "files_with_manifest": 4,
+    "plan_sha256": "f2343f484571e5d2c2a3a998ac4ec4fb2bd083c9cb3538f57cba9866b02580ee",
+    "file_manifest": {
+      "plan.json": {
+        "bytes": 48210,
+        "sha256": "f2343f484571e5d2c2a3a998ac4ec4fb2bd083c9cb3538f57cba9866b02580ee"
+      },
+      "run_cached_hit_9e_native.py": {
+        "bytes": 8250,
+        "sha256": "045a9ee0baefc926508322acbc2a0634805a37a5c4ce849f3ba575311afd7b32"
+      },
+      "hotpath_probe_v2.rs": {
+        "bytes": 10583,
+        "sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd"
+      }
+    },
+    "uploaded": false,
+    "execution_enabled": false
+  },
+  "owner32": {
+    "archive_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/owner32-inputs.tar.gz",
+    "archive_sha256": "1404695b4a9ff4d305c4016e2189985053350b57468c94f11c897082ad1c8323",
+    "archive_bytes": 49656,
+    "files_with_manifest": 12,
+    "plan_sha256": "1ca73b0ed6886de563f42d2bcab74157f2ea956122937ea0c9d470c24dec2c73",
+    "file_manifest": {
+      "plan.json": {
+        "bytes": 50184,
+        "sha256": "1ca73b0ed6886de563f42d2bcab74157f2ea956122937ea0c9d470c24dec2c73"
+      },
+      "run_cached_hit_9e_owner32.py": {
+        "bytes": 6780,
+        "sha256": "1deaae97c98e5e2526d454b7b46ade42f50ad33e4420eb3d243047cb89a80147"
+      },
+      "analyze_cached_hit_9e_owner32.py": {
+        "bytes": 5704,
+        "sha256": "4d8bfbc11d72bdd8393a5255110b4aa058f616ab03a747868a456db05d2471e0"
+      },
+      "analysis-inputs/loop_owner_profile.py": {
+        "bytes": 18177,
+        "sha256": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620"
+      },
+      "analysis-inputs/loop_hit_syscalls.py": {
+        "bytes": 11368,
+        "sha256": "7ef86addfca7673307a58a670bec011bb7ad80ef1293bfe3d34642834fdefe4e"
+      },
+      "analysis-inputs/elf_size_report.py": {
+        "bytes": 14113,
+        "sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7"
+      },
+      "analysis-inputs/perf_link_map_profile.py": {
+        "bytes": 10666,
+        "sha256": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d"
+      },
+      "analysis-inputs/perf_opt_analyze.py": {
+        "bytes": 11018,
+        "sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283"
+      },
+      "analysis-inputs/elf_link_map_report.py": {
+        "bytes": 4542,
+        "sha256": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578"
+      },
+      "analysis-inputs/loop_owner_profile_analyze.py": {
+        "bytes": 22399,
+        "sha256": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a"
+      },
+      "analysis-inputs/r121_symbolize.py": {
+        "bytes": 20808,
+        "sha256": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12"
+      }
+    },
+    "uploaded": false,
+    "execution_enabled": false
+  },
+  "scope": "Local originals and disabled plans only. No remote directory, controller, build or measured output created. Actual gates/SDK/signals/reviews/slot release still required."
+}
