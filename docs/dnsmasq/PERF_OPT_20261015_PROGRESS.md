@@ -8,9 +8,11 @@ Original main worktree has user prompt edits; leave them intact.
 Current research status, 2026-10-16: G is accepted after complete correctness
 and both110-window matrices. Its A53 UDP-hit CPU is138→116us versus E; a
 separate direct C/G comparison remains82→114us.6ab has full functional PASS
-but no discernible performance increment.803opt2 is closed: no devicegain,
-and independently audited owner32 highp95 regression. Bare1df original Linux
-related groups have started after the actual quiet release.
+but no discernible performance increment.803opt2 is closed with no device
+gain and an owner32 high-p95 regression. Bare1df and5c physical screens are
+inconclusive.5c owner32 retains a high-load send-lag regression; its independent
+full-bin audit is closing. Next: original four-mode/50-window G A53 diagnostic,
+plus local preparation of warm writer6dad for a separate Oracle experiment.
 See the latest section at the end for exact evidence and execution boundaries.
 Production remains v0.2.0 SHA256
 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
@@ -1483,3 +1485,31 @@ final.stat lastCPU isasingleendpoint, and100CLK_TCK isnotMHz. Originaldirect
 C/G totals41..42vs56..61ticks remainexact, whileuser/systemcomponents vary
 widelyacrossrounds anddo not stablyattributethe32usgap. No oldwindow/gate or
 acceptanceconclusionchanged, andnoobserverwasadded.
+
+
+## 5c screen closed to promotion; current-G attribution selected
+
+5c actual961/SDK/original standalone signal checks passed. Physical10/10
+valid, author9d5acd46 and independente99b91a1: CPU124→116us,−6.452%,
+W10.345%,5/5,but4ticks. Allprimary results remain inconclusive. Original
+owner32 author730177d3 retains highCPU−1.277%/p50−1.246% diagnostic gains,
+highsendlagp95+18.797%>W14.557%5/5 slower, and other plain inconclusive results.
+Variable-N CPU precision remains null; sender saturation prevents an isolated
+capacity claim. All1264raw/128bins and original premeasurement metadata failure
+remain. Correctness owns independent replay/finalquiet; no5c promotion/full110.
+
+Root selects dormant G-stage a34e7310, not another product combination. Loop
+prepares original Linux gate/SDK; DHCP prepares the same five comparisons,
+50windows,guard and recovery protocol. G before-answer uses its original
+buffer/recycler, avoiding the old E helper's per-query allocation. Sourcepeer
+f9abcc95/local1600reply test exist, but actual execution/SDK/calibration are
+still required. No new observation framework or additive stage-cost claim.
+
+Warm writer6dadfec2 is selected for separate preparation, preferably using
+Oracle while the G-stage device round runs. Existing related/SDK/owner tools
+only; allbulk transfers precede or follow device timing. Original hot15 never
+recycles its reply and cannot measure the new warm branch (3201e205); any
+native240 is cold fallback/layout evidence only. Root's local report869285f8
+retains all four codegen variants, final725Mac/8ignored, muslcheck and18432
+existing-test comparisons. It is not SDK or runtime qualification. No5c/1df
+source overlay is authorized by either new experiment. AcceptedG stays185/9109.
