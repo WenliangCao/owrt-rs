@@ -1,0 +1,46 @@
+{
+  "stage": "Related immutablearchive collection",
+  "original_archive_sha256": "01021b45916fb334e60337b0fe5959c76805378abf628661582cd7b6c5229989",
+  "original_manifest_sha256": "d04ed07409ccbfda3289972ef12acb1ccd6808e40b8297529c3f92406ce7e179",
+  "cause": "Downloadcommand replaced hyphenatedcandidate paths butleft two underscore wrapperbasenames as803. Raw1df testlogs/ELFs/receipts arecorrect; executed1dfwrapperbytes omitted.",
+  "incorrect_extra_files": [
+    "new/receipts/run_185_opt2_related.py",
+    "new/receipts/build_185_opt2_allocations.py"
+  ],
+  "missing_files": [
+    "run_inline_address_details_related.py",
+    "build_inline_address_details_allocations.py"
+  ],
+  "originalarchive_preserved": true,
+  "test_or_build_rerun": false,
+  "resolution": "Separate exact twooriginalremote wrapper files plus freshhashreceipt; no wrappermodification.",
+  "status": "COLLECTOR_ONLY_OMISSION_REPAIRED_WITH_EXACT_ORIGINAL_WRAPPER_BYTES",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "defective_collector_sha256": "21e626f2180b93ea4af992b82d1bfac5e746385b730193cff866b1a481e7f29e",
+  "corrected_collector_sha256": "56dd2d7654e9fb10fe3ff6144d36d4c51e649eb92cd999d986a050765d673117",
+  "corrected_collector_reexecuted": false,
+  "supplement": {
+    "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/related-wrapper-supplement.tar.gz",
+    "archive_sha256": "1ed5de3755646f3b3fc1aa856d9e3ebab913e4855a9dfe1ff6fd12d29c7abc45",
+    "archive_bytes": 2256,
+    "receipt_sha256": "5f4e22e4d487132377d70bf524b00efdccd30be0f60ad9b1c2553be865858d7f",
+    "omission_record_sha256": "0b67c50a99f1491bbe7603950a86895ceddfa90ee08aff27491a29e6a65647c7",
+    "directory": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/related-wrapper-supplement"
+  },
+  "actual_wrapper_hashes": {
+    "run_inline_address_details_related.py": {
+      "sha256": "5e097be33625cf3f9b66084577242f79a582d5dac1562a1dfe006898f701e0fe",
+      "bytes": 2209,
+      "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_inline_address_details_related.py"
+    },
+    "build_inline_address_details_allocations.py": {
+      "sha256": "28004f574415b33ca33b7fbb1bd853856f4bdeaf9e504cc284e5ded84f5be219",
+      "bytes": 2111,
+      "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/build_inline_address_details_allocations.py"
+    }
+  },
+  "original_preflight_sha256": "c332cbf94ed1903087ad7df6a29e3f8d6aefc50fc94baf29d81e89b03283b423",
+  "actual_related_verified_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
+  "SDK_rerun": false,
+  "comparison_or_expectation_changed": false
+}
