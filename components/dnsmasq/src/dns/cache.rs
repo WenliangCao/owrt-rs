@@ -576,9 +576,12 @@ impl Cache {
         { return None; }
         let expected_length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return None };
         let entry = self.get(id)?;
+        // get already checked the generation and presence. For an A/AAAA
+        // entry, invalid has only the expiry predicate; no CNAME target needs
+        // another traversal through the content block.
         if entry.record.kind != kind || entry.record.negative
             || entry.record.data.len() != expected_length || entry.is_stale(now)
-            || !self.is_valid(id, now)
+            || self.policy.expired(entry.expires, now)
         { return None; }
         Some(id)
     }
