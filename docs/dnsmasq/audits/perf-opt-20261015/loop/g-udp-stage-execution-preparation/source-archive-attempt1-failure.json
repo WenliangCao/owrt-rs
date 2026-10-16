@@ -1,0 +1,10 @@
+{
+  "stage": "Local source archive preparation beforeremoteaction",
+  "error": "git archive default outputmode0664 differs from Git tracked100644; first mode assertion stopped with partial229B archive.",
+  "failed_archive_sha256": "943bf54ebd315e0c86cf6d1b60be96f2a79d7e23d8f0c7a5bb152d2a868819a3",
+  "failed_archive_bytes": 229,
+  "correction": "Emit eachregularfile withtheexact Git mode0644/0755 and verifybytes againstGitblob. Directorymetadata normalized0755; no sourcecontent change.",
+  "remote_accessed": false,
+  "tests_or_builds_run": false,
+  "epoch": 1792146051.36405
+}
