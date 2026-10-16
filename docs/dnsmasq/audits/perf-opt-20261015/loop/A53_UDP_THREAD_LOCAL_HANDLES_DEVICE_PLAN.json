@@ -35,21 +35,21 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "LOCAL PREPARATION ONLY; exact6ab related961gates/SDK/sourceinteraction review/coordinator screenplan pending; no device action",
+  "status": "EXACT6ab/G SDK,actual961,source/readyplan reviews andpriorcountrestore BOUND; freshhealth/finaldevicegates required",
   "scope": "Independent freshG185/6ab UDP-hit A53ten exploratory comparison, not full qualification or deployment; prior sources/probes/controls not pooled.",
   "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "forbidden_substitution": "a15 is not this source; only exact6ab0f064 is permitted.",
   "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
-  "related_linux_report_sha256": null,
-  "related_linux_verified_receipt_sha256": null,
-  "screen_plan_commit": null,
-  "screen_plan_sha256": null,
+  "source_files_verified": 179,
+  "elf_sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+  "elf_bytes": 2145051,
+  "map_sha256": "3c92b784b606b5eb50a968e8605b6e88d17d04436a25dfec3fd6e2cdf4698cf5",
+  "build_receipt_sha256": "3d77809b0552a91f384248b9cc21aba17fab0d1d0776f2d401becc27d4e0859c",
+  "related_linux_report_sha256": "f21ac2ce374924d40d0a5c728ff9448277fd06e55f87b8e992e6802903bc35f4",
+  "related_linux_verified_receipt_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+  "screen_plan_commit": "f230912a",
+  "screen_plan_sha256": "00f508a8b2990198bf7e411fdf372eb097349b57ead123adb4084ba5e3eac653",
   "entry_sha256": "8874455796a4776a7bb1f239e449671a974fb44b6fd478f438ddb7cbec8a7118",
   "artifacts": {
     "e": {
@@ -66,7 +66,7 @@
     },
     "udp-thread-local-handles": {
       "name": "a53-udp-thread-local-handles-artifact-udp-thread-local-handles",
-      "sha256": null
+      "sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288"
     }
   },
   "schedule": [
@@ -155,9 +155,6 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Bind successful actualexact6ab961relatedLinux gates, sourceinteraction review and originalscreenplan.",
-    "Canonical unchangedSDK6ab ELF/map/build receipt delivered and verified; no olda15/185/counterartifact substitution.",
-    "PrecedingGcount-only diagnostic complete/archived/restored; countinstrumentation cannot join either timedside.",
     "Newfresh125shealth, originalprod/slot/tool/offline/idle/recovery gates; sameoriginalten/W/direction/>8ticks and allraw."
   ],
   "count_diagnostic_not_a_performance_control": true,
@@ -172,5 +169,51 @@
   "restore_only": [
     "e",
     "f"
-  ]
+  ],
+  "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-post185-combined/dnsmasq-rs",
+  "related_linux_tests_passed": 961,
+  "related_linux_report_commit": "4e6446e4",
+  "source_interaction_review_sha256": "57f01b67c884fd699fe75bde09e1235118b1b49229e0232c3f9a2c6f79608374",
+  "source_interaction_review_PASS": true,
+  "sdk_independent_review": {
+    "commit": "94608544",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/post185-sdk-independent-audit.json",
+    "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2"
+  },
+  "preceding_G_count_archived_restored": true,
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "gate_unchanged": true
+  },
+  "preceding_G_count": {
+    "result_commit": "8c6e3ba0",
+    "report_sha256": "98916218cdf2d8794f4b30184398b66f24bd4dad763e90a8db1b8911d72f6e5d",
+    "postflight_sha256": "14d742d3987427e7ecdd4dd701a294ccdbb9ddead6b3321767986f15607e6514",
+    "no_count_artifact_used_in_timing": true
+  },
+  "coordinator_screen_plans": {
+    "post185-combined-native-plan.json": {
+      "commit": "f230912a",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/post185-combined-native-plan.json",
+      "sha256": "968af9c4c26abecb78e9a78b91040df606cdacca73b680f6fb3ffbf6cc16ab8e",
+      "status": "FROZEN_ACTUAL_G6AB_NATIVE240_READY_AFTER_PRETRANSFER"
+    },
+    "post185-combined-owner32-plan.json": {
+      "commit": "f230912a",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/post185-combined-owner32-plan.json",
+      "sha256": "00f508a8b2990198bf7e411fdf372eb097349b57ead123adb4084ba5e3eac653",
+      "status": "FROZEN_EXACT_SDK_READY_AFTER_EXCLUSIVE_SLOT_RELEASE"
+    }
+  },
+  "screen_plan_independent_review": {
+    "commit": "800e726a",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/post185-screen-ready-binding-review.json",
+    "sha256": "b330e03675468e6519d572bf3879dc26b2fcce2697ddec80e61c19d051c359ac",
+    "status": "PASS_READY_METADATA_ONLY_BINDING"
+  },
+  "source_interaction_review_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/post185-combined-source-review.json"
 }
