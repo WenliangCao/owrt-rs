@@ -35,19 +35,19 @@
     "edns_max": 1232
   },
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
-  "status": "LOCAL DISABLED DRAFT ONLY; conditional original G/c95 ten; canonical SDK layout is unproven and actual965/SDK/signals are pending; no device action",
+  "status": "ACTUAL_C95_AUTHOR965_AND_CANONICAL_SDK_HOT_LAYOUT_LOCALLY_BOUND; original independent965/SDK/layout reviews and standalone signals pending; no router contact",
   "scope": "Fresh accepted G185 versus exact c95 integrated product artifact for one original ten-window A53 UDP-hit screen. C95 adds 22 per-method Linux hot-section attributes to integrated9e; G/c95 includes all inherited9e/6ab work. This is a whole-candidate contrast, not isolated grouping attribution, acceptance, full qualification or deployment.",
   "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
   "forbidden_substitution": "Exact c95c5571 only. No shared-section ffc3 substitute, added inline/KEEP/PGO/linker-script changes, diagnostic or allocation-meter overlay, rebuilt G, replacement artifact or historical median pooling.",
   "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
-  "source_files_verified": null,
-  "elf_sha256": null,
-  "elf_bytes": null,
-  "map_sha256": null,
-  "build_receipt_sha256": null,
+  "source_files_verified": 179,
+  "elf_sha256": "dc2dddfe0a627946506e7fd6d5dcf86c0803da1f40987a96d5130f6b2ba51b70",
+  "elf_bytes": 2145051,
+  "map_sha256": "b0995e7a1d2716670ea4a8a80305bb2e0ebb6499de0bec14893e6dcadca54474",
+  "build_receipt_sha256": "54f0bb07563ec23a808f2af6862c72169c04fd7da8bb2feeb7c88449fca520dd",
   "related_linux_report_sha256": null,
-  "related_linux_verified_receipt_sha256": null,
+  "related_linux_verified_receipt_sha256": "957e81458eb7e57f02bc5bb9605098fe41eb0ee4691b260db3bc0f144e8f78d5",
   "entry_sha256": "f1d92b80cff217cce70e3188eabca044606942b9202e84f5cd74a46e522f6a7e",
   "artifacts": {
     "e": {
@@ -64,7 +64,7 @@
     },
     "hot-text-group": {
       "name": "a53-hot-text-group-artifact-hot-text-group",
-      "sha256": null
+      "sha256": "dc2dddfe0a627946506e7fd6d5dcf86c0803da1f40987a96d5130f6b2ba51b70"
     }
   },
   "schedule": [
@@ -153,10 +153,10 @@
   "candidate_eligible": false,
   "full_qualification_completed": false,
   "pending_before_launch": [
-    "Exact canonicalSDK map must establish actual per-method hot-input concentration under the unchanged GNU script; if absent stop proposal, no new linker script/parser/comparator.",
-    "Fresh exactc95 original965 and canonicalSDK identities/budgets, originalstandalone signals12+3+3/native compatibility and independent actual reviews; all pending, no prior9ePASS inherited.",
-    "All original input/artifact transfers and explicit quiet, root scheduling and loop original native/owner readiness; no bulk during device windows.",
-    "Original fresh125s health/production/slot/helper/offline/idle/recovery, four immutablecopies, stage stops before Popen; fixed originalten, strict thresholds/allraw/fail-stop and exactE/F restoration."
+    "Original independent actual965/canonicalSDK/layout/transport reviews for exactc95; author identities and original-map concentration are locally bound but independent audit remains pending.",
+    "Original standalone signals12+3+3/native compatibility exactSDK/source result and independent PASS, all logs/transfers and explicit quiet.",
+    "Root scheduling plus original loop native/owner readiness and all bulk outside device windows.",
+    "Original fresh125s health/production/slots/helpers/offline/idle/recovery and four immutable copies with stage stopping before Popen; fixed originalten/allraw/fail-stop/exactEFrestore."
   ],
   "count_diagnostic_not_a_performance_control": true,
   "statistics": {
@@ -174,11 +174,17 @@
   "source_parent": "ffc3ac37cffc9fb4b522a3ee73934ab971a2d44b",
   "source_base": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "anticipated_related_gate_passes": 965,
-  "actual_related_linux_tests_passed": null,
+  "actual_related_linux_tests_passed": 965,
   "actual_SDK_review": null,
   "standalone_runtime_signals_result": null,
   "standalone_runtime_signals_independent_review": null,
-  "source_interaction_review": null,
+  "source_interaction_review": {
+    "commit": "1df84d569a7f44ead3dca759d5c94bbdea6bd8b5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/hot-text-layout-source-review.json",
+    "sha256": "822de7802e101a1dd67b05cc6c0033099d09f90a35ea561dab343b06b58ca763",
+    "status": "PASS_SOURCE_ONLY_LINUX_UNIQUE_HOT_SECTION_ATTRIBUTE_SCOPE",
+    "scope": "Source-only exact22 per-method attribute review; no artifact layout or runtime benefit inferred from source."
+  },
   "device_plan_independent_review": {
     "commit": "04606fab",
     "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-device-preparation-peer.json",
@@ -192,7 +198,13 @@
   "execution_enabled": false,
   "native240_excluded_reason": "Only the original device ten is prepared here. Root separately coordinates any original native240/owner32 after actual SDK layout selection and original qualification.",
   "queue": "Only a local disabled draft now. CanonicalSDK layout validation and all original qualification gates must pass before any device action. After all bulk and explicit root scheduling, the original ten may overlap separately authorized original native/owner work; bind actual intervals. Whole G/c95 effect only.",
-  "source_preparation": null,
+  "source_preparation": {
+    "prepared_manifest_sha256": "e901026b6e17dad29ec445548cd5c6f2786f7637f7650ddc1fe5cd50f559ca96",
+    "source_manifest_sha256": "5ddf3803be7f1dd7709b5b17bda3602d8a35266e4183b12a2e64cb3d5e8e6bdc",
+    "git_identity_sha256": "ca7ba1782c6267f373fe906db8533610019ddcf2d0af3338bda86f1492f7b304",
+    "prepared_source_files_verified_against_git": 179,
+    "actual_Linux_or_SDK_PASS_inherited": false
+  },
   "canonical_sdk_builder": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
     "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
@@ -260,20 +272,35 @@
       "status": "PASS_DISABLED_LOCAL_PREPARATION_ONLY",
       "scope": "Local disabled preparation only: original identity/path/prior-closure adaptations and unchanged shared helper bytes. Actual exact GNU same-link map concentration, original965/SDK/signals content and all original readiness/health/recovery gates remain required; this review does not enable device execution."
     },
-    "disabled_before_first_SSH": "Actual artifact/source/Linux/SDK/signals fields are null or false; stage/start/launch fail before their first production_identity SSH. Actual canonicalSDK hot-layout selection is also required before these readiness fields can be enabled. No health/staging/queue/launch files exist.",
+    "disabled_before_first_SSH": "Local exact179source/SDK artifact identities and original GNU hot concentration are now bound. Actual independent SDK/related/layout reviews and standalone signal result/review remain absent, so original stage/start/launch remain blocked before their first production_identity SSH. No router contact, health/staging/queue/launch receipt exists.",
     "staging": "Original fresh health and four immutable copies, preserving slots; stage stops before Popen. Only after actual gates, transfers and root scheduling release may start execute.",
     "preflight_or_windows_started": false,
     "actual_signal_binding_requirement": "Before enable, rehash actual exactc95 signal result and independent review; verify exact source, shippingSDK ELF, original schema/order and PASS. Nonempty references are not actual evidence."
   },
-  "artifact_local": null,
-  "related_linux_tests_passed": null,
-  "related_linux_group_passed": null,
+  "artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-hot-text-group/dnsmasq-rs",
+  "related_linux_tests_passed": 965,
+  "related_linux_group_passed": {
+    "lib": 844,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
   "actual_related_independent_review": null,
-  "source_interaction_review_sha256": null,
-  "sdk_local_verification_sha256": null,
-  "release_budget": null,
+  "source_interaction_review_sha256": "822de7802e101a1dd67b05cc6c0033099d09f90a35ea561dab343b06b58ca763",
+  "sdk_local_verification_sha256": "720f328de1f7bbc40f6666ea193913f6603d97242920ce9c2d8a70cfc03ee385",
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2145051,
+    "APK_bytes": 1168633,
+    "gate_unchanged": true
+  },
   "signals_local_binding_sha256": null,
-  "source_interaction_review_PASS": false,
+  "source_interaction_review_PASS": true,
   "local_preparation_validation": {
     "scope": "Read-only local identity/path adaptation checks only. No compiler/test/window or router/Oracle action.",
     "shared_helpers_byte_identical": 4,
@@ -287,8 +314,25 @@
     "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
     "per_method_section_prefix": ".text.hot.dnsmasq.",
     "source_attribute_count": 22,
-    "actual_canonical_SDK_layout_report": null,
-    "actual_canonical_SDK_concentration_confirmed": false,
+    "actual_canonical_SDK_layout_report": {
+      "author_result_commit": "5ae7c6e5",
+      "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-hot-text-group/sdk-layout-observation.json",
+      "sha256": "da5a8f21ed05b0e459e398fe86c155e48a21db73a8f69b32de54fa35c80d1678",
+      "status": "ACTUAL_CANONICAL_GNU_HOT_INPUTS_GROUPED",
+      "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+      "ELF_sha256": "dc2dddfe0a627946506e7fd6d5dcf86c0803da1f40987a96d5130f6b2ba51b70",
+      "map_sha256": "b0995e7a1d2716670ea4a8a80305bb2e0ebb6499de0bec14893e6dcadca54474",
+      "build_sha256": "54f0bb07563ec23a808f2af6862c72169c04fd7da8bb2feeb7c88449fca520dd",
+      "actual_surviving_ranges": 19,
+      "actual_surviving_labels": 19,
+      "span_bytes": 40708,
+      "selected_input_bytes": 40708,
+      "gaps": [],
+      "other_inputs_inside_span": [],
+      "original_helpers_byte_verified": true,
+      "independent_actual_review_pending": true
+    },
+    "actual_canonical_SDK_concentration_confirmed": true,
     "local_LLD_concentration_established": false,
     "rule": "Proceed to screen readiness only if the exact canonical SDK GNU map shows the selected surviving inputs concentrated under its original .text.hot.* rule. If it does not, stop this proposal without adding a linker script or changing the parser/comparator.",
     "labels": "Input-section labels and original ranges only; not original mangled symbols, exact function sizes, or a one-label/one-monomorph guarantee.",
@@ -297,7 +341,8 @@
       "commit": "56377aee",
       "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/HOT_INPUT_SECTION_LAYOUT_FEASIBILITY.md",
       "sha256": "9b17be5b6f0ee1d73f9cfc96aac89eae4e5d7da0dd55f86917024b843f4c6e68"
-    }
+    },
+    "retained_initial_author_observer_failure_sha256": "9028f0d58935bd1f1cbe9d91815121276d219c35716e0b6fda37bf893b66f4b8"
   },
   "native240_prepared_by_this_device_task": false,
   "native240_authorized_by_this_device_plan": false,
@@ -310,5 +355,19 @@
     "independent_audit_sha256": "11f2dda717ca2c4a5c6ea0a99db6519e5f2b2853fa34b5d5b1dbe00fd6cca411",
     "audit_link_commit": "78fc0d0a",
     "scope": "All three original primary metrics unresolved; retained as preceding closure evidence only, no historical pooling."
+  },
+  "actual_author_result": {
+    "commit": "5ae7c6e5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-execution-result.json",
+    "sha256": "f9715cc7bc184cf5883cb52239a71685cde8a12a49f23dc902305c7cb9fffa42",
+    "actual_independent_review_pending": true
+  },
+  "source_only_and_actual_layout_are_separate": true,
+  "sdk_download_field_clarification": {
+    "commit": "5ae7c6e5",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/hot-text-group-sdk-download-field-clarification.json",
+    "sha256": "8b825235f17bfc81c539e52516c7006aefb80a7dca92e677e90f76a98326d3d5",
+    "scope": "Original SDK raw download field actual_wrapper_plan_hashes_matched=false is retained. The original collector computes this related-only field as kind==related; SDK applicability is N/A, with actual SDK/controller/plan binding reviewed separately. No raw receipt, artifact or execution changed.",
+    "original_raw_sdk_download_receipt_sha256": "56063d28b3aa04f6b97e2668e205d6135915967f2a2121e1ce7b63d659de8957"
   }
 }
