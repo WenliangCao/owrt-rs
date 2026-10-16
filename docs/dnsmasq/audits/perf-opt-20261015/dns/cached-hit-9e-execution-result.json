@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL965_CANONICAL_SDK_ORIGINAL_SIGNALS_AND_ARCHIVE_INDEPENDENT_PASS_RELEASED_TO_ORIGINAL_SCREEN_COORDINATION",
+  "status": "ACTUAL965_CANONICAL_SDK_ORIGINAL_SIGNALS_INDEPENDENT_PASS_ALL_TRANSFERS_COMPLETE_FINAL_QUIET_RELEASED_TO_NATIVE240_DEVICE10",
   "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "source_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
   "git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
@@ -196,7 +196,6 @@
   "failures_this_execution": [],
   "runtime_hardening_verified": false,
   "actual_independent_gate_SDK_audits_pending": false,
-  "performance_timing_started": false,
   "candidate_promoted": false,
   "scope": "Original fresh965, canonicalSDK, original archive transport and freshquiet only. Correctness owns original actual audits and unchangedstandalone signals next. No newtests/tools/thresholds or native/device/owner timing initiated by DNS. Retain all previous adverse results; future screens need actual audit/signal PASS and root scheduling.",
   "independent_actual_reviews": {
@@ -225,5 +224,69 @@
     "sha256": "d8bb694a874ece98b76d4e28957afe680bb36dab1b13dfb703a723a2813ab2ab",
     "scope": "Actual original gates/SDK/signals complete; original screen coordination only, not full44/two110, candidate promotion or deployment."
   },
-  "next_boundary": "DHCP originalfresh125/recovery/fourcopies and loop actual original inputs/ready, then DNSfreshfinalquiet; native240 andoriginaldevice10 precedeowner32. No timing begun by DNS."
+  "next_boundary": "Loop fixes exact original native-ready metadata and informs DHCP, then original native240/device10 may start under root existing authorization. Owner32 follows native raw/postflight and fresh quiet; native statistics/full archive review follows both timing phases under original1df order. No bulk during measurements.",
+  "final_original_screen_release": {
+    "local": "/Users/USER/Developer/owrt-perf-cached-hit-9e-preparation-20261016/private/perf-opt-20261015/cached-hit-9e-preparation/execution/release-to-measurements.json",
+    "remote": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/cached-hit-9e-execution-20261016/release-to-measurements.json",
+    "sha256": "9f0bd66bdad9043b2ecba9a672a5b1142614d6885eb12fd791890daee21970ba",
+    "epoch": 1792153616.077751,
+    "source179_SDK_G_signals_and_pretransfer_receipts_rehashed": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "dependencies": {
+      "independent_actual_review": {
+        "status": "PASS",
+        "related_commit": "7ffb1476",
+        "related_report_sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+        "SDK_commit": "6c8ad70d",
+        "SDK_report_sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+        "signal_commit": "b019256e",
+        "signal_report_sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+        "signal_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e"
+      },
+      "loop_pretransfer_complete": true,
+      "loop_pretransfers": {
+        "native": {
+          "local_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/native-pretransfer.json",
+          "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-native-inputs/pretransfer.json",
+          "sha256": "d51cbdc23577bb148dd4988841d5d2d84b955e618e63e95cf4e804f524fb8014"
+        },
+        "owner32": {
+          "local_path": "/Users/USER/Developer/owrt-perf-cached-hit-9e-screen-prep-20261016/private/perf-opt-20261015/cached-hit-9e-screen-preparation/owner32-pretransfer.json",
+          "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/cached-hit-9e-owner32-inputs/pretransfer.json",
+          "sha256": "035035f81975c391c313a64a4ae03fffd2994ab7208fa1213b18b8f54e586791"
+        }
+      },
+      "device_pretransfer_complete": true,
+      "device_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-cached-hit-9e-device-stage-complete.json",
+        "sha256": "c0a4881e5e787b07a55039a69f2187a34acddbf2752187eabc670626929cd38b",
+        "plan_sha256": "b5d6fecfb1da7faf25278f81f02efc6306c2a7fb70649ebf86cd851c759779fa",
+        "preflight_sha256": "23723936cc9f1266ab00a7a111542f41d7c1af0dfa317101f36fc83de9473eb1",
+        "health_summary_sha256": "af0bb3800ae79445dda35a5dd813ac1198a909ebd2ebd8da80b91263fb931899",
+        "health_elapsed_seconds": 125.0,
+        "artifact_count": 4,
+        "artifact_bytes": 8563820,
+        "no_workload_started": true
+      },
+      "loop_device_stage_binding_sha256": "d44167e986de8a83a742fdee6c675a05f3e28c29b8e6b6203c4b23dffb9397f9",
+      "original_native_manifest_keys_each": 162,
+      "outer_SDK_source_keys_each": 179,
+      "metadata_order": "After this release loop binds/uploads exact final native-ready metadata and notifies DHCP; then original native240 and device10 may start. Owner32 follows native raw/postflight and freshquiet under original1df order; native statistics/full archive audit follows both timing phases. No additional bulk during measurements.",
+      "original_owner32_remains_disabled": true,
+      "no_new_review_round_required": true,
+      "comparison_scope": "G185 versus integrated9e includes inherited6ab and multiple changes; no isolated component attribution or promotion."
+    },
+    "next_owners": [
+      "loop original G/9e native240",
+      "DHCP original fresh G/9e device ten"
+    ],
+    "handoff_via_followup_task": true,
+    "DNS_stopped_all_Oracle_and_bulk": true
+  },
+  "performance_timing_started_by_DNS": false
 }
