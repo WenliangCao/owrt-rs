@@ -1,0 +1,29 @@
+{
+  "status": "PASS_LOCAL_FULL44_ADAPTATION_REVIEW_PENDING_REAL_LOOP_RELEASE_AND_PREFLIGHT",
+  "plan_sha256": "ecec9a108ac9bdc249d290f28eb9ee8a305426437ab63796e1f46b61ef8baa8f",
+  "local_directory": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/post185-combined-full-qualification",
+  "wrappers": {
+    "run_post185_combined_tcp.py": "a19af6937b8825b3c2d5eecf87edd6fb71f972b713f0027e99602bb13ccbca9f",
+    "run_post185_combined_corpus.py": "398253e90b95591ce81cedb0a97c4faf1efb0afe4286065b648f4c8453f3bd5b",
+    "run_post185_combined_remaining.py": "52d8a15540438d021fa029e1e101572ca478b3cf4ba2644904b674167127b1e4",
+    "audit_post185_combined_families_final.py": "a7fb1b3bda5f26a6603dd422fc515def164bb44cbdb0b2313a343f8df2058ca9",
+    "audit_post185_combined_boundary.py": "7c46c6400f8616cb26b42b5b8428dbb7de4de1ae7533345c525c46f370f7dc87",
+    "preflight_post185_combined_full.py": "92ccbce846f64ebdaa81b3cee71c2ec947e6f59e905473cac7aba3888defe83d",
+    "launch_post185_combined_full.py": "2177838f662c353a9415feaa57350106607c09e4dd2cd047e28a9bf9dd0f1712"
+  },
+  "checked": [
+    "Five original185 wrappers differ only by candidate paths/IDs and correctly PID/startticks-bound exit observation; no expectation weakening.",
+    "Exact original PTR approved manifest and checker preserved; historical28/39 counts not hardcoded.",
+    "Source-a UID exceptions require identical two mismatches, exact cohorts and raw exits[0,0,0,1].",
+    "18 direct tools/approved manifest byte-identical between185 and6ab Git; exact44families/67jobs inventory and full argv preserved, jobs3.",
+    "Preflight actual961 schema matches recorded gate and rehashes original logs/listings/binaries/receipts without rerunning short groups.",
+    "Source/private parent ownership/writability, fresh outputs, exact SDK/Git inputs, research quiet and three locks checked before entry.",
+    "Single original probe build completes before family/remaining workers; remaining wrapper removes its old probe-build job.",
+    "Actual loop release stays null and status remains pending, so launch disabled until explicit final binding."
+  ],
+  "limitations": [
+    "Read-only local adaptation review; no Oracle access or actual full44/probe execution.",
+    "Launch/PID retrieval can still fail operationally; preserve any partial worker state and do not automatically relaunch."
+  ],
+  "oracle_accessed": false
+}
