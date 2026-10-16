@@ -1,0 +1,95 @@
+{
+  "scope": "Independent6ab child; local correctness and generated-code evidence only. Not part of frozen6ab SDK or timing.",
+  "source": "210801cf",
+  "parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_sha256": "c50961b17cdb3de122cc3690e31f7dd8848914f4fac9efe2b925a6877d435253",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--frozen",
+        "--release",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/check-0.log",
+      "log_sha256": "96454e58c8deb5f85479675407428def4d630d2e80bfd2d0793b5022fa6bcc45"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/check-1.log",
+      "log_sha256": "21412269a28e1ff6cf857a73c33f05eb065783b6ed0bba18c579fa24ba3e2c9f"
+    }
+  ],
+  "new_test": "576 combinations comparing full ordered entry pointers with original adapter, including four stale policies, parent/expired child/empty views, six names, eight clocks, and repeated exhausted next().",
+  "codegen_receipt": "/Users/USER/Developer/owrt-perf-lease-lookup-slice-20261016/private/lease-lookup-slice/cross-daemon-final/inspection-complete.json",
+  "codegen_receipt_sha256": "2b53df79972830c50a922d21379eab52920ae2646ef55202db386d702c86c5c4",
+  "outputs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "slice": {
+      "sha256": "afdb9235f46ce4f17c5995613d741789f5ec1fd278b9f6b847bc7cbc63a818c8",
+      "bytes": 5021352
+    }
+  },
+  "selected_sizes": {
+    "LeaseNames_lookup": [
+      692,
+      712
+    ],
+    "cached_address_is_unclaimed": [
+      528,
+      528
+    ],
+    "answer_parsed_with_query_events": [
+      3804,
+      3804
+    ],
+    "LeaseNames_name_exists": [
+      760,
+      916
+    ],
+    "iterator_next": [
+      816,
+      240
+    ]
+  },
+  "selected_frames": {
+    "LeaseNames_lookup": [
+      128,
+      128
+    ],
+    "LeaseNames_name_exists": [
+      192,
+      160
+    ],
+    "iterator_next": [
+      16,
+      16
+    ]
+  },
+  "mechanism": "Original two calls from cached ownership remain, but the second is a direct slice iterator find_map rather than FlattenCompat; less adapter code/state with the same ordered IDs and policy. New boolean API530 not included.",
+  "limitations": [
+    "Static local final ELF uses bundled musl/rust-lld, not canonical SDK.",
+    "name_exists emitted range grows156B; do not hide it behind whole-ELF\u2212888B.",
+    "No actual instruction count, CPU gain, A53 IPC or cache-miss claim.",
+    "No new index, allocation API, C expectation, metadata layout or qualification adapter.",
+    "Linux related/full44/SDK/native-owner-device screening has not run."
+  ],
+  "decision": "Prefer independent review of this same-API source over boolean helper530; timing selection follows current6ab results. Keep current6ab immutable."
+}
