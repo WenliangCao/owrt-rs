@@ -1,0 +1,258 @@
+{
+  "scope": "Pre-capture tool-path correction only; original capture matrix and all scripts remain frozen.",
+  "original_plan_sha256": "f413ce0507f4047d0d701de59ab2118418fac024c4858d317833850221444c86",
+  "reason": "Unqualified llvm-cxxfilt absent from sudo PATH. Original C/E captures were analyzed with /usr/bin/llvm-cxxfilt-18. First preflight stopped before any capture.",
+  "retained_failure": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/preflight-attempt1-failure.json",
+  "demangler": {
+    "path": "/usr/bin/llvm-cxxfilt-18",
+    "resolved": "/usr/lib/llvm-18/bin/llvm-cxxfilt",
+    "sha256": "02844bb3fb31912de262f92211730c26796229190bd6b2814e5983a38b476bb6",
+    "version": "/usr/bin/llvm-cxxfilt-18\nUbuntu LLVM version 18.1.3\n  Optimized build."
+  },
+  "analysis_commands": [
+    {
+      "id": "udp-stat-p1-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p1-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p1-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-stat-p1-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p1-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p1-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-stat-p2-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p2-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p2-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-stat-p2-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p2-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p2-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-stat-p3-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p3-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p3-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-stat-p3-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p3-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-stat-p3-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-stat-p1-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p1-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p1-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-stat-p1-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p1-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p1-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-stat-p2-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p2-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p2-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-stat-p2-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p2-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p2-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-stat-p3-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p3-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p3-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-stat-p3-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p3-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-stat-p3-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-cycles-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-cycles-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-cycles-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "udp-cycles-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-cycles-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-cycles-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-cycles-c",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-cycles-c",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-cycles-c/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    },
+    {
+      "id": "tcp-cycles-185",
+      "argv": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016-inputs/tools/dnsmasq/loop_owner_profile_analyze.py",
+        "--input",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-cycles-185",
+        "--output",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/tcp-cycles-185/analysis.json",
+        "--demangler",
+        "/usr/bin/llvm-cxxfilt-18"
+      ]
+    }
+  ],
+  "capture_commands_changed": false,
+  "tool_bytes_changed": false,
+  "algorithm_changed": false,
+  "capture_started": false
+}
