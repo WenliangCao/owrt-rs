@@ -59,6 +59,14 @@ not from analysis or preservation.
 The [explicit release](post185-combined-screen-release.json), SHA-256
 `35dda22f7e441dc1ef2b555be2cb897ccda60e4a7c3fe5e4b0822236850513a7`,
 records exited controllers, no research processes including exact C, available
-build locks and completed transfers. Correctness owns the host for independent
-raw replay and the original full44; independent review is pending. These
-results do not authorize promotion or full110.
+build locks and completed transfers. Independent review passed in `d68522c6`:
+the [audit](../correctness/post185-combined-owner32-independent-audit.json),
+SHA-256 `5d82b0ad60c5872d00e8b186e596ab9989e14042fea64998ecd90654172d718d`,
+rechecks raw CPU/PMU and all statistics. Its first analyzer attempt as ubuntu
+failed reading root-owned `daemon.log`; that failure is retained. A fresh
+attempt using the author's original root execution identity reread every bin
+and reproduced the result bytes exactly, with no raw permission or content
+changes. The successful exit receipt has SHA-256
+`b97d4c63b6ee8f4b40ddceab9f7f0da8bab8f010957a8bbbd9f05245e63c6937`.
+Correctness now owns the host for the original full44. These results do not
+authorize promotion or full110.
