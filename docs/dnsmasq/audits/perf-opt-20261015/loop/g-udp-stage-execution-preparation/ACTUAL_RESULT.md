@@ -37,7 +37,13 @@ the extracted tree and resumed only after rechecking every archived byte/mode.
 Neither failure ran or retried tests/builds, modified product source or changed
 the original selections.
 
-Independent actual review is pending locally. The
+Independent actual review passed: original gate audit `ad9f1c3d`, SHA-256
+`d53677fa512d625625fe0c0004a5004e7d6992bc2075c319d7ae2e844fd04791`,
+and SDK audit `ef762db0`, SHA-256
+`e6e4535e95e858f5755341c4ce29c20bdff622b82b6bc8072c6c5ef7bab60913`.
+The reviewers checked actual inventories, full raw bytes, source identities,
+static ELF/TLS/ALLOC and payload/budget while retaining both setup failures.
+No additional test or build was needed. The
 [explicit quiet handoff](release-to-dns-warm.json), SHA-256
 `29f0a17bb632636c295db5fb79007fbe52f5eb3097bdb0fa1df0fe22dacf46a7`,
 records exited controllers, no research processes including exact C, three
