@@ -1,0 +1,120 @@
+{
+  "schema": "g-stage-related-independent-audit-v1",
+  "status": "PASS_FRESH_G_STAGE_ORIGINAL_THREE_RELATED_SELECTIONS_RAW_NAMES_ELFS_AND_SOURCE",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "verified_receipt_sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+  "raw_result_sha256": "e4bce16916f17a38844513b515656ca48e369c8e99e483421292c9b8fdeb2cca",
+  "archive_sha256": "b4dd0a2acfceb0fad062843467c7f840f9493ad2ab04bcfd57998daab83e6376",
+  "collection_sha256": "175db14de91c54cf10010a3c656132534f111c21fadbf54e569eebcfbb196d7e",
+  "safe_unique_regular_files_verified": 27,
+  "build_receipt_sha256": "4b08b05ca4fb534a3f144f84511ac553a341e9a4f8c010e1b36e15bd3eb41af8",
+  "test_ELFs": [
+    {
+      "path": "bin-dnsmasq-rs",
+      "bytes": 51040584,
+      "sha256": "0b98258ed1866e9c7306e9faa904a38c8bdb12006fcded838753b0f01218aa05"
+    },
+    {
+      "path": "lib-dnsmasq_rs",
+      "bytes": 72347680,
+      "sha256": "53d66327fbcfa5bf812db6314e821a18713437b06f470d32d6b7f2e5df3540fc"
+    }
+  ],
+  "actual_groups": [
+    {
+      "name": "stage-fixture",
+      "passed": 1,
+      "ignored": 0,
+      "filtered": 858,
+      "stdout_sha256": "45f3f2eeaf10f8ebe777a5a9ed2e5be3284c33da67115a30fb74e4ace5d38fe3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "binary_sha256": "53d66327fbcfa5bf812db6314e821a18713437b06f470d32d6b7f2e5df3540fc"
+    },
+    {
+      "name": "bin",
+      "passed": 82,
+      "ignored": 4,
+      "filtered": 0,
+      "stdout_sha256": "0cae1974ed75cf2591cffad6dcefa93a790cbde923bbc7a5771bb212121b879f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "binary_sha256": "0b98258ed1866e9c7306e9faa904a38c8bdb12006fcded838753b0f01218aa05"
+    },
+    {
+      "name": "bin-ignored-live",
+      "passed": 4,
+      "ignored": 0,
+      "filtered": 82,
+      "stdout_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "binary_sha256": "0b98258ed1866e9c7306e9faa904a38c8bdb12006fcded838753b0f01218aa05"
+    }
+  ],
+  "total_actual_test_passes": 87,
+  "original_fixture_name_exact": true,
+  "normal_and_ignored_bin_name_sets_equal_accepted_G": true,
+  "ignored_execution_names_equal_fresh_normal_ignored_inventory": true,
+  "source180_Git_SHA256_blob_identities_rechecked": true,
+  "source_manifest_sha256": "ebe3a081f74af97d29f2df1a24e32f38684a65c5100dabe29ae8d49f4af1934c",
+  "git_identity_sha256": "912d626581d2d2595ffc50849eba93a4eeb97bb17f7bc12cc219b991c94237e0",
+  "original_runner_and_build_plus_three_argv_identity_substitutions_bound": true,
+  "runner_sha256": "2ef11c6b8bfe169e167007e795a4b84fb147e4fef39764f276e2eafb0e216346",
+  "preflight_sha256": "d793974f2a839474580bdc96cbb5c6feb9d9706e209105204f63578680b7c27c",
+  "launch_sha256": "c223141b6c39f92736446d1d87f3ca39284659831aec474efcf20d916c43c104",
+  "original_CPU2_nice10_build_job1_runner_bound": true,
+  "actual_test_compiler_profiles": [
+    {
+      "target": "dnsmasq-rs",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    },
+    {
+      "target": "dnsmasq_rs",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    }
+  ],
+  "retained_setup_failures": [
+    {
+      "receipt_sha256": "8feddd3c88380d821ad5f23f9ff768f37dc5a03342a973c6dcfebe0e677749f3",
+      "record": {
+        "stage": "Local source archive preparation beforeremoteaction",
+        "error": "git archive default outputmode0664 differs from Git tracked100644; first mode assertion stopped with partial229B archive.",
+        "failed_archive_sha256": "943bf54ebd315e0c86cf6d1b60be96f2a79d7e23d8f0c7a5bb152d2a868819a3",
+        "failed_archive_bytes": 229,
+        "correction": "Emit eachregularfile withtheexact Git mode0644/0755 and verifybytes againstGitblob. Directorymetadata normalized0755; no sourcecontent change.",
+        "remote_accessed": false,
+        "tests_or_builds_run": false,
+        "epoch": 1792146051.36405
+      }
+    },
+    {
+      "receipt_sha256": "e258021ab4f6f12a3485e3fc04ebfdef5210ae307560b696d9a8b1c30362685a",
+      "record": {
+        "stage": "Remote source staging afterall180hashes checked,beforeinputs/state/build",
+        "error": "FileExistsError: frozenGitarchive already includes source/private directory, whilepreflight mkdir wronglyrequiredabsence.",
+        "source_or_test_code_changed": false,
+        "source_archive_extracted_and_input_hashes_verified": true,
+        "input_state_created": false,
+        "gate_or_build_started": false,
+        "failure_before_chown": true,
+        "first_script_sha256": "17935b8bc1997c0ffb81de2adc4640adedcda119dc8b577575cfb4ef660c4a68",
+        "epoch": 1792146420.009985
+      }
+    }
+  ],
+  "setup_failures_precede_any_test_or_build": true,
+  "test_or_build_retry": false,
+  "full_lib_or_allocations_or_five_product_groups_run": false,
+  "scope": "Excluded diagnostic related3selections only. Fixture1/bin82/ignored4 derived fromactualfreshraw, notoldE86. Dev/testprofile0 debugassertions; helperopt3 metadata isnotshippingprofileproof. No full44/product/performance/deployment acceptance or reviewerremote/test/build/listing execution.",
+  "reviewer_script_sha256": "5523604f067b6c711eba1a795e9929c786453b0ceefa29652aa4dcdb3136973c"
+}
