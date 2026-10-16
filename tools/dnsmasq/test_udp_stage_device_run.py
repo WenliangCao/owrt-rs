@@ -83,6 +83,19 @@ class StageGateTests(unittest.TestCase):
             self.assertEqual(result['thread_samples'], 3)
             self.assertEqual(result['raw'] is None, mode is None)
 
+    def test_exact_image_c_is_control_with_e_f_restoration_only(self):
+        import image_c_zero_frame_device_run as entry
+        with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
+                            ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
+            entry.configure()
+            rows = schedule()
+            self.assertEqual(len(rows), 10)
+            self.assertEqual([row['side'] for row in rows], ['c', 'rust', 'rust', 'c', 'c', 'rust', 'rust', 'c', 'c', 'rust'])
+            self.assertEqual({row['artifact'] for row in rows if row['side'] == 'c'}, {'exact-c'})
+            self.assertEqual({row['artifact'] for row in rows if row['side'] == 'rust'}, {'cached-zero-frame'})
+            self.assertTrue(all(row['mode'] is None for row in rows))
+            self.assertEqual(stage.ARTIFACT_ROLES, {'exact-c', 'e', 'f', 'cached-zero-frame'})
+
     def test_cached_local_name_uses_accepted_e_and_preserves_f_restore_role(self):
         import cached_local_name_device_run as names
         import cached_zero_frame_device_run as frames

@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_files_verified": 179,
+  "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "elf_bytes": 2145051,
+  "map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+  "build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "candidate_eligible": false,
+  "full_qualification_completed": true,
+  "status": "LOCAL_ONLY preparation; currentE185 full110 originalarchive/audit/postflight and no-product-failure gate pending, no additional router access",
+  "scope": "Fresh exact-image-C/185 directUDP-hit diagnostic; originalfivealternatingpairs, nohistoricaldelta pooling, not additional product qualification or deployment.",
+  "baseline_C": {
+    "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "elf_bytes": 269305,
+    "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/inputs/dnsmasq-c"
+  },
+  "restoration_only": [
+    "e",
+    "f"
+  ],
+  "entry_sha256": "0d1473497e37850aa82e967602b67c16a854a75d4b4fe4daba37f07b6876a7fd",
+  "artifacts": {
+    "exact-c": {
+      "name": "a53-image-c-zero-frame-artifact-exact-c",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    },
+    "e": {
+      "name": "a53-image-c-zero-frame-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-image-c-zero-frame-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "cached-zero-frame": {
+      "name": "a53-image-c-zero-frame-artifact-cached-zero-frame",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    }
+  },
+  "schedule": [
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 1,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-c"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 1,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-rust"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 2,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-rust"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 2,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-c"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 3,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-c"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 3,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-rust"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 4,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-rust"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 4,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-c"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 5,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-c"
+    },
+    {
+      "group": "exact-c-vs-cached-zero-frame",
+      "round": 5,
+      "side": "rust",
+      "artifact": "cached-zero-frame",
+      "mode": null,
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-rust"
+    }
+  ],
+  "new_fullfunctional_qualification": {
+    "commit": "3c8d46e9",
+    "sha256": "d76634eab46459a2a38e672da8e1eb86d79a250cf5b4b0c367ee79392fe2d4be",
+    "PASS": true
+  },
+  "execution_started": false,
+  "pending_before_launch": [
+    "Completeoriginal E185full110+allarchives+independentaudit+postflight restoringE/F; no productfailure.",
+    "Fresh original125s baseline using7c93+0926 prefixproducer; liveprod/idle/taskroot/offlinerestore/9helpers and C imageinterpreter/library identities reverified.",
+    "Freeze newlaunchreceipt and instantiate exactimageC/185 taskslots only; original10windowtraffic/W/pairedirection/>8ticks/allattempts and originaltool-invalidrule retained."
+  ],
+  "statistics": {
+    "W": "max relativefullranges",
+    "discernible": "absrelativemediandelta>W and>=4/5direction",
+    "cpu": "allwindows>=10ticks andmediandelta>8ticks",
+    "operations": 5000,
+    "measurement_seconds": 20
+  },
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "no_automatic_promotion": true,
+  "image_C_runtime_reference": {
+    "interpreter": "/lib/ld-musl-aarch64.so.1",
+    "interpreter_link": "libc.so",
+    "needed": [
+      "libubox.so.20260213",
+      "libubus.so.20251202",
+      "libgcc_s.so.1",
+      "libc.so"
+    ],
+    "libraries_sha256": {
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04"
+    },
+    "historical_reference_receipt_sha256": "8d07ca0b3008da5141386398d4739ae871b4fbe7496516e8ed862b4d40b0fa00",
+    "fresh_device_reverification_pending": true
+  },
+  "old_health_failure": "RetainedFAILED before earlierE185screen; reviewedboundaryrepair applies, no retrospectivePASS or oldprefix reuse.",
+  "full_performance_acceptance_completed": false
+}
