@@ -5,6 +5,11 @@
 //! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
+// Excluded whole-owner allocation diagnostic; never a performance candidate.
+mod udp_allocation_diagnostic;
+#[global_allocator]
+static DIAGNOSTIC_ALLOCATOR: udp_allocation_diagnostic::Meter = udp_allocation_diagnostic::Meter;
+
 #[cfg(all(
     target_os = "linux",
     target_env = "musl",
@@ -1744,6 +1749,7 @@ fn run_inner(
         .map(|(address, _)| *address)
         .collect();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
+        let _allocation_turn = udp_allocation_diagnostic::Turn::new();
         poll.interfaces_enumerated = false;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.observe_arp_activity();
@@ -1974,6 +1980,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     SIGNAL_WAKE_WRITE.store(-1, Ordering::Release);
     poll.m6b.write()?;
+    udp_allocation_diagnostic::write_report()?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(neighbors) = &mut poll.neighbors {
         neighbors.discard_script_changes();
@@ -4923,6 +4930,7 @@ impl SinglePoll {
     }
 
     fn step_udp(&mut self, index: usize) -> bool {
+        let _allocation_step = udp_allocation_diagnostic::Step::new();
         if self.m6b.enabled() {
             self.m6b.listener_mut(index).step_calls += 1;
         }
@@ -4954,6 +4962,7 @@ impl SinglePoll {
         }
         let incoming = match udp.receive(&mut self.udp_buffer) {
             Ok(Some(incoming)) => {
+                udp_allocation_diagnostic::classify(udp_allocation_diagnostic::Kind::OtherPacket);
                 // forward.c:1628 clears before admission/parsing. Clear every
                 // consumed packet, but preserve the newest send across this
                 // batch's speculative final WouldBlock receive.
@@ -4967,6 +4976,7 @@ impl SinglePoll {
                 incoming
             }
             Ok(None) => {
+                udp_allocation_diagnostic::classify(udp_allocation_diagnostic::Kind::OtherPacket);
                 // recvmsg succeeded but the datagram/pktinfo was discarded.
                 self.invalidate_udp_resend();
                 return false;
@@ -5336,13 +5346,18 @@ impl SinglePoll {
                     local,
                 ) {
                     Ok(QueryResult::Cached(answer)) => {
+                        udp_allocation_diagnostic::classify(udp_allocation_diagnostic::Kind::Cached);
                         cached_reply = true;
                         Some((answer, false))
                     }
                     Ok(QueryResult::Local(answer)) => {
+                        udp_allocation_diagnostic::classify(udp_allocation_diagnostic::Kind::Local);
                         Some((answer, false))
                     }
-                    Ok(QueryResult::Stale(answer)) => Some((answer, true)),
+                    Ok(QueryResult::Stale(answer)) => {
+                        udp_allocation_diagnostic::classify(udp_allocation_diagnostic::Kind::Stale);
+                        Some((answer, true))
+                    },
                     _ => None,
                 }
             }
