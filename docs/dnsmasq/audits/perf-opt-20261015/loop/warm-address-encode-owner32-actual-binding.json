@@ -1,5 +1,5 @@
 {
-  "status": "ORIGINAL32_ANALYSIS_INDEPENDENT_FULL_BIN_AUDIT_AND_AUTHOR_TRANSPORT_COMPLETE",
+  "status": "ORIGINAL32_ALL_ORIGINAL_ANALYSIS_AND_INDEPENDENT_RAW_AND_TRANSPORT_AUDITS_COMPLETE",
   "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
   "final_plan_commit": "fb224fe6",
   "final_plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
@@ -75,5 +75,10 @@
   "author_local_transport_verified": true,
   "owner32_download_receipt_sha256": "e89bcef192ebcdddacf8b69786339dc8b6ed88a1d138999207fe6f59b3a4dd28",
   "reviewer_download_receipt_sha256": "29479cef33854dedceda6b70f7dcc7d1b385e13c4cded8d09add5cbd7764bc7c",
-  "independent_transport_audit_pending": true
+  "independent_transport_audit_pending": false,
+  "independent_transport_audit": {
+    "commit": "c8b4cd31",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-local-transport-independent-audit.json",
+    "sha256": "b32f161c6a5f95fa1f928a4acb8b4614858df57333f0e23fa11eb5d6af89368e"
+  }
 }
