@@ -42,7 +42,7 @@
   },
   "candidate_eligible": false,
   "full_qualification_completed": true,
-  "status": "LOCAL_ONLY preparation; currentE185 full110 originalarchive/audit/postflight and no-product-failure gate pending, no additional router access",
+  "status": "ExactC185fixedten fullyprepared; precedingE185full110independentaudit/no-product-failure/restoration gatesPASSED; freshhealth/livepreflightpending",
   "scope": "Fresh exact-image-C/185 directUDP-hit diagnostic; originalfivealternatingpairs, nohistoricaldelta pooling, not additional product qualification or deployment.",
   "baseline_C": {
     "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
@@ -161,7 +161,6 @@
   },
   "execution_started": false,
   "pending_before_launch": [
-    "Completeoriginal E185full110+allarchives+independentaudit+postflight restoringE/F; no productfailure.",
     "Fresh original125s baseline using7c93+0926 prefixproducer; liveprod/idle/taskroot/offlinerestore/9helpers and C imageinterpreter/library identities reverified.",
     "Freeze newlaunchreceipt and instantiate exactimageC/185 taskslots only; original10windowtraffic/W/pairedirection/>8ticks/allattempts and originaltool-invalidrule retained."
   ],
@@ -193,5 +192,17 @@
     "fresh_device_reverification_pending": true
   },
   "old_health_failure": "RetainedFAILED before earlierE185screen; reviewedboundaryrepair applies, no retrospectivePASS or oldprefix reuse.",
-  "full_performance_acceptance_completed": false
+  "full_performance_acceptance_completed": false,
+  "full110_handoff": {
+    "independent_audit_PASS": true,
+    "independent_audit_commit": "ed184c6b",
+    "independent_audit_sha256": "2e1e9d377da33d92d098ff89380f0ea10698904f4f2ac3652ab9149a148c97e1",
+    "author_result_commit": "fd3dd761",
+    "author_result_sha256": "fafe943d8d09d859272c6138ad52abb92639d904f236ee6762f96c2c02df2a14",
+    "no_product_failure": true,
+    "restored_E_F": true,
+    "postflight_sha256": "138217a01efdb54bd1b36d1579561b392d508d6fa90d3ccc8e130600de5f2e1d"
+  },
+  "prior_gate_scope": "Exact185originalfullfunctional qualification3c8d46e9 passed, complete E185device110independentauditeded184c6b; this is a separatelycontrolled directimageC comparison, not historical subtraction or newdeployment.",
+  "author_verifier_sha256": "22db776f15c122d506feedf2844a02deed9ec125be92389393516c4461ae34c0"
 }

@@ -1,6 +1,6 @@
 # E/185 A53 full 110: UDP CPU goal met, no discernible primary regression
 
-All 110 original windows passed across 11 scenes, with no failed measurement, supplement or rerun. Author verification checked 110 archives and 3,430 files and recomputed the original window statistics. The accepted E incremental UDP-hit CPU goal is met: four of 33 primary comparisons improve and none regress under the frozen rules. Final independent audit and overall review remain. This report does not itself select G or deploy anything.
+All 110 original windows passed across 11 scenes, with no failed measurement, supplement or rerun. Author verification checked 110 archives and 3,430 files and recomputed the original window statistics. The accepted E incremental UDP-hit CPU goal is met: four of 33 primary comparisons improve and none regress under the frozen rules. Final independent audit `ed184c6b` passed all 110 archives/3,430 files, 33 primary and 77 resource comparisons, all 11 guard segments, fresh health and postflight. Immutable result JSON SHA remains `fafe943d…df2a14`. Overall candidate selection/deployment remain coordinator decisions.
 
 | Scene | Metric | E median | 185 median | Change | W | Same direction | CPU precision | Decision |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
