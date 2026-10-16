@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "frozen exact185/acceptedE exploratory10; prior0161 independent audit and newLinux940/source/SDK179identity passed; fresh health pending",
+  "status": "exact185 identity frozen; healthprefix repair committed and20tests passed; review and guarded STOP recovery pending; zero performance windows",
   "scope": "Exploratory acceptedE/cached-zero-frame185 A53 UDP-hit comparison; not full44/complete11-scene acceptance or G selection.",
   "reason": "Exact185db90c combination of reviewed03ace reply reuse plusa8dcdacc entry-frame split; independent experiment, no additive estimate from separate prototypes.",
   "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
@@ -13,7 +13,7 @@
   "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
   "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
   "entry_sha256": "f02b123d48ca95997032e45ab7de847874bbe03b35e6ca6a87aa9816e148a82b",
-  "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+  "shared_runner_sha256": "84e4272edaf82b6c767ea7f771e1f6e591934fc10af967499ac4fd37a6fd624d",
   "artifacts": {
     "e": {
       "name": "a53-cached-zero-frame-artifact-e",
@@ -166,5 +166,22 @@
   "source_review_report_sha256": "f15a285ca6d69f25698e77ac04e2c07d320c5661cf1983e9067e86a870b8ee4c",
   "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
   "comparison_policy": "Exactly five alternating acceptedE/185 pairs. F is restoration-only. No earlier0161/8d572/F/E-B/prototype control pooling or summing of standalone gains. Original strictW,>8ticks,direction,20s and all observations remain.",
-  "prior_0161_audit_commit": "a8bc7e1b"
+  "prior_0161_audit_commit": "a8bc7e1b",
+  "health_evidence_sha256": "00b33c1bcee8415ed0fd9cd7dcf57c17cc33876cd6680eeb8fd0f01c292da9fb",
+  "author_verifier_sha256": "8f180eea72124647bc796018f537244dda829945cbd164e3d1b6eacbe8b88a56",
+  "health_tool_repair": {
+    "scope": "Stop boundary evidence only, before first185 window. Original guard binary, timed case/loadgen/controller/analyzer/source/artifacts/thresholds unchanged.",
+    "old_failed_health_directory": "private/perf-opt-20261015/health-a53-cached-zero-frame",
+    "old_failure_commit": "32042372",
+    "old_failure_stays_failed": true,
+    "old_shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+    "new_collector_commit": "4e81d741",
+    "test_results": "7health+13wrapper=20PASS including cancellation tail success, prefix failures, final safety failures and original archive/cleanup failures",
+    "qualification": "Capture complete raw JSONL prefix before SIGTERM; final byte-prefix identical. >=120s pre-stop coverage/125s collection unchanged; DNS/HTTP/p95 from prefix, all final PID/memory/route/no-stop checks retained.",
+    "new_private_tools": "private/perf-opt-20261015/tools-a53-cached-zero-frame-prefix-v1",
+    "new_health_directory": "private/perf-opt-20261015/health-a53-cached-zero-frame-prefix-v1",
+    "author_verifier_before_sha256": "444c8fbd743109ed74979c1272da626e6c7bee3186adf4b61a33c40540d3efc4",
+    "author_verifier_diff_sha256": "a2b354d7c973ff34852baf61ffebb712e2d29a8dbbf7b357e15b3aeaffa7563c",
+    "recovery_authority": "Root permits exact prior taskSTOP archival/removal only after tool review and production/slot/offline/owned/root gates. Not executed yet."
+  }
 }
