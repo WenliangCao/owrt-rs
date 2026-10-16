@@ -8,8 +8,9 @@ Original main worktree has user prompt edits; leave them intact.
 Current research status, 2026-10-16: G is accepted after complete correctness
 and both110-window matrices. Its A53 UDP-hit CPU is138→116us versus E; a
 separate direct C/G comparison remains82→114us.6ab has full functional PASS
-but no discernible performance increment.803opt2 has actual957/SDK independent
-PASS and awaits final quiet handoff to owner32/A53ten; bare1df is next.
+but no discernible performance increment.803opt2 is closed: no devicegain,
+and independently audited owner32 highp95 regression. Bare1df original Linux
+related groups have started after the actual quiet release.
 See the latest section at the end for exact evidence and execution boundaries.
 Production remains v0.2.0 SHA256
 `8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7`.
@@ -1412,3 +1413,35 @@ Root independent local follow-ups, none injected into803 or bare1df:
 
 These are performance-only source experiments. No behavior repair was added,
 no frozen C expectation changed, and no remote measurement overlap occurred.
+
+
+## 803 closed; bare1df executing; owner layout prepared locally
+
+803 owner32 independentc5f79e95 reproduces the original result ed6e1197 byte
+for byte from all128bins/3,557,698,944B and1264rawfiles. Highp95+2.923% is an
+original-rule regression; remainingplainmetrics inconclusive. Closeout03d9c6c6
+and actual quieta0e3fd07 authorize DNS to run bare1df; no803 full110 or further
+opt2 sweep. The clean803 source branch is retired under durable archive ref
+refs/archive/perf-opt-20261015/retired-20261016/g-opt2-candidate. Detached
+worktree, allprivate artifacts and evidence remain; nothing was deleted.
+
+Bare1df originalfivegroups startedPID986751, epoch1792138975.99, actualpreflight
+c332cbf9 andexecutionplanca4b8235. Originalsource179/archive/tools verified,
+expected963 stillonlyprojection. CanonicalSDK andactualindependentreview follow.
+Oracle belongs toDNS; router isrestored/idle andrequiredpretransfer gap agreed.
+
+Root5c995a85 is an independentchild of025, withanother9line function boundary
+aftertheexistingCACHE_DUMP_REQUESTED decrement gate. ALARM staysbeforeit.
+Originaldumpbody/borroworder/highwaterreset unchanged; peer70cf08da passes.
+The originalstep's17608B/2400Bframe becomes4692B/640B withbothreadyworkhelpers
+outlined. DHCP helper4408B/2016B, requested dump8884B/1072B. WholelocalELF only
+−144Bversus6ab (+280Bversus025), so this ishot-entrypartition evidence, not a
+largeglobalcodesizereduction or CPU claim.23Macbin/muslalltargetpass. Leaveboth
+025 and5c behindactual1dfresults; bare025disabledinputs remainpreserved.
+
+DormantG-stage sourcea34e7310 (originalstagehookrebase58f96e8e) isprepared only
+if1dfremainsinconclusive. Before-answer reusesG'soriginalreplybuffer andrecycler,
+so itdoesnot reintroduceE'sperquery128B allocation. Originalfourmodes/fixture/
+threshold unchanged; local1600replytest+muslcheck andsourcepeerf9abcc95pass.
+NoSDK/deviceplan/remoteexecution selected. Stagecalibration/nonadditivelimits
+remain; currentacceptedG andallmeasurementartifacts areunchanged.
