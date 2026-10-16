@@ -43,3 +43,5 @@ three unresolved primary outcomes are retained without pooling.
 [Disabled plan](A53_HOT_TEXT_GROUP_DEVICE_PLAN.json) binds the original helper
 hashes and adapted private operators. No new protocol or audit framework is
 introduced.
+
+Local disabled-preparation peer PASS: [report](../dns/hot-text-group-device-preparation-peer.json), commit `04606fab`, SHA256 `35b908ce28876713370caeb19080792a15ddcb7e90657e3a45d6b39a6699b72d`. It verifies the original adaptations and disabled state only. Exact canonical GNU map concentration and original actual qualification/readiness remain mandatory; failure to concentrate stops this proposal. No device action is released.
