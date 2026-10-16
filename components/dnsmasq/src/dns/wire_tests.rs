@@ -366,6 +366,37 @@ fn writer_full_record_append_is_atomic_and_sticky() {
 }
 
 #[test]
+fn written_first_question_owner_preserves_binary_names_and_offset_fallbacks() {
+    let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+    let mut names = vec![Name::root(), Name::from_ascii("MiXeD.test").unwrap(),
+        Name::from_ascii(&longest).unwrap()];
+    for byte in 0..=255 {
+        names.push(decode_name(&[1, byte, 0], 0, 0).unwrap().0);
+    }
+    for name in names {
+        let mut writer = PacketWriter::new(7, 0x8180, 512).unwrap();
+        writer.question(&name, 1, 1).unwrap();
+        writer.record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 7]).unwrap();
+        let mut expected = vec![0, 7, 0x81, 0x80, 0, 1, 0, 1, 0, 0, 0, 0];
+        expected.extend_from_slice(name.as_wire());
+        expected.extend_from_slice(&[0, 1, 0, 1, 0xc0, 12, 0, 1, 0, 1, 0, 0, 0, 60, 0, 4, 192, 0, 2, 7]);
+        assert_eq!(writer.finish(), expected);
+    }
+
+    let mut writer = PacketWriter::new(7, 0x8180, 512).unwrap();
+    assert_eq!(writer.record_at(Section::Answer, 12, 1, 1, 60, &[]), Err(WireError::InvalidName));
+    writer.question(&Name::from_ascii("Alpha").unwrap(), 1, 1).unwrap();
+    let before = writer.position();
+    // Offset13 is an ordinary label byte ('A'=65), not the proven owner.
+    assert_eq!(writer.record_at(Section::Answer, 13, 1, 1, 60, &[]), Err(WireError::LabelType));
+    assert_eq!(writer.position(), before);
+    assert_eq!(writer.record_at(Section::Answer, 0x4000, 1, 1, 60, &[]), Err(WireError::InvalidName));
+    writer.question(&Name::root(), 28, 1).unwrap();
+    writer.record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 7]).unwrap();
+    assert_eq!(Header::parse(&writer.finish()).unwrap().questions, 2);
+}
+
+#[test]
 fn hostile_count_fields_do_not_allocate_count_sized_vectors() {
     let mut packet = [255; 12];
     assert_eq!(Message::parse(&packet).unwrap_err(), WireError::Truncated);

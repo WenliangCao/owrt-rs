@@ -738,7 +738,12 @@ impl PacketWriter {
         if name_offset >= 0x4000 || usize::from(name_offset) >= self.packet.len() {
             return Err(WireError::InvalidName);
         }
-        validate_name(&self.packet, name_offset.into(), 0)?;
+        // The first question starts at HEADER_LEN and question() can only
+        // append a validated Name. No writer method can modify those bytes.
+        // Other offsets still need the original encoded-name validation.
+        if usize::from(name_offset) != HEADER_LEN || self.header.questions == 0 {
+            validate_name(&self.packet, name_offset.into(), 0)?;
+        }
         self.append_record(
             section,
             &(0xc000 | name_offset).to_be_bytes(),
