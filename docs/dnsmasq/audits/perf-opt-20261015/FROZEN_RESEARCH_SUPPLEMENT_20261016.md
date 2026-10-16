@@ -300,3 +300,18 @@ udp_dispatch_测试（组合另plain_），再原smoke/硬化/尺寸门。真机
 与新A/A；若达到screen则原44/67和118，未达到则保留结果，不追加样本或重试D3。
 如果D1与D2均不支持≥5µs改善，结合正在运行的直接C/I残余决定是否还需要C收发骨架；
 不把既往Rust骨架74µs当成不可压缩内核成本。
+
+
+## D1真实配置覆盖发现（首次D1设备screen前修订晋级分支）
+
+现有脱敏生产配置键清单包含local（20261014/predeploy_behavior/root/identity.json），
+而ba40的cached_address_is_unclaimed只要存在任意LocalOnly/Literal/ZeroAddresses规则就
+全局回退。它不是回答错误，但使普通公网命中也无法走D1；裸fixture收益不能外推为该配置收益。
+原ba40构建/训练及14窗保持不变，作为机制诊断完成；取消该产物达screen后自动44/118，
+避免验收一个已知在目标配置下不生效的入口。原样本无论正负全部保留。
+
+独立原型4cd1d7c6仅让无关本地域/地址规则不再阻挡cache快路；任意匹配规则（包括被更具体
+upstream覆盖的层）仍保守回退，binary escape也回退，不重做本地域优先级。共用借用slice的
+后缀匹配保留普通/字符wildcard/点wildcard/dotless及大小写语义。未改计时ba40、I或其profile。
+这属于性能覆盖扩展，不列为行为错误修复。下一候选在原D1 screen返回后结合D2选择，先在此
+固定最终源和补充的公开local规则配置对照，再新训练/新计时；不复用旧profile，不追加ba40样本。

@@ -457,3 +457,17 @@ RSS中位变动−92..+106KiB，Anon peak−16..+4KiB；FD中位相同但miss范
 处理降为一次plain扫描是待测机制，不是已证明收益；按a0b59eb4完成Linux专项、独立新训练
 与95秒长窗14窗。D2保留为后继或组合，metrics收益与D1重叠；不重试D3。
 行为修复b1136023在E/G/H/I共同存在，不贡献本轮变量差；独立对v0.2.0代价未测。工具修复不改计时ELF。
+
+
+## D1覆盖边界：无关local规则不能让全局缓存快路失效
+
+实际离线脱敏配置有local规则，而ba40的全局规则gate会长期回退；系统接口地址数量本身
+不会触发local.interfaces gate，它只由interface-name规则构造。已见edns-packet-max和
+DHCP authoritative也不是EDNS改写/DNS auth开关。真实请求OPT/flags与订阅者比例未知。
+因此当前ba40的固定14只量裸fixture机制，尚不能宣称实际配置性能收益，不自动晋级完整门。
+
+主代理已在独立树owrt-perf-d1-local-rules-20261016提交4cd1d7c6，按查询名匹配本地域规则，
+无关规则保持原地cache回答；733lib+25bin PASS/8ignored，Linux全目标check PASS。
+新回归测试在原ba40上复现不必要的fallback，修正后A/AAAA回答字节及LRU与general一致；
+匹配规则、标签边界、大小写、两种wildcard、dotless、binary escape维持回退。实际Linux/SDK/PGO
+及设备收益尚未验证。它与当前ba40构建分开，后继依据实际数据选D2组合，不加入计时中候选。
