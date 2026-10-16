@@ -1,0 +1,592 @@
+{
+  "schema": 1,
+  "status": "PASS_EXPLORATORY_A53_CPU_SCREEN_INDEPENDENT_AUDIT",
+  "scope": "Independent local-only acceptedE/185 fixed ten-window audit, including every archive/file and actual pre-stop health capture. Pass authorizes progression under the coordinator decision, not final promotion.",
+  "baseline": {
+    "source_commit": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+  },
+  "candidate": {
+    "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+    "artifacts": {
+      "dnsmasq-rs": {
+        "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+        "bytes": 2145051
+      },
+      "link.map": {
+        "sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+        "bytes": 3023902
+      },
+      "build.json": {
+        "sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+        "bytes": 43975
+      }
+    },
+    "source_files_verified": 179
+  },
+  "evidence": {
+    "author_result_commit": "29518d65",
+    "author_public_result_sha256": "b7fa4f017942645520a1ef5062258fdd477e24cfb8843226685eeaf88dc8e498",
+    "summary_sha256": "bff6a2facf7552149d21a736cba8d65a6479453766bb5df55a8b2fc5818a28ee",
+    "progress_sha256": "1287ae7c3331db1332d66073898053262c203e7a2ffb9af33355fb2e2a68b40b",
+    "identity_sha256": "f6084fd4bbaf19803f27a4d6c5cdea3d004f9e6e09d58a087f598ff69ed53271",
+    "plan_sha256": "0e24e3b1730a2ce2ceefd59117af529288437d447b54e2c6e28e35b4dec0dcf4",
+    "launch_sha256": "7a0057455843696ecf833c3162ea5ebd2a4d0d1ef96aa4c22e69c58f82127961",
+    "independent_audit_sha256": "c88f1b71685da992baa6051beefbe934b1cdbc83833e860c2731f2a3bc7c1d3b",
+    "statistical_script_sha256": "361a3ecb4d8f2fc21b2e6720c30f355e9327cac435f554cd594c1aa9e32ed6fb",
+    "health_script_sha256": "4214dc8c65ed6ce62938090b28135427a49481de93ad59cc1cd376e8f282c835",
+    "statistics_sha256": "ce3532529d34aeed27256efaab32046626ce09b1726e6e6921f6b1fd9317b9b2",
+    "health_sha256": "3f8f518f0271e92afe46dae7ff1bb5d5efd4b0c3a1c42ab74cb587a572639303"
+  },
+  "execution": {
+    "attempted_windows": 10,
+    "valid_windows": 10,
+    "failed_windows": 0,
+    "replacements": 0,
+    "archive_count": 10,
+    "verified_raw_files": 430,
+    "correct_fixture_replies": 60000,
+    "prewarm_per_window": 1000,
+    "warmup_per_window": 1000,
+    "measurement_per_window": 4000,
+    "cpu_denominator_per_window": 5000,
+    "cpu_hz": 100,
+    "single_thread_observation_samples": 315,
+    "all_case_and_daemon_exits": 0,
+    "upstream_total_requests_per_window": 800,
+    "steady_upstream_requests_per_window": 0,
+    "stage_or_allocation_instrumentation": false
+  },
+  "verification": {
+    "archives": 10,
+    "raw_files": 430,
+    "all_archive_manifest_extracted_hashes_match": true,
+    "all_files_regular_no_symlinks": true,
+    "original_ten_E_185_order": true,
+    "supplements": 0,
+    "replacements": 0,
+    "wire_samples_checked": 600,
+    "primary_comparisons_recomputed": 3,
+    "resource_comparisons_recomputed": 7,
+    "all_published_fields_match_raw": true
+  },
+  "comparisons": {
+    "e-vs-cached-zero-frame": {
+      "left": [
+        "e",
+        null
+      ],
+      "right": [
+        "cached-zero-frame",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.196357,
+            "min": 0.193048,
+            "max": 0.202435,
+            "rounds": [
+              0.202435,
+              0.193048,
+              0.196357,
+              0.19628,
+              0.200434
+            ]
+          },
+          "right": {
+            "median": 0.168042,
+            "min": 0.163964,
+            "max": 0.173197,
+            "rounds": [
+              0.165118,
+              0.168581,
+              0.163964,
+              0.168042,
+              0.173197
+            ]
+          },
+          "relative_change_pct": -14.420163274036579,
+          "W_pct": 5.494459718403727,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.365321,
+            "min": 0.282609,
+            "max": 0.400792,
+            "rounds": [
+              0.365321,
+              0.282609,
+              0.35632,
+              0.400792,
+              0.393174
+            ]
+          },
+          "right": {
+            "median": 0.327312,
+            "min": 0.235058,
+            "max": 0.357858,
+            "rounds": [
+              0.269682,
+              0.357858,
+              0.235058,
+              0.334467,
+              0.327312
+            ]
+          },
+          "relative_change_pct": -10.404274596861395,
+          "W_pct": 37.51772009581073,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 138.0,
+            "min": 136.0,
+            "max": 142.0,
+            "rounds": [
+              142.0,
+              136.0,
+              138.0,
+              138.0,
+              140.0
+            ]
+          },
+          "right": {
+            "median": 114.0,
+            "min": 110.0,
+            "max": 120.0,
+            "rounds": [
+              110.0,
+              120.0,
+              110.0,
+              114.0,
+              116.0
+            ]
+          },
+          "relative_change_pct": -17.391304347826086,
+          "W_pct": 8.771929824561402,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2384.0,
+            "min": 2288.0,
+            "max": 2436.0,
+            "rounds": [
+              2372.0,
+              2436.0,
+              2288.0,
+              2384.0,
+              2404.0
+            ]
+          },
+          "right": {
+            "median": 2376.0,
+            "min": 2356.0,
+            "max": 2436.0,
+            "rounds": [
+              2436.0,
+              2376.0,
+              2356.0,
+              2356.0,
+              2436.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2384,
+            "min": 2288,
+            "max": 2436,
+            "rounds": [
+              2372,
+              2436,
+              2288,
+              2384,
+              2404
+            ]
+          },
+          "right": {
+            "median": 2376,
+            "min": 2356,
+            "max": 2436,
+            "rounds": [
+              2436,
+              2376,
+              2356,
+              2356,
+              2436
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 560,
+            "rounds": [
+              524,
+              560,
+              520,
+              520,
+              516
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 512,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              516,
+              516,
+              512
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1860,
+            "min": 1764,
+            "max": 1884,
+            "rounds": [
+              1844,
+              1872,
+              1764,
+              1860,
+              1884
+            ]
+          },
+          "right": {
+            "median": 1852,
+            "min": 1836,
+            "max": 1920,
+            "rounds": [
+              1912,
+              1852,
+              1836,
+              1836,
+              1920
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 69,
+        "right": 57,
+        "absolute_delta": 12,
+        "required_delta_exclusive": 8
+      },
+      "raw_cpu_ticks": {
+        "c": [
+          71,
+          68,
+          69,
+          69,
+          70
+        ],
+        "rust": [
+          55,
+          60,
+          55,
+          57,
+          58
+        ]
+      }
+    }
+  },
+  "normal_exit_basis": "Every case recorded exit 0 and raw COMPLETE; unchanged set-e case reaches COMPLETE only after wait of daemon succeeds.",
+  "health": {
+    "baseline": {
+      "sha256": "b25d71df019c7add57a9c9e7c3cadb928ae7ca9b92816bee655d4526ee032d49",
+      "samples": 126,
+      "qualified_samples": 126,
+      "final_tail_samples": 0,
+      "dns_completed": 49,
+      "http_completed": 23,
+      "dns_p95_ms": 0.593,
+      "dns_max_ms": 0.846,
+      "http_max_ms": 65.207,
+      "min_memory_kib": 95472,
+      "start_epoch": 1792114371,
+      "last_sample_epoch": 1792114495,
+      "stop_epoch": 1792114496,
+      "elapsed_seconds": 125.0,
+      "final_elapsed_seconds": 125.801,
+      "sample_elapsed_step_range_seconds": [
+        1.0,
+        1.0
+      ],
+      "wall_epoch_step_counts": {
+        "0": 23,
+        "1": 80,
+        "2": 22
+      },
+      "failed_or_cancelled_qualified_probes": 0,
+      "health_stop_events": 0,
+      "full_capture_prefix_verified": true,
+      "pre_stop_files": {
+        "pre-stop-prefix.jsonl": "2a23f25a7cb56d4b8abcf5124d417e4ec6e1977a226a3ad24d95a3f1520ffe63",
+        "pre-stop-capture.raw": "2a23f25a7cb56d4b8abcf5124d417e4ec6e1977a226a3ad24d95a3f1520ffe63",
+        "stop-request.json": "97a69b9c01beaf214985fcbd227efb8a6553026746e017efee6e73367094816e"
+      }
+    },
+    "runtime_guard": {
+      "sha256": "57afeba6e3d73c8015fc873b2c2c567f5a032e88ac7ece3d01f786d56264e34f",
+      "samples": 424,
+      "qualified_samples": 424,
+      "final_tail_samples": 0,
+      "dns_completed": 163,
+      "http_completed": 77,
+      "dns_p95_ms": 0.614,
+      "dns_max_ms": 1.048,
+      "http_max_ms": 75.882,
+      "min_memory_kib": 82124,
+      "start_epoch": 1792114554,
+      "last_sample_epoch": 1792114977,
+      "stop_epoch": 1792114977,
+      "elapsed_seconds": 423.0,
+      "final_elapsed_seconds": 423.297,
+      "sample_elapsed_step_range_seconds": [
+        0.9939999999999998,
+        1.0060000000000002
+      ],
+      "wall_epoch_step_counts": {
+        "1": 423
+      },
+      "failed_or_cancelled_qualified_probes": 0,
+      "health_stop_events": 0,
+      "full_capture_prefix_verified": true,
+      "pre_stop_files": {
+        "pre-stop-prefix.jsonl": "3b582266266e8127f50a45e0e74c51b8cfed33b04f6f5292a5bea7833edf6d62",
+        "pre-stop-capture.raw": "3b582266266e8127f50a45e0e74c51b8cfed33b04f6f5292a5bea7833edf6d62",
+        "stop-request.json": "db9a6d8ba0519ecd22f62324850521a88df126b7fcc5c7f223ad3f6d4eb476d1"
+      }
+    },
+    "external_health": [
+      {
+        "segment": "baseline",
+        "checks": 10,
+        "versions": {
+          "4": 5,
+          "6": 5
+        },
+        "sha256": "aa10cbbfe3498855a043519a17b883cf2af726b91370c3c1da483634266630bb"
+      },
+      {
+        "segment": "run",
+        "checks": 28,
+        "versions": {
+          "4": 14,
+          "6": 14
+        },
+        "sha256": "31ff8db87f6e20453aa5d1309d35ae6df35d483b280995d31986f7e2d152f541"
+      }
+    ],
+    "windows_coverage": [
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r1-c",
+        "start_epoch": 1792114556.0,
+        "end_epoch": 1792114591.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r1-rust",
+        "start_epoch": 1792114594.0,
+        "end_epoch": 1792114629.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r2-rust",
+        "start_epoch": 1792114637.0,
+        "end_epoch": 1792114673.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r2-c",
+        "start_epoch": 1792114681.0,
+        "end_epoch": 1792114716.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r3-c",
+        "start_epoch": 1792114719.0,
+        "end_epoch": 1792114754.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r3-rust",
+        "start_epoch": 1792114762.0,
+        "end_epoch": 1792114797.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r4-rust",
+        "start_epoch": 1792114805.0,
+        "end_epoch": 1792114840.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r4-c",
+        "start_epoch": 1792114848.0,
+        "end_epoch": 1792114883.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r5-c",
+        "start_epoch": 1792114891.0,
+        "end_epoch": 1792114926.0,
+        "covered": true
+      },
+      {
+        "label": "a53-cached-zero-frame-e-vs-cached-zero-frame-r5-rust",
+        "start_epoch": 1792114934.0,
+        "end_epoch": 1792114970.0,
+        "covered": true
+      }
+    ]
+  },
+  "health_boundary": {
+    "collector_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "shared_wrapper_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "qualified_samples": 424,
+    "final_samples": 424,
+    "tail_samples": 0,
+    "complete_capture_and_prefix_are_byte_prefixes_of_final": true,
+    "capture_lengths_digests_stop_request_guard_verification_recomputed": true,
+    "no_failed_probe_excluded_in_this_actual_run": true,
+    "old_failed_baseline_report_sha256": "bb4b6e95eb0ac2c088628acdcee2008f1bc498b93f3954e6b4294a03d38ee67b",
+    "recovery_and_new_baseline_report_sha256": "6827b896035c3073d4350265f48cab949b4090ee8ce6485afc94da917818bcdc",
+    "old_failed_record_preserved": true
+  },
+  "postflight": {
+    "restoration": {
+      "slots": {
+        "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "production_pid_start": [
+        3086,
+        2115
+      ]
+    },
+    "restored_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+    "cleanup_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "complete_sha256": "cb820d3620e23e437cbec740c05ca943722b4bcf68fecc3f0edce2e57310033f",
+    "postflight_sha256": "f3eb66076a3d6c2da8907668a92d63c431cedcca06a5c29332391893659c0f7b",
+    "postflight_script_sha256": "9cf4dbed95cb1c9bb7da3a024798243d9ec3e87946770c6d1da59bbf37c065fc",
+    "postflight_script_exactly_reconstructed": true,
+    "postflight_available_memory_kib": 90200,
+    "local_controller_pid_absent": 1680,
+    "postflight_limits": [
+      "Production final PID/SHA is checked by the frozen runner before restored.json, not by the retained postflight shell itself.",
+      "The namespace output is /proc/1/ns/net; it is not an independent production-PID namespace check.",
+      "All restoration/deletion observations are retained captures, not fresh device observations."
+    ]
+  },
+  "conclusion": {
+    "cpu": "E138\u2192185114us/query;\u221217.3913% exceedsW8.77193%,5/5 pairs;69\u219257median ticks difference12 strictly exceeds8.",
+    "p50": "Discernible improvement:\u221214.420% exceedsW5.494%,5/5 pairs.",
+    "p95": "Not discernible under original rules.",
+    "decision": "Root authorizes exact185/9109 full functional qualification now; no full qualification or formal promotion claimed."
+  },
+  "limits": [
+    "PSS/USS unavailable; RSS and RssAnon are not private memory. Samples and final endpoint establish observations, not continuous tracing.",
+    "This result uses only its contemporaneous E controls. Native and owner32 records, including their regressions, remain separate.",
+    "All recovery, health and production restoration observations are retained owner captures, not new device queries by reviewer."
+  ],
+  "full44_qualified": false,
+  "full110_passed": false,
+  "selected_G": false,
+  "performance_acceptance": false,
+  "deployment": false
+}
