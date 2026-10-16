@@ -76,6 +76,30 @@ class StageGateTests(unittest.TestCase):
                 self.assertEqual(stage.EXPERIMENT_ROLE, role)
         self.assertEqual(len(schedule()), 50)
 
+    def test_g_stage_keeps_all_fifty_windows_and_e_f_restore_only(self):
+        import g_udp_stage_device_run as entry
+        with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
+                            ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
+            entry.configure()
+            rows = schedule()
+            self.assertEqual(len(rows), 50)
+            self.assertEqual(len({row['label'] for row in rows}), 50)
+            self.assertEqual({row['artifact'] for row in rows}, {'exact-c', 'g', 'stage'})
+            self.assertEqual(stage.ARTIFACT_ROLES, {'exact-c', 'e', 'f', 'g', 'stage'})
+            self.assertEqual(stage.EXPERIMENT_ROLE, 'stage')
+            expected = [(name.replace('exact-c-vs-e', 'exact-c-vs-g').replace('e-vs-stage-full', 'g-vs-stage-full'),
+                         tuple('g' if value == 'e' else value for value in left),
+                         tuple('g' if value == 'e' else value for value in right))
+                        for name, left, right in GROUPS]
+            self.assertEqual(stage.GROUPS, tuple(expected))
+            for index in range(5):
+                group = rows[index * 10:(index + 1) * 10]
+                self.assertEqual([row['side'] for row in group], ['c', 'rust', 'rust', 'c', 'c', 'rust', 'rust', 'c', 'c', 'rust'])
+                self.assertEqual([row['round'] for row in group], [1, 1, 2, 2, 3, 3, 4, 4, 5, 5])
+            self.assertEqual(sum(row['mode'] == 'full' for row in rows), 20)
+            self.assertTrue(all(sum(row['mode'] == mode for row in rows) == 5 for mode in MODES[1:]))
+        self.assertEqual(len(schedule()), 50)
+
     def test_every_mode_and_originals_have_required_cohorts(self):
         for mode in (None,) + MODES:
             result = stage_report(self.fixture(mode), mode)
