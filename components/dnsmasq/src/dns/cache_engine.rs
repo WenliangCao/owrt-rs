@@ -299,7 +299,8 @@ impl CacheContext<'_> {
         limit: usize,
         id: super::cache::EntryId,
     ) -> Result<CachedAnswer, CacheError> {
-        let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+        let mut writer = PacketWriter::with_buffer(header.id, (header.flags & 0x0110) | 0x8080,
+            limit, std::mem::take(&mut local.cached_reply_buffer))?;
         writer.question(&question.name, question.rrtype, question.class)?;
         record_cached(local, cache, id, now);
         let entry = cache.get(id).expect("selected fresh address remains live");
@@ -2098,6 +2099,9 @@ mod tests {
                                 let mut left = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
                                 let mut right = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
                                 left.query_logging=true;right.query_logging=true;
+                                // Previous packet contents must not survive a
+                                // reused writer, including error/TC boundaries.
+                                right.recycle_cached_reply(vec![0xff; 128]);
                                 let a = CacheContext::answer_records_general(&mut reference,&question,header,now,
                                     &mut left,limit,dnssec,filtered,left_hint.as_ref());
                                 let b = CacheContext::answer_records_filtered(&mut candidate,&question,header,now,
