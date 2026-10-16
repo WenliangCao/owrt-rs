@@ -1,6 +1,6 @@
 {
   "schema": "bare1df-actual-original-gates-and-canonical-sdk-result-v1",
-  "status": "ACTUAL963_AND_CANONICAL_SDK_DOWNLOADED_PENDING_ACTUAL_AUDIT_AND_HANDOFF",
+  "status": "ACTUAL963_AND_CANONICAL_SDK_INDEPENDENTLY_VERIFIED_QUIET_RELEASED_TO_ORIGINAL_SCREENS",
   "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
   "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
   "source_files_verified": 179,
@@ -226,10 +226,62 @@
     ],
     "accepted_G_unchanged": true
   },
-  "independent_actual_review": null,
-  "final_quiet_release": null,
+  "independent_actual_review": {
+    "related_commit": "0022f006",
+    "related_report_sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560",
+    "SDK_commit": "9d2a8d09",
+    "SDK_report_sha256": "e35b50bbda5ec42741ea67cebd7cacd9564c8694dc60c0e0236ddc94cae2c471",
+    "scope": "Actualoriginalrelated/source/binaries/SDK/staticbudget only; nofullcompatibility/runtimehardening/performanceinheritance. Canonicalopt3profile evidence isfrozenCargo/recipe+actualCargo command, not803verboseindividualrustc evidence."
+  },
+  "final_quiet_release": {
+    "local_path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/release-to-measurements.json",
+    "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/inline-address-details-execution-20261016/release-to-measurements.json",
+    "sha256": "9f2b03fc7a110bc8d8fa3274961df06970ff5f09548a8b3c2bf9520f6e01961c",
+    "epoch": 1792139848.4481058,
+    "source_files_rehashed": 179,
+    "all_SDK_and_G_artifacts_rehashed": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "dependencies": {
+      "independent_actual_review": {
+        "status": "PASS",
+        "related_commit": "0022f006",
+        "related_report_sha256": "771554e5b37765cc228e17bf55b4b779f1c3c09999459e851ec53c644b406560",
+        "SDK_commit": "9d2a8d09",
+        "SDK_report_sha256": "e35b50bbda5ec42741ea67cebd7cacd9564c8694dc60c0e0236ddc94cae2c471"
+      },
+      "loop_pretransfer_complete": true,
+      "loop_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/inline-address-details-screen-preparation/pretransfer-receipt.json",
+        "remote_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/inline-address-details-screen-pretransfer.json",
+        "sha256": "b20d13c7c55a6609b7d31fc4e10a1a7d1e601f760ed1bcc9787fff3b44ee5bce",
+        "ready_metadata_pending_final_release": true
+      },
+      "device_pretransfer_complete": true,
+      "device_pretransfer": {
+        "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-inline-address-details-device-stage-complete.json",
+        "sha256": "2199bffccaefcee6413c86ec764cd149d3b1847daafb1902958613d12cc3ae11",
+        "preflight_sha256": "a98b57508c05c77635297a38a590ca5918d3fac15066da45ad2f571f996479da",
+        "health_summary_sha256": "70b278a7a8bd778cb8aae3c62210d27ec4cf69d52193576f796ae037352ff643",
+        "no_workload_started": true
+      },
+      "metadata_order": "Afterthisrelease,loopbinds/uploadsfinalready native/owner metadataandnotifiesDHCP; onlythenbothoriginalscreenqueuesmaystart. Noadditionalbulk.",
+      "comparison_scope": "G185 versusbare1df(parent6ab) includesinherited6abchanges; noisolatedinline-only attribution."
+    },
+    "next_owners": [
+      "loop original G/1df native240 then owner32",
+      "DHCP original fresh G/1df device ten"
+    ],
+    "handoff_via_followup_task": true,
+    "DNS_stopped_Oracle_access_and_bulk": true
+  },
   "runtime_hardening_verified": false,
   "performance_timing_started_by_DNS": false,
   "qualification": "Actualfreshoriginalrelated+canonicalSDKsource/staticbudget only; no fullfunctional/performance or deploymentinheritance.",
-  "next_queue": "Actualrelated/SDKindependentreview, allnecessarytools/artifactpretransfers andfreshdevicegates, finalquiet; thenoriginalG/1dfnative240\u2192owner32 anddevice10 undertheiroriginalowners.025/5cremainbehind1dfresults."
+  "next_queue": "Loopbinds/uploadsfinalready metadataandnotifiesDHCP; thenoriginalG/1dfnative240\u2192owner32 anddevice10.025/5c remainbehind1dfresults andquietrelease.",
+  "comparison_scope": "G185 vsbare1df(parent6ab) includesinherited6abchanges; notisolatedinline-onlyeffect."
 }

@@ -32,9 +32,16 @@ APK, map, prestrip, logs and extracted package payload. Every downloaded file
 was rehashed. See [the actual execution result](inline-address-details-execution-result.json)
 for full identities and private raw paths.
 
-The author postflight found both SDK workers exited, research/exactC empty and
-all three build locks available. Independent actual review and final transfer/
-quiet handoff remain pending at this checkpoint. Runtime hardening, complete
-compatibility and performance acceptance are not claimed. OriginalG/1df
-native240→owner32 and device ten follow their existing gates;025/5c remain
-behind1df's results.
+Independent actual review passed at `0022f006` for related gates and `9d2a8d09`
+for the canonical SDK. The original125-second device health/preflight and four
+artifact transfers completed, along with loop's original tool/import pretransfer.
+The final fresh check rehashed source179, SDK andG artifacts, found research/
+exactC empty and all three free build locks, then issued quiet release
+`9f2b03fc…` to loop and DHCP. DNS stopped all Oracle access and bulk transfer.
+Loop completes the final ready metadata before notifying DHCP to start.
+
+The authorized next steps are originalG/1df native240→owner32 and device ten.
+This comparesG185 with a1df candidate based on6ab, including all inherited6ab
+changes; the difference cannot be attributed solely to inline addresses.
+Runtime hardening, complete compatibility and performance acceptance are not
+claimed.025/5c remain behind1df's results.
