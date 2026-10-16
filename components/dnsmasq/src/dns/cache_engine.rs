@@ -51,6 +51,24 @@ pub(super) struct CacheContext<'a> {
 /// its final commit is suppressed. Bogus-wildcard caching is independent.
 pub(super) use super::cache::Extraction as OrdinaryCacheMode;
 
+fn cached_query_opt<'a>(
+    query: &'a [u8], question: &super::forward::Question,
+) -> Result<Option<super::wire::EdnsRef<'a>>, WireError> {
+    let name = question.name.as_wire();
+    // Check the real packet, not a caller-supplied header. Matching a valid
+    // uncompressed Name and its four fixed bytes proves skip_name succeeds.
+    // This caller consumes only OPT; signed-query state is not used here.
+    if query.get(4..6) == Some(&[0, 1])
+        && query.get(10..12) == Some(&[0, 0])
+        && query.get(super::wire::HEADER_LEN..)
+            .is_some_and(|bytes| bytes.len() >= name.len() + 4 && bytes.starts_with(name))
+    {
+        Ok(None)
+    } else {
+        Ok(find_pseudoheader(query, true)?.opt)
+    }
+}
+
 impl CacheContext<'_> {
     /// The caller has evaluated add_edns0_config's cacheable flag. EDNS
     /// request options then need no per-record cache representation.
@@ -146,8 +164,8 @@ impl CacheContext<'_> {
         // change the cached record representation. Source-bound NO_CACHE is
         // evaluated by the owner before entering this context. DO still
         // rejects unsigned dynamic records in the exact no-DNSSEC image.
-        let edns = find_pseudoheader(query, true)?;
-        let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
+        let opt = cached_query_opt(query, question)?;
+        let dnssec_requested = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
@@ -212,7 +230,7 @@ impl CacheContext<'_> {
         let limit = if tcp {
             65536
         } else {
-            edns.opt
+            opt
                 .as_ref()
                 .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)))
         };
@@ -234,7 +252,7 @@ impl CacheContext<'_> {
         }) {
             local.record_query_event(QueryEvent::label(0, b"reply", Some(b"truncated"), 0));
         }
-        if edns.opt.is_some() {
+        if opt.is_some() {
             if let Some(packet) = &mut answer.packet {
                 let append_limit = if tcp {
                     65536
@@ -2128,6 +2146,69 @@ fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn cached_opt_guard_keeps_original_scan_errors_and_record_selection() {
+        fn shape(result: Result<Option<super::super::wire::EdnsRef<'_>>, WireError>)
+            -> Result<Option<(usize, usize, bool)>, WireError>
+        {
+            result.map(|opt| opt.map(|opt| (opt.record.start, opt.record.end, opt.is_last)))
+        }
+        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        let binary = super::super::wire::decode_name(&[3, 0xff, 0, b'A', 0], 0, 0).unwrap().0;
+        for name in [Name::root(), Name::from_ascii("MiXeD.example").unwrap(), binary,
+                     Name::from_ascii(&longest).unwrap()] {
+            let parsed = super::super::forward::Question { name: name.clone(), rrtype: 1, class: 1 };
+            let mismatched = super::super::forward::Question {
+                name: Name::from_ascii("unrelated.test").unwrap(), rrtype: 249, class: 255,
+            };
+            for additional in [false, true] {
+                let mut writer = PacketWriter::new(7, 0x0100, 4096).unwrap();
+                writer.question(&name, 1, 1).unwrap();
+                if additional {
+                    writer.record(Section::Additional, &Name::root(), 41, 1232, 0, &[]).unwrap();
+                    writer.record(Section::Additional, &Name::root(), 41, 4096, 0x8000, &[]).unwrap();
+                }
+                let packet = writer.finish();
+                for question in [&parsed, &mismatched] {
+                    let check = |bytes: &[u8]| {
+                        assert_eq!(shape(cached_query_opt(bytes, question)),
+                            shape(find_pseudoheader(bytes, true).map(|scan| scan.opt)),
+                            "packet={bytes:?}, question={question:?}");
+                    };
+                    // Header bytes include caller-disagreeing question counts,
+                    // opcodes and ARCOUNT; every truncation keeps its old error.
+                    for length in 0..=packet.len() { check(&packet[..length]); }
+                    let mut changed = packet.clone();
+                    for position in 0..packet.len() {
+                        for byte in [0, 1, 63, 64, 65, 127, 192, 255] {
+                            changed[position] = byte;
+                            check(&changed);
+                        }
+                        changed[position] = packet[position];
+                    }
+                }
+            }
+        }
+        let question = super::super::forward::Question {
+            name: Name::root(), rrtype: 1, class: 1,
+        };
+        // The old scanner skips compressed names without following pointers,
+        // and also accepts the bitstring label form which Name cannot contain.
+        let mut bitstring = vec![65, 0];
+        bitstring.extend_from_slice(&[0; 32]);
+        bitstring.extend_from_slice(&[0, 0, 1, 0, 1]);
+        for encoded in [vec![0xc0, 12, 0, 1, 0, 1], bitstring] {
+            let mut packet = vec![0; 12];
+            packet[5] = 1;
+            packet.extend_from_slice(&encoded);
+            for length in 0..=packet.len() {
+                let bytes = &packet[..length];
+                assert_eq!(shape(cached_query_opt(bytes, &question)),
+                    shape(find_pseudoheader(bytes, true).map(|scan| scan.opt)));
+            }
+        }
+    }
 
     #[test]
     fn fresh_address_reply_matches_general_flags_ttl_limits_and_logging() {
