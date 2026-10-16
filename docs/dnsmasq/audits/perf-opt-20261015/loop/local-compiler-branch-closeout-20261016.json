@@ -1,0 +1,19 @@
+{
+  "scope": "Retire two completed root-owned task branches; keep exact commits under durable refs, all detached worktrees and private artifacts. No active c95 or agent branch is changed.",
+  "worktrees": [
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-llvm-cold-split-20261016",
+      "branch": "perf/dnsmasq-llvm-cold-split-20261016",
+      "head": "764a4022f9922b9d777c3e0289b23643979ff10e",
+      "durable_ref": "refs/archive/perf/llvm-cold-split-unselected-20261016",
+      "reason": "Completed local-only compiler/codegen experiment; no demonstrated runtime gain and unselected for qualification. Exact source/evidence preserved for reuse."
+    },
+    {
+      "worktree": "/Users/USER/Developer/owrt-perf-shared-answer-inline-20261016",
+      "branch": "perf/dnsmasq-shared-answer-inline-20261016",
+      "head": "6258e1e1a7b07079dcf882686b3e97acc3bd6dbd",
+      "durable_ref": "refs/archive/perf/shared-answer-inline-unselected-20261016",
+      "reason": "Completed local-only compiler/codegen experiment; no demonstrated runtime gain and unselected for qualification. Exact source/evidence preserved for reuse."
+    }
+  ]
+}
