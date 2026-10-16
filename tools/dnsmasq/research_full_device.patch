@@ -1,18 +1,9 @@
 --- a/tools/dnsmasq/perf_opt_device_run.py
 +++ b/tools/dnsmasq/perf_opt_device_run.py
-@@ -19,7 +19,7 @@
- PRODUCTION = '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'
- HEALTH_EVIDENCE_SHA = '8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e'
- SCENES = [
+@@ -22 +22 @@
 -    ('udp-hit', 'udp', 'hit', 200, 5, 20, 150),
 +    ('udp-hit', 'udp', 'hit', 200, 5, 45, 150),
-     ('udp-miss', 'udp', 'miss', 200, 5, 20, 150),
-     ('udp-mixed', 'udp', 'mixed', 200, 5, 20, 150),
-     ('tcp-hit', 'tcp', 'hit', 200, 5, 20, 150),
-@@ -189,6 +189,20 @@
-     ssh(f'if test "$(readlink /proc/{pid}/exe)" = {ROOT}/device_perf_guard && test "$(awk \'{{print $22}}\' /proc/{pid}/stat 2>/dev/null)" = {start}; then kill -TERM {pid}; fi', check=False)
- 
- 
+@@ -191,0 +192,14 @@
 +def tool_invalid(folder, errors):
 +    if not errors or not (folder / 'client.json').exists() or not (folder / 'COMPLETE').exists():
 +        return False
@@ -27,63 +18,29 @@
 +                                'warmup completion count', 'measurement completion count'})
 +
 +
- def main():
-     parser = argparse.ArgumentParser()
-     parser.add_argument('--out', required=True, type=Path)
-@@ -198,6 +212,7 @@
-     parser.add_argument('--scenes', nargs='*')
-     parser.add_argument('--health-baseline', required=True, type=Path)
-     parser.add_argument('--resume', action='store_true')
+@@ -200,0 +215 @@
 +    parser.add_argument('--stop-file', type=Path)
-     args = parser.parse_args()
-     # The helper also imports this module for its unchanged guard primitives.
-     # Import only at execution time; its standalone baseline still pins 7c93.
-@@ -244,26 +259,28 @@
-     label = guard_label = None
-     try:
-         for scene in selected:
+@@ -247 +262,2 @@
 -            expected_labels = {f'{args.prefix}-{scene[0]}-r{n}-{s}' for n in range(1,6) for s in ('c','rust')}
 +            pairs = 9 if scene[0] == 'udp-hit' else 5
 +            expected_labels = {f'{args.prefix}-{scene[0]}-r{n}-{s}' for n in range(1,pairs+1) for s in ('c','rust')}
-             if expected_labels <= completed:
-                 continue
-             # A resumed scene must never overwrite the previous guard segment.
-             guard_label = f'{args.prefix}-{scene[0]}-guard-{time.time_ns()}'
-             guard = guard_start(identity[0], guard_label, threshold)
+@@ -253 +269 @@
 -            for round_number in range(1, 6):
 +            for round_number in range(1, pairs + 1):
-                 for side in (('c', 'rust') if round_number % 2 else ('rust', 'c')):
+@@ -255 +271,2 @@
 -                    if failed.is_set() or production_identity() != identity:
 +                    if (failed.is_set() or production_identity() != identity
 +                            or (args.stop_file and args.stop_file.exists())):
-                         raise RuntimeError('health or production identity changed')
-                     label = f'{args.prefix}-{scene[0]}-r{round_number}-{side}'
-                     if label in completed:
-                         continue
-                     argv = [side, label, *map(str, scene[1:])]
+@@ -261 +278 @@
 -                    command = 'setsid /bin/sh ' + ROOT + '/group.sh ' + shlex.join(argv)
 +                    command = 'setsid /bin/sh ' + ROOT + '/research_full_group.sh ' + shlex.join(argv)
-                     with (args.out / (label + '.controller.log')).open('wb') as log:
-                         p = subprocess.Popen(['ssh', '-o', 'BatchMode=yes', 'openwrt', command], stdout=log, stderr=log)
-                         started = time.monotonic()
-                         while p.poll() is None:
+@@ -266 +283 @@
 -                            if failed.wait(5):
 +                            if failed.wait(5) or (args.stop_file and args.stop_file.exists()):
-                                 raise RuntimeError('external health failed')
-                             if not guard_check(guard) or time.monotonic()-started > 100:
-                                 raise RuntimeError('guard unavailable or case deadline')
-@@ -276,11 +293,12 @@
-                     if exit_code:
-                         errors.append('controller exit ' + str(exit_code))
-                     row = {'label':label, 'scene':scene[0], 'round':round_number, 'side':side,
+@@ -279 +296,2 @@
 -                           'valid':not errors, 'errors':errors, 'epoch':time.time()}
 +                           'valid':not errors, 'errors':errors, 'epoch':time.time(),
 +                           'tool_invalid':tool_invalid(folder, errors)}
-                     results.append(row)
-                     write(args.out / 'progress.json', results)
-                     print(json.dumps(row), flush=True)
+@@ -283 +301 @@
 -                    if exit_code or failed.is_set():
 +                    if exit_code or failed.is_set() or (errors and not row['tool_invalid']):
-                         raise RuntimeError('case or health failure')
-                     if row['valid']:
-                         # archive_run verified every local copy before progress
