@@ -49,5 +49,10 @@ Its archive is 1,555,785 bytes, SHA-256
 Whole-process `RUSAGE_CHILDREN` includes exec, setup, priming and teardown.
 The public probe does not exercise SinglePoll, socket Rc, owner clocks or reply
 recycling. These are native host measurements, not physical A53 acceptance.
-Independent raw review is pending; correctness owns the host for that review
-and the original full44. No full110 or promotion is authorized by this result.
+Independent raw review passed in `d68522c6`: the
+[audit](../correctness/post185-combined-native-independent-audit.json), SHA-256
+`2bc7d215ed30f2b23403024315d6984be186fb682f810a25c91e32289761de40`,
+rechecks all raw data and derived statistics. A reviewer report-variable name
+collision is retained in the audit; it caused no measurement retry.
+Correctness now owns the host for the original full44. No full110 or promotion
+is authorized by this result.
