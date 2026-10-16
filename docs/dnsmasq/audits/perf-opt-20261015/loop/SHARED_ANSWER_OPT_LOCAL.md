@@ -18,7 +18,7 @@ revision must be assessed separately;803 and bare1df remain unchanged.
 ## Compact reply-envelope follow-up
 
 Separate refinement961b7cf8 retains only udp_limit, OPT presence and DO in a
-private4B value. Signedness and RecordRef bytes are never consumed by these
+private value. Signedness and RecordRef bytes are never consumed by these
 reply-envelope callers. Failed scans still remain absent and the cache caller
 rescans at its original boundary. TCP keeps its original delayed scan; none
 of this shares a scan with the differently configured forwarding/EDNS owner.
