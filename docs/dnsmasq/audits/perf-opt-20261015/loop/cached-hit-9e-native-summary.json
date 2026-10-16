@@ -1,0 +1,6815 @@
+{
+  "scope": "Direct accepted G/cached-hit-9e native hot15 screen; no owner-recycling or SDK/device acceptance claim",
+  "raw_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+  "runner_sha256": "045a9ee0baefc926508322acbc2a0634805a37a5c4ce849f3ba575311afd7b32",
+  "artifacts": {
+    "G": {
+      "elf_sha256": "1edf4fb912e10441f3ab075e922fff9d9b6ee4539af48ba8f816452444dfee63",
+      "rlib_sha256": "826a6f3e8ec566d1f91e9c292fdc5d1282aa2872f6cf151483c6f9f205ab9eca"
+    },
+    "cached-hit-9e": {
+      "elf_sha256": "de2a75019a5dc93b598ae1a2e8d4434561677f9faa49b403bbf3a02452c08f68",
+      "rlib_sha256": "891d02c0c3428c1609cdd8204c86f7e4d561070c4ca7ceb6b603da870e7b52f9"
+    }
+  },
+  "rows": [
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-stat-r1-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 669762022,
+            "enabled_ns": 89607800,
+            "running_ns": 89607800,
+            "per_operation": 3348.81011
+          },
+          "cycles:u": {
+            "raw_count": 257466047,
+            "enabled_ns": 89607800,
+            "running_ns": 89607800,
+            "per_operation": 1287.330235
+          }
+        },
+        "user_ipc": 2.601360566972157,
+        "csv_sha256": "7e68e576cf6f471231ee1a0035c10fa6e27819100b8f7b989e26e5786abd7715"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 617910572,
+            "enabled_ns": 82054840,
+            "running_ns": 82054840,
+            "per_operation": 3089.55286
+          },
+          "cycles:u": {
+            "raw_count": 234841872,
+            "enabled_ns": 82054840,
+            "running_ns": 82054840,
+            "per_operation": 1174.20936
+          }
+        },
+        "user_ipc": 2.631177169291173,
+        "csv_sha256": "007add3456851675c0d454d376179df45b17c08cccb61d8266f67432eb579fdf"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 617966652,
+            "enabled_ns": 81789240,
+            "running_ns": 81789240,
+            "per_operation": 3089.83326
+          },
+          "cycles:u": {
+            "raw_count": 236544931,
+            "enabled_ns": 81789240,
+            "running_ns": 81789240,
+            "per_operation": 1182.724655
+          }
+        },
+        "user_ipc": 2.612470490859937,
+        "csv_sha256": "af6b4453fb44aeec86bb7ef023b3ab629e6d5f026c425c154e90ca9e67e07f0e"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-stat-r2-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 669719503,
+            "enabled_ns": 88665600,
+            "running_ns": 88665600,
+            "per_operation": 3348.597515
+          },
+          "cycles:u": {
+            "raw_count": 257446900,
+            "enabled_ns": 88665600,
+            "running_ns": 88665600,
+            "per_operation": 1287.2345
+          }
+        },
+        "user_ipc": 2.601388880580811,
+        "csv_sha256": "728e83571a0438f1eacbf2e6d5cc2473891da50bc05af48e4c7ca5102870a9c0"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-stat-r3-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 669774396,
+            "enabled_ns": 88216720,
+            "running_ns": 88216720,
+            "per_operation": 3348.87198
+          },
+          "cycles:u": {
+            "raw_count": 256705722,
+            "enabled_ns": 88216720,
+            "running_ns": 88216720,
+            "per_operation": 1283.52861
+          }
+        },
+        "user_ipc": 2.6091136215498927,
+        "csv_sha256": "522f32b3fd9a85619aa53283ff23614873880f973aca2b98b9fcc6efb9272155"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 617926811,
+            "enabled_ns": 81235920,
+            "running_ns": 81235920,
+            "per_operation": 3089.634055
+          },
+          "cycles:u": {
+            "raw_count": 236516722,
+            "enabled_ns": 81235920,
+            "running_ns": 81235920,
+            "per_operation": 1182.58361
+          }
+        },
+        "user_ipc": 2.61261362737811,
+        "csv_sha256": "c959280f931acb1b7bb645fa640176b9d939b72a3e44d02498552552e37a54c8"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-plain-r1-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 853679000,
+      "wall_ns": 865843442
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 778595000,
+      "wall_ns": 802446075
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 780065000,
+      "wall_ns": 802405675
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-plain-r2-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 862534000,
+      "wall_ns": 866019764
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-plain-r3-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 876338000,
+      "wall_ns": 916101340
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 786201000,
+      "wall_ns": 802546475
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 778752000,
+      "wall_ns": 802589396
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-plain-r4-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 853952000,
+      "wall_ns": 866130924
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-plain-r5-G",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 853466000,
+      "wall_ns": 866203365
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "hit",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 776829000,
+      "wall_ns": 802666156
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-upper-stat-r1-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 696907945,
+            "enabled_ns": 91701280,
+            "running_ns": 91701280,
+            "per_operation": 3484.539725
+          },
+          "cycles:u": {
+            "raw_count": 265998056,
+            "enabled_ns": 91701280,
+            "running_ns": 91701280,
+            "per_operation": 1329.99028
+          }
+        },
+        "user_ipc": 2.6199738279290283,
+        "csv_sha256": "186c6768ad4d31af6c4386e1c5636843893248e82e687f60892eabd4fcb0a0c9"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-upper-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 641268735,
+            "enabled_ns": 86119760,
+            "running_ns": 86119760,
+            "per_operation": 3206.343675
+          },
+          "cycles:u": {
+            "raw_count": 247781607,
+            "enabled_ns": 86119760,
+            "running_ns": 86119760,
+            "per_operation": 1238.908035
+          }
+        },
+        "user_ipc": 2.5880401001677256,
+        "csv_sha256": "d7536d43f49c2df34ad50cbf4330c07f0b94fd336f9385bdfbf854881c344761"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-upper-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 641281993,
+            "enabled_ns": 85471920,
+            "running_ns": 85471920,
+            "per_operation": 3206.409965
+          },
+          "cycles:u": {
+            "raw_count": 248343003,
+            "enabled_ns": 85471920,
+            "running_ns": 85471920,
+            "per_operation": 1241.715015
+          }
+        },
+        "user_ipc": 2.5822430479347953,
+        "csv_sha256": "1ca7eae56562366f0427e6d8eeb9e7cdcbafb8b9fd59da5e0f560b5c1738bdc0"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-upper-stat-r2-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 696925555,
+            "enabled_ns": 92778640,
+            "running_ns": 92778640,
+            "per_operation": 3484.627775
+          },
+          "cycles:u": {
+            "raw_count": 266885609,
+            "enabled_ns": 92778640,
+            "running_ns": 92778640,
+            "per_operation": 1334.428045
+          }
+        },
+        "user_ipc": 2.6113268437789765,
+        "csv_sha256": "fb426464ff228f2b71bafcf43a4a06288b564cecf5f910bebe8d334e9c16d723"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-upper-stat-r3-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 696892156,
+            "enabled_ns": 91625400,
+            "running_ns": 91625400,
+            "per_operation": 3484.46078
+          },
+          "cycles:u": {
+            "raw_count": 266637537,
+            "enabled_ns": 91625400,
+            "running_ns": 91625400,
+            "per_operation": 1333.187685
+          }
+        },
+        "user_ipc": 2.613631088258965,
+        "csv_sha256": "beabb1e4d5499ccf426bdaa657e72e26e1b9fb90d1c21ee9637d7814b4a3ae61"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-upper-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 641277061,
+            "enabled_ns": 85353480,
+            "running_ns": 85353480,
+            "per_operation": 3206.385305
+          },
+          "cycles:u": {
+            "raw_count": 247728163,
+            "enabled_ns": 85353480,
+            "running_ns": 85353480,
+            "per_operation": 1238.640815
+          }
+        },
+        "user_ipc": 2.5886320442298683,
+        "csv_sha256": "6844f0063f3184800b4761905881ebb31f52a48f52c0e0e894153a54f9903287"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-upper-plain-r1-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 885808000,
+      "wall_ns": 916582464
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-upper-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 820160000,
+      "wall_ns": 834365020
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-upper-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 821199000,
+      "wall_ns": 834334140
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-upper-plain-r2-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 884338000,
+      "wall_ns": 916537783
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-upper-plain-r3-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 883435000,
+      "wall_ns": 916738386
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-upper-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 821807000,
+      "wall_ns": 834616902
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-upper-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 823801000,
+      "wall_ns": 834479661
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-upper-plain-r4-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 884847000,
+      "wall_ns": 916725465
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-upper-plain-r5-G",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 885164000,
+      "wall_ns": 916983827
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-upper",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-upper-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "hit-upper",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 823649000,
+      "wall_ns": 834531781
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-leases-stat-r1-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 916907277,
+            "enabled_ns": 114250760,
+            "running_ns": 114250760,
+            "per_operation": 4584.536385
+          },
+          "cycles:u": {
+            "raw_count": 332452325,
+            "enabled_ns": 114250760,
+            "running_ns": 114250760,
+            "per_operation": 1662.261625
+          }
+        },
+        "user_ipc": 2.758011323879296,
+        "csv_sha256": "ceb3785b8acc4176a46a3a58069cef24e8334daa75b4ce2d9303e901c4905137"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-leases-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 693093606,
+            "enabled_ns": 89250760,
+            "running_ns": 89250760,
+            "per_operation": 3465.46803
+          },
+          "cycles:u": {
+            "raw_count": 259238294,
+            "enabled_ns": 89250760,
+            "running_ns": 89250760,
+            "per_operation": 1296.19147
+          }
+        },
+        "user_ipc": 2.6735772532124438,
+        "csv_sha256": "5e19a8b98cf4380164b0d11f9f4c1832019501824f1c23c3116f0dbad79d7052"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-leases-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 693015408,
+            "enabled_ns": 89207960,
+            "running_ns": 89207960,
+            "per_operation": 3465.07704
+          },
+          "cycles:u": {
+            "raw_count": 259521716,
+            "enabled_ns": 89207960,
+            "running_ns": 89207960,
+            "per_operation": 1297.60858
+          }
+        },
+        "user_ipc": 2.670356140832546,
+        "csv_sha256": "4c7b7d44315ef3fed51502706a899019110484f86840a93745e614a8d385b60b"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-leases-stat-r2-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 916890998,
+            "enabled_ns": 113767000,
+            "running_ns": 113767000,
+            "per_operation": 4584.45499
+          },
+          "cycles:u": {
+            "raw_count": 332114608,
+            "enabled_ns": 113767000,
+            "running_ns": 113767000,
+            "per_operation": 1660.57304
+          }
+        },
+        "user_ipc": 2.760766843474708,
+        "csv_sha256": "4db7b599861c4301832a91f2d0d9aa7fda641df4600a9f911b251707a46c7f69"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-leases-stat-r3-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 916953470,
+            "enabled_ns": 113817000,
+            "running_ns": 113817000,
+            "per_operation": 4584.76735
+          },
+          "cycles:u": {
+            "raw_count": 332621640,
+            "enabled_ns": 113817000,
+            "running_ns": 113817000,
+            "per_operation": 1663.1082
+          }
+        },
+        "user_ipc": 2.7567462838557346,
+        "csv_sha256": "de73714f2bbec07821369b83be4905830346b6ae9ca722abd9774e0f3f8b3237"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-leases-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 693033635,
+            "enabled_ns": 89207360,
+            "running_ns": 89207360,
+            "per_operation": 3465.168175
+          },
+          "cycles:u": {
+            "raw_count": 259698307,
+            "enabled_ns": 89207360,
+            "running_ns": 89207360,
+            "per_operation": 1298.491535
+          }
+        },
+        "user_ipc": 2.6686105235179682,
+        "csv_sha256": "9337fceb08afc2e1bb765648d2cc67fdc1d052d4cac4bac229a2f33965bb92a7"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-leases-plain-r1-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1105502000,
+      "wall_ns": 1117247572
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-leases-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 859023000,
+      "wall_ns": 866948451
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-leases-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 871482000,
+      "wall_ns": 917218269
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-leases-plain-r2-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1110982000,
+      "wall_ns": 1117244013
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-leases-plain-r3-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1110812000,
+      "wall_ns": 1117243932
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-leases-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 861116000,
+      "wall_ns": 867184332
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-leases-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 860076000,
+      "wall_ns": 867527536
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-leases-plain-r4-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1107609000,
+      "wall_ns": 1117355653
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-leases-plain-r5-G",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1111707000,
+      "wall_ns": 1117456174
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-leases-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "hit-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 862206000,
+      "wall_ns": 867458135
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-typed-stat-r1-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 669807663,
+            "enabled_ns": 88566200,
+            "running_ns": 88566200,
+            "per_operation": 3349.038315
+          },
+          "cycles:u": {
+            "raw_count": 256615660,
+            "enabled_ns": 88566200,
+            "running_ns": 88566200,
+            "per_operation": 1283.0783
+          }
+        },
+        "user_ipc": 2.610158955225102,
+        "csv_sha256": "cd06181e9c47a5ee3c863e2e9153b8c176af2a14668d49b2c1f59297609a23c5"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-typed-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 617991906,
+            "enabled_ns": 81720440,
+            "running_ns": 81720440,
+            "per_operation": 3089.95953
+          },
+          "cycles:u": {
+            "raw_count": 236724626,
+            "enabled_ns": 81720440,
+            "running_ns": 81720440,
+            "per_operation": 1183.62313
+          }
+        },
+        "user_ipc": 2.610594074821772,
+        "csv_sha256": "778b524b91ad04c965d5804aaa898ce45d8bbedc3d4cba51e551771ab43fa3fc"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-typed-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 617965410,
+            "enabled_ns": 81460960,
+            "running_ns": 81460960,
+            "per_operation": 3089.82705
+          },
+          "cycles:u": {
+            "raw_count": 235357527,
+            "enabled_ns": 81460960,
+            "running_ns": 81460960,
+            "per_operation": 1176.787635
+          }
+        },
+        "user_ipc": 2.625645407975416,
+        "csv_sha256": "ea9f582d2d2610fcd2ce86fc7109b6845b4bfcf42fc18d6a24d730d4416e829a"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-typed-stat-r2-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 669775837,
+            "enabled_ns": 88622520,
+            "running_ns": 88622520,
+            "per_operation": 3348.879185
+          },
+          "cycles:u": {
+            "raw_count": 257128554,
+            "enabled_ns": 88622520,
+            "running_ns": 88622520,
+            "per_operation": 1285.64277
+          }
+        },
+        "user_ipc": 2.6048286998106014,
+        "csv_sha256": "2a28c80d79a5b40ab0826127df466384960c96bf6e574652aef2ef59680612d7"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-typed-stat-r3-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 669767859,
+            "enabled_ns": 89184000,
+            "running_ns": 89184000,
+            "per_operation": 3348.839295
+          },
+          "cycles:u": {
+            "raw_count": 258153364,
+            "enabled_ns": 89184000,
+            "running_ns": 89184000,
+            "per_operation": 1290.76682
+          }
+        },
+        "user_ipc": 2.594457219623913,
+        "csv_sha256": "49e42e7f67c7052b31f5ad6284fa143f521d8473926183b4e77d52ce67742d76"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-typed-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 617948213,
+            "enabled_ns": 80911040,
+            "running_ns": 80911040,
+            "per_operation": 3089.741065
+          },
+          "cycles:u": {
+            "raw_count": 235379042,
+            "enabled_ns": 80911040,
+            "running_ns": 80911040,
+            "per_operation": 1176.89521
+          }
+        },
+        "user_ipc": 2.625332347983641,
+        "csv_sha256": "6ea792776c6fc1167d450a48fa13ebf3070e0e9ade6821d43f2b138dc8996a64"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-typed-plain-r1-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 858822000,
+      "wall_ns": 867524776
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-hit-typed-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 780716000,
+      "wall_ns": 804072248
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-typed-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 779647000,
+      "wall_ns": 804120448
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-hit-typed-plain-r2-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 854435000,
+      "wall_ns": 867532855
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-typed-plain-r3-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 857001000,
+      "wall_ns": 867765617
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-hit-typed-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 779316000,
+      "wall_ns": 804348850
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-typed-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 778307000,
+      "wall_ns": 804233969
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-hit-typed-plain-r4-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 853271000,
+      "wall_ns": 867829657
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-typed-plain-r5-G",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 855122000,
+      "wall_ns": 867820458
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "hit-typed",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-hit-typed-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "hit-typed",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 781007000,
+      "wall_ns": 804391090
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-stat-r1-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 595444861,
+            "enabled_ns": 80038160,
+            "running_ns": 80038160,
+            "per_operation": 2977.224305
+          },
+          "cycles:u": {
+            "raw_count": 232181058,
+            "enabled_ns": 80038160,
+            "running_ns": 80038160,
+            "per_operation": 1160.90529
+          }
+        },
+        "user_ipc": 2.56457122785615,
+        "csv_sha256": "d5f5780f51905622961f78c5d90abd8a2ecc24b771077ca8f2d3729286b38e8e"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 574080768,
+            "enabled_ns": 78518320,
+            "running_ns": 78518320,
+            "per_operation": 2870.40384
+          },
+          "cycles:u": {
+            "raw_count": 228106160,
+            "enabled_ns": 78518320,
+            "running_ns": 78518320,
+            "per_operation": 1140.5308
+          }
+        },
+        "user_ipc": 2.516726282183699,
+        "csv_sha256": "46102759a24d3fb18c91e845fcb1d8b9fa93d0c6d358aaa3bb1e00dc51b33662"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 574081472,
+            "enabled_ns": 78070240,
+            "running_ns": 78070240,
+            "per_operation": 2870.40736
+          },
+          "cycles:u": {
+            "raw_count": 225673908,
+            "enabled_ns": 78070240,
+            "running_ns": 78070240,
+            "per_operation": 1128.36954
+          }
+        },
+        "user_ipc": 2.5438539930810258,
+        "csv_sha256": "42dd96dcd010af4647c765c056c1812a7c2e8c9700af12ac9297dcb324ba5913"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-stat-r2-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 595444773,
+            "enabled_ns": 79727280,
+            "running_ns": 79727280,
+            "per_operation": 2977.223865
+          },
+          "cycles:u": {
+            "raw_count": 231614922,
+            "enabled_ns": 79727280,
+            "running_ns": 79727280,
+            "per_operation": 1158.07461
+          }
+        },
+        "user_ipc": 2.5708394254494538,
+        "csv_sha256": "c25cd928c6753e62e04f874c6ec6e4877e22e055e28c00d620d88e4a68dc01a2"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-stat-r3-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 595444501,
+            "enabled_ns": 80146440,
+            "running_ns": 80146440,
+            "per_operation": 2977.222505
+          },
+          "cycles:u": {
+            "raw_count": 233124349,
+            "enabled_ns": 80146440,
+            "running_ns": 80146440,
+            "per_operation": 1165.621745
+          }
+        },
+        "user_ipc": 2.554192659643631,
+        "csv_sha256": "aac7196ddcfde985ed56689a6a206efccd081b99de4648ee5274bd593e261103"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 574081260,
+            "enabled_ns": 77746200,
+            "running_ns": 77746200,
+            "per_operation": 2870.4063
+          },
+          "cycles:u": {
+            "raw_count": 226400260,
+            "enabled_ns": 77746200,
+            "running_ns": 77746200,
+            "per_operation": 1132.0013
+          }
+        },
+        "user_ipc": 2.535691699293985,
+        "csv_sha256": "a6e03da8406aa60e94456167db0bc37c33830efa7e8d6454b4294843ae559ba5"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-plain-r1-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 773492000,
+      "wall_ns": 804614212
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 759348000,
+      "wall_ns": 768148308
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 754768000,
+      "wall_ns": 768050347
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-plain-r2-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 778324000,
+      "wall_ns": 804663612
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-plain-r3-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 772785000,
+      "wall_ns": 804686493
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 759476000,
+      "wall_ns": 768241269
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-miss-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 757356000,
+      "wall_ns": 768241509
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-miss-plain-r4-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 774639000,
+      "wall_ns": 805208096
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-miss-plain-r5-G",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 777935000,
+      "wall_ns": 805127096
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-miss-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "miss",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 756951000,
+      "wall_ns": 768207429
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-leases-stat-r1-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 772572707,
+            "enabled_ns": 100028440,
+            "running_ns": 100028440,
+            "per_operation": 3862.863535
+          },
+          "cycles:u": {
+            "raw_count": 292123143,
+            "enabled_ns": 100028440,
+            "running_ns": 100028440,
+            "per_operation": 1460.615715
+          }
+        },
+        "user_ipc": 2.6446816197647167,
+        "csv_sha256": "0e770eb8f8c50653b4dd15c4d3d1fa5c8b2c2f0975b082ce4495e8438133b8c2"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-leases-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 627297814,
+            "enabled_ns": 83339840,
+            "running_ns": 83339840,
+            "per_operation": 3136.48907
+          },
+          "cycles:u": {
+            "raw_count": 242821449,
+            "enabled_ns": 83339840,
+            "running_ns": 83339840,
+            "per_operation": 1214.107245
+          }
+        },
+        "user_ipc": 2.583370688970726,
+        "csv_sha256": "dc0ab99e8df0806efcce00a590f3c65b6bc41f8f0a2467db53810ab03c4e88cb"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-leases-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 627294307,
+            "enabled_ns": 84451880,
+            "running_ns": 84451880,
+            "per_operation": 3136.471535
+          },
+          "cycles:u": {
+            "raw_count": 245352769,
+            "enabled_ns": 84451880,
+            "running_ns": 84451880,
+            "per_operation": 1226.763845
+          }
+        },
+        "user_ipc": 2.556703596852416,
+        "csv_sha256": "ec837f74c178cdb700876f7da19c4d5bd52bcd217dea1b9d1d4fc6fa0c767836"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-leases-stat-r2-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 772529777,
+            "enabled_ns": 99490040,
+            "running_ns": 99490040,
+            "per_operation": 3862.648885
+          },
+          "cycles:u": {
+            "raw_count": 290807983,
+            "enabled_ns": 99490040,
+            "running_ns": 99490040,
+            "per_operation": 1454.039915
+          }
+        },
+        "user_ipc": 2.6564943954788203,
+        "csv_sha256": "e2366b5d0b491bf8ab02090a7d9e90d356f79e81e7687cc35b15543d1e874dff"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-leases-stat-r3-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 772574173,
+            "enabled_ns": 99703480,
+            "running_ns": 99703480,
+            "per_operation": 3862.870865
+          },
+          "cycles:u": {
+            "raw_count": 291049039,
+            "enabled_ns": 99703480,
+            "running_ns": 99703480,
+            "per_operation": 1455.245195
+          }
+        },
+        "user_ipc": 2.654446740846308,
+        "csv_sha256": "558c3a595d1ec0e7cfa8b5683b614940738efe3c61ea97f49e8b3b3b6074ae31"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-leases-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 627292480,
+            "enabled_ns": 83836840,
+            "running_ns": 83836840,
+            "per_operation": 3136.4624
+          },
+          "cycles:u": {
+            "raw_count": 243693467,
+            "enabled_ns": 83836840,
+            "running_ns": 83836840,
+            "per_operation": 1218.467335
+          }
+        },
+        "user_ipc": 2.57410462300165,
+        "csv_sha256": "08f270e14fbf4d909fe6f9874f45797c604b57f5c6de3d420099c123e606bd10"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-leases-plain-r1-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 970828000,
+      "wall_ns": 1005310040
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-miss-leases-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 815470000,
+      "wall_ns": 820569624
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-leases-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 822542000,
+      "wall_ns": 836640838
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-miss-leases-plain-r2-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 977680000,
+      "wall_ns": 1005507403
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-leases-plain-r3-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 974004000,
+      "wall_ns": 1005379442
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-miss-leases-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 814197000,
+      "wall_ns": 821197269
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-miss-leases-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 811000000,
+      "wall_ns": 812858440
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-miss-leases-plain-r4-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 971670000,
+      "wall_ns": 1005560882
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-miss-leases-plain-r5-G",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 972471000,
+      "wall_ns": 1005422602
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "miss-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-miss-leases-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "miss-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 0
+      },
+      "cpu_ns": 811084000,
+      "wall_ns": 812955081
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-host-stat-r1-G",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1386430756,
+            "enabled_ns": 181953440,
+            "running_ns": 181953440,
+            "per_operation": 6932.15378
+          },
+          "cycles:u": {
+            "raw_count": 534280798,
+            "enabled_ns": 181953440,
+            "running_ns": 181953440,
+            "per_operation": 2671.40399
+          }
+        },
+        "user_ipc": 2.5949477525486513,
+        "csv_sha256": "88780891b9bcd16944d7219680a916ecb1c311bd313175501067031623f5489e"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-host-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1329308139,
+            "enabled_ns": 179513960,
+            "running_ns": 179513960,
+            "per_operation": 6646.540695
+          },
+          "cycles:u": {
+            "raw_count": 528054820,
+            "enabled_ns": 179513960,
+            "running_ns": 179513960,
+            "per_operation": 2640.2741
+          }
+        },
+        "user_ipc": 2.5173676835295247,
+        "csv_sha256": "9bfe0b601f994152c6f4d4c6de8d63b82fa53e007d622002962034d9875217ba"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-host-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1325698987,
+            "enabled_ns": 177018880,
+            "running_ns": 177018880,
+            "per_operation": 6628.494935
+          },
+          "cycles:u": {
+            "raw_count": 520982846,
+            "enabled_ns": 177018880,
+            "running_ns": 177018880,
+            "per_operation": 2604.91423
+          }
+        },
+        "user_ipc": 2.544611587844871,
+        "csv_sha256": "a98c4550d94b7e5bd181e4112a44f13f5b3fda95d947d71cfe32db7f118cfaea"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-host-stat-r2-G",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1388560910,
+            "enabled_ns": 182328240,
+            "running_ns": 182328240,
+            "per_operation": 6942.80455
+          },
+          "cycles:u": {
+            "raw_count": 537027567,
+            "enabled_ns": 182328240,
+            "running_ns": 182328240,
+            "per_operation": 2685.137835
+          }
+        },
+        "user_ipc": 2.585641772091748,
+        "csv_sha256": "9c2fdd13fd1e38b818dddde9bdfe6e0cb2cb9282cad8ada50a29458c1c30343e"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-host-stat-r3-G",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1362917670,
+            "enabled_ns": 178058160,
+            "running_ns": 178058160,
+            "per_operation": 6814.58835
+          },
+          "cycles:u": {
+            "raw_count": 524530128,
+            "enabled_ns": 178058160,
+            "running_ns": 178058160,
+            "per_operation": 2622.65064
+          }
+        },
+        "user_ipc": 2.5983591737556018,
+        "csv_sha256": "9ca88019b76eca21f1d52ac61b676cd2d2c3815fb6b63870a6a94637e5413fb5"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-host-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1318004056,
+            "enabled_ns": 176432280,
+            "running_ns": 176432280,
+            "per_operation": 6590.02028
+          },
+          "cycles:u": {
+            "raw_count": 518374198,
+            "enabled_ns": 176432280,
+            "running_ns": 176432280,
+            "per_operation": 2591.87099
+          }
+        },
+        "user_ipc": 2.5425726455621156,
+        "csv_sha256": "f0946407c5ac73001bdce15540847e9cf81217cf9379c42fed30a253e076a172"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-host-plain-r1-G",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1761675000,
+      "wall_ns": 1771068329
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-host-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1726760000,
+      "wall_ns": 1770825926
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-host-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1742540000,
+      "wall_ns": 1770900367
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-host-plain-r2-G",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1761298000,
+      "wall_ns": 1770924327
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-host-plain-r3-G",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1758875000,
+      "wall_ns": 1771050248
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-host-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1784730000,
+      "wall_ns": 1807519351
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-host-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1706933000,
+      "wall_ns": 1720695869
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-host-plain-r4-G",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1796023000,
+      "wall_ns": 1806651224
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-host-plain-r5-G",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1748182000,
+      "wall_ns": 1770213520
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-host-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "host",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 1725254000,
+      "wall_ns": 1770254161
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-host-localise-stat-r1-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2643011804,
+            "enabled_ns": 336864440,
+            "running_ns": 336864440,
+            "per_operation": 13215.05902
+          },
+          "cycles:u": {
+            "raw_count": 994367106,
+            "enabled_ns": 336864440,
+            "running_ns": 336864440,
+            "per_operation": 4971.83553
+          }
+        },
+        "user_ipc": 2.657983945820509,
+        "csv_sha256": "6bef14866dd5818add42b0c7f08d33afd63c3213ee7c054c23da6fec736ae497"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-host-localise-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2565293073,
+            "enabled_ns": 330991600,
+            "running_ns": 330991600,
+            "per_operation": 12826.465365
+          },
+          "cycles:u": {
+            "raw_count": 978967701,
+            "enabled_ns": 330991600,
+            "running_ns": 330991600,
+            "per_operation": 4894.838505
+          }
+        },
+        "user_ipc": 2.620406240552772,
+        "csv_sha256": "475382f4f669558e5cd5f5b490de2af011dfe4b9adddaacd04eec2c0927aa454"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-host-localise-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2525172456,
+            "enabled_ns": 330717600,
+            "running_ns": 330717600,
+            "per_operation": 12625.86228
+          },
+          "cycles:u": {
+            "raw_count": 977293479,
+            "enabled_ns": 330717600,
+            "running_ns": 330717600,
+            "per_operation": 4886.467395
+          }
+        },
+        "user_ipc": 2.5838425306836617,
+        "csv_sha256": "a23b2eee1dea7bff9a1cce5e2d4ff09137c6daf2e547ac9767c911c985e97f88"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-host-localise-stat-r2-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2599165136,
+            "enabled_ns": 332063280,
+            "running_ns": 332063280,
+            "per_operation": 12995.82568
+          },
+          "cycles:u": {
+            "raw_count": 981728595,
+            "enabled_ns": 332063280,
+            "running_ns": 332063280,
+            "per_operation": 4908.642975
+          }
+        },
+        "user_ipc": 2.6475394006425983,
+        "csv_sha256": "8b6e32a1e893cec501ec107a6434ef7cda03009672f03f9bc343e87a19100965"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-host-localise-stat-r3-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2599438649,
+            "enabled_ns": 330876440,
+            "running_ns": 330876440,
+            "per_operation": 12997.193245
+          },
+          "cycles:u": {
+            "raw_count": 978591834,
+            "enabled_ns": 330876440,
+            "running_ns": 330876440,
+            "per_operation": 4892.95917
+          }
+        },
+        "user_ipc": 2.656305273236114,
+        "csv_sha256": "0c8355575b934cf7a11b2176637bd0b1f0279690ba3d7276e309a551530b4631"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-host-localise-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11720000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2561262806,
+            "enabled_ns": 332793720,
+            "running_ns": 332793720,
+            "per_operation": 12806.31403
+          },
+          "cycles:u": {
+            "raw_count": 984171003,
+            "enabled_ns": 332793720,
+            "running_ns": 332793720,
+            "per_operation": 4920.855015
+          }
+        },
+        "user_ipc": 2.6024570914938856,
+        "csv_sha256": "2a3a59a32e14a8a43a703b94feb7ac34e69f439ff92260c64d4aaccc0cf9e638"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-host-localise-plain-r1-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3189981000,
+      "wall_ns": 3208666521
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-host-localise-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3218515000,
+      "wall_ns": 3224622974
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-host-localise-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3189855000,
+      "wall_ns": 3209095444
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-host-localise-plain-r2-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3529302000,
+      "wall_ns": 3573264912
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-host-localise-plain-r3-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3620438000,
+      "wall_ns": 3624886862
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-host-localise-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3310089000,
+      "wall_ns": 3321984462
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-host-localise-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3248188000,
+      "wall_ns": 3272759332
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-host-localise-plain-r4-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3426432000,
+      "wall_ns": 3439853002
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-host-localise-plain-r5-G",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3248829000,
+      "wall_ns": 3272949974
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "host-localise",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-host-localise-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "host-localise",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 117200000
+      },
+      "cpu_ns": 3259806000,
+      "wall_ns": 3272612490
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-raw-address-stat-r1-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11644510299,
+            "enabled_ns": 1342218200,
+            "running_ns": 1342218200,
+            "per_operation": 58222.551495
+          },
+          "cycles:u": {
+            "raw_count": 3982993660,
+            "enabled_ns": 1342218200,
+            "running_ns": 1342218200,
+            "per_operation": 19914.9683
+          }
+        },
+        "user_ipc": 2.923557327229087,
+        "csv_sha256": "2d9b76f8eb22e78473c193f6d992ec17f49075af05048f3e12e2044551dca8f9"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-raw-address-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11624678242,
+            "enabled_ns": 1340249120,
+            "running_ns": 1340249120,
+            "per_operation": 58123.39121
+          },
+          "cycles:u": {
+            "raw_count": 3976377364,
+            "enabled_ns": 1340249120,
+            "running_ns": 1340249120,
+            "per_operation": 19881.88682
+          }
+        },
+        "user_ipc": 2.9234343669802665,
+        "csv_sha256": "f377f66c94f76648b0623d61bbe074135c55c3f8e7dd6090cb5faf55934e83f3"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-raw-address-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11593832270,
+            "enabled_ns": 1335152240,
+            "running_ns": 1335152240,
+            "per_operation": 57969.16135
+          },
+          "cycles:u": {
+            "raw_count": 3962209501,
+            "enabled_ns": 1335152240,
+            "running_ns": 1335152240,
+            "per_operation": 19811.047505
+          }
+        },
+        "user_ipc": 2.926102788626875,
+        "csv_sha256": "ed2eb715c53f004b3488bf906b8d3f3045c6c9b7bd75ffcd9f24b3552a7e6e65"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-raw-address-stat-r2-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11657217121,
+            "enabled_ns": 1345079320,
+            "running_ns": 1345079320,
+            "per_operation": 58286.085605
+          },
+          "cycles:u": {
+            "raw_count": 3992981922,
+            "enabled_ns": 1345079320,
+            "running_ns": 1345079320,
+            "per_operation": 19964.90961
+          }
+        },
+        "user_ipc": 2.919426470922049,
+        "csv_sha256": "deb0dca785c64b7c7f953b7f69daf90e0ceed9faa0dc388b81b420910d911ff9"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-raw-address-stat-r3-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11669227572,
+            "enabled_ns": 1347684680,
+            "running_ns": 1347684680,
+            "per_operation": 58346.13786
+          },
+          "cycles:u": {
+            "raw_count": 4000532929,
+            "enabled_ns": 1347684680,
+            "running_ns": 1347684680,
+            "per_operation": 20002.664645
+          }
+        },
+        "user_ipc": 2.9169182654164323,
+        "csv_sha256": "f3886ee98f10815b4dd3ff06f586dae1eeb70410b55671916714b589f34f1e9f"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-raw-address-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 11593399956,
+            "enabled_ns": 1338292160,
+            "running_ns": 1338292160,
+            "per_operation": 57966.99978
+          },
+          "cycles:u": {
+            "raw_count": 3970085650,
+            "enabled_ns": 1338292160,
+            "running_ns": 1338292160,
+            "per_operation": 19850.42825
+          }
+        },
+        "user_ipc": 2.920188877033421,
+        "csv_sha256": "f10f0890e774f2e1f9e1954e1898fb99c70bd4efe5fe1c540a2aab3ba5d2be98"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-raw-address-plain-r1-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1341443000,
+      "wall_ns": 1370555875
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-raw-address-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1338677000,
+      "wall_ns": 1370809477
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-raw-address-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1334742000,
+      "wall_ns": 1370655916
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-raw-address-plain-r2-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1339759000,
+      "wall_ns": 1370750717
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-raw-address-plain-r3-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1342604000,
+      "wall_ns": 1370823557
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-raw-address-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1340446000,
+      "wall_ns": 1371070640
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-raw-address-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1333243000,
+      "wall_ns": 1370893917
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-raw-address-plain-r4-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1340105000,
+      "wall_ns": 1371072759
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-raw-address-plain-r5-G",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1343624000,
+      "wall_ns": 1370872477
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "raw-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-raw-address-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "raw-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 15640000
+      },
+      "cpu_ns": 1333428000,
+      "wall_ns": 1371114159
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-synth-address-stat-r1-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1318123613,
+            "enabled_ns": 169714720,
+            "running_ns": 169714720,
+            "per_operation": 6590.618065
+          },
+          "cycles:u": {
+            "raw_count": 499137944,
+            "enabled_ns": 169714720,
+            "running_ns": 169714720,
+            "per_operation": 2495.68972
+          }
+        },
+        "user_ipc": 2.640800261420318,
+        "csv_sha256": "8b07f916e5799cf2993c81d4e52cfee77556895c912134ad49376e65166919f0"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-synth-address-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1277762922,
+            "enabled_ns": 164193400,
+            "running_ns": 164193400,
+            "per_operation": 6388.81461
+          },
+          "cycles:u": {
+            "raw_count": 482257603,
+            "enabled_ns": 164193400,
+            "running_ns": 164193400,
+            "per_operation": 2411.288015
+          }
+        },
+        "user_ipc": 2.649544380537221,
+        "csv_sha256": "94b6debaca4e90af9fbb15f5ec786893939d0ccb53ad0729fc7e7ee2b31a8065"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-synth-address-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1277763134,
+            "enabled_ns": 164032680,
+            "running_ns": 164032680,
+            "per_operation": 6388.81567
+          },
+          "cycles:u": {
+            "raw_count": 482252104,
+            "enabled_ns": 164032680,
+            "running_ns": 164032680,
+            "per_operation": 2411.26052
+          }
+        },
+        "user_ipc": 2.649575032232519,
+        "csv_sha256": "264159c1f27c19f9b398f8cdf9ddf351f4cada46cfdfb3e22fba995fcd56d547"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-synth-address-stat-r2-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1318123025,
+            "enabled_ns": 168428160,
+            "running_ns": 168428160,
+            "per_operation": 6590.615125
+          },
+          "cycles:u": {
+            "raw_count": 495347004,
+            "enabled_ns": 168428160,
+            "running_ns": 168428160,
+            "per_operation": 2476.73502
+          }
+        },
+        "user_ipc": 2.6610093820210126,
+        "csv_sha256": "a17492d0d4c50b4ebfe714ac0885dce9c821dac6dc047862e3695983ac0ae59b"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-synth-address-stat-r3-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1318123473,
+            "enabled_ns": 169603280,
+            "running_ns": 169603280,
+            "per_operation": 6590.617365
+          },
+          "cycles:u": {
+            "raw_count": 498821085,
+            "enabled_ns": 169603280,
+            "running_ns": 169603280,
+            "per_operation": 2494.105425
+          }
+        },
+        "user_ipc": 2.642477458626273,
+        "csv_sha256": "768450d70e7731c256297ea3226b1561c02a30778c92ca81699e466a49266587"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-synth-address-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11507000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1277762322,
+            "enabled_ns": 164806120,
+            "running_ns": 164806120,
+            "per_operation": 6388.81161
+          },
+          "cycles:u": {
+            "raw_count": 484511277,
+            "enabled_ns": 164806120,
+            "running_ns": 164806120,
+            "per_operation": 2422.556385
+          }
+        },
+        "user_ipc": 2.637218951665391,
+        "csv_sha256": "09d2ea3b8cf44970569765b0e09f3c903e9b0feefcffd4d6a1e08fbf0225734a"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-synth-address-plain-r1-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1654124000,
+      "wall_ns": 1671537417
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-synth-address-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1618984000,
+      "wall_ns": 1623869460
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-synth-address-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1618443000,
+      "wall_ns": 1623308856
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-synth-address-plain-r2-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1664359000,
+      "wall_ns": 1671516336
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-synth-address-plain-r3-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1653469000,
+      "wall_ns": 1671737418
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-synth-address-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1616790000,
+      "wall_ns": 1623285336
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-synth-address-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1642990000,
+      "wall_ns": 1671885339
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-synth-address-plain-r4-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1655981000,
+      "wall_ns": 1671751738
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-synth-address-plain-r5-G",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1668825000,
+      "wall_ns": 1671491296
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "synth-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-synth-address-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "synth-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 115070000
+      },
+      "cpu_ns": 1612398000,
+      "wall_ns": 1615637232
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-lease-address-stat-r1-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1163580836,
+            "enabled_ns": 147750000,
+            "running_ns": 147750000,
+            "per_operation": 5817.90418
+          },
+          "cycles:u": {
+            "raw_count": 433177601,
+            "enabled_ns": 147750000,
+            "running_ns": 147750000,
+            "per_operation": 2165.888005
+          }
+        },
+        "user_ipc": 2.686151900084049,
+        "csv_sha256": "498f0d68bb49cba2a98415b87caca137420cc22c2968cfce333b9a3dc137663a"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-lease-address-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 978974716,
+            "enabled_ns": 128981560,
+            "running_ns": 128981560,
+            "per_operation": 4894.87358
+          },
+          "cycles:u": {
+            "raw_count": 377361769,
+            "enabled_ns": 128981560,
+            "running_ns": 128981560,
+            "per_operation": 1886.808845
+          }
+        },
+        "user_ipc": 2.5942604588542726,
+        "csv_sha256": "983bba38313f50b003694acd33a40b0de1bf2029af36a29cffb86b28a547651e"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-lease-address-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 978979489,
+            "enabled_ns": 130416080,
+            "running_ns": 130416080,
+            "per_operation": 4894.897445
+          },
+          "cycles:u": {
+            "raw_count": 381985521,
+            "enabled_ns": 130416080,
+            "running_ns": 130416080,
+            "per_operation": 1909.927605
+          }
+        },
+        "user_ipc": 2.562870672262994,
+        "csv_sha256": "85cf5180b76fcdf98be2cf84eaa18f2a3062ca99bfca19673943de28bbf31e9a"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-lease-address-stat-r2-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1163893863,
+            "enabled_ns": 148381080,
+            "running_ns": 148381080,
+            "per_operation": 5819.469315
+          },
+          "cycles:u": {
+            "raw_count": 435339256,
+            "enabled_ns": 148381080,
+            "running_ns": 148381080,
+            "per_operation": 2176.69628
+          }
+        },
+        "user_ipc": 2.6735329905557608,
+        "csv_sha256": "ee4d223fe48f1718367b5dfd9e26309cc87f505671e5c1dcdd7f84d95d8d8ad8"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-lease-address-stat-r3-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1163744241,
+            "enabled_ns": 148048040,
+            "running_ns": 148048040,
+            "per_operation": 5818.721205
+          },
+          "cycles:u": {
+            "raw_count": 434605568,
+            "enabled_ns": 148048040,
+            "running_ns": 148048040,
+            "per_operation": 2173.02784
+          }
+        },
+        "user_ipc": 2.677702097456791,
+        "csv_sha256": "9e255a79e77d943bf0e83f1e37977efc9d65ef9850149f9001ff57ed8dd2268d"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-lease-address-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 11000000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 979012409,
+            "enabled_ns": 128699280,
+            "running_ns": 128699280,
+            "per_operation": 4895.062045
+          },
+          "cycles:u": {
+            "raw_count": 376861680,
+            "enabled_ns": 128699280,
+            "running_ns": 128699280,
+            "per_operation": 1884.3084
+          }
+        },
+        "user_ipc": 2.5978030162153924,
+        "csv_sha256": "57536420923d8097ca0afd060471607309297972b7c0a1f17f7b754c380b6739"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-lease-address-plain-r1-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1440409000,
+      "wall_ns": 1472254999
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-lease-address-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1263646000,
+      "wall_ns": 1271903534
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-lease-address-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1267831000,
+      "wall_ns": 1271850453
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-lease-address-plain-r2-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1448815000,
+      "wall_ns": 1471848476
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-lease-address-plain-r3-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1441997000,
+      "wall_ns": 1472061638
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-lease-address-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1263746000,
+      "wall_ns": 1271625611
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-lease-address-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1266432000,
+      "wall_ns": 1271821933
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-lease-address-plain-r4-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1440836000,
+      "wall_ns": 1472123758
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-lease-address-plain-r5-G",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1438642000,
+      "wall_ns": 1439954010
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "lease-address",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-lease-address-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "lease-address",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 110000000
+      },
+      "cpu_ns": 1267724000,
+      "wall_ns": 1271722572
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-rrset-stat-r1-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2551732885,
+            "enabled_ns": 306638200,
+            "running_ns": 306638200,
+            "per_operation": 12758.664425
+          },
+          "cycles:u": {
+            "raw_count": 905127916,
+            "enabled_ns": 306638200,
+            "running_ns": 306638200,
+            "per_operation": 4525.63958
+          }
+        },
+        "user_ipc": 2.8191958726417186,
+        "csv_sha256": "710c2fe8fe72c144ad819490908b73d2965d544f4305adb5def19b0fb84764c9"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-rrset-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2432336545,
+            "enabled_ns": 291625760,
+            "running_ns": 291625760,
+            "per_operation": 12161.682725
+          },
+          "cycles:u": {
+            "raw_count": 861324939,
+            "enabled_ns": 291625760,
+            "running_ns": 291625760,
+            "per_operation": 4306.624695
+          }
+        },
+        "user_ipc": 2.8239476588521257,
+        "csv_sha256": "b7c1c5902f1bb9a962be52f4aaf0011f2e313a30abb85cf826e715a0351585f2"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-rrset-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2432336764,
+            "enabled_ns": 292880960,
+            "running_ns": 292880960,
+            "per_operation": 12161.68382
+          },
+          "cycles:u": {
+            "raw_count": 863956654,
+            "enabled_ns": 292880960,
+            "running_ns": 292880960,
+            "per_operation": 4319.78327
+          }
+        },
+        "user_ipc": 2.815345830995822,
+        "csv_sha256": "d9cadec0372599f3a5e72c86c85c913f584610122d56cb7ba0d86a0b41c3ebb2"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-rrset-stat-r2-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2551733592,
+            "enabled_ns": 308540240,
+            "running_ns": 308540240,
+            "per_operation": 12758.66796
+          },
+          "cycles:u": {
+            "raw_count": 910071385,
+            "enabled_ns": 308540240,
+            "running_ns": 308540240,
+            "per_operation": 4550.356925
+          }
+        },
+        "user_ipc": 2.8038828976036863,
+        "csv_sha256": "95c1e9aa17bbf5205ad5a040fc9cb437d03621492a78648ff08da9141dc4c1b2"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-rrset-stat-r3-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2551734071,
+            "enabled_ns": 306605400,
+            "running_ns": 306605400,
+            "per_operation": 12758.670355
+          },
+          "cycles:u": {
+            "raw_count": 905501131,
+            "enabled_ns": 306605400,
+            "running_ns": 306605400,
+            "per_operation": 4527.505655
+          }
+        },
+        "user_ipc": 2.818035211266898,
+        "csv_sha256": "8116155b24b54466945c977380c7d44f84821516a4a292fa52ca08b257c65f84"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-rrset-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 39160000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2432337584,
+            "enabled_ns": 293273800,
+            "running_ns": 293273800,
+            "per_operation": 12161.68792
+          },
+          "cycles:u": {
+            "raw_count": 865356037,
+            "enabled_ns": 293273800,
+            "running_ns": 293273800,
+            "per_operation": 4326.780185
+          }
+        },
+        "user_ipc": 2.810794031590029,
+        "csv_sha256": "bea7579dcaffe31d02bde0bdbeaa4af9cc8f935a2c711b0c0e2bd12a2a750d15"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-rrset-plain-r1-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3029895000,
+      "wall_ns": 3041542604
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-rrset-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2904951000,
+      "wall_ns": 2923588823
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-rrset-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2902697000,
+      "wall_ns": 2923532143
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-rrset-plain-r2-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3031567000,
+      "wall_ns": 3041912526
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-rrset-plain-r3-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3041886000,
+      "wall_ns": 3073651830
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-rrset-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2893512000,
+      "wall_ns": 2923746024
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-rrset-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2896381000,
+      "wall_ns": 2923809944
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-rrset-plain-r4-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3029667000,
+      "wall_ns": 3041990166
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-rrset-plain-r5-G",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 3030233000,
+      "wall_ns": 3041532002
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "rrset",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-rrset-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "rrset",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 391600000
+      },
+      "cpu_ns": 2899216000,
+      "wall_ns": 2924059065
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-stat-r1-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1746342005,
+            "enabled_ns": 219385480,
+            "running_ns": 219385480,
+            "per_operation": 8731.710025
+          },
+          "cycles:u": {
+            "raw_count": 646271173,
+            "enabled_ns": 219385480,
+            "running_ns": 219385480,
+            "per_operation": 3231.355865
+          }
+        },
+        "user_ipc": 2.702181495878047,
+        "csv_sha256": "9e0f64e284921abe67f90312be7760502de13b686a928f32599885a028cdf0ed"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1706314979,
+            "enabled_ns": 214210720,
+            "running_ns": 214210720,
+            "per_operation": 8531.574895
+          },
+          "cycles:u": {
+            "raw_count": 630651997,
+            "enabled_ns": 214210720,
+            "running_ns": 214210720,
+            "per_operation": 3153.259985
+          }
+        },
+        "user_ipc": 2.7056363685787232,
+        "csv_sha256": "9f55d134737e96b3cfa36f1a2708669be4a980ad51c47bf2e01038fd2cfeafa6"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1706354984,
+            "enabled_ns": 214855880,
+            "running_ns": 214855880,
+            "per_operation": 8531.77492
+          },
+          "cycles:u": {
+            "raw_count": 632834585,
+            "enabled_ns": 214855880,
+            "running_ns": 214855880,
+            "per_operation": 3164.172925
+          }
+        },
+        "user_ipc": 2.6963680943575485,
+        "csv_sha256": "6271e2204016a86eaedcbeff07af824eaeb01f4821b88ff2d7486ccf689d840d"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-stat-r2-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1746267046,
+            "enabled_ns": 219255280,
+            "running_ns": 219255280,
+            "per_operation": 8731.33523
+          },
+          "cycles:u": {
+            "raw_count": 646013172,
+            "enabled_ns": 219255280,
+            "running_ns": 219255280,
+            "per_operation": 3230.06586
+          }
+        },
+        "user_ipc": 2.703144644239545,
+        "csv_sha256": "b02c6c86cdf2e057836621d0c83e023bc31c11539581b61ae5633738c1af1396"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-stat-r3-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1746254287,
+            "enabled_ns": 220074840,
+            "running_ns": 220074840,
+            "per_operation": 8731.271435
+          },
+          "cycles:u": {
+            "raw_count": 648739061,
+            "enabled_ns": 220074840,
+            "running_ns": 220074840,
+            "per_operation": 3243.695305
+          }
+        },
+        "user_ipc": 2.691766831965125,
+        "csv_sha256": "e41a38ba967d8529d16e36ab4af0d18629ecdab1fc3729e13c11275574e80a34"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1706416856,
+            "enabled_ns": 214789720,
+            "running_ns": 214789720,
+            "per_operation": 8532.08428
+          },
+          "cycles:u": {
+            "raw_count": 633408716,
+            "enabled_ns": 214789720,
+            "running_ns": 214789720,
+            "per_operation": 3167.04358
+          }
+        },
+        "user_ipc": 2.6940217475630694,
+        "csv_sha256": "a61751332ed9760b8a69b443aa6b22feec5efb13c8e9d7c3625d95d86144ccf4"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-plain-r1-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2167251000,
+      "wall_ns": 2173633227
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2109548000,
+      "wall_ns": 2123919894
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2108658000,
+      "wall_ns": 2123516210
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-plain-r2-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2163653000,
+      "wall_ns": 2173533266
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-plain-r3-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2163749000,
+      "wall_ns": 2173554066
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2115424000,
+      "wall_ns": 2123485450
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-cname-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2115073000,
+      "wall_ns": 2123722292
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-cname-plain-r4-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2180181000,
+      "wall_ns": 2210385253
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-cname-plain-r5-G",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2175980000,
+      "wall_ns": 2210453012
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-cname-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "cname",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2115857000,
+      "wall_ns": 2124321697
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-leases-stat-r1-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2245326935,
+            "enabled_ns": 274221520,
+            "running_ns": 274221520,
+            "per_operation": 11226.634675
+          },
+          "cycles:u": {
+            "raw_count": 810002494,
+            "enabled_ns": 274221520,
+            "running_ns": 274221520,
+            "per_operation": 4050.01247
+          }
+        },
+        "user_ipc": 2.7720000267060905,
+        "csv_sha256": "86a0bdc324367169a35964f178b8755cc7fd89f9afc46881365b50d4c6f6baff"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-leases-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1787132772,
+            "enabled_ns": 222552320,
+            "running_ns": 222552320,
+            "per_operation": 8935.66386
+          },
+          "cycles:u": {
+            "raw_count": 656045716,
+            "enabled_ns": 222552320,
+            "running_ns": 222552320,
+            "per_operation": 3280.22858
+          }
+        },
+        "user_ipc": 2.7240979224685615,
+        "csv_sha256": "74c7d01a630c9f20070c2113c65c9fc8c2ef4f164bc5de917aa4dbd4cdbd579b"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-leases-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1787120151,
+            "enabled_ns": 223709160,
+            "running_ns": 223709160,
+            "per_operation": 8935.600755
+          },
+          "cycles:u": {
+            "raw_count": 658248888,
+            "enabled_ns": 223709160,
+            "running_ns": 223709160,
+            "per_operation": 3291.24444
+          }
+        },
+        "user_ipc": 2.7149611394406183,
+        "csv_sha256": "0c35ae18dfcf30234f17dda40320e92a592859afc261439905b79b3c6bd51860"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-leases-stat-r2-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2245237127,
+            "enabled_ns": 272993000,
+            "running_ns": 272993000,
+            "per_operation": 11226.185635
+          },
+          "cycles:u": {
+            "raw_count": 805646324,
+            "enabled_ns": 272993000,
+            "running_ns": 272993000,
+            "per_operation": 4028.23162
+          }
+        },
+        "user_ipc": 2.7868768963687347,
+        "csv_sha256": "c24480836b2b3d3e20703534381c9addb1245421278e9f170ead777341648f27"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-leases-stat-r3-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 2245215254,
+            "enabled_ns": 272876320,
+            "running_ns": 272876320,
+            "per_operation": 11226.07627
+          },
+          "cycles:u": {
+            "raw_count": 805147145,
+            "enabled_ns": 272876320,
+            "running_ns": 272876320,
+            "per_operation": 4025.735725
+          }
+        },
+        "user_ipc": 2.7885775512499644,
+        "csv_sha256": "bd846236adbc0640ab915ff80a59b8f15ca3a5558f3403cc11a3803de1d36f5f"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-leases-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 1787014188,
+            "enabled_ns": 222944640,
+            "running_ns": 222944640,
+            "per_operation": 8935.07094
+          },
+          "cycles:u": {
+            "raw_count": 656826080,
+            "enabled_ns": 222944640,
+            "running_ns": 222944640,
+            "per_operation": 3284.1304
+          }
+        },
+        "user_ipc": 2.7206809266769674,
+        "csv_sha256": "9deaeed7ac03a853d38b649d7031a8e0807ff23c31c0f63ab67d5394a9fa2e72"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-leases-plain-r1-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2691380000,
+      "wall_ns": 2724647766
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-leases-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2193566000,
+      "wall_ns": 2210335411
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-leases-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2189832000,
+      "wall_ns": 2210539973
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-leases-plain-r2-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2693129000,
+      "wall_ns": 2725197130
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-leases-plain-r3-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2689704000,
+      "wall_ns": 2725567093
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-leases-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2196892000,
+      "wall_ns": 2210920896
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-cname-leases-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2199800000,
+      "wall_ns": 2211282378
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-cname-leases-plain-r4-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2693156000,
+      "wall_ns": 2724871406
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-cname-leases-plain-r5-G",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2682443000,
+      "wall_ns": 2725695853
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-leases",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-cname-leases-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "cname-leases",
+        "operations": 2000000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 191200000
+      },
+      "cpu_ns": 2193184000,
+      "wall_ns": 2211297938
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-config-stat-r1-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44008702016,
+            "enabled_ns": 4601495040,
+            "running_ns": 4601495040,
+            "per_operation": 220043.51008
+          },
+          "cycles:u": {
+            "raw_count": 13672848729,
+            "enabled_ns": 4601495040,
+            "running_ns": 4601495040,
+            "per_operation": 68364.243645
+          }
+        },
+        "user_ipc": 3.2186929650335343,
+        "csv_sha256": "39651eb8fa5ab0d0eae4744b9491e110afa76509faa85c675d2e3425ea40e8dd"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-config-stat-r1-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44027070110,
+            "enabled_ns": 4585734880,
+            "running_ns": 4585734880,
+            "per_operation": 220135.35055
+          },
+          "cycles:u": {
+            "raw_count": 13637167927,
+            "enabled_ns": 4585734880,
+            "running_ns": 4585734880,
+            "per_operation": 68185.839635
+          }
+        },
+        "user_ipc": 3.228461389173887,
+        "csv_sha256": "5bc026e10da2b4f5478266ce212c8db31d86332ac6fd44b23401fbe6645281fc"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-config-stat-r2-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43971125028,
+            "enabled_ns": 4575357360,
+            "running_ns": 4575357360,
+            "per_operation": 219855.62514
+          },
+          "cycles:u": {
+            "raw_count": 13603589484,
+            "enabled_ns": 4575357360,
+            "running_ns": 4575357360,
+            "per_operation": 68017.94742
+          }
+        },
+        "user_ipc": 3.2323178437365434,
+        "csv_sha256": "4f56b09ec7d2a749d5cfcdf0dd4532653d3f090ab8a111b351c10152e07fc1eb"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-config-stat-r2-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44155276955,
+            "enabled_ns": 4620950040,
+            "running_ns": 4620950040,
+            "per_operation": 220776.384775
+          },
+          "cycles:u": {
+            "raw_count": 13739850237,
+            "enabled_ns": 4620950040,
+            "running_ns": 4620950040,
+            "per_operation": 68699.251185
+          }
+        },
+        "user_ipc": 3.213665083196787,
+        "csv_sha256": "c66480a64b764588f0f0023d38423a171b2fe3ef2d1087328db9a0d781922039"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-config-stat-r3-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 44002357256,
+            "enabled_ns": 4601987080,
+            "running_ns": 4601987080,
+            "per_operation": 220011.78628
+          },
+          "cycles:u": {
+            "raw_count": 13684508350,
+            "enabled_ns": 4601987080,
+            "running_ns": 4601987080,
+            "per_operation": 68422.54175
+          }
+        },
+        "user_ipc": 3.2154868944195574,
+        "csv_sha256": "325cb3fdcfdeafc29277cb1d255d8877890e959c18a5ecd8bd49ab369a07d645"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "stat",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-config-stat-r3-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "stat": {
+        "events": {
+          "instructions:u": {
+            "raw_count": 43982273693,
+            "enabled_ns": 4579107200,
+            "running_ns": 4579107200,
+            "per_operation": 219911.368465
+          },
+          "cycles:u": {
+            "raw_count": 13616894109,
+            "enabled_ns": 4579107200,
+            "running_ns": 4579107200,
+            "per_operation": 68084.470545
+          }
+        },
+        "user_ipc": 3.2299783886789717,
+        "csv_sha256": "e8d8332b9d6530fc4ffef5b2f8ef08754b6e1db2983b85d752f095753027143c"
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-config-plain-r1-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4599948000,
+      "wall_ns": 4613346978
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 1,
+      "label": "cached-hit-9e-cname-config-plain-r1-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4575162000,
+      "wall_ns": 4576477752
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-config-plain-r2-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4572804000,
+      "wall_ns": 4576720033
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 2,
+      "label": "cached-hit-9e-cname-config-plain-r2-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4600555000,
+      "wall_ns": 4613248576
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-config-plain-r3-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4608834000,
+      "wall_ns": 4613485138
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 3,
+      "label": "cached-hit-9e-cname-config-plain-r3-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4577642000,
+      "wall_ns": 4613558178
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-cname-config-plain-r4-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4569954000,
+      "wall_ns": 4577179676
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 4,
+      "label": "cached-hit-9e-cname-config-plain-r4-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4609262000,
+      "wall_ns": 4614034701
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "G",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-cname-config-plain-r5-G",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4591885000,
+      "wall_ns": 4613991100
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "side": "cached-hit-9e",
+      "scene": "cname-config",
+      "observer": "plain",
+      "pair": 5,
+      "label": "cached-hit-9e-cname-config-plain-r5-cached-hit-9e",
+      "probe": {
+        "scene": "cname-config",
+        "operations": 200000,
+        "allocations": 0,
+        "reallocations": 0,
+        "requested_bytes": 0,
+        "live_bytes_delta": 0,
+        "checksum": 19120000
+      },
+      "cpu_ns": 4579380000,
+      "wall_ns": 4613934340
+    }
+  ],
+  "summaries": [
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 426.976,
+          "min": 426.733,
+          "max": 438.169,
+          "rounds": [
+            426.8395,
+            431.267,
+            438.169,
+            426.976,
+            426.733
+          ]
+        },
+        "right": {
+          "median": 389.376,
+          "min": 388.4145,
+          "max": 393.1005,
+          "rounds": [
+            389.2975,
+            390.0325,
+            393.1005,
+            389.376,
+            388.4145
+          ]
+        },
+        "relative_change_pct": -8.8061155662145,
+        "W_pct": 2.678370681256084,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.81011,
+          "cycles:u": 1287.2345,
+          "ipc": 2.601388880580811
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3089.634055,
+          "cycles:u": 1182.58361,
+          "ipc": 2.61261362737811
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.739347603677649,
+        "cycles:u": -8.129900962101322,
+        "ipc": 0.43149053496349676
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit-upper",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 442.4235,
+          "min": 441.7175,
+          "max": 442.904,
+          "rounds": [
+            442.904,
+            442.169,
+            441.7175,
+            442.4235,
+            442.582
+          ]
+        },
+        "right": {
+          "median": 410.9035,
+          "min": 410.08,
+          "max": 411.9005,
+          "rounds": [
+            410.08,
+            410.5995,
+            410.9035,
+            411.9005,
+            411.8245
+          ]
+        },
+        "relative_change_pct": -7.124395516965077,
+        "W_pct": 0.44304806359644977,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3484.539725,
+          "cycles:u": 1333.187685,
+          "ipc": 2.613631088258965
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3206.385305,
+          "cycles:u": 1238.908035,
+          "ipc": 2.5880401001677256
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.982529744297873,
+        "cycles:u": -7.071746241040334,
+        "ipc": -0.9791354336960545
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 555.406,
+          "min": 552.751,
+          "max": 555.8535,
+          "rounds": [
+            552.751,
+            555.491,
+            555.406,
+            553.8045,
+            555.8535
+          ]
+        },
+        "right": {
+          "median": 430.558,
+          "min": 429.5115,
+          "max": 435.741,
+          "rounds": [
+            429.5115,
+            435.741,
+            430.558,
+            430.038,
+            431.103
+          ]
+        },
+        "relative_change_pct": -22.47869126368818,
+        "W_pct": 1.4468433985665052,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 4584.536385,
+          "cycles:u": 1662.261625,
+          "ipc": 2.758011323879296
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3465.168175,
+          "cycles:u": 1297.60858,
+          "ipc": 2.670356140832546
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -24.416170273234737,
+        "cycles:u": -21.93716317068921,
+        "ipc": -3.178202434769495
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "hit-typed",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 427.561,
+          "min": 426.6355,
+          "max": 429.411,
+          "rounds": [
+            429.411,
+            427.2175,
+            428.5005,
+            426.6355,
+            427.561
+          ]
+        },
+        "right": {
+          "median": 389.8235,
+          "min": 389.1535,
+          "max": 390.5035,
+          "rounds": [
+            390.358,
+            389.8235,
+            389.658,
+            389.1535,
+            390.5035
+          ]
+        },
+        "relative_change_pct": -8.826225965417791,
+        "W_pct": 0.6491471392386168,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3348.879185,
+          "cycles:u": 1285.64277,
+          "ipc": 2.6048286998106014
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3089.82705,
+          "cycles:u": 1176.89521,
+          "ipc": 2.625332347983641
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -7.735487627034232,
+        "cycles:u": -8.4586140518645,
+        "ipc": 0.7871399825458925
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "miss",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 387.3195,
+          "min": 386.3925,
+          "max": 389.162,
+          "rounds": [
+            386.746,
+            389.162,
+            386.3925,
+            387.3195,
+            388.9675
+          ]
+        },
+        "right": {
+          "median": 378.678,
+          "min": 377.384,
+          "max": 379.738,
+          "rounds": [
+            379.674,
+            377.384,
+            379.738,
+            378.678,
+            378.4755
+          ]
+        },
+        "relative_change_pct": -2.2311037786633534,
+        "W_pct": 0.7150427489449908,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 2977.223865,
+          "cycles:u": 1160.90529,
+          "ipc": 2.56457122785615
+        },
+        "cached-hit-9e": {
+          "instructions:u": 2870.4063,
+          "cycles:u": 1132.0013,
+          "ipc": 2.535691699293985
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.587824424482766,
+        "cycles:u": -2.4897801955920174,
+        "ipc": -1.1260957874157707
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "miss-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 486.2355,
+          "min": 485.414,
+          "max": 488.84,
+          "rounds": [
+            485.414,
+            488.84,
+            487.002,
+            485.835,
+            486.2355
+          ]
+        },
+        "right": {
+          "median": 407.0985,
+          "min": 405.5,
+          "max": 411.271,
+          "rounds": [
+            407.735,
+            411.271,
+            407.0985,
+            405.5,
+            405.542
+          ]
+        },
+        "relative_change_pct": -16.27544677424828,
+        "W_pct": 1.4175930395223797,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 3862.863535,
+          "cycles:u": 1455.245195,
+          "ipc": 2.654446740846308
+        },
+        "cached-hit-9e": {
+          "instructions:u": 3136.471535,
+          "cycles:u": 1218.467335,
+          "ipc": 2.57410462300165
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -18.804495510090547,
+        "cycles:u": -16.270650527727724,
+        "ipc": -3.026699183990511
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "host",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 880.649,
+          "min": 874.091,
+          "max": 898.0115,
+          "rounds": [
+            880.8375,
+            880.649,
+            879.4375,
+            898.0115,
+            874.091
+          ]
+        },
+        "right": {
+          "median": 863.38,
+          "min": 853.4665,
+          "max": 892.365,
+          "rounds": [
+            863.38,
+            871.27,
+            892.365,
+            853.4665,
+            862.627
+          ]
+        },
+        "relative_change_pct": -1.960940170260797,
+        "W_pct": 4.5053742268757695,
+        "same_direction_pairs": 4,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6932.15378,
+          "cycles:u": 2671.40399,
+          "ipc": 2.5949477525486513
+        },
+        "cached-hit-9e": {
+          "instructions:u": 6628.494935,
+          "cycles:u": 2604.91423,
+          "ipc": 2.5425726455621156
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.380440114818107,
+        "cycles:u": -2.48894439960764,
+        "ipc": -2.0183491916203278
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "host-localise",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1713.216,
+          "min": 1594.9905,
+          "max": 1810.219,
+          "rounds": [
+            1594.9905,
+            1764.651,
+            1810.219,
+            1713.216,
+            1624.4145
+          ]
+        },
+        "right": {
+          "median": 1624.094,
+          "min": 1594.9275,
+          "max": 1655.0445,
+          "rounds": [
+            1609.2575,
+            1594.9275,
+            1655.0445,
+            1624.094,
+            1629.903
+          ]
+        },
+        "relative_change_pct": -5.2020293996787235,
+        "W_pct": 12.56283504239979,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12997.193245,
+          "cycles:u": 4908.642975,
+          "ipc": 2.656305273236114
+        },
+        "cached-hit-9e": {
+          "instructions:u": 12806.31403,
+          "cycles:u": 4894.838505,
+          "ipc": 2.6024570914938856
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -1.4686187348443958,
+        "cycles:u": -0.2812278275341473,
+        "ipc": -2.0271834824401203
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "raw-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 6707.215,
+          "min": 6698.795,
+          "max": 6718.12,
+          "rounds": [
+            6707.215,
+            6698.795,
+            6713.02,
+            6700.525,
+            6718.12
+          ]
+        },
+        "right": {
+          "median": 6673.71,
+          "min": 6666.215,
+          "max": 6702.23,
+          "rounds": [
+            6693.385,
+            6673.71,
+            6702.23,
+            6666.215,
+            6667.14
+          ]
+        },
+        "relative_change_pct": -0.4995366929493107,
+        "W_pct": 0.5396548546460578,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 58286.085605,
+          "cycles:u": 19964.90961,
+          "ipc": 2.919426470922049
+        },
+        "cached-hit-9e": {
+          "instructions:u": 57969.16135,
+          "cycles:u": 19850.42825,
+          "ipc": 2.9234343669802665
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.5437391303779959,
+        "cycles:u": -0.5734128640515146,
+        "ipc": 0.13728367876830738
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "synth-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 827.9905,
+          "min": 826.7345,
+          "max": 834.4125,
+          "rounds": [
+            827.062,
+            832.1795,
+            826.7345,
+            827.9905,
+            834.4125
+          ]
+        },
+        "right": {
+          "median": 809.2215,
+          "min": 806.199,
+          "max": 821.495,
+          "rounds": [
+            809.492,
+            809.2215,
+            808.395,
+            821.495,
+            806.199
+          ]
+        },
+        "relative_change_pct": -2.2668134477388335,
+        "W_pct": 1.890211765258344,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 6590.617365,
+          "cycles:u": 2494.105425,
+          "ipc": 2.642477458626273
+        },
+        "cached-hit-9e": {
+          "instructions:u": 6388.81461,
+          "cycles:u": 2411.288015,
+          "ipc": 2.649544380537221
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -3.061970431961192,
+        "cycles:u": -3.3205256349578716,
+        "ipc": 0.2674354662091094
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "lease-address",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 720.418,
+          "min": 719.321,
+          "max": 724.4075,
+          "rounds": [
+            720.2045,
+            724.4075,
+            720.9985,
+            720.418,
+            719.321
+          ]
+        },
+        "right": {
+          "median": 633.216,
+          "min": 631.823,
+          "max": 633.9155,
+          "rounds": [
+            631.823,
+            633.9155,
+            631.873,
+            633.216,
+            633.862
+          ]
+        },
+        "relative_change_pct": -12.104361634495527,
+        "W_pct": 0.7060484329930681,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 5818.721205,
+          "cycles:u": 2173.02784,
+          "ipc": 2.677702097456791
+        },
+        "cached-hit-9e": {
+          "instructions:u": 4894.897445,
+          "cycles:u": 1886.808845,
+          "ipc": 2.5942604588542726
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -15.876748987495104,
+        "cycles:u": -13.17143709488785,
+        "ipc": -3.116165860338571
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "rrset",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1515.1165,
+          "min": 1514.8335,
+          "max": 1520.943,
+          "rounds": [
+            1514.9475,
+            1515.7835,
+            1520.943,
+            1514.8335,
+            1515.1165
+          ]
+        },
+        "right": {
+          "median": 1449.608,
+          "min": 1446.756,
+          "max": 1452.4755,
+          "rounds": [
+            1452.4755,
+            1451.3485,
+            1446.756,
+            1448.1905,
+            1449.608
+          ]
+        },
+        "relative_change_pct": -4.323660919803865,
+        "W_pct": 0.4032363187913289,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 12758.66796,
+          "cycles:u": 4527.505655,
+          "ipc": 2.818035211266898
+        },
+        "cached-hit-9e": {
+          "instructions:u": 12161.68382,
+          "cycles:u": 4319.78327,
+          "ipc": 2.815345830995822
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -4.67904754533639,
+        "cycles:u": -4.58800939918429,
+        "ipc": -0.09543458720185916
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "cname",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1083.6255,
+          "min": 1081.8265,
+          "max": 1090.0905,
+          "rounds": [
+            1083.6255,
+            1081.8265,
+            1081.8745,
+            1090.0905,
+            1087.99
+          ]
+        },
+        "right": {
+          "median": 1057.5365,
+          "min": 1054.329,
+          "max": 1057.9285,
+          "rounds": [
+            1054.774,
+            1054.329,
+            1057.712,
+            1057.5365,
+            1057.9285
+          ]
+        },
+        "relative_change_pct": -2.407566082562672,
+        "W_pct": 0.7626250951089766,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 8731.33523,
+          "cycles:u": 3231.355865,
+          "ipc": 2.702181495878047
+        },
+        "cached-hit-9e": {
+          "instructions:u": 8531.77492,
+          "cycles:u": 3164.172925,
+          "ipc": 2.6963680943575485
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -2.2855646329364543,
+        "cycles:u": -2.0790944361060104,
+        "ipc": -0.21513734474780666
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "cname-leases",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 1345.69,
+          "min": 1341.2215,
+          "max": 1346.578,
+          "rounds": [
+            1345.69,
+            1346.5645,
+            1344.852,
+            1346.578,
+            1341.2215
+          ]
+        },
+        "right": {
+          "median": 1096.783,
+          "min": 1094.916,
+          "max": 1099.9,
+          "rounds": [
+            1096.783,
+            1094.916,
+            1098.446,
+            1099.9,
+            1096.592
+          ]
+        },
+        "relative_change_pct": -18.49660768824916,
+        "W_pct": 0.45441988068744243,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 11226.185635,
+          "cycles:u": 4028.23162,
+          "ipc": 2.7868768963687347
+        },
+        "cached-hit-9e": {
+          "instructions:u": 8935.600755,
+          "cycles:u": 3284.1304,
+          "ipc": 2.7206809266769674
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -20.40394622425109,
+        "cycles:u": -18.47215577936405,
+        "ipc": -2.3752742641061753
+      }
+    },
+    {
+      "candidate": "cached-hit-9e",
+      "scene": "cname-config",
+      "cpu_ns_per_operation": {
+        "left": {
+          "median": 23002.775,
+          "min": 22959.425,
+          "max": 23046.31,
+          "rounds": [
+            22999.74,
+            23002.775,
+            23044.17,
+            23046.31,
+            22959.425
+          ]
+        },
+        "right": {
+          "median": 22875.81,
+          "min": 22849.77,
+          "max": 22896.9,
+          "rounds": [
+            22875.81,
+            22864.02,
+            22888.21,
+            22849.77,
+            22896.9
+          ]
+        },
+        "relative_change_pct": -0.5519551445423438,
+        "W_pct": 0.37771529739347554,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "faster"
+      },
+      "pmu_medians": {
+        "G": {
+          "instructions:u": 220043.51008,
+          "cycles:u": 68422.54175,
+          "ipc": 3.2154868944195574
+        },
+        "cached-hit-9e": {
+          "instructions:u": 219911.368465,
+          "cycles:u": 68084.470545,
+          "ipc": 3.2299783886789717
+        }
+      },
+      "pmu_relative_change_pct": {
+        "instructions:u": -0.06005249368725707,
+        "cycles:u": -0.4940933153802396,
+        "ipc": 0.4506780694570445
+      }
+    }
+  ]
+}

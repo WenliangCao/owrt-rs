@@ -1,0 +1,14 @@
+{
+  "status": "PASS_ORIGINAL_OWNER_ARCHIVE_AND_ALL_LOCAL_MEMBER_BYTES",
+  "kind": "owner",
+  "archive_sha256": "4ea775918183678d7868f1574dde25e06cd5218b94e50a1e11c06b9bbae9679f",
+  "archive_bytes": 967305,
+  "collection_sha256": "d174f54bab283ace475baddc345681a994def45fc6634e4f3226be8b8d7ec25c",
+  "files_rehashed": 1172,
+  "raw_result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+  "retained_remote_omitted_files": 192,
+  "safe_regular_unique_members": true,
+  "timing_finished_before_download": true,
+  "all_original_remote_evidence_retained": true,
+  "no_analysis_or_measurement_rerun": true
+}

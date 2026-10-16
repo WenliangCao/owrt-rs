@@ -1,5 +1,5 @@
 {
-  "status": "ORIGINAL9E_NATIVE_CONTROLLER_STARTED_AFTER_ALL_ACTUAL_GATES_AND_PRETRANSFERS",
+  "status": "AUTHOR_ORIGINAL_MEASUREMENTS_ANALYSIS_AND_TRANSPORT_COMPLETE_INDEPENDENT_AUDIT_PENDING",
   "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
   "plan_commit": "e219b8a8",
   "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
@@ -25,8 +25,13 @@
   "native_plain_windows": 150,
   "original_build_commands": 4,
   "owner32_started": false,
-  "performance_result_pending": true,
   "device10_started_utc": "2026-10-16T12:29:54.270670Z",
   "device10_launch_sha256": "14ea15f8fb03d09e46d746eb959a7daa0ff59e43a2869cdb1ad335a6aaf7691a",
-  "scope": "Original native hot15 only. Native controller launch includes build; actual measurement boundaries come from original completed command records. All additional bulk held through original native/owner/device timing. Original hot15 never recycles replies and does not exercise main owner; no isolated component attribution or promotion."
+  "scope": "Original native hot15 only. Native controller launch includes build; actual measurement boundaries come from original completed command records. All additional bulk held through original native/owner/device timing. Original hot15 never recycles replies and does not exercise main owner; no isolated component attribution or promotion.",
+  "measurement_complete": true,
+  "raw_transport_complete": true,
+  "independent_audit_pending": true,
+  "plan_scope_text_note_sha256": "68b8bd8345b0e0d1911256b88d73f9e0ce16e4d4cb73e5ddddb573d8652a6a53",
+  "quiet_handoff_sha256": "43e664dfe1792416f9ca25b86d40b50529d591ce68d952a73a15adb48185bdc2",
+  "performance_accepted": false
 }
