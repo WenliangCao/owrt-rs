@@ -1,0 +1,51 @@
+{
+  "status": "PASS_LOCAL48_SOURCE_ARCHIVE_AND_DISABLED_REFERENCE_SANITY_ONLY",
+  "source_commit": "48f921ce3e533e7fb80836b52a6142cfb749d1b3",
+  "preparation_commit": "ad87600a",
+  "review_source_authority": "Immutable48 archive, independently verified against named48 Git tree; private snapshot used only for original helper input enumeration.",
+  "active_source_drift_observed": {
+    "head": "9e8459dd",
+    "file": "components/dnsmasq/src/dns/lease_names.rs",
+    "expected48_sha256": "65c55788b6c6e2e78b59470c8d6a36d80fcd1f2bdd0141dda7fd0d11686d9291",
+    "observed_active_sha256": "c50961b17cdb3de122cc3690e31f7dd8848914f4fac9efe2b925a6877d435253"
+  },
+  "retained_initial_peer_stop_sha256": "2bf8b01e1ca7fd29970f7aebd1332209061c34fb753ea2dbf795064c0fbc3d32",
+  "source_binding_sha256": "88c5871c814f65c18ebaa85cd62a354252230f505a0b5f5668383cb388543b59",
+  "known_inputs_sha256": "4a705b51bdbe6f29709b2f2eea75deb84f5b7889e8d9712d53487d29e21801dd",
+  "source179_exact_helper_enumeration_and_named_Git_blobs": true,
+  "archive_sha256": "009b3d0ec5492d098d72ee46960ece9816a8efc8841ea5f1cc2b0612423f316b",
+  "archive_bytes": 21090458,
+  "all4100_archive_members_verified": true,
+  "all4099_Git_blobs_and_modes_verified": true,
+  "identity_epoch_and_179_blob_map_verified": true,
+  "SDK_input_changes_from6ab": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/edns_policy.rs",
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/service.rs",
+    "components/dnsmasq/src/dns/upstream.rs",
+    "components/dnsmasq/src/hosts.rs",
+    "components/dnsmasq/src/main.rs"
+  ],
+  "canonical_f454_f280_private_bundle_verified": true,
+  "source_tree_noncanonical_builder_excluded_from179_and_not_selected": true,
+  "original_five_group_and_standalone_signal_reference_tools_rehashed": true,
+  "original_signal_scope": {
+    "signal_cases": 12,
+    "cache_dump_cases": 3,
+    "alarm_maintenance_cases": 3
+  },
+  "all_selection_execution_actual_and_release_fields_disabled_or_null": true,
+  "retained_preparation_failure_sha256": "cae48be975f94b7aa2222a397f61cca546c4af587b788f3443923b1ab104babd",
+  "author_local_report_commit_and_hash_verified": true,
+  "review_script_sha256": "67cc0c26468f655d26f8f0c61a1a417c72e51ff8be1302b10bd0112b50eb8be5",
+  "scope_limits": [
+    "Historical48 package only; active9e source is not reviewed or selected by this report. Local source/archive/reference sanity only; no product behavior, performance, Linux, SDK or signal pass is inferred.",
+    "Only the unchanged canonical helper input-hash function was imported and called; no product executable, test, build or preparation script was run.",
+    "No Oracle/router access or upload; no execution permit, comparator change, new workload, thresholds or retry policy.",
+    "Candidate selection, actual same-source gates/SDK/signals and independent audits require separate root scheduling and fresh quiet."
+  ]
+}
