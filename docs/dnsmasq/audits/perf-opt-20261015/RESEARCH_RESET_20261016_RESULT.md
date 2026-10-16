@@ -412,3 +412,29 @@ owner测试覆盖原地buffer、计数、queued upstream完成顺序和功能开
 realloc/requested/released全部0。计数含原step_udp收取/准入/处理/发送，不含client/harness；
 是本机计数，不是未插桩A53计时。初次--exact漏模块名跑0test保留，正式全名仅运行一次。
 日志分别在两树private/d1-local与private/d1-count；插桩树不作为产品候选或计时输入。
+
+
+D1最终首测源更新为ba40be3a（在f769dcd0之后单独收窄plain名字解析）：先验证无压缩名称，
+再向现有scratch复制一次；不再进入通用指针walker。最终731lib+25bin PASS/8ignored，
+Linux全目标检查PASS。独立计数子树4f3b5ab7在同一正式全名测试中再测原/新各2000，五项
+分配计数仍全0。仅本机非PGO/rust-lld检查得到owner848B、plain解析240B、回答主体1816B，
+不含传递callee，不等于动态热足迹或SDK/PGO性能，不能用它提前晋级。
+
+D2最终准备源2f7fe9aa：c9755eaa按需metrics、0fc4ed11单就绪UDP分派、cf651814允许未来
+定时器和空闲DHCP，最后仅移植既有cfg(test)hosts修正。wait保存本次最早deadline，step前
+及UDP批后检查到期；原UBus→DHCP每轮重绑前缀保留，资格不增加poll/recv。helper/TFTP/
+neighbors和其他待办仍原路；16包预算/信号/上游处理不改。完整本机722lib+29bin PASS，
+8ignored；Linux新增路径仅编译，尚未实际运行。D1+D2独立组合57087ce1另有732lib+31bin/
+Linux检查PASS，只作准备。D1快路已经跳过metrics，所以两者该项重叠，收益不能相加。
+
+下一步a0b59eb4固定D1先行：I接受后新PGO训练，Linux新增plain_*先实际隔离执行；14窗
+全部5+95+1，CPU N20000、同长度A/A。新watchdog22385595修正已声明长窗不能在100秒内
+完成的工具问题，附复现；62d51439准备固定新14。当前I矩阵私有工具未改。
+
+I实际44/67及shipping边界已完成：合并结果SHA
+`e06b41753d9bb54339857267fd0e494a05e8cb9a3b2b5de37597621793d74337`。唯一失败来自原
+m5_rr_filter夹具仅选UDP空闲端口，精确C启动时TCP地址被占用。de58466d只改双协议端口
+选择，c5e21447保存确定性复现（旧函数失败、新函数通过）；未改C期望/比较器/I源码，
+只重跑该门，其他成功前缀复用、未执行族按原序列完成。原失败attempt和rr重跑全保留。
+原raw归档201752610B、SHAcd4147d85d51b8fa32d015e633ebe0dcfaf0cf0c6081c86252cd06bf7847c8d3，
+目前仍在Oracle待设备恢复gap下载。I完整物理矩阵/最终接受尚未完成。
