@@ -1,0 +1,197 @@
+{
+  "schema": "cached-hit-9e-preparation-independent-review-v1",
+  "status": "PASS_LOCAL_SELECTED9E_ORIGINAL_FIVE_GATES_CANONICAL_SDK_AND_REQUIRED_SIGNAL_GATE_PREPARATION",
+  "preparation_commit": "11569953",
+  "manifest_sha256": "a1238f54a1e8dee83e2b6fa379cba3f28b8c1e8bfd9a1b509a4b3e6bf94e96e4",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source179_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
+  "git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
+  "source_binding_sha256": "62a526cadafb64c3f1b5fe91c01ee66815a20e28214f3d8f6da674c1dcd6b254",
+  "source179_SHA256_and_Git_blob_checked": true,
+  "SDK_input_changes": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs",
+    "components/dnsmasq/src/dns/daemon.rs",
+    "components/dnsmasq/src/dns/edns_policy.rs",
+    "components/dnsmasq/src/dns/lease_names.rs",
+    "components/dnsmasq/src/dns/local.rs",
+    "components/dnsmasq/src/dns/service.rs",
+    "components/dnsmasq/src/dns/upstream.rs",
+    "components/dnsmasq/src/hosts.rs",
+    "components/dnsmasq/src/main.rs"
+  ],
+  "source9e_product_diff_from48_only_previously_reviewed_lease_adapter": true,
+  "lease_names_source_bytes_equal_reviewed210": true,
+  "original_five_wrappers_exact_reverse_identity_substitution_plus_four_source_existing_lib_names_only": true,
+  "all_original_five_argv_skips_listing_profile_budget_unchanged": true,
+  "canonical_SDK_original_argv_and_controller_bytes_preserved_except_declared_identity": true,
+  "canonical_builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "canonical_helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "source_tree_noncanonical_d33_builder_outside179_not_used": true,
+  "existing_source_added_lib_test_names": [
+    "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+    "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent",
+    "dns::edns_policy::tests::ecs_absence_uses_declared_additional_count_and_accepts_bad_questions",
+    "dns::lease_names::tests::direct_slice_lookup_keeps_order_and_expiry_across_retained_views"
+  ],
+  "projected_counts_only": {
+    "lib": 844,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
+  "projected_total_only": 965,
+  "actual_related_counts": null,
+  "actual_SDK_artifacts": null,
+  "required_original_standalone_signals": {
+    "signal_cases": 12,
+    "cache_dump_cases": 3,
+    "alarm_maintenance_cases": 3,
+    "same_five_original_tool_hashes_against9e_source": true,
+    "separate_from44_registry": true,
+    "native_C_private_path_visibility_and_exact3bytes_gate_retained": true,
+    "actual_signal_result": null,
+    "source": {
+      "owner": "correctness",
+      "preparation_commit": "1d8b1a0c9a9ba25c606123c0043a90b68a5b5744",
+      "preparation_path": "/Users/USER/Developer/owrt-perf-correctness-20261015/docs/dnsmasq/audits/perf-opt-20261015/correctness/future-owner-ready-frames-runtime-signals-preparation.json",
+      "preparation_sha256": "4a0de855f6eeb865226f4a5297893d35370175c16eda97ae312d2de39ffa38bf",
+      "frozen_tool_and_imports": {
+        "run_isolated.sh": {
+          "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+          "bytes": 399
+        },
+        "audit_20261011_runtime_signals.py": {
+          "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+          "bytes": 12826
+        },
+        "audit_20261011_dhcp.py": {
+          "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+          "bytes": 10332
+        },
+        "m2_rootfs.py": {
+          "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+          "bytes": 15493
+        },
+        "elf_cost.py": {
+          "sha256": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7",
+          "bytes": 4657
+        }
+      },
+      "original_comparators": {
+        "c_image": {
+          "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+          "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "bytes": 269305
+        },
+        "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "c_native": {
+          "path": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+          "sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+          "bytes": 1650080
+        },
+        "c_native_libraries": {
+          "dnsmasq/dnsmasq": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+          "deps/lib/libubox.so": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243",
+          "deps/lib/libubus.so": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+        },
+        "native_source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9"
+      },
+      "original_case_scope": {
+        "signals": [
+          "SIGHUP",
+          "SIGUSR2",
+          "SIGUSR1",
+          "SIGALRM"
+        ],
+        "implementations": [
+          "c-image",
+          "c-native",
+          "rust"
+        ],
+        "signal_case_count": 12,
+        "cache_dump_cases": 3,
+        "cache_dump_details": "Eachimplementation forwards and caches a realrecord, tests ordinary/policyNXDOMAIN, then receives exactlytwoSIGUSR1; originaldump summary equality/counters/rows checked.",
+        "alarm_maintenance_cases": 3,
+        "alarm_details": "OriginalRLIMIT_FSIZE persistence failure injection thenSIGALRM retry, followedbySIGUSR1 lease dump; sameACK,lease,DNS,alive predicates.",
+        "original_args_policy": "Retain-k and originallogging/DHCP/query options. No normal/debug matrix expansion, newcomparator, cases, thresholds, or retry policy."
+      },
+      "separate_from_44_families": true,
+      "required_private_native_C_gate": "RehashoriginalnativeC ELFandlibubox/libubus bytes andsourceidentity;verifyoriginalcompatpathvisibleinsideprivateisolatedmountnamespace beforeaudit. HistoricalhostpathorpriorPASSdoesnotprovevisibility. No tool/comparator/expectationchange.",
+      "actual_SDK_identity": null,
+      "explicit_DNS_to_correctness_quiet_release": null,
+      "actual_signal_result": null,
+      "actual_signal_independent_audit": null,
+      "signal_selection_scope": "Rootselectedexact9e; preserveoriginal5c standalone signal gate aftersame-source SDK. Preparation only, no execution orpriorPASSinheritance.",
+      "latest_compat_preparation": {
+        "commit": "32a84d29",
+        "report_sha256": "ec4e8201bf729432f5c06fad488c45d50d89bed298fa7245c4dd8aee6fb975b8",
+        "adapter_sha256": "ce8e3b3da0f57d7282cd621e0a8c9f09f7c828ce673414b21c6020920d00d4ee",
+        "pending_plan_sha256": "d7eba24b2e6e15ffad6b7b426b3c40f74ac16993573b4d378f8f9600002ce07b",
+        "actual_result": null
+      }
+    }
+  },
+  "selection_authorized": true,
+  "preparation_execution_authorized": false,
+  "exclusive_slot_release": null,
+  "prior_warm_transport_review": {
+    "commit": "c8b4cd31",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-local-transport-independent-audit.json",
+    "sha256": "b32f161c6a5f95fa1f928a4acb8b4614858df57333f0e23fa11eb5d6af89368e",
+    "scope": "Priorwarm original47+40 transport complete; no9e gate inherited."
+  },
+  "full_source_archive_peer": {
+    "commit": "53d73dc6",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-source-package-peer.json",
+    "sha256": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06",
+    "value": {
+      "status": "PASS_LOCAL9E_EXACT_SOURCE_ARCHIVE_CANONICAL_BUNDLE_MAP_AND_DISABLED_EXECUTION",
+      "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+      "preparation_commit": "11569953",
+      "manifest_sha256": "a1238f54a1e8dee83e2b6fa379cba3f28b8c1e8bfd9a1b509a4b3e6bf94e96e4",
+      "source_binding_sha256": "62a526cadafb64c3f1b5fe91c01ee66815a20e28214f3d8f6da674c1dcd6b254",
+      "archive_sha256": "c732c50b2cd4f83f970cb517c36b7e042e39d254b81ffa80624e73463a206f88",
+      "archive_bytes": 21092599,
+      "all4099_Git_blobs_and_exact_modes_verified": true,
+      "archive_regular_members": 4100,
+      "original_helper_exact179_input_enumeration": true,
+      "source_manifest_sha256": "2030130c1084fb95e3c973b194b24b761fa48f31d36e3456dd54944e53c37cad",
+      "Git_identity_sha256": "96b05c6a3db323415968341b2852cc4d04ed8a612ea81fb193a26fd27b430b20",
+      "epoch_and179_Git_blob_map_verified": true,
+      "SDK_input_changes_from6ab": [
+        "components/dnsmasq/src/dns/cache.rs",
+        "components/dnsmasq/src/dns/cache_engine.rs",
+        "components/dnsmasq/src/dns/cache_tests.rs",
+        "components/dnsmasq/src/dns/daemon.rs",
+        "components/dnsmasq/src/dns/edns_policy.rs",
+        "components/dnsmasq/src/dns/lease_names.rs",
+        "components/dnsmasq/src/dns/local.rs",
+        "components/dnsmasq/src/dns/service.rs",
+        "components/dnsmasq/src/dns/upstream.rs",
+        "components/dnsmasq/src/hosts.rs",
+        "components/dnsmasq/src/main.rs"
+      ],
+      "canonical_f454_f280_bundle_verified": true,
+      "original_map_tool_Git_blob_mode_and_sha256_verified": true,
+      "noncanonical_source_tree_builder_excluded_from179_and_not_selected": true,
+      "research_source_selected_execution_still_disabled": true,
+      "remote_source_and_SDK_names_match_selected9e": true,
+      "script_sha256": "69fd3c9d322c707f71506b3ecddfea1ce3891be551f9bfbcac5ac9c913f3d3cb",
+      "scope_limits": [
+        "Immutable9e package and Git objects only; no current worktree assumption or48 artifact reuse.",
+        "Only original frozen helper input-hash function called against private archive snapshot; no product/benchmark/build/test or preparation script executed.",
+        "No Oracle/router access or upload. Original wrappers, actual related965/SDK/signals/quiet and behavioral source review are separately audited by correctness."
+      ]
+    }
+  },
+  "scope": "Local source identities and executable preparation review, not execution. No product test/build, listing, remote action or measured window. Actual fresh965 names/counts, exactcanonicalSDK and originalstandalone12+3+3 must independently pass before screens. Prior source semantics only reused for byte-identical lease adapter; no prior runtime/performance PASS inherited.",
+  "reviewer_script_sha256": "422683dc1237a3a591df0d6bfa20bd31aeabd7545642cbe1d3180c3e861a756b",
+  "core_review_receipt_sha256": "6a24c6a2403561bf85402a8d6bae3ae0605cd8805b50c0931be1a9188c6a735e",
+  "archive_sha256": "c732c50b2cd4f83f970cb517c36b7e042e39d254b81ffa80624e73463a206f88",
+  "archive_regular_members": 4100,
+  "actual_gates_SDK_signals_remain_required": true
+}
