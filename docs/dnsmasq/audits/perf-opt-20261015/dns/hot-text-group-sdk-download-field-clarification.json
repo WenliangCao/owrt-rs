@@ -1,0 +1,31 @@
+{
+  "status": "PASS_LOCAL_SDK_CONTROLLER_PLAN_HASH_BINDING_METADATA_CLARIFICATION",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "original_raw_receipt_path": "/Users/USER/Developer/owrt-perf-hot-text-group-preparation-20261016/private/perf-opt-20261015/hot-text-group-preparation/execution/sdk-download-receipt.json",
+  "original_raw_receipt_sha256": "56063d28b3aa04f6b97e2668e205d6135915967f2a2121e1ce7b63d659de8957",
+  "original_raw_field": {
+    "actual_wrapper_plan_hashes_matched": false
+  },
+  "field_definition": "The unchanged original verifier assigns kind == 'related'. It identifies completion of related-only wrapper checks, not the result of SDK controller/plan checks. For kind=sdk the stored false means not applicable; it is not an actual mismatch or an unbound plan.",
+  "original_verifier_sha256": "064705943afc0c63aaec1a75cfb9a5a2223755c3d6b462eb03aa119574af9778",
+  "c95_identity_adapter_sha256": "5b815a6ad8acc1189cfc05bf8d869c6b01bceac8c54b5f3be5af7a22ff60c291",
+  "raw_download_manifest_sha256": "76681d023d91f97f317098d8a20acd83a8e89c3fada9782a9f0d27f0469a2f82",
+  "actual_raw_files_rehashed": {
+    "execution-plan.json": "477e2c982126a512cf17630766fa715e25bfdc52302822e2fca663aeb7f07389",
+    "run_hot_text_group_sdk.py": "f9e408c51c500fffd79d382abbfdd37922867b52f8a4870219758c571f01ab0b",
+    "sdk-command.json": "bac986489da5d7bd5aa545be368c2dfa8d8464e68bfcf8170bdac72abf5f0990",
+    "sdk-launch.json": "ab4d01ee112db635303081ac41f68613ad8c1ad0db5a3067b9bd74436e61eedc",
+    "related-verified.json": "957e81458eb7e57f02bc5bb9605098fe41eb0ee4691b260db3bc0f144e8f78d5",
+    "sdk-postflight.json": "2836386ad2285c5a19ddaadf0ece0efffd624271f66bf1b75a3528ed930c6c68"
+  },
+  "SDK_controller_plan_gate_argv_and_postflight_bindings_matched": true,
+  "derived_report_representation": {
+    "actual_wrapper_plan_hashes_matched": null,
+    "actual_wrapper_plan_hashes_scope": "Not applicable to SDK; this field belongs to the related-group wrapper checks.",
+    "sdk_controller_plan_hashes_matched": true
+  },
+  "raw_receipt_changed": false,
+  "remote_accessed": false,
+  "product_built_tested_or_measured": false,
+  "scope": "Local reads of existing downloaded raw evidence and identity binding only. Original receipt and archive remain unchanged; no build, test, signal or timing rerun."
+}
