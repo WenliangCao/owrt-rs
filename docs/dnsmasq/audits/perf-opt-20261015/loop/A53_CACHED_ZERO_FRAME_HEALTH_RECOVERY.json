@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "scope": "Root-authorized reviewed health-boundary repair and exact taskSTOP recovery before first185 performance window",
+  "old_health_status": "FAILED retained without reclassification",
+  "old_health_raw_files_reverified_unchanged": {
+    "collect.py": "075635061302521db0208999696a86d5f5d18f5d56287549ecd3d498b1f0f8aa",
+    "external-health.jsonl": "a8a0be308e0087e88184ade8d62bdc34e9074969c65400e8f3ebce862c590ca5",
+    "failed-guard.jsonl": "0c87d217eb5cbbe261e6e862ab08d43736007283b61eae5e1b6828a952dff3db",
+    "failed-guard.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "failure.json": "c016559b362bcd5b9ca45f40c31e0c650bce2a77f08feddf5f6e651cf95812b6",
+    "health-baseline.jsonl": "0c87d217eb5cbbe261e6e862ab08d43736007283b61eae5e1b6828a952dff3db",
+    "health-baseline.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "start.json": "30e46168579f62bab0aecf8ec207a89200ac9bdfc0acc8444393a0b938ca8ea7"
+  },
+  "repair_commits": [
+    "4e81d741",
+    "76f0dfbc",
+    "d2c0373c"
+  ],
+  "binding_commit": "f71130de",
+  "plan_sha256": "0e24e3b1730a2ce2ceefd59117af529288437d447b54e2c6e28e35b4dec0dcf4",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "author_verifier_sha256": "7e3498728e224f84cc0d4a8ee3e82031f28a8fce0c32b57fd8e60ebb1d928e47",
+  "pre_removal": {
+    "status": "archived and verified; STOP removal not yet executed",
+    "epoch": 1792114326.028673,
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "original_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "STOP_sha256": "ae1e55022d0ec2a41e561ef8020864763560576388e00010308a92f3a578d28c",
+    "STOP_archive_sha256": "96371ef61a5ffe9094ed463487f3f3e72fc565b89227b4fc2ca3fcd0aac2e818",
+    "STOP_attributes": {
+      "name": "STOP",
+      "type": "0",
+      "mode_octal": "0o644",
+      "uid": 0,
+      "gid": 0,
+      "size": 46,
+      "mtime": 1792113237,
+      "uname": "root",
+      "gname": "root",
+      "linkname": ""
+    },
+    "STOP_content": "a53_cached_zero_frame_health_preflight_failed\n",
+    "root_mode_uid": {
+      "mode": "drwx------",
+      "uid": "0"
+    },
+    "memory_kib": 97436,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "offline_restoration_and_candidate_hashes_verified": true,
+    "read_only_stdout": "drwx------    4 0        0             3680 Oct 16 03:13 /tmp/dnsmasq-perf-20261015\n-rw-r--r--    1 0        0               46 Oct 16 03:13 /tmp/dnsmasq-perf-20261015/STOP\nae1e55022d0ec2a41e561ef8020864763560576388e00010308a92f3a578d28c  /tmp/dnsmasq-perf-20261015/STOP\n97436\nnet:[4026531840]\n",
+    "plan_sha256": "0e24e3b1730a2ce2ceefd59117af529288437d447b54e2c6e28e35b4dec0dcf4",
+    "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "author_verifier_sha256": "7e3498728e224f84cc0d4a8ee3e82031f28a8fce0c32b57fd8e60ebb1d928e47"
+  },
+  "recovery": {
+    "status": "only verified taskSTOP removed after full archive and repeated live gates",
+    "epoch": 1792114370.186254,
+    "archived_STOP_sha256": "ae1e55022d0ec2a41e561ef8020864763560576388e00010308a92f3a578d28c",
+    "archived_STOP_tar_sha256": "96371ef61a5ffe9094ed463487f3f3e72fc565b89227b4fc2ca3fcd0aac2e818",
+    "pre_removal_receipt_sha256": "131ee6bdaf3664382dff0be104f0a7edbf118c8373aa59ecc5c90554c3b59e70",
+    "removal_script_sha256": "d2b519afa49df1cfdb02b8d8a5d419748b46200d6fa27239a2cfa6deb393d491",
+    "production_pid_start_after": [
+      3086,
+      2115
+    ],
+    "stdout": "removed-only-verified-task-STOP\n",
+    "stderr": "",
+    "exit": 0,
+    "old_health_kept_failed": true
+  },
+  "new_health_directory": "private/perf-opt-20261015/health-a53-cached-zero-frame-prefix-v1",
+  "performance_windows_before_new_health": 0,
+  "raw_recovery_files_sha256": {
+    "original-STOP": "ae1e55022d0ec2a41e561ef8020864763560576388e00010308a92f3a578d28c",
+    "original-STOP.tar": "96371ef61a5ffe9094ed463487f3f3e72fc565b89227b4fc2ca3fcd0aac2e818",
+    "pre-removal.json": "131ee6bdaf3664382dff0be104f0a7edbf118c8373aa59ecc5c90554c3b59e70",
+    "recovery.json": "c509d91797ed2a138fe90fc4356b95931927aa488516817c8b2048f03e1c1760",
+    "remove-verified-STOP.sh": "d2b519afa49df1cfdb02b8d8a5d419748b46200d6fa27239a2cfa6deb393d491"
+  }
+}
