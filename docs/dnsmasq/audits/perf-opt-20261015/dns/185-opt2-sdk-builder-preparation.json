@@ -1,0 +1,51 @@
+{
+  "schema": "803-opt2-sdk-receipt-copy-preparation-v1",
+  "status": "LOCAL_PREPARED_AND_CONTROLS_PASS_NO_REMOTE_BUILD",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "source_manifest_sha256": "163a1186fa1f022e5f5b3c4a8c6a9dbca08d0ecb05a0ff55bc5ee744d4246367",
+  "git_identity_sha256": "92dfd48474172faae3aa2bddffa80b3ce4a48e4f484ad3c0a040378feac70216",
+  "source_files_rehashed": 179,
+  "builder": {
+    "path": "tools/dnsmasq/perf_opt_sdk_build_opt2.py",
+    "sha256": "576a8ad736b754411d58a4a78067169f9b78db2d7b42ed12477aaf4b3d4f39ac",
+    "canonical_unchanged_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper_unchanged_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+    "python_minimum": "3.11 (stdlib tomllib; verify interpreter before any future SDK entry)"
+  },
+  "changes": [
+    "Pin803 source; parse and assert exact release profile2/fatLTO/codegen1/panicabort/striptrue.",
+    "Reject every ambient CARGO_PROFILE_RELEASE_* before source or SDK work. Recipe still sets panic=abort itself.",
+    "Correct receipt opt_level2 and record actual source profile.",
+    "Set only Cargo verbose/quiet/color logging controls; preserve all compiler/linker/strip/package commands.",
+    "Before built-unqualified status, retain both actual dnsmasq lib/bin rustc commands and require targetmusl, exactlyopt2/codegen1/panicabort/stripsymbols and binaryfatLTO. Contradictory or absent commands fail with original output retained."
+  ],
+  "local_controls": {
+    "unittest_command": [
+      "/opt/homebrew/bin/python3.14",
+      "-m",
+      "unittest",
+      "test_perf_opt_sdk_build_opt2",
+      "-v"
+    ],
+    "unittest_passed": 4,
+    "test_source_sha256": "d07fbf1245578040fccc30423ed5788b0231c3ffa1c640d8da13db078bfcbade",
+    "tiny_cargo_result_path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/post185-sdk-preparation/opt2-builder-controls/result.json",
+    "tiny_cargo_result_sha256": "315b7c9882f45e7de5854ade2cec49050f7e29c762fab9144e530acc1b6e0b56",
+    "tiny_cargo_log_sha256": "2705a488c735be851c96d9a1aec51541eb49850ba1d34a8be58ac96f051783a2",
+    "tiny_cargo_actual_compiler_invocations_verified": 2,
+    "scope": "Synthetic rejection cases plus tiny real local Rust1.98.1 Cargo logging control; not803 product build, SDK artifact, runtime or timing evidence."
+  },
+  "planned_builder_remote": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-opt2-803/perf_opt_sdk_build_opt2.py",
+  "planned_source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-185-opt2",
+  "planned_output": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-185-opt2",
+  "unchanged_boundaries": "803 retains inherited f8adb016 test-only hosts repair; no6ab merge, no new allocator/features/linker/strip/hardening; original budget2200000/1200000 remains.",
+  "compiler_documentation": [
+    "https://doc.rust-lang.org/cargo/reference/config.html#termverbose",
+    "https://doc.rust-lang.org/cargo/reference/profiles.html"
+  ],
+  "oracle_accessed_after_quiet_release": false,
+  "uploaded": false,
+  "sdk_built": false,
+  "requires_independent_local_review": true,
+  "queue": "No remote build until native240/owner32/full44 queue releases Oracle and root selects803."
+}
