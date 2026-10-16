@@ -361,3 +361,32 @@ Oracle原C/H同窗u/k六窗也全部有效，实际N5000、24counter无复用。
 预期净效果0–10µs，不能预设有益。固定新G专属profile、训练seed0x20261016，其余原11场景、
 source/opt3/LTO/CGU1/toolchain不改；直接H/H四窗校准加H/G+PGO十窗screen，达到5µs/新AA/
 4of5才进行44和完整118。H仍为已接受交付，不混入新产物、不自动把训练完成当晋级。
+
+
+## 单次G+PGO构建与14窗screen：达到完整验收条件
+
+G185源码不变，原11场景单次训练全有效，50个正常退出profiles，训练seed0x20261016与评估
+0x293001不同；训练/评估后缀仍分别pgo.test/m6a.test。新profile
+`f36b6e61a105225ffbc2aa1592b168a494d1e72533df944a2acabab62c2f9c60`，931832B，未复用E71ad。
+原opt3/fatLTO/CGU1/工具链不变；实际H/I effective flags仅profile路径不同。
+use ELF `6ccff2e9fa87ba69f50a6e583a26f48b58bcfec2f22fd199774ad2c2cfb49182`，2288419B；
+APK `a6fd7a67f020cd744c6d7b18a96f129914eb2d76e3de5033c3f73c1b119208d5`，1295290B。
+新caps、静态硬化、零missing/mismatch、实际G/G+PGO最小A/AAAA/保护/正常退出均通过。
+初次stdin launcher类型错误发生在训练启动前，原stdout/stderr保留；没有重复build或训练。
+546文件及全部50rawprofiles一次下载核验；唯一private构建结果SHA
+`4e1f0107eb9256657b49d58d62b8821dc0c00c64298b1c500b5918c120457102`，在
+`owrt-perf-pgo-sdk-smoke-20261016/private/perf-opt-20261015/g-pgo-20261016/result-summary.json`。
+
+14/14窗有效，无补测/错误/超时，630raw文件保留并已恢复。新H/H两对差−7.5815366/+6.9059034µs，
+经验噪声7.5815366，较上一批大，不能拿旧4.9424降低本批门。I−H五对
+−8.0990642/−12.8332084/+0.6557062/−10.2845372/−11.1690840µs，中位−10.2845372，4/5改善，
+超过5µs和新AA。旧tick92→82只5ticks，仍未分辨，说明新计量允许有依据的小收益继续确认。
+不利数据：p95中位0.260449→0.308384ms（+18.405%、4/5升、W119.287%，未分辨），第三对
+p95多0.416334ms；p50 0.149575→0.139034（−7.047%、W8.965%）亦未分辨。RSS中位2324→2220KiB、
+Anon504→504，FD12/线程1/进程1不变。不能在screen阶段宣称尾延迟或完整资格已通过。
+原结果`private/perf-opt-20261015/research-reset-20261016/g-pgo-screen14/result.json` SHA
+`c59e1190453dccac1c4a048abf7b86edd1f0e12a2dcc704a64e1641727da4d21`。
+
+决定按ff878699预写分支，直接执行actualI44/67+shipping边界和H/I完整118窗，不加独立18窗。
+三个九对block必须各自超过本批AA7.5815366；H仍为接受候选，I暂未晋级。
+H/I源码与新profile均变化，所以这是整体组合效果；不会将历史E/G和E/H收益相加。
