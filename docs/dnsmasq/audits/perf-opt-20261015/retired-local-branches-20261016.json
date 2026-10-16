@@ -1,0 +1,29 @@
+{
+  "scope": "Only three clean integrated/retired local branches; all commits and worktrees/private evidence preserved. Active SDK/screen/full/source branches untouched.",
+  "refs": [
+    {
+      "retired_branch": "integration/dnsmasq-185-20261016",
+      "durable_ref": "refs/archive/perf-opt-20261015/retired-20261016/g-source-integration",
+      "tip": "35a6ff6cde0dbde741290a54e0c1e61776b75c1b",
+      "detached_worktree": "/Users/USER/Developer/owrt-perf-185-integration-20261016",
+      "reason": "Integrated into main; original frozen G artifact remains delivery identity.",
+      "worktree_and_private_evidence_kept": true
+    },
+    {
+      "retired_branch": "perf/dnsmasq-lazy-doctor-metrics-20261016",
+      "durable_ref": "refs/archive/perf-opt-20261015/retired-20261016/lazy-doctor-metrics",
+      "tip": "664c89eaf6fb3e4091623c28656ddb360203d964",
+      "detached_worktree": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016",
+      "reason": "Isolated local prototype; adverse code/frame growth and earlier tiny share retained; not scheduled.",
+      "worktree_and_private_evidence_kept": true
+    },
+    {
+      "retired_branch": "perf/dnsmasq-lease-address-presence-20261016",
+      "durable_ref": "refs/archive/perf-opt-20261015/retired-20261016/lease-address-presence",
+      "tip": "88adacc392a99223a2f6a6fc76874bfa78e667fa",
+      "detached_worktree": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016",
+      "reason": "Boolean helper experiment retained; prefer simpler same-API direct-slice prototype. No runtime screen.",
+      "worktree_and_private_evidence_kept": true
+    }
+  ]
+}
