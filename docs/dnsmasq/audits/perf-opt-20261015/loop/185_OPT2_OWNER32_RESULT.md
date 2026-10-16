@@ -71,9 +71,19 @@ both script versions remain private. Correcting the collection counts to
 The [explicit quiet release](185-opt2-owner32-release-to-correctness.json),
 SHA-256 `49261583a2f2b239eaa16a48bb611d6b29c9f023a26c54d4a11f8073cc707a86`,
 binds exited controller/analyzer, completed transfers, no research processes
-including exact C and three free build locks. Correctness now owns the host
-for unchanged full-bin replay and independent raw audit; that review is
-pending. The separate physical device ten-window audit `d6d779dc` found all
-three primary comparisons inconclusive. After the owner audit and its quiet
-release, DNS may execute the already-authorized bare 1df original related/SDK
-queue; 025 remains later.
+including exact C and three free build locks. Independent review passed in
+`c5f79e95`: the [audit](../correctness/185-opt2-owner32-independent-audit.json),
+SHA-256 `8dbf8071b054acf6497c50a9d0db17f072f23c7d3f17f79ea37261f4ed1728c2`,
+rehashed all 1,264 raw files and 128 bins. One original analyzer replay as root
+on CPU0 exited zero with empty stderr and reproduced result `ed6e1197…`
+byte-for-byte. It retained the p95 regression, every inconclusive comparison
+and the collection-count failure.
+
+The separate physical device ten-window audit `d6d779dc` found all three
+primary comparisons inconclusive. Together these screens support no 803
+promotion or full110, and no further opt2 parameter sweep is selected.
+Correctness's final quiet handoff `03d9c6c6`, receipt SHA-256
+`a0e3fd07ea97490196da80eaad36cd852b18c463196e29cacd986d231a33ea39`,
+released the host to DNS for the already-authorized bare 1df original
+related/SDK queue. 025 remains later; loop performs no Oracle access during
+that new DNS slot.
