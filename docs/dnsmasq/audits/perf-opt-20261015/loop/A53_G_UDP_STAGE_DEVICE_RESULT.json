@@ -1,0 +1,5827 @@
+{
+  "schema": 1,
+  "status": "50/50 original fixed G-stage diagnostic windows valid, archived and E/F restored",
+  "scope": "Excluded cumulative-path diagnostic onacceptedG185. Fiveindependentgroups: exactC/G, G/diagnosticfull calibration, ownfull/receive,ownfull/before-answer,ownfull/skip-local. Notproductcandidate,additivefunctioncost,IPCorallocationCPU attribution; nohistoricalE/G pooling.",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "base_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "base_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "diagnostic_ELF_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+  "diagnostic_ELF_bytes": 2149147,
+  "map_sha256": "9f1a05017993363eabdb9f8832d6f3915ccb47ed42de8fb6457e3037ae28e153",
+  "build_receipt_sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+  "source_files_verified": 180,
+  "release_budget": {
+    "original_limits": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "ELF_bytes": 2149147,
+    "APK_bytes": 1169636,
+    "gate_unchanged": true,
+    "product_candidate_eligible": false
+  },
+  "actual_Linux_gate_receipt": {
+    "local_path": "private/perf-opt-20261015/sdk-g-udp-stage/related-verified.json",
+    "sha256": "72a760276ef92bd9555e8aca5674cc708909d81de79b7f2afe1bb5a30d026825",
+    "status": "PASS_FRESH_G_STAGE_ORIGINAL_THREE_RELATED_SELECTIONS",
+    "groups": {
+      "stage-fixture": 1,
+      "bin": 82,
+      "bin-ignored-live": 4
+    },
+    "actual_passes": 87,
+    "scope": "Originaldiagnosticfixture/bin/ignoredbin only,not961orproductfullqualification."
+  },
+  "actual_Linux_gate_independent_review": {
+    "commit": "ad9f1c3d",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-related-independent-audit.json",
+    "sha256": "d53677fa512d625625fe0c0004a5004e7d6992bc2075c319d7ae2e844fd04791",
+    "status": "PASS_FRESH_G_STAGE_ORIGINAL_THREE_RELATED_SELECTIONS_RAW_NAMES_ELFS_AND_SOURCE"
+  },
+  "actual_SDK_independent_review": {
+    "commit": "ef762db0",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-sdk-independent-audit.json",
+    "sha256": "e6e4535e95e858f5755341c4ce29c20bdff622b82b6bc8072c6c5ef7bab60913",
+    "status": "PASS_ACTUAL_G_STAGE_ORIGINAL87_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_AND_BUDGETS"
+  },
+  "source_review": {
+    "commit": "f9abcc95",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/g-udp-stage-source-peer-review.json",
+    "sha256": "a9f4238131b0c530b15156c8c9123f1c4ac309beda52c8a786be4a0d0f72c8dc",
+    "status": "PASS_LOCAL_SOURCE_REVIEW_ONLY_NOT_SELECTED_NOT_EXECUTED",
+    "actual_runtime_or_SDK_PASS_inherited": false
+  },
+  "device_plan_independent_review": {
+    "commit": "8367ac2d",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/g-stage-device-plan-peer-review.json",
+    "sha256": "b059d6f30a2fde165bb1105eb3929b581b3ca9c215457b4d5f5a49cf88d50f2c",
+    "reviewed_preparation_plan_sha256": "86af9d612a85962a3bdd72c1c99ea4cb58c8571eca6201ac117b7a15d87b53f1",
+    "status": "PASS_LOCAL_DISABLED_ORIGINAL_G_STAGE_FIFTY_WINDOW_PLAN",
+    "scope": "Localfixed50plan/identity/helper/protocol reviewonly; actualLinuxgates/SDK/independentaudits/quiet remainpending."
+  },
+  "plan_sha256": "8293e1d84a80c4035c1b9ab0c1969ac23df421c6eb89324fa1bf733ae4e47442",
+  "tool_hashes": {
+    "entry_sha256": "260a43b024fdcbe987d73bcbff1abc5eede23c03094b86c5ab4e65e204f6e69e",
+    "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "statistics": {
+    "pairs_per_group": 5,
+    "groups": 5,
+    "windows": 50,
+    "W": "maxrelativefullranges",
+    "paired_direction_minimum": 4,
+    "CPU": "allwindows>=10ticks andabsolutemediantickdelta strictly>8",
+    "CPU_denominator": 5000,
+    "measurement_seconds": 20,
+    "historical_pooling": false
+  },
+  "fixed_windows": 50,
+  "valid_windows": 50,
+  "measurement_retries": 0,
+  "comparisons": {
+    "exact-c-vs-g": {
+      "left": [
+        "exact-c",
+        null
+      ],
+      "right": [
+        "g",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.145421,
+            "min": 0.138342,
+            "max": 0.153961,
+            "rounds": [
+              0.145421,
+              0.138342,
+              0.149652,
+              0.138881,
+              0.153961
+            ]
+          },
+          "right": {
+            "median": 0.179352,
+            "min": 0.174659,
+            "max": 0.182891,
+            "rounds": [
+              0.182891,
+              0.179352,
+              0.179814,
+              0.174659,
+              0.175043
+            ]
+          },
+          "relative_change_pct": 23.33294366013163,
+          "W_pct": 10.7405395369307,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.320003,
+            "min": 0.293073,
+            "max": 1.093273,
+            "rounds": [
+              0.293073,
+              0.320003,
+              0.408871,
+              0.296767,
+              1.093273
+            ]
+          },
+          "right": {
+            "median": 0.392174,
+            "min": 0.325004,
+            "max": 0.982629,
+            "rounds": [
+              0.982629,
+              0.392174,
+              0.543211,
+              0.353933,
+              0.325004
+            ]
+          },
+          "relative_change_pct": 22.55322606350567,
+          "W_pct": 250.06015568604045,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 86.0,
+            "min": 84.0,
+            "max": 92.0,
+            "rounds": [
+              86.0,
+              84.0,
+              92.0,
+              84.0,
+              90.0
+            ]
+          },
+          "right": {
+            "median": 126.0,
+            "min": 120.0,
+            "max": 128.0,
+            "rounds": [
+              128.0,
+              126.0,
+              126.0,
+              124.0,
+              120.0
+            ]
+          },
+          "relative_change_pct": 46.51162790697674,
+          "W_pct": 9.30232558139535,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 1244.0,
+            "min": 1176.0,
+            "max": 1244.0,
+            "rounds": [
+              1244.0,
+              1244.0,
+              1232.0,
+              1244.0,
+              1176.0
+            ]
+          },
+          "right": {
+            "median": 2416.0,
+            "min": 2356.0,
+            "max": 2420.0,
+            "rounds": [
+              2420.0,
+              2416.0,
+              2412.0,
+              2416.0,
+              2356.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 1244,
+            "min": 1176,
+            "max": 1244,
+            "rounds": [
+              1244,
+              1244,
+              1232,
+              1244,
+              1176
+            ]
+          },
+          "right": {
+            "median": 2416,
+            "min": 2356,
+            "max": 2420,
+            "rounds": [
+              2420,
+              2416,
+              2412,
+              2416,
+              2356
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 228,
+            "min": 228,
+            "max": 228,
+            "rounds": [
+              228,
+              228,
+              228,
+              228,
+              228
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              516,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 764,
+            "min": 696,
+            "max": 764,
+            "rounds": [
+              764,
+              764,
+              752,
+              764,
+              696
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 252,
+            "min": 252,
+            "max": 252,
+            "rounds": [
+              252,
+              252,
+              252,
+              252,
+              252
+            ]
+          },
+          "right": {
+            "median": 1892,
+            "min": 1836,
+            "max": 1896,
+            "rounds": [
+              1896,
+              1896,
+              1892,
+              1892,
+              1836
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 11,
+            "min": 11,
+            "max": 11,
+            "rounds": [
+              11,
+              11,
+              11,
+              11,
+              11
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 11,
+            "min": 11,
+            "max": 11,
+            "rounds": [
+              11,
+              11,
+              11,
+              11,
+              11
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      }
+    },
+    "g-vs-stage-full": {
+      "left": [
+        "g",
+        null
+      ],
+      "right": [
+        "stage",
+        "full"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.17589,
+            "min": 0.172658,
+            "max": 0.182738,
+            "rounds": [
+              0.17589,
+              0.179737,
+              0.182738,
+              0.175736,
+              0.172658
+            ]
+          },
+          "right": {
+            "median": 0.17966,
+            "min": 0.174659,
+            "max": 0.188201,
+            "rounds": [
+              0.188201,
+              0.183815,
+              0.17966,
+              0.174889,
+              0.174659
+            ]
+          },
+          "relative_change_pct": 2.143385070214336,
+          "W_pct": 7.537570967382834,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.398176,
+            "min": 0.340008,
+            "max": 0.533979,
+            "rounds": [
+              0.458422,
+              0.382096,
+              0.533979,
+              0.398176,
+              0.340008
+            ]
+          },
+          "right": {
+            "median": 0.322696,
+            "min": 0.297074,
+            "max": 1.024101,
+            "rounds": [
+              1.024101,
+              0.640544,
+              0.310154,
+              0.322696,
+              0.297074
+            ]
+          },
+          "relative_change_pct": -18.956441372659324,
+          "W_pct": 225.29780350546642,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 124.0,
+            "min": 122.0,
+            "max": 130.0,
+            "rounds": [
+              124.0,
+              130.0,
+              130.0,
+              122.0,
+              122.0
+            ]
+          },
+          "right": {
+            "median": 122.0,
+            "min": 116.0,
+            "max": 132.0,
+            "rounds": [
+              132.0,
+              128.0,
+              122.0,
+              116.0,
+              120.0
+            ]
+          },
+          "relative_change_pct": -1.6129032258064515,
+          "W_pct": 13.114754098360656,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2400.0,
+            "min": 2368.0,
+            "max": 2408.0,
+            "rounds": [
+              2396.0,
+              2400.0,
+              2400.0,
+              2368.0,
+              2408.0
+            ]
+          },
+          "right": {
+            "median": 2376.0,
+            "min": 2372.0,
+            "max": 2452.0,
+            "rounds": [
+              2372.0,
+              2420.0,
+              2376.0,
+              2372.0,
+              2452.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2400,
+            "min": 2368,
+            "max": 2408,
+            "rounds": [
+              2396,
+              2400,
+              2400,
+              2368,
+              2408
+            ]
+          },
+          "right": {
+            "median": 2376,
+            "min": 2372,
+            "max": 2452,
+            "rounds": [
+              2372,
+              2420,
+              2376,
+              2372,
+              2452
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              520,
+              520,
+              516
+            ]
+          },
+          "right": {
+            "median": 524,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              528,
+              520,
+              524,
+              516,
+              524
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1876,
+            "min": 1844,
+            "max": 1888,
+            "rounds": [
+              1872,
+              1876,
+              1876,
+              1844,
+              1888
+            ]
+          },
+          "right": {
+            "median": 1852,
+            "min": 1840,
+            "max": 1924,
+            "rounds": [
+              1840,
+              1896,
+              1848,
+              1852,
+              1924
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      }
+    },
+    "stage-full-vs-receive": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "receive"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.17689,
+            "min": 0.173813,
+            "max": 0.188431,
+            "rounds": [
+              0.184431,
+              0.188431,
+              0.173813,
+              0.174966,
+              0.17689
+            ]
+          },
+          "right": {
+            "median": 0.12757,
+            "min": 0.123954,
+            "max": 0.130417,
+            "rounds": [
+              0.130417,
+              0.124492,
+              0.123954,
+              0.12757,
+              0.129801
+            ]
+          },
+          "relative_change_pct": -27.881734411216012,
+          "W_pct": 8.263892814743622,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.49697,
+            "min": 0.283686,
+            "max": 1.641563,
+            "rounds": [
+              0.812741,
+              1.641563,
+              0.283686,
+              0.452189,
+              0.49697
+            ]
+          },
+          "right": {
+            "median": 0.269221,
+            "min": 0.231903,
+            "max": 0.305384,
+            "rounds": [
+              0.305384,
+              0.28584,
+              0.254295,
+              0.231903,
+              0.269221
+            ]
+          },
+          "relative_change_pct": -45.827514739320286,
+          "W_pct": 273.231180956597,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 124.0,
+            "min": 120.0,
+            "max": 130.0,
+            "rounds": [
+              130.0,
+              126.0,
+              124.0,
+              120.0,
+              124.0
+            ]
+          },
+          "right": {
+            "median": 74.0,
+            "min": 72.0,
+            "max": 80.0,
+            "rounds": [
+              80.0,
+              78.0,
+              74.0,
+              74.0,
+              72.0
+            ]
+          },
+          "relative_change_pct": -40.32258064516129,
+          "W_pct": 10.81081081081081,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2416.0,
+            "min": 2364.0,
+            "max": 2452.0,
+            "rounds": [
+              2424.0,
+              2452.0,
+              2416.0,
+              2364.0,
+              2372.0
+            ]
+          },
+          "right": {
+            "median": 2404.0,
+            "min": 2404.0,
+            "max": 2460.0,
+            "rounds": [
+              2404.0,
+              2460.0,
+              2420.0,
+              2404.0,
+              2404.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2416,
+            "min": 2364,
+            "max": 2452,
+            "rounds": [
+              2424,
+              2452,
+              2416,
+              2364,
+              2372
+            ]
+          },
+          "right": {
+            "median": 2404,
+            "min": 2404,
+            "max": 2460,
+            "rounds": [
+              2404,
+              2460,
+              2420,
+              2404,
+              2404
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 520,
+            "max": 528,
+            "rounds": [
+              528,
+              520,
+              528,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 556,
+            "rounds": [
+              520,
+              556,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1884,
+            "min": 1840,
+            "max": 1928,
+            "rounds": [
+              1892,
+              1928,
+              1884,
+              1840,
+              1848
+            ]
+          },
+          "right": {
+            "median": 1884,
+            "min": 1880,
+            "max": 1900,
+            "rounds": [
+              1880,
+              1900,
+              1900,
+              1880,
+              1884
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      }
+    },
+    "stage-full-vs-before-answer": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "before-answer"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.175505,
+            "min": 0.172966,
+            "max": 0.17989,
+            "rounds": [
+              0.175659,
+              0.174428,
+              0.175505,
+              0.17989,
+              0.172966
+            ]
+          },
+          "right": {
+            "median": 0.143959,
+            "min": 0.142497,
+            "max": 0.1545,
+            "rounds": [
+              0.143035,
+              0.1545,
+              0.144498,
+              0.142497,
+              0.143959
+            ]
+          },
+          "relative_change_pct": -17.974416683285373,
+          "W_pct": 8.337790620940675,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.375094,
+            "min": 0.286687,
+            "max": 0.722103,
+            "rounds": [
+              0.375094,
+              0.286687,
+              0.334468,
+              0.722103,
+              0.381556
+            ]
+          },
+          "right": {
+            "median": 0.318772,
+            "min": 0.222363,
+            "max": 0.711639,
+            "rounds": [
+              0.222363,
+              0.711639,
+              0.545828,
+              0.318772,
+              0.306461
+            ]
+          },
+          "relative_change_pct": -15.015436130676573,
+          "W_pct": 153.4877592762225,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 122.0,
+            "min": 116.0,
+            "max": 126.0,
+            "rounds": [
+              120.0,
+              116.0,
+              122.0,
+              126.0,
+              124.0
+            ]
+          },
+          "right": {
+            "median": 94.0,
+            "min": 90.0,
+            "max": 100.0,
+            "rounds": [
+              92.0,
+              100.0,
+              98.0,
+              90.0,
+              94.0
+            ]
+          },
+          "relative_change_pct": -22.950819672131146,
+          "W_pct": 10.638297872340425,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2360.0,
+            "max": 2416.0,
+            "rounds": [
+              2396.0,
+              2412.0,
+              2360.0,
+              2376.0,
+              2416.0
+            ]
+          },
+          "right": {
+            "median": 2392.0,
+            "min": 2368.0,
+            "max": 2460.0,
+            "rounds": [
+              2460.0,
+              2368.0,
+              2372.0,
+              2392.0,
+              2448.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2360,
+            "max": 2416,
+            "rounds": [
+              2396,
+              2412,
+              2360,
+              2376,
+              2416
+            ]
+          },
+          "right": {
+            "median": 2392,
+            "min": 2368,
+            "max": 2460,
+            "rounds": [
+              2460,
+              2368,
+              2372,
+              2392,
+              2448
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              516,
+              520,
+              516
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              528,
+              520,
+              516,
+              516,
+              524
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1840,
+            "max": 1896,
+            "rounds": [
+              1872,
+              1888,
+              1840,
+              1852,
+              1896
+            ]
+          },
+          "right": {
+            "median": 1872,
+            "min": 1844,
+            "max": 1928,
+            "rounds": [
+              1928,
+              1844,
+              1852,
+              1872,
+              1920
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      }
+    },
+    "stage-full-vs-skip-local": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "skip-local"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.17112,
+            "min": 0.165503,
+            "max": 0.173351,
+            "rounds": [
+              0.169735,
+              0.173351,
+              0.17112,
+              0.172197,
+              0.165503
+            ]
+          },
+          "right": {
+            "median": 0.164656,
+            "min": 0.160424,
+            "max": 0.183276,
+            "rounds": [
+              0.183276,
+              0.160424,
+              0.162117,
+              0.166811,
+              0.164656
+            ]
+          },
+          "relative_change_pct": -3.777466105656848,
+          "W_pct": 13.87863181420658,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.257757,
+            "min": 0.245908,
+            "max": 0.362705,
+            "rounds": [
+              0.246292,
+              0.362705,
+              0.264296,
+              0.257757,
+              0.245908
+            ]
+          },
+          "right": {
+            "median": 0.271375,
+            "min": 0.221363,
+            "max": 0.834208,
+            "rounds": [
+              0.834208,
+              0.221363,
+              0.271375,
+              0.405177,
+              0.265989
+            ]
+          },
+          "relative_change_pct": 5.283270677420967,
+          "W_pct": 225.82957162597884,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 116.0,
+            "min": 110.0,
+            "max": 118.0,
+            "rounds": [
+              116.0,
+              118.0,
+              114.0,
+              116.0,
+              110.0
+            ]
+          },
+          "right": {
+            "median": 110.0,
+            "min": 108.0,
+            "max": 110.0,
+            "rounds": [
+              110.0,
+              108.0,
+              108.0,
+              110.0,
+              110.0
+            ]
+          },
+          "relative_change_pct": -5.172413793103448,
+          "W_pct": 6.896551724137931,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2364.0,
+            "max": 2412.0,
+            "rounds": [
+              2408.0,
+              2372.0,
+              2396.0,
+              2364.0,
+              2412.0
+            ]
+          },
+          "right": {
+            "median": 2380.0,
+            "min": 2360.0,
+            "max": 2404.0,
+            "rounds": [
+              2360.0,
+              2380.0,
+              2368.0,
+              2404.0,
+              2400.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2364,
+            "max": 2412,
+            "rounds": [
+              2408,
+              2372,
+              2396,
+              2364,
+              2412
+            ]
+          },
+          "right": {
+            "median": 2380,
+            "min": 2360,
+            "max": 2404,
+            "rounds": [
+              2360,
+              2380,
+              2368,
+              2404,
+              2400
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              516,
+              520,
+              520,
+              516,
+              520
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              516,
+              528,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1844,
+            "max": 1888,
+            "rounds": [
+              1888,
+              1848,
+              1872,
+              1844,
+              1888
+            ]
+          },
+          "right": {
+            "median": 1848,
+            "min": 1840,
+            "max": 1880,
+            "rounds": [
+              1840,
+              1848,
+              1848,
+              1880,
+              1880
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      }
+    }
+  },
+  "absolute_median_cpu_tick_difference": {
+    "exact-c-vs-g": 20,
+    "g-vs-stage-full": 1,
+    "stage-full-vs-receive": 25,
+    "stage-full-vs-before-answer": 14,
+    "stage-full-vs-skip-local": 3
+  },
+  "cases": [
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r1-c",
+      "group": "exact-c-vs-g",
+      "round": 1,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 43,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 86.0,
+      "cpu_endpoint_seconds": 27.016810844,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.072787,
+        "p50": 0.145421,
+        "p95": 0.293073,
+        "p99": null,
+        "max": 10.006098
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065676,
+        "p50": 0.103229,
+        "p95": 0.159637,
+        "p99": null,
+        "max": 10.208854
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.151859,
+        "p50": 0.249055,
+        "p95": 0.449602,
+        "p99": null,
+        "max": 11.7894
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 1244.0,
+      "rss_peak_kib": 1244,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 764,
+      "shmem_peak_kib": 252,
+      "tree_rss_peak_kib": 1244,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r1-rust",
+      "group": "exact-c-vs-g",
+      "round": 1,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 64,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 128.0,
+      "cpu_endpoint_seconds": 27.015490898,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092715,
+        "p50": 0.182891,
+        "p95": 0.982629,
+        "p99": null,
+        "max": 41.859153
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.025834,
+        "p50": 0.102255,
+        "p95": 0.292446,
+        "p99": null,
+        "max": 21.287914
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.172886,
+        "p50": 0.286814,
+        "p95": 2.274519,
+        "p99": null,
+        "max": 61.168961
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2420.0,
+      "rss_peak_kib": 2420,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1896,
+      "tree_rss_peak_kib": 2420,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r2-rust",
+      "group": "exact-c-vs-g",
+      "round": 2,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.015019239,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087945,
+        "p50": 0.179352,
+        "p95": 0.392174,
+        "p99": null,
+        "max": 16.373985
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.038696,
+        "p50": 0.101479,
+        "p95": 0.180462,
+        "p99": null,
+        "max": 14.430229
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.169095,
+        "p50": 0.28115,
+        "p95": 0.585356,
+        "p99": null,
+        "max": 26.657955
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1896,
+      "tree_rss_peak_kib": 2416,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r2-c",
+      "group": "exact-c-vs-g",
+      "round": 2,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 42,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 84.0,
+      "cpu_endpoint_seconds": 27.021154451,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.071479,
+        "p50": 0.138342,
+        "p95": 0.320003,
+        "p99": null,
+        "max": 6.017031
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.061604,
+        "p50": 0.099391,
+        "p95": 0.174155,
+        "p99": null,
+        "max": 5.595712
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.149211,
+        "p50": 0.239122,
+        "p95": 0.49959,
+        "p99": null,
+        "max": 8.31331
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 1244.0,
+      "rss_peak_kib": 1244,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 764,
+      "shmem_peak_kib": 252,
+      "tree_rss_peak_kib": 1244,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r3-c",
+      "group": "exact-c-vs-g",
+      "round": 3,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 46,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 92.0,
+      "cpu_endpoint_seconds": 27.033410103,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.073018,
+        "p50": 0.149652,
+        "p95": 0.408871,
+        "p99": null,
+        "max": 17.25051
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.067549,
+        "p50": 0.102463,
+        "p95": 0.18941,
+        "p99": null,
+        "max": 12.571544
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.151564,
+        "p50": 0.252752,
+        "p95": 0.668134,
+        "p99": null,
+        "max": 17.537613
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 1232.0,
+      "rss_peak_kib": 1232,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 752,
+      "shmem_peak_kib": 252,
+      "tree_rss_peak_kib": 1232,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r3-rust",
+      "group": "exact-c-vs-g",
+      "round": 3,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.015638768,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088715,
+        "p50": 0.179814,
+        "p95": 0.543211,
+        "p99": null,
+        "max": 31.786655
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.045694,
+        "p50": 0.10379,
+        "p95": 0.190638,
+        "p99": null,
+        "max": 30.609188
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.167661,
+        "p50": 0.28417,
+        "p95": 0.892425,
+        "p99": null,
+        "max": 35.428528
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2412.0,
+      "rss_peak_kib": 2412,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1892,
+      "tree_rss_peak_kib": 2412,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r4-rust",
+      "group": "exact-c-vs-g",
+      "round": 4,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.016021629,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090022,
+        "p50": 0.174659,
+        "p95": 0.353933,
+        "p99": null,
+        "max": 7.278805
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.066991,
+        "p50": 0.099277,
+        "p95": 0.168536,
+        "p99": null,
+        "max": 3.843892
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.168566,
+        "p50": 0.275022,
+        "p95": 0.524327,
+        "p99": null,
+        "max": 7.463088
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1892,
+      "tree_rss_peak_kib": 2416,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r4-c",
+      "group": "exact-c-vs-g",
+      "round": 4,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 42,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 84.0,
+      "cpu_endpoint_seconds": 27.011271211,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.071095,
+        "p50": 0.138881,
+        "p95": 0.296767,
+        "p99": null,
+        "max": 9.621781
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050971,
+        "p50": 0.098015,
+        "p95": 0.162584,
+        "p99": null,
+        "max": 8.610941
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.147748,
+        "p50": 0.237186,
+        "p95": 0.461104,
+        "p99": null,
+        "max": 10.420469
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 1244.0,
+      "rss_peak_kib": 1244,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 764,
+      "shmem_peak_kib": 252,
+      "tree_rss_peak_kib": 1244,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r5-c",
+      "group": "exact-c-vs-g",
+      "round": 5,
+      "side": "c",
+      "artifact": "exact-c",
+      "mode": null,
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 45,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 90.0,
+      "cpu_endpoint_seconds": 27.016048964,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.070402,
+        "p50": 0.153961,
+        "p95": 1.093273,
+        "p99": null,
+        "max": 47.907004
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.036651,
+        "p50": 0.103261,
+        "p95": 0.371084,
+        "p99": null,
+        "max": 30.526663
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.147658,
+        "p50": 0.259493,
+        "p95": 2.024082,
+        "p99": null,
+        "max": 48.196356
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 1176.0,
+      "rss_peak_kib": 1176,
+      "anon_peak_kib": 228,
+      "file_peak_kib": 696,
+      "shmem_peak_kib": 252,
+      "tree_rss_peak_kib": 1176,
+      "tree_fd_peak": 11,
+      "parent_fd_peak": 11,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-exact-c-vs-g-r5-rust",
+      "group": "exact-c-vs-g",
+      "round": 5,
+      "side": "rust",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.015922866,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.091485,
+        "p50": 0.175043,
+        "p95": 0.325004,
+        "p99": null,
+        "max": 9.353637
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.052907,
+        "p50": 0.099305,
+        "p95": 0.15389,
+        "p99": null,
+        "max": 4.560679
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.172578,
+        "p50": 0.275088,
+        "p95": 0.480062,
+        "p99": null,
+        "max": 9.526721
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2356.0,
+      "rss_peak_kib": 2356,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1836,
+      "tree_rss_peak_kib": 2356,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r1-c",
+      "group": "g-vs-stage-full",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.015449881,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088714,
+        "p50": 0.17589,
+        "p95": 0.458422,
+        "p99": null,
+        "max": 25.291296
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.071863,
+        "p50": 0.099927,
+        "p95": 0.188452,
+        "p99": null,
+        "max": 30.960507
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.16671,
+        "p50": 0.276434,
+        "p95": 0.743842,
+        "p99": null,
+        "max": 37.650348
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r1-rust",
+      "group": "g-vs-stage-full",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 66,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 132.0,
+      "cpu_endpoint_seconds": 27.016359178,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.094485,
+        "p50": 0.188201,
+        "p95": 1.024101,
+        "p99": null,
+        "max": 34.575992
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.016144,
+        "p50": 0.103985,
+        "p95": 0.301639,
+        "p99": null,
+        "max": 24.747934
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.174649,
+        "p50": 0.292355,
+        "p95": 2.621279,
+        "p99": null,
+        "max": 56.739822
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2372.0,
+      "rss_peak_kib": 2372,
+      "anon_peak_kib": 528,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_rss_peak_kib": 2372,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r2-rust",
+      "group": "g-vs-stage-full",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 64,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 128.0,
+      "cpu_endpoint_seconds": 27.016112053,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.089561,
+        "p50": 0.183815,
+        "p95": 0.640544,
+        "p99": null,
+        "max": 19.785926
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.022738,
+        "p50": 0.102501,
+        "p95": 0.192541,
+        "p99": null,
+        "max": 14.928862
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.168472,
+        "p50": 0.287509,
+        "p95": 1.12189,
+        "p99": null,
+        "max": 26.462579
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2420.0,
+      "rss_peak_kib": 2420,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1896,
+      "tree_rss_peak_kib": 2420,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r2-c",
+      "group": "g-vs-stage-full",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.02338973,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090715,
+        "p50": 0.179737,
+        "p95": 0.382096,
+        "p99": null,
+        "max": 8.274059
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.039892,
+        "p50": 0.10193,
+        "p95": 0.179352,
+        "p99": null,
+        "max": 7.439289
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.169932,
+        "p50": 0.282255,
+        "p95": 0.568215,
+        "p99": null,
+        "max": 9.856124
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2400.0,
+      "rss_peak_kib": 2400,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_rss_peak_kib": 2400,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r3-c",
+      "group": "g-vs-stage-full",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.017426805,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088484,
+        "p50": 0.182738,
+        "p95": 0.533979,
+        "p99": null,
+        "max": 26.907313
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.027706,
+        "p50": 0.103659,
+        "p95": 0.198736,
+        "p99": null,
+        "max": 24.929288
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.167666,
+        "p50": 0.287189,
+        "p95": 1.110506,
+        "p99": null,
+        "max": 47.866613
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2400.0,
+      "rss_peak_kib": 2400,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1876,
+      "tree_rss_peak_kib": 2400,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r3-rust",
+      "group": "g-vs-stage-full",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 61,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "cpu_endpoint_seconds": 27.015538407,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.096562,
+        "p50": 0.17966,
+        "p95": 0.310154,
+        "p99": null,
+        "max": 5.837684
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.059458,
+        "p50": 0.100082,
+        "p95": 0.148914,
+        "p99": null,
+        "max": 2.289199
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.17695,
+        "p50": 0.280813,
+        "p95": 0.45292,
+        "p99": null,
+        "max": 7.259346
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2376.0,
+      "rss_peak_kib": 2376,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1848,
+      "tree_rss_peak_kib": 2376,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r4-rust",
+      "group": "g-vs-stage-full",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 58,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "cpu_endpoint_seconds": 27.015776701,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.091715,
+        "p50": 0.174889,
+        "p95": 0.322696,
+        "p99": null,
+        "max": 8.366544
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058962,
+        "p50": 0.099598,
+        "p95": 0.157984,
+        "p99": null,
+        "max": 7.909308
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171059,
+        "p50": 0.27515,
+        "p95": 0.483338,
+        "p99": null,
+        "max": 8.535306
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2372.0,
+      "rss_peak_kib": 2372,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1852,
+      "tree_rss_peak_kib": 2372,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r4-c",
+      "group": "g-vs-stage-full",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": null
+      },
+      "cpu_ticks": 61,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "cpu_endpoint_seconds": 27.016845527,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090177,
+        "p50": 0.175736,
+        "p95": 0.398176,
+        "p99": null,
+        "max": 17.796122
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.061386,
+        "p50": 0.100503,
+        "p95": 0.181736,
+        "p99": null,
+        "max": 31.705748
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.169963,
+        "p50": 0.276833,
+        "p95": 0.593356,
+        "p99": null,
+        "max": 33.616238
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2368.0,
+      "rss_peak_kib": 2368,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_rss_peak_kib": 2368,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r5-c",
+      "group": "g-vs-stage-full",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": null
+      },
+      "cpu_ticks": 61,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "cpu_endpoint_seconds": 27.016509626,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090946,
+        "p50": 0.172658,
+        "p95": 0.340008,
+        "p99": null,
+        "max": 5.014479
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.057912,
+        "p50": 0.098646,
+        "p95": 0.164846,
+        "p99": null,
+        "max": 4.899312
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171427,
+        "p50": 0.271907,
+        "p95": 0.507947,
+        "p99": null,
+        "max": 5.967146
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_rss_peak_kib": 2408,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-g-vs-stage-full-r5-rust",
+      "group": "g-vs-stage-full",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.013906445,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090945,
+        "p50": 0.174659,
+        "p95": 0.297074,
+        "p99": null,
+        "max": 12.165797
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.062256,
+        "p50": 0.099421,
+        "p95": 0.148372,
+        "p99": null,
+        "max": 7.418862
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.16931,
+        "p50": 0.275119,
+        "p95": 0.436921,
+        "p99": null,
+        "max": 12.387777
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2452.0,
+      "rss_peak_kib": 2452,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1924,
+      "tree_rss_peak_kib": 2452,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r1-c",
+      "group": "stage-full-vs-receive",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 65,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 130.0,
+      "cpu_endpoint_seconds": 27.016013361,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.086791,
+        "p50": 0.184431,
+        "p95": 0.812741,
+        "p99": null,
+        "max": 31.34434
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.037607,
+        "p50": 0.10356,
+        "p95": 0.214823,
+        "p99": null,
+        "max": 33.107861
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.166017,
+        "p50": 0.289477,
+        "p95": 1.537595,
+        "p99": null,
+        "max": 57.534171
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2424.0,
+      "rss_peak_kib": 2424,
+      "anon_peak_kib": 528,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1892,
+      "tree_rss_peak_kib": 2424,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r1-rust",
+      "group": "stage-full-vs-receive",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 40,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 80.0,
+      "cpu_endpoint_seconds": 27.016357016,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.063401,
+        "p50": 0.130417,
+        "p95": 0.305384,
+        "p99": null,
+        "max": 8.092091
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.040643,
+        "p50": 0.102318,
+        "p95": 0.179796,
+        "p99": null,
+        "max": 12.082023
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.139819,
+        "p50": 0.233356,
+        "p95": 0.492143,
+        "p99": null,
+        "max": 12.811358
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1880,
+      "tree_rss_peak_kib": 2404,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r2-rust",
+      "group": "stage-full-vs-receive",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 39,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 78.0,
+      "cpu_endpoint_seconds": 27.021159785,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.063554,
+        "p50": 0.124492,
+        "p95": 0.28584,
+        "p99": null,
+        "max": 9.567766
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.06323,
+        "p50": 0.098901,
+        "p95": 0.168823,
+        "p99": null,
+        "max": 10.037696
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.140751,
+        "p50": 0.223839,
+        "p95": 0.462391,
+        "p99": null,
+        "max": 10.351585
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2460.0,
+      "rss_peak_kib": 2460,
+      "anon_peak_kib": 556,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1900,
+      "tree_rss_peak_kib": 2460,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r2-c",
+      "group": "stage-full-vs-receive",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.015912263,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092331,
+        "p50": 0.188431,
+        "p95": 1.641563,
+        "p99": null,
+        "max": 54.164864
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058214,
+        "p50": 0.105061,
+        "p95": 0.430504,
+        "p99": null,
+        "max": 33.863179
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.172356,
+        "p50": 0.294172,
+        "p95": 2.870954,
+        "p99": null,
+        "max": 58.011657
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2452.0,
+      "rss_peak_kib": 2452,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1928,
+      "tree_rss_peak_kib": 2452,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r3-c",
+      "group": "stage-full-vs-receive",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.023149773,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088099,
+        "p50": 0.173813,
+        "p95": 0.283686,
+        "p99": null,
+        "max": 3.660064
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.06005,
+        "p50": 0.098549,
+        "p95": 0.147212,
+        "p99": null,
+        "max": 1.357034
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.167263,
+        "p50": 0.273113,
+        "p95": 0.419605,
+        "p99": null,
+        "max": 3.798757
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 528,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_rss_peak_kib": 2416,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r3-rust",
+      "group": "stage-full-vs-receive",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 37,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 74.0,
+      "cpu_endpoint_seconds": 27.015923763,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.064016,
+        "p50": 0.123954,
+        "p95": 0.254295,
+        "p99": null,
+        "max": 9.48336
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.063282,
+        "p50": 0.099445,
+        "p95": 0.156976,
+        "p99": null,
+        "max": 5.742992
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.14144,
+        "p50": 0.22445,
+        "p95": 0.413208,
+        "p99": null,
+        "max": 9.623588
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2420.0,
+      "rss_peak_kib": 2420,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1900,
+      "tree_rss_peak_kib": 2420,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r4-rust",
+      "group": "stage-full-vs-receive",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 37,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 74.0,
+      "cpu_endpoint_seconds": 27.015580159,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.063016,
+        "p50": 0.12757,
+        "p95": 0.231903,
+        "p99": null,
+        "max": 8.930145
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.062703,
+        "p50": 0.099633,
+        "p95": 0.151672,
+        "p99": null,
+        "max": 6.702021
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.13974,
+        "p50": 0.228115,
+        "p95": 0.382648,
+        "p99": null,
+        "max": 9.073314
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1880,
+      "tree_rss_peak_kib": 2404,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r4-c",
+      "group": "stage-full-vs-receive",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.015315424,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088176,
+        "p50": 0.174966,
+        "p95": 0.452189,
+        "p99": null,
+        "max": 20.901586
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.053107,
+        "p50": 0.099066,
+        "p95": 0.181772,
+        "p99": null,
+        "max": 12.212383
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.166996,
+        "p50": 0.275206,
+        "p95": 0.686748,
+        "p99": null,
+        "max": 21.21408
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_rss_peak_kib": 2364,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r5-c",
+      "group": "stage-full-vs-receive",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.015933064,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090331,
+        "p50": 0.17689,
+        "p95": 0.49697,
+        "p99": null,
+        "max": 11.292348
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055404,
+        "p50": 0.098868,
+        "p95": 0.188702,
+        "p99": null,
+        "max": 9.489566
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.168729,
+        "p50": 0.276966,
+        "p95": 1.005039,
+        "p99": null,
+        "max": 15.302802
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2372.0,
+      "rss_peak_kib": 2372,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1848,
+      "tree_rss_peak_kib": 2372,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-receive-r5-rust",
+      "group": "stage-full-vs-receive",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "receive",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 1,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            5000,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 36,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 72.0,
+      "cpu_endpoint_seconds": 27.01617169,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.064862,
+        "p50": 0.129801,
+        "p95": 0.269221,
+        "p99": null,
+        "max": 11.399529
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.065677,
+        "p50": 0.100059,
+        "p95": 0.179284,
+        "p99": null,
+        "max": 5.589831
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.142837,
+        "p50": 0.235701,
+        "p95": 0.451653,
+        "p99": null,
+        "max": 11.664526
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1884,
+      "tree_rss_peak_kib": 2404,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r1-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 60,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 120.0,
+      "cpu_endpoint_seconds": 27.015559947,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092561,
+        "p50": 0.175659,
+        "p95": 0.375094,
+        "p99": null,
+        "max": 9.586462
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.054991,
+        "p50": 0.098587,
+        "p95": 0.173247,
+        "p99": null,
+        "max": 7.682704
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171069,
+        "p50": 0.274976,
+        "p95": 0.558934,
+        "p99": null,
+        "max": 15.508267
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r1-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 46,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 92.0,
+      "cpu_endpoint_seconds": 27.016128758,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.071171,
+        "p50": 0.143035,
+        "p95": 0.222363,
+        "p99": null,
+        "max": 2.022965
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.053491,
+        "p50": 0.099234,
+        "p95": 0.145085,
+        "p99": null,
+        "max": 1.551221
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.149241,
+        "p50": 0.243188,
+        "p95": 0.360504,
+        "p99": null,
+        "max": 3.574186
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2460.0,
+      "rss_peak_kib": 2460,
+      "anon_peak_kib": 528,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1928,
+      "tree_rss_peak_kib": 2460,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r2-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 50,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 100.0,
+      "cpu_endpoint_seconds": 27.015572191,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.073249,
+        "p50": 0.1545,
+        "p95": 0.711639,
+        "p99": null,
+        "max": 28.595114
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.045275,
+        "p50": 0.104362,
+        "p95": 0.208827,
+        "p99": null,
+        "max": 24.610292
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.150895,
+        "p50": 0.259265,
+        "p95": 1.756631,
+        "p99": null,
+        "max": 33.35572
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2368.0,
+      "rss_peak_kib": 2368,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_rss_peak_kib": 2368,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r2-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 58,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "cpu_endpoint_seconds": 27.025319344,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090561,
+        "p50": 0.174428,
+        "p95": 0.286687,
+        "p99": null,
+        "max": 16.751782
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.035848,
+        "p50": 0.099881,
+        "p95": 0.149758,
+        "p99": null,
+        "max": 12.719299
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.169774,
+        "p50": 0.275219,
+        "p95": 0.428057,
+        "p99": null,
+        "max": 17.688522
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2412.0,
+      "rss_peak_kib": 2412,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_rss_peak_kib": 2412,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r3-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 61,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 122.0,
+      "cpu_endpoint_seconds": 27.01512231,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.091023,
+        "p50": 0.175505,
+        "p95": 0.334468,
+        "p99": null,
+        "max": 7.925587
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.059336,
+        "p50": 0.100225,
+        "p95": 0.164885,
+        "p99": null,
+        "max": 4.14253
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.171125,
+        "p50": 0.275942,
+        "p95": 0.499568,
+        "p99": null,
+        "max": 8.086139
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2360.0,
+      "rss_peak_kib": 2360,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_rss_peak_kib": 2360,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r3-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 49,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 98.0,
+      "cpu_endpoint_seconds": 27.018028167,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.071479,
+        "p50": 0.144498,
+        "p95": 0.545828,
+        "p99": null,
+        "max": 44.014411
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.050145,
+        "p50": 0.099054,
+        "p95": 0.195069,
+        "p99": null,
+        "max": 34.336651
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.14799,
+        "p50": 0.243803,
+        "p95": 0.980183,
+        "p99": null,
+        "max": 48.232864
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2372.0,
+      "rss_peak_kib": 2372,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1852,
+      "tree_rss_peak_kib": 2372,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r4-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 45,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 90.0,
+      "cpu_endpoint_seconds": 27.015870463,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.072942,
+        "p50": 0.142497,
+        "p95": 0.318772,
+        "p99": null,
+        "max": 6.943573
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.058173,
+        "p50": 0.098015,
+        "p95": 0.171112,
+        "p99": null,
+        "max": 7.234339
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.150366,
+        "p50": 0.240852,
+        "p95": 0.492719,
+        "p99": null,
+        "max": 7.587658
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2392.0,
+      "rss_peak_kib": 2392,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_rss_peak_kib": 2392,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r4-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 63,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 126.0,
+      "cpu_endpoint_seconds": 27.015587203,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087252,
+        "p50": 0.17989,
+        "p95": 0.722103,
+        "p99": null,
+        "max": 14.025412
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.039144,
+        "p50": 0.102453,
+        "p95": 0.194268,
+        "p99": null,
+        "max": 9.293158
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.166711,
+        "p50": 0.283054,
+        "p95": 1.276918,
+        "p99": null,
+        "max": 15.369023
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2376.0,
+      "rss_peak_kib": 2376,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1852,
+      "tree_rss_peak_kib": 2376,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r5-c",
+      "group": "stage-full-vs-before-answer",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 62,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 124.0,
+      "cpu_endpoint_seconds": 27.015507767,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.088176,
+        "p50": 0.172966,
+        "p95": 0.381556,
+        "p99": null,
+        "max": 12.889745
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.052195,
+        "p50": 0.099296,
+        "p95": 0.178518,
+        "p99": null,
+        "max": 13.667734
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.166858,
+        "p50": 0.273336,
+        "p95": 0.569827,
+        "p99": null,
+        "max": 14.711609
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2416.0,
+      "rss_peak_kib": 2416,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1896,
+      "tree_rss_peak_kib": 2416,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-before-answer-r5-rust",
+      "group": "stage-full-vs-before-answer",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "before-answer",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 2,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            5000,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 47,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 94.0,
+      "cpu_endpoint_seconds": 27.013721754,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.073865,
+        "p50": 0.143959,
+        "p95": 0.306461,
+        "p99": null,
+        "max": 8.359849
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.064418,
+        "p50": 0.099037,
+        "p95": 0.168338,
+        "p99": null,
+        "max": 4.064563
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.153501,
+        "p50": 0.243286,
+        "p95": 0.475885,
+        "p99": null,
+        "max": 9.034171
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2448.0,
+      "rss_peak_kib": 2448,
+      "anon_peak_kib": 524,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1920,
+      "tree_rss_peak_kib": 2448,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r1-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 1,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 58,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "cpu_endpoint_seconds": 27.018480541,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090946,
+        "p50": 0.169735,
+        "p95": 0.246292,
+        "p99": null,
+        "max": 11.675443
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.05385,
+        "p50": 0.098434,
+        "p95": 0.140856,
+        "p99": null,
+        "max": 7.25554
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.169948,
+        "p50": 0.269352,
+        "p95": 0.376787,
+        "p99": null,
+        "max": 12.223378
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2408.0,
+      "rss_peak_kib": 2408,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_rss_peak_kib": 2408,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r1-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 1,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 55,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "cpu_endpoint_seconds": 27.021184033,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.080789,
+        "p50": 0.183276,
+        "p95": 0.834208,
+        "p99": null,
+        "max": 118.26757
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.052305,
+        "p50": 0.097892,
+        "p95": 0.371448,
+        "p99": null,
+        "max": 74.111112
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.158971,
+        "p50": 0.283823,
+        "p95": 1.814884,
+        "p99": null,
+        "max": 124.02509
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2360.0,
+      "rss_peak_kib": 2360,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1840,
+      "tree_rss_peak_kib": 2360,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r2-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 2,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 54,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 108.0,
+      "cpu_endpoint_seconds": 27.013072069,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.084098,
+        "p50": 0.160424,
+        "p95": 0.221363,
+        "p99": null,
+        "max": 5.549457
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055245,
+        "p50": 0.095996,
+        "p95": 0.134423,
+        "p99": null,
+        "max": 1.434019
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.161782,
+        "p50": 0.256607,
+        "p95": 0.353041,
+        "p99": null,
+        "max": 5.711455
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2380.0,
+      "rss_peak_kib": 2380,
+      "anon_peak_kib": 528,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1848,
+      "tree_rss_peak_kib": 2380,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r2-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 2,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 59,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 118.0,
+      "cpu_endpoint_seconds": 27.015929603,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092946,
+        "p50": 0.173351,
+        "p95": 0.362705,
+        "p99": null,
+        "max": 9.901154
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.020869,
+        "p50": 0.09866,
+        "p95": 0.168691,
+        "p99": null,
+        "max": 5.227991
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.170089,
+        "p50": 0.272908,
+        "p95": 0.533723,
+        "p99": null,
+        "max": 10.129967
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2372.0,
+      "rss_peak_kib": 2372,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1848,
+      "tree_rss_peak_kib": 2372,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r3-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 3,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 57,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 114.0,
+      "cpu_endpoint_seconds": 27.015939432,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.087714,
+        "p50": 0.17112,
+        "p95": 0.264296,
+        "p99": null,
+        "max": 2.422525
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.060059,
+        "p50": 0.097973,
+        "p95": 0.145753,
+        "p99": null,
+        "max": 1.73367
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.16651,
+        "p50": 0.270155,
+        "p95": 0.404739,
+        "p99": null,
+        "max": 2.619344
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2396.0,
+      "rss_peak_kib": 2396,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1872,
+      "tree_rss_peak_kib": 2396,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r3-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 3,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 54,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 108.0,
+      "cpu_endpoint_seconds": 27.014717725,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.083713,
+        "p50": 0.162117,
+        "p95": 0.271375,
+        "p99": null,
+        "max": 11.5688
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.055725,
+        "p50": 0.097639,
+        "p95": 0.149658,
+        "p99": null,
+        "max": 6.970111
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.161962,
+        "p50": 0.260767,
+        "p95": 0.420494,
+        "p99": null,
+        "max": 17.241308
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2368.0,
+      "rss_peak_kib": 2368,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1848,
+      "tree_rss_peak_kib": 2368,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r4-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 4,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 55,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "cpu_endpoint_seconds": 27.015856068,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.064862,
+        "p50": 0.166811,
+        "p95": 0.405177,
+        "p99": null,
+        "max": 40.430516
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.024392,
+        "p50": 0.099183,
+        "p95": 0.194815,
+        "p99": null,
+        "max": 36.092715
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.089254,
+        "p50": 0.26731,
+        "p95": 0.671007,
+        "p99": null,
+        "max": 41.842376
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2404.0,
+      "rss_peak_kib": 2404,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1880,
+      "tree_rss_peak_kib": 2404,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r4-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 4,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 58,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 116.0,
+      "cpu_endpoint_seconds": 27.015581139,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.090407,
+        "p50": 0.172197,
+        "p95": 0.257757,
+        "p99": null,
+        "max": 5.40796
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.064699,
+        "p50": 0.097679,
+        "p95": 0.143893,
+        "p99": null,
+        "max": 1.567927
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.168331,
+        "p50": 0.271014,
+        "p95": 0.396391,
+        "p99": null,
+        "max": 5.52327
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2364.0,
+      "rss_peak_kib": 2364,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1844,
+      "tree_rss_peak_kib": 2364,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r5-c",
+      "group": "stage-full-vs-skip-local",
+      "round": 5,
+      "side": "c",
+      "artifact": "stage",
+      "mode": "full",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 31,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 0,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "cpu_ticks": 55,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "cpu_endpoint_seconds": 27.01574932,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.092562,
+        "p50": 0.165503,
+        "p95": 0.245908,
+        "p99": null,
+        "max": 9.808516
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.063139,
+        "p50": 0.094853,
+        "p95": 0.138803,
+        "p99": null,
+        "max": 1.802664
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.172024,
+        "p50": 0.260604,
+        "p95": 0.377694,
+        "p99": null,
+        "max": 9.893813
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2412.0,
+      "rss_peak_kib": 2412,
+      "anon_peak_kib": 520,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1888,
+      "tree_rss_peak_kib": 2412,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    },
+    {
+      "label": "a53-g-stage-stage-full-vs-skip-local-r5-rust",
+      "group": "stage-full-vs-skip-local",
+      "round": 5,
+      "side": "rust",
+      "artifact": "stage",
+      "mode": "skip-local",
+      "elf_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+      "valid": true,
+      "case_exit": 0,
+      "daemon_exit": 0,
+      "diagnostic": {
+        "correct_fixture_replies": 6000,
+        "thread_samples": 32,
+        "raw": {
+          "scope": "excluded synthetic cumulative-path intervention, not oracle correctness or accepted performance",
+          "mode": 3,
+          "matched_queries": 6000,
+          "prewarm_threshold": 1000,
+          "cuts_by_mode": [
+            0,
+            0,
+            0,
+            5000
+          ]
+        }
+      },
+      "cpu_ticks": 55,
+      "cpu_hz": 100,
+      "cpu_operations": 5000,
+      "cpu_us_per_operation": 110.0,
+      "cpu_endpoint_seconds": 27.015528715,
+      "latency_ms": {
+        "n": 4000,
+        "min": 0.085405,
+        "p50": 0.164656,
+        "p95": 0.265989,
+        "p99": null,
+        "max": 7.758621
+      },
+      "send_lag_ms": {
+        "n": 4000,
+        "min": 0.05772,
+        "p50": 0.098224,
+        "p95": 0.144735,
+        "p99": null,
+        "max": 14.085636
+      },
+      "scheduled_latency_ms": {
+        "n": 4000,
+        "min": 0.164251,
+        "p50": 0.263401,
+        "p95": 0.399123,
+        "p99": null,
+        "max": 20.780301
+      },
+      "resource_samples": 20,
+      "rss_median_kib": 2400.0,
+      "rss_peak_kib": 2400,
+      "anon_peak_kib": 516,
+      "file_peak_kib": 4,
+      "shmem_peak_kib": 1880,
+      "tree_rss_peak_kib": 2400,
+      "tree_fd_peak": 12,
+      "parent_fd_peak": 12,
+      "thread_peak": 1,
+      "process_peak": 1,
+      "upstream": {
+        "requests": 800,
+        "replies": 800,
+        "generated_replies": 800,
+        "disabled_requests": 0,
+        "dropped_requests": 0,
+        "invalid_queries": 0,
+        "udp_requests": 800,
+        "tcp_requests": 0
+      }
+    }
+  ],
+  "archive_verification": {
+    "complete": true,
+    "windows": 50,
+    "archives": {
+      "a53-g-stage-exact-c-vs-g-r1-c": {
+        "files": 43,
+        "sha256": "ccd8fee9661b7c563b3363a672afdae6e7b981136df91a057ffdff53bd1bd5bb"
+      },
+      "a53-g-stage-exact-c-vs-g-r1-rust": {
+        "files": 43,
+        "sha256": "411aefeefb9814140b88a657910e474e4d2937a796eef2facd781323d0a82fcc"
+      },
+      "a53-g-stage-exact-c-vs-g-r2-rust": {
+        "files": 43,
+        "sha256": "fad8931bbb3849691beb470df99dd1704c25b2d29d0a5ae3b6b446f31289fef0"
+      },
+      "a53-g-stage-exact-c-vs-g-r2-c": {
+        "files": 43,
+        "sha256": "9423c5ab217cbc3910ed73664c7c0dc3e92e2ea0f4b396b55ecf52206c9b7817"
+      },
+      "a53-g-stage-exact-c-vs-g-r3-c": {
+        "files": 43,
+        "sha256": "3586c571c9fa68256c06baa7799974a377af38b45849ba1b8af1b227d991444f"
+      },
+      "a53-g-stage-exact-c-vs-g-r3-rust": {
+        "files": 43,
+        "sha256": "311124bb39cfc86a406b9b35e22a1682f88dcf47b072faccc6d4b487461c51ee"
+      },
+      "a53-g-stage-exact-c-vs-g-r4-rust": {
+        "files": 43,
+        "sha256": "35ab192b58512a5817ff01344ddfa4efeedd7e72612c74a255338bd1c4809363"
+      },
+      "a53-g-stage-exact-c-vs-g-r4-c": {
+        "files": 43,
+        "sha256": "dd3facee615caa33378039266a5472ff381696b89a94304694531c84c1312260"
+      },
+      "a53-g-stage-exact-c-vs-g-r5-c": {
+        "files": 43,
+        "sha256": "7605da04cd3428445ca0991d81f0b1626c0af5c7c2438b4d7854278f8a3b4be0"
+      },
+      "a53-g-stage-exact-c-vs-g-r5-rust": {
+        "files": 43,
+        "sha256": "46dc30a60d76c1fd89462fce7ede6a1c5a421cb36d6ee7f6ce5b658c8f1ad9ae"
+      },
+      "a53-g-stage-g-vs-stage-full-r1-c": {
+        "files": 43,
+        "sha256": "0bb60934b3357cdf2e3555100e28e3c9738082e378f55668e556acb9533f863b"
+      },
+      "a53-g-stage-g-vs-stage-full-r1-rust": {
+        "files": 44,
+        "sha256": "801431d9478593d33c31e901cf104146f181b5b5cd00a5e0893c5e49383f42c9"
+      },
+      "a53-g-stage-g-vs-stage-full-r2-rust": {
+        "files": 44,
+        "sha256": "74adfa90917c81126d40fc5e6ac8a2a173aa7454adfe00fc173ad3aef99f6e2b"
+      },
+      "a53-g-stage-g-vs-stage-full-r2-c": {
+        "files": 43,
+        "sha256": "85374e492864befa6be648535a36ce522acb70ef26566153e442a0e0414bec51"
+      },
+      "a53-g-stage-g-vs-stage-full-r3-c": {
+        "files": 43,
+        "sha256": "b74f17a3c10576a615fce30ea2b9d17b072dcf41f57f75fd03dd12853832172c"
+      },
+      "a53-g-stage-g-vs-stage-full-r3-rust": {
+        "files": 44,
+        "sha256": "387ece317ee6afa180c5ca0b26eaae70aa117fc6d8df4a1fca231a9eebe83243"
+      },
+      "a53-g-stage-g-vs-stage-full-r4-rust": {
+        "files": 44,
+        "sha256": "0f2381f1c59741f0c360dd015944d3fd5982d33ea666023282528e17fcc983a2"
+      },
+      "a53-g-stage-g-vs-stage-full-r4-c": {
+        "files": 43,
+        "sha256": "8ca6ebed8dee5f545e1fa9f791428867ef0a23e10dc5c77b7db708679754bc84"
+      },
+      "a53-g-stage-g-vs-stage-full-r5-c": {
+        "files": 43,
+        "sha256": "5d39390de4541a3bf190f236cd72c07b06700fb1cc50cbbe28078ad3921d375c"
+      },
+      "a53-g-stage-g-vs-stage-full-r5-rust": {
+        "files": 44,
+        "sha256": "89829ec3e937912273488ecd64181b3d4ee3380bb983481167db5697dca349f6"
+      },
+      "a53-g-stage-stage-full-vs-receive-r1-c": {
+        "files": 44,
+        "sha256": "dc3c4784172bb23aad5d80b8b1634d0c58d0575b1dca51b06d6750aa31c1620d"
+      },
+      "a53-g-stage-stage-full-vs-receive-r1-rust": {
+        "files": 44,
+        "sha256": "a0aa68521c0cefa9344afb2d0e634009b4304c757af3442595fe36daed39a4f3"
+      },
+      "a53-g-stage-stage-full-vs-receive-r2-rust": {
+        "files": 44,
+        "sha256": "b70303351fc95cdf5d010df3f8783306a8280d65bd26df7cf4fe84c06a53b50c"
+      },
+      "a53-g-stage-stage-full-vs-receive-r2-c": {
+        "files": 44,
+        "sha256": "7b11b71895f471e8d9ba9d8c1371207fc7b8c3fc274d898e2f379c398d88fa60"
+      },
+      "a53-g-stage-stage-full-vs-receive-r3-c": {
+        "files": 44,
+        "sha256": "66990f6b946b48181ac383dc8d9d7c7254aade87b7bf381aa5e916c339a5b8ae"
+      },
+      "a53-g-stage-stage-full-vs-receive-r3-rust": {
+        "files": 44,
+        "sha256": "ca616d528a465416e1f0433f8d569fa183179b62f5ee27ebb235050467eb2f58"
+      },
+      "a53-g-stage-stage-full-vs-receive-r4-rust": {
+        "files": 44,
+        "sha256": "9df4ff16961fc0dd52cd2b065d87a49521a33ebf443a1e094921830c69951e16"
+      },
+      "a53-g-stage-stage-full-vs-receive-r4-c": {
+        "files": 44,
+        "sha256": "e7bd6b5bbc1939da6e8905cf74b9db9544529698b13e51765bf1ed6941dd5cfd"
+      },
+      "a53-g-stage-stage-full-vs-receive-r5-c": {
+        "files": 44,
+        "sha256": "052716af241d8b1a2e87ba4a372f329341e79a0a1c98aa4877e51a1526e6bd7d"
+      },
+      "a53-g-stage-stage-full-vs-receive-r5-rust": {
+        "files": 44,
+        "sha256": "c7816183267001c4de7e8679fdeac1b63c1aa3546d96301c8e7c7857fc1226fd"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r1-c": {
+        "files": 44,
+        "sha256": "fee2f52850ea17731c164e950bcc52c006cde4bda7155762d339ef5de29cd93a"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r1-rust": {
+        "files": 44,
+        "sha256": "1d4fc533dfb7d72273550f18b6662838cf1cca08c96d7c4f764f908131ff149c"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r2-rust": {
+        "files": 44,
+        "sha256": "64c6ac2d69d0d07d9cd17be9f6a115d145275e9c7245902339431580e5238b85"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r2-c": {
+        "files": 44,
+        "sha256": "5c72e6777f229fb91005d540841ee693632585023fdd84354274645c668b2c95"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r3-c": {
+        "files": 44,
+        "sha256": "052e5a31d00e8c555c9366b3bf1d80d1dfb890b4f3b4865ff0551b6e1aab258e"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r3-rust": {
+        "files": 44,
+        "sha256": "de017fe26c7038f326827640c8d61dd1126a8333ec2c02f5c072a338cef8482e"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r4-rust": {
+        "files": 44,
+        "sha256": "f637dbfa97b2fd2d0c183ae09df2bcbc95dce694396af884e9c90f1c67a073b3"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r4-c": {
+        "files": 44,
+        "sha256": "b1e440085dbd3f8cb6967940fbc054fbfc79fe60b96969e9c7a74f1be6936a96"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r5-c": {
+        "files": 44,
+        "sha256": "844078fc2926926a8efe442f44f18ff16cee91ca77e75f990fd847c3cbbcbc19"
+      },
+      "a53-g-stage-stage-full-vs-before-answer-r5-rust": {
+        "files": 44,
+        "sha256": "74560ab5c1a7fe4881121a35c8e63928097526cb52afc75af7c3180dc88cd17c"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r1-c": {
+        "files": 44,
+        "sha256": "e9df494b63db3b8857423674c02de91a72f88e8fa82ad78a5a7dc66daba76ae5"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r1-rust": {
+        "files": 44,
+        "sha256": "69afaa9d35792d4c61e2f5d8691e8c98e4eb0cd9d43f95e175a280b73d1de97c"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r2-rust": {
+        "files": 44,
+        "sha256": "3fa363831340f82077ec944c68e9c46de216321d54efb342dd0431f82155e96e"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r2-c": {
+        "files": 44,
+        "sha256": "218ebfdfe6ad87901894b602f924e7288f42bdb70c9817495dc68d44d2c7be78"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r3-c": {
+        "files": 44,
+        "sha256": "089b8d2e514c7fcc045bde810050937d067af6d8e6b9b2d42a5a9aaa89b36eb8"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r3-rust": {
+        "files": 44,
+        "sha256": "53ab1b618d4abc98c17bb6aedc75e2e9dcbdf9506f4316361968596d125777b4"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r4-rust": {
+        "files": 44,
+        "sha256": "4e069fc3d163bbf90964da783bcb700dc52f64e17ec3ba9f17b467bd888c3065"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r4-c": {
+        "files": 44,
+        "sha256": "86de0cb7a7beef04b67a9781247fe772ab6dc5bedbe0fdeacb03519941980f6f"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r5-c": {
+        "files": 44,
+        "sha256": "ddb82880979d6717fb8086578234bb68e0ead75a2c03616651f14a8798e19f80"
+      },
+      "a53-g-stage-stage-full-vs-skip-local-r5-rust": {
+        "files": 44,
+        "sha256": "40395ea2a839e0c7c34205403fe9d12184b915ef34f09c691683599503d0eaba"
+      }
+    },
+    "raw_files": 2185,
+    "thread_samples": 1575,
+    "guard_samples": 2091,
+    "qualified_guard_samples": 2091,
+    "guard_tail_samples": 0,
+    "external_checks": 140,
+    "dns_samples": 811,
+    "http_samples": 374,
+    "minimum_available_memory_kib": 77212,
+    "guard_sha256": "a85d9590b8aa5b0238d1e221ee07104a909716fcd7294f6cd066d6fda7f47d2a",
+    "summary_sha256": "b2f944830ccfb1e56a7019f18e0f99990d63a94b1e51c3ffb164a5c9b9fb21dd",
+    "progress_sha256": "e5a39e5af1fcc07c8eebc4267ef2937158b87b6cb9d06a6a726341835b3fd4bd",
+    "verifier_sha256": "9094a871b2f83d942c78d33fde3bdcb78b68d5f362367d262d3318ec1eccc793"
+  },
+  "stage_mode_windows": {
+    "full": 20,
+    "receive": 5,
+    "before-answer": 5,
+    "skip-local": 5
+  },
+  "unmodified_control_windows": 15,
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 126.18,
+    "dns_samples": 49,
+    "dns_p95_ms": 1.506,
+    "dns_max_ms": 9.299,
+    "http_samples": 23,
+    "http_max_ms": 74.188,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 127,
+    "final_tail_samples": 1,
+    "pre_stop_prefix_sha256": "4b559da41ef2a30b3f13cea9d83e74075b8abbf3186870949184914f76c2a34e",
+    "raw_sha256": "0a7d29a5533a3fd3f4332031976f228679779fbb5cf86e5f7865205599fae1ab"
+  },
+  "postflight": {
+    "epoch": 1792150244.2103732,
+    "scope": "50/50excluded diagnostic windows archived/verified; restore exactE/F and reclaim only five new hash-verified immutable source copies. No production changes.",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "restored_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "no_STOP": true,
+    "no_active_group": true,
+    "no_owned_live_executables": true,
+    "all50_verified_remote_window_copies_pruned": true,
+    "immutable_sources_pruned": {
+      "exact-c": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-exact-c",
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "e": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+      },
+      "f": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+      },
+      "g": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-g",
+        "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+      },
+      "stage": {
+        "path": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-stage",
+        "sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6"
+      }
+    },
+    "available_memory_kib": 81112,
+    "production_namespace": "net:[4026531840]",
+    "postflight_script_sha256": "c37655adb5beed7116a310979cbb87e2027b18e7e175417e24b25d132c55a2ee",
+    "stdout": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27  /tmp/dnsmasq-perf-20261015/dnsmasq-c\nb7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc  /tmp/dnsmasq-perf-20261015/dnsmasq-rust\n81112\nnet:[4026531840]\n",
+    "stderr": "",
+    "exit": 0
+  },
+  "postflight_sha256": "881d051f3064395cf1c7c4430e5d04e66b2e062c6aad85408f47eb74c8e4e1d6",
+  "concurrent_Oracle_work": {
+    "schema": 1,
+    "scope": "Actual original warm owner32 run interval overlaps the original G-stage device50 run interval on a separate Oracle host. This records scheduling scope, not identical hardware, timing isolation, IPC or attribution. Other permitted non-timing Oracle work is recorded separately when existing receipts are available.",
+    "coordination": "Root explicitly authorized concurrent original owner32 and device50. All bulk transfers were held until device50 archive verification and E/F restoration completed; the safe gap was released at the recorded postflight epoch. Only small control and receipts overlapped measurement.",
+    "warm_owner32": {
+      "launch_receipt_sha256": "6a1532d6f1cdcc21dae0c3a6dc0db0251adb0ddde97bdf74ab1b50d801db87ab",
+      "launch_receipt": {
+        "scope": "Original exact-SDK G185/warm6dad owner32 after actual961/SDK independent remote audits, owner plan peer, input pretransfer and correctness fresh quiet; bulk download audit deferred until device50 restoration. Root authorized simultaneous device50; no bulk during either measurement, no native240 or isolated-writer attribution.",
+        "pid": 1053371,
+        "starttime_ticks": 187338855,
+        "epoch": 1792148771.3366027,
+        "utc": "2026-10-16 11:06:11 UTC",
+        "argv": [
+          "taskset",
+          "-c",
+          "0",
+          "python3",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/run_warm_address_encode_owner32.py",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/plan.json"
+        ],
+        "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+        "controller_sha256": "9f81b7245ba5dfd53cc6e9ff0c88fd4930ddf458855ba09bf5c7ad8346d3dd9a",
+        "explicit_release_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+        "final_metadata_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+        "windows": 32,
+        "stat_windows": 12,
+        "plain_windows": 20,
+        "no_measurement_retries": true,
+        "transfers_held_during_both_measurement_slots": true
+      },
+      "complete_receipt_sha256": "65bf5eb769af539b28c6c41868942603f5315219722a9cfe154636942e4813aa",
+      "complete_receipt": {
+        "complete": true,
+        "windows": 32,
+        "ended_epoch": 1792149772.1450813
+      },
+      "started_utc": "2026-10-16T11:06:11.336603+00:00",
+      "ended_utc": "2026-10-16T11:22:52.145081+00:00"
+    },
+    "device50_launch_sha256": "21b5e59d65b8da07e3cb883e2ae533aa131f9c57c6dc9cc0c665d5da890d5e1f",
+    "independent_warm_original_analyzer_replay": {
+      "scope": "Existing original full-bin analyzer and raw-hash verification, non-timing work on Oracle CPU0. No measurement windows repeated. Its actual interval overlapped device50.",
+      "receipts": {
+        "launch.json": {
+          "sha256": "37f68523194d21c431307e2f2604fd288e715740c24267d16b196ba0ba192e8a",
+          "receipt": {
+            "pid": 1059832,
+            "start_ticks": "187467647",
+            "epoch": 1792150059.2592595,
+            "worker_sha256": "eada8e07651e32bdd0913f96a6e6a5fd4b8e03092a7e88bd678849ed5f8faf06",
+            "release_sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+            "root_read_only_wrapper": true,
+            "raw_input_mutation": false,
+            "measured_windows_repeated": 0
+          }
+        },
+        "exit.json": {
+          "sha256": "bf1171339ba6c7d72f08269a39bd39486709d123dd2e8b35f76bcfea6d75ca48",
+          "receipt": {
+            "argv": [
+              "taskset",
+              "-c",
+              "0",
+              "python3",
+              "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/analyze_warm_address_encode_owner32.py",
+              "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32",
+              "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/warm-address-encode-owner32-independent-20261016/result.json",
+              "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/analysis-inputs"
+            ],
+            "exit": 0,
+            "started_epoch": 1792150059.2971952,
+            "finished_epoch": 1792150151.8283558,
+            "bulk_local_delivery_and_transport_audit_complete": false,
+            "original_worker_sha256": "4cbdfb4766ba0b17122c4048b2ddb13355bc4645d32f6183a02cfd35405e8238",
+            "reviewer_script_sha256": "eada8e07651e32bdd0913f96a6e6a5fd4b8e03092a7e88bd678849ed5f8faf06"
+          }
+        },
+        "replay-verified.json": {
+          "sha256": "3f6180c10c46a6f2a9e6e9ae3bd5250b7918e4a9847c8e9ff50e1f8ff6644e21",
+          "receipt": {
+            "status": "PASS_ORIGINAL_ANALYZER_FULL_RAW_BIN_REPLAY_BYTE_IDENTICAL",
+            "exit": 0,
+            "result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+            "author_result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+            "original_analyzer_sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+            "exit_receipt_sha256": "bf1171339ba6c7d72f08269a39bd39486709d123dd2e8b35f76bcfea6d75ca48",
+            "analysis_stdout_sha256": "a1c38a57989431067a66e1c1543e92e029b141a664efb3431df837933b31ee5f",
+            "analysis_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "full_raw_files_rehashed_after_replay": 1264,
+            "all32_copied_ELFs_and_maps_rehashed": true,
+            "all128_raw_bin_bytes_rehashed": 3624051024,
+            "input_postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+            "scope": "Original unchanged analyzer CPU0 under root read privileges; output only in fresh reviewer directory. All retained raw bins and copied ELFs/maps rehashed, no build/capture/window retry.",
+            "finished_epoch": 1792150155.6573384,
+            "bulk_local_delivery_and_transport_audit_complete": false,
+            "original_worker_sha256": "4cbdfb4766ba0b17122c4048b2ddb13355bc4645d32f6183a02cfd35405e8238",
+            "reviewer_script_sha256": "eada8e07651e32bdd0913f96a6e6a5fd4b8e03092a7e88bd678849ed5f8faf06"
+          }
+        }
+      }
+    },
+    "device50": {
+      "started_epoch": 1792148118.982807,
+      "last_window_archived_epoch": 1792150210.494936,
+      "archive_verification_and_restoration_complete_epoch": 1792150244.2103732,
+      "postflight_sha256": "881d051f3064395cf1c7c4430e5d04e66b2e062c6aad85408f47eb74c8e4e1d6",
+      "safe_gap_release_utc": "2026-10-16T11:30:44.210373+00:00"
+    },
+    "author_warm_analysis_postflight_collection": {
+      "scope": "Original analysis, full raw postflight and archive collection on Oracle after owner32. Actual analysis start is recorded; its exit receipt has no timestamp, so no exact analysis end is inferred. The later quiet release bounds completion of all these operations. All bulk remained held.",
+      "receipts": {
+        "release": {
+          "sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd",
+          "receipt": {
+            "status": "EXPLICIT_QUIET_RELEASE_TO_CORRECTNESS_ORIGINAL_WARM_OWNER32_REMOTE_RAW_AUDIT",
+            "epoch": 1792149997.4804168,
+            "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+            "controller_exited": true,
+            "analysis_exited_zero": true,
+            "windows": 32,
+            "no_measurement_retries": true,
+            "raw_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32",
+            "inputs_directory": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs",
+            "analysis_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+            "postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+            "collection_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-smallraw-collection.json",
+            "collection_sha256": "89c4a2003f1ce3d164ab16f7b866cdf24c0e8843a6eaf6990981c2eab46a196a",
+            "full128_bins_and64_repeated_artifacts_retained_remote": true,
+            "research_including_exact_image_C": [],
+            "idle_SDK_background": [],
+            "locks_available": [
+              "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+              "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+              "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+            ],
+            "source179_each_and_both_SDK_triples_rehashed": true,
+            "original_tools_and8imports_rehashed": true,
+            "device50_still_active": true,
+            "all_bulk_held_until_DHCP_archival_restoration_release": true,
+            "all_requested_transfers_complete": false,
+            "archive_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-smallraw.tar.gz",
+            "archive_sha256": "2d213fad9c7c96e1e014ebbcbb19ed1eec58df39e449845e9aa79aa59d8b966b",
+            "archive_bytes": 964559,
+            "local_archive_download_completed": false,
+            "local_archive_transfer_audit_completed": false,
+            "root_authorization": "Original author analysis/postflight/collection then fresh quiet to correctness for unchanged full-bin independent replay on Oracle, small receipts only, while separate device50 proceeds.",
+            "loop_stops_Oracle_access_after_handoff": true,
+            "next": "correctness original G185/warm6dad full-bin replay and raw audit once, then explicit quiet to root. No added native240/full110 or promotion authorized.",
+            "comparison_scope": "G185/warm6dad includes inherited6ab; no isolated-writer attribution.",
+            "native240_not_run": true,
+            "bulk_debt": "DNS original961/SDK raw archives and loop owner32 smallraw remain remote. Complete all original downloads and local archive checks after DHCP safe-gap release."
+          }
+        },
+        "postflight_summary": {
+          "sha256": "45742f419afbd197229c63cfcbfcf027054c7e908845c428b7365a66a51876a8",
+          "receipt": {
+            "status": "PASS_OWNER32_ORIGINAL_ANALYZER_FULL_RAW_AND_SOURCE_IDENTITY",
+            "epoch": 1792149906.3918824,
+            "windows": 32,
+            "stat_windows": 12,
+            "plain_windows": 20,
+            "all48_PMU_events_unscaled": true,
+            "controller_exited": true,
+            "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+            "identity_sha256": "17ae9faca685b761acf2948689724c1757632193abc5bb1b8a7c6dad0d4f65c0",
+            "progress_sha256": "e772ef7cdd08a6ecd9397656b3c19c673a889bbbedd995dd8f737fa4bf2b9fa0",
+            "complete_sha256": "65bf5eb769af539b28c6c41868942603f5315219722a9cfe154636942e4813aa",
+            "analysis_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+            "analysis_tool_sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+            "source_files_verified_each": 179,
+            "raw_file_count": 1264,
+            "raw_binary_bytes": 3624051024,
+            "all_raw_including_bins_remain_remote": true,
+            "measurement_retries": 0,
+            "original_full_postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+            "scope": "Small summary only; full original raw-file inventory remains remote pending bulk release."
+          }
+        },
+        "analysis_launch_and_exit": {
+          "sha256": "a19df65ee946bfd9491d780372523d830f2f25a0ac1d6a9dc41908d196c029a2",
+          "receipt": [
+            {
+              "pid": 1058469,
+              "epoch": 1792149799.5610507,
+              "argv": [
+                "sudo",
+                "-n",
+                "taskset",
+                "-c",
+                "0",
+                "python3",
+                "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/analyze_warm_address_encode_owner32.py",
+                "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32",
+                "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/result.json",
+                "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-inputs/analysis-inputs"
+              ],
+              "scope": "Original analyzer once against every existing full latency/send-lag bin; no measurement rerun."
+            },
+            {
+              "returncode": 0,
+              "result_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8"
+            }
+          ]
+        }
+      }
+    },
+    "independent_warm_additional_raw_audit": {
+      "scope": "After the original analyzer replay and raw hashing, correctness reported continuing the original metadata, CPU, PMU and statistical audit on Oracle CPU0 while the last device50 window was active. No extra measurement or analyzer-quantile replay was performed. This observation does not provide exact phase start/end timestamps."
+    }
+  },
+  "known_interventions": [
+    "Receive and before-answer fixedTTL120 synthetic reply, correct ID/question/A/AAAA/48-or60byte length; not exactC wire equivalence.",
+    "Before-answer usesG cached_reply_buffer via take/clear/reserve_exact128 andoriginalsend-then-recycle; unlikeoldE diagnostic,itdoesnotforcea new128Ballocation percut. Thisisreviewedsourcebehavior,notanewactualA53allocationclaim orzeroallocationgate.",
+    "Oneimmutable diagnosticELF forfull/receive/before-answer/skip-local; G/full calibration separateandnotproof ofzeroinstrumentation cost. Eachcut usesitsowncontemporaneousfullfivepairs.",
+    "Receive cuts admission/synchronousquerywork afterreceive; skip-local retainsinspect_name hint andrealcacheanswer. Functionprologues,syntheticTTL/writer,branchprediction/layout/cacheeffects remain. No additivefunctioncost orallocationpricing."
+  ],
+  "candidate_eligible": false,
+  "product_qualification_completed": false,
+  "allocation_counts_measured": false,
+  "evidence": {
+    "a53-g-stage-device-preflight.json": "e8fdd9334f3827e17e5b232c4ec39a72f059192fca0c611cb864823f68731241",
+    "a53-g-stage-device-stage-complete.json": "391946806a31d3ad2aa2de5117baac654316c06393062bc5b36ecb88527188e7",
+    "a53-g-stage-device-queue-release.json": "00f9841a9fca5a429d87535618df2d7cf7e3a018ffd63808acc824098d5e6d59",
+    "a53-g-stage-device-launch.json": "21b5e59d65b8da07e3cb883e2ae533aa131f9c57c6dc9cc0c665d5da890d5e1f",
+    "a53-g-stage-device-local-verification.json": "4171044cde5c7f6e2b4bda1323a87f772701ac7bb38caceae57f2cfa1684ed25",
+    "a53-g-stage-device-postflight-check-batches.json": "9ee29dc1b599350448801fa3ea4ef0b86d502a964927eca67f61ef1704cc4243",
+    "a53-g-stage-device-concurrency.json": "3877fab2d4793170ed9677e575a2513a95e8848daf76b0e883e74e27be43be90",
+    "stage-a53-g-stage.py": "4282672cb9fa78968a5199c3847506a87004bdf2b1f7b6ffed4b29e812c53de7",
+    "start-a53-g-stage.py": "36287e7982bb58ce65a117cd37609962925894a00f31f256d7c112ffae2c3f39",
+    "verify-a53-g-stage.py": "9094a871b2f83d942c78d33fde3bdcb78b68d5f362367d262d3318ec1eccc793",
+    "postflight-a53-g-stage.py": "56780c955221b8bebe12810eebc9ef95d6269c3ae1949d0fbe07f9cc1f9ef5de"
+  },
+  "scope_limits": [
+    "One exact a34 SDK artifact serves all four diagnostic modes. Accepted G and exact-image C controls are fresh within this matrix; E/F are restoration only. No historical E/G pooling.",
+    "Original 6000 fixture replies, 1000 prewarm threshold and 5000 selected-cut observations are per window, not allocator counts. CPU denominator remains 5000 correct warmup plus measurement queries.",
+    "Each stage contrast has its own full five pairs. G/full calibration is separate and does not establish zero instrumentation or layout cost.",
+    "Before-answer uses reviewed G reply-buffer reuse. No new allocation counter or zero-allocation target is present; this round does not quantify allocation sites or cost.",
+    "Synthetic fixed-TTL120 writer, retained function frames, branch prediction, cache access and code layout effects remain. Deltas are cumulative interventions, not additive function costs, IPC or product optimizations.",
+    "All original windows and full ranges are retained. Strict W, direction and greater-than-eight-tick rules are unchanged. p99 is unavailable for 4000 samples; RSS/Anon are not private heap, PSS or USS.",
+    "The original warm owner32 timing run overlapped this device50 on a separate Oracle host under root coordination. Actual start/end receipts are bound in concurrent_Oracle_work; all bulk transfers remained prohibited until device50 archive verification and restoration.",
+    "Production configuration, kernel and drivers remain unchanged. Fresh health, runtime guard and exact E/F restoration are separate verified evidence."
+  ]
+}
