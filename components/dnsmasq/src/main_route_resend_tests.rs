@@ -106,6 +106,25 @@ impl PendingCaller {
                     .inserted,
                 1
             );
+            if std::env::var_os("D1_DIAGNOSTIC_DUAL_FAMILY").is_some() {
+                let mut packet = query("cached.route.example", 9);
+                let end = packet.len();
+                packet[end - 4..end - 2].copy_from_slice(&28u16.to_be_bytes());
+                assert!(fixture.send_client(&packet));
+                fixture.read_upstream();
+                let question = WireQuestion::parse(&fixture.packet, 12).unwrap();
+                let mut writer = PacketWriter::new(
+                    Header::parse(&fixture.packet).unwrap().id, 0x8180, 1232,
+                ).unwrap();
+                writer.question(&question.name, 28, 1).unwrap();
+                writer.record_at(Section::Answer, 12, 28, 1, 600, &[7; 16]).unwrap();
+                fixture.upstream.send_to(&writer.finish(), fixture.peer).unwrap();
+                fixture.owner.wait_for_files().unwrap();
+                fixture.owner.poll_udp_completions();
+                fixture.client.recv_from(&mut answer).unwrap();
+                assert_eq!(fixture.owner.service.borrow().daemon.as_ref().unwrap()
+                    .cache_counters().inserted, 2);
+            }
         }
         fixture.prime();
         fixture
