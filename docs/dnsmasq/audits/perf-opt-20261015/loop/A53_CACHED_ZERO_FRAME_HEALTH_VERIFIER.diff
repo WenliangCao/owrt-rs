@@ -30,7 +30,7 @@
 +assert request['complete_prefix_bytes'] == len(prefix) and request['captured_bytes'] == len(capture)
 +assert request['prefix_sha256'] == hashlib.sha256(prefix).hexdigest()
 +assert request['capture_sha256'] == hashlib.sha256(capture).hexdigest()
-+qualified, samples, end = validate_guard_evidence(prefix, raw, health, [3086, 2115])
++qualified, samples, end = validate_guard_evidence(prefix, raw, health, [3086, 2115], capture)
 +expected = {'qualified_samples': len(qualified), 'final_samples': len(samples),
 +            'final_tail_samples': len(samples) - len(qualified),
 +            'pre_stop_elapsed_seconds': qualified[-1]['elapsed_s'], 'final_elapsed_seconds': end['elapsed_s']}
