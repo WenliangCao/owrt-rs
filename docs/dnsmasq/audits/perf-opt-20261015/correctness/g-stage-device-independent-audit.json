@@ -1,0 +1,1872 @@
+{
+  "schema": "g-stage50-independent-audit-v1",
+  "status": "PASS_ORIGINAL_G_STAGE_FIFTY_RAW_WINDOWS_STATISTICS_HEALTH_AND_RESTORATION",
+  "scope": "Excluded cumulative-path diagnostic on accepted G185. No candidate acceptance, additive function cost, IPC or allocator-price claim.",
+  "author_commits": [
+    "8657d564",
+    "e8303c4c"
+  ],
+  "author_result_sha256": "1bb4ba246de1dc42181609bc2e4bf1c6097d89a1fad64c6e0662e90a4e4d3327",
+  "diagnostic_source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+  "accepted_G_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "plan_sha256": "8293e1d84a80c4035c1b9ab0c1969ac23df421c6eb89324fa1bf733ae4e47442",
+  "launch_sha256": "21b5e59d65b8da07e3cb883e2ae533aa131f9c57c6dc9cc0c665d5da890d5e1f",
+  "identity_sha256": "658e3a7d6addf8025f4c57380545ef08b7a371775ed45217e7d11831381bf036",
+  "progress_sha256": "e5a39e5af1fcc07c8eebc4267ef2937158b87b6cb9d06a6a726341835b3fd4bd",
+  "summary_sha256": "b2f944830ccfb1e56a7019f18e0f99990d63a94b1e51c3ffb164a5c9b9fb21dd",
+  "raw_archives_verified": 50,
+  "raw_regular_files_verified": 2185,
+  "archive_sha256": {
+    "a53-g-stage-exact-c-vs-g-r1-c": "ccd8fee9661b7c563b3363a672afdae6e7b981136df91a057ffdff53bd1bd5bb",
+    "a53-g-stage-exact-c-vs-g-r1-rust": "411aefeefb9814140b88a657910e474e4d2937a796eef2facd781323d0a82fcc",
+    "a53-g-stage-exact-c-vs-g-r2-rust": "fad8931bbb3849691beb470df99dd1704c25b2d29d0a5ae3b6b446f31289fef0",
+    "a53-g-stage-exact-c-vs-g-r2-c": "9423c5ab217cbc3910ed73664c7c0dc3e92e2ea0f4b396b55ecf52206c9b7817",
+    "a53-g-stage-exact-c-vs-g-r3-c": "3586c571c9fa68256c06baa7799974a377af38b45849ba1b8af1b227d991444f",
+    "a53-g-stage-exact-c-vs-g-r3-rust": "311124bb39cfc86a406b9b35e22a1682f88dcf47b072faccc6d4b487461c51ee",
+    "a53-g-stage-exact-c-vs-g-r4-rust": "35ab192b58512a5817ff01344ddfa4efeedd7e72612c74a255338bd1c4809363",
+    "a53-g-stage-exact-c-vs-g-r4-c": "dd3facee615caa33378039266a5472ff381696b89a94304694531c84c1312260",
+    "a53-g-stage-exact-c-vs-g-r5-c": "7605da04cd3428445ca0991d81f0b1626c0af5c7c2438b4d7854278f8a3b4be0",
+    "a53-g-stage-exact-c-vs-g-r5-rust": "46dc30a60d76c1fd89462fce7ede6a1c5a421cb36d6ee7f6ce5b658c8f1ad9ae",
+    "a53-g-stage-g-vs-stage-full-r1-c": "0bb60934b3357cdf2e3555100e28e3c9738082e378f55668e556acb9533f863b",
+    "a53-g-stage-g-vs-stage-full-r1-rust": "801431d9478593d33c31e901cf104146f181b5b5cd00a5e0893c5e49383f42c9",
+    "a53-g-stage-g-vs-stage-full-r2-rust": "74adfa90917c81126d40fc5e6ac8a2a173aa7454adfe00fc173ad3aef99f6e2b",
+    "a53-g-stage-g-vs-stage-full-r2-c": "85374e492864befa6be648535a36ce522acb70ef26566153e442a0e0414bec51",
+    "a53-g-stage-g-vs-stage-full-r3-c": "b74f17a3c10576a615fce30ea2b9d17b072dcf41f57f75fd03dd12853832172c",
+    "a53-g-stage-g-vs-stage-full-r3-rust": "387ece317ee6afa180c5ca0b26eaae70aa117fc6d8df4a1fca231a9eebe83243",
+    "a53-g-stage-g-vs-stage-full-r4-rust": "0f2381f1c59741f0c360dd015944d3fd5982d33ea666023282528e17fcc983a2",
+    "a53-g-stage-g-vs-stage-full-r4-c": "8ca6ebed8dee5f545e1fa9f791428867ef0a23e10dc5c77b7db708679754bc84",
+    "a53-g-stage-g-vs-stage-full-r5-c": "5d39390de4541a3bf190f236cd72c07b06700fb1cc50cbbe28078ad3921d375c",
+    "a53-g-stage-g-vs-stage-full-r5-rust": "89829ec3e937912273488ecd64181b3d4ee3380bb983481167db5697dca349f6",
+    "a53-g-stage-stage-full-vs-receive-r1-c": "dc3c4784172bb23aad5d80b8b1634d0c58d0575b1dca51b06d6750aa31c1620d",
+    "a53-g-stage-stage-full-vs-receive-r1-rust": "a0aa68521c0cefa9344afb2d0e634009b4304c757af3442595fe36daed39a4f3",
+    "a53-g-stage-stage-full-vs-receive-r2-rust": "b70303351fc95cdf5d010df3f8783306a8280d65bd26df7cf4fe84c06a53b50c",
+    "a53-g-stage-stage-full-vs-receive-r2-c": "7b11b71895f471e8d9ba9d8c1371207fc7b8c3fc274d898e2f379c398d88fa60",
+    "a53-g-stage-stage-full-vs-receive-r3-c": "66990f6b946b48181ac383dc8d9d7c7254aade87b7bf381aa5e916c339a5b8ae",
+    "a53-g-stage-stage-full-vs-receive-r3-rust": "ca616d528a465416e1f0433f8d569fa183179b62f5ee27ebb235050467eb2f58",
+    "a53-g-stage-stage-full-vs-receive-r4-rust": "9df4ff16961fc0dd52cd2b065d87a49521a33ebf443a1e094921830c69951e16",
+    "a53-g-stage-stage-full-vs-receive-r4-c": "e7bd6b5bbc1939da6e8905cf74b9db9544529698b13e51765bf1ed6941dd5cfd",
+    "a53-g-stage-stage-full-vs-receive-r5-c": "052716af241d8b1a2e87ba4a372f329341e79a0a1c98aa4877e51a1526e6bd7d",
+    "a53-g-stage-stage-full-vs-receive-r5-rust": "c7816183267001c4de7e8679fdeac1b63c1aa3546d96301c8e7c7857fc1226fd",
+    "a53-g-stage-stage-full-vs-before-answer-r1-c": "fee2f52850ea17731c164e950bcc52c006cde4bda7155762d339ef5de29cd93a",
+    "a53-g-stage-stage-full-vs-before-answer-r1-rust": "1d4fc533dfb7d72273550f18b6662838cf1cca08c96d7c4f764f908131ff149c",
+    "a53-g-stage-stage-full-vs-before-answer-r2-rust": "64c6ac2d69d0d07d9cd17be9f6a115d145275e9c7245902339431580e5238b85",
+    "a53-g-stage-stage-full-vs-before-answer-r2-c": "5c72e6777f229fb91005d540841ee693632585023fdd84354274645c668b2c95",
+    "a53-g-stage-stage-full-vs-before-answer-r3-c": "052e5a31d00e8c555c9366b3bf1d80d1dfb890b4f3b4865ff0551b6e1aab258e",
+    "a53-g-stage-stage-full-vs-before-answer-r3-rust": "de017fe26c7038f326827640c8d61dd1126a8333ec2c02f5c072a338cef8482e",
+    "a53-g-stage-stage-full-vs-before-answer-r4-rust": "f637dbfa97b2fd2d0c183ae09df2bcbc95dce694396af884e9c90f1c67a073b3",
+    "a53-g-stage-stage-full-vs-before-answer-r4-c": "b1e440085dbd3f8cb6967940fbc054fbfc79fe60b96969e9c7a74f1be6936a96",
+    "a53-g-stage-stage-full-vs-before-answer-r5-c": "844078fc2926926a8efe442f44f18ff16cee91ca77e75f990fd847c3cbbcbc19",
+    "a53-g-stage-stage-full-vs-before-answer-r5-rust": "74560ab5c1a7fe4881121a35c8e63928097526cb52afc75af7c3180dc88cd17c",
+    "a53-g-stage-stage-full-vs-skip-local-r1-c": "e9df494b63db3b8857423674c02de91a72f88e8fa82ad78a5a7dc66daba76ae5",
+    "a53-g-stage-stage-full-vs-skip-local-r1-rust": "69afaa9d35792d4c61e2f5d8691e8c98e4eb0cd9d43f95e175a280b73d1de97c",
+    "a53-g-stage-stage-full-vs-skip-local-r2-rust": "3fa363831340f82077ec944c68e9c46de216321d54efb342dd0431f82155e96e",
+    "a53-g-stage-stage-full-vs-skip-local-r2-c": "218ebfdfe6ad87901894b602f924e7288f42bdb70c9817495dc68d44d2c7be78",
+    "a53-g-stage-stage-full-vs-skip-local-r3-c": "089b8d2e514c7fcc045bde810050937d067af6d8e6b9b2d42a5a9aaa89b36eb8",
+    "a53-g-stage-stage-full-vs-skip-local-r3-rust": "53ab1b618d4abc98c17bb6aedc75e2e9dcbdf9506f4316361968596d125777b4",
+    "a53-g-stage-stage-full-vs-skip-local-r4-rust": "4e069fc3d163bbf90964da783bcb700dc52f64e17ec3ba9f17b467bd888c3065",
+    "a53-g-stage-stage-full-vs-skip-local-r4-c": "86de0cb7a7beef04b67a9781247fe772ab6dc5bedbe0fdeacb03519941980f6f",
+    "a53-g-stage-stage-full-vs-skip-local-r5-c": "ddb82880979d6717fb8086578234bb68e0ead75a2c03616651f14a8798e19f80",
+    "a53-g-stage-stage-full-vs-skip-local-r5-rust": "40395ea2a839e0c7c34205403fe9d12184b915ef34f09c691683599503d0eaba"
+  },
+  "all_original_fifty_schedule_windows_valid": true,
+  "matched_replies_per_window": 6000,
+  "prewarm_threshold": 1000,
+  "selected_cuts_per_intervention_window": 5000,
+  "CPU_denominator_correct_warmup_and_measurement_queries": 5000,
+  "thread_samples_verified": 1575,
+  "all_final_PID_starttime_single_thread_checks": true,
+  "primary_comparisons_recomputed": 15,
+  "resource_comparisons_recomputed": 35,
+  "comparisons": {
+    "exact-c-vs-g": {
+      "left": [
+        "exact-c",
+        null
+      ],
+      "right": [
+        "g",
+        null
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.145421,
+            "min": 0.138342,
+            "max": 0.153961,
+            "rounds": [
+              0.145421,
+              0.138342,
+              0.149652,
+              0.138881,
+              0.153961
+            ]
+          },
+          "right": {
+            "median": 0.179352,
+            "min": 0.174659,
+            "max": 0.182891,
+            "rounds": [
+              0.182891,
+              0.179352,
+              0.179814,
+              0.174659,
+              0.175043
+            ]
+          },
+          "relative_change_pct": 23.33294366013163,
+          "W_pct": 10.7405395369307,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.320003,
+            "min": 0.293073,
+            "max": 1.093273,
+            "rounds": [
+              0.293073,
+              0.320003,
+              0.408871,
+              0.296767,
+              1.093273
+            ]
+          },
+          "right": {
+            "median": 0.392174,
+            "min": 0.325004,
+            "max": 0.982629,
+            "rounds": [
+              0.982629,
+              0.392174,
+              0.543211,
+              0.353933,
+              0.325004
+            ]
+          },
+          "relative_change_pct": 22.55322606350567,
+          "W_pct": 250.06015568604045,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 86.0,
+            "min": 84.0,
+            "max": 92.0,
+            "rounds": [
+              86.0,
+              84.0,
+              92.0,
+              84.0,
+              90.0
+            ]
+          },
+          "right": {
+            "median": 126.0,
+            "min": 120.0,
+            "max": 128.0,
+            "rounds": [
+              128.0,
+              126.0,
+              126.0,
+              124.0,
+              120.0
+            ]
+          },
+          "relative_change_pct": 46.51162790697674,
+          "W_pct": 9.30232558139535,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 1244.0,
+            "min": 1176.0,
+            "max": 1244.0,
+            "rounds": [
+              1244.0,
+              1244.0,
+              1232.0,
+              1244.0,
+              1176.0
+            ]
+          },
+          "right": {
+            "median": 2416.0,
+            "min": 2356.0,
+            "max": 2420.0,
+            "rounds": [
+              2420.0,
+              2416.0,
+              2412.0,
+              2416.0,
+              2356.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 1244,
+            "min": 1176,
+            "max": 1244,
+            "rounds": [
+              1244,
+              1244,
+              1232,
+              1244,
+              1176
+            ]
+          },
+          "right": {
+            "median": 2416,
+            "min": 2356,
+            "max": 2420,
+            "rounds": [
+              2420,
+              2416,
+              2412,
+              2416,
+              2356
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 228,
+            "min": 228,
+            "max": 228,
+            "rounds": [
+              228,
+              228,
+              228,
+              228,
+              228
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              516,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 764,
+            "min": 696,
+            "max": 764,
+            "rounds": [
+              764,
+              764,
+              752,
+              764,
+              696
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 252,
+            "min": 252,
+            "max": 252,
+            "rounds": [
+              252,
+              252,
+              252,
+              252,
+              252
+            ]
+          },
+          "right": {
+            "median": 1892,
+            "min": 1836,
+            "max": 1896,
+            "rounds": [
+              1896,
+              1896,
+              1892,
+              1892,
+              1836
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 11,
+            "min": 11,
+            "max": 11,
+            "rounds": [
+              11,
+              11,
+              11,
+              11,
+              11
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 11,
+            "min": 11,
+            "max": 11,
+            "rounds": [
+              11,
+              11,
+              11,
+              11,
+              11
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 43,
+        "right": 63,
+        "absolute_delta": 20,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 42
+      }
+    },
+    "g-vs-stage-full": {
+      "left": [
+        "g",
+        null
+      ],
+      "right": [
+        "stage",
+        "full"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.17589,
+            "min": 0.172658,
+            "max": 0.182738,
+            "rounds": [
+              0.17589,
+              0.179737,
+              0.182738,
+              0.175736,
+              0.172658
+            ]
+          },
+          "right": {
+            "median": 0.17966,
+            "min": 0.174659,
+            "max": 0.188201,
+            "rounds": [
+              0.188201,
+              0.183815,
+              0.17966,
+              0.174889,
+              0.174659
+            ]
+          },
+          "relative_change_pct": 2.143385070214336,
+          "W_pct": 7.537570967382834,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.398176,
+            "min": 0.340008,
+            "max": 0.533979,
+            "rounds": [
+              0.458422,
+              0.382096,
+              0.533979,
+              0.398176,
+              0.340008
+            ]
+          },
+          "right": {
+            "median": 0.322696,
+            "min": 0.297074,
+            "max": 1.024101,
+            "rounds": [
+              1.024101,
+              0.640544,
+              0.310154,
+              0.322696,
+              0.297074
+            ]
+          },
+          "relative_change_pct": -18.956441372659324,
+          "W_pct": 225.29780350546642,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 124.0,
+            "min": 122.0,
+            "max": 130.0,
+            "rounds": [
+              124.0,
+              130.0,
+              130.0,
+              122.0,
+              122.0
+            ]
+          },
+          "right": {
+            "median": 122.0,
+            "min": 116.0,
+            "max": 132.0,
+            "rounds": [
+              132.0,
+              128.0,
+              122.0,
+              116.0,
+              120.0
+            ]
+          },
+          "relative_change_pct": -1.6129032258064515,
+          "W_pct": 13.114754098360656,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2400.0,
+            "min": 2368.0,
+            "max": 2408.0,
+            "rounds": [
+              2396.0,
+              2400.0,
+              2400.0,
+              2368.0,
+              2408.0
+            ]
+          },
+          "right": {
+            "median": 2376.0,
+            "min": 2372.0,
+            "max": 2452.0,
+            "rounds": [
+              2372.0,
+              2420.0,
+              2376.0,
+              2372.0,
+              2452.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2400,
+            "min": 2368,
+            "max": 2408,
+            "rounds": [
+              2396,
+              2400,
+              2400,
+              2368,
+              2408
+            ]
+          },
+          "right": {
+            "median": 2376,
+            "min": 2372,
+            "max": 2452,
+            "rounds": [
+              2372,
+              2420,
+              2376,
+              2372,
+              2452
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              520,
+              520,
+              516
+            ]
+          },
+          "right": {
+            "median": 524,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              528,
+              520,
+              524,
+              516,
+              524
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1876,
+            "min": 1844,
+            "max": 1888,
+            "rounds": [
+              1872,
+              1876,
+              1876,
+              1844,
+              1888
+            ]
+          },
+          "right": {
+            "median": 1852,
+            "min": 1840,
+            "max": 1924,
+            "rounds": [
+              1840,
+              1896,
+              1848,
+              1852,
+              1924
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 62,
+        "right": 61,
+        "absolute_delta": 1,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 58
+      }
+    },
+    "stage-full-vs-receive": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "receive"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.17689,
+            "min": 0.173813,
+            "max": 0.188431,
+            "rounds": [
+              0.184431,
+              0.188431,
+              0.173813,
+              0.174966,
+              0.17689
+            ]
+          },
+          "right": {
+            "median": 0.12757,
+            "min": 0.123954,
+            "max": 0.130417,
+            "rounds": [
+              0.130417,
+              0.124492,
+              0.123954,
+              0.12757,
+              0.129801
+            ]
+          },
+          "relative_change_pct": -27.881734411216012,
+          "W_pct": 8.263892814743622,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.49697,
+            "min": 0.283686,
+            "max": 1.641563,
+            "rounds": [
+              0.812741,
+              1.641563,
+              0.283686,
+              0.452189,
+              0.49697
+            ]
+          },
+          "right": {
+            "median": 0.269221,
+            "min": 0.231903,
+            "max": 0.305384,
+            "rounds": [
+              0.305384,
+              0.28584,
+              0.254295,
+              0.231903,
+              0.269221
+            ]
+          },
+          "relative_change_pct": -45.827514739320286,
+          "W_pct": 273.231180956597,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 124.0,
+            "min": 120.0,
+            "max": 130.0,
+            "rounds": [
+              130.0,
+              126.0,
+              124.0,
+              120.0,
+              124.0
+            ]
+          },
+          "right": {
+            "median": 74.0,
+            "min": 72.0,
+            "max": 80.0,
+            "rounds": [
+              80.0,
+              78.0,
+              74.0,
+              74.0,
+              72.0
+            ]
+          },
+          "relative_change_pct": -40.32258064516129,
+          "W_pct": 10.81081081081081,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2416.0,
+            "min": 2364.0,
+            "max": 2452.0,
+            "rounds": [
+              2424.0,
+              2452.0,
+              2416.0,
+              2364.0,
+              2372.0
+            ]
+          },
+          "right": {
+            "median": 2404.0,
+            "min": 2404.0,
+            "max": 2460.0,
+            "rounds": [
+              2404.0,
+              2460.0,
+              2420.0,
+              2404.0,
+              2404.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2416,
+            "min": 2364,
+            "max": 2452,
+            "rounds": [
+              2424,
+              2452,
+              2416,
+              2364,
+              2372
+            ]
+          },
+          "right": {
+            "median": 2404,
+            "min": 2404,
+            "max": 2460,
+            "rounds": [
+              2404,
+              2460,
+              2420,
+              2404,
+              2404
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 520,
+            "max": 528,
+            "rounds": [
+              528,
+              520,
+              528,
+              520,
+              520
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 556,
+            "rounds": [
+              520,
+              556,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1884,
+            "min": 1840,
+            "max": 1928,
+            "rounds": [
+              1892,
+              1928,
+              1884,
+              1840,
+              1848
+            ]
+          },
+          "right": {
+            "median": 1884,
+            "min": 1880,
+            "max": 1900,
+            "rounds": [
+              1880,
+              1900,
+              1900,
+              1880,
+              1884
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 62,
+        "right": 37,
+        "absolute_delta": 25,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 36
+      }
+    },
+    "stage-full-vs-before-answer": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "before-answer"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.175505,
+            "min": 0.172966,
+            "max": 0.17989,
+            "rounds": [
+              0.175659,
+              0.174428,
+              0.175505,
+              0.17989,
+              0.172966
+            ]
+          },
+          "right": {
+            "median": 0.143959,
+            "min": 0.142497,
+            "max": 0.1545,
+            "rounds": [
+              0.143035,
+              0.1545,
+              0.144498,
+              0.142497,
+              0.143959
+            ]
+          },
+          "relative_change_pct": -17.974416683285373,
+          "W_pct": 8.337790620940675,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.375094,
+            "min": 0.286687,
+            "max": 0.722103,
+            "rounds": [
+              0.375094,
+              0.286687,
+              0.334468,
+              0.722103,
+              0.381556
+            ]
+          },
+          "right": {
+            "median": 0.318772,
+            "min": 0.222363,
+            "max": 0.711639,
+            "rounds": [
+              0.222363,
+              0.711639,
+              0.545828,
+              0.318772,
+              0.306461
+            ]
+          },
+          "relative_change_pct": -15.015436130676573,
+          "W_pct": 153.4877592762225,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 122.0,
+            "min": 116.0,
+            "max": 126.0,
+            "rounds": [
+              120.0,
+              116.0,
+              122.0,
+              126.0,
+              124.0
+            ]
+          },
+          "right": {
+            "median": 94.0,
+            "min": 90.0,
+            "max": 100.0,
+            "rounds": [
+              92.0,
+              100.0,
+              98.0,
+              90.0,
+              94.0
+            ]
+          },
+          "relative_change_pct": -22.950819672131146,
+          "W_pct": 10.638297872340425,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2360.0,
+            "max": 2416.0,
+            "rounds": [
+              2396.0,
+              2412.0,
+              2360.0,
+              2376.0,
+              2416.0
+            ]
+          },
+          "right": {
+            "median": 2392.0,
+            "min": 2368.0,
+            "max": 2460.0,
+            "rounds": [
+              2460.0,
+              2368.0,
+              2372.0,
+              2392.0,
+              2448.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2360,
+            "max": 2416,
+            "rounds": [
+              2396,
+              2412,
+              2360,
+              2376,
+              2416
+            ]
+          },
+          "right": {
+            "median": 2392,
+            "min": 2368,
+            "max": 2460,
+            "rounds": [
+              2460,
+              2368,
+              2372,
+              2392,
+              2448
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              520,
+              520,
+              516,
+              520,
+              516
+            ]
+          },
+          "right": {
+            "median": 520,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              528,
+              520,
+              516,
+              516,
+              524
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1840,
+            "max": 1896,
+            "rounds": [
+              1872,
+              1888,
+              1840,
+              1852,
+              1896
+            ]
+          },
+          "right": {
+            "median": 1872,
+            "min": 1844,
+            "max": 1928,
+            "rounds": [
+              1928,
+              1844,
+              1852,
+              1872,
+              1920
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 61,
+        "right": 47,
+        "absolute_delta": 14,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 45
+      }
+    },
+    "stage-full-vs-skip-local": {
+      "left": [
+        "stage",
+        "full"
+      ],
+      "right": [
+        "stage",
+        "skip-local"
+      ],
+      "metrics": {
+        "p50_ms": {
+          "left": {
+            "median": 0.17112,
+            "min": 0.165503,
+            "max": 0.173351,
+            "rounds": [
+              0.169735,
+              0.173351,
+              0.17112,
+              0.172197,
+              0.165503
+            ]
+          },
+          "right": {
+            "median": 0.164656,
+            "min": 0.160424,
+            "max": 0.183276,
+            "rounds": [
+              0.183276,
+              0.160424,
+              0.162117,
+              0.166811,
+              0.164656
+            ]
+          },
+          "relative_change_pct": -3.777466105656848,
+          "W_pct": 13.87863181420658,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95_ms": {
+          "left": {
+            "median": 0.257757,
+            "min": 0.245908,
+            "max": 0.362705,
+            "rounds": [
+              0.246292,
+              0.362705,
+              0.264296,
+              0.257757,
+              0.245908
+            ]
+          },
+          "right": {
+            "median": 0.271375,
+            "min": 0.221363,
+            "max": 0.834208,
+            "rounds": [
+              0.834208,
+              0.221363,
+              0.271375,
+              0.405177,
+              0.265989
+            ]
+          },
+          "relative_change_pct": 5.283270677420967,
+          "W_pct": 225.82957162597884,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "cpu_us": {
+          "left": {
+            "median": 116.0,
+            "min": 110.0,
+            "max": 118.0,
+            "rounds": [
+              116.0,
+              118.0,
+              114.0,
+              116.0,
+              110.0
+            ]
+          },
+          "right": {
+            "median": 110.0,
+            "min": 108.0,
+            "max": 110.0,
+            "rounds": [
+              110.0,
+              108.0,
+              108.0,
+              110.0,
+              110.0
+            ]
+          },
+          "relative_change_pct": -5.172413793103448,
+          "W_pct": 6.896551724137931,
+          "same_direction_pairs": 4,
+          "precision_ok": false,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "rss_median_kib": {
+          "left": {
+            "median": 2396.0,
+            "min": 2364.0,
+            "max": 2412.0,
+            "rounds": [
+              2408.0,
+              2372.0,
+              2396.0,
+              2364.0,
+              2412.0
+            ]
+          },
+          "right": {
+            "median": 2380.0,
+            "min": 2360.0,
+            "max": 2404.0,
+            "rounds": [
+              2360.0,
+              2380.0,
+              2368.0,
+              2404.0,
+              2400.0
+            ]
+          }
+        },
+        "rss_peak_kib": {
+          "left": {
+            "median": 2396,
+            "min": 2364,
+            "max": 2412,
+            "rounds": [
+              2408,
+              2372,
+              2396,
+              2364,
+              2412
+            ]
+          },
+          "right": {
+            "median": 2380,
+            "min": 2360,
+            "max": 2404,
+            "rounds": [
+              2360,
+              2380,
+              2368,
+              2404,
+              2400
+            ]
+          }
+        },
+        "anon_peak_kib": {
+          "left": {
+            "median": 520,
+            "min": 516,
+            "max": 520,
+            "rounds": [
+              516,
+              520,
+              520,
+              516,
+              520
+            ]
+          },
+          "right": {
+            "median": 516,
+            "min": 516,
+            "max": 528,
+            "rounds": [
+              516,
+              528,
+              516,
+              520,
+              516
+            ]
+          }
+        },
+        "file_peak_kib": {
+          "left": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "right": {
+            "median": 4,
+            "min": 4,
+            "max": 4,
+            "rounds": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        },
+        "shmem_peak_kib": {
+          "left": {
+            "median": 1872,
+            "min": 1844,
+            "max": 1888,
+            "rounds": [
+              1888,
+              1848,
+              1872,
+              1844,
+              1888
+            ]
+          },
+          "right": {
+            "median": 1848,
+            "min": 1840,
+            "max": 1880,
+            "rounds": [
+              1840,
+              1848,
+              1848,
+              1880,
+              1880
+            ]
+          }
+        },
+        "tree_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        },
+        "parent_fd_peak": {
+          "left": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          },
+          "right": {
+            "median": 12,
+            "min": 12,
+            "max": 12,
+            "rounds": [
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        }
+      },
+      "cpu_median_ticks": {
+        "left": 58,
+        "right": 55,
+        "absolute_delta": 3,
+        "minimum_required_delta_exclusive": 8,
+        "minimum_window_ticks": 54
+      }
+    }
+  },
+  "strict_statistics": "abs(delta)>W, direction>=4/5; CPU additionally every window>=10 ticks and absolute median tick difference strictly>8. No historical pooling or pair replacement.",
+  "identity_source_SDK_and_tool_bindings": {
+    "status": "PASS_G_STAGE_EXACT_SOURCE180_ACTUAL87_SDK_FROZEN_TOOL_AND_LAUNCH_BINDINGS",
+    "plan_sha256": "8293e1d84a80c4035c1b9ab0c1969ac23df421c6eb89324fa1bf733ae4e47442",
+    "public_result_sha256": "1bb4ba246de1dc42181609bc2e4bf1c6097d89a1fad64c6e0662e90a4e4d3327",
+    "author_commits": [
+      "8657d564",
+      "e8303c4c"
+    ],
+    "author_revision_changes_only_concurrency_scope_and_receipt": true,
+    "launch_sha256": "21b5e59d65b8da07e3cb883e2ae533aa131f9c57c6dc9cc0c665d5da890d5e1f",
+    "source_commit": "a34e73107bc15f29b29b83499ceb0e0bc746d915",
+    "source180_hashes_against_Git": true,
+    "source_hook_hashes": {
+      "components/dnsmasq/src/dns/local.rs": "430935a8fb338b891945d7dbfcc85f49d1e0ae2b140bfd60bee0261c4ec3dac8",
+      "components/dnsmasq/src/dns/mod.rs": "e527e22d055879214d9a73c3ff0ce45c40adb1f23c729f84216fcf2fb369d108",
+      "components/dnsmasq/src/dns/udp_stage_diagnostic.rs": "aaeee005ed7f9ded2bd786c17d969d7da948fe174182df2ea1ed4def71682213",
+      "components/dnsmasq/src/main.rs": "53c9773bd8a168f7adfddd64254929a43e610db1c43a9bae3b0f79b439d5a09e"
+    },
+    "SDK_ELF_sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+    "SDK_build_sha256": "3180d00bbeaf3b697285d12ed9243a0cc421358faf40a69492df26d422548908",
+    "SDK_map_sha256": "9f1a05017993363eabdb9f8832d6f3915ccb47ed42de8fb6457e3037ae28e153",
+    "prior_review_bindings": {
+      "actual_Linux_gate_independent_review": {
+        "commit": "ad9f1c3d",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-related-independent-audit.json",
+        "sha256": "d53677fa512d625625fe0c0004a5004e7d6992bc2075c319d7ae2e844fd04791"
+      },
+      "actual_SDK_independent_review": {
+        "commit": "ef762db0",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-sdk-independent-audit.json",
+        "sha256": "e6e4535e95e858f5755341c4ce29c20bdff622b82b6bc8072c6c5ef7bab60913"
+      },
+      "source_review": {
+        "commit": "f9abcc95",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/g-udp-stage-source-peer-review.json",
+        "sha256": "a9f4238131b0c530b15156c8c9123f1c4ac309beda52c8a786be4a0d0f72c8dc"
+      },
+      "device_plan_independent_review": {
+        "commit": "8367ac2d",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/g-stage-device-plan-peer-review.json",
+        "sha256": "b059d6f30a2fde165bb1105eb3929b581b3ca9c215457b4d5f5a49cf88d50f2c"
+      },
+      "correctness_preparation_review": {
+        "commit": "c442b729",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/g-stage-device-plan-and-source-preparation-review.json",
+        "sha256": "1647d23d4d4cc520486c9b411cff1dfc1ab657d126c2045f18b3a9a457a3b9d2"
+      }
+    },
+    "five_immutable_artifacts": {
+      "exact-c": {
+        "local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/inputs/dnsmasq-c",
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-exact-c",
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "bytes": 269305,
+        "verified_before_rename": true
+      },
+      "e": {
+        "local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-e/dnsmasq-rs",
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-e",
+        "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+        "bytes": 2136859,
+        "verified_before_rename": true
+      },
+      "f": {
+        "local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-f/dnsmasq-rs",
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-f",
+        "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+        "bytes": 2136859,
+        "verified_before_rename": true
+      },
+      "g": {
+        "local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-zero-frame/dnsmasq-rs",
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-g",
+        "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+        "bytes": 2145051,
+        "verified_before_rename": true
+      },
+      "stage": {
+        "local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-g-udp-stage/dnsmasq-rs",
+        "remote": "/tmp/dnsmasq-perf-20261015/a53-g-stage-artifact-stage",
+        "sha256": "686ba665a7c097c5ea4555c8cecabdc22235ceadfc9b314bbdb3660fddedc8a6",
+        "bytes": 2149147,
+        "verified_before_rename": true
+      }
+    },
+    "E_F_only_restoration": true,
+    "one_diagnostic_ELF_four_modes": true,
+    "canonical_original_budgets_unchanged": true,
+    "same_original_case_wait_before_COMPLETE_verified": true,
+    "all_window_controller_exit_stderr_and_isolated_namespace_evidence_bound": true,
+    "no_setup_or_measurement_retry_in_current_device_run": true,
+    "earlier_related_preparation_failures_retained_via_original_related_review": true,
+    "Oracle_idle_during_device_measurement_claimed": false,
+    "runtime_or_device_access": false,
+    "reviewer_script_sha256": "bf55760569a735867afd47c7987fd480628e8c76340aac6d81e1ea17b132c152"
+  },
+  "independent_peers": {
+    "health_phase": {
+      "receipt_sha256": "f884e1b4a43645ada3fc4b8460f59a792a3cdeccd3214aa89cf33d902bb2d6ad",
+      "value": {
+        "status": "PASS_LOCAL_G_STAGE50_FROZEN_HEALTH_PREFIX_TAIL_AND_PHASE_BINDINGS",
+        "public_result_sha256": "1bb4ba246de1dc42181609bc2e4bf1c6097d89a1fad64c6e0662e90a4e4d3327",
+        "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+        "pure_original_validation_functions_only": [
+          "complete_prefix",
+          "validate_baseline",
+          "validate_guard_evidence"
+        ],
+        "health": {
+          "baseline": {
+            "raw_sha256": "0a7d29a5533a3fd3f4332031976f228679779fbb5cf86e5f7865205599fae1ab",
+            "prefix_sha256": "4b559da41ef2a30b3f13cea9d83e74075b8abbf3186870949184914f76c2a34e",
+            "capture_sha256": "4b559da41ef2a30b3f13cea9d83e74075b8abbf3186870949184914f76c2a34e",
+            "external_sha256": "3e2b3a2e941f6ad1ba4bde01db8abd19fc0a2ddc95f179ac008d631bf6d190ba",
+            "stop_request_sha256": "236e6976281e9a48bb5bf313ddf7c4509a130bdd2015ddd5f712eccc06f80776",
+            "qualified_samples": 126,
+            "final_samples": 127,
+            "final_tail_samples": 1,
+            "qualified_elapsed_seconds": 125.0,
+            "final_elapsed_seconds": 126.18,
+            "dns_samples": 49,
+            "http_samples": 23,
+            "external_checks": 10,
+            "max_dns_ms": 9.299,
+            "max_http_ms": 74.188,
+            "minimum_memory_all_final_samples_kib": 89856,
+            "start_epoch": 1792147816,
+            "end_epoch": 1792147942,
+            "maximum_recorded_epoch_gap_seconds": 1
+          },
+          "runtime": {
+            "raw_sha256": "a85d9590b8aa5b0238d1e221ee07104a909716fcd7294f6cd066d6fda7f47d2a",
+            "prefix_sha256": "4e2e49e7871c33bb3ac5cbbc1113ec1e0138a0986c00827c4d2ac47e152b00ea",
+            "capture_sha256": "4e2e49e7871c33bb3ac5cbbc1113ec1e0138a0986c00827c4d2ac47e152b00ea",
+            "external_sha256": "6065278f7c392b909522e8e655553e7cfaa641967309707283df91a40701d247",
+            "stop_request_sha256": "c1f6d6cc82b41b9564049588478bb1c0a2098a29d528825f6717ad4ae41f7baf",
+            "qualified_samples": 2091,
+            "final_samples": 2091,
+            "final_tail_samples": 0,
+            "qualified_elapsed_seconds": 2090.0,
+            "final_elapsed_seconds": 2090.791,
+            "dns_samples": 811,
+            "http_samples": 374,
+            "external_checks": 140,
+            "max_dns_ms": 12.465,
+            "max_http_ms": 177.699,
+            "minimum_memory_all_final_samples_kib": 77212,
+            "start_epoch": 1792148120,
+            "end_epoch": 1792150211,
+            "maximum_recorded_epoch_gap_seconds": 1
+          }
+        },
+        "all50_window_intervals_inside_guard": true,
+        "all150_external_checks_passed": true,
+        "baseline_capture_tail_preserved": true,
+        "baseline_stage_launch50_archive_restore_order_verified": true,
+        "production_identity_stable_and_restored_slots_equal_original_receipts": true,
+        "concurrency_receipt_sha256": "dbc2e562360de7e87a79af0df743015a84f01a9290f238881d9e931afaa10b91",
+        "concurrency_recorded_phase_intervals_distinguished": true,
+        "postflight_sha256": "881d051f3064395cf1c7c4430e5d04e66b2e062c6aad85408f47eb74c8e4e1d6",
+        "script_sha256": "da95ca29efe6146f3967d507abe898ca731b44a7bfc8fac07cd32e01ddd1751a",
+        "scope_limits": [
+          "Local retained health, phase and restored-slot receipts only; no router/Oracle access or fresh runtime observation.",
+          "Only three frozen pure health validation functions were executed; no device controller or collector imported/executed.",
+          "No performance statistics, workload, thresholds or sampling changes; main correctness audit owns archive/cohort/statistical replay.",
+          "All58 postflight predicate and stdout/batch checks are independently reviewed by DNS in a separate receipt.",
+          "Concurrency proves recorded scheduling intervals only, not physical/virtual isolation or synchronized-host performance attribution."
+        ]
+      }
+    },
+    "concurrency_original_sources": {
+      "receipt_sha256": "e4da9241ac564d6933ecda5da1cb149c3086bde82febbc3ca4503a1c3b9bc872",
+      "value": {
+        "status": "PASS_CONCURRENCY_ORIGINAL_LOCAL_SOURCE_BYTES_AND_ORIGINAL_6978_BOUND",
+        "public_concurrency_sha256": "dbc2e562360de7e87a79af0df743015a84f01a9290f238881d9e931afaa10b91",
+        "original_files": [
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-preparation/launch.json",
+            "sha256": "6a1532d6f1cdcc21dae0c3a6dc0db0251adb0ddde97bdf74ab1b50d801db87ab"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-preparation/complete.json",
+            "sha256": "65bf5eb769af539b28c6c41868942603f5315219722a9cfe154636942e4813aa"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-preparation/release-to-correctness.json",
+            "sha256": "b660f702fc78f5067bcc60c23bef107d3b3ceafcfb1cc8909aea53406c1652bd"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-encode-owner32-postflight-summary.json",
+            "sha256": "45742f419afbd197229c63cfcbfcf027054c7e908845c428b7365a66a51876a8"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-preparation/analyze-command.stdout",
+            "sha256": "a19df65ee946bfd9491d780372523d830f2f25a0ac1d6a9dc41908d196c029a2"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-preparation/release-to-loop-original-owner32.json",
+            "sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-reviewer-results/files/launch.json",
+            "sha256": "37f68523194d21c431307e2f2604fd288e715740c24267d16b196ba0ba192e8a"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-reviewer-results/files/exit.json",
+            "sha256": "bf1171339ba6c7d72f08269a39bd39486709d123dd2e8b35f76bcfea6d75ca48"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-reviewer-results/files/replay-verified.json",
+            "sha256": "3f6180c10c46a6f2a9e6e9ae3bd5250b7918e4a9847c8e9ff50e1f8ff6644e21"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-reviewer-results/files/statistics-exit.json",
+            "sha256": "b77850a94390841c82ebcf259b273e04c5384e92d2cb1ccc7198b8730e588abb"
+          },
+          {
+            "path": "/Users/USER/Developer/owrt-diagnostic-g-stage-preparation-20261016/private/perf-opt-20261015/warm-address-encode-owner32-reviewer-results/files/phase-exit.json",
+            "sha256": "6cc6138368f9d863389da1401b23529903c76c75da9523812ef46bb83ac3823e"
+          }
+        ],
+        "health_phase_receipt_sha256": "f884e1b4a43645ada3fc4b8460f59a792a3cdeccd3214aa89cf33d902bb2d6ad",
+        "original_analyzer_output_has_no_exit_epoch_no_end_time_invented": true,
+        "scope": "Existing original author receipts and byte-verified reviewer archive only; no repeated validation/workload or Oracle/router access."
+      }
+    },
+    "postflight_restoration": {
+      "receipt_sha256": "c248095ff308dddbbffa71d7885366e17c515b7d087674aefd90074e745c25b2",
+      "value": {
+        "status": "PASS_LOCAL_G_STAGE_58_POSTFLIGHT_PREDICATES_AND_EXACT_E_F_RESTORATION",
+        "author_commit": "e8303c4c",
+        "author_result_sha256": "1bb4ba246de1dc42181609bc2e4bf1c6097d89a1fad64c6e0662e90a4e4d3327",
+        "plan_sha256": "8293e1d84a80c4035c1b9ab0c1969ac23df421c6eb89324fa1bf733ae4e47442",
+        "postflight_sha256": "881d051f3064395cf1c7c4430e5d04e66b2e062c6aad85408f47eb74c8e4e1d6",
+        "postflight_operator_sha256": "56780c955221b8bebe12810eebc9ef95d6269c3ae1949d0fbe07f9cc1f9ef5de",
+        "predicate_batches_sha256": "9ee29dc1b599350448801fa3ea4ef0b86d502a964927eca67f61ef1704cc4243",
+        "predicate_count": 58,
+        "predicate_classes": {
+          "STOP_and_active_group_absent": 2,
+          "no_owned_live_executable": 1,
+          "all50_window_paths_absent": 50,
+          "five_immutable_sources_exact_hash_before_prune": 5
+        },
+        "batch_lengths_bytes": [
+          2725,
+          2355
+        ],
+        "batch_exit_statuses": [
+          0,
+          0
+        ],
+        "prune_shell_sha256": "c37655adb5beed7116a310979cbb87e2027b18e7e175417e24b25d132c55a2ee",
+        "only_five_verified_immutable_source_paths_pruned": true,
+        "restored_slots": {
+          "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+          "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+        },
+        "restored_json_sha256": "83acb1e6dd9a7ee1652d957cdea66abb74865b0b7f8b9351147fb1bff72984f7",
+        "cleanup_json_sha256": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+        "production_pid_start": [
+          3086,
+          2115
+        ],
+        "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+        "postflight_raw_stdout_matches_exact_E_F_and_namespace": true,
+        "scope": "Local retained receipts, scripts and artifact bytes only. Did not import/execute operator/device scripts, contact router/Oracle, or redo health/statistics/archive analysis. Runtime restoration and production identity remain receipt-bound; original controller production_identity validates deployed file/executable SHA and unique PID/start before and after postflight.",
+        "script_sha256": "b31cb179686efbb8ebe8b0fb5c185f5d130f071cf3561bf8165834b5cc239bad"
+      }
+    }
+  },
+  "retained_reviewer_schema_adaptation": {
+    "failure": "Old E public schema used upstream_total fields; G public upstream is the total-only dictionary while raw measurement.upstream retains the complete upstream receipt. Initial generic field matcher compared mismatched nesting.",
+    "correction": "Compare published upstream directly with measurement.upstream.total and raw upstream.json.total, keeping exact dictionary equality.",
+    "original_failed_script_sha256": "f89403e98220b8a5d7b6a96c45275a5a665bffd6a36c2424e8d3edca9e98ce36",
+    "corrected_script_sha256": "2e8cef53bfde31d5a7c138d48f1ffa27d3d6b7d059a669146b771078f6bad5da",
+    "product_or_measurement_rerun": false
+  },
+  "proof_receipts": {
+    "prefix-50-audit.json": "ab37b7fe3891a4a4a4c9ce2442fda279032a34fd4b9a7558454dcaba74e34acb",
+    "resources-and-statistics.json": "3f32fc1b0d8d5adbae7d39002131983ab6ed776d851847ca4809fac6c57eaa5e",
+    "bindings.json": "a08d878fef16481bd425f1cabeb04e22fbe4fabee8ade0c2dff78bac0699e46c"
+  },
+  "postflight_sha256": "881d051f3064395cf1c7c4430e5d04e66b2e062c6aad85408f47eb74c8e4e1d6",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "exact_E_F_restoration_verified_from_captured_receipts": true,
+  "actual_Oracle_concurrency_bound_to_original_receipts": true,
+  "oracle_idle_during_device_windows_claimed": false,
+  "local_only_no_router_or_Oracle_access": true,
+  "reviewer_measurement_or_product_reruns": false,
+  "performance_accepted": false,
+  "allocation_counts_measured": false,
+  "scope_limits": [
+    "One exact a34 SDK artifact serves all four diagnostic modes. Accepted G and exact-image C controls are fresh within this matrix; E/F are restoration only. No historical E/G pooling.",
+    "Original 6000 fixture replies, 1000 prewarm threshold and 5000 selected-cut observations are per window, not allocator counts. CPU denominator remains 5000 correct warmup plus measurement queries.",
+    "Each stage contrast has its own full five pairs. G/full calibration is separate and does not establish zero instrumentation or layout cost.",
+    "Before-answer uses reviewed G reply-buffer reuse. No new allocation counter or zero-allocation target is present; this round does not quantify allocation sites or cost.",
+    "Synthetic fixed-TTL120 writer, retained function frames, branch prediction, cache access and code layout effects remain. Deltas are cumulative interventions, not additive function costs, IPC or product optimizations.",
+    "All original windows and full ranges are retained. Strict W, direction and greater-than-eight-tick rules are unchanged. p99 is unavailable for 4000 samples; RSS/Anon are not private heap, PSS or USS.",
+    "The original warm owner32 timing run overlapped this device50 on a separate Oracle host under root coordination. Actual start/end receipts are bound in concurrent_Oracle_work; all bulk transfers remained prohibited until device50 archive verification and restoration.",
+    "Production configuration, kernel and drivers remain unchanged. Fresh health, runtime guard and exact E/F restoration are separate verified evidence."
+  ]
+}
