@@ -301,7 +301,9 @@ impl CacheContext<'_> {
     ) -> Result<CachedAnswer, CacheError> {
         if !local.query_logging && local.cached_reply_buffer.capacity() != 0 {
             if let Some(entry) = cache.get(id) {
-                let data = &entry.record.data;
+                let kind = if question.rrtype == 1 { Kind::Ipv4 } else { Kind::Ipv6 };
+                let data = entry.positive_address(kind)
+                    .expect("selected fresh address has its original bytes");
                 let name = question.name.as_wire();
                 let length = 12 + name.len() + 4 + 12 + data.len();
                 // Keep the original writer for logging, overflow and any
