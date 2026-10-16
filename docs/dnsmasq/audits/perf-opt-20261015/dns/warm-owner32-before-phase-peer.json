@@ -1,0 +1,69 @@
+{
+  "status": "PASS_LOCAL_WARM_OWNER32_ORIGINAL_PRETRANSFER_READY_LAUNCH_BINDINGS",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+  "pretransfer_sha256": "899a036e9bd1156f183aebcbbab6f24e13cdaadb8066aec57dba041056c572ee",
+  "quiet_sha256": "6978d36e1c320180c458f20ed7b20e3f01855eded20f3585cb44fcf73829a0a1",
+  "ready_sha256": "1db5b2b4e4d6c41b81aa276c7e7938078e4ea2fe263c967b7553a039915e1ade",
+  "launch_sha256": "6a1532d6f1cdcc21dae0c3a6dc0db0251adb0ddde97bdf74ab1b50d801db87ab",
+  "archive12_inputs_verified": true,
+  "eight_imports_and_original_controller_analyzer_bound": true,
+  "source358_Git_blob_hashes_verified": true,
+  "actual961_SDK_triples_bound_to_independent_reviews": true,
+  "review_refs": {
+    "source_review": {
+      "commit": "190e015c",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-writer-final-source-review.json",
+      "sha256": "efef368ae0beb5809507b821f30b9acf5ac594724c12b56c254ee9ded98af773"
+    },
+    "sdk_independent_review": {
+      "commit": "7db02ead",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-sdk-independent-audit.json",
+      "sha256": "e94817dd91324dd75ef4b1e9cca7036b50d72778ce9be5222930fb4a13bae7fd",
+      "status": "PASS_ACTUAL_BARE6DAD_CANONICAL_SDK_SOURCE_CONTROLLER_STATIC_ARTIFACTS_BUDGETS_AND_ORIGINAL961_CHAIN"
+    },
+    "screen_plan_independent_review": {
+      "commit": "adb0be99",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/warm-owner32-preparation-peer.json",
+      "sha256": "7ea67dfd83b8098e2551727467e039ca4db3e020f709045d4512546c3ab9a9d6"
+    },
+    "linux_gate_independent_review": {
+      "commit": "7f189cf6",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/warm-address-encode-related-independent-audit.json",
+      "sha256": "dbd269282eca73f7ed8971db33eb32cf3d3b18a40f93fbd6a055536a171c3711",
+      "status": "PASS_FRESH_6DAD_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_WRAPPERS_AND_SOURCE_IDENTITIES"
+    },
+    "launch_template_independent_review": {
+      "commit": "c0b8a5b0",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/warm-owner32-launch-template-peer.json",
+      "sha256": "90b021c3f843fb351b412dfd81da748a7eb6a92a2686e0064c08af2be66f5bad",
+      "status": "PASS_LOCAL_WARM_OWNER32_READY_AND_LAUNCH_TEMPLATE_PEER"
+    }
+  },
+  "changed_plan_fields": [
+    "artifact_transfer",
+    "artifacts",
+    "declared_plan_commit",
+    "declared_plan_sha256",
+    "execution_enabled",
+    "explicit_slot_release",
+    "launch_template_independent_review",
+    "linux_gate",
+    "linux_gate_independent_review",
+    "planned_linux_gate",
+    "pretransfer_complete",
+    "pretransfer_inputs_archive_sha256",
+    "pretransfer_receipt",
+    "remote_independent_audits",
+    "reservation",
+    "scope",
+    "screen_plan_independent_review",
+    "sdk_independent_review",
+    "source_review",
+    "status"
+  ],
+  "recorded_order": "pretransfer < fresh correctness quiet < final ready metadata < original owner32 launch",
+  "bulk_download_and_archive_audit_pending": true,
+  "scope": "Local retained input archive, control receipts and Git objects. Remote actual raw/statistics and post-measurement phase still pending; no Oracle access or workload.",
+  "script_sha256": "9ccbe72ad2ff3d715524e444c8a6271a7c350f5ed97810e99eb90de187b96e73"
+}
