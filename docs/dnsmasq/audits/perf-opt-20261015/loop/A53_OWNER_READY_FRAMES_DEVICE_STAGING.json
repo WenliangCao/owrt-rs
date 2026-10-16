@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "ORIGINAL_FRESH_HEALTH_AND_FOUR_IMMUTABLE_COPIES_COMPLETE_BEFORE_ANY_TIMING",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "source_parent": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "source_base": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "comparison_scope": "FreshacceptedG185 versus exact5c productA53ten UDP-hit.5c contains025 DHCPready extraction andLinuxdump extraction on6ab, no1df. DirectGcomparison includes inherited6ab changes; notisolateddump-only orframe-only attribution. Notfullqualification/deployment.",
+  "elf_sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+  "source_files_verified": 179,
+  "standalone_runtime_signals_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+  "standalone_runtime_signals_independent_review": {
+    "commit": "80f13a76",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/owner-ready-frames-runtime-signals-independent-audit.json",
+    "sha256": "e959ec997ed77399c30fa0de2ff3fce02dee42869e569c88470e56f0de7c9e3a",
+    "status": "PASS_EXACT5C_ORIGINAL_STANDALONE_RUNTIME_SIGNALS_WITH_NATIVE_COMPATIBILITY_RESTORED"
+  },
+  "original_slots_unchanged": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "stage_receipt_sha256": "ca82c065a9036d7bd09cad5211554a7018848a4d27dba925d5f1590659189c4d",
+  "stage_receipt": {
+    "scope": "Original operator preflight and four immutable source copies complete; no windows or slot changes started.",
+    "plan_sha256": "66f30ec636f19030d56ea7155764a96b0475ae22c3fb8415656d5be082936925",
+    "health_summary_sha256": "7e66b56c58791fcaa1cf0ca196794181261e8d287cc938defecdf552bc5eef8f",
+    "preflight_sha256": "b9333db3b401fb4ef198488ae880c35aee291393088502d25ba7df5a8a4ee034",
+    "production_pid_start": [
+      3086,
+      2115
+    ],
+    "original_slots": {
+      "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "script_sha256": "96bbd99b404197ebd65aef707cf037bd45ec5149a10858bc86bc216aaefec8f9",
+    "epoch": 1792143887.413449
+  },
+  "fresh_health": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 126.001,
+    "dns_samples": 48,
+    "dns_p95_ms": 1.885,
+    "dns_max_ms": 9.812,
+    "http_samples": 23,
+    "http_max_ms": 86.139,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 127,
+    "final_tail_samples": 1,
+    "pre_stop_prefix_sha256": "01b0f967148038c6e6505842502907c133d246b5e3cc38adf63263e2a80bd180",
+    "raw_sha256": "513c1468e68fd88a39c3d6fa6087df170e0b7bc7f658ae816761b303cf0cc6e1"
+  },
+  "available_memory_before_staging_kib": 96620,
+  "immutable_sources": {
+    "e": {
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "f": {
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc",
+      "bytes": 2136859,
+      "verified_before_rename": true
+    },
+    "g": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    },
+    "owner-ready-frames": {
+      "sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+      "bytes": 2145051,
+      "verified_before_rename": true
+    }
+  },
+  "staged_bytes": 8563820,
+  "measurement_started_at_this_checkpoint": false,
+  "pending_before_start": "Finalquiet/allnecessarytransfersreceipt andloopfinalready metadata,thenoriginalstart rechecksallprod/slot/identity/idle/memory gates."
+}
