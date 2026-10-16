@@ -1,0 +1,26 @@
+{
+  "scope": "Original exact-SDK G185/5c owner32 after actual961/canonicalSDK/originalstandalonesignals fullindependent audits, allpretransfers andDNSfinalquiet; no native240, no isolatedframe attribution.",
+  "pid": 1022118,
+  "starttime_ticks": 186870422,
+  "epoch": 1792144087.008683,
+  "utc": "2026-10-16 09:48:07 UTC",
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-ready-frames-owner32-inputs/run_owner_ready_frames_owner32.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-ready-frames-owner32-inputs/plan.json"
+  ],
+  "plan_sha256": "c6c6db1fc43e5809ef78c7d605b1dc9026f8293c3e844e25bb7107d04b7858a3",
+  "controller_sha256": "0061fb577acd594aeef3252a8bdf28ffbb5236aaa581837937c5593e1919c503",
+  "explicit_release_sha256": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+  "final_metadata_sha256": "acef2b1fa7ccce2e41b525c2d2ad3c80413a319672e024b52162dd6fff2a6312",
+  "standalone_signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+  "retained_prelaunch_metadata_failure_sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d",
+  "windows": 32,
+  "stat_windows": 12,
+  "plain_windows": 20,
+  "no_measurement_retries": true,
+  "transfers_held_during_both_measurement_slots": true
+}

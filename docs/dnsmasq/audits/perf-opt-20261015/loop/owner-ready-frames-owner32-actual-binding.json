@@ -1,5 +1,5 @@
 {
-  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
+  "status": "ORIGINAL_OWNER32_STARTED_AFTER_FULL_AUDITS_SIGNALS_AND_QUIET",
   "candidate_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
   "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "actual_gate": {
@@ -27,7 +27,7 @@
   },
   "source179_matches_frozen_plan": true,
   "sdk_postflight_sha256": "35eb839874b059bdeea2d5ecf9cd3c2d8e83a35bc247cb355b9eca2c6e24048a",
-  "plan_sha256": "a4caee36b693ca11e4b94758326a850cc81fc021d390691dbfc0176decca29e4",
+  "plan_sha256": "c6c6db1fc43e5809ef78c7d605b1dc9026f8293c3e844e25bb7107d04b7858a3",
   "original32_protocol_and_scripts_unchanged": true,
   "standalone_signal_actual": {
     "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/owner-ready-frames-signals-20261016/signals/result.json",
@@ -38,9 +38,14 @@
     "path": "correctness/owner-ready-frames-sdk-independent-audit.json",
     "sha256": "c771743b843fab0ace2f8c6e68c054c709052e8760527668c1151ddb8ea3f925"
   },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "executed": false,
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/owner-ready-frames-execution-20261016/release-to-measurements.json",
+    "sha256": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+    "epoch": 1792143953.5567126,
+    "scope": "Actual961/canonicalSDK/originalstandalonesignals independentlyPASS andallpretransfers complete. Originalowner32/device10 only."
+  },
+  "pretransfer_complete": true,
+  "executed": true,
   "remote_accessed": true,
   "no_native240": true,
   "related_independent_review": {
@@ -64,5 +69,7 @@
     "complete": true,
     "uploaded_plan_still_disabled": true
   },
-  "pretransfer_remaining": "Original devicefreshhealth/fourartifactstage, DNSfinalquiet then finalreadymetadata; no bulk duringhealth/timing."
+  "pretransfer_remaining": null,
+  "launch_sha256": "6118363afae8a93b16f4a828a02f444fa84902f962af068660524bb9ee35a0dc",
+  "retained_prelaunch_metadata_failure_sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d"
 }

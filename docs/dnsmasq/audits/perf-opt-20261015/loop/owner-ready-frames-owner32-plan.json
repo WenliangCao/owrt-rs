@@ -420,9 +420,9 @@
   "workload": "original driver: 800 names, A/AAAA70/30,1000 full prewarm,5s warmup+20s measured+1s drain; low200/s and highunpaced",
   "placement": "Original controller/driver CPU0 nice0; daemon CPU2 absolute nice10; original upstream/client placement unchanged",
   "analysis": "Original actual warmup+measurement N CPU/PMU denominator, 20s measurement throughput/latency; grouped unscaled same-window user/kernel instructions/cycles. Low original >8tick/W/direction; high variable-N pipeline diagnostic with no invented precision pass.",
-  "reservation": "Alloriginal961/canonicalSDK/standalonesignals actualindependentreviews bound. Stilldisabled until ownerinputs+devicehealth/fourartifactpretransfers complete andDNS finalquiet isbound.",
+  "reservation": "ExplicitDNSfinalquiet afterfullactualaudit/signals andbothpretransfers. OriginalG5c owner32 only,nativeexcluded,no bulk or unrelatedbuildduringtiming.",
   "failure_policy": "Retain every failed/partial original window and stop; no replacements, selective reruns or historical E/G controls pooled.",
-  "status": "ACTUAL_AUDITED_PENDING_ALL_PRETRANSFERS_AND_FINAL_QUIET",
+  "status": "FROZEN_EXACT_SDK_READY_AFTER_EXCLUSIVE_SLOT_RELEASE",
   "artifact_transfer": {
     "candidate_elf_bytes": 2145051,
     "local_three_hashes_verified": {
@@ -491,13 +491,26 @@
     "path": "correctness/owner-ready-frames-owner32-actual-root-review.json",
     "sha256": "5b78e338534462b21d3d3d3d3055c45e57ffc022f06c462ad862b21e20dc988c"
   },
-  "explicit_slot_release": null,
-  "pretransfer_complete": false,
-  "execution_enabled": false,
+  "explicit_slot_release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/dns/private/owner-ready-frames-execution-20261016/release-to-measurements.json",
+    "sha256": "14480426ae03e11b634054fa03015f372b40c4fc9a551d773d47532c7f167d4e",
+    "epoch": 1792143953.5567126,
+    "scope": "Actual961/canonicalSDK/originalstandalonesignals independentlyPASS andallpretransfers complete. Originalowner32/device10 only."
+  },
+  "pretransfer_complete": true,
+  "execution_enabled": true,
   "protocol_preparation_review": {
     "commit": "9364e070",
     "path": "correctness/owner-ready-frames-owner32-preparation-root-review.json",
     "sha256": "f4081a521e4b1c089bb5da9c3303eefb1dc10e9455a1fd854325d04938a82744",
     "scope": "Disabled originalprotocol preparation only; actualidentity delta pending."
+  },
+  "pretransfer_inputs_archive_sha256": "f94301c404f3522288d63c245cb7fb1c220bebd2c26d1304fb1d552fd3a80afd",
+  "device_pretransfer": {
+    "local_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/a53-owner-ready-frames-device-stage-complete.json",
+    "sha256": "ca82c065a9036d7bd09cad5211554a7018848a4d27dba925d5f1590659189c4d",
+    "preflight_sha256": "b9333db3b401fb4ef198488ae880c35aee291393088502d25ba7df5a8a4ee034",
+    "health_summary_sha256": "7e66b56c58791fcaa1cf0ca196794181261e8d287cc938defecdf552bc5eef8f",
+    "no_workload_started": true
   }
 }
