@@ -1,0 +1,82 @@
+{
+  "schema": "dnsmasq-udp-local-owner-independent-source-review-v1",
+  "status": "NO_SOURCE_BLOCKER_PRIVATE_SOCKET_RC_BOUNDARY_CONFIRMED_LINUX_RUNTIME_PENDING",
+  "source_commit": "c95610c6a496ce0d4bb867c62c42481f9bdd04d3",
+  "direct_parent": "ccd38710",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "independent_boundary_reference_commit": "704c86aa904db38739b23ad596b27ca7ef9dccde",
+  "source_clean": true,
+  "changed_files": {
+    "components/dnsmasq/src/main.rs": {
+      "sha256": "ab769be41beeaac72f19623bb3bb8839120a29be934dc2642dce18a79c560564",
+      "only_socket_ownership_type_calls_changed": true,
+      "all_nonownership_tokens_unchanged": true
+    },
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": {
+      "sha256": "ad59a1ff6d2e03500222cd928b448a8a397ab850d9dbaa4841e472a500c37e2c",
+      "only_socket_ownership_type_calls_changed": true,
+      "all_nonownership_tokens_unchanged": true
+    },
+    "components/dnsmasq/src/main_newaddress_tests.rs": {
+      "sha256": "fd7edd0476df25866a0173200e55fbfbe8a0bacf6a6846851aac5a7212d229ea",
+      "only_socket_ownership_type_calls_changed": true,
+      "all_nonownership_tokens_unchanged": true
+    },
+    "components/dnsmasq/src/main_route_resend_tests.rs": {
+      "sha256": "18d92809cc0efb46b36b598aff0ab896b993511486b4ad8738be9a47ca49b556",
+      "only_socket_ownership_type_calls_changed": true,
+      "all_nonownership_tokens_unchanged": true
+    },
+    "components/dnsmasq/src/main_stale_refresh_log_tests.rs": {
+      "sha256": "72b4e732e8e8df239985fd0fe3e1c02f988a00c293775eca676eca684403021c",
+      "only_socket_ownership_type_calls_changed": true,
+      "all_nonownership_tokens_unchanged": true
+    },
+    "components/dnsmasq/src/main_udp_acl_tests.rs": {
+      "sha256": "8ee4ad94ab8caf27be60b024525a79290ff3762c2b277d00f449bdc066b91814",
+      "only_socket_ownership_type_calls_changed": true,
+      "all_nonownership_tokens_unchanged": true
+    }
+  },
+  "scope_verified": [
+    "Exactly6files differ from the deferred-clone parent: main.rs and5private testfixtures. Apart from2commentlines, normalizingArc/Rc tokens reconstructs each parentfile exactly; all controlflow, assertions and conditions are unchanged.",
+    "All9 changed productiontypes are privateDnsSocket handles: listenerpair/factoryreturn/listener/pendinginterface/pendingadmission/new/add/processadmitted/processudp.2factories createRc;2productionresume/packet sites cloneRc. No publicDnsSocket API changes.",
+    "Lease/interface/domain/config/cache Arc sites and TCPsnapshot weak/count/ptr_eq assertions are unchanged. Librarycache/lease/daemon/listeners/startup/helper source is byte-identical to185."
+  ],
+  "lifetime_review": [
+    "PollListener retains its owning socket. A removedlistener drops only thatowner; PendingInterfaceUdp and PendingUdpAdmission still ownRc until continuation completes or is dropped, matching originalArc liveness and finalFDclose boundary.",
+    "MAC/EDNS waiters deliberately retainSocketToken rather than an ownedhandle. step_edns_udp looks up the currentlistener then clonesRc before processing; absentlistener drops the pendingwork as before. No lifetime is shortened or extended by changing this distinction.",
+    "process_admitted_udp and process_udp receive ownedRc; deferred work moves the same ownership through unchanged fields. Only the previously reviewed99borrow beforeadmission remains borrowed; admission retainsowned state.",
+    "No socketWeak, rawsharedpointer conversion, pointeridentity/referencecount test or unsafeSend/Sync implementation participates. Rc is not sent via thread/channel/static/FFIownership; synchronouspoll callbacks remain in the sameowner."
+  ],
+  "execution_boundary_review": [
+    "SinglePoll already containsRc<RefCell<ParentDns>>, eventstate and interface snapshots. This alone is not reliedupon: individualDnsSocket transfers were traced through bothfactories,listener vectors,pendingfields andresume paths.",
+    "Allsignalhandlers remain original atomics/counter updates and nonblockingwakepipe or_exit. They neither clone nor drop socketRc, so they cannot reenter non-atomic countmutation.",
+    "Startup openslisteners before its single-threaded doublefork with no retainedRefCellborrow. BothRc andArc refcounts reside in separate processmemory afterfork; parentFDcopies and childFDcopies remain separately owned. Intermediatechild uses_exit.",
+    "Helperfork remains before serving and child never returns into copiedparentownership, using_exit. No runtime workerthread is introduced.",
+    "The solemain.rs threadspawn is a cfg(test)TCPfixture capturingTcpListener andmpsc endpoints; it creates its ownTcpStream and never capturesDnsSocket/SinglePoll. Other librarythreadspawns are test-only and do not receive these privatebinaryhandles."
+  ],
+  "retained_author_validation": {
+    "Mac_bin": "23passed/0failed/0ignored",
+    "musl_all_target_checks": "default andm6b-diagnostics compiler completion retained; actualLinuxruntime not run",
+    "log_sha256": {
+      "bin.stdout": "b8eaff95c0f187f51557965af44c2cdddf47aacd529e43d5e167e23ad6e9162b",
+      "bin.stderr": "0fd0dc63718cd48204451881b49d31011e21b6a4a573c8633958c64c9325bde1",
+      "musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "musl.stderr": "e5b02d3253316f81c23faf8e504fe54b0eff2f28e436edd2bf0bc7f14aa37c8c",
+      "diagnostics.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diagnostics.stderr": "26f0bae4ea686a385a97ca31fd0636b15346f26fb1345d87aa2c6b39d9557563"
+    },
+    "reviewer_build_or_test_execution": false
+  },
+  "remaining_runtime_scope": "Exactcandidate relatedLinux runtime, pendinginterface/MAC removal andstartup behavior still require originalgates when scheduled. Compilechecks establish typecompatibility only; no new testframework or numericacceptance gate is added.",
+  "codegen": "Author compares with99parent separately; this review does not assert atomic-count,layout orCPU gains.",
+  "not_combined_into": [
+    "frozen185",
+    "a15d3ca2"
+  ],
+  "Oracle_or_router_accessed": false,
+  "full_qualification_passed": false,
+  "performance_accepted": false,
+  "deployment": false
+}
