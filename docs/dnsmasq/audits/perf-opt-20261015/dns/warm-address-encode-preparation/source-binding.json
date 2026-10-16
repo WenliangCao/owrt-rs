@@ -1,0 +1,51 @@
+{
+  "status": "LOCAL_EXACT6DAD_SOURCE_AND_ARCHIVE_VERIFIED_NOT_EXECUTED",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "local_source": "/Users/USER/Developer/owrt-perf-warm-address-encode-20261016",
+  "source_date_epoch": "1792143477",
+  "preparation_worktree": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016",
+  "source179_manifest_path": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/source-files.json",
+  "source_manifest_sha256": "4a9150645236b4eaf55a03a24efdf769cd61095ec99a2c0f0bdb6aeeb9240348",
+  "git_identity_sha256": "455a63fd3b087c37ddd9d63e605c12412efb08e2997be9a92847d8765a9fc746",
+  "SDK_input_changes_from6ab": [
+    "components/dnsmasq/src/dns/cache_engine.rs"
+  ],
+  "archive": {
+    "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+    "archive": "/Users/USER/Developer/owrt-perf-warm-address-encode-preparation-20261016/private/perf-opt-20261015/warm-address-encode-preparation/source-6dadfec2.tar.gz",
+    "bytes": 20525531,
+    "sha256": "f3e0c8101891c6d85a97e24ab290487f894a1a3667ab513d0aa64992ef83956a",
+    "regular_files_including_identity": 4098,
+    "all_Git_file_modes_and_blobs_verified": true,
+    "SDK_source_files_verified": 179,
+    "identity_sha256": "455a63fd3b087c37ddd9d63e605c12412efb08e2997be9a92847d8765a9fc746",
+    "source_manifest_sha256": "4a9150645236b4eaf55a03a24efdf769cd61095ec99a2c0f0bdb6aeeb9240348",
+    "uploaded": false,
+    "executed": false
+  },
+  "source_reviews_and_original_probe_scope": [
+    {
+      "commit": "cefc50cd",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-writer-source-review.json",
+      "sha256": "5022b098ae1a0c72d1b279e07421691ea7ba126b56a110e0aad7139b2bc8e96c"
+    },
+    {
+      "commit": "190e015c",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-writer-final-source-review.json",
+      "sha256": "efef368ae0beb5809507b821f30b9acf5ac594724c12b56c254ee9ded98af773"
+    },
+    {
+      "commit": "3201e205",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/WARM_ADDRESS_ORIGINAL_NATIVE_SCOPE.md",
+      "sha256": "3a8bc30ec5660130a3167e1fdfe4e14432bcf26408f2f37ff1c90436d51918af"
+    }
+  ],
+  "existing_test_change": "Existingfresh/generalwriter test expandedto18432 tuples; test name retained,noaddedtestname. Local725/8ignored andmuslcheck notLinuxqualification.",
+  "future_performance_scope": "Originalnative240 doesnotrecycle cachedreplybuffer andcoverscoldfallback/layout only; realwarmbenefit requiresoriginalowner32. Do notchangeprobe orclaimnativewarmcoverage.",
+  "queue": "LoopG-stage original3gates/SDK first; onlylocalpreparation now. Anywarmbulk pretransfer requiresloop coordination andmustavoiddevicemeasuredwindows. No concurrentSDK/testslot use, waitexplicitquietbeforeexecution.",
+  "remote_accessed": false,
+  "frozen_source_modified": false,
+  "uploaded": false,
+  "build_or_test_run": false
+}
