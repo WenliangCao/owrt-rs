@@ -32,7 +32,8 @@ and all three build locks were available. The existing idle SDK fakeroot
 daemon was identified separately and left untouched. Accepted G artifacts
 remain unchanged.
 
-The immutable download contains 46 rehashed files. Complete artifact IDs,
+The immutable download contains 46 manifest payload entries plus the manifest
+itself (47 regular archive members), all verified. Complete artifact IDs,
 source manifests, command outputs and paths are in
 [the execution result](post185-sdk-execution-result.json). Private binaries,
 maps, source archives and raw logs are excluded from Git.
@@ -44,8 +45,11 @@ and local Python's unsupported tar extraction option. None caused a build or
 control rerun. The initial archive was never uploaded; the downloaded result
 archive was reused after the local extraction error.
 
-Next is independent SDK review and artifact pretransfer, then an explicit
-quiet handoff to the original native240/owner32 sequence and original full
-44/67 compatibility plus boundary corpus. DHCP owns the independent physical
+Independent SDK/control review passed at `94608544`; it also retained its
+reviewer-only Rust TLS `SHT_NOBITS` comparison correction. All required artifact
+pretransfers finished. A final fresh source/artifact/quiet check produced
+`b596f6a0…` and explicitly released Oracle to loop for original native240 then
+owner32, followed by correctness original full44/67 and boundary corpus. DNS
+stopped all Oracle access at that handoff. DHCP owns the independent physical
 count3 and G/6ab ten-window work. No timing, router access or deployment was
 performed by this SDK task.
