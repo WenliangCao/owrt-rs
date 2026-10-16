@@ -274,11 +274,13 @@ impl LeaseNames {
     /// Address presence does not answer other types locally. In particular,
     /// an IPv4 lease alone must not synthesize an AAAA NODATA response.
     pub fn lookup(&self, name: &[u8], now: i64) -> impl Iterator<Item = &LeaseName> {
-        (!self.forward.is_empty())
+        let ids = (!self.forward.is_empty())
             .then(|| self.forward.get(name_key(name).as_ref()))
-            .flatten()
-            .into_iter()
-            .flat_map(|ids| ids.as_slice())
+            .flatten();
+        // A missing name is simply an empty ordered slice. The caller needs
+        // no outer Option/flatten iterator state to visit this one list.
+        ids.map_or(&[][..], LeaseIds::as_slice)
+            .iter()
             .filter_map(move |&id| {
                 let entry = &self.entries[id];
                 (self.active[id] && self.policy.live(entry.expires, now)).then_some(entry)
@@ -535,6 +537,54 @@ mod tests {
             name,
             address: Ipv4Addr::new(192, 0, 2, address),
             expires,
+        }
+    }
+
+    #[test]
+    fn direct_slice_lookup_keeps_order_and_expiry_across_retained_views() {
+        // Retain the former adapter as a reference for complete iteration,
+        // including multiple same-name addresses and exhausted empty views.
+        fn previous<'a>(names: &'a LeaseNames, name: &[u8], now: i64)
+            -> impl Iterator<Item = &'a LeaseName>
+        {
+            (!names.forward.is_empty())
+                .then(|| names.forward.get(name_key(name).as_ref()))
+                .flatten().into_iter().flat_map(|ids| ids.as_slice())
+                .filter_map(move |&id| {
+                    let entry = &names.entries[id];
+                    (names.active[id] && names.policy.live(entry.expires, now)).then_some(entry)
+                })
+        }
+        let records = [
+            input(b"MiXeD.Example", 1, Some(1000)),
+            input(b"mixed.example", 2, Some(1005)),
+            input(b"immortal.example", 3, None),
+        ];
+        let queries: &[&[u8]] = &[
+            b"mixed.example", b"MIXED.EXAMPLE", b"immortal.example",
+            b"example", b"absent.example", b"",
+        ];
+        for stale in [StalePolicy::Disabled, StalePolicy::Seconds(0),
+            StalePolicy::Seconds(2), StalePolicy::Forever]
+        {
+            let policy = LeasePolicy { stale, ..LeasePolicy::default() };
+            let parent = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
+            let mut child = parent.clone();
+            child.expire_name(b"mixed.example", 1008);
+            for names in [&LeaseNames::default(), &parent, &child] {
+                for &name in queries {
+                    for now in [i64::MIN, -1, 999, 1000, 1001, 1005, 1008, i64::MAX] {
+                        let mut actual = names.lookup(name, now);
+                        let expected: Vec<_> = previous(names, name, now)
+                            .map(|entry| entry as *const LeaseName).collect();
+                        let found: Vec<_> = actual.by_ref()
+                            .map(|entry| entry as *const LeaseName).collect();
+                        assert_eq!(found, expected, "name={name:?} now={now} stale={stale:?}");
+                        assert!(actual.next().is_none());
+                        assert!(actual.next().is_none());
+                    }
+                }
+            }
         }
     }
 
