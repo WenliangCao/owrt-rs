@@ -1,0 +1,193 @@
+{
+  "scope": "Read-only downloaded actualSDK/codegen evidence, not runtime cost. G\u21925c includes6ab; two body outlines are extra main changes.",
+  "private_receipt": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/5c-actual-sdk-codegen/result-v2.json",
+  "private_receipt_sha256": "a6a242e2c91855fca55904758dc239d5254a790d57f1522f817c249a3b6faa0a",
+  "tool_sha256": "09080df6d741197fd8e1e3a710c0d94f15b9529579d7b5fe3efc17e44de083fc",
+  "sides": {
+    "G": {
+      "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+      "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051,
+      "map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+      "build_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+      "sections_present": false,
+      "functions": [
+        {
+          "name": "step",
+          "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+          "address": 422476,
+          "bytes": 17608,
+          "code_sha256": "d63f62e17fffd3f46b35a9a371894ad99b21810be15af735b1dafa2e394361f4",
+          "asm_sha256": "2a7abf6b25d53942890f4b931c1425778cb3dd3d8dc2e09ebe94894f1130f199",
+          "entry": [
+            "6724c: fd7bbaa9 stp x29, x30, [sp, #-0x60]!",
+            "67250: fc6f01a9 stp x28, x27, [sp, #0x10]",
+            "67254: fd030091 mov x29, sp",
+            "67258: fa6702a9 stp x26, x25, [sp, #0x20]",
+            "6725c: f85f03a9 stp x24, x23, [sp, #0x30]",
+            "67260: f65704a9 stp x22, x21, [sp, #0x40]",
+            "67264: f44f05a9 stp x20, x19, [sp, #0x50]",
+            "67268: ff0324d1 sub sp, sp, #0x900",
+            "6726c: ff0300f9 str xzr, [sp]",
+            "67270: 16fc4df9 ldr x22, [x0, #0x1bf8]",
+            "67274: 0900f092 mov x9, #0x7fffffffffffffff",
+            "67278: c80a40f9 ldr x8, [x22, #0x10]",
+            "6727c: 1f0109eb cmp x8, x9",
+            "67280: a2d40154 b.hs #0x6ad14",
+            "67284: c91a40f9 ldr x9, [x22, #0x30]",
+            "67288: fb0300aa mov x27, x0"
+          ]
+        },
+        {
+          "name": "wait_for_files",
+          "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+          "address": 334332,
+          "bytes": 7304,
+          "code_sha256": "adbbe534d6018672112325732bc8faab36a275e48fc55b667ce5468a257d881f",
+          "asm_sha256": "8305e339c501700c0d6a41b056e8a440e55ddf30e929016e0031ce1ee7613f0d",
+          "entry": [
+            "519fc: ff8305d1 sub sp, sp, #0x160",
+            "51a00: fd7b10a9 stp x29, x30, [sp, #0x100]",
+            "51a04: fc6f11a9 stp x28, x27, [sp, #0x110]",
+            "51a08: fa6712a9 stp x26, x25, [sp, #0x120]",
+            "51a0c: f85f13a9 stp x24, x23, [sp, #0x130]",
+            "51a10: f65714a9 stp x22, x21, [sp, #0x140]",
+            "51a14: f44f15a9 stp x20, x19, [sp, #0x150]",
+            "51a18: fd030491 add x29, sp, #0x100",
+            "51a1c: 00acc53d ldr q0, [x0, #0x16b0]",
+            "51a20: 88008052 mov w8, #4",
+            "51a24: e1c30191 add x1, sp, #0x70",
+            "51a28: 22008052 mov w2, #1",
+            "51a2c: f30300aa mov x19, x0",
+            "51a30: 1f580bf9 str xzr, [x0, #0x16b0]",
+            "51a34: 085c0bf9 str x8, [x0, #0x16b8]",
+            "51a38: 1f600bf9 str xzr, [x0, #0x16c0]"
+          ]
+        }
+      ]
+    },
+    "5c": {
+      "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+      "elf_sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+      "bytes": 2145051,
+      "map_sha256": "b9a3bf7fc440fa2dba745d5e8cebc7e4c4f668cc4801fb8956985a59efad92c4",
+      "build_sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+      "sections_present": false,
+      "functions": [
+        {
+          "name": "step",
+          "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll4step",
+          "address": 435496,
+          "bytes": 4692,
+          "code_sha256": "4c940d4d6c43cd819756b0c3ba99f4687fcd94d42886054d52c40db83aca9002",
+          "asm_sha256": "7fe6a7c39498d19e584135f9a131edce3a955ba779460beadab6aa072a63a05a",
+          "entry": [
+            "6a528: fd7bbaa9 stp x29, x30, [sp, #-0x60]!",
+            "6a52c: fc6f01a9 stp x28, x27, [sp, #0x10]",
+            "6a530: fd030091 mov x29, sp",
+            "6a534: fa6702a9 stp x26, x25, [sp, #0x20]",
+            "6a538: f85f03a9 stp x24, x23, [sp, #0x30]",
+            "6a53c: f65704a9 stp x22, x21, [sp, #0x40]",
+            "6a540: f44f05a9 stp x20, x19, [sp, #0x50]",
+            "6a544: ff8308d1 sub sp, sp, #0x220",
+            "6a548: 16fc4df9 ldr x22, [x0, #0x1bf8]",
+            "6a54c: 0900f092 mov x9, #0x7fffffffffffffff",
+            "6a550: c80a40f9 ldr x8, [x22, #0x10]",
+            "6a554: 1f0109eb cmp x8, x9",
+            "6a558: c2870054 b.hs #0x6b650",
+            "6a55c: c91a40f9 ldr x9, [x22, #0x30]",
+            "6a560: f30300aa mov x19, x0",
+            "6a564: 0a050091 add x10, x8, #1"
+          ]
+        },
+        {
+          "name": "process_ready_dhcp",
+          "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll18process_ready_dhcp",
+          "address": 397276,
+          "bytes": 4408,
+          "code_sha256": "d80392e11f570f50dabe78b55f8df3ed5e40f6adc2943fb30a6b66af44be493f",
+          "asm_sha256": "7bf9e3ef44c61b35da05f3f9748ff12594bd0d80011e68216ea021167f81aa44",
+          "entry": [
+            "60fdc: fd7bbaa9 stp x29, x30, [sp, #-0x60]!",
+            "60fe0: fc6f01a9 stp x28, x27, [sp, #0x10]",
+            "60fe4: fd030091 mov x29, sp",
+            "60fe8: fa6702a9 stp x26, x25, [sp, #0x20]",
+            "60fec: f85f03a9 stp x24, x23, [sp, #0x30]",
+            "60ff0: f65704a9 stp x22, x21, [sp, #0x40]",
+            "60ff4: f44f05a9 stp x20, x19, [sp, #0x50]",
+            "60ff8: ff031ed1 sub sp, sp, #0x780",
+            "60ffc: ff0300f9 str xzr, [sp]",
+            "61000: 08944cf9 ldr x8, [x0, #0x1928]",
+            "61004: 29968352 mov w9, #0x1cb1",
+            "61008: 1f682938 strb wzr, [x0, x9]",
+            "6100c: 09008092 mov x9, #-1",
+            "61010: 1f0500b1 cmn x8, #1",
+            "61014: 09940cf9 str x9, [x0, #0x1928]",
+            "61018: 80180054 b.eq #0x61328"
+          ]
+        },
+        {
+          "name": "dump_requested_cache",
+          "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll20dump_requested_cache",
+          "address": 409596,
+          "bytes": 8884,
+          "code_sha256": "99655514546e2d1807d54eb3ca813ed201a853e6ceb4526cec686c5a911eb4b0",
+          "asm_sha256": "18a8e0e0368340e78a75a73d495a329df6f85361cea1012dc5e9e0bedf25a1db",
+          "entry": [
+            "63ffc: fd7bbaa9 stp x29, x30, [sp, #-0x60]!",
+            "64000: fc6f01a9 stp x28, x27, [sp, #0x10]",
+            "64004: fd030091 mov x29, sp",
+            "64008: fa6702a9 stp x26, x25, [sp, #0x20]",
+            "6400c: f85f03a9 stp x24, x23, [sp, #0x30]",
+            "64010: f65704a9 stp x22, x21, [sp, #0x40]",
+            "64014: f44f05a9 stp x20, x19, [sp, #0x50]",
+            "64018: ff430fd1 sub sp, sp, #0x3d0",
+            "6401c: 13fc4df9 ldr x19, [x0, #0x1bf8]",
+            "64020: 680a40f9 ldr x8, [x19, #0x10]",
+            "64024: 880c01b5 cbnz x8, #0x661b4",
+            "64028: f70300aa mov x23, x0",
+            "6402c: 08008092 mov x8, #-1",
+            "64030: e0c30491 add x0, sp, #0x130",
+            "64034: 62620091 add x2, x19, #0x18",
+            "64038: e10317aa mov x1, x23"
+          ]
+        },
+        {
+          "name": "wait_for_files",
+          "symbol": "_RNvMs8_Cs9mSXZWz6i5m_10dnsmasq_rsNtB5_10SinglePoll14wait_for_files",
+          "address": 334172,
+          "bytes": 7192,
+          "code_sha256": "5875dc28401a06a270147916096c812cb1fd5e226043bc694cfa6af0d4171e67",
+          "asm_sha256": "92ec600b12d4738daa99f12e7f7079ec539e7c0ff00211789f44c342025c3461",
+          "entry": [
+            "5195c: ff8305d1 sub sp, sp, #0x160",
+            "51960: fd7b10a9 stp x29, x30, [sp, #0x100]",
+            "51964: fc6f11a9 stp x28, x27, [sp, #0x110]",
+            "51968: fa6712a9 stp x26, x25, [sp, #0x120]",
+            "5196c: f85f13a9 stp x24, x23, [sp, #0x130]",
+            "51970: f65714a9 stp x22, x21, [sp, #0x140]",
+            "51974: f44f15a9 stp x20, x19, [sp, #0x150]",
+            "51978: fd030491 add x29, sp, #0x100",
+            "5197c: 00acc53d ldr q0, [x0, #0x16b0]",
+            "51980: 88008052 mov w8, #4",
+            "51984: e1c30191 add x1, sp, #0x70",
+            "51988: 22008052 mov w2, #1",
+            "5198c: f30300aa mov x19, x0",
+            "51990: 1f580bf9 str xzr, [x0, #0x16b0]",
+            "51994: 085c0bf9 str x8, [x0, #0x16b8]",
+            "51998: 1f600bf9 str xzr, [x0, #0x16c0]"
+          ]
+        }
+      ]
+    }
+  },
+  "frames_bytes": {
+    "G_step": 2400,
+    "5c_step": 640,
+    "5c_DHCP": 2016,
+    "5c_dump": 1072,
+    "both_wait": 352
+  },
+  "actual_ELFs_each_bytes": 2145051,
+  "qualification_limit": "Staticactualartifact validates expected code boundaries; no CPU/IPC/cachemiss/globalstack claim. Activehelperframes add understep; comparisons remain originalowner32/device10."
+}
