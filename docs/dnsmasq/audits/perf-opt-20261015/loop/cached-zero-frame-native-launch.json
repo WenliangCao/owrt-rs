@@ -1,0 +1,43 @@
+{
+  "scope": "Independent fixed native240 after exact related gates, SDK build, prior workloads exited and both transfer owners released; no qualification claim",
+  "candidate": "cached-zero-frame",
+  "launched_utc": "2026-10-16T01:11:48.756643+00:00",
+  "pid": 659491,
+  "starttime_ticks": 183772597,
+  "argv": [
+    "taskset",
+    "-c",
+    "0",
+    "python3",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-zero-frame-native-screen1/run-native.py",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-zero-frame-native-screen1"
+  ],
+  "plan_commit": "b17f4010",
+  "plan_sha256": "beb36e4de69550564afb00d5c7f7456f767edad7e0022818330ed398f061e3bc",
+  "runner_sha256": "119d49a162d47c9dc7b8f7b88de6f4a0119b6a0126cca4ce19fb81ca138d94be",
+  "probe_sha256": "72d836d1f868d4e608c14a47105b29dda35f8533ec6ce3456ca1bbc539db76bd",
+  "gate_receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501",
+  "related_test_passes": 940,
+  "sdk_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "sdk_build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "one_combined_sdk_build_complete": true,
+  "prior_DNS_owner32_released": true,
+  "DNS185_owner32_pretransfer_complete": true,
+  "correctness_local_SDK_binding_PASS": true,
+  "dhcp_gate": "DHCP directly confirmed exact185 SDK triple and179source inputs verified; DNS all185/E owner32 pretransfer complete and correctness localSDK binding passed",
+  "locks_available_before_launch": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock"
+  ],
+  "root_readable_research_process_inventory": [],
+  "sources_reverified": {
+    "E": 162,
+    "cached-zero-frame": 162
+  },
+  "previous_round": null,
+  "windows": 240,
+  "planned_build_commands": 4,
+  "planned_commands": 244,
+  "owner32_reserved_to_DNS_after_native_postflight": true,
+  "baseline": "acceptedE4f869c88"
+}
