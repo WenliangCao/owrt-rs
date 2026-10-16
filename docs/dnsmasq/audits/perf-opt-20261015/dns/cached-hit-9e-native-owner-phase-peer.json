@@ -1,0 +1,34 @@
+{
+  "status": "PASS_LOCAL_9E_NATIVE_TO_OWNER_PHASE_SOURCE_AND_RETAINED_SCOPE_BINDINGS",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "native_plan_sha256": "8c1411d49574cbfa4557beb886fb04f9d06aa51bad44d5f8350b0c640e1296fd",
+  "owner_plan_sha256": "e49a50be43e94cf8233f6453335c08b3e0ac48dd02752a021a9e6ad7c9121b8a",
+  "native_result_sha256": "e14e40e84cdd9d9ab9ff3c56acb98c4bf4ffb1bd87992c190bf39e6cdc56e7f4",
+  "native_postflight_sha256": "ca8816b5e68b059547652dce22cebed55129b1f64263576fddd22e531efda849",
+  "owner_result_sha256": "3d7e584533dd81934f4cd5d3ca151c1fbb3e6418226901b305254424fd6af399",
+  "owner_postflight_sha256": "214a9497e5e0bd812c8bc74d037f39d11d8f0110ebe09492174b0cf98fe389b8",
+  "author_release_sha256": "43e664dfe1792416f9ca25b86d40b50529d591ce68d952a73a15adb48185bdc2",
+  "original965_SDK_signals_and_G_identity_bound": true,
+  "native162_each_subset_of_fullSDK179_each_verified_against358_Git_blobs": true,
+  "four_original_builds_then240commands_then_rawpostflight_then_owner32_verified": true,
+  "SDK_owner32_then_originalanalysis_postflight_release_verified": true,
+  "original8imports_probe_and_runners_bound": true,
+  "review_refs_rehashed": {
+    "native:source_review": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+    "native:sdk_independent_review": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+    "native:screen_plan_independent_review": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+    "native:source_preparation_peer": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06",
+    "owner:source_review": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b",
+    "owner:sdk_independent_review": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+    "owner:screen_plan_independent_review": "dfc3dbb7df55fe5ccf6304ae23ec9e0a681de0b46fe0e75e3de17bba23a7e6bb",
+    "owner:source_preparation_peer": "4741a70063e2538a80484d0d586e7469e67d07c05b6d3ad1f503bef57a27ed06"
+  },
+  "scope_text_clarification": {
+    "native_scope_retained": "Disabled original G185/9e complete native hot15/240 screen. Original cold/general library-path coverage; no warm-buffer, owner or device acceptance inference.",
+    "owner_scope_retained": "Disabled original exact-SDK G185/9e owner32; actual gates/SDK/signals/native prerequisite and reviews unset.",
+    "plans_unchanged": true,
+    "meaning": "Preparation scope prose and prospective actual_native240/actual_device10 fields were frozen before execution. Actual ready status/flags, qualificationrefs, launch, completed rawresults and phase chain bind real runs. No plans rewritten, no tests or timings rerun to repair prose."
+  },
+  "scope": "Local retained control/source/phase identity only. No Oracle/router or measurement, originalnative statistics or full-bin owner analysis rerun. Maincorrectness audit owns archive/filemanifest and PMU/CPU/math/full-bin replay. Remote quiet is receipt-bound, not freshly observed by this peer.",
+  "script_sha256": "d8f9315bc065b6e7314b3c753b257ba2bfa45d3221b73157c319978319fd3e97"
+}
