@@ -1,0 +1,118 @@
+{
+  "status": "PASS_ORIGINAL_NATIVE240_OWNER32_PROTOCOL_AND_ACTUAL_BINDING_PENDING_RELEASE",
+  "preparation_commit": "cf69929490526ad504edf3d5d0793035a3f1efe4",
+  "actual_binding_commit": "5ddd5be9",
+  "binding_sha256": "2d9b6f2ab7b1895e1e652e4ab071e7eeb6924d7f057617b4b9e5a4f93414a813",
+  "native_plan_sha256": "271cddd4cc9c4fabb84c8b91e4122917767a8850fac15d2d5bdbf7bc20996dcc",
+  "owner32_plan_sha256": "0c778100e6a53022d40473eec30e2979c2b3e89d30df30c2a92b8836bdd782e8",
+  "scripts": [
+    {
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/run_post185_combined_native.py",
+      "sha256": "241dd797e8fa14b9ff3ffadba51a1535ac394f179b79e8c51a4550bef15aa3f1",
+      "parent_sha256": "119d49a162d47c9dc7b8f7b88de6f4a0119b6a0126cca4ce19fb81ca138d94be",
+      "exact_forward_reverse_substitutions_verified": true
+    },
+    {
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/analyze_post185_combined_native.py",
+      "sha256": "f5b6f6b7e3ff6f7e07e751cfe0855819573b334153ae8a5fa6f6598cf2179adb",
+      "parent_sha256": "b0472895f21c29fabe68941c0abb395f8ecc7c6a13e9edded3b5b6d52e4b8a0e",
+      "exact_forward_reverse_substitutions_verified": true
+    },
+    {
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/run_post185_combined_owner32.py",
+      "sha256": "4b2f8e5993a7a78948bfd508f80f464a41aadeb5a961dc894d4bed220d7d54f6",
+      "parent_sha256": "b9ce540f671a6c34160888cebf9258da25655d2633d316805c22631d68805b49",
+      "exact_forward_reverse_substitutions_verified": true
+    },
+    {
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/analyze_post185_combined_owner32.py",
+      "sha256": "6a00ac084e86ed95a8f95796c80ff50a33867f07b173481be9c65d88d90bab3f",
+      "parent_sha256": "ad0097a97eefbbe4ffd3a7aec5bc30ef994a961ca50f2c7e2472fe89f71f5cee",
+      "exact_forward_reverse_substitutions_verified": true
+    }
+  ],
+  "unchanged_analysis_modules": 8,
+  "native_source_files_per_side": 162,
+  "SDK_source_files_per_side": 179,
+  "source_files_match_named_Git_objects": true,
+  "actual6ab_and_G_triples_rehashed": true,
+  "original_native_protocol_fields": [
+    "probe",
+    "scenes",
+    "stat_pairs",
+    "plain_pairs",
+    "stat_event",
+    "stat_scope",
+    "plain_scope",
+    "plain_decision",
+    "cpu",
+    "nice",
+    "build_cpu",
+    "native_target",
+    "build_lock",
+    "retry_policy",
+    "stat_operations",
+    "plain_operations",
+    "duration_rationale",
+    "expected_checksum_per_2000000_operations"
+  ],
+  "original_owner_protocol_fields": [
+    "driver",
+    "tools",
+    "loadgen_sha256",
+    "tool_sha256",
+    "window_count",
+    "pmu_window_count",
+    "plain_window_count",
+    "workload",
+    "placement",
+    "analysis",
+    "analysis_inputs_sha256"
+  ],
+  "native_build_prose": {
+    "original": "Pinned existing native opt3 fat LTO codegen-units1; both library and probe builds for E and exact185 finish before measurement",
+    "current": "Pinned original native opt3 fat LTO codegen1; both G and6ab libraries/probes build before any timing.",
+    "classification": "Descriptive baseline/candidate wording only; both actual cargo and rustc build argv blocks are byte-identical.",
+    "actual_build_argv_blocks_byte_identical": true
+  },
+  "native_windows": {
+    "stat": 90,
+    "plain": 150,
+    "total": 240,
+    "build_commands": 4
+  },
+  "owner_windows": {
+    "stat": 12,
+    "plain": 20,
+    "total": 32,
+    "all_argv_reconstructed": true
+  },
+  "SDK_review_commit": "94608544",
+  "SDK_review_sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2",
+  "actual_related_gate": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "expected_passes": 961
+  },
+  "first_reviewer_failure_retained_sha256": "94b26c129f84635f09df8cbf60bd7d63f3189c72cbca356801502f4f59f7886b",
+  "limits": [
+    "Native library probe omits SinglePoll, owner recycling, Rc and clock costs.",
+    "Original low-rate strict tick/W/direction thresholds retained; high variable-N rows remain diagnostic with no invented precision pass.",
+    "Native runner has no internal ready-status gate; execution owner must enforce reviewed prerequisites before invocation. Owner32 runner checks ready status before output creation.",
+    "Neither screen constitutes full functional qualification or deployment approval."
+  ],
+  "reviewer_remote_access": false,
+  "executed_by_reviewer": false,
+  "retained_local_reviewer_attempts": {
+    "audit-attempt2.stderr": "4cb76e37f27a6d3a79a06ea31f1c9225d28773e76895a5a07da9c8684f79bf1e",
+    "audit-attempt3.py": "0a32fe7edb4c46f2590780f5295a8282020c18e9d63bac740c29e7b37fe697aa",
+    "audit-attempt2.py": "b7b915946b888c3e3792f899b3ca8203acc169aa715f78c725147ebc1b217a42",
+    "attempt1-failure.json": "94b26c129f84635f09df8cbf60bd7d63f3189c72cbca356801502f4f59f7886b",
+    "audit-attempt3.stderr": "42601eb9c13ad13b4daf6ca909ef5d85c623fbdd5e506afa57ea2dfe81f631c3"
+  },
+  "additional_reviewer_corrections": [
+    "Resolve original r121_symbolize.py under tools/, not tools/dnsmasq/.",
+    "Read the original tool_sha256 mapping at the driver path instead of comparing the mapping itself to a string."
+  ],
+  "review_verifier_sha256": "71e25cbec0edc6fcecadc4f87058f408b6eccb16c12ef3ba09c7ff45b788efcc"
+}
