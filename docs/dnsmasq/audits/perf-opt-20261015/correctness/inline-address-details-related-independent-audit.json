@@ -1,0 +1,172 @@
+{
+  "status": "PASS_FRESH_1DF_ORIGINAL_FIVE_GROUPS_ALL_RAW_NAMES_BINARIES_SOURCE_AND_SUPPLEMENTAL_WRAPPERS",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "execution_plan_sha256": "ca4b8235ac1526f149d8ee8ec670f0ba4b64c0e3f7aa6eaa56398cd1ef8c0398",
+  "verified_receipt_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
+  "archive_sha256": "01021b45916fb334e60337b0fe5959c76805378abf628661582cd7b6c5229989",
+  "manifest_sha256": "d04ed07409ccbfda3289972ef12acb1ccd6808e40b8297529c3f92406ce7e179",
+  "verified_regular_archive_files": 47,
+  "archive_payload_entries": 46,
+  "raw_regular_bytes": 158628173,
+  "groups": [
+    {
+      "gate": "lib",
+      "passed": 842,
+      "ignored": 22,
+      "raw_log_sha256": "5e5bcf37690bb690484bcdfb3bb8b5d718a9be27d2be82afb57b4a06d30c00fa",
+      "original_6ab_log_sha256": "631efb88fdd027b9a4e24b8af5d195bab2c83434e1a1d989e39227300de58045",
+      "listing_sha256": "b0ddffac82f7c710607b275aee3853c1f302f722d91c65d9dcefb40c38233d08",
+      "binary_sha256": "e09da10477ed9caa02e370fb4a66a8780b8946323b0752abbae1c89c172231c0",
+      "binary_bytes": 72454848,
+      "passed_and_ignored_names_match_6ab_plus_declared_additions": true
+    },
+    {
+      "gate": "bin",
+      "passed": 82,
+      "ignored": 4,
+      "raw_log_sha256": "88a10e6d954686b49b6c87d3b9fa5db8067ba7849521a59aa89d99859f95c269",
+      "original_6ab_log_sha256": "7afe21648b3882196ec27c9d3dd0ea281c7d9138a8a3f64ca5483a15644fa213",
+      "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61",
+      "binary_sha256": "7fb69e8fca4b2c6762bf0629341136ad49fecca40a5b0e28a9fd862cb3862984",
+      "binary_bytes": 51001960,
+      "passed_and_ignored_names_match_6ab_plus_declared_additions": true
+    },
+    {
+      "gate": "allocations",
+      "passed": 17,
+      "ignored": 0,
+      "raw_log_sha256": "1e1be75731699f28f345fbcde92da06f294d735bf9edb7803ad7b478d0001851",
+      "original_6ab_log_sha256": "b04595a03e3d41ba5776ada61d203bb8b701766e723f3ff2e978268cf273e13d",
+      "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11",
+      "binary_sha256": "324375936d273724b40ae00d63cb4654f52bf9f6f273170996ffa8f556f8ff3b",
+      "binary_bytes": 34509160,
+      "passed_and_ignored_names_match_6ab_plus_declared_additions": true
+    },
+    {
+      "gate": "lib-ignored-live",
+      "passed": 18,
+      "ignored": 0,
+      "raw_log_sha256": "b219b1b57db547435f8bd31dc97cde423febf23731da24ee0bb9522b1322de90",
+      "original_6ab_log_sha256": "b2006bef345d084ef3fa0bd6ebcc11e82d7901c3669164d0952a477a45e5f994",
+      "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726",
+      "binary_sha256": "e09da10477ed9caa02e370fb4a66a8780b8946323b0752abbae1c89c172231c0",
+      "binary_bytes": 72454848,
+      "passed_and_ignored_names_match_6ab_plus_declared_additions": true
+    },
+    {
+      "gate": "bin-ignored-live",
+      "passed": 4,
+      "ignored": 0,
+      "raw_log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "original_6ab_log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+      "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c",
+      "binary_sha256": "7fb69e8fca4b2c6762bf0629341136ad49fecca40a5b0e28a9fd862cb3862984",
+      "binary_bytes": 51001960,
+      "passed_and_ignored_names_match_6ab_plus_declared_additions": true
+    }
+  ],
+  "total_passed": 963,
+  "all_6ab_passed_and_ignored_names_retained_with_exact_two_lib_additions": true,
+  "all_fresh_test_ELFs_independently_rehashed": true,
+  "actual_compiler_test_profiles": [
+    {
+      "target": "dnsmasq-rs",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    },
+    {
+      "target": "dnsmasq_rs",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    },
+    {
+      "target": "hosts_allocations",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      }
+    }
+  ],
+  "source179_SHA256_and_Git_blob_identities_rechecked": true,
+  "source_manifest_sha256": "cbba1df59b5655cbf22de35003a579d95884895b50eb03437e200e6981d3ebd0",
+  "git_identity_sha256": "d1adeb59ceae6e7c0d62ee220c3d69c435d5e706e1a8d2d7ddf0d5698e340362",
+  "preflight_sha256": "c332cbf94ed1903087ad7df6a29e3f8d6aefc50fc94baf29d81e89b03283b423",
+  "launch_sha256": "8a0a1129b0d5b95f3c194d2602b98b7666bbed2acc8d6a5fe59087a232b96c8d",
+  "unit_result_sha256": "8feed74338a33b3767430363f0b171f28515f2c699ea3145773c77062fa48efd",
+  "original_6ab_verified_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+  "retained_author_postflight": {
+    "wrapper_exited": true,
+    "research": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "epoch": 1792139115.6273692
+  },
+  "actual_wrapper_supplement_verified": true,
+  "scope": "Local raw-data audit only; no tests/listings/builds or Oracle/device access. Original dev/test binaries are opt0 with debug assertions; helper opt_level3 is release-env metadata, actual shipping canonical opt3 remains a separate SDK gate.",
+  "SDK_shipping_qualified_by_these_groups": false,
+  "full44_or_corpora_inherited": false,
+  "performance_accepted": false,
+  "schema": "inline-address-details-related-independent-audit-v1",
+  "actual_wrapper_supplement": {
+    "status": "PASS_ACTUAL1DF_EXECUTED_WRAPPER_BYTES_MATCH_PREFLIGHT_LAUNCH_AND_FROZEN_PLAN",
+    "supplement_archive_sha256": "1ed5de3755646f3b3fc1aa856d9e3ebab913e4855a9dfe1ff6fd12d29c7abc45",
+    "supplement_receipt_sha256": "5f4e22e4d487132377d70bf524b00efdccd30be0f60ad9b1c2553be865858d7f",
+    "safe_unique_regular_files": 3,
+    "wrapper_files": {
+      "run_inline_address_details_related.py": {
+        "sha256": "5e097be33625cf3f9b66084577242f79a582d5dac1562a1dfe006898f701e0fe",
+        "bytes": 2209,
+        "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/run_inline_address_details_related.py"
+      },
+      "build_inline_address_details_allocations.py": {
+        "sha256": "28004f574415b33ca33b7fbb1bd853856f4bdeaf9e504cc284e5ded84f5be219",
+        "bytes": 2111,
+        "remote": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/build_inline_address_details_allocations.py"
+      }
+    },
+    "original_archive_preserved_sha256": "01021b45916fb334e60337b0fe5959c76805378abf628661582cd7b6c5229989",
+    "retained_collection_omission_sha256": "0b67c50a99f1491bbe7603950a86895ceddfa90ee08aff27491a29e6a65647c7",
+    "omission": {
+      "stage": "Related immutablearchive collection",
+      "original_archive_sha256": "01021b45916fb334e60337b0fe5959c76805378abf628661582cd7b6c5229989",
+      "original_manifest_sha256": "d04ed07409ccbfda3289972ef12acb1ccd6808e40b8297529c3f92406ce7e179",
+      "cause": "Downloadcommand replaced hyphenatedcandidate paths butleft two underscore wrapperbasenames as803. Raw1df testlogs/ELFs/receipts arecorrect; executed1dfwrapperbytes omitted.",
+      "incorrect_extra_files": [
+        "new/receipts/run_185_opt2_related.py",
+        "new/receipts/build_185_opt2_allocations.py"
+      ],
+      "missing_files": [
+        "run_inline_address_details_related.py",
+        "build_inline_address_details_allocations.py"
+      ],
+      "originalarchive_preserved": true,
+      "test_or_build_rerun": false,
+      "resolution": "Separate exact twooriginalremote wrapper files plus freshhashreceipt; no wrappermodification."
+    },
+    "reviewer_script_sha256": "d72d402594538f27ecd1168dde107e46b008644014ed600f28594602bb236981"
+  },
+  "reviewer_core_script_sha256": "3c5ecd4184851b17c4e2ab7c32871bd8e0d91cd1aecf1649f0161ad0bb945c80",
+  "reviewer_core_result_sha256": "ebd78cc559e596ee607ad65efa90edf2e2713ab36b50f2e695f83efb6f2fe320",
+  "execution_plan_binding_review_commit": "84b59217",
+  "exact_added_lib_tests": [
+    "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+    "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
+  ],
+  "reviewer_preparation_correction": "Initial local adaptation script stopped before generating/running the audit because a previous string replacement had already renamed original_G. Removed the duplicate replacement and generated the same original audit with explicit +2-name semantics; no examined evidence or product command changed."
+}
