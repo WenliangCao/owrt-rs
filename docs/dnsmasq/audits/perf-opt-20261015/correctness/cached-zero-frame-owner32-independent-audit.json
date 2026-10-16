@@ -1,0 +1,578 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_SMALL_RAW_AND_STATISTICAL_AUDIT",
+  "scope": "Independent exact185/acceptedE32-window local audit;1212smallfiles rehashed,rawCPU/count/PMUrecomputed. Originalclientlatency/sendlag binariesnotdownloaded: quantiles remainauthor-derived; their5pairWaggregations independentlyrecomputed.",
+  "input_sha256": {
+    "collection": "9735a400b01716f56fd88dbaeec16e79dc39ea8c5f64ab4c6cb55c053e93d48b",
+    "archive": "051e92355c18a22388764f74d6255df4e500181f5b14616d49872a08d5a806fe",
+    "summary": "250437be6c83ef0dbb094e7b268b2fad259a86d19f29039e5ec12794c1287c95",
+    "plan": "e05c8b0ae0de73bcbac5a7eac0fa1ed92dcf8026df390fb2121c03c078d59ba1",
+    "controller": "b9ce540f671a6c34160888cebf9258da25655d2633d316805c22631d68805b49",
+    "analyzer": "ad0097a97eefbbe4ffd3a7aec5bc30ef994a961ca50f2c7e2472fe89f71f5cee",
+    "identity": "f9dc61a2582e355b29df102e4d4f55a29ab7f78d6dfd2d4a2abe39c5456c4218",
+    "progress": "66c600fd976b0ef41072000ecc58940cdba7a1a9365d14d0ba7db68dad3e8657"
+  },
+  "verification": {
+    "smallfiles_hashed": 1212,
+    "collection_file_additionally_hashed": true,
+    "safe_archive_allmembers_match": true,
+    "originalorderedwindows": 32,
+    "PMUwindows": 12,
+    "plainwindows": 20,
+    "all_actualcounts_warmup_measurement_and_prewarm_match": true,
+    "all32CPU_starttime_PID_ticks_actualN_recomputed": true,
+    "all12actualfour_eventCSV_stderr_groups_unscaled_and_samewindow": true,
+    "all_published_row_fields_and_summary_aggregates_match": true,
+    "plain_quantile_binary_recomputed": false,
+    "omitted_original_files": 96,
+    "omitted_file_kinds": {
+      "client.latencies.bin": 32,
+      "client.send-lag.bin": 32,
+      "link.map": 32
+    }
+  },
+  "summaries": {
+    "high": {
+      "cpu": {
+        "left": {
+          "median": 4.877503967609313,
+          "min": 4.871211025927702,
+          "max": 4.911643672678597,
+          "rounds": [
+            4.876834547823923,
+            4.911643672678597,
+            4.877503967609313,
+            4.871211025927702,
+            4.8936186468419605
+          ]
+        },
+        "right": {
+          "median": 4.286895229001378,
+          "min": 4.2666989016707735,
+          "max": 4.293830663964709,
+          "rounds": [
+            4.293830663964709,
+            4.292164678284309,
+            4.26848314718099,
+            4.2666989016707735,
+            4.286895229001378
+          ]
+        },
+        "relative_change_pct": -12.108831536172357,
+        "W_pct": 0.8289618423562765,
+        "same_direction_pairs": 5,
+        "precision_ok": null,
+        "discernible": true,
+        "direction": "faster",
+        "scope": "Variable-query saturation diagnostic; W/direction only, not fixed-cohort acceptance or a tick precision pass"
+      },
+      "throughput": {
+        "left": {
+          "median": 204855.45,
+          "min": 202771.05,
+          "max": 205365.6,
+          "rounds": [
+            204899.35,
+            202771.05,
+            204855.45,
+            205365.6,
+            204119.5
+          ]
+        },
+        "right": {
+          "median": 233398.75,
+          "min": 232909.95,
+          "max": 234472.0,
+          "rounds": [
+            233008.95,
+            232909.95,
+            234268.1,
+            234472.0,
+            233398.75
+          ]
+        },
+        "relative_change_pct": 13.933385711729898,
+        "W_pct": 1.2665272024737528,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "higher"
+      },
+      "sender_cpu_percent": {
+        "E": [
+          99.88523542209387,
+          99.51330981220404,
+          99.84263218684939,
+          99.85852722598152,
+          99.85410507987476
+        ],
+        "cached-zero-frame": [
+          99.86840038602607,
+          99.88600876925767,
+          99.88100192370776,
+          99.87949734004025,
+          99.90002310191439
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 151.641,
+            "min": 151.361,
+            "max": 152.441,
+            "rounds": [
+              151.641,
+              152.441,
+              151.482,
+              151.361,
+              152.241
+            ]
+          },
+          "right": {
+            "median": 131.161,
+            "min": 130.521,
+            "max": 131.481,
+            "rounds": [
+              131.281,
+              131.481,
+              130.681,
+              130.521,
+              131.161
+            ]
+          },
+          "relative_change_pct": -13.505582263372037,
+          "W_pct": 0.7319248862085589,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95": {
+          "left": {
+            "median": 166.482,
+            "min": 165.522,
+            "max": 168.361,
+            "rounds": [
+              166.482,
+              168.361,
+              166.241,
+              165.522,
+              166.521
+            ]
+          },
+          "right": {
+            "median": 145.601,
+            "min": 144.761,
+            "max": 146.401,
+            "rounds": [
+              146.401,
+              145.601,
+              144.802,
+              144.761,
+              145.601
+            ]
+          },
+          "relative_change_pct": -12.542497086772144,
+          "W_pct": 1.7052894607224798,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 0.68,
+            "min": 0.64,
+            "max": 1.08,
+            "rounds": [
+              1.08,
+              0.64,
+              0.68,
+              0.68,
+              0.64
+            ]
+          },
+          "right": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.8,
+            "rounds": [
+              2.76,
+              2.8,
+              2.76,
+              2.76,
+              2.76
+            ]
+          },
+          "relative_change_pct": 305.8823529411764,
+          "W_pct": 64.70588235294117,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        },
+        "p95": {
+          "left": {
+            "median": 3.24,
+            "min": 3.2,
+            "max": 3.32,
+            "rounds": [
+              3.32,
+              3.24,
+              3.24,
+              3.24,
+              3.2
+            ]
+          },
+          "right": {
+            "median": 5.68,
+            "min": 5.4,
+            "max": 6.4,
+            "rounds": [
+              6.4,
+              5.6,
+              5.68,
+              5.4,
+              5.72
+            ]
+          },
+          "relative_change_pct": 75.30864197530862,
+          "W_pct": 17.605633802816904,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "slower"
+        }
+      },
+      "pmu": {
+        "E": {
+          "instructions:u": 7351.132770487514,
+          "instructions:k": 13279.121058723147,
+          "cycles:u": 4713.698206348962,
+          "cycles:k": 9830.961470366121,
+          "user_ipc": 1.559612550963169
+        },
+        "cached-zero-frame": {
+          "instructions:u": 5501.4929032391765,
+          "instructions:k": 13004.956256875284,
+          "cycles:u": 3506.260503933454,
+          "cycles:k": 9280.551742741969,
+          "user_ipc": 1.5691501704379953
+        }
+      }
+    },
+    "low": {
+      "cpu": {
+        "left": {
+          "median": 28.0,
+          "min": 24.0,
+          "max": 30.0,
+          "rounds": [
+            24.0,
+            28.0,
+            30.0,
+            28.0,
+            28.0
+          ]
+        },
+        "right": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 26.0,
+          "rounds": [
+            26.0,
+            26.0,
+            26.0,
+            24.0,
+            26.0
+          ]
+        },
+        "relative_change_pct": -7.142857142857142,
+        "W_pct": 21.428571428571427,
+        "same_direction_pairs": 4,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "throughput": {
+        "left": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "right": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 0.0,
+        "same_direction_pairs": 0,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "E": [
+          0.8571622077038341,
+          0.7869551029070183,
+          0.7889185554607732,
+          0.7934735120238974,
+          0.8316993436642978
+        ],
+        "cached-zero-frame": [
+          0.8005507562383337,
+          0.8111479432067635,
+          0.7853660971256239,
+          0.7852217631920714,
+          0.8131919641782825
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 53.76,
+            "min": 51.361,
+            "max": 56.841,
+            "rounds": [
+              51.361,
+              52.44,
+              53.76,
+              56.2,
+              56.841
+            ]
+          },
+          "right": {
+            "median": 54.681,
+            "min": 49.84,
+            "max": 55.841,
+            "rounds": [
+              55.841,
+              54.681,
+              49.84,
+              55.721,
+              53.521
+            ]
+          },
+          "relative_change_pct": 1.7131696428571417,
+          "W_pct": 10.97456154788683,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 82.801,
+            "min": 81.121,
+            "max": 92.761,
+            "rounds": [
+              81.121,
+              82.801,
+              92.761,
+              81.561,
+              83.92
+            ]
+          },
+          "right": {
+            "median": 78.92,
+            "min": 77.76,
+            "max": 85.161,
+            "rounds": [
+              79.361,
+              77.76,
+              78.92,
+              78.241,
+              85.161
+            ]
+          },
+          "relative_change_pct": -4.687141459644208,
+          "W_pct": 14.05780123428461,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 70.402,
+            "min": 68.403,
+            "max": 71.15,
+            "rounds": [
+              68.403,
+              70.462,
+              68.432,
+              70.402,
+              71.15
+            ]
+          },
+          "right": {
+            "median": 70.588,
+            "min": 70.449,
+            "max": 71.787,
+            "rounds": [
+              71.787,
+              70.581,
+              70.449,
+              70.588,
+              70.61
+            ]
+          },
+          "relative_change_pct": 0.2641970398568121,
+          "W_pct": 3.9018777875628534,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 81.742,
+            "min": 80.659,
+            "max": 90.489,
+            "rounds": [
+              90.489,
+              81.698,
+              80.659,
+              81.742,
+              82.915
+            ]
+          },
+          "right": {
+            "median": 81.975,
+            "min": 81.507,
+            "max": 84.915,
+            "rounds": [
+              84.915,
+              81.507,
+              81.748,
+              82.046,
+              81.975
+            ]
+          },
+          "relative_change_pct": 0.28504318465414336,
+          "W_pct": 12.025641653005795,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "E": {
+          "instructions:u": 9534.7962,
+          "instructions:k": 25873.4772,
+          "cycles:u": 20892.384,
+          "cycles:k": 39030.3222,
+          "user_ipc": 0.4564101540542238
+        },
+        "cached-zero-frame": {
+          "instructions:u": 7690.8872,
+          "instructions:k": 25836.612,
+          "cycles:u": 17547.3154,
+          "cycles:k": 39148.2722,
+          "user_ipc": 0.4382909878054623
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks_plain": {
+    "low": {
+      "E": [
+        12,
+        14,
+        15,
+        14,
+        14
+      ],
+      "cached-zero-frame": [
+        13,
+        13,
+        13,
+        12,
+        13
+      ]
+    },
+    "high": {
+      "E": [
+        2498,
+        2490,
+        2498,
+        2500,
+        2498
+      ],
+      "cached-zero-frame": [
+        2499,
+        2499,
+        2498,
+        2499,
+        2498
+      ]
+    }
+  },
+  "postflight_capture": {
+    "controller_pid": 663879,
+    "controller_exited": true,
+    "research_processes": [],
+    "locks_obtainable": [
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock"
+    ],
+    "source_files_rehashed": 358
+  },
+  "limitations": [
+    "HighunpacedactualN andnear100%senderCPU describeavariableNpipeline,notfixedcohortprecisionorA53cost.",
+    "Highsendlagp50+305.882%,p95+75.309%areaboveWandretained; fasterCPU/throughputdonoterasethisregression.",
+    "Latency/sendlagperwindowquantiles werecomputedbyoriginalauthor fromomittedbins;thisreviewchecksaggregate mathandoriginaldigestbindings only.",
+    "LowCPU28\u219226us/query,14\u219213ticks andW21.429% is not discernible. Owner32 is not a full performance acceptance or an A53 CPU claim."
+  ],
+  "author_quantiles_not_reclassified": true,
+  "performance_accepted": false,
+  "deployment": false,
+  "pure_parser_sources": {
+    "loop_owner_profile.py": "f0b39de6bec58ecc969129ee3f48f6754db185cd4894f25779dfc1bffe003620",
+    "loop_owner_profile_analyze.py": "5ec4a0dc3a4ec05791f7a1ba311bc96e49f959b1564081042bbc3249f2f7143a"
+  },
+  "audit_script_sha256": "8728b1c4a36133b653ddbbc395772627a1b48b684d5cf389a8345c19716bfb9a",
+  "author_public_report": {
+    "commit": "a844d323",
+    "path": "../dns/cached-zero-frame-owner32-result.json",
+    "sha256": "4ae35d01895781cc3e5704835fd3ec9d0680fb141c408422917a9b7d7be55f98",
+    "all_original_summary_fields_equal": true
+  },
+  "private_receipt_sha256": "982f24d0dba16ab35c0260c6bad37855e92e36119a9ba420a21c0be515383a9d",
+  "prelaunch_attempt": {
+    "sha256": "bd290740992bd72cfd3b52c4adea05be34da03b23a7dfdac7f589f244d87cbb7",
+    "retained_record": {
+      "stage": "prelaunch process discovery before output creation",
+      "error": "AssertionError: own remote bash -c wrapper PID 663560 was classified as a research process because the here-document contained the research path",
+      "source_tools_artifacts_and_gate_checks_passed_before_error": true,
+      "measurement_output_created": false,
+      "daemon_started": false,
+      "measured_windows": 0,
+      "correction": "Use exec python3 to replace the remote shell wrapper; frozen plan and runner unchanged",
+      "original_stderr_location": "Codex tool-call transcript; no measurement stdout/stderr exists"
+    },
+    "classification": "Prelaunch wrapper discovery mistake, not a measurement rerun. The original stderr exists only in the author tool-call transcript; the local structured record does not independently prove its full traceback.",
+    "independent_original_stderr_rechecked": false,
+    "frozen_runner_and_plan_unchanged": true
+  }
+}
