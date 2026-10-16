@@ -121,7 +121,7 @@ impl CacheContext<'_> {
     }
 
     #[allow(clippy::too_many_arguments)]
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.answer_from_cache")]
     pub(super) fn answer_from_cache(
         cache: &mut Cache,
         query: &[u8],
@@ -262,7 +262,7 @@ impl CacheContext<'_> {
         Ok(answer)
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.answer_records_filtered")]
     fn answer_records_filtered(
         cache: &mut Cache,
         question: &super::forward::Question,
@@ -292,7 +292,7 @@ impl CacheContext<'_> {
     // Only a selected fresh hit needs this writer frame. Keep it out of the
     // shared caller so a fallback does not reserve its space as well.
     #[inline(never)]
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.answer_fresh_address")]
     fn answer_fresh_address(
         cache: &Cache,
         question: &super::forward::Question,

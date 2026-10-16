@@ -584,7 +584,7 @@ pub struct EdnsScan<'a> {
 
 /// Mirrors find_pseudoheader including last-OPT selection and TSIG placement.
 /// `detect_signed=false` follows its normal question-skipping path.
-#[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+#[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.find_pseudoheader")]
 pub fn find_pseudoheader(packet: &[u8], detect_signed: bool) -> Result<EdnsScan<'_>, WireError> {
     let header = Header::parse(packet)?;
     let mut scan = EdnsScan {

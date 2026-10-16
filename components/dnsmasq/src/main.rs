@@ -4156,7 +4156,7 @@ impl SinglePoll {
         }
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.wait_for_files")]
     fn wait_for_files(&mut self) -> io::Result<()> {
         #[cfg(target_os = "linux")]
         {
@@ -4601,7 +4601,7 @@ impl SinglePoll {
         Ok(())
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.step")]
     fn step(&mut self) -> io::Result<()> {
         self.m6b.record_loop();
         self.process_ubus_if_ready()?;
@@ -4891,7 +4891,7 @@ impl SinglePoll {
         }
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.admit_udp")]
     fn admit_udp(&mut self, udp: &DnsSocket, incoming: listeners::Incoming) -> UdpAdmission {
         let interfaces = match self.interfaces.try_borrow() {
             Ok(interfaces) => interfaces,
@@ -4942,7 +4942,7 @@ impl SinglePoll {
         }
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.step_udp")]
     fn step_udp(&mut self, index: usize) -> bool {
         if self.m6b.enabled() {
             self.m6b.listener_mut(index).step_calls += 1;
@@ -5043,7 +5043,7 @@ impl SinglePoll {
         result
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.process_admitted_udp")]
     fn process_admitted_udp(&mut self, token: SocketToken, udp: Rc<DnsSocket>,
                             incoming: listeners::Incoming, query: Cow<'_, [u8]>) -> bool {
         let query_context = match self.service.try_borrow_mut() {
@@ -5195,7 +5195,7 @@ impl SinglePoll {
         self.edns_udp_runnable = progressed == 32 && !self.pending_edns_udp.is_empty();
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.process_udp")]
     fn process_udp(
         &mut self,
         token: SocketToken,

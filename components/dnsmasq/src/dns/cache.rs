@@ -369,7 +369,7 @@ impl Cache {
         (hash >> (64 - NAME_SHARDS.ilog2())) as usize
     }
 
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.names_for")]
     fn names_for(&self, key: &[u8]) -> Option<&SlotIndices> {
         self.names[Self::key_shard(key)].get(key)
     }
@@ -564,7 +564,7 @@ impl Cache {
     /// has_cname does. Keep the query name borrowed until this synchronous
     /// answer operation ends; object/root identities also reject replacement
     /// or movement of the owning cache. Saturation permanently disables reuse.
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.inspect_name")]
     pub(super) fn inspect_name<'a>(&self, name: &'a Name, now: i64) -> (bool, Option<NameLookup<'a>>) {
         let canonical;
         let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
@@ -609,7 +609,7 @@ impl Cache {
     }
 
     /// Read-only eligibility for a query-local shortcut before local ownership.
-    #[cfg_attr(target_os = "linux", link_section = ".text.dnsmasq_hot")]
+    #[cfg_attr(target_os = "linux", link_section = ".text.hot.dnsmasq.single_fresh_address_id_with_hint")]
     pub(super) fn single_fresh_address_id_with_hint(
         &self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
     ) -> Option<EntryId> {
