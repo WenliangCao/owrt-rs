@@ -20,7 +20,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def schedule(confirmation=None):
+def schedule(confirmation=None, residual=False):
     windows = []
 
     def pair(group, number, rate, left, right):
@@ -36,6 +36,12 @@ def schedule(confirmation=None):
         for number in range(1, 10):
             pair('confirm-' + confirmation, number, 200, left, right)
         return [{**row, 'measurement_seconds': 45} for row in windows]
+    if residual:
+        for rate, pairs in ((200, 5), (2000, 3)):
+            for number in range(1, pairs + 1):
+                pair(f'c-pgo-{rate}', number, rate, 'exact-c', 'pgo')
+        return [{**row, 'measurement_seconds': 45 if row['rate'] == 200 else 20}
+                for row in windows]
     for number in (1, 2):
         pair('g-aa', number, 200, 'g', 'g')
     for number, rates in enumerate(((200, 1000, 2000), (2000, 1000, 200),
@@ -202,7 +208,7 @@ def prepare(bindings, out):
     run.write(out / 'staging.json', {'epoch': time.time(), 'records': records, 'production_unchanged': True})
 
 
-def execute(bindings, out, health_path, confirmation=None):
+def execute(bindings, out, health_path, confirmation=None, residual=False):
     baseline = json.loads(health_path.read_text())
     assert baseline['valid'] and baseline['elapsed_seconds'] >= 120
     artifacts = bindings['artifacts']
@@ -211,7 +217,12 @@ def execute(bindings, out, health_path, confirmation=None):
                          **{v['name']: v['sha256'] for v in artifacts.values()},
                          **{v['name']: v['sha256'] for v in bindings['new_tools'].values()}})
     assert not (out / 'progress.json').exists()
-    original_schedule = schedule(confirmation)
+    original_schedule = schedule(confirmation, residual)
+    if any(row['artifact'] == 'exact-c' for row in original_schedule):
+        checks = [f'test "$(sha256sum {path} | cut -d " " -f 1)" = {digest}'
+                  for path, digest in bindings['exact_C_runtime_libraries'].items()]
+        checks.append('test "$(readlink /lib/ld-musl-aarch64.so.1)" = libc.so')
+        run.ssh('set -eu\n' + '\n'.join(checks))
     run.write(out / 'launch.json', {'epoch': time.time(), 'schedule': original_schedule, 'bindings': bindings,
                                    'health_sha256': sha(health_path), 'controller_sha256': sha(Path(__file__))})
     finished, failed = threading.Event(), threading.Event()
@@ -300,13 +311,15 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--health', type=Path)
     parser.add_argument('--prepare', action='store_true')
-    parser.add_argument('--confirmation', choices=('e-pgo', 'g-c95'))
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument('--confirmation', choices=('e-pgo', 'g-c95'))
+    selection.add_argument('--residual', action='store_true')
     args = parser.parse_args(); bindings = json.loads(args.bindings.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     if args.prepare: prepare(bindings, args.out)
     else:
         if not args.health: parser.error('--health required for execution')
-        execute(bindings, args.out, args.health, args.confirmation)
+        execute(bindings, args.out, args.health, args.confirmation, args.residual)
 
 
 if __name__ == '__main__':
