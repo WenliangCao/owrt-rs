@@ -1,0 +1,59 @@
+{
+  "schema": "warm-address-encode-preparation-independent-review-v1",
+  "status": "PASS_LOCAL_EXACT_WARM_SOURCE_ORIGINAL_FIVE_GATES_AND_CANONICAL_SDK_PREPARATION_PENDING_EXECUTION",
+  "preparation_commit": "a1fc89b2",
+  "source_commit": "6dadfec2e79d0c7c858dde296f7fa0e48e91afa6",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "manifest_sha256": "5699d227446ce790bc11283c3730297a03bee5c7a8e39f4f3ba6b03695008e02",
+  "source_binding_sha256": "f72d2f69faf471927ee36ab5ae5e62a44d22edefc8592b2fb0262d31f8c61533",
+  "source_manifest_sha256": "4a9150645236b4eaf55a03a24efdf769cd61095ec99a2c0f0bdb6aeeb9240348",
+  "git_identity_sha256": "455a63fd3b087c37ddd9d63e605c12412efb08e2997be9a92847d8765a9fc746",
+  "source179_Git_bytes_and_full4097_Git_archive_modes_verified": true,
+  "archive_sha256": "f3e0c8101891c6d85a97e24ab290487f894a1a3667ab513d0aa64992ef83956a",
+  "SDK_source_difference": [
+    "components/dnsmasq/src/dns/cache_engine.rs"
+  ],
+  "existing_cache_engine_test_names_identical": true,
+  "exact_wrapper_changes": "Candidate names, source commit, archive/manifest identities and wrapper hashes only; original preflight/verifier bodies, cases and guards are unchanged.",
+  "original_five_argv_canonicalSDK_argv_profile_and_budgets_unchanged_except_identity_paths": true,
+  "expected_added_names": [],
+  "expected_passes_only": 961,
+  "actual_counts": null,
+  "SDK_artifacts": null,
+  "execution_authorized": false,
+  "release": null,
+  "canonical_builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "retained_noncanonical_source_builder_attempt": {
+    "receipt_sha256": "5fa2d6943edff5719096ed6015a12448b21bbf65368849cddff55011e0561005",
+    "source_builder_sha256": "d33f5c0784161277e296945a3a02f162555fd91a095e01f51c718218819397b5",
+    "canonical_separate_bundle_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "source_builder_not_in179": true,
+    "source_not_mutated": true,
+    "no_test_build_upload": true
+  },
+  "reviewed_source_and_probe_scope": [
+    {
+      "commit": "cefc50cd",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-writer-source-review.json",
+      "sha256": "5022b098ae1a0c72d1b279e07421691ea7ba126b56a110e0aad7139b2bc8e96c"
+    },
+    {
+      "commit": "190e015c",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/warm-address-writer-final-source-review.json",
+      "sha256": "efef368ae0beb5809507b821f30b9acf5ac594724c12b56c254ee9ded98af773"
+    },
+    {
+      "commit": "3201e205",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/WARM_ADDRESS_ORIGINAL_NATIVE_SCOPE.md",
+      "sha256": "3a8bc30ec5660130a3167e1fdfe4e14432bcf26408f2f37ff1c90436d51918af"
+    }
+  ],
+  "limits": [
+    "Preparation only; actualfreshfivegroups names/counts andSDK bytes/quiet stillrequired, noinheritedPASS.",
+    "Originalnative240 doesnotrecycle replybuffer; itcanonlyscreencoldfallback/layout. Warmbenefit requiresoriginalowner32, no probechangeorwarm-nativeclaim.",
+    "G-stage originaldiagnosticgates/SDK havepriority; allwarmbulkoutside device50 measuredwindows andonlyexplicitreleasedOracleowner mayexecute.",
+    "No tests/builds/operatorimports/remote/physicaldevice actions. Existing18432tuples remaininsameoriginaltest; thisprep reviewdoesnotrepeatthatproducttest."
+  ],
+  "reviewer_script_sha256": "10fe3651e6e97bc6b08a0a24bb86d052db1fe634a0706ba9e44ad51b4a8bdcba"
+}
