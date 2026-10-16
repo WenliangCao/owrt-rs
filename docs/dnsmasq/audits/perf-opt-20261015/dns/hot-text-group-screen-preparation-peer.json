@@ -1,0 +1,100 @@
+{
+  "status": "PASS_LOCAL_EXACTC95_ORIGINAL_NATIVE240_OWNER32_PREPARATION_AND_INPUT_BUNDLES",
+  "reviewed_commit": "8ed7d292",
+  "binding_sha256": "baf0051674db6f2455602b721bc3ec669555d1374cdae0aa93d9626517691440",
+  "input_bundles_manifest_sha256": "780b2f1db881b35cef97b9bd8eda12fd302a3c12bef7026e7ca3b8ea12025d3f",
+  "source_commit": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+  "source179_each_Git_verified": true,
+  "native_original162_subset_each_verified": true,
+  "original_tools_exact_declared_substitutions": {
+    "run_hot_text_group_native.py": {
+      "original_path": "loop/run_cached_hit_9e_native.py",
+      "original_sha256": "045a9ee0baefc926508322acbc2a0634805a37a5c4ce849f3ba575311afd7b32",
+      "sha256": "f7b2a4341103f8dddde45f9b5ab96fb103c733938c156af19012c596a1ca1164",
+      "replacements": [
+        {
+          "from": "Fixed independent G/9e mechanism screen",
+          "to": "Fixed independent G/c95 mechanism screen",
+          "occurrences": 1
+        }
+      ]
+    },
+    "analyze_hot_text_group_native.py": {
+      "original_path": "loop/analyze_cached_hit_9e_native.py",
+      "original_sha256": "411b8b20f432d79203a416243cb9e06c191b22d64bcbcd17af8508f1607a881c",
+      "sha256": "25b165517f3bab8569f3f239f270d7683a6524521c52e2f8cbaf4254809b80fa",
+      "replacements": [
+        {
+          "from": "cached-hit-9e",
+          "to": "hot-text-group",
+          "occurrences": 3
+        },
+        {
+          "from": "cached_hit_9e",
+          "to": "hot_text_group",
+          "occurrences": 1
+        }
+      ]
+    },
+    "run_hot_text_group_owner32.py": {
+      "original_path": "loop/run_cached_hit_9e_owner32.py",
+      "original_sha256": "1deaae97c98e5e2526d454b7b46ade42f50ad33e4420eb3d243047cb89a80147",
+      "sha256": "ea5b102f2b11374fa5dedcea0f6f18317ac2a3d6e3e446b821a0a44d5753636a",
+      "replacements": [
+        {
+          "from": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+          "to": "c95c5571fe8915c4a67af8e438026e5f4f5d3a61",
+          "occurrences": 1
+        },
+        {
+          "from": "cached-hit-9e",
+          "to": "hot-text-group",
+          "occurrences": 4
+        },
+        {
+          "from": "Frozen exact-SDK 9e/G owner32 screen",
+          "to": "Frozen exact-SDK c95/G owner32 screen",
+          "occurrences": 1
+        }
+      ]
+    },
+    "analyze_hot_text_group_owner32.py": {
+      "original_path": "loop/analyze_cached_hit_9e_owner32.py",
+      "original_sha256": "4d8bfbc11d72bdd8393a5255110b4aa058f616ab03a747868a456db05d2471e0",
+      "sha256": "9787c1d7ed4c47a591be1c4adf6649cd2598d1b303d3d6e5780c984e4db2dc55",
+      "replacements": [
+        {
+          "from": "Independent accepted-G/9e UDP owner diagnostic",
+          "to": "Independent accepted-G/c95 UDP owner diagnostic",
+          "occurrences": 1
+        }
+      ]
+    }
+  },
+  "unchanged_protocol_field_counts": {
+    "native": 18,
+    "owner32": 13
+  },
+  "native15_scenes240_windows": {
+    "stat": 90,
+    "plain": 150,
+    "unchanged_build_commands": 4,
+    "checksum_operation_order_exact": true
+  },
+  "owner32_argv_exact": true,
+  "eight_imports_and_original72d8_probe_verified": true,
+  "bundles_files_including_manifest": {
+    "native": 4,
+    "owner32": 12
+  },
+  "bundle_hashes": {
+    "native": "38a53cbdb8823eefe8571ea49c66668738ff3c577c62e97afde5bf91bd4c90f6",
+    "owner32": "5599ca46c111b03933985f5d618608add2414bb68c81685bfc35705b4988e086"
+  },
+  "layout_gate_copied_from_DNS_manifest_actual_and_review_null": true,
+  "absent_actual_GNU_grouping_requires_stop": true,
+  "no_fixed_surviving_range_or_function_level_GC_claim": true,
+  "actual_gate_SDK_signals_quiet_null_and_execution_disabled": true,
+  "local_discovery_note": "An initial read-only listing requested manifest.json; archive listing showed input-manifest.json. No input mutation, controller import, product test, build or remote access occurred.",
+  "scope": "Pure local read/AST/metadata reconstruction. No Oracle/router/upload/build/measurement. The original native runner readiness remains enforced at its owning launch boundary. Native lacks warm reply recycling. Fresh actual965/SDK/GNU layout/signals and existing independent qualification/quiet remain required; no new approval layer."
+}
