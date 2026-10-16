@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "status": "LOCAL PREPARATION REVIEWED; exact7c5b SDK identities pending; no device action",
+  "status": "EXACT SDK AND INDEPENDENT REVIEWS BOUND; original freshhealth and finalpreflight required before count3",
   "scope": "Three fixed count-only A53 windows on frozenG185 plus byte-reused original allocationmeter. All instrumentedCPU/latency and release-size acceptance EXCLUDED. No expected-zero allocation gate.",
   "diagnostic_source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
-  "diagnostic_ELF_sha256": null,
-  "diagnostic_build_receipt_sha256": null,
-  "diagnostic_map_sha256": null,
+  "diagnostic_ELF_sha256": "92ba1353bae3676771e417d2410eb7d642705a8ba86dd8b38a08f941807c21a5",
+  "diagnostic_build_receipt_sha256": "ac70dfed94ff3104affbcf72237a7e7f85e2c2327e9af850f60ac0f16daf410a",
+  "diagnostic_map_sha256": "c06f68a763be3adbd4646d817bf902d4e6967b790b2320646282677f172208c8",
   "labels": [
     "g-udp-allocation-r1-rust",
     "g-udp-allocation-r2-rust",
@@ -99,7 +99,6 @@
     "cleanup": "Preserve first partial/completearchive attempt; archive/hash all raw before pruningvaliddevicecopies. Afterallownedinstancesexit and rawverification, restoreexactE/F from verifiedofflinecopies. No productionconfiguration/install/restart/flash."
   },
   "pre_run_pending": [
-    "Exactsource7c5b SDK ELF/map/build receipt and actualoriginalmetercontrol delivered; keep failedbuild records and originalreleasebudget result, no sizegate relaxation.",
     "Fresh originalhealth+offlinebackups+production/slot/helper/idle recoverygates, then atomically stage ownedrustslot only.",
     "Three original fixedwindows only, failstop/no selective replacement; verifyallraw then restoreoriginalE/F."
   ],
@@ -138,12 +137,45 @@
   "local_operator_preparation": {
     "scope": "Independentloop local-onlyread/AST PASS; no helper execution or device/Oracle access. Success-onlypostflight doesnot apply to failedrounds.",
     "artifacts": {
-      "launch-g-udp-allocation.py": "cf98f48c3236749a5863985e49fa08ab0c4510a8f2173f74ef816cbe2c14fe9c",
+      "launch-g-udp-allocation.py": "4a2b87b152d45fa1cef71a27596a089ce368540276f431c8ff0f7b9ac96659b4",
       "verify-g-udp-allocation.py": "1a2993794cd9e15af54fecfb0dad430276faf302a1c995d0e3b4c066190df877",
       "postflight-g-udp-allocation.py": "3203f0035e4a368bf611cddb82736efe05586b06fa18039337aa530139a36ee8"
     },
-    "preflight_shell_bytes": 2222,
+    "preflight_shell_bytes": 2253,
     "verification": "Raw3tar/complete/progress/identity/plan/tools/health bindings; normalizedunique members and exactmanifest contents.",
     "recovery": "Onlyaftervalidcomplete/rawverification andidle checks, verifyofflineF/hash temporaryfile beforeatomic ownedrustslot restore; E/production remainchecked."
+  },
+  "diagnostic_ELF_bytes": 2366235,
+  "diagnostic_artifact_local": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-g-udp-allocation/dnsmasq-rs",
+  "source_files_verified": 180,
+  "release_budget": {
+    "ELF_limit_bytes": 2200000,
+    "APK_limit_bytes": 1200000,
+    "ELF_bytes": 2366235,
+    "APK_bytes": 1264206,
+    "within_existing_budget": false,
+    "gate_unchanged": true,
+    "artifact_never_promoted": true,
+    "scope": "Count-onlyexcluded artifact; originalELF andAPK budget failures retained."
+  },
+  "sdk_local_verification_sha256": "36039dbd36b4dad6d01e22a011e56d192a74ee20d6c4cfc05c950dabbcb26b43",
+  "sdk_controls": {
+    "report_sha256": "2b3f4a07c56a4f0269b00597be00821f0aa5c30d975b687f718a00d5a7ff87e8",
+    "original_parser_tests_passed": 4,
+    "scope": "Original standalone host GlobalAlloc fixture, no musl/A53 count inference.",
+    "sdk_sequence_postflight_sha256": "3ec8ca2c030e07814db881d0f2420806db9fcd98366d26904bb0f6ecb514fee6"
+  },
+  "sdk_independent_review": {
+    "commit": "94608544101fc6ab9234c64b771654e3760c7686",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/post185-sdk-independent-audit.json",
+    "sha256": "e345c367cc9ff78061b54600c0d7abef989598ff1147f356b75e1c369278f0d2",
+    "status": "PASS_EXACT_CANONICAL_SDK_IDENTITIES_STATIC_HARDENING_BUDGETS_AND_ORIGINAL_CONTROLS"
+  },
+  "sdk_independent_review_PASS": true,
+  "prehealth_tool_capability_failure": {
+    "record_sha256": "66c7509ec55ebb3ead77270215b5f2e2e2ec7dcd69c5ff2cff5f42a2ece732a8",
+    "cause": "Read-only stat predicate unavailable in router PATH; replaced with ls -ldn exactpermission/numericuid/gid gate. No health/window/stage started.",
+    "original_gate_unchanged": true,
+    "followup_success_receipt_sha256": "5aaf9bf6c4f86c3ac347da206255a3dcf8ddddf6d62337d6490b7bc088605c1d"
   }
 }
