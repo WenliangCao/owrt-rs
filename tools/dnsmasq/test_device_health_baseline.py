@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 import device_health_baseline as health
-from device_health_baseline import complete_prefix, validate_baseline
+from device_health_baseline import complete_prefix, validate_baseline, validate_runtime_guard_evidence
 
 
 def encode(rows):
@@ -95,6 +95,29 @@ class PrefixHealthTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.verify(prefix, final, external)
 
+    def test_runtime_short_or_probe_free_segments_do_not_need_baseline_coverage(self):
+        prefix, _, external = self.fixture()
+        for samples in ([], [{**prefix[1], 'elapsed_s': .1, 'dns_ok': -1, 'http_status': -1}]):
+            before = [prefix[0], *samples]
+            final = before + [dict(event='monitor_stopped', elapsed_s=.2)]
+            raw = encode(before)
+            actual = validate_runtime_guard_evidence(raw, encode(final), [], [3086, 2115], raw)
+            self.assertEqual(actual[0], samples)
+            with self.assertRaises(AssertionError):
+                self.verify(before, final, external)
+
+    def test_runtime_does_not_weaken_baseline_probe_or_dual_stack_sample_requirements(self):
+        for missing in ('dns', 'http', 'ipv6'):
+            prefix, final, external = self.fixture()
+            if missing == 'ipv6':
+                external = external[:1]
+            else:
+                for row in prefix[1:]:
+                    row['dns_ok' if missing == 'dns' else 'http_status'] = -1
+            raw = encode(prefix)
+            validate_runtime_guard_evidence(raw, encode(final), external, [3086, 2115], raw)
+            with self.assertRaises(AssertionError):
+                self.verify(prefix, final, external)
     def test_collector_saves_prefix_before_actual_stop_call(self):
         prefix, final, external = self.fixture()
         with tempfile.TemporaryDirectory() as temporary:

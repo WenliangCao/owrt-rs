@@ -1,5 +1,10 @@
 # Preserve each full-run scene's health boundary before stopping its guard
 
+This is the retained **superseded, unapproved** first implementation. Its use
+of baseline coverage rules for runtime segments was incorrect for short resume
+segments. Use the corrected [runtime/baseline separation](FULL110_RUNTIME_BOUNDARY_REPAIR.md)
+and its hashes; the initial implementation was not deployed.
+
 The generic device controller now captures guard evidence after every scene's
 original ten windows, CPU endpoints, validation and verified archives finish,
 and before its existing `guard_stop` sends SIGTERM. The unchanged health helper

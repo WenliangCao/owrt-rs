@@ -1,0 +1,71 @@
+{
+  "status": "RUNTIME_BASELINE_SEPARATION_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "supersedes_unapproved_commit": "da49cb69157a11baeb71b3b29cbeae8eeb63f74f",
+  "reason": "The initial full-run consumer incorrectly imposed fresh-baseline120s/probe coverage on short resumed runtime segments. It was not deployed.",
+  "new_controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+  "new_helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+  "frozen_original_controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "current_ten_frozen_helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "runtime_api": "validate_runtime_guard_evidence(prefix,final,external,production,capture)",
+  "runtime_safety": [
+    "Complete captured bytes including partial last line must remain unchanged in final",
+    "All final samples retain productionPID/starttime,memory,route and no-stop-event checks",
+    "All complete captured probe records and complete observed external records retain original allowed outcomes",
+    "Terminalmonitor_stopped and monotoneelapsed retained; no minimum runtime duration or samplecount added"
+  ],
+  "baseline_qualification_retained": [
+    "Standalone125scollection and >=120squalified/final coverage",
+    "At least one successfulDNS and one scheduled validHTTP sample",
+    "Successful observed IPv4 andIPv6 external results",
+    "Originalp95/threshold<=700formula and failure/STOPbehavior"
+  ],
+  "unchanged_helper_functions": [
+    "complete_prefix",
+    "capture_before_stop",
+    "validate_baseline",
+    "main"
+  ],
+  "non_main_controller_functions_and_timed_loop_byte_identical_to7c93": true,
+  "fully_completed_scene_skip_preexisting_and_unchanged": true,
+  "resume_controls": [
+    "Completedscene10windows skipped beforeguard_start",
+    "Prior9windows unchanged, only remainingr5-rust runs with31secondsegment",
+    "Shorthup0.1ssegment withoutDNS/HTTP/external samples does not pad or borrow evidence",
+    "Allselectedwindows alreadycomplete starts no guard/window",
+    "Badprefix on shortresume producesfailure+STOP/no complete",
+    "Exactnewcontroller/helper identity required; no implicitlegacyresume"
+  ],
+  "test_count": 48,
+  "tests_exit": 0,
+  "tests_stdout_sha256": "481f50ad4b97b5148a8753ed4c10a1d64bb09b849fc893df432ba2f31232e1f8",
+  "tests_stderr_sha256": "f150f6d1494169a48864d96059b0c13e3c6498ab32f89bb71b498405b2013db3",
+  "import_checks": {
+    "baseline-tools": {
+      "stdout": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df 0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad 7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "exit": 0
+    },
+    "full-tools": {
+      "stdout": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69 8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e 7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+      "exit": 0
+    }
+  },
+  "unchanged_files": {
+    "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+    "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "m6a_loadgen.c": "d39e3b5fcd721c37a23f299352a20087fc9c3591c1faf1fd0b3706bfe729a652",
+    "perf_opt_analyze.py": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "udp_stage_device_run.py": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "cached_zero_frame_device_run.py": "f02b123d48ca95997032e45ab7de847874bbe03b35e6ca6a87aa9816e148a82b"
+  },
+  "runtime_full_external_rule": "Afterjoin all observed complete external results must pass; no added samplepresence gate for an all-done resume. The freshbaseline alone requires both families.",
+  "bundles": {
+    "fresh_health": "Keep original7c93+0926 private bundle and producer unchanged",
+    "device_full110": "Use exactnewcontroller+newhelper in separate private bundle, consume runtime API",
+    "Oracle110": "Unchanged1e80controller and frozen7c93companion; no deviceprefixconsumer"
+  },
+  "new_cli_options": false,
+  "measurement_or_statistical_change": false,
+  "device_or_Oracle_accessed": false,
+  "formal110_executed": false,
+  "independent_review_passed": false
+}

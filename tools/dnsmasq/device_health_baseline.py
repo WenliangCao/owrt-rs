@@ -33,7 +33,8 @@ def capture_before_stop(out, label):
     return prefix
 
 
-def validate_guard_evidence(prefix, final, external, production, capture):
+def validate_runtime_guard_evidence(prefix, final, external, production, capture):
+    """Validate captured bytes and observed safety outcomes, without baseline coverage gates."""
     assert prefix.endswith(b'\n') and final.endswith(b'\n')
     assert complete_prefix(capture) == prefix, 'prefix does not match complete capture records'
     assert final.startswith(capture), 'final evidence changed captured bytes'
@@ -46,10 +47,8 @@ def validate_guard_evidence(prefix, final, external, production, capture):
     assert rows[-1]['event'] == 'monitor_stopped'
     assert all(row['event'] == 'sample' for row in rows[1:-1]), 'unexpected/stop event'
     qualified, all_samples = before[1:], rows[1:-1]
-    assert qualified
-    assert qualified[-1]['elapsed_s'] >= 120, 'pre-stop coverage below120s'
     elapsed = [row['elapsed_s'] for row in all_samples] + [rows[-1]['elapsed_s']]
-    assert elapsed == sorted(elapsed) and rows[-1]['elapsed_s'] >= 120
+    assert elapsed == sorted(elapsed)
     # These safety gates cover every final sample, including shutdown tail.
     assert all([row['production_pid'], row['production_starttime']] == production for row in all_samples)
     assert all(row['mem_available_kib'] >= 65536 for row in all_samples)
@@ -58,12 +57,21 @@ def validate_guard_evidence(prefix, final, external, production, capture):
     # filtering. The complete final tail remains evidence, not a successful probe.
     assert all(row['dns_ok'] in (-1, 1) for row in qualified)
     assert all(row['http_status'] in (-1, 200, 301, 302, 401, 403) for row in qualified)
+    assert all(row['ip_version'] in (4, 6) and row['exit'] == 0
+               and row['result'].startswith('200 ') for row in external)
+    return qualified, all_samples, rows[-1]
+
+
+def validate_guard_evidence(prefix, final, external, production, capture):
+    """Retain the original fresh-baseline coverage and sample qualification."""
+    qualified, all_samples, end = validate_runtime_guard_evidence(prefix, final, external, production, capture)
+    assert qualified and qualified[-1]['elapsed_s'] >= 120, 'pre-stop coverage below120s'
+    assert end['elapsed_s'] >= 120
     dns = sorted(row['dns_rtt_ms'] for row in qualified if row['dns_ok'] == 1)
     http = [row['http_rtt_ms'] for row in qualified if row['http_status'] != -1]
     assert dns and http
     assert {row['ip_version'] for row in external} == {4, 6}
-    assert all(row['exit'] == 0 and row['result'].startswith('200 ') for row in external)
-    return qualified, all_samples, rows[-1]
+    return qualified, all_samples, end
 
 
 def validate_baseline(prefix, final, external, production, capture):
