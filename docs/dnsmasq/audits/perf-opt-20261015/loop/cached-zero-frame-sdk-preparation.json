@@ -1,0 +1,30 @@
+{
+  "status": "PREPARED_LOCALLY_DISABLED_UNTIL_EXACT_GATE_BINDING",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+  "output_directory": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cached-zero-frame",
+  "source_parent": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+  "composition": "03ace8ec plus a8dcdacc local.rs; six final product/test blobs match the independent reviewed parents, without manual product edits",
+  "template": "loop/build_cached_zero_frame_sdk.py.in",
+  "template_sha256": "9217a0f7bf1f33dab15a74193a3efaf37c490068356a9c4d13d0f6d21bd8a3d4",
+  "original_prepared_controller_sha256": "9d47ca9a5a9df224bdf905c96afd348e9961c0a74ba82fc5619dabe30b0158bb",
+  "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "canonical_build_slot": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+  "canonical_target": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target",
+  "cargo": "/home/ubuntu/.cargo/bin/cargo",
+  "original_recipe_flags_budgets_and_hardening_unchanged": true,
+  "required_sequence": [
+    "DNS0161owner32 complete and explicitly releases Oracle",
+    "Download and verify prior54bd578raw files in the same gap",
+    "Correctness original four Linux groups complete for exact185 and exits",
+    "Bind actual verified receipt SHA and schema; then one authorized SDK build",
+    "Wait for separately frozen direct acceptedE versus185 native240 timing plan and reservation"
+  ],
+  "native_scope": "Original hot15 will evaluate local/cache paths and cold fallback; it does not exercise owner reply-buffer recycling",
+  "standalone03ace_or_a8_SDK_controllers_not_launched": true,
+  "uploaded": false,
+  "executed": false,
+  "oracle_accessed": false,
+  "performance_acceptance": false
+}
