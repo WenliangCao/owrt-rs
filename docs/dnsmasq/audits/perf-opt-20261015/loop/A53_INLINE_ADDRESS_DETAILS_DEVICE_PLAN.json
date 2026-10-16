@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+  "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "measurement_artifacts": {
+    "device_perf_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_guard": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "device_perf_lifecycle": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "device_perf_netns": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "device_perf_resource_probe": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "group.sh": "0343b9ebcb5df1b6a038a9d63f85dad6ac46076a9fe20fede07e6dbaa253e7bf",
+    "m6a_loadgen": "f7c7d8e94a96e5c23f06aec1396539c439516fa4408a3657835cf78bdceb618e",
+    "m6a_upstream": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "nice10": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+  },
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "workload": {
+    "prewarm_queries": 1000,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "rate": 200,
+    "clients": 32,
+    "hot_names": 800,
+    "qtype": "aaaa30",
+    "seed": "0x293001",
+    "profile": "hit",
+    "upstream_ttl": 120,
+    "upstream_delay_us": 1000,
+    "cache_size": 1000,
+    "edns_max": 1232
+  },
+  "tool_invalid_policy": "No automatic replacement or reruns to seek a favorable result. Preserve every failed attempt and stop. Existing independently evidenced tool-invalid whole-pair rule may only be invoked explicitly under its original limits, after original matrix, never for product/unknown failure or one-sided replacement.",
+  "status": "LOCAL PREPARATION ONLY; queuedafter803; exact1df actualLinux/SDK/review/release pending; no device action",
+  "scope": "Fresh acceptedG185 versus bare1df product A53ten UDP-hit exploratory comparison, not fullqualification or deployment.1df parentis6ab; versusG includes inherited6ab changes anddoesnot isolate addressinline alone.",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "forbidden_substitution": "Onlyexact1df135dc; no210/849/2b/803 overlay, noinstrumentedcountELF, no reconstructedcombination.",
+  "baseline_G_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_G_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "source_files_verified": null,
+  "elf_sha256": null,
+  "elf_bytes": null,
+  "map_sha256": null,
+  "build_receipt_sha256": null,
+  "related_linux_report_sha256": null,
+  "related_linux_verified_receipt_sha256": null,
+  "entry_sha256": "5405f8c84b0dbfede1baba2688d85b6676a13fc9d03f5e69461aa5208f34d0be",
+  "artifacts": {
+    "e": {
+      "name": "a53-inline-address-details-artifact-e",
+      "sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27"
+    },
+    "f": {
+      "name": "a53-inline-address-details-artifact-f",
+      "sha256": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+    },
+    "g": {
+      "name": "a53-inline-address-details-artifact-g",
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99"
+    },
+    "inline-address-details": {
+      "name": "a53-inline-address-details-artifact-inline-address-details",
+      "sha256": null
+    }
+  },
+  "schedule": [
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 1,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r1-c"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 1,
+      "side": "rust",
+      "artifact": "inline-address-details",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r1-rust"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 2,
+      "side": "rust",
+      "artifact": "inline-address-details",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r2-rust"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 2,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r2-c"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 3,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r3-c"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 3,
+      "side": "rust",
+      "artifact": "inline-address-details",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r3-rust"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 4,
+      "side": "rust",
+      "artifact": "inline-address-details",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r4-rust"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 4,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r4-c"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 5,
+      "side": "c",
+      "artifact": "g",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r5-c"
+    },
+    {
+      "group": "g-vs-inline-address-details",
+      "round": 5,
+      "side": "rust",
+      "artifact": "inline-address-details",
+      "mode": null,
+      "label": "a53-inline-address-details-g-vs-inline-address-details-r5-rust"
+    }
+  ],
+  "execution_started": false,
+  "candidate_eligible": false,
+  "full_qualification_completed": false,
+  "pending_before_launch": [
+    "Keep803 priority andbind itscompletedarchive/restore plusappropriatequeuerelease beforeany1dfdeviceaction.",
+    "Freshoriginalrelated1dfLinux tests/actualreceipt andindependentreview; anticipated963 isnotPASS, retainall6ab names andexacttwoadded tests.",
+    "Exact1df originalopt3 SDK ELF/map/build and179source identity, unchangedELF/APKbudgets andactualSDKreview bound; nooverlayorartifactsubstitution.",
+    "Newfresh125shealth,originalproduction/slot/tool/offline/idle/recoverygates; originalten/W/direction/>8ticks, allraw,noautomaticreplacement."
+  ],
+  "count_diagnostic_not_a_performance_control": true,
+  "statistics": {
+    "W": "maxrelativefullranges",
+    "paired_direction_minimum": 4,
+    "pairs": 5,
+    "CPU": "everywindow>=10ticks andmediandelta>8ticks",
+    "measurement_seconds": 20,
+    "CPU_denominator": 5000
+  },
+  "restore_only": [
+    "e",
+    "f"
+  ],
+  "source_parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "anticipated_related_gate_passes": 963,
+  "actual_related_linux_tests_passed": null,
+  "actual_SDK_review": null,
+  "source_interaction_review": null,
+  "explicit_queue_release": null,
+  "execution_selected": false,
+  "queue": "803originalrelatedgates/profile2SDK/owner32 anddevice10 first. Onlyafter itsmeasurement/recoveryrelease andexact1df selection may1dfactualgates/SDK/independentreview/pretransfer/freshhealth proceed.",
+  "source_preparation": {
+    "commit": "0d90579d",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/inline-address-details-execution-preparation/manifest.json",
+    "sha256": "e913ee10beaaf34cc2d38e510f5bd8ba69c838384b23fe03380e2eba7c544d03",
+    "source_manifest_sha256": "cbba1df59b5655cbf22de35003a579d95884895b50eb03437e200e6981d3ebd0",
+    "git_identity_sha256": "d1adeb59ceae6e7c0d62ee220c3d69c435d5e706e1a8d2d7ddf0d5698e340362",
+    "prepared_source_files_verified_against_git": 179,
+    "review_commit": "0aca751f",
+    "review_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/inline-address-details-execution-preparation-review.json",
+    "review_sha256": "ff2976b283521cc62d3b350339452c4c918ae753e1b0b3f1001007e396846117",
+    "review_status": "PASS_LOCAL_DISABLED_EXECUTION_PREPARATION_WITH_PEER_ARCHIVE_REVIEW",
+    "actual_Linux_or_SDK_PASS_inherited": false
+  },
+  "canonical_sdk_builder": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+    "sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/build_package.py",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
+  },
+  "declared_profile": {
+    "opt_level": "3",
+    "features": "",
+    "allocator_linker_LTO_codegen1_panic_strip_hardening_unchanged": true
+  },
+  "original_budget": {
+    "elf_max_bytes": 2200000,
+    "apk_max_bytes": 1200000
+  },
+  "projected_related_test_groups": {
+    "lib": 842,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
+  "projected_added_tests": [
+    "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+    "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
+  ]
+}
