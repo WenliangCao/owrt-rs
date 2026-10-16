@@ -1,0 +1,74 @@
+{
+  "scope": "Local independent6ab child; not current frozen SDK. Not selected for remote screening; direct-slice API-preserving alternative follows.",
+  "source": "5300212f26ced50bb6d78dd1c1e5b0119a43f2ae",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--frozen",
+        "--release",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016/private/lease-address-presence/final-check-0.log",
+      "log_sha256": "f429ed0129e5dd850a65f6e410886398ef6112a25c1b4d2222b4d51562cdf553"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016/private/lease-address-presence/final-check-1.log",
+      "log_sha256": "e0348c42a025b5fe3b7a32c4bc84e6a63a57f5b48c0dcd2fff907483d9b7b033"
+    }
+  ],
+  "initial_compile_failure": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--frozen",
+        "--release",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--lib"
+      ],
+      "returncode": 101,
+      "log": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016/private/lease-address-presence/check-0.log",
+      "log_sha256": "257fca711bc538b875a6e04ee91ac15221376acf396ddbee39bb1efa043d418f"
+    }
+  ],
+  "initial_compile_failure_reason": "Missing closing delimiter while writing prototype; fixed before final checks, no product execution before correction.",
+  "codegen_receipt": "/Users/USER/Developer/owrt-perf-lease-address-presence-20261016/private/lease-address-presence/cross-daemon-final/inspection-v3.json",
+  "codegen_receipt_sha256": "45b17a714a6b7d8583e3c7f0f83f006ddf39e15e87c401f0e02480c5e0d76ed9",
+  "outputs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "presence": {
+      "sha256": "f2d957f9be7a52928fda47c216696735060ae2eb4029bacb56ab6e758802862f",
+      "bytes": 5023672
+    }
+  },
+  "codegen": {
+    "cached_address_is_unclaimed_bytes": [
+      528,
+      508
+    ],
+    "added_has_address_bytes": 1148,
+    "whole_local_elf_bytes_delta": 1432
+  },
+  "tests": "726Mac lib/8ignored, default musl all-target PASS.576 new original lookup presence comparisons with4policies/3views/6names/8clocks.",
+  "decision": "Retain code/evidence but prefer evaluation of same-API direct slice to avoid duplicated lookup logic and added code. No new SDK, Linux runtime, timing or performance claim."
+}
