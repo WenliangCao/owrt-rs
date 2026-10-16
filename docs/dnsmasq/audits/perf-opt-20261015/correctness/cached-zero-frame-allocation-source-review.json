@@ -1,0 +1,87 @@
+{
+  "schema": "dnsmasq-185-udp-allocation-source-review-v1",
+  "status": "PASS_DIAGNOSTIC_SOURCE_REVIEW_ONLY",
+  "source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+  "base_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "original_meter_source": "6d6e60381975dee3cd02574ddbea3e5183de5d66",
+  "source_files_sha256": {
+    "components/dnsmasq/src/main.rs": "6469de4be0b02c6803a04790460c767bfc0c8ab3c7d22e53501706b419417e18",
+    "components/dnsmasq/src/udp_allocation_diagnostic.rs": "e62ae10c6ca094152db543243d5963537f31aa50bf5491e386b934df8d1dc1c4",
+    "tools/dnsmasq/udp_allocation_meter_check.rs": "ad669923f7484fbbafe1e0db30a78fcc89ed8d6dc92c681485aafd7a72733c86"
+  },
+  "source_clean": true,
+  "review": [
+    "Original125-line meter and52-line standalone control are byte-identical to6d6e6038. GlobalAlloc successful alloc/realloc, standalone dealloc and requested/released byte semantics are unchanged, including default alloc_zeroed behavior.",
+    "Removing only added meter hooks and restoring the expanded Stale expression reconstructs the full185main.rs byte-for-byte. All library/cache/lease/UDP product behavior remains185; no other candidate is combined.",
+    "Turn begins before the original owner-loop body and ends after its original wait_for_files call or early unwind. Step starts before all step_udp locals and drops last, including receive, admission, process/send and owned drops. No-packet/error remains its own category.",
+    "Consumed/discarded packets becomeOtherPacket; actual result arms then classifyCached/Local/Stale. Cached classification precedes the retained cached_reply=true; original reply buffer recycling after send remains unchanged and inside the Step lifetime.",
+    "Deferred classifications outsideStep incrementUNSCOPED without changingKIND, exactly as the reviewed meter. Nested steps and other active-thread allocations remain observable limitations; global counters are not per-thread attribution.",
+    "Report snapshots step and whole-turn counters after normal loop exit, before report output allocation/I/O and later shutdown cleanup. Report existence alone cannot establish successful daemon shutdown."
+  ],
+  "control": {
+    "method": "Read retained JSON and independently assert complete original expected matrices and histogram; did not rerun or extend fixture.",
+    "report_sha256": "2b3f4a07c56a4f0269b00597be00821f0aa5c30d975b687f718a00d5a7ff87e8",
+    "queries": [
+      0,
+      0,
+      1,
+      1,
+      0
+    ],
+    "cached_totals": [
+      2,
+      2,
+      1,
+      72,
+      72
+    ],
+    "local_totals": [
+      1,
+      1,
+      0,
+      8,
+      8
+    ],
+    "cached_only_turn": [
+      1,
+      1,
+      3,
+      3,
+      1,
+      80,
+      80
+    ],
+    "mixed_or_other_turn": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      8,
+      8
+    ],
+    "histogram": "Only bucket2 has value1; all others0.",
+    "nested": 0,
+    "unscoped": 1,
+    "unscoped_is_deliberate_negative_scope_control": true,
+    "all_values_match": true
+  },
+  "author_compiler_evidence": {
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "badb2665f14377f8ae3eac5161c2b6307506fdd6f64f480495a93485ed756d27",
+    "observed": "Finished dev profile; existing warnings retained. Target/exit reported by author; reviewer did not rebuild."
+  },
+  "unchanged_runtime_conditions": [
+    "Use only the existing fixed three-window single-thread UDP diagnostic after current110work and raw audits release ownership, with original workload and reviewed health/tail capture binding.",
+    "Final exact diagnostic SDK/ELF/map/source identities remain pending. Keep diagnostic artifact distinct from shipping185; it is not eligible for timing, installation or performance acceptance.",
+    "Actual thread observations, nested_steps0, unscoped_classifications0, report parse and daemonexit0 are necessary for complete measured query attribution. The standalone unscoped1 is deliberate and not a valid measurement value.",
+    "Use the actualCached step count as denominator, including prewarm hits. Do not substitute5000,6000or cached-only-turn count. Preserve histogram, warmup/setup costs, no-packet/error, mixed and unscoped records.",
+    "Cached-only-turn per-query count is a conditional subset, while all owner-turn totals include control/poll work. Requested/released bytes are traffic, not live heap/RSS/native allocator totals.185retained reply buffers can cross Step boundaries; no step live-memory claim."
+  ],
+  "diagnostic_value": "A53 normal-owner count can test whether prepared-query allocation reductions survive the actual receive/admission/cache/send/cleanup and poll boundaries. It does not establish any CPU improvement.",
+  "new_framework_or_gates": false,
+  "remote_or_device_accessed": false,
+  "frozen185_modified": false,
+  "device_execution_authorized_by_this_review": false,
+  "performance_accepted": false
+}
