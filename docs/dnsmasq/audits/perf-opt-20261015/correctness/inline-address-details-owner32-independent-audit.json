@@ -1,0 +1,573 @@
+{
+  "status": "PASS_OWNER32_RAW_CPU_PMU_ALL_STATISTICS_AND_ORIGINAL_FULL_BIN_REPLAY",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "baseline_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "collection_sha256": "c32a65c2b3fd9a029028ad0f541d46114ff30434650c3f78816a952fbf38bdc3",
+  "archive_sha256": "252f5aabfda6635c7c0c38819d99f8a1fcaa04a995f44d0283d9e1b1ae0a3b46",
+  "result_sha256": "a67bafe3333cd3cfcc0bf54996efbaa291a33c4b7f81b552a03cbe62e8e91d6f",
+  "plan_sha256": "54c1536a3499f68b802bad388118d90e8ecc0bfd2c6bbfceb0a4c4f930c746d3",
+  "small_files_rehashed": 1169,
+  "remote_retained_files": 192,
+  "full_raw_inventory_files_bound": 1264,
+  "remote_raw_bin_bytes": 3613555056,
+  "ordered_windows": 32,
+  "PMU_windows": 12,
+  "plain_windows": 20,
+  "all_CPU_starttime_PID_actualN_ticks_recomputed": true,
+  "all48_actual_PMU_events_reparsed_unscaled_same_group_same_window": true,
+  "all_count_health_and_exit_receipts_checked": true,
+  "all_published_row_and_group_math_recomputed": true,
+  "summaries": {
+    "high": {
+      "cpu": {
+        "left": {
+          "median": 4.29276078650664,
+          "min": 4.276467552238275,
+          "max": 4.29753453246986,
+          "rounds": [
+            4.276467552238275,
+            4.29753453246986,
+            4.295869499120189,
+            4.290018293998716,
+            4.29276078650664
+          ]
+        },
+        "right": {
+          "median": 4.201911785756999,
+          "min": 4.185456644890331,
+          "max": 4.239676963420868,
+          "rounds": [
+            4.239676963420868,
+            4.206630781759726,
+            4.185456644890331,
+            4.186361110347653,
+            4.201911785756999
+          ]
+        },
+        "relative_change_pct": -2.1163303819585018,
+        "W_pct": 1.2903726040685761,
+        "same_direction_pairs": 5,
+        "precision_ok": null,
+        "discernible": true,
+        "direction": "faster",
+        "scope": "Variable-query saturation diagnostic; W/direction only, not fixed-cohort acceptance or a tick precision pass"
+      },
+      "throughput": {
+        "left": {
+          "median": 232764.3,
+          "min": 232674.1,
+          "max": 233983.6,
+          "rounds": [
+            233983.6,
+            232715.05,
+            232764.3,
+            232674.1,
+            232798.9
+          ]
+        },
+        "right": {
+          "median": 237805.8,
+          "min": 235898.5,
+          "max": 238754.15,
+          "rounds": [
+            235898.5,
+            237550.35,
+            238566.75,
+            238754.15,
+            237805.8
+          ]
+        },
+        "relative_change_pct": 2.1659249292095053,
+        "W_pct": 1.2008327803611158,
+        "same_direction_pairs": 5,
+        "precision_ok": true,
+        "discernible": true,
+        "direction": "higher"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          99.9020026169982,
+          99.88488214087442,
+          99.84572334046622,
+          99.80747693735483,
+          99.87528833677428
+        ],
+        "inline-address-details": [
+          99.8772318814505,
+          99.90202034674215,
+          99.84385429656935,
+          99.87174525374999,
+          99.84271303753633
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 131.401,
+            "min": 130.881,
+            "max": 131.601,
+            "rounds": [
+              130.881,
+              131.601,
+              131.401,
+              131.441,
+              131.361
+            ]
+          },
+          "right": {
+            "median": 128.081,
+            "min": 127.601,
+            "max": 129.721,
+            "rounds": [
+              129.721,
+              128.441,
+              127.761,
+              127.601,
+              128.081
+            ]
+          },
+          "relative_change_pct": -2.526616996826524,
+          "W_pct": 1.6552025671254946,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        },
+        "p95": {
+          "left": {
+            "median": 145.881,
+            "min": 144.761,
+            "max": 146.361,
+            "rounds": [
+              144.761,
+              145.881,
+              145.881,
+              146.201,
+              146.361
+            ]
+          },
+          "right": {
+            "median": 142.561,
+            "min": 141.801,
+            "max": 143.761,
+            "rounds": [
+              143.761,
+              142.561,
+              142.001,
+              141.801,
+              143.002
+            ]
+          },
+          "relative_change_pct": -2.275827558078155,
+          "W_pct": 1.374850064183057,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": true,
+          "direction": "faster"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 2.76,
+            "min": 2.76,
+            "max": 2.8,
+            "rounds": [
+              2.8,
+              2.76,
+              2.76,
+              2.8,
+              2.76
+            ]
+          },
+          "right": {
+            "median": 2.8,
+            "min": 2.8,
+            "max": 2.84,
+            "rounds": [
+              2.8,
+              2.84,
+              2.8,
+              2.84,
+              2.8
+            ]
+          },
+          "relative_change_pct": 1.449275362318842,
+          "W_pct": 1.449275362318842,
+          "same_direction_pairs": 4,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 5.6,
+            "min": 5.4,
+            "max": 6.56,
+            "rounds": [
+              6.56,
+              5.6,
+              5.4,
+              6.28,
+              5.4
+            ]
+          },
+          "right": {
+            "median": 6.72,
+            "min": 6.6,
+            "max": 6.8,
+            "rounds": [
+              6.6,
+              6.72,
+              6.72,
+              6.8,
+              6.68
+            ]
+          },
+          "relative_change_pct": 20.000000000000004,
+          "W_pct": 20.7142857142857,
+          "same_direction_pairs": 5,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 5501.444395912273,
+          "instructions:k": 13008.63087862916,
+          "cycles:u": 3495.3625764884996,
+          "cycles:k": 9280.526624279977,
+          "user_ipc": 1.5739317499481271
+        },
+        "inline-address-details": {
+          "instructions:u": 5328.770433212153,
+          "instructions:k": 13000.293330838787,
+          "cycles:u": 3210.342442795646,
+          "cycles:k": 9288.71769101772,
+          "user_ipc": 1.659876018887171
+        }
+      }
+    },
+    "low": {
+      "cpu": {
+        "left": {
+          "median": 26.0,
+          "min": 22.0,
+          "max": 32.0,
+          "rounds": [
+            24.0,
+            28.0,
+            32.0,
+            26.0,
+            22.0
+          ]
+        },
+        "right": {
+          "median": 26.0,
+          "min": 24.0,
+          "max": 28.0,
+          "rounds": [
+            28.0,
+            26.0,
+            26.0,
+            24.0,
+            24.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 38.46153846153847,
+        "same_direction_pairs": 0,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "throughput": {
+        "left": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "right": {
+          "median": 200.0,
+          "min": 200.0,
+          "max": 200.0,
+          "rounds": [
+            200.0,
+            200.0,
+            200.0,
+            200.0,
+            200.0
+          ]
+        },
+        "relative_change_pct": 0.0,
+        "W_pct": 0.0,
+        "same_direction_pairs": 0,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "sender_cpu_percent": {
+        "G": [
+          0.8481008622776537,
+          0.8085357284780604,
+          0.8802138646024383,
+          0.8212287029455161,
+          0.7501709326207832
+        ],
+        "inline-address-details": [
+          0.8736853128459275,
+          0.8756495260366155,
+          0.8284036209663963,
+          0.7823231467752623,
+          0.8019234752656524
+        ]
+      },
+      "latency": {
+        "p50": {
+          "left": {
+            "median": 52.881,
+            "min": 47.361,
+            "max": 62.881,
+            "rounds": [
+              55.401,
+              52.881,
+              62.881,
+              52.121,
+              47.361
+            ]
+          },
+          "right": {
+            "median": 51.52,
+            "min": 48.36,
+            "max": 59.801,
+            "rounds": [
+              59.801,
+              58.561,
+              49.96,
+              48.36,
+              51.52
+            ]
+          },
+          "relative_change_pct": -2.573703220438337,
+          "W_pct": 29.348915489495287,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 80.921,
+            "min": 74.36,
+            "max": 96.601,
+            "rounds": [
+              86.481,
+              77.601,
+              96.601,
+              80.921,
+              74.36
+            ]
+          },
+          "right": {
+            "median": 79.961,
+            "min": 78.16,
+            "max": 86.52,
+            "rounds": [
+              86.361,
+              86.52,
+              79.921,
+              79.961,
+              78.16
+            ]
+          },
+          "relative_change_pct": -1.1863422350193495,
+          "W_pct": 27.48483088444285,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "send_lag": {
+        "p50": {
+          "left": {
+            "median": 70.73,
+            "min": 69.94,
+            "max": 72.341,
+            "rounds": [
+              72.341,
+              71.279,
+              70.236,
+              70.73,
+              69.94
+            ]
+          },
+          "right": {
+            "median": 70.5,
+            "min": 69.95,
+            "max": 72.384,
+            "rounds": [
+              72.384,
+              70.5,
+              70.453,
+              69.95,
+              71.694
+            ]
+          },
+          "relative_change_pct": -0.32518026297187047,
+          "W_pct": 3.452482269503543,
+          "same_direction_pairs": 2,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        },
+        "p95": {
+          "left": {
+            "median": 83.613,
+            "min": 81.384,
+            "max": 90.272,
+            "rounds": [
+              90.272,
+              83.668,
+              83.613,
+              82.719,
+              81.384
+            ]
+          },
+          "right": {
+            "median": 82.354,
+            "min": 81.757,
+            "max": 85.544,
+            "rounds": [
+              82.354,
+              81.757,
+              85.544,
+              81.837,
+              83.975
+            ]
+          },
+          "relative_change_pct": -1.5057467140277234,
+          "W_pct": 10.629925968449887,
+          "same_direction_pairs": 3,
+          "precision_ok": true,
+          "discernible": false,
+          "direction": "within_variation_or_resolution"
+        }
+      },
+      "pmu": {
+        "G": {
+          "instructions:u": 7691.1784,
+          "instructions:k": 25594.899,
+          "cycles:u": 17379.9984,
+          "cycles:k": 37287.8126,
+          "user_ipc": 0.4425304435010765
+        },
+        "inline-address-details": {
+          "instructions:u": 7245.8264,
+          "instructions:k": 25560.7144,
+          "cycles:u": 15536.4462,
+          "cycles:k": 36054.2022,
+          "user_ipc": 0.46637604936964283
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks_plain": {
+    "low": {
+      "G": [
+        12,
+        14,
+        16,
+        13,
+        11
+      ],
+      "inline-address-details": [
+        14,
+        13,
+        13,
+        12,
+        12
+      ]
+    },
+    "high": {
+      "G": [
+        2499,
+        2499,
+        2498,
+        2497,
+        2498
+      ],
+      "inline-address-details": [
+        2499,
+        2498,
+        2496,
+        2498,
+        2498
+      ]
+    }
+  },
+  "postflight_sha256": "75b7c856e8595d3cf79b382f0dc1b567caa7cda5f6c249e1ba2f415014af5df8",
+  "release_sha256": "6e16bb543c80b85bcfcae75f259bb866c5308c73deb75a2e7159cbfed093f163",
+  "no_measurement_retries": true,
+  "limits": [
+    "High unpaced variable-N pipeline is diagnostic; precision_ok remains None, not a fixed-cohort CPU acceptance.",
+    "Original low CPU precision requires every window >=10ticks and absolute median delta strictly >8ticks, plus strictabsdelta>W and >=4/5 direction.",
+    "Oracle owner32 does not override nondiscernible physicalA53 screen or complete full44/full110.",
+    "All32 original full raw windows remain on Oracle;1169smallraw files and complete replay outputs are locally archived. Original20 plain latency/sendlag streams decoded by unchanged analyzer; all128bin files rehashed. No new measured window, build or originaltest execution."
+  ],
+  "performance_accepted": false,
+  "deployment_authorized": false,
+  "schema": "g1df-owner32-independent-audit-v1",
+  "author_result_commit": "9d3385d8",
+  "review_script_sha256": "978ebfd65d725e00b5fbeb014f60715c4de08540580f0fc4a72bc441082933c0",
+  "binding_script_sha256": "ab99e2efcfe34df469fbb56f44a3e112cc20690a75366a35bd1e6a4f3e4d2595",
+  "identity_and_phase_review": {
+    "status": "PASS_OWNER32_PHASE_IDENTITY_ORIGINAL_ANALYZER_AND_NATIVE_THEN_OWNER_CHAIN",
+    "source": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+    "plan_sha256": "54c1536a3499f68b802bad388118d90e8ecc0bfd2c6bbfceb0a4c4f930c746d3",
+    "original_analyzer_only_scope_text_changed_from_6ab": true,
+    "eight_original_analysis_imports_byte_identical": true,
+    "source179_maps_and_exact_G_1df_SDK_triples_bound": true,
+    "actual963_SDK_and_actual_screen_root_reviews_rehashed": true,
+    "launch_after_real_DNS_quiet_loopready_and_native_postflight": true,
+    "original_32_controller_argv_bound": true,
+    "local_transfer_receipt_sha256": "b22e6a8a42fb9733761b3031622a36beb532dc0443265cc95febc636bf5ac433",
+    "release_sha256": "6e16bb543c80b85bcfcae75f259bb866c5308c73deb75a2e7159cbfed093f163",
+    "native_postflight_before_owner_sha256": "f43a44e0f44d9bc00d65aeb67e26e8016d57dad5db02bbdbd221179d1a4c2818",
+    "native_result_sha256": "239912cb5c076a1f80d3ba91ebdb4127cdc6a0af097103f94febff7e864e7ecf",
+    "device_independent_audit_sha256": "911deed4702fe53b9ef78274c9696ddc0cdb805411af65a161d38b01d119878e",
+    "comparison_scope": "G185 versus1df includes inherited6ab changes, not inline-only.",
+    "scope": "Local retained bytes and Git refs; original remote full-bin replay is a separate gate.",
+    "reviewer_script_sha256": "ab99e2efcfe34df469fbb56f44a3e112cc20690a75366a35bd1e6a4f3e4d2595"
+  },
+  "original_analyzer_replay": {
+    "status": "PASS_ORIGINAL_ANALYZER_FULL_RAW_BIN_REPLAY_BYTE_IDENTICAL",
+    "exit": 0,
+    "result_sha256": "a67bafe3333cd3cfcc0bf54996efbaa291a33c4b7f81b552a03cbe62e8e91d6f",
+    "author_result_sha256": "a67bafe3333cd3cfcc0bf54996efbaa291a33c4b7f81b552a03cbe62e8e91d6f",
+    "original_analyzer_sha256": "53856cab516bd04335f8b44937c90d8c5d50feb616f37d4df167b8023e803d96",
+    "exit_receipt_sha256": "9c54cd5c5d818bc4f3ef95c4ff8c4895790fca9bc7609631d97a2c24d1be4f4b",
+    "analysis_stdout_sha256": "58c59d1244f0e125343062b1d66e8e36c50c9562d216f0f69406acd6d3289b80",
+    "analysis_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "full_raw_files_rehashed_after_replay": 1264,
+    "all32_copied_ELFs_and_maps_rehashed": true,
+    "all128_raw_bin_bytes_rehashed": 3613555056,
+    "input_postflight_sha256": "75b7c856e8595d3cf79b382f0dc1b567caa7cda5f6c249e1ba2f415014af5df8",
+    "scope": "Original unchanged analyzer CPU0 under root read privileges; output only in fresh reviewer directory. All retained raw bins and copied ELFs/maps rehashed, no build/capture/window retry.",
+    "finished_epoch": 1792141891.4897504
+  },
+  "replay_receipt_sha256": "4ff2881171faf26521811a87d9877b4b5d1821f7dddb3b9934fc1013a8efb429",
+  "replay_transfer_sha256": "7187430ad3994a0411d059bab1f0c907767396596e0396b57602d0bcbfd5c72a",
+  "original_plain_latency_sendlag_bins_independently_replayed": true,
+  "all128_bins_hash_verified_against_original_postflight": true,
+  "reviewer_measurement_retries": 0,
+  "comparison_scope": "G185 versus bare1df(parent6ab), including inherited6ab changes; not inline-only."
+}
