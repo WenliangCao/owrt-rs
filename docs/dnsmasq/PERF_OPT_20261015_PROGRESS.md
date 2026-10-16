@@ -1369,3 +1369,46 @@ tests but remains unmeasured. G/A53target-cpu source478acea6 replays the origina
 F flag with a separatefixture fix. Local.text grows8.68%, not a demonstrated
 SDK budget failure or runtime outcome; retain below803 priority. Local evidence
 and Git refs are preserved; no new source has replaced acceptedG.
+
+
+## Actual803 screens and local follow-up research, 2026-10-16
+
+6ab fullfunctional qualification completed7504c07a (main5c07c784): original44
+families/67jobs plus boundary corpora,83,115archived evidence files rehashed.
+F10 has24order-onlyPTR differences under its original qualifier in this run;
+retained C defects/UID differences and raw lease exit1 are unchanged. This
+closes functionality but does not promote its inconclusive performance.
+
+803 actual957 and opt2SDK independently pass3ce1e7e5. ELF2156c7f5 is2,046,747B;
+APK04c99c51 is1,126,646B. Original fatLTO/CGU1/hardening remain. Allpretransfers
+and fresh125health precede finalquiet f9533ce8, loop finalmetadata86307ea6 and
+original routerten07:50:33UTC / owner32 07:50:39UTC. No native240 was added.
+Routerten10/10valid closes69e2b4e9, independentd6d779dc: CPU122→126us,
++3.279% belowW6.557%,5/5but2ticks; p50/p95 also inconclusive. The original
+G round4p95=1.163135ms stays. E/F restored, production3086/2115 unchanged.
+Owner32 is still running; no full110 or opt2 promotion. Source/artifacts stay
+immutable. Local actual-SDK range comparisonbbe42a8d shows many hot emitted
+ranges shrink but freshwriter grows44B; no I-cache or CPU inference.
+
+Bare1df remains next after complete803 timing/audit/quiet. DNS read-only
+cce4663b verifies its existing is_cname helper really skips the sampled G
+Record/kind dependency for valid address tags3/4 in local1df machine code.
+The residual has_cname method has no callers; no duplicate patch was made.
+
+Root independent local follow-ups, none injected into803 or bare1df:
+
+- 86a8d59d: ECS predicate returns true without walking questions when ARCOUNT0,
+  preserving original malformed/noOPT semantics.726Mac/8ignored+musl check,
+  source5170ad8b; helper+56B/localELF+64B. Keep lower priority.
+- bdfcc382 fullOPT-sharing representation retained and not scheduled: removes
+  one UDP scan but grows shared ownerframe624→720B. Separate961b7cf8 keeps
+  only reply-envelope fields and returns frame to624B, but ownercode+384B and
+  wholelocalELF+384B remain.725Mac/8ignored+musl, review2c6c54ba. No timing.
+- 025c2f2c extracts only already-ready DHCP body after original helper/reload/
+  input/maintenance gates. Mainstep17608→13436B/frame2400→1312B; outlined body
+  4408B/frame2016B; localELF−424B. ActiveDHCP pays an extra call and nested
+  frame, so no globalstack reduction claim.23Macbin/muslalltarget/source
+  fc446c16 pass; Linux runtime still required. Queue behindbare1df.
+
+These are performance-only source experiments. No behavior repair was added,
+no frozen C expectation changed, and no remote measurement overlap occurred.
