@@ -18,10 +18,12 @@ owner paths. If selected later, retain the existing 6ab native evidence,
 including both regressions, and use original related/SDK plus owner32/device
 screens for the changed owner. The existing
 `tools/dnsmasq/audit_20261011_runtime_signals.py` already exercises two SIGUSR1
-dump requests and SIGALRM maintenance followed by a dump; it provides a
-targeted original family without new test rules. Full acceptance gates remain
-separate. This scope review changes no current bare 1df native240 window,
-threshold or queue.
+dump requests and SIGALRM maintenance followed by a dump. It is a frozen
+independent audit, not an entry called by the original 44-family registry or
+runner. A future selected 5c must explicitly run that existing audit through
+its original isolated entry; no coverage is inherited from full44 and no new
+test rules are needed. Full acceptance gates remain separate. This scope
+review changes no current bare 1df native240 window, threshold or queue.
 
 [Exact input checks](main-only-native-screen-scope-review.json) retain the
 three source identities, differing hashes and original entry/probe bindings.

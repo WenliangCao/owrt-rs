@@ -31,7 +31,7 @@
   "build_entry": "run_post185_combined_native.py:117-123 cargo--lib followed by externalhot15 rustc--extern dnsmasq_rs",
   "scope": "162 is the protected fullsource inventory, not a dependency-only libinput set. Only main.rs differs for025/5c; other161 match. Existingnative probe does not exercise private SinglePoll or either extracted helper.",
   "retained_adverse_evidence": "Existing6ab native240 synth-address andcname-config regressions remain; do not replace or erase them.",
-  "future_selected_validation": "Original relatedgroups pluscanonicalSDK and originalowner32/device10 can observe mainchanges. Existingruntime-signals family is suitable targetedsignal validation; no newtestprotocol. Fullacceptance gates remain separatelyrequired.",
+  "future_selected_validation": "Original relatedgroups pluscanonicalSDK and originalowner32/device10 can observe mainchanges. The frozen runtime-signals independent audit is not called by the44family registry; futureselected5c must explicitly run this existing isolated audit for targetedsignal validation. No full44 coverage inheritance or newtestprotocol. Fullacceptance gates remain separatelyrequired.",
   "current_bare1df_native240_changed": false,
   "new_build_test_or_remote_action": false
 }
