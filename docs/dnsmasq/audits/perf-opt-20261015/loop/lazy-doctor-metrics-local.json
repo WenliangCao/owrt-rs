@@ -1,0 +1,198 @@
+{
+  "scope": "Local-only prototype on exact6ab; not part of current frozen SDK/timing. No runtime gain or stopping conclusion.",
+  "source": "a2c2cabe4808d31aa88ab095534f20f7aa50769c",
+  "parent": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_main_sha256": "74238301c672169c3a81482d8b3a15eda81743b567aa29cbbf8c9daeecec17d1",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--frozen",
+        "--release",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016/private/lazy-doctor-metrics/check-0.log",
+      "log_sha256": "63beddc978be98d0d1c37c8c5cff740eb20b354d4d0800c733063ea4b4b34869"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016/private/lazy-doctor-metrics/check-1.log",
+      "log_sha256": "5ccb2f4a06fc5ef013748718b4c2618c2530b07cde77d20ce1325f1e337831ae"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--frozen",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--features",
+        "m6b-diagnostics"
+      ],
+      "returncode": 0,
+      "log": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016/private/lazy-doctor-metrics/check-2.log",
+      "log_sha256": "c4fffc049f644c40b99fed9268c5ea94b6068066d6366e1910ca0caad34125d9"
+    }
+  ],
+  "checks_source_note": "Checks preceded only a comment wording edit, not a code change. Mac binary23 PASS; Linux runtime/UBus gates have not run.",
+  "codegen": {
+    "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+    "outputs": {
+      "parent": {
+        "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+        "bytes": 5022240
+      },
+      "lazy": {
+        "sha256": "d791449e4923f8104db69ef72a6007350c6a7bd4ab63e5e1e8dcbbcec606fd9d",
+        "bytes": 5022544
+      }
+    },
+    "receipt_path": "/Users/USER/Developer/owrt-perf-lazy-doctor-metrics-20261016/private/lazy-doctor-metrics/cross-daemon-final/inspection-v3.json",
+    "receipt_sha256": "9a648ddc028770b9feac09be46751f302a1c2692f79ce2e9e18361dd06b26e1b",
+    "functions": {
+      "parent": [
+        {
+          "name": "process_udp",
+          "bytes": 4660,
+          "code_sha256": "2008af3e8faf8ade5dc0e76f54252045f1d0ea060a900a60570bd109fb26439e",
+          "asm_sha256": "d0f27f26e1583d0997a33644d1c889c8cfb0f01f30980fffd405cacf8ea65a0b",
+          "entry": [
+            "278f50: stp x29, x30, [sp, #-0x60]!",
+            "278f54: stp x28, x27, [sp, #0x10]",
+            "278f58: mov x29, sp",
+            "278f5c: stp x26, x25, [sp, #0x20]",
+            "278f60: stp x24, x23, [sp, #0x30]",
+            "278f64: stp x22, x21, [sp, #0x40]",
+            "278f68: stp x20, x19, [sp, #0x50]",
+            "278f6c: sub sp, sp, #0x3c0",
+            "278f70: ldr x9, [x0, #0x1bf8]",
+            "278f74: mov x20, x5",
+            "278f78: mov x21, x4",
+            "278f7c: mov x19, x2"
+          ]
+        },
+        {
+          "name": "poll_udp_completions",
+          "bytes": 1432,
+          "code_sha256": "90f9202d98542329233e3803eae33a01fa951e66cc982f5812273496493244b6",
+          "asm_sha256": "2bb7ff950e3f794bdd2e9bbb967f3dfbc51f42e6cfed0ed5cb4ddd51e49d6e5b",
+          "entry": [
+            "28e27c: stp x29, x30, [sp, #-0x60]!",
+            "28e280: stp x28, x27, [sp, #0x10]",
+            "28e284: mov x29, sp",
+            "28e288: stp x26, x25, [sp, #0x20]",
+            "28e28c: stp x24, x23, [sp, #0x30]",
+            "28e290: stp x22, x21, [sp, #0x40]",
+            "28e294: stp x20, x19, [sp, #0x50]",
+            "28e298: sub sp, sp, #0x210",
+            "28e29c: ldr x9, [x0, #0x1bf8]",
+            "28e2a0: mov x8, x9",
+            "28e2a4: ldr x10, [x8, #0x10]!",
+            "28e2a8: cbnz x10, #0x28e7e8"
+          ]
+        },
+        {
+          "name": "metrics",
+          "bytes": 416,
+          "code_sha256": "221939270bda4e8594497e973d0e0f1cee89ae6c48fb7c9b15ff65b8f9178c79",
+          "asm_sha256": "9ca5edb7d67e929fa94f9aaf265c64bf851955235160ade17ebb37f8965d7ae5",
+          "entry": [
+            "296158: sub sp, sp, #0x20",
+            "29615c: stp x29, x30, [sp, #0x10]",
+            "296160: add x29, sp, #0x10",
+            "296164: ldr w8, [x1, #0x1c20]",
+            "296168: tbz w8, #0, #0x2961dc",
+            "29616c: add x13, x1, #1, lsl #12",
+            "296170: ldr x15, [x1, #0x1c40]",
+            "296174: ldr w10, [x1, #0x1c3c]",
+            "296178: add x14, x13, #0xc8c",
+            "29617c: add x8, x13, #0xc24",
+            "296180: ldr w9, [x1, #0x1c30]",
+            "296184: ldr q1, [x14]"
+          ]
+        }
+      ],
+      "lazy": [
+        {
+          "name": "process_udp",
+          "bytes": 4880,
+          "code_sha256": "ba7cbcab5f40903febcb006c9c60da4751bbe3d3d523cd3e83aabf3edd9f3520",
+          "asm_sha256": "7b5eed91ff18cc4fa1b71324c234dc2bd9c0b3ef9d51ddfdca916d715e112724",
+          "entry": [
+            "278f60: stp x29, x30, [sp, #-0x60]!",
+            "278f64: stp x28, x27, [sp, #0x10]",
+            "278f68: mov x29, sp",
+            "278f6c: stp x26, x25, [sp, #0x20]",
+            "278f70: stp x24, x23, [sp, #0x30]",
+            "278f74: stp x22, x21, [sp, #0x40]",
+            "278f78: stp x20, x19, [sp, #0x50]",
+            "278f7c: sub sp, sp, #0x3c0",
+            "278f80: ldr x8, [x0, #0x1bf8]",
+            "278f84: mov x20, x4",
+            "278f88: mov x19, x2",
+            "278f8c: mov x9, x8"
+          ]
+        },
+        {
+          "name": "poll_udp_completions",
+          "bytes": 1496,
+          "code_sha256": "d1e5910db6789ef817f1ef43b410a3a13f56010e14d5882bbf7a4971987c087c",
+          "asm_sha256": "720a0c4c066dbbfb1b3c77baa4c280b97c10dfa0041444d8341f70e50c76ed80",
+          "entry": [
+            "28e368: stp x29, x30, [sp, #-0x60]!",
+            "28e36c: stp x28, x27, [sp, #0x10]",
+            "28e370: mov x29, sp",
+            "28e374: stp x26, x25, [sp, #0x20]",
+            "28e378: stp x24, x23, [sp, #0x30]",
+            "28e37c: stp x22, x21, [sp, #0x40]",
+            "28e380: stp x20, x19, [sp, #0x50]",
+            "28e384: sub sp, sp, #0x230",
+            "28e388: ldr x8, [x0, #0x1bf8]",
+            "28e38c: mov x9, x8",
+            "28e390: ldr x10, [x9, #0x10]!",
+            "28e394: cbnz x10, #0x28e914"
+          ]
+        },
+        {
+          "name": "metrics",
+          "bytes": 416,
+          "code_sha256": "205d4ea03d7cd97297eaadac04b7e6e75a3bd042cec6f7b279d36bd4bbca2b82",
+          "asm_sha256": "d04d75290138922d6e477fa94fe53db563e02d8b6e1cb6e066d8eb3c64bc75ff",
+          "entry": [
+            "296284: sub sp, sp, #0x20",
+            "296288: stp x29, x30, [sp, #0x10]",
+            "29628c: add x29, sp, #0x10",
+            "296290: ldr w8, [x1, #0x1c20]",
+            "296294: tbz w8, #0, #0x296308",
+            "296298: add x13, x1, #1, lsl #12",
+            "29629c: ldr x15, [x1, #0x1c40]",
+            "2962a0: ldr w10, [x1, #0x1c3c]",
+            "2962a4: add x14, x13, #0xc8c",
+            "2962a8: add x8, x13, #0xc24",
+            "2962ac: ldr w9, [x1, #0x1c30]",
+            "2962b0: ldr q1, [x14]"
+          ]
+        }
+      ]
+    }
+  },
+  "decision": "Keep isolated and do not schedule a dedicated remote screen now. Earlier L07 instruction evidence was small; current Oracle process_udp aggregate cycles cannot be assigned to metrics. Branch removal is real but hot functions grow284B and completion frame grows32B. Finish6ab actual screens, G allocation counts and separate opt2 before reconsideration."
+}
