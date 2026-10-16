@@ -5224,7 +5224,23 @@ impl SinglePoll {
         let mut decorated = self.config.edns.active().then(|| query.to_vec());
         let mut metadata = None;
         let mut cached_reply = false;
-        let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
+        #[cfg(target_os = "linux")]
+        let dump_active = self.dump.enabled(dnsmasq_rs::dump::QUERY)
+            || self.dump.enabled(dnsmasq_rs::dump::REPLY);
+        #[cfg(not(target_os = "linux"))]
+        let dump_active = false;
+        let plain = if metrics.is_none() && !self.query_logging.enabled
+            && !self.config.edns.active() && !self.config.loop_detect
+            && !self.config.auth.has_interfaces() && !dump_active
+        {
+            daemon.try_plain_cached_udp(packet, local)
+        } else {
+            None
+        };
+        let answer = if let Some(result) = plain {
+            cached_reply = true;
+            result.ok().map(|answer| (answer, false))
+        } else { match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
             dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => {
                 if self.query_logging.enabled {
@@ -5325,7 +5341,7 @@ impl SinglePoll {
                     _ => None,
                 }
             }
-        };
+        }};
         let responses = if let Some(mut metrics) = metrics {
             let mut doctor = |name: &[u8], ttl, address, cache, forward| {
                 write_dns_metrics(&mut metrics, cache, forward, event.local_answered);

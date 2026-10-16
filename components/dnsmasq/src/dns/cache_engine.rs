@@ -120,6 +120,53 @@ impl CacheContext<'_> {
             dnssec_requested, self.filter_rr.contains(&question.rrtype), None)
     }
 
+    /// A narrow synchronous UDP hit. Before selection, None changes no cache
+    /// or local state; the owner can run its original admission/answer path.
+    /// Once selected, a writer error is final, never a second lookup.
+    pub(super) fn try_plain_udp(
+        cache: &mut Cache, query: &[u8], local: &mut LocalDnsService,
+        now: i64, scratch: &mut Vec<u8>,
+    ) -> Option<Result<Vec<u8>, CacheError>> {
+        if local.query_logging || local.config.edns.active()
+            || query.len() > usize::from(local.edns_packet_max.max(512))
+            || scratch.capacity() == 0
+        { return None; }
+        let header = Header::parse(query).ok()?;
+        if header.flags != 0x0100 || header.questions != 1 || header.answers != 0
+            || header.authorities != 0 || header.additionals != 0
+        { return None; }
+        let question = super::forward::Question::parse_with_header_reusing(query, header, scratch).ok()?;
+        let result = (|| {
+            let kind = match question.rrtype { 1 => Kind::Ipv4, 28 => Kind::Ipv6, _ => return None };
+            let name = question.name.as_wire();
+            // This first version excludes pointers, trailing data, unusual
+            // flags and all EDNS. The successful decode proves name bounds.
+            if question.class != 1 || query.len() != 12 + name.len() + 4
+                || query.get(12..12 + name.len()) != Some(name)
+                || local.config.filter_rr.contains(&question.rrtype)
+            { return None; }
+            let (_, lookup) = cache.inspect_name(&question.name, now);
+            cache.single_fresh_address_id_with_hint(&question.name, kind, now, lookup.as_ref())?;
+            let answerer = super::local::LocalAnswerer {
+                config: &local.config, hosts: &mut local.hosts,
+                local_ttl: local.local_ttl, max_packet: 512,
+            };
+            if !answerer.plain_cached_address_is_unclaimed(
+                &question, &local.leases, now, &local.interfaces,
+            ) { return None; }
+            // All rejection paths above are read-only. This is the same
+            // single LRU touch and writer as the general fresh-address path.
+            let id = cache.single_fresh_address_with_hint(&question.name, kind, now, lookup.as_ref())
+                .expect("read-only eligibility cannot invalidate the selected address");
+            Some(Self::answer_fresh_address(cache, &question, header, now, local,
+                local.max_udp.min(512), id).map(|answer| {
+                    answer.packet.expect("fresh address writer returns a packet")
+                }))
+        })();
+        *scratch = question.name.into_wire_buffer();
+        result
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub(super) fn answer_from_cache(
         cache: &mut Cache,
@@ -2993,3 +3040,7 @@ mod tests {
         assert!(answer.packet.is_none());
     }
 }
+
+#[cfg(test)]
+#[path = "cache_plain_udp_tests.rs"]
+mod plain_udp_tests;

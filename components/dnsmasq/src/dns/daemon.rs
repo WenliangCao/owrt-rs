@@ -954,6 +954,22 @@ impl<R: Random> DnsDaemon<R> {
         self.forward_udp_inner(query, client, listener, Some(local))
     }
 
+    /// The UDP owner has established admission/context. None permits the
+    /// unchanged general path; Some commits both lookup and the original
+    /// prepared-query resend boundary, including any final writer error.
+    pub fn try_plain_cached_udp(
+        &mut self, query: &[u8], local: &mut LocalDnsService,
+    ) -> Option<Result<Vec<u8>, DaemonError>> {
+        let result = CacheContext::try_plain_udp(self.cache.as_mut()?, query, local, unix_seconds(),
+            &mut self.udp_name_buffer).map(|result| result.map_err(Into::into));
+        if result.is_some() {
+            // Deferred interface admission may resume after an upstream
+            // retry saved a new packet. The receive-time clear is not enough.
+            self.invalidate_udp_resend();
+        }
+        result
+    }
+
     /// The owner decorates after preserving the original client metadata and
     /// completing MAC I/O. Local/cache envelopes still use the original UDP
     /// query, while forward.c stashes and retries the decorated packet.
