@@ -1,5 +1,5 @@
 {
-  "scope": "Completed DNS worktrees only; current PGO, PMU, CPUclock and c95 input paths were inspected. No current input or capture path changed. No remote action or push.",
+  "scope": "Completed research worktrees explicitly assigned for cleanup; current PGO, PMU, CPUclock and c95 input paths were inspected. No current input or capture path changed. No remote action or push.",
   "evidence_root": "/Users/USER/Developer/owrt-perf-evidence-20261016",
   "moves_are_same_volume_atomic_renames": true,
   "active_input_roots_checked": [
@@ -165,9 +165,97 @@
         }
       ],
       "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-warm-reply-chunks-20261016",
+      "status": "removed",
+      "head": "bc189ae0bbf7cb050aeb225f8dd1c501b4e13e19",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-warm-reply-chunks-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-warm-reply-chunks-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-warm-reply-chunks-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-warm-reply-chunks-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-warm-reply-chunks-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-contiguous-query-name-20261016",
+      "status": "removed",
+      "head": "9eec5389c7e982b582134c32af3493bedf2a4b0f",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-contiguous-query-name-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-contiguous-query-name-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-contiguous-query-name-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-contiguous-query-name-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-contiguous-query-name-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-llvm-cold-split-20261016",
+      "status": "removed",
+      "head": "764a4022f9922b9d777c3e0289b23643979ff10e",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-llvm-cold-split-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-llvm-cold-split-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-llvm-cold-split-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-llvm-cold-split-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-llvm-cold-split-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-shared-answer-inline-20261016",
+      "status": "removed",
+      "head": "6258e1e1a7b07079dcf882686b3e97acc3bd6dbd",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-shared-answer-inline-20261016-20261016",
+      "original_branch": null,
+      "tracked_and_untracked_clean": true,
+      "current_batch_input_references": [],
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-shared-answer-inline-20261016/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-shared-answer-inline-20261016/private",
+          "same_device_and_inode": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-shared-answer-inline-20261016/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-shared-answer-inline-20261016/other-ignored/components/dnsmasq/target",
+          "same_device_and_inode": true
+        }
+      ],
+      "obsolete_branch_deleted": false
     }
   ],
-  "removed_worktrees": 8,
+  "removed_worktrees": 12,
   "removed_obsolete_branches": 6,
-  "preserved_tags": 8
+  "preserved_tags": 12
 }
