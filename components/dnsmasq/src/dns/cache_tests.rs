@@ -1,6 +1,70 @@
 use super::*;
 
 #[test]
+fn inline_address_details_preserve_record_bytes_and_snapshot_visibility() {
+    for kind in [Kind::Ipv4, Kind::Ipv6, Kind::NxDomain, Kind::Generic(16)] {
+        for negative in [false, true] {
+            for length in [0, 3, 4, 15, 16, 17] {
+                let data: Vec<u8> = (0..length).map(|n| n as u8).collect();
+                let mut parent = Cache::new(2, Policy::default());
+                parent.start_insert();
+                let id = parent.insert(Record {
+                    name: Name::from_ascii("address.test").unwrap(), kind, negative,
+                    data: data.clone(),
+                }, 100, 60).unwrap();
+                assert!(parent.commit());
+                let expected = (!negative && matches!((kind, length),
+                    (Kind::Ipv4, 4) | (Kind::Ipv6, 16))).then_some(data.as_slice());
+                let mut child = parent.snapshot();
+                for cache in [&parent, &child] {
+                    let entry = cache.get(id).unwrap();
+                    assert_eq!(entry.positive_address(kind), expected);
+                    assert_eq!(entry.record.data, data);
+                    assert_eq!(entry.record.kind, kind);
+                    assert_eq!(entry.record.negative, negative);
+                }
+                assert!(Arc::ptr_eq(&parent.get(id).unwrap().record, &child.get(id).unwrap().record));
+                assert_eq!(child.set_negative_authority(id, Name::from_ascii("soa.test").unwrap()), negative);
+                assert!(parent.get(id).unwrap().negative_authority_name().is_none());
+                assert_eq!(child.get(id).unwrap().negative_authority_name().is_some(), negative);
+                child.clear();
+                assert!(child.get(id).is_none());
+                assert_eq!(parent.get(id).unwrap().positive_address(kind), expected);
+                assert_eq!(parent.get(id).unwrap().record.data, data);
+            }
+        }
+    }
+}
+
+#[test]
+fn snapshot_metadata_updates_keep_target_and_authority_independent() {
+    let mut parent = Cache::new(8, Policy::default());
+    parent.start_insert();
+    let first = parent.insert(record("first.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    let second = parent.insert(record("second.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    // The public setters permit both values even for this unusual record.
+    // Compact storage must preserve that contract rather than make a union.
+    let alias = parent.insert(Record {
+        name: Name::from_ascii("alias.test").unwrap(), kind: Kind::Cname,
+        negative: true, data: Vec::new(),
+    }, 100, 60).unwrap();
+    assert!(parent.set_cname_target(alias, first));
+    assert!(parent.set_negative_authority(alias, Name::from_ascii("old.test").unwrap()));
+    assert!(parent.commit());
+    let mut child = parent.snapshot();
+    assert!(child.set_cname_target(alias, second));
+    assert!(matches!(parent.get(alias).unwrap().cname_target(), Some(CnameTarget::Dynamic(id)) if id == first));
+    assert_eq!(child.get(alias).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("old.test").unwrap());
+    assert!(child.set_negative_authority(alias, Name::from_ascii("new.test").unwrap()));
+    assert_eq!(parent.get(alias).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("old.test").unwrap());
+    assert!(matches!(child.get(alias).unwrap().cname_target(), Some(CnameTarget::Dynamic(id)) if id == second));
+    drop(parent);
+    assert!(child.is_valid(alias, 100));
+    assert_eq!(child.get(alias).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("new.test").unwrap());
+}
+
+
+#[test]
 fn fresh_address_hint_keeps_exact_expiry_and_stale_policy_boundaries() {
     for (policy, at_expiry) in [
         (StalePolicy::Disabled, false),

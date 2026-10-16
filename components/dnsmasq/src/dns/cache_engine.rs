@@ -304,8 +304,10 @@ impl CacheContext<'_> {
         writer.question(&question.name, question.rrtype, question.class)?;
         record_cached(local, cache, id, now);
         let entry = cache.get(id).expect("selected fresh address remains live");
+        let kind = if question.rrtype == 1 { Kind::Ipv4 } else { Kind::Ipv6 };
+        let data = entry.positive_address(kind).expect("selected fresh address has its original bytes");
         match writer.record_at(Section::Answer, 12, question.rrtype, 1,
-            entry.reply_ttl(now, cache.policy()), &entry.record.data)
+            entry.reply_ttl(now, cache.policy()), data)
         {
             Ok(()) | Err(WireError::Full) => Ok(finish_cached_answer(writer, false)?),
             Err(error) => Err(error.into()),
