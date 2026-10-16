@@ -1,0 +1,41 @@
+{
+  "scope": "Original prepared SDK controller minimally extended to 54bd then0161; no timing",
+  "original_prepared_controller_sha256": "9d47ca9a5a9df224bdf905c96afd348e9961c0a74ba82fc5619dabe30b0158bb",
+  "controller_sha256": "1673d9b589a1035bae5d25abf3331ab294372c7681535a179b34d489f6a33405",
+  "changes": [
+    "Append exact0161 source to declared sequence",
+    "Bind each exact source identity and related-gate receipt before either build",
+    "Explicit postbuild source,artifact,map,recipe restoration,original budget and hardening assertions"
+  ],
+  "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+  "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+  "canonical_build_slot": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+  "canonical_target": "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target",
+  "cargo": "/home/ubuntu/.cargo/bin/cargo",
+  "sequence": [
+    "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+    "0161ad9c103459c7f59c44ebce9600db1f1697c6"
+  ],
+  "launch": {
+    "scope": "Two sequential original SDK builds; no timing",
+    "launched_utc": "2026-10-16T00:26:34.503678+00:00",
+    "pid": 633295,
+    "starttime_ticks": 183501171,
+    "argv": [
+      "taskset",
+      "-c",
+      "0",
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/cached-local-miss-inputs/build-sdk.py"
+    ],
+    "controller_sha256": "1673d9b589a1035bae5d25abf3331ab294372c7681535a179b34d489f6a33405",
+    "source_sequence": [
+      "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+      "0161ad9c103459c7f59c44ebce9600db1f1697c6"
+    ],
+    "prior_root_readable_research_inventory": [],
+    "hot250_owner_release_received": true,
+    "sdk_lock_available_before_launch": true
+  },
+  "launch_sha256": "cf43e03363fd9c90dde02515e41cd6d5093fefb7a9355597e5713567fd99eef8"
+}
