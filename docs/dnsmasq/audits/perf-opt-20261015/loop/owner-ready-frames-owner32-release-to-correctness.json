@@ -1,0 +1,31 @@
+{
+  "status": "EXPLICIT_QUIET_RELEASE_TO_CORRECTNESS_G5C_OWNER32_RAW_AUDIT",
+  "epoch": 1792145315.6776514,
+  "controller_exited": true,
+  "analysis_exited_zero": true,
+  "windows": 32,
+  "no_measurement_retries": true,
+  "analysis_sha256": "c4b3b656878a7bc2424fe2fb8aeaf58a6950c8e0327101661f5752268f3daafa",
+  "postflight_sha256": "a7b3210994a7e7ef6de15e5c232ec5201c2220fb05417664f2826be7f7bc83cd",
+  "collection_sha256": "beef8889adb3f8f3fefa99b375d0ba1323e0afb97099c796baeef32e89a00e2e",
+  "local_transfer_receipt_sha256": "cd0ef1ec72718232d9b6193c16d4de3ed0bc75cacdc5917da9b402ac739c031e",
+  "local_transferred_files_rehashed": 1172,
+  "full128_bins_and64_repeated_artifacts_retained_remote": true,
+  "retained_prelaunch_metadata_failure_sha256": "c6088b213964fba1fbaf9e50a9364a98351ff7ee40861d59add6d205dcf1d59d",
+  "research_including_exact_image_C": [],
+  "idle_SDK_background": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "device10_completed_archived_restored_and_independently_audited": true,
+  "device_independent_audit_commit": "e99b91a1",
+  "device_independent_audit_sha256": "b4a08d198e4ac86427e78e779902726d4cadd7e642cb897ad3ddf6c8c228c22a",
+  "all_requested_transfers_complete": true,
+  "loop_stops_Oracle_access_after_handoff": true,
+  "next": "correctness originalG5c full-bin replay andrawaudit, then explicitquiet to root for nextqueue decision. No addednative240 or full110 authorized bythisdiagnostic.",
+  "standalone_signal_result_sha256": "74deb92133ee7a8c8cb9a00d98c29c658e31f0b8c92b8225ca80c19b99e01d16",
+  "native240_not_run": true,
+  "comparison_scope": "G185/5c includes inherited6ab plus025 anddump; notisolatedframe-only effect"
+}
