@@ -1,0 +1,28 @@
+{
+  "status": "PASS_LOCAL_G803_DEVICE_PLAN_BINDINGS_ONLY",
+  "plan_commit": "57ce2cc0",
+  "plan_sha256": "94d90aa94276828c571af35d55cd3a4fba713aacab692ca65eaf03f4cf8aa015",
+  "source_commit": "8035114257c8706047d2038c2bb8126391331925",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "baseline_ELF_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "entry_sha256": "88c67afbad2d69551f56f28894e63cb03c12442e7e67534dbd825038f997cb31",
+  "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+  "independent_builder_review_commit": "f26d9261",
+  "independent_builder_review_sha256": "9994d56c0c4100f301480f6a6690051c489cc0cf497882070b5d4e1160cde6fe",
+  "checks": [
+    "Exact803 source/profile2 and originalG baseline; cfg(test)hosts difference accurately isolated, shippingprefix rehashed equal.",
+    "Entryonly sets originalsharedrunner roles/prefix/group; exactfreshfiveABpairs/tenunique labels/unchangedNone modes and originalmetrics.",
+    "BaselineG alwayscslot;803 alwaysrustslot; E/F retainedonlyfororiginalslotrestore.",
+    "Controller/analyzer/sharedrunner/health hashes match; originalCPU5000, everywindow10ticks and median>8ticks/W/direction gates retained.",
+    "Actual803 artifact/source/related/review identities remainnull; no prior6ab/G window pooling."
+  ],
+  "limitation": "Preparation metadata is not a runtime authorization switch in the unchanged shared runner; caller must complete actual803source/related/SDK review and freshoriginaldevicepreflight before invoking with an actualexperimenthash. This review is not launchapproval.",
+  "retained_reviewer_selector_failure": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/185-opt2-execution-preparation/device-plan-review-attempt1.json",
+    "sha256": "ddfacf9bced2ae5d257fae7619249755d44fdad57e6af6b35380feee5e8bb32c",
+    "cause": "Shippingprefix newline boundary mismatch only; no source/tool modification or execution."
+  },
+  "remote_accessed": false,
+  "device_action": false,
+  "test_or_timing_executed": false
+}
