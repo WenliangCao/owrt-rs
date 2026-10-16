@@ -286,7 +286,13 @@
     },
     "phase_boundary": "Afteractualindependentreview,fresh125health and4immutablecopies whileE/F slotsunchanged; stopbeforePopen. DNSfinalquiet+loopfinalmetadata then originalten.",
     "preflight_or_windows_started": false,
-    "phase_peer_review": "looplocalread/AST PASS: stageprefix/startlocalgates+suffix byte-identical topriorreviewed1df operator; finalDNSquiet receiptbeforefirstSSH, recheckall4copies/originalslots/helpers/idle. Nopeerremoteexecution ornewmeasurement."
+    "phase_peer_review": "looplocalread/AST PASS: stageprefix/startlocalgates+suffix byte-identical topriorreviewed1df operator; finalDNSquiet receiptbeforefirstSSH, recheckall4copies/originalslots/helpers/idle. Nopeerremoteexecution ornewmeasurement.",
+    "durable_peer_review": {
+      "commit": "bb0b753b",
+      "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/inline-address-details-device-operator-peer-review.json",
+      "sha256": "8a64135415ee96e3224b8e1bed9057b8ccd5828bc46bd99623a72356a37a4e8e",
+      "status": "PASS_LOCAL_ORIGINAL_OPERATOR_PROTOCOL_AND_PRE_SSH_METADATA_GATES"
+    }
   },
   "actual_related_independent_review": {
     "commit": "0022f006",
