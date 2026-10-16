@@ -149,10 +149,16 @@ All 12 PMU observations are retained below, without pooling with plain windows.
 
 The author recomputed all 32 CPU tick/starttime/count scopes and checked all 12
 PMU equal enabled/running times, unscaled counts and same-window IPC after local
-metadata verification. Independent local review is requested and recorded
-separately. Large latency/send-lag quantiles come from the original analyzer
-reading every retained binary; they are not a second local raw-data derivation.
-No additional samples, approximations or acceptance rules were introduced.
+metadata verification. Independent audit `96dd984b` passed all 1,212 small
+files and archive members, all 32 count/CPU/starttime scopes, all 12 actual
+four-event CSV/stderr groups, and all row fields and summary/W aggregates.
+The [separate audit receipt](../correctness/cached-zero-frame-owner32-independent-audit.json)
+has SHA256 `f8076829c4f5da0a8fab119161301810103537078aacb0653e905afe10d15c83`.
+Large latency/send-lag quantiles come from the original analyzer reading every
+retained binary; the independent auditor rechecked their five-pair aggregates
+but did not reread the binaries. No additional samples, approximations or
+acceptance rules were introduced. The result JSON retains its original
+pre-review snapshot unchanged.
 
 The original summary SHA256 is
 `250437be6c83ef0dbb094e7b268b2fad259a86d19f29039e5ec12794c1287c95`;
