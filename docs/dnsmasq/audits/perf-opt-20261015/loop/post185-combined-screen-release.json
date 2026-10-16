@@ -1,0 +1,33 @@
+{
+  "status": "EXPLICIT_QUIET_RELEASE_TO_CORRECTNESS_RAW_AUDIT_THEN_ORIGINAL_FULL44",
+  "epoch": 1792130189.3457465,
+  "native_controller_exited": true,
+  "owner_controller_exited": true,
+  "native_windows": 240,
+  "native_commands": 244,
+  "owner_windows": 32,
+  "no_measurement_retries": true,
+  "retained_owner_prelaunch_failure_sha256": "55deb194ffaa6518f0b4bf984e540e2b226f755b442c32d70c04f80a689b5e7a",
+  "native_result_sha256": "e32339dc5822cc05f1f9f543925338f7c2f57a55a204178dbd9402fdc6ed4862",
+  "native_postflight_sha256": "3113d90f98feb1178ad80b15ea6b890b8f5d0e09edea8922518e9229e3b6e3df",
+  "native_collection_sha256": "d6948a57fa695d6330d9896e0e6ec4f2571c5d98261f4ff275fab7f48ea61bbc",
+  "owner_analysis_sha256": "6be8d83b213c03af2f81b9deb9309af99d957f28662ebc93ac1d4959fb330e09",
+  "owner_postflight_sha256": "95a2531bfec538342974d92bba7a4da59180ef8fa09ea8d602661f125475cc4e",
+  "owner_collection_sha256": "49e8b14de0ec5f7d54b63676346cb71b21fa40ea04a4921f5dd394a02c061c86",
+  "research_including_exact_image_C": [],
+  "idle_SDK_background": [
+    {
+      "pid": 564010,
+      "state": "S",
+      "cpu_ticks": 0
+    }
+  ],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "all_requested_transfers_completed_and_rehashed_locally": true,
+  "owner_raw_bins_remain_remote_for_independent_replay": true,
+  "no_new_capture_or_build_pending_by_loop": true
+}
