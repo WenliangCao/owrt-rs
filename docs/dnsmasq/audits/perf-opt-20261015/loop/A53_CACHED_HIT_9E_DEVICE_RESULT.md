@@ -17,3 +17,5 @@ CPU 中位 tick 差为 2；门限要求严格大于 8，并同时满足 W 与同
 Oracle 上原 native 流程与本轮协调执行；controller 启动、首个测量命令及派生末命令结束时间见 JSON，启动时间不充当测量开始时间。大体积传输按既定边界暂停。
 
 [完整结果](A53_CACHED_HIT_9E_DEVICE_RESULT.json) · [固定计划](A53_CACHED_HIT_9E_DEVICE_PLAN.json)
+
+原十窗独立审计 PASS：[审计报告](../correctness/cached-hit-9e-device-independent-audit.md)，提交 `61331c36`，JSON SHA256 `11f2dda717ca2c4a5c6ea0a99db6519e5f2b2853fa34b5d5b1dbe00fd6cca411`。原 3 项主要比较与 7 项资源比较、归档、健康和恢复证据均通过；三项主要指标仍不可区分。原结果 JSON `ea3ad82e348cc49053acd5f4744aa1405d407bdd4f0a4f1e0d920c7643a9fbe9` 未变。
