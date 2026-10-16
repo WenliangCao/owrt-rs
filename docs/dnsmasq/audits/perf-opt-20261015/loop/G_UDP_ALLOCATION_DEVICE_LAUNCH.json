@@ -1,0 +1,75 @@
+{
+  "scope": "Three fixed count-only A53 windows on frozenG185 plus byte-reused original allocationmeter. All instrumentedCPU/latency and release-size acceptance EXCLUDED. No expected-zero allocation gate.",
+  "source_commit": "7c5b4c586e571eae875a0cb0e1ebfc88e2e1e7db",
+  "source_files_verified": 180,
+  "elf_sha256": "92ba1353bae3676771e417d2410eb7d642705a8ba86dd8b38a08f941807c21a5",
+  "elf_bytes": 2366235,
+  "map_sha256": "c06f68a763be3adbd4646d817bf902d4e6967b790b2320646282677f172208c8",
+  "build_receipt_sha256": "ac70dfed94ff3104affbcf72237a7e7f85e2c2327e9af850f60ac0f16daf410a",
+  "release_budget": {
+    "ELF_limit_bytes": 2200000,
+    "APK_limit_bytes": 1200000,
+    "ELF_bytes": 2366235,
+    "APK_bytes": 1264206,
+    "within_existing_budget": false,
+    "gate_unchanged": true,
+    "artifact_never_promoted": true,
+    "scope": "Count-onlyexcluded artifact; originalELF andAPK budget failures retained."
+  },
+  "release_size_acceptance_eligible": false,
+  "plan_sha256": "a433b67c8e8a4c6f32fa47fc20aab8635cb2254444f823d254f3dd3f03f02c88",
+  "driver_sha256": "102214b8be56613658ae8387ec2767dcc301c3c28e17f7b65581a5baacc385df",
+  "runtime_health_helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+  "fresh_health_helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+  "health_summary": {
+    "valid": true,
+    "elapsed_seconds": 125.0,
+    "final_elapsed_seconds": 125.906,
+    "dns_samples": 48,
+    "dns_p95_ms": 0.558,
+    "dns_max_ms": 1.648,
+    "http_samples": 23,
+    "http_max_ms": 117.686,
+    "threshold_ms": 200,
+    "qualification_scope": "Complete prefix captured and saved before guard stop request",
+    "qualified_samples": 126,
+    "final_samples": 126,
+    "final_tail_samples": 0,
+    "pre_stop_prefix_sha256": "93193364443294fc34feb5185d1ef5f3e8bdb26f31414602a80303ae6d625f15",
+    "raw_sha256": "e5b28085de9bfa4789f0d5cc15e2b31ddc9f5c2ca7822ae4977d0b6c8b60ffee"
+  },
+  "health_summary_sha256": "62e4034394b50c9f0feec182c1df4a25699183db1e31e9d37fd32f398da10689",
+  "preflight_sha256": "8dca5e94fbc580874ace03bdc7a779a4bd7cb53b02a909754ea8b5621787f965",
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "production_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "original_slots": {
+    "dnsmasq-c": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "dnsmasq-rust": "b7926bcf39cd7f33b4f0c110315ddc1ad719b39427bec53430ea05aeacd781fc"
+  },
+  "staged_diagnostic_verified_before_atomic_rename": true,
+  "fixed_windows": 3,
+  "labels": [
+    "g-udp-allocation-r1-rust",
+    "g-udp-allocation-r2-rust",
+    "g-udp-allocation-r3-rust"
+  ],
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/tools-g-udp-allocation-runtime/g_udp_allocation_device_run.py",
+    "--plan",
+    "/Users/USER/Developer/owrt-perf-f-e-device-20261015/docs/dnsmasq/audits/perf-opt-20261015/loop/G_UDP_ALLOCATION_DEVICE_PLAN.json",
+    "--health-baseline",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-g-udp-allocation-prefix-v1/summary.json",
+    "--elf-hash",
+    "92ba1353bae3676771e417d2410eb7d642705a8ba86dd8b38a08f941807c21a5",
+    "--out",
+    "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/g-udp-allocation-device"
+  ],
+  "setup_script_sha256": "4a2b87b152d45fa1cef71a27596a089ce368540276f431c8ff0f7b9ac96659b4",
+  "pid": 71585,
+  "launch_epoch": 1792127778.228582,
+  "started_utc": "2026-10-16T05:16:18.228627+00:00"
+}
