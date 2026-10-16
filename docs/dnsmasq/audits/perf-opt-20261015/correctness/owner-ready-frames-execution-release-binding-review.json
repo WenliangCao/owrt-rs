@@ -1,0 +1,71 @@
+{
+  "schema": "5c-execution-release-binding-review-v1",
+  "status": "PASS_LOCAL_METADATA_ONLY_ACTUAL1DF_CLOSEOUT_AND_FROZEN_SIGNAL_PREPARATION_BINDING",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "original_preparation_sha256": "85813bf47a032c10756861e5ebf0ea9ecc04163ca2940d9b623853403c4a57a2",
+  "selected_copy_sha256": "781cdd2739e57037578a702fc4bd9ebc620210f4feb268945e9fdf7c80edacf8",
+  "actual_execution_plan_sha256": "465b5322b43173e2210b26d54e9586e5614067132f66fb6c935d3663239042b6",
+  "original_to_selected_changed_fields_only": [
+    "authorization_condition",
+    "execution_authorized",
+    "execution_entries",
+    "post_signal_measurement_queue",
+    "preparation_commit",
+    "preparation_review",
+    "preparation_sha256",
+    "queue",
+    "required_post_SDK_signal_audit",
+    "status"
+  ],
+  "selected_to_actual_changed_fields_only": [
+    "ambient_release_profile_overrides_observed",
+    "exclusive_slot_release",
+    "required_post_SDK_signal_audit",
+    "selected_execution_copy_sha256",
+    "status"
+  ],
+  "execution_entry_delta_scope": "Only launch/SDK explanatory prose changes in selected copy; executable related argv and original five commands are unchanged.",
+  "source179_original_five_argv_wrappers_canonicalSDK_profile_budget_and_archive_unchanged": true,
+  "actual1df_release_and_closeout_rehashed": true,
+  "release": {
+    "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/inline-address-details-release-to-dns-owner-ready-frames.json",
+    "sha256": "3a16b2db5a39df6c4f790eba104bd22a4e31a669b03a4673eb3b77675303a70e",
+    "closeout_commit": "689338b0",
+    "closeout_report_sha256": "01adfa9d7039a2e033b48eabbff736718f79ff182c36f50fae5bb69f7cd036a5"
+  },
+  "root_preparation_review": {
+    "commit": "be199f1e1b5a942de391602f71ea8b322eee2a77",
+    "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/owner-ready-frames-preparation-root-review.json",
+    "sha256": "8c4c96de51a357aa33c29b0902329d62738df7679007d613d86ba14ad6cb9f4f"
+  },
+  "original_signal_preparation_sha256": "4a0de855f6eeb865226f4a5297893d35370175c16eda97ae312d2de39ffa38bf",
+  "latest_compat_preparation": {
+    "commit": "32a84d29",
+    "report_sha256": "ec4e8201bf729432f5c06fad488c45d50d89bed298fa7245c4dd8aee6fb975b8",
+    "adapter_sha256": "ce8e3b3da0f57d7282cd621e0a8c9f09f7c828ce673414b21c6020920d00d4ee",
+    "pending_plan_sha256": "d7eba24b2e6e15ffad6b7b426b3c40f74ac16993573b4d378f8f9600002ce07b",
+    "actual_result": null
+  },
+  "original_signal_tool_comparators_cases_unchanged": true,
+  "post_SDK_signal_results_and_release_pending": true,
+  "no_new_native240": true,
+  "projected_counts_only": {
+    "base_verified_receipt_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-related-verified.json",
+    "base_verified_receipt_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+    "base_actual_passed": 961,
+    "expected_added_tests": [],
+    "expected_counts_only": {
+      "lib": 840,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "expected_total_only": 961,
+    "actual_counts": null,
+    "actual_verified_receipt": null,
+    "authority": "Fresh5c binaries/logs/original--list names; allfivepassednamesets exactlyequal6ab withnoaddedtests. Historical961 iscomparisononly, never5cPASS."
+  },
+  "scope": "Local metadata and unchanged-byte audit only. Originalarchive/preparationstatus flags are historicalmetadata; actual fresh outputs are required. No test/build/Oracle/device access or claimed961/SDK/signals PASS.",
+  "reviewer_script_sha256": "28f07bae63d6352f2cc2bfd62b52ea9d8fb7faa07393fc9a885b5cc22616b1d1"
+}
