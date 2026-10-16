@@ -1,4 +1,4 @@
-# Prepared exact-SDK owner32 for 185 directly against accepted E
+# Exact-SDK owner32 for 185 directly against accepted E
 
 This implements the owner32 part of the unchanged
 [combined experiment plan](CACHED_ZERO_FRAME_PLAN.md). Candidate source is
@@ -16,13 +16,24 @@ live ignored binary. The verified receipt SHA256 is
 The exact-source composition/gate review is `affd0c95`. These related gates
 do not replace full 44-family qualification.
 
-The SDK ELF, map and build receipt are pending. Their prepared fields are null,
-and the [controller](run_cached_zero_frame_owner32.py) rejects the preparation
-status before creating an output directory. After the single canonical build,
-bind its exact three hashes, 179-file source manifest, original release budgets
-and hardening, and finish all required downloads/uploads. A separate frozen
-execution plan must have the ready status before an exclusive timing slot is
-used. The source/receipt/artifact/tool checks repeat after all windows.
+The original disabled preparation remains intact. After the single canonical
+SDK build, the [frozen execution plan](cached-zero-frame-owner32-plan.json)
+binds these downloaded and verified artifacts:
+
+| Artifact | SHA256 | Bytes |
+| --- | --- | ---: |
+| 185 ELF | `9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99` | 2,145,051 |
+| Same-link map | `e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f` | Recorded in build receipt |
+| Build receipt | `dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10` | Recorded privately |
+
+Both candidate and E SDK triples were rehashed locally, and their 358 receipt
+inputs were checked against their exact Git revisions. Original release
+budgets/hardening pass; the build remains `built-unqualified`. The
+[controller](run_cached_zero_frame_owner32.py) rejects the disabled preparation
+before creating output and permits only the frozen ready status. All transfers
+finish before timing; source/receipt/artifact/tool checks repeat after all
+windows. Runtime execution also waits for independent review and explicit
+release of the preceding native240 reservation.
 
 The original driver, CPU placement and workload remain unchanged. The 32
 windows are stat low200/s three alternating pairs, stat high-unpaced three
@@ -46,6 +57,8 @@ be reported, including adverse changes. No existing threshold is relaxed.
 Every output and log must be fresh. Failure preserves the partial window and
 stops the sequence; there are no selective reruns or replacement pairs. The
 controller retains the existing 100-second timeout and process-group cleanup.
-This local preparation performs no remote access or router operation. Complete
-screen results, independent review and the original later qualification gates
-remain required before acceptance can be considered.
+The artifact download and input pretransfer occur in loop's explicit gap after
+SDK completion, before native240 or owner32 timing. No router operation is
+performed by this screen. Complete screen results, independent review and the
+original later qualification gates remain required before acceptance can be
+considered.
