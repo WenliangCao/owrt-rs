@@ -6437,6 +6437,14 @@ impl SinglePoll {
                 return;
             }
         }
+        self.process_ready_dhcp(input_pending);
+    }
+
+    // Keep packet/maintenance work and its large frame out of ordinary owner
+    // turns. The original readiness, reload and helper gates stay above.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[inline(never)]
+    fn process_ready_dhcp(&mut self, input_pending: bool) {
         self.dhcp_ready = false;
         let Some(mut dhcp) = self.dhcp.take() else {
             return;
