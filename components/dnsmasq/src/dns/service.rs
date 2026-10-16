@@ -229,6 +229,7 @@ pub struct LocalDnsService {
     pub local_network: Option<(Ipv4Addr, Ipv4Addr)>,
     pub query_logging: bool,
     query_events: Vec<crate::query_logging::QueryEvent>,
+    pub(super) cached_reply_buffer: Vec<u8>,
 }
 
 impl LocalDnsService {
@@ -260,6 +261,7 @@ impl LocalDnsService {
             local_network: None,
             query_logging: false,
             query_events: Vec::new(),
+            cached_reply_buffer: Vec::new(),
         }
     }
 
@@ -282,6 +284,15 @@ impl LocalDnsService {
 
     pub fn take_query_events(&mut self) -> Vec<crate::query_logging::QueryEvent> {
         std::mem::take(&mut self.query_events)
+    }
+
+    /// The UDP owner may return a cache reply after its final send. Retain at
+    /// most one small allocation; large/general replies keep their old lifetime.
+    pub fn recycle_cached_reply(&mut self, mut packet: Vec<u8>) {
+        if packet.capacity() <= 512 && packet.capacity() >= self.cached_reply_buffer.capacity() {
+            packet.clear();
+            self.cached_reply_buffer = packet;
+        }
     }
 
     pub fn handle_udp(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {

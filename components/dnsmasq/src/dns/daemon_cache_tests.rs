@@ -1251,3 +1251,56 @@ fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
     assert!(irregular_daemon.udp_name_buffer.capacity() > 256);
     assert!(irregular_daemon.udp_name_buffer.capacity() <= 512);
 }
+
+#[test]
+fn prepared_udp_recycled_cache_replies_keep_wire_data_and_ownership() {
+    let mut daemon = daemon();
+    let now = unix_seconds();
+    let long = ["a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(61)].join(".");
+    let cases = [(long.as_str(), 28), ("a.test", 1), ("other.test", 28)];
+    for (name, rrtype) in cases {
+        let mut reply = packet(name, rrtype, 0x8180);
+        let data = if rrtype == 1 { vec![192,0,2,7] } else { vec![7;16] };
+        reply.record(Section::Answer, &Name::from_ascii(name).unwrap(), rrtype, 1, 120, &data).unwrap();
+        daemon.cache_reply_at(&reply.finish(), now);
+    }
+    let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 120, 1232);
+    let client = ClientRequest { source: "127.0.0.1:53001".parse().unwrap(),
+        destination: "127.0.0.1".parse().unwrap(), interface: 0 };
+    let mut held = None;
+    for turn in 0..3 {
+        for (name, rrtype) in cases {
+            for edns in [true, false] {
+                let mut query = packet(name, rrtype, 0x100);
+                if edns {
+                    query.record(Section::Additional, &Name::root(), 41, 1232, 0, &[]).unwrap();
+                }
+                let query = query.finish();
+                let metadata = super::super::forward_service::query_metadata(&query, 1232).unwrap();
+                let answer = daemon.answer_udp_prepared_with_local(&query, &query, metadata,
+                    client.clone(), None, &mut local).unwrap();
+                let QueryResult::Cached(answer) = answer else { panic!("expected fresh cache hit"); };
+                let question = super::super::forward::Question::parse(&answer).unwrap();
+                assert_eq!(question.name, Name::from_ascii(name).unwrap());
+                assert_eq!(question.rrtype, rrtype);
+                let message = Message::parse(&answer).unwrap();
+                assert_eq!(message.header.answers, 1);
+                assert_eq!(message.header.additionals, u16::from(edns));
+                let record = message.records(Section::Answer).next().unwrap();
+                assert_eq!(record.rdata, if rrtype == 1 { &[192,0,2,7][..] } else { &[7;16][..] });
+                if turn == 0 && held.is_none() {
+                    held = Some((answer.clone(), answer));
+                } else {
+                    local.recycle_cached_reply(answer);
+                }
+            }
+        }
+    }
+    let (saved, answer) = held.unwrap();
+    assert_eq!(saved, answer, "a caller-retained reply must remain independent");
+    assert!(local.cached_reply_buffer.capacity() <= 512);
+    let retained = local.cached_reply_buffer.capacity();
+    local.recycle_cached_reply(vec![0; 4096]);
+    assert_eq!(local.cached_reply_buffer.capacity(), retained,
+        "a large general reply must not enlarge retained storage");
+}

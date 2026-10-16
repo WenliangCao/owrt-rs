@@ -5203,6 +5203,7 @@ impl SinglePoll {
         let packet = &query[..];
         let mut decorated = self.config.edns.active().then(|| query.to_vec());
         let mut metadata = None;
+        let mut cached_reply = false;
         let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
             dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => {
@@ -5293,7 +5294,11 @@ impl SinglePoll {
                     Some(token),
                     local,
                 ) {
-                    Ok(QueryResult::Local(answer) | QueryResult::Cached(answer)) => {
+                    Ok(QueryResult::Cached(answer)) => {
+                        cached_reply = true;
+                        Some((answer, false))
+                    }
+                    Ok(QueryResult::Local(answer)) => {
                         Some((answer, false))
                     }
                     Ok(QueryResult::Stale(answer)) => Some((answer, true)),
@@ -5354,6 +5359,11 @@ impl SinglePoll {
                 (!self.config.bind_interfaces && !self.config.bind_dynamic)
                     .then_some((client.destination, client.interface)),
             );
+            if cached_reply {
+                if let Ok(mut parent) = self.service.try_borrow_mut() {
+                    parent.local.recycle_cached_reply(answer);
+                }
+            }
             if stale {
                 event.stale_answered = event.stale_answered.wrapping_add(1);
                 // Preserve dnsmasq's send-before-refresh ordering.  The

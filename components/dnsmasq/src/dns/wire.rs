@@ -649,6 +649,12 @@ pub struct PacketWriter {
 
 impl PacketWriter {
     pub fn new(id: u16, flags: u16, limit: usize) -> Result<Self, WireError> {
+        Self::with_buffer(id, flags, limit, Vec::new())
+    }
+
+    pub(crate) fn with_buffer(
+        id: u16, flags: u16, limit: usize, mut packet: Vec<u8>,
+    ) -> Result<Self, WireError> {
         if limit < HEADER_LEN {
             return Err(WireError::Full);
         }
@@ -657,7 +663,8 @@ impl PacketWriter {
             flags,
             ..Header::default()
         };
-        let mut packet = Vec::with_capacity(limit.min(128));
+        packet.clear();
+        packet.reserve_exact(limit.min(128));
         packet.resize(HEADER_LEN, 0);
         header.write(&mut packet)?;
         Ok(Self {
