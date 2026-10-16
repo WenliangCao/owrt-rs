@@ -1,0 +1,213 @@
+{
+  "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+  "source": "b65e9a9c",
+  "parent": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "separate_fixture": "705dc108 (=7c2708f6)",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/parent-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-cached-zero-frame-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-620fe96dc5800825.rlib"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-written-question-owner-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/question-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-written-question-owner-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-written-question-owner-20261016/private/written-question-owner/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-f49004c807ea16b3.rlib"
+      ],
+      "returncode": 0
+    }
+  ],
+  "outputs": {
+    "parent": {
+      "sha256": "46cc693985bb93fb5f98d9643fe9786e4156166c8ed628b0549d94e521d7d2c7",
+      "bytes": 5022408
+    },
+    "question": {
+      "sha256": "003c046bc79773b543833a94c87513f11d62e041d55fc2e3b558cbb5ccc701d8",
+      "bytes": 5020968
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "answer_fresh_address",
+        "symbol": "_RNvMs0_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+        "address": "0x310414",
+        "bytes": 1088,
+        "code_sha256": "c63b96db81ed2711dc5359b8c020597cc2b292d69444057dabd1bfd69dd1ffaf",
+        "asm_sha256": "e79f8d18406886dd8cae022499e2b34f83ca0b05ecf2624a24472249ab598911"
+      },
+      {
+        "name": "answer_records_general",
+        "symbol": "_RNvMs0_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general",
+        "address": "0x30cca8",
+        "bytes": 13364,
+        "code_sha256": "ae6c7825672303cd50ab5041d7c6f3ddd7ad8809222fa41cfa31276e7fea6ec0",
+        "asm_sha256": "321e4749cfb53a86845919b91d7af3225ea638ace0c73641016a01570bf3f29c"
+      },
+      {
+        "name": "answer_local_records",
+        "symbol": "_RNvMs_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20answer_local_records",
+        "address": "0x31adb4",
+        "bytes": 12132,
+        "code_sha256": "f668f6df3fcc43180a66f92e1744daa8825ea422c4a543f6ad30040a06d7bfba",
+        "asm_sha256": "0fa64d7650973cbc679fc4102911c45af673ba8b467461170f747fcedafc90ab"
+      },
+      {
+        "name": "record_at",
+        "symbol": "_RNvMs9_NtNtCshAPcPKfzgL5_10dnsmasq_rs3dns4wireNtB5_12PacketWriter9record_at",
+        "address": "0x317e50",
+        "bytes": 368,
+        "code_sha256": "6b3bbd44fc25a450fd715b5a160288f5a8744f2428d305caefd6922550e50956",
+        "asm_sha256": "b2af40c06940ee4d8a287b51ed8c45cd7cbdb410dad9665761faa78ea4d318a6"
+      }
+    ],
+    "question": [
+      {
+        "name": "answer_fresh_address",
+        "symbol": "_RNvMs0_NtNtCsuVPwDLGCop_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address",
+        "address": "0x3105e0",
+        "bytes": 1092,
+        "code_sha256": "7a5f68201a29877c3e7abd6db34768f70f3b6ccbbfa438f1ec39f2846d330fdd",
+        "asm_sha256": "4a070414c3a5bd3b25c1ba99b06c8240063d02f84c36c3d60fe3a810d672dc12"
+      },
+      {
+        "name": "answer_records_general",
+        "symbol": "_RNvMs0_NtNtCsuVPwDLGCop_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general",
+        "address": "0x30ce6c",
+        "bytes": 13372,
+        "code_sha256": "a5a333701c1ae2c10495bc036e962fde61c760d47ef43dc392a1aba5663e3314",
+        "asm_sha256": "04312ce944c7afb976752d0ba05e73d0e97a61e6e125e39ff9ceb8f249a2e2dc"
+      },
+      {
+        "name": "answer_local_records",
+        "symbol": "_RNvMs_NtNtCsuVPwDLGCop_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20answer_local_records",
+        "address": "0x31afd4",
+        "bytes": 11968,
+        "code_sha256": "710e934e5e91b24614d401d9ffdf35eb285a87b3fccb124cd11eca5ea8a7ac10",
+        "asm_sha256": "ff844b4c42925a7be5ce7152569810928b6d6afbc3eb6dcec1f842bf3eb97309"
+      },
+      {
+        "name": "record_at",
+        "symbol": "_RNvMs9_NtNtCsuVPwDLGCop_10dnsmasq_rs3dns4wireNtB5_12PacketWriter9record_at",
+        "address": "0x318050",
+        "bytes": 384,
+        "code_sha256": "af2121ef395876df7346c92ca59badcb17a16f1217509b7d0e7f76dcc438eecf",
+        "asm_sha256": "5cdc2ed9606ce8ae9ea7dd8524d0f11bb3db9989c2ffe7b5d2b9897da1190011"
+      }
+    ]
+  },
+  "local_validation": {
+    "lib": {
+      "result": [
+        "test result: ok. 722 passed; 0 failed; 8 ignored; 0 measured; 0 filtered out; finished in 0.91s",
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.84s"
+      ],
+      "stdout_sha256": "4d190987aa986c76f919759855190a7340c1f2be6e5d2cd9e70069446f1d944a",
+      "stderr_sha256": "07d8e26a99828e5b1821e14defc9cdee6a218c829163fc74b66065059dc4b9ca"
+    },
+    "musl": {
+      "result": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.67s"
+      ],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "53b311a5ab2cc5afb690a33cd4959437d50f81ac8044ec6cda628c6303224e61"
+    }
+  },
+  "mechanism": {
+    "local_fresh_writer": "At0x3107f4 load written question count; cbz0x3107fc goes to old scan only when zero. Nonzero proceeds directly to append_record at0x310824.",
+    "generic_record_at": "Bounds preserved; offset==12 at0x318084 and nonzero count0x31808c bypass old scan at0x3180dc. Other offsets/count0 retain full scan.",
+    "sizes": "fresh writer1088\u21921092B, record_at368\u2192384B, full local records12132\u219211968B; no static size reduction claimed for the fast writer.",
+    "fresh_writer_frame": "288B on both sides"
+  },
+  "limits": [
+    "No canonical SDK, Linux runtime or performance measurement; no CPU/IPC claim.",
+    "No new unsafe code, API, retained state or packet mutation path.",
+    "Additional guard branches exist on fallback offsets; any runtime cost must remain visible in a future screen.",
+    "Not combined into185 or a15d3ca2."
+  ]
+}
