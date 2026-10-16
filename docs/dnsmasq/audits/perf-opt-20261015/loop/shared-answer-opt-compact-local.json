@@ -1,0 +1,637 @@
+{
+  "scope": "Local compact reply-envelope variant; not SDK/runtime performance",
+  "source": "961b7cf8",
+  "parent": "6ab0f064",
+  "superseded_representation": "bdfcc382",
+  "checks": {
+    "Mac_lib": "725pass/8ignored",
+    "musl_all_targets": "exit0"
+  },
+  "logs": {
+    "compact-lib-test.log": "81469bd9fd259473ec29d79400af2381e8e10439225cd46fe6ca72489febdf95",
+    "compact-musl-check.log": "203aa102756d6750c4fa0a3c21d57de160df9923386e87dbc02aedbf07fc89ae"
+  },
+  "codegen_receipt": "/Users/USER/Developer/owrt-perf-shared-answer-opt-20261016/private/shared-answer-opt/compact-cross-daemon/inspection-v3.json",
+  "codegen_sha256": "20f66114771cf9d1aa0245e260449dd07ebc101a7104f3e5198cdb47cd015ddd",
+  "outputs": {
+    "parent": {
+      "sha256": "770968457bc471009c3fe818a77161388c2f851569eada7810e098ba39794bff",
+      "bytes": 5022240
+    },
+    "sharedopt": {
+      "sha256": "c111ee6c824061276a785c4539d17a724f3f0c68fc2bd3a2a54fcf5672767664",
+      "bytes": 5022624
+    }
+  },
+  "functions": {
+    "parent": [
+      {
+        "name": "answer_local_or_cached",
+        "symbol": "_RNvMsb_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "0x2ac920",
+        "bytes": 4060,
+        "code_sha256": "de1b1f135aa433e664c7c2196f1b7f4f11c95dfd689835ea1ac3686f179bbd47",
+        "asm_sha256": "c9c201c7edeffce26e74cf8622677ecc556bb9c6ed1a9c0bac2fca2b394873c0",
+        "entry": [
+          "2ac920: stp x29, x30, [sp, #-0x60]!",
+          "2ac924: stp x28, x27, [sp, #0x10]",
+          "2ac928: mov x29, sp",
+          "2ac92c: stp x26, x25, [sp, #0x20]",
+          "2ac930: stp x24, x23, [sp, #0x30]",
+          "2ac934: stp x22, x21, [sp, #0x40]",
+          "2ac938: stp x20, x19, [sp, #0x50]",
+          "2ac93c: sub sp, sp, #0x210",
+          "2ac940: ldrb w25, [x29, #0x68]",
+          "2ac944: mov x27, x7",
+          "2ac948: mov x20, x6",
+          "2ac94c: mov x28, x2"
+        ],
+        "calls": [
+          {
+            "pc": "0x2ac988",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader"
+          },
+          {
+            "pc": "0x2aca58",
+            "callee": "_RNvMs_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events"
+          },
+          {
+            "pc": "0x2acabc",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader"
+          },
+          {
+            "pc": "0x2acb40",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7service16append_empty_opt"
+          },
+          {
+            "pc": "0x2acb5c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acb8c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acba4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acbb8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acbec",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acdd0",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2ace10",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ace5c",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2ace70",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acf08",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5local29interface_forward_name_parsed"
+          },
+          {
+            "pc": "0x2acf20",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acf30",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache12has_nxdomain"
+          },
+          {
+            "pc": "0x2acf48",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader"
+          },
+          {
+            "pc": "0x2acf80",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acfb4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acfcc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acfe0",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad070",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache16lookup_with_hint"
+          },
+          {
+            "pc": "0x2ad124",
+            "callee": "_RNvMs1_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x2ad134",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5local12arpa_address"
+          },
+          {
+            "pc": "0x2ad154",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache14lookup_reverse"
+          },
+          {
+            "pc": "0x2ad164",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad28c",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache3get"
+          },
+          {
+            "pc": "0x2ad328",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache16lookup_with_hint"
+          },
+          {
+            "pc": "0x2ad338",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad36c",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache16lookup_with_hint"
+          },
+          {
+            "pc": "0x2ad37c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad38c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad400",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad434",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad44c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad460",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad470",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad4a8",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2ad4d0",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECshD51oFD3Cxo_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2ad52c",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache6unlink"
+          },
+          {
+            "pc": "0x2ad538",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache9link_head"
+          },
+          {
+            "pc": "0x2ad57c",
+            "callee": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address"
+          },
+          {
+            "pc": "0x2ad5b0",
+            "callee": "_RNvMs0_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general"
+          },
+          {
+            "pc": "0x2ad64c",
+            "callee": "_RNvMs_NtCshD51oFD3Cxo_10dnsmasq_rs13query_loggingNtB4_10QueryEvent5label"
+          },
+          {
+            "pc": "0x2ad658",
+            "callee": "_RNvMs6_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7serviceNtB5_15LocalDnsService18record_query_event"
+          },
+          {
+            "pc": "0x2ad714",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad75c",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7service16append_empty_opt"
+          },
+          {
+            "pc": "0x2ad7d0",
+            "callee": "_RNvMs6_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns7serviceNtB5_15LocalDnsService19lookup_forward_rule"
+          },
+          {
+            "pc": "0x2ad7fc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad844",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns11edns_policy16add_pseudoheader"
+          },
+          {
+            "pc": "0x2ad864",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns12cache_engine12CachedAnswerEBG_"
+          },
+          {
+            "pc": "0x2ad884",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad8b4",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns5cacheNtB5_5Cache21contains_forward_name"
+          },
+          {
+            "pc": "0x2ad8dc",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2ad8e8",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2ad8f8",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          }
+        ]
+      },
+      {
+        "name": "find_pseudoheader",
+        "symbol": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire17find_pseudoheader",
+        "address": "0x2e26c0",
+        "bytes": 1264,
+        "code_sha256": "e6615f9cb386ee0a63f1b4554e02dcca2f7573568ec6960062633e0f7cfb6f50",
+        "asm_sha256": "7b820049c06343c438c5942fa0bf0f4b1b30f15d38274738b0502e4816bd322f",
+        "entry": [
+          "2e26c0: sub sp, sp, #0x120",
+          "2e26c4: stp x29, x30, [sp, #0xc0]",
+          "2e26c8: stp x28, x27, [sp, #0xd0]",
+          "2e26cc: stp x26, x25, [sp, #0xe0]",
+          "2e26d0: stp x24, x23, [sp, #0xf0]",
+          "2e26d4: stp x22, x21, [sp, #0x100]",
+          "2e26d8: stp x20, x19, [sp, #0x110]",
+          "2e26dc: add x29, sp, #0xc0",
+          "2e26e0: cmp x2, #0xb",
+          "2e26e4: b.hi #0x2e26f0",
+          "2e26e8: strb wzr, [x0]",
+          "2e26ec: b #0x2e2918"
+        ],
+        "calls": [
+          {
+            "pc": "0x2e2978",
+            "callee": "_RNvNtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wire12skip_records"
+          },
+          {
+            "pc": "0x2e2a08",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wireNtB5_9RecordRef5parse"
+          },
+          {
+            "pc": "0x2e2acc",
+            "callee": "_RNvMs3_NtNtCshD51oFD3Cxo_10dnsmasq_rs3dns4wireNtB5_9RecordRef5parse"
+          },
+          {
+            "pc": "0x2e2b70",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2e2b84",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2e2b98",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2e2bac",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          }
+        ]
+      }
+    ],
+    "sharedopt": [
+      {
+        "name": "answer_local_or_cached",
+        "symbol": "_RNvMsb_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "0x2ac920",
+        "bytes": 4444,
+        "code_sha256": "c9aeeffa06135b40d5998ea177c5bec32d8c68979d28f5e47f8ee2b9c8655f90",
+        "asm_sha256": "373b1fd450fe2b814d21c840a14aec051e5960caa4cffa451ecab6d3c38efb7d",
+        "entry": [
+          "2ac920: stp x29, x30, [sp, #-0x60]!",
+          "2ac924: stp x28, x27, [sp, #0x10]",
+          "2ac928: mov x29, sp",
+          "2ac92c: stp x26, x25, [sp, #0x20]",
+          "2ac930: stp x24, x23, [sp, #0x30]",
+          "2ac934: stp x22, x21, [sp, #0x40]",
+          "2ac938: stp x20, x19, [sp, #0x50]",
+          "2ac93c: sub sp, sp, #0x210",
+          "2ac940: ldrb w26, [x29, #0x68]",
+          "2ac944: mov x28, x7",
+          "2ac948: mov x20, x6",
+          "2ac94c: mov x21, x1"
+        ],
+        "calls": [
+          {
+            "pc": "0x2ac990",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wire17find_pseudoheader"
+          },
+          {
+            "pc": "0x2acaa8",
+            "callee": "_RNvMs_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events"
+          },
+          {
+            "pc": "0x2acb28",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wire17find_pseudoheader"
+          },
+          {
+            "pc": "0x2acc38",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns7service16append_empty_opt"
+          },
+          {
+            "pc": "0x2acc58",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acc88",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acca0",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2accb4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2accc8",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acd88",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2acd9c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acf10",
+            "callee": "memcpy"
+          },
+          {
+            "pc": "0x2acf5c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2acfe4",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5local29interface_forward_name_parsed"
+          },
+          {
+            "pc": "0x2acffc",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad010",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache12has_nxdomain"
+          },
+          {
+            "pc": "0x2ad02c",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wire17find_pseudoheader"
+          },
+          {
+            "pc": "0x2ad154",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache16lookup_with_hint"
+          },
+          {
+            "pc": "0x2ad208",
+            "callee": "_RNvMs1_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wireNtB5_4Name13dnsmasq_bytes"
+          },
+          {
+            "pc": "0x2ad218",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5local12arpa_address"
+          },
+          {
+            "pc": "0x2ad238",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache14lookup_reverse"
+          },
+          {
+            "pc": "0x2ad248",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad258",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad364",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache3get"
+          },
+          {
+            "pc": "0x2ad40c",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache16lookup_with_hint"
+          },
+          {
+            "pc": "0x2ad41c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad454",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache16lookup_with_hint"
+          },
+          {
+            "pc": "0x2ad464",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad474",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad4e4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad518",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad530",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad544",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad570",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECs2gkOeOEtPGX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2ad5a0",
+            "callee": "_RINvNvMs2_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECs2gkOeOEtPGX_10dnsmasq_rs"
+          },
+          {
+            "pc": "0x2ad5f8",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache6unlink"
+          },
+          {
+            "pc": "0x2ad604",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache9link_head"
+          },
+          {
+            "pc": "0x2ad650",
+            "callee": "_RNvMs0_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext20answer_fresh_address"
+          },
+          {
+            "pc": "0x2ad690",
+            "callee": "_RNvMs0_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns12cache_engineNtB5_12CacheContext22answer_records_general"
+          },
+          {
+            "pc": "0x2ad72c",
+            "callee": "_RNvMs_NtCs2gkOeOEtPGX_10dnsmasq_rs13query_loggingNtB4_10QueryEvent5label"
+          },
+          {
+            "pc": "0x2ad738",
+            "callee": "_RNvMs7_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns7serviceNtB5_15LocalDnsService18record_query_event"
+          },
+          {
+            "pc": "0x2ad7f4",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad820",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad854",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad86c",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad880",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad890",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad8e0",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns7service16append_empty_opt"
+          },
+          {
+            "pc": "0x2ad94c",
+            "callee": "_RNvMs7_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns7serviceNtB5_15LocalDnsService19lookup_forward_rule"
+          },
+          {
+            "pc": "0x2ad980",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ad9c8",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns11edns_policy16add_pseudoheader"
+          },
+          {
+            "pc": "0x2ad9e8",
+            "callee": "_RINvNtCs2kXltWtc1W_4core3ptr9drop_glueNtNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns12cache_engine12CachedAnswerEBG_"
+          },
+          {
+            "pc": "0x2ada04",
+            "callee": "free"
+          },
+          {
+            "pc": "0x2ada2c",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns5cacheNtB5_5Cache21contains_forward_name"
+          },
+          {
+            "pc": "0x2ada5c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2ada68",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2ada78",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          }
+        ]
+      },
+      {
+        "name": "find_pseudoheader",
+        "symbol": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wire17find_pseudoheader",
+        "address": "0x2e2840",
+        "bytes": 1264,
+        "code_sha256": "f6f959f37f8cd4145d061c4d6179c03cfa745d461479b792997a5ce66907375d",
+        "asm_sha256": "37a9222d26260e408cf02b5a70714db24a37af8935b4fca0ad6837cf340e9bf3",
+        "entry": [
+          "2e2840: sub sp, sp, #0x120",
+          "2e2844: stp x29, x30, [sp, #0xc0]",
+          "2e2848: stp x28, x27, [sp, #0xd0]",
+          "2e284c: stp x26, x25, [sp, #0xe0]",
+          "2e2850: stp x24, x23, [sp, #0xf0]",
+          "2e2854: stp x22, x21, [sp, #0x100]",
+          "2e2858: stp x20, x19, [sp, #0x110]",
+          "2e285c: add x29, sp, #0xc0",
+          "2e2860: cmp x2, #0xb",
+          "2e2864: b.hi #0x2e2870",
+          "2e2868: strb wzr, [x0]",
+          "2e286c: b #0x2e2a98"
+        ],
+        "calls": [
+          {
+            "pc": "0x2e2af8",
+            "callee": "_RNvNtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wire12skip_records"
+          },
+          {
+            "pc": "0x2e2b88",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wireNtB5_9RecordRef5parse"
+          },
+          {
+            "pc": "0x2e2c4c",
+            "callee": "_RNvMs3_NtNtCs2gkOeOEtPGX_10dnsmasq_rs3dns4wireNtB5_9RecordRef5parse"
+          },
+          {
+            "pc": "0x2e2cf0",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2e2d04",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2e2d18",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          },
+          {
+            "pc": "0x2e2d2c",
+            "callee": "_RNvNtCs2kXltWtc1W_4core9panicking18panic_bounds_check"
+          }
+        ]
+      }
+    ]
+  },
+  "decision": "Retain local lower-priority candidate: compact fields restore original624B frame, but owner4060\u21924444B and wholeELF+384B. Extra branches and non-hit paths remain costs. No remote prep or schedule ahead of803/1df."
+}
