@@ -1,0 +1,49 @@
+--- a/tools/dnsmasq/research_device_case.sh
++++ b/tools/dnsmasq/research_device_case.sh
+@@ -86,6 +86,14 @@
+ edns-packet-max=1232
+ dns-forward-max=150
+ server=127.0.0.1#15354
++# Public representative rules; these are not copied production configuration.
++local=/lan/
++server=/bind/
++server=/invalid/
++server=/local/
++server=/localhost/
++server=/onion/
++server=/test/
+ host-record=ready.device-perf.test,192.0.2.1
+ pid-file=$out/dnsmasq.pid
+ log-facility=$out/daemon.log
+@@ -124,7 +132,7 @@
+ readlink /proc/$daemon/ns/net > "$out/daemon.netns"
+ # Seed the parent cache through UDP; TCP child-only warming is insufficient.
+ if [ "$mode" != dhcp ] && [ "$profile" != miss ]; then
+-    "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.test --profile hit --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/prewarm" > "$out/prewarm.stdout" 2> "$out/prewarm.stderr"
++    "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.example --profile hit --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/prewarm" > "$out/prewarm.stdout" 2> "$out/prewarm.stderr"
+ fi
+ "$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/before.jsonl"
+ "$root/research_cpu_clock_probe" read "$daemon" "$daemon_start" > "$out/cpu-before.jsonl"
+@@ -136,7 +144,7 @@
+     clients=$dhcp_clients; port=67
+     extra="--client-port 68 --interface lo --dhcp-first-address 127.0.0.10 --dhcp-renew-only"
+ fi
+-/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.test --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
++/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.example --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
+ client_timer=$!
+ client_timer_start=$(starttime "$client_timer")
+ i=0
+--- a/tools/dnsmasq/research_device_run.py
++++ b/tools/dnsmasq/research_device_run.py
+@@ -34,9 +34,9 @@
+ 
+     if d1_pgo_screen:
+         for number in (1, 2):
+-            pair('i-aa95', number, 200, 'g-pgo', 'g-pgo')
++            pair('i-rules-aa95', number, 200, 'g-pgo', 'g-pgo')
+         for number in range(1, 6):
+-            pair('i-d1-pgo95', number, 200, 'g-pgo', 'd1-pgo')
++            pair('i-rules-next95', number, 200, 'g-pgo', 'd1-pgo')
+         return [{**row, 'measurement_seconds': 95} for row in windows]
+     if g_pgo_screen:
+         for number in (1, 2):
