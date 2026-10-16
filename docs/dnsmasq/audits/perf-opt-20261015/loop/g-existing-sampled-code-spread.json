@@ -1,0 +1,86 @@
+{
+  "scope": "Existing single Oracle G UDP cycle sample only; read-only local regrouping, no new capture/tool/gate/remote access. Not A53 cache miss, simultaneous working set or C/G comparison.",
+  "sample_receipt_sha256": "b4d4f16ef716d7da96d130c8bf9b346d0fb21ff3e8152204eaf2c9761c875b3d",
+  "raw_files": {
+    "samples.txt": {
+      "sha256": "cee1c52049d2e0ad1e8365c3ee8601ddc48cc0f7f8924de4b7e2e8fe24f9ad56",
+      "bytes": 925111
+    },
+    "maps-after": {
+      "sha256": "b42b1c0a1896e337b1cc29b7ec3122e8c81966aa046102986ece3a820cc60327",
+      "bytes": 1266
+    },
+    "mapped-files-after.json": {
+      "sha256": "6e7d21168908d458d1f6589dda4ed9b63b52403fea682b5eade4070dbe8a1d54",
+      "bytes": 496
+    },
+    "self.txt": {
+      "sha256": "b90a5d8c22feb0d3d3042d301622915e5f008b27a70417208843812db3f74a5f",
+      "bytes": 139341
+    }
+  },
+  "original_summary_sha256": "ffd15ede24397f1f474950574d9f7f7a13447f72f64c020fe7d4e717340c7ce9",
+  "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "all_samples": 5497,
+  "G_ELF_user_samples": 5213,
+  "excluded_non_ELF_samples": 284,
+  "unique_sampled_ELF_PCs": 1416,
+  "original_emitted_range_counts_reproduced": 80,
+  "address_bins": [
+    {
+      "address_bin_bytes": 64,
+      "observed_bins": 531,
+      "top_bins_covering_percent_of_ELF_sample_period": {
+        "50": 97,
+        "90": 324,
+        "95": 386,
+        "99": 479
+      }
+    },
+    {
+      "address_bin_bytes": 4096,
+      "observed_bins": 63,
+      "top_bins_covering_percent_of_ELF_sample_period": {
+        "50": 11,
+        "90": 34,
+        "95": 42,
+        "99": 54
+      }
+    }
+  ],
+  "selected_emitted_ranges": [
+    {
+      "category": "user_attributed",
+      "dso": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-cycles-185/dnsmasq-rs",
+      "label": "<dnsmasq_rs::dns::daemon::DnsDaemon>::poll_inner",
+      "elf_range": [
+        "0x797f4",
+        "0x7c894"
+      ],
+      "samples": 111,
+      "period": 1110000,
+      "percent_all_period": 2.0192832454065854,
+      "cross_run_estimated_user_cycles_per_query": 355.7569183190831
+    },
+    {
+      "category": "user_attributed",
+      "dso": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/c185-hit-profile-20261016/udp-cycles-185/dnsmasq-rs",
+      "label": "<dnsmasq_rs::dns::upstream::UpstreamResolver>::consume_releases",
+      "elf_range": [
+        "0x72ef4",
+        "0x7397c"
+      ],
+      "samples": 36,
+      "period": 360000,
+      "percent_all_period": 0.6549026741859196,
+      "cross_run_estimated_user_cycles_per_query": 115.38062215754047
+    }
+  ],
+  "limits": [
+    "Sampled PCs omit intervening instructions and rare paths; address bins are not observed cache fills or resident lines.",
+    "One sample window gives neither stable per-function precision nor reuse distances.",
+    "Original binary, mapping, raw hash and all counts retained; no windows rerun or excluded from their original result.",
+    "4f/117 prototype is based on6ab, while these old samples are185; no prototype runtime gain is inferred."
+  ],
+  "initial_reader_failure": "The first local attempt used elf_size_report.Elf, which rejects the sectionless SDK ELF before sample analysis. The existing sectionless-capable r121_symbolize.ELF reader was used instead. No input or shared tool changed."
+}
