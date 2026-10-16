@@ -1,9 +1,11 @@
 # Local cached-hit integration, unselected
 
-Source15e69b7a is an independent6ab child, assembled with each original
+Current source48f921ce is an independent6ab child, assembled with each original
 performance step in its own commit. It combines1df inline address details,
 025/5c ready DHCP/dump outlines, the final6dad warm writer,4f/117 inactive
 upstream outlines,215 canonical hosts presence and86 empty-additional ECS.
+It now also includes3b local absent-OPT scanning and45 conditional scratch
+initialization in their own commits; earlier15e/dfe artifacts remain intact.
 No source currently being built or measured changed. The G-stage diagnostic
 and independent warm6dad screen retain priority; this is not a new timed
 candidate or qualified artifact.
@@ -42,3 +44,20 @@ has no new Linux gates, allocation/resource screen, SDK, Oracle or device
 result. It must earn any later candidate selection from fresh evidence.
 
 [Exact sources, commit mapping, checks and codegen](cached-hit-integration-local.json).
+
+The final48 build passes the same728Maclib+23Macbin/8ignored and muslalltargets.
+Its ELF25424e92 is5,025,528B, +3288B versus6ab and+32B versus15e. The existing
+verified6ab control ELF was copied for this local comparison, not rebuilt;
+its original receipt and unchanged SHA remain bound. Mainstep4692/640,
+empty-poll528/224 and warm-writer1028/160 are unchanged. The shared answer
+range is3848B/frame592; its prior15e emitted range/frame is separately read
+from the retained ELF in the JSON, without recompilation.
+
+Conditional scratch initialization only saves clearing when an existing
+lease-expiry dotted name is supplied. The ordinaryNone cached-hit path still
+clears the same253 bytes, and cached_address_is_unclaimed remains528B/frame368.
+Root verified that reversing45's exact two-line change restores the complete
+6ab local.rs; theSome branch never borrows the uninitialized scratch. DNS's
+rejected inline converter variant is excluded: it retainsNone zeroing and
+increases that frame by96B. No runtime benefit is assigned to either local
+change, and the integration still has no remote execution selection.
