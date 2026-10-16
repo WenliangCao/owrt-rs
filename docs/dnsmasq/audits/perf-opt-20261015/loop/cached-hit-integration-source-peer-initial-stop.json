@@ -1,0 +1,12 @@
+{
+  "status": "RETAINED_LOCAL_PEER_STOP_ON_ACTIVE_SOURCE_ADVANCE",
+  "failed_script_sha256": "b2b3b6c7766ffdd77dfaf2fd9f858cdf24e516082bc464cd089ee41e417cdfd9",
+  "failed_assertion_line": 47,
+  "reason": "Active source worktree advanced from frozen48 to9e8459dd; lease_names.rs differs. This does not alter the immutable48 source archive.",
+  "active_head_observed": "9e8459dd",
+  "mismatched_file": "components/dnsmasq/src/dns/lease_names.rs",
+  "expected48_sha256": "65c55788b6c6e2e78b59470c8d6a36d80fcd1f2bdd0141dda7fd0d11686d9291",
+  "observed_active_sha256": "c50961b17cdb3de122cc3690e31f7dd8848914f4fac9efe2b925a6877d435253",
+  "product_or_remote_execution": false,
+  "resolution": "Audit immutable48 archive bytes in a local private review snapshot; retain active source untouched and report its drift explicitly."
+}
