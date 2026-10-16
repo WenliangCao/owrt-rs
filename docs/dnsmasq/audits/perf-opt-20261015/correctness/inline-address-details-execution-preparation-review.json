@@ -1,0 +1,62 @@
+{
+  "status": "PASS_LOCAL_DISABLED_EXECUTION_PREPARATION_WITH_PEER_ARCHIVE_REVIEW",
+  "manifest_sha256": "e913ee10beaaf34cc2d38e510f5bd8ba69c838384b23fe03380e2eba7c544d03",
+  "verifier_sha256": "8e81166ed278f695ecbb4f7aacf33248b17c59be6176ded9b4b1811d9edb6ddf",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "exact_declared_substitutions_to_original210_verifier": true,
+  "exact_added_test_names": [
+    "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+    "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
+  ],
+  "all_base_cache_test_names_retained": true,
+  "original6ab_receipt_and_all_five_log_hashes_remain_baseline": true,
+  "expected_counts_projected_only": {
+    "lib": 842,
+    "bin": 82,
+    "allocations": 17,
+    "lib-ignored-live": 18,
+    "bin-ignored-live": 4
+  },
+  "actual_counts": null,
+  "execution_authorized": false,
+  "release": null,
+  "tests_or_builds_run": false,
+  "remote_accessed": false,
+  "schema": "1df-execution-preparation-independent-review-v1",
+  "author_commit": "0d90579d",
+  "verifier_private_result_sha256": "54dbe0ab52c5cf4a0197bd455b1f5a963f843bde24c37113d077ede16c099dab",
+  "parallel_archive_wrapper_SDK_review": {
+    "reviewer": "loop",
+    "status": "PASS_LOCAL_READ_ONLY_ARCHIVE_WRAPPER_AND_SDK_PREPARATION_SUBREVIEW",
+    "evidence_limit": "Peer used read-only inline Python and returned terminal results. No separate peer script or receipt file was written; this report preserves the stated observations, not an independently archived peer subreceipt.",
+    "successful_tool_chunk": "6e9cae",
+    "exit": 0,
+    "archive_sha256": "36cec4cc18b04de21e6a75f899cba0416d24db4a954b429f007f76a2225c5fad",
+    "members": 4471,
+    "regular_files_including_identity": 4098,
+    "Git_blobs": 4097,
+    "safe_unique_paths_no_symlinks_or_hardlinks": true,
+    "all_Git_blob_SHA1_and_modes_match": true,
+    "SDK_source_files": 179,
+    "source_manifest_sha256": "cbba1df59b5655cbf22de35003a579d95884895b50eb03437e200e6981d3ebd0",
+    "git_identity_sha256": "d1adeb59ceae6e7c0d62ee220c3d69c435d5e706e1a8d2d7ddf0d5698e340362",
+    "runner_launcher_exact_candidate_substitutions": true,
+    "preflight_body_unchanged_after_identity_and_path_substitutions": true,
+    "five_commands_and_SDK_argv_original_except_candidate_identity": true,
+    "canonical_builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+    "profile": "Original opt3, empty features",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "first_terminal_only_reviewer_failure": {
+      "chunk": "d62b1a",
+      "cause": "Reviewer assumed parent manifest key profile; actual original_profile was inspected in e5127b and used for successful continuation. No examined script, test or build ran."
+    }
+  },
+  "execution_selected": false,
+  "SDK_artifact_or_gate_pass_inherited": false,
+  "queue": "Current6ab full44 then root-authorized803 gates/SDK; this1df package remains disabled and does not alter queue."
+}
