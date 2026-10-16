@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "status": "PASS_MINIMAL_HEALTH_TERMINATION_TOOL_REVIEW",
+  "scope": "Local source/diff/hash review and existing mocked unit tests only. This does not reclassify the old failed baseline or itself perform device recovery.",
+  "reviewed_commits": [
+    "4e81d741",
+    "76f0dfbc",
+    "d2c0373c",
+    "f71130de"
+  ],
+  "bindings": {
+    "plan_sha256": "0e24e3b1730a2ce2ceefd59117af529288437d447b54e2c6e28e35b4dec0dcf4",
+    "health_evidence_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "shared_runner_sha256": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+    "controller_sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "analyzer_sha256": "10addedf927936df6bc112e4dcc8d5f0c9ef9af8466a6cde11dc1a56ebad2283",
+    "author_verifier_sha256": "7e3498728e224f84cc0d4a8ee3e82031f28a8fce0c32b57fd8e60ebb1d928e47",
+    "author_verifier_before_sha256": "444c8fbd743109ed74979c1272da626e6c7bee3186adf4b61a33c40540d3efc4",
+    "author_verifier_diff_sha256": "95172a121459f892c49eaaa860d5dc2cc4109f5fe375e43a4110f1c84c87d535"
+  },
+  "boundary_checks": [
+    "The collector saves the complete captured bytes, its newline-complete prefix and both digests before guard_stop sends SIGTERM. No status-based sample selection occurs.",
+    "All three consumers\u2014baseline, shared wrapper final validation and author verifier\u2014receive the full capture. They require complete_prefix(capture)==prefix and final.startswith(capture), including partial last-line bytes, plus final.startswith(prefix).",
+    "DNS/HTTP status and baseline p95 use every complete pre-stop record. The original125second collection and last qualified elapsed>=120seconds remain; the added firstsample<=1second threshold was removed.",
+    "Final start/monitor_stopped shape and absence of guardstop events, all final PID/starttime, memory and default-route checks remain. The entire shutdown tail is preserved, not reported as successful probes.",
+    "The shared wrapper captures only after all original windows, CPU endpoints, validation, archives and final live guard check. No capture call runs within a measured window.",
+    "Final validation exceptions save failure.json with all original results, attempt task-only STOP, preserve any stop error and raise before complete.json. Existing slot restoration and original failure handling remain.",
+    "The imported health helper is hash-checked before startup and recorded in identity; final private tool copies and the author verifier match their declared bindings."
+  ],
+  "unchanged": [
+    "Original185source/ELF/map/build and exactE baseline",
+    "All ten alternating windows and original workload",
+    "Frozen guard binary and all measurement artifact hashes",
+    "perf_opt_device_run.py7c93 and analyzer10added",
+    "Original comparison, precision, resource limits, failure/whole-pair policies"
+  ],
+  "tests": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "test_device_health_baseline",
+      "test_udp_stage_device_run",
+      "-v"
+    ],
+    "cwd": "/Users/USER/Developer/owrt-perf-f-e-device-20261015/tools/dnsmasq",
+    "exit": 0,
+    "tests_passed": 20,
+    "source_sha256": {
+      "device_health_baseline.py": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+      "test_device_health_baseline.py": "eb7750de74f35ecc15d6471793471e84769b85b5e83b28dd3443d29183f73c2d",
+      "udp_stage_device_run.py": "41ef0674bd73b002958afc0088369375f38fa8b4e3c419ba6cc13275b0b949af",
+      "test_udp_stage_device_run.py": "a5052973d57415a8bee2f908989a576186c09ead4ced57c4ed676570bbc69e55"
+    },
+    "stdout_sha256": "481f50ad4b97b5148a8753ed4c10a1d64bb09b849fc893df432ba2f31232e1f8",
+    "stderr_sha256": "a4470c69f4eb9b29cca1e6f8470116790b15ba74a6a1452034e9236f70562fa5",
+    "scope": "Existing tests only; all device/SSH/guard interactions in exercised controller tests are mocked. No remote query, collector run or workload."
+  },
+  "test_receipt_sha256": "1fa357a1878d13b9b0a9451086efd7ba1dadbcbc761b25bb335199c0ec22ffad",
+  "covered_negative_controls": [
+    "HTTP0/500 or DNS0 within prefix",
+    "Any guardstop event including after capture",
+    "Changed complete prefix or insufficient120s coverage",
+    "Changed partial captured bytes despite unchanged complete records",
+    "Tail PID/starttime, memory or route failure and missing monitor_stopped",
+    "External health failure and original threshold>700",
+    "Shared wrapper unsafe tail preserves failure/STOP without complete or replacement windows",
+    "Existing archive and cleanup failure preservation"
+  ],
+  "old_failure": {
+    "report_sha256": "bb4b6e95eb0ac2c088628acdcee2008f1bc498b93f3954e6b4294a03d38ee67b",
+    "all_eight_original_files_rehashed_unchanged": true,
+    "still_failed": true,
+    "retrospectively_requalified": false
+  },
+  "recovery_boundary": "The device owner and root retain the authorized recovery sequence: verify production/slots/offline backups/owned process state, archive the exact prior task STOP, clear only that authorized task STOP, then collect a fresh independent baseline. This review made no device change.",
+  "full110_followup": "Before any supported185full110 launch, align the generic7c93 full-run tail evidence with the same minimal capture boundary and bind that concrete recipe. Do not run the new prefix verifier against an old full-run log lacking captured prefix. Generic full110 tooling is unchanged in this repair.",
+  "remaining_code_review_blockers": [],
+  "device_actions_by_reviewer": false,
+  "performance_acceptance": false,
+  "deployment": false
+}
