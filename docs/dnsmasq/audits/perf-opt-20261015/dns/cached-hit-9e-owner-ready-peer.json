@@ -1,0 +1,18 @@
+{
+  "status": "PASS_LOCAL_ORIGINAL9E_OWNER32_READY_AND_LAUNCH_TEMPLATE_ADAPTATION",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "owner_ready_template_sha256": "425b697f2201e2412fc0a04fbb838e614e44845c7cb6addcae358263855dc049",
+  "owner_launch_template_sha256": "afa44eaef4a73323dbc78b68d2a3a12fbff55edafb941afbf14ca8b8ab0dfd90",
+  "original_ready_sha256": "41d9eb9f55f583eb93d7c62ede3ac4ab308c2681c606c319024fc89a66d6cf77",
+  "original_launch_sha256": "77bd291c4e1203caabe5d8f621cbda43a3b8ba5435d8036a4d1781bebf79b1c1",
+  "ready_exact_delta": "Only names, initial1ca plan and9f0 release pins, plus existing native240 result/postflight/controller-exit and already-qualified originalsignals hash binding before plan rename.",
+  "launch_exact_delta": "Only names, fixedplan/metadata placeholders, correct owner-input metadata location, actualnativePID1082050/plan8c1411, signals hash check and scope wording. Allremaining original1df launch bytes identical.",
+  "preserved": [
+    "Original before-ready plan and all input manifest rehash before mutation",
+    "Fresh output, UID1001/nice0, source179/SDK/ELF/build/map and8imports",
+    "Original nativecomplete240/244allzero/578rawpostflight and exited controller gate",
+    "Original three locks and full research scan before Popen",
+    "Original tasksetCPU0 detached owner32 launch,12stat20plain,no retries/bulk"
+  ],
+  "scope": "Local read/AST/text diff only, no script import/execute or Oracle/router access. This is a parallel template check, not a new waiting gate; concrete native completion/result/postflight and final plan/metadata pins are bound by existing owner immediately when ready. No new workload, statistics or source change."
+}
