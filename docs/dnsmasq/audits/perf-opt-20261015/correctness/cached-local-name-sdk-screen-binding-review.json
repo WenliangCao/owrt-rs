@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_ARTIFACT_AND_SCREEN_BINDING_REVIEW",
+  "scope": "Independent local reads/hashes/source checks only; no build, remote command, timing or router operation. SDK identities are ready; screen outcomes are pending.",
+  "SDK_bindings": [
+    {
+      "name": "cached-local-miss",
+      "source_commit": "54bd1e56f3388bb704cead10bf2d02433ffbd369",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-miss",
+      "local_directory": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-local-miss",
+      "artifacts": {
+        "dnsmasq-rs": {
+          "sha256": "36e4cdde1fd0ea25d55599a37cf8fc7eb78e933c953b719c8a09af715d1b1b3f",
+          "bytes": 2140955
+        },
+        "link.map": {
+          "sha256": "0ab38b1002501c5aa7d8383bd42761bbc0c5181c469b99ebe1374ac9c97a4bf9",
+          "bytes": 3020345
+        },
+        "build.json": {
+          "sha256": "2d8d21b716331c68e9446b87c1dea1f32f80765232c71d9bb5ffb906fb619f41",
+          "bytes": 43975
+        }
+      },
+      "git_identity_sha256": "dad7c90634cc482b3b95ad8ca5a05068a75a0bdb1b81a9c0a041421cb074f390",
+      "source_digest": "9dba4c0328f36c5bd5aa56f293140dcbcdc523d4d055c98a1743087050790028",
+      "source_files_rehashed_against_git": 179,
+      "features": "",
+      "opt_level": "3",
+      "budget": {
+        "elf_max_bytes": 2200000,
+        "apk_max_bytes": 1200000
+      },
+      "apk_bytes": 1165242,
+      "within_existing_budget": true,
+      "source_unchanged": true,
+      "sdk_recipe_restored": true,
+      "static_layout_from_hash_bound_receipt": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      }
+    },
+    {
+      "name": "cached-local-name",
+      "source_commit": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+      "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-local-name",
+      "local_directory": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/sdk-cached-local-name",
+      "artifacts": {
+        "dnsmasq-rs": {
+          "sha256": "f4230f03137bd235489cda2cfa186e44aefe390d9a5f9afd8368c80e73658aff",
+          "bytes": 2140955
+        },
+        "link.map": {
+          "sha256": "b9a67ea66d81d3141e2ee8a4ffc5f0b860ef92177a5d96a15ada55739bfab96f",
+          "bytes": 3023531
+        },
+        "build.json": {
+          "sha256": "972a6f3c1b9d6121fef854d18cae24bc12be776b097e96d21b843571fe1b2165",
+          "bytes": 43975
+        }
+      },
+      "git_identity_sha256": "8b2cf5943905fe0092c875eb4df4f6ff05e14eb7df43ace0e343e1b5d312b32b",
+      "source_digest": "c06b9cbd514f5795c53869c3142365e744dc88339bc8c791c61b315b7c9a18de",
+      "source_files_rehashed_against_git": 179,
+      "features": "",
+      "opt_level": "3",
+      "budget": {
+        "elf_max_bytes": 2200000,
+        "apk_max_bytes": 1200000
+      },
+      "apk_bytes": 1166199,
+      "within_existing_budget": true,
+      "source_unchanged": true,
+      "sdk_recipe_restored": true,
+      "static_layout_from_hash_bound_receipt": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      }
+    }
+  ],
+  "owner32": {
+    "plan_sha256": "3a0e62063e4e525d9eb6a709ccc8ead59c43a24407bcac84c23ffb5269a9a654",
+    "controller_sha256": "69ea5269da1eb0457c7c5d276b9b942ece2b54c4765e964ae7f75fd6fe20c521",
+    "analyzer_sha256": "adc76312c0e38489662b17396da292f14670523abf0b677a0f226bde73533461",
+    "baseline": "acceptedE4f869c88/8b8082b9",
+    "candidate": "0161ad9c/f4230f03",
+    "source_sets_verified": {
+      "E": 179,
+      "cached-local-name": 179
+    },
+    "related_gate_sha256": "42e9e5de497aff73e9dc82feba9dd60fbe61caa183dce8e5e8ad34b9436b85ea",
+    "candidate_commit_artifact_build_source_binding_explicit": true,
+    "order": "Original12groupedPMU windows(statlow3pairs thenhigh3pairs), then20plain windows(low5pairs thenhigh5pairs);Efirstodd/variantfirsteven.",
+    "analyzer_change": "Verified byte-identical to original after onlyF\u2192Elabel and scope replacement; compare/W/lowCPUprecision/highvariableN handling unchanged.",
+    "failure_preservation": "freshout and exclusive files, stop on failure, finally TERM/KILL owned process group, retain partialprogress/failure; no automatic rerun."
+  },
+  "A53_fixed10": {
+    "plan_sha256": "4123e29821248a2ddd9288e72afb725f89b2d3274f7310a1a51373611326e77f",
+    "entry_sha256": "fb3ad5ee27b9e1832eb76a02ab98f0a096c02d7f0d80d4bfe18f7200b08a937e",
+    "shared_runner_sha256": "87a86e902e1afc51afbbb7b559338a3c298e12a72fa1ad945a1acc08bbaa51d7",
+    "comparison": "Exactly5alternatingE/0161pairs; all modeNone;Fonlyrestore role.",
+    "schedule_exact": true,
+    "SDK179source_and_actual_three_artifacts_hashes_match": true,
+    "stale_F_address_dispatch_wording_corrected_before_launch": true,
+    "original_workload_thresholds_and_health_restore_rules_unchanged": true
+  },
+  "full_qualification_preparation": {
+    "report_sha256": "72deaf8e4a523a4de3f4df2ff8d416742ace6a42df027bf065d48a64227d7400",
+    "final_sdk_bound": true,
+    "executed": false
+  },
+  "full11_preparation": {
+    "report_sha256": "8a6828d24dee8d8fe5590afceb16f550515f6e3e3501a8d6bcc6ba4358514379",
+    "Oracle_windows": 110,
+    "A53_windows": 110,
+    "final_sdk_bound": true,
+    "executed": false
+  },
+  "limits": [
+    "Hash-bound SDK layout reports were checked; no new runtimeASLR/RELRO probe or package rebuild by reviewer.",
+    "Screen setup review is not a screen result or full qualification.",
+    "Separate54bd and0161artifacts remain immutable. Do not use8d572/8048 in0161launches."
+  ],
+  "performance_accepted": false,
+  "deployment": false
+}
