@@ -17,10 +17,12 @@ Oracle低速C/G用户周期两侧中位数之差约3960，三次配对差的中�
 实测G118→9e114µs仍未分辨。sendlag一直完整记录，但G在该诊断恶化时仍已验收晋级；
 本批更明确规定它是生成器诊断，不能独自否决产品。c95已完成实际SDK聚拢，无需新linker脚本。
 
-当前模型：PGO已在A53产生大幅收益，Oracle同源实验同时减少指令、refill和分支事件，
-支持编译后热路径效率是重要变量。但速率扫描中G/C相对差几乎不变，不能把绝对差收窄
-当作缓存独占归因；PGO也不只改布局。下一步先用完整G/PGO矩阵判交付，再直接量C/PGO
-剩余差距，按剩余成本选方向；不先叠加G的强制outline或把历史中位数相减当预算。
+当前模型：PGO在A53已有明确收益，I在原简化命中场景与精确C的直接低率配对差为−0.97µs，
+没有可辨正残余。不能因此推断真实配置也零开销：七条公开local/RFC6761规则让旧路径在本机
+每query产生23次分配，修正后零；实际J PGO的Oracle指令下降约61%、周期约40%，同时IPC
+下降、I-TLB refill上升，说明单独追求IPC或任何一个缓存指标都不足以判断总成本。
+下一轮裁决J组合在公开配置的A53 CPU/时延是否真的改善，并以原完整矩阵约束其他场景；
+不相加E/G/H/I的历史收益，不从本机分配次数或N1计数直接换算A53微秒。
 
 ## Oracle固定PMU诊断：完成
 
@@ -537,3 +539,42 @@ private/perf-opt-20261015/research-reset-20261016/d1-pgo-screen14/。
 J1改用独立新目录与23aece16身份，实际Linux9项及未执行filter通过后才继续原单次新PGO；
 不是重跑未修改的失败源码，不覆盖b059记录。公开规则工具4b3d3ec1显式选择独立case/group，
 原ba40和所有旧case保持，规避组名变化后误用旧AA。工具/夹具修正不列作产品性能优化。
+
+
+## J1正式产物和实际PGO计数
+
+源23aece16的实际Linux16lib+11bin（含udp_dispatch_9）全过，原11场景单次训练50raw，
+新profile732093b36c0fbcce9bde11f3fc1d20581ffa4e4faa27118b5bcabf6b5ec68f49（936480B）。
+ELF9e3326bad7c6ac8c9261994af8d70095ae86186e6ea149511080d2662f8f94b8（2288419B），
+APK7f14b54864541e5662d9b276e30f9f5996be80d3dcc540014794ad562af4832e（1293163B）。
+原编译31warning行保留，profile missing/mismatch为零；新caps、静态硬化、实际smoke通过。
+597文件和全部50raw profiles已回收核验，唯一summary SHA2616f68f2aa44aa9dec2ab208bb2bb6681fe19172b44d2e701be2eacbafc528b，
+在active PGO树private/perf-opt-20261015/rules-next-pgo-preparation-20261016/j1-rules-d2/result-summary.json。
+私有smoke绑定曾在读取旧b059路径时失败，发生在plan/daemon启动前；修正J1路径后实际smoke
+仅执行一次。首次非sudo证据读取被root daemon.log权限拒绝（0B），改为sudo只读后回收；
+这些日志保留，没有重建、重训或重新计时。
+
+Oracle I/J公开规则6窗均有效，每窗N5000，42个counter全部无复用/缩放。用户态每query：
+
+| 事件 | I中位 | J中位 | 三次配对变化范围 |
+| --- | ---: | ---: | ---: |
+| instructions | 15021.1532 | 5866.8578 | −60.943%至−60.666% |
+| cycles | 14151.9764 | 8502.3796 | −44.690%至−38.543% |
+| L1I refill | 684.3144 | 471.4912 | −32.007%至−29.734% |
+| L1D refill | 241.3456 | 182.4180 | −29.690%至−17.733% |
+| I-TLB refill | 16.9166 | 20.0690 | +5.634%至+23.274% |
+| D-TLB refill | 60.8936 | 46.5080 | −25.683%至−21.636% |
+| branch misprediction | 197.3338 | 90.4544 | −54.196%至−53.463% |
+
+周期配对中位变化−40.282%，两侧中位比−39.921%，不混用。IPC中位1.0555→0.6900，下降
+仍伴随总用户周期减少；I-TLB的不利变化也保留，不能把收益全部解释成“足迹更小/IPC更高”。
+实际PGO工作量缩减支持方向，但三对N1不替代A53、不证明独立因果或分配调用数。原summary
+在哈希root daemon.log时权限失败，sudo只读运行同一汇总器成功；SSH结束后的本地无输出残留
+在远端无实验进程确认后终止，exit255保留；六次capture无失败/重试。结果SHA
+c29e6592f26dcb7c05be7d03ca00709e40077932f048d96554a1ef2629c15846，267raw等设备恢复gap回收。
+小摘要在同树private/perf-opt-20261015/rules-next-pmu-20261016/small-summary.json。
+
+另一次只读检查说明A53低率/proc user/system分项不能用于本轮归因：C/I16中有同窗C 0/84µs、
+I 81/0µs这样的分项，而总CPUclock仍约80µs；不把分项中位数当作真实用户/内核差额。
+实际I ELF还含按getauxval(16) bit8选择LDADD或LDXR/STXR的原子helper，Oracle存档cpuinfo含
+atomics；路由器对应字段仅在当前测量恢复gap补读，不据此另造候选或宣称它是主因。
