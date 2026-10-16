@@ -1,0 +1,220 @@
+{
+  "schema": "dnsmasq-cached-zero-frame-full-qualification-v1",
+  "status": "PASS_ORIGINAL_FULL_FUNCTIONAL_QUALIFICATION_WITH_RETAINED_APPROVED_DIFFERENCES",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "shipping_elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "shipping_elf_bytes": 2145051,
+  "same_build_map_sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+  "same_build_receipt_sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+  "source_identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+  "source_files_rehashed": 179,
+  "full_qualification_passed": true,
+  "short_gates": {
+    "total_passed": 957,
+    "counts": {
+      "lib": 836,
+      "bin": 82,
+      "allocations": 17,
+      "lib-ignored-live": 18,
+      "bin-ignored-live": 4
+    },
+    "fresh_same_source_builds": true,
+    "original_argv_and_listing_reconciled": true,
+    "raw_verified_receipt_sha256": "4ec0100ae7ad2360fd3ddbf041cb4e37f69bbbc8d2e3cf67a002de78e3a4a08c"
+  },
+  "canonical_families": {
+    "families": 44,
+    "unique_jobs": 67,
+    "passed": true,
+    "all_result_hashes_rechecked": true,
+    "all_job_inventories_identical_to_E": true,
+    "immutable_inputs_unchanged": true,
+    "family_raw_result_sha256": "47b34d9f7e4326bd0b428d45d9b11f9387f7d12fda9b6402a43d1b93e89b9fc0",
+    "family_raw_state_sha256": "aaf9ed780c03f54aef7aa599ece5e34b5b71397f5bed6f2deed88f88176b10d9",
+    "wall_elapsed_seconds": 2065.0282766819,
+    "pauses": [],
+    "final_audit_sha256": "06569ee22bc3b8f3272952217e7b8ca97941d25b5d6667381255d72bdedeef38",
+    "approved_ubus_job": {
+      "id": "ubus-ordinary-all",
+      "family": "ubus-ordinary",
+      "passed": true,
+      "returncode": 0,
+      "result_sha256": "29a76bb2f45964fbafafd641a83551114df0b55b0998e35252895c345f3f8843",
+      "checks": {
+        "error": null,
+        "failed": 0,
+        "identities.c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "identities.rust": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+        "normal_contract_qualified": true,
+        "paired_observations": 346,
+        "reference.elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "reference.identity_sha256": "828f4237e96bc61dd6e3ae18a88ace63e7a4434635e5b22954744a73053f103e",
+        "reference.kind": "image-aarch64-musl",
+        "reference.runner_sha256": "38ab1fe2268a4efdd6dbf718d528f89cf2bbfb8d5e877f233b3752c023e81cfd"
+      }
+    }
+  },
+  "boundary_corpora": {
+    "final_audit_sha256": "e8829d578703221faf7f1f38c84b0bfe57b04f62a2dc4e2df69208ee2242f30c",
+    "f10": {
+      "cases": 13,
+      "observations": 704,
+      "passed": true,
+      "unqualified_failures": [],
+      "raw_matches_c": false,
+      "raw_difference_counts": {
+        "ptr-order-only": 28
+      },
+      "ptr_sequence_checks": 72,
+      "source_bound_checks": 4,
+      "raw_result_sha256": "aaadb1323fd50d6c327cc2c9d8dd6933a29fa7c3780fcb137990debc94b0900e",
+      "checker_result_sha256": "b6b956a5c52dba40f113e58c27d57efa9b85ee00387cbc1695fa33fe18cf2e39",
+      "approved_manifest_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+      "original_C_reference_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+      "all_running_elf_hashes_verified": true
+    },
+    "protocol": {
+      "pairs": 368,
+      "exact_matches": 366,
+      "same_two_historical_C_defects": true,
+      "checker_sha256": "c79f361048fbfc5b4d90fe9a7c0b4c093373dbd774a037ab26bb8529d0af5935"
+    },
+    "tcp": {
+      "conditions": 13,
+      "pairs": 50,
+      "all_original_groups_passed": true
+    },
+    "cache_answer": {
+      "commands": 764,
+      "queries": 164,
+      "metrics": 382,
+      "mismatches": 0
+    },
+    "transfer": {
+      "passed": 307,
+      "total": 307
+    },
+    "stale": {
+      "passed": 1100,
+      "total": 1100
+    },
+    "lease": {
+      "result_sha256": "c6f9330e9f0e6b3f5750281a1991a19e8fd8615cf7894ed2554408945901dc96",
+      "queries": 95,
+      "mismatches": [
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 9,
+          "command": "Q 102 29300100000100000000000005616c6961730000050001",
+          "c": {
+            "id": 10544,
+            "flags": 34176,
+            "questions": [
+              [
+                "alias",
+                5,
+                1
+              ]
+            ],
+            "sections": [
+              [
+                "answer",
+                [
+                  [
+                    "alias",
+                    5,
+                    1,
+                    58,
+                    [
+                      "example"
+                    ]
+                  ]
+                ]
+              ],
+              [
+                "authority",
+                []
+              ],
+              [
+                "additional",
+                []
+              ]
+            ]
+          },
+          "rust": null
+        },
+        {
+          "case": 26,
+          "label": "fqdn-short-republication-same",
+          "step": 10,
+          "command": "N 102 29300100000100000000000005616c6961730000050001",
+          "c": "N 1",
+          "rust": "N 0"
+        }
+      ],
+      "commands": 269,
+      "dynamic_lookups": 43,
+      "cohorts": {
+        "ordinary_insertion_mismatches": 0,
+        "layout_reuse_mismatches": 2
+      },
+      "c_hits": 59,
+      "rust_hits": 58,
+      "c_misses": 36,
+      "rust_misses": 37,
+      "rust_driver_sha256": "3d6dee5982a379b596d7522890563129830e5a2acc888a13ea890428a167f5f9"
+    },
+    "raw_corpus_exits": {
+      "cache-answer": 0,
+      "transfer": 0,
+      "stale": 0,
+      "lease": 1
+    },
+    "new_or_unclassified_product_difference": false
+  },
+  "retained_exceptions": {
+    "PTR": "Current raw run has28 PTR-order-only differences under the identical original approved qualifier. Original historicalF39 raw differences remain retained; no expectation amendment.",
+    "protocol": "Exact same two historical C forward-pointer defects; 368 pairs and366 exact matches retained.",
+    "lease": "Exact same two source-a UID/layout differences with ordinary0/layout2 cohorts, raw comparator exit1 retained under prior explicit instruction. No new waiver."
+  },
+  "retained_setup_failure": {
+    "first_attempt_receipt_sha256": "64bbadddb47e2508eabd8d316105697d9708152a26ac9d9b7f9906e34f529bc8",
+    "comparisons_executed": 0,
+    "cause": "root-owned0755 output parent prevented first cache-answer mkdir; secondary missing lease result followed.",
+    "repair": "Only real source/private parent uid/gid changed0:0 to1001:1001; inode/mode preserved, no recursive ownership change or active child change.",
+    "recovery": "Only previously unexecuted four corpora ran in fresh attempt2. Successful F10/protocol/checker/TCP gates were not rerun.",
+    "all_seven_original_failure_files_rehashed": true,
+    "source_and_comparators_unchanged": true
+  },
+  "quiet_handoff": {
+    "remote_receipt": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/cached-zero-frame-final-quiet-audit.json",
+    "sha256": "2c0b9adda89eaaaccf377a00f64b4f3d194655e1bc497703d6ebef0498cece3b",
+    "epoch": 1792118277.5376084,
+    "no_live_research_processes": true,
+    "supervisor_and_boundary_workers_exited": true,
+    "all_three_build_locks_available": true,
+    "functional_Oracle_reservation_released": true,
+    "next_Oracle_owner": "DNS full E/185110; owner must repeat immediate quiet and artifact preflight.",
+    "device_owner": "DHCP full E/185110; separate authorized device preflight and reviewed tools required.",
+    "reviewer_will_not_start_Oracle_timing_work": true
+  },
+  "tool_boundary_review": {
+    "commit": "f95f83a4",
+    "report_sha256": "263d56cf4bc1d88b5a0ab2085a55c82affc8909822ca0042a618c6c4b18b43e4",
+    "device_controller_sha256": "d2bb00f7579cf578156737c0916137838533707cc5159d11e5928094063b2b69",
+    "device_helper_sha256": "8e3367d933207920b4d59f65bd4bd807002ffd0c4d9e0eea36828c9bcd868b1e",
+    "fresh_health_and_Oracle_frozen_bundles_preserved": true
+  },
+  "derived_report_bindings": {
+    "cached-zero-frame-short-gates.json": "c4d7738618c04c1cbfccf263d465dab1fca3b5325b730402fb6b1c3905769a5d",
+    "cached-zero-frame-family-gates.json": "06569ee22bc3b8f3272952217e7b8ca97941d25b5d6667381255d72bdedeef38",
+    "cached-zero-frame-boundary-corpus-gates.json": "4031b53dbfbd255d7df4226bcc393ed91901a6cdaa916c5cf9299760403f09c4",
+    "cached-zero-frame-output-parent-recovery.json": "fa20d796560831fbcd01b75eb7e42f29f7b025ab400540999d7aa3880a3a1a18",
+    "cached-zero-frame-source-review.json": "f15a285ca6d69f25698e77ac04e2c07d320c5661cf1983e9067e86a870b8ee4c"
+  },
+  "performance_accepted": false,
+  "candidate_promoted": false,
+  "production_deployment": false,
+  "router_actions_by_reviewer": false
+}

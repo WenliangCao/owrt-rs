@@ -1,6 +1,6 @@
 {
   "schema": "dnsmasq-cached-zero-frame-full11-preparation-v1",
-  "status": "FINAL_SDK_AND_FULL110_TOOLS_REVIEWED_FULL_CORRECTNESS_PENDING",
+  "status": "FULL_CORRECTNESS_AND_TOOL_REVIEW_PASSED_READY_FOR_OWNER_PREFLIGHT",
   "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
   "artifact": {
     "elf_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
@@ -340,6 +340,12 @@
       }
     },
     "new_statistical_rules": false,
-    "full_qualification_still_required": true
+    "full_qualification_still_required": false
+  },
+  "full_qualification": {
+    "passed": true,
+    "report_path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-zero-frame-full-qualification.json",
+    "report_sha256": "d76634eab46459a2a38e672da8e1eb86d79a250cf5b4b0c367ee79392fe2d4be",
+    "quiet_receipt_sha256": "2c0b9adda89eaaaccf377a00f64b4f3d194655e1bc497703d6ebef0498cece3b"
   }
 }
