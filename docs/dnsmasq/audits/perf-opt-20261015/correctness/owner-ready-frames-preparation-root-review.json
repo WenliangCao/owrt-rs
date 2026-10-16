@@ -14,5 +14,5 @@
   "five_argv_canonicalSDK_profile_budgets_original": true,
   "all_actual_results_and_release_null_execution_disabled": true,
   "archive_sha256": "68e9febeb2c8416269cd970840b31ecc1fd813a0345eb7de3f2d9a16cfb71411",
-  "scope": "Local preparation review. 5c includes025; source peer70cf08da and codegenpeerb14bf61d remain separate. No selection, remote, build, tests or timing. Existing frozen runtime-signals family already checks repeatedUSR1 andALRM; use original coverage ifselected, no new framework."
+  "scope": "Local preparation review. 5c includes025; source peer70cf08da and codegenpeerb14bf61d remain separate. No selection, remote, build, tests or timing. Existing frozen standalone runtime-signals audit checks repeatedUSR1 andALRM but is not called by the44family runner. Ifselected, explicitlyrun the originalaudit as targetedvalidation; no new framework or comparator."
 }
