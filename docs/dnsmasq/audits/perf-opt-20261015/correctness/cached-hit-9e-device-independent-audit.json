@@ -1,0 +1,527 @@
+{
+  "schema": "cached-hit-9e-original-ten-independent-audit-v1",
+  "status": "PASS_RAW_TEN_SCREEN_WITH_NO_DISCERNIBLE_PRIMARY_GAIN_OR_REGRESSION",
+  "author_commit": "06ee1e89",
+  "author_result_sha256": "ea3ad82e348cc49053acd5f4744aa1405d407bdd4f0a4f1e0d920c7643a9fbe9",
+  "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+  "baseline_source": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "plan_sha256": "b5d6fecfb1da7faf25278f81f02efc6306c2a7fb70649ebf86cd851c759779fa",
+  "identity_sha256": "2d7f2c008a67746fcf1fc8168c3458ecf4050f6d8f5c5dba41358e3efda8628d",
+  "progress_sha256": "627287f6246a426a92fea74e739eff9e1a3c495d61249b6a23c17c6d42ba13e8",
+  "summary_sha256": "351c68ebe0eabd51fac2bb516af9f0beb01967f83e424e735de03e55c51a00b5",
+  "verified_archives": 10,
+  "verified_raw_regular_files": 430,
+  "archive_sha256": {
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r1-c": "d13c84013d7d69e47eb71c0b7985ee430f2a93c4539114f42aa63cc06ef37a00",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r1-rust": "9ae6a441f5a5844408631c8e062e899c75a4b8788d337f3446b74673f0fdc8e9",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r2-rust": "32326aa1983eb5f0339c6bb550f492975a177aeffd973a4c1c60ddd51a120195",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r2-c": "3c3b748ab06d1fc004fa11dd01a0d67643b40e8f42aeadec5c1dc9b7b4aff6d6",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r3-c": "359b9a200b96b186e75d2c3a16fe4781dff16fb1b6dd69406ee477c9dc2b2fcd",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r3-rust": "06a4bb9ab713a915e7615bc7be59e6b80b3a1edba52de3992c24696d620d7b25",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r4-rust": "a6637ba728d0919431c830fb0cf61b3cdcccbe65aceb4c6acd068442938fce13",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r4-c": "5149850b4c70f6d6f70103cd27d7a81e2d180b38222d2aece218e713b5e190f3",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r5-c": "4d13d5806615b51e65d2f531452562085c6c60585cbdeedbda477147fdac6be7",
+    "a53-cached-hit-9e-g-vs-cached-hit-9e-r5-rust": "745d47aee3cf4eaac9526410316ce101404b4910cc2b8039ea7fec65aa47bc67"
+  },
+  "single_thread_observations": 313,
+  "wire_samples_verified": 600,
+  "correct_fixture_queries_including_prewarm_per_window": 6000,
+  "CPU_denominator_per_window": 5000,
+  "all_original_raw_latency_send_lag_and_scheduled_latency_bins_recomputed": true,
+  "all_CPU_ticks_and_three_primary_comparisons_recomputed": true,
+  "all_seven_resource_comparisons_recomputed": true,
+  "comparison": {
+    "left": [
+      "g",
+      null
+    ],
+    "right": [
+      "cached-hit-9e",
+      null
+    ],
+    "metrics": {
+      "p50_ms": {
+        "left": {
+          "median": 0.17512,
+          "min": 0.166503,
+          "max": 0.184123,
+          "rounds": [
+            0.17512,
+            0.184123,
+            0.175506,
+            0.166503,
+            0.170273
+          ]
+        },
+        "right": {
+          "median": 0.166503,
+          "min": 0.162656,
+          "max": 0.191201,
+          "rounds": [
+            0.166041,
+            0.166503,
+            0.18897,
+            0.191201,
+            0.162656
+          ]
+        },
+        "relative_change_pct": -4.920625856555497,
+        "W_pct": 17.14383524621179,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "p95_ms": {
+        "left": {
+          "median": 0.324927,
+          "min": 0.277146,
+          "max": 0.37517,
+          "rounds": [
+            0.277146,
+            0.324927,
+            0.369784,
+            0.295612,
+            0.37517
+          ]
+        },
+        "right": {
+          "median": 0.311077,
+          "min": 0.279146,
+          "max": 0.416873,
+          "rounds": [
+            0.279146,
+            0.306153,
+            0.357319,
+            0.416873,
+            0.311077
+          ]
+        },
+        "relative_change_pct": -4.262495883690807,
+        "W_pct": 44.27424721210504,
+        "same_direction_pairs": 3,
+        "precision_ok": true,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "cpu_us": {
+        "left": {
+          "median": 118.0,
+          "min": 112.0,
+          "max": 124.0,
+          "rounds": [
+            116.0,
+            124.0,
+            120.0,
+            112.0,
+            118.0
+          ]
+        },
+        "right": {
+          "median": 114.0,
+          "min": 108.0,
+          "max": 120.0,
+          "rounds": [
+            114.0,
+            110.0,
+            120.0,
+            120.0,
+            108.0
+          ]
+        },
+        "relative_change_pct": -3.389830508474576,
+        "W_pct": 10.526315789473683,
+        "same_direction_pairs": 3,
+        "precision_ok": false,
+        "discernible": false,
+        "direction": "within_variation_or_resolution"
+      },
+      "rss_median_kib": {
+        "left": {
+          "median": 2396.0,
+          "min": 2368.0,
+          "max": 2412.0,
+          "rounds": [
+            2368.0,
+            2396.0,
+            2412.0,
+            2392.0,
+            2396.0
+          ]
+        },
+        "right": {
+          "median": 2404.0,
+          "min": 2396.0,
+          "max": 2416.0,
+          "rounds": [
+            2396.0,
+            2404.0,
+            2396.0,
+            2408.0,
+            2416.0
+          ]
+        }
+      },
+      "rss_peak_kib": {
+        "left": {
+          "median": 2396,
+          "min": 2368,
+          "max": 2412,
+          "rounds": [
+            2368,
+            2396,
+            2412,
+            2392,
+            2396
+          ]
+        },
+        "right": {
+          "median": 2404,
+          "min": 2396,
+          "max": 2416,
+          "rounds": [
+            2396,
+            2404,
+            2396,
+            2408,
+            2416
+          ]
+        }
+      },
+      "anon_peak_kib": {
+        "left": {
+          "median": 520,
+          "min": 516,
+          "max": 520,
+          "rounds": [
+            520,
+            520,
+            516,
+            520,
+            520
+          ]
+        },
+        "right": {
+          "median": 516,
+          "min": 516,
+          "max": 516,
+          "rounds": [
+            516,
+            516,
+            516,
+            516,
+            516
+          ]
+        }
+      },
+      "file_peak_kib": {
+        "left": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "right": {
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "rounds": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        }
+      },
+      "shmem_peak_kib": {
+        "left": {
+          "median": 1872,
+          "min": 1844,
+          "max": 1892,
+          "rounds": [
+            1844,
+            1872,
+            1892,
+            1868,
+            1872
+          ]
+        },
+        "right": {
+          "median": 1884,
+          "min": 1876,
+          "max": 1896,
+          "rounds": [
+            1876,
+            1884,
+            1876,
+            1888,
+            1896
+          ]
+        }
+      },
+      "tree_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      },
+      "parent_fd_peak": {
+        "left": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "right": {
+          "median": 12,
+          "min": 12,
+          "max": 12,
+          "rounds": [
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        }
+      }
+    }
+  },
+  "raw_CPU_ticks": {
+    "c": [
+      58,
+      62,
+      60,
+      56,
+      59
+    ],
+    "rust": [
+      57,
+      55,
+      60,
+      60,
+      54
+    ]
+  },
+  "absolute_median_cpu_tick_difference": 2,
+  "primary_gains": 0,
+  "primary_regressions": 0,
+  "primary_indistinguishable": 3,
+  "all_original_windows_ranges_pair_ties_and_adverse_directions_retained": true,
+  "identity_and_actual_qualification_bindings": {
+    "status": "PASS_9E_TEN_EXACT_SOURCE_SDK_965_SIGNAL_CONTENT_TOOL_AND_GENERATOR_BINDINGS",
+    "source_commit": "9e8459dd704d339b10596721eaa2d3bef1f943c1",
+    "plan_sha256": "b5d6fecfb1da7faf25278f81f02efc6306c2a7fb70649ebf86cd851c759779fa",
+    "author_result_sha256": "ea3ad82e348cc49053acd5f4744aa1405d407bdd4f0a4f1e0d920c7643a9fbe9",
+    "source179_Git_bytes_rechecked": true,
+    "actual965_original_related_report_sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97",
+    "actual_SDK_report_sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6",
+    "actual_signals_report_sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2",
+    "actual_signal_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+    "actual_signal_binary_identities_order_schema_and_PASS_bound_not_truthy_only": true,
+    "prior_reviews": {
+      "actual_SDK_review": {
+        "commit": "6c8ad70d",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-sdk-independent-audit.json",
+        "sha256": "0744509991af8b3bc9f2c665a813b5d9d75b092dd8aa313a99210ec1937ee8b6"
+      },
+      "actual_related_independent_review": {
+        "commit": "7ffb1476",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-related-independent-audit.json",
+        "sha256": "6d352d5cc813cd80bdd67f59d38449aaea7486b13ccbce03012a32f08adcca97"
+      },
+      "standalone_runtime_signals_independent_review": {
+        "commit": "b019256e",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/correctness/cached-hit-9e-runtime-signals-independent-audit.json",
+        "sha256": "30c9d95eb602065468dda1897ec6da23d0c1071f266beb80446979f1b5a7a5d2"
+      },
+      "source_interaction_review": {
+        "commit": "d5f5c1ad",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/loop/cached-hit-9e-composition-source-review.json",
+        "sha256": "10e61daa4acf39c76e5b7a55ca4351bdb562143223db41ca6edf653f5f339c7b"
+      },
+      "device_plan_independent_review": {
+        "commit": "aac5dad2",
+        "path": "docs/dnsmasq/audits/perf-opt-20261015/dns/cached-hit-9e-device-preparation-peer.json",
+        "sha256": "649d7ac56461a3bf5a9cf0b2772e7e6aa137b56e3af860b26775732816dd3909"
+      }
+    },
+    "SDK_triple": [
+      "a91f0c88b1253dbd987508894214f30afc45e26a2b0dff6d1b94b5082a670087",
+      "346acb9555f6956c7f271e627bd635fe8c32983923a82dffc88052be853f89c0",
+      "410a23c61303383c3852188516b5c0580f508815800cb1a7ed3081ca2d2598c3"
+    ],
+    "original_four_shared_measurement_modules_byte_identical": true,
+    "same_case_wait_before_COMPLETE": true,
+    "fresh_final_DNS_quiet_and_loop_ready_bound": true,
+    "report_generator_before_and_after_hashes": [
+      "25d1127b5bbe615504e3f2f6b0b00b6f31feda29a493d6fae5e1cfa80b28f74b",
+      "033749972c6b1ce3fdc0fa972f59bbcc7825587d7e1b55746c93c5734b6c2d57"
+    ],
+    "report_calculations_exactly_unchanged_metadata_and_prose_only": true,
+    "no_remote_or_product_execution": true,
+    "reviewer_script_sha256": "1a28093a19b5b2d48a1b3c81612a402bd01ed7c845b900644145e9b1474e808d"
+  },
+  "health_recovery_phase_peer_sha256": "1478351d0b7aaf91c20f64cef33fbfccc4f5784b572a9c2fa5880ca1179f71c2",
+  "health_recovery_phase_peer": {
+    "status": "PASS_LOCAL_9E_TEN_FROZEN_HEALTH_PREFIX_TAIL_RECOVERY_AND_PHASE_BINDINGS",
+    "public_result_sha256": "ea3ad82e348cc49053acd5f4744aa1405d407bdd4f0a4f1e0d920c7643a9fbe9",
+    "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "pure_original_validation_functions_only": [
+      "complete_prefix",
+      "validate_baseline",
+      "validate_guard_evidence"
+    ],
+    "health": {
+      "baseline": {
+        "raw_sha256": "a3dde7e1b6aa0a93f4b9c9df6f654925076d09b3db00ca48e4d2f24286916d68",
+        "prefix_sha256": "2aa4d0b29a46b149288e1e7dec5bce83cf720d4b994d4a0c79a4ad42b84a854d",
+        "capture_sha256": "2aa4d0b29a46b149288e1e7dec5bce83cf720d4b994d4a0c79a4ad42b84a854d",
+        "external_sha256": "df6543fb6c2ebd66a07ca6f9227af762176cda2cc59e74136306923e57b79925",
+        "stop_request_sha256": "4c203a7555ff0f33816a467b1a5071af796b9c019d21c38f22e182aefbfdd463",
+        "qualified_samples": 126,
+        "final_samples": 126,
+        "final_tail_samples": 0,
+        "qualified_elapsed_seconds": 125.0,
+        "final_elapsed_seconds": 125.891,
+        "dns_samples": 49,
+        "http_samples": 22,
+        "external_checks": 10,
+        "max_dns_ms": 0.749,
+        "max_http_ms": 140.71,
+        "minimum_memory_all_final_samples_kib": 91096,
+        "start_epoch": 1792153182,
+        "end_epoch": 1792153308,
+        "maximum_recorded_epoch_gap_seconds": 1
+      },
+      "runtime": {
+        "raw_sha256": "c3ef32430a980d8aff8be053fc48cb06ac34380bdf7985ddaf8f7408e202f0c0",
+        "prefix_sha256": "4f9da33c834656a986ebec02a55258dc749b6f4b5fefb6fcb7ea5a28af79142f",
+        "capture_sha256": "4f9da33c834656a986ebec02a55258dc749b6f4b5fefb6fcb7ea5a28af79142f",
+        "external_sha256": "14cac0bde84fd06000e2d79f4eb67971d6039701925c92e113cda9f18afc00fe",
+        "stop_request_sha256": "d6bf7c8267c22d1e6a684ee9893a666136808b7675ce9df79c5719151ce7340a",
+        "qualified_samples": 428,
+        "final_samples": 428,
+        "final_tail_samples": 0,
+        "qualified_elapsed_seconds": 427.0,
+        "final_elapsed_seconds": 427.752,
+        "dns_samples": 168,
+        "http_samples": 78,
+        "external_checks": 30,
+        "max_dns_ms": 2.446,
+        "max_http_ms": 81.205,
+        "minimum_memory_all_final_samples_kib": 77860,
+        "start_epoch": 1792153795,
+        "end_epoch": 1792154223,
+        "maximum_recorded_epoch_gap_seconds": 1
+      }
+    },
+    "all10_window_intervals_inside_guard": true,
+    "all40_external_checks_passed": true,
+    "original17_postflight_predicates_and_four_only_prune_verified": true,
+    "postflight_shell_sha256": "1cc058956e14a934a416ed88793b75af7cf26687dbd345970e9517b28a44c56b",
+    "postflight_sha256": "0a8105f02be0920b0959919c38d42e19f90d5afe83d397433c16cdd4fadacb23",
+    "baseline_stage_launch_archive_restore_order_verified": true,
+    "production_identity_stable_and_E_F_restored": true,
+    "concurrency_receipts_rehashed_and_phase_order_verified": true,
+    "retained_signal_binding_error": {
+      "description": {
+        "failure": "Initial local binding expected SIGHUP/SIGUSR2/SIGTERM/SIGINT and failed assertion before any binding-directory creation, plan write or device call.",
+        "correction": "Read the unchanged frozen tool; original order is SIGHUP/SIGUSR2/SIGUSR1/SIGALRM, each c-image/c-native/rust. Exact result bytes and all original tests remained unchanged.",
+        "signal_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+        "audit_or_measurement_rerun": false
+      },
+      "successful_binding_sha256": "acba1381b65685089f2fe32c99f70e8e5f113182cb4ce28d2fac270ebb6f8121",
+      "unchanged_signal_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+      "evidence_limit": "Initial wrong SIGTERM/INT assertion was an inline tool command; no separate failed script/stdout/stderr bytes exist. Its before-mkdir/plan-write/SSH stopping point is an author/session explanation, not independently replayed or byte-audited here. Successful original USR1/ALRM result bytes are unchanged; no audit/measurement rerun claimed."
+    },
+    "script_sha256": "7de67f1372bd364ff1a089d7b2da34abf4d7031f42bd5bfa7580af149ed1ebf5",
+    "scope": "Local retained health/recovery/phase only. Executed only three frozen pure0926 validators, no collector/controller import, network/Oracle/router or cases rerun. Main correctness reviewer owns original archive/workload/statistical and source/SDK/signal content audits; concurrency proves recorded intervals only."
+  },
+  "postflight_sha256": "0a8105f02be0920b0959919c38d42e19f90d5afe83d397433c16cdd4fadacb23",
+  "exact_E_F_restoration_verified_from_captured_receipts": true,
+  "postflight_available_memory_kib": 89572,
+  "production_pid_start": [
+    3086,
+    2115
+  ],
+  "native_controller_start_not_treated_as_measured_start": true,
+  "derived_native_last_end_not_claimed_as_original_end_field": true,
+  "owner32_started_after_device_closure_no_owner_device_timing_overlap_claimed": true,
+  "concurrency_receipt_sha256": "dd9093a129f3c7a514f935fedbea2b684f3ef48a270c9be6547ae192df62676c",
+  "retained_local_author_signal_binding_failure": {
+    "description": {
+      "failure": "Initial local binding expected SIGHUP/SIGUSR2/SIGTERM/SIGINT and failed assertion before any binding-directory creation, plan write or device call.",
+      "correction": "Read the unchanged frozen tool; original order is SIGHUP/SIGUSR2/SIGUSR1/SIGALRM, each c-image/c-native/rust. Exact result bytes and all original tests remained unchanged.",
+      "signal_tool_sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+      "audit_or_measurement_rerun": false
+    },
+    "successful_binding_sha256": "acba1381b65685089f2fe32c99f70e8e5f113182cb4ce28d2fac270ebb6f8121",
+    "unchanged_signal_result_sha256": "df613a7e5e6f00e8f41197c7c43e195d4cc5ecd21b3859410786ea7dc0ae097e",
+    "evidence_limit": "Initial wrong SIGTERM/INT assertion was an inline tool command; no separate failed script/stdout/stderr bytes exist. Its before-mkdir/plan-write/SSH stopping point is an author/session explanation, not independently replayed or byte-audited here. Successful original USR1/ALRM result bytes are unchanged; no audit/measurement rerun claimed."
+  },
+  "retained_reviewer_input_location_failure": {
+    "failure": "FileNotFoundError reading root staged SDK directory compile.log; screen staging copied required artifacts, while complete SDK evidence remains in the original downloaded SDK package.",
+    "original_script_sha256": "900dcff2baa33b45bb441026a4693279f5ee492c1f5103de827ec4b50093153a",
+    "corrected_script_sha256": "1a28093a19b5b2d48a1b3c81612a402bd01ed7c845b900644145e9b1474e808d",
+    "correction": "Only compile-log/prestrip/static-artifact read location changes to original canonical downloaded package, build receipt SHA checked identical to staged copy. Root selected ELF/build/map identities and all original assertions retained.",
+    "product_build_or_test_or_measurement_rerun": false,
+    "failed_script_retained": true
+  },
+  "proof_receipts": {
+    "raw-core.json": "cb42f9ceadf853cb6e4cbfa0dd06f0e48052f2c6db3340bdf945ed1f3e28883c",
+    "resources-and-statistics.json": "f5ca434d252bf85fb67b7009b13e64cd3b8db663d80722ac59959f3b53c24a18",
+    "bindings.json": "2881ee0df031e32ac2b243163fa249d7c98d0bd6bce77471fd2accd636b16677"
+  },
+  "scope_limits": [
+    "Fresh exact G185 control and exact 9e combined product artifact only. The direct comparison includes inherited 6ab, warm writer, 1df, ready-frame, empty-upstream, small OPT and lease-iterator changes; no isolated-component attribution. Neither side contains allocation-meter instrumentation. No historical median pooling or subtraction.",
+    "Original200/s UDP-hit,1000prewarm,5s warmup+20s measurement,800names,A/AAAA70/30 and unchangedtools. CPU denominator5000 correctwarmup+measurement; separate count3 cached5200 denominators are not reused.",
+    "Five alternating pairs; absolute relative median change strictly greater thanW, >=4/5 same direction. CPU requires eachwindow>=10ticks and absolute median difference strictly>8ticks.",
+    "All fullranges and everyoriginalwindow retained; no selective replacement, discarded outlier or extra favorable repeat.",
+    "p99 is unavailable for4000 latency samples. RSS/RssAnon/file/shmem ranges are descriptive and are not privateheap/PSS/USS attribution.",
+    "The original native controller ran on a separate Oracle host under root coordination. Its controller launch, first measured command and derived last-command end are recorded in concurrent_Oracle_work; the premeasurement interval includes builds, setup and waiting. Controller launch is not treated as measurement start. No Oracle-idle, hardware-isolation, additive-cost or IPC claim is made.",
+    "This ten-window UDP screen doesnot complete full44 or full110 qualification and cannot establish otherworkload performance. Production/kernel/drivers/configuration were unchanged.",
+    "The initial wrong local SIGTERM/INT binding assertion has no separate failed-script/stdout/stderr archive. Its stopping point is retained as author/session explanation; this review verifies the unchanged successful df613 result and correct original four-signal order.",
+    "Root staged SDK copies contain required screen artifacts; complete original SDK compile/prestrip evidence was checked from its canonical downloaded archive with the same build hash. A reviewer input-location error is retained; no product or measurement was repeated.",
+    "Restoration is verified from retained scripts, artifact hashes and captured postflight; this review did not freshly query the router. The captured /proc/1 network namespace is not a separately queried production-PID namespace."
+  ],
+  "candidate_eligible_from_screen": false,
+  "full_functional_qualification_complete": false,
+  "full110_eligible": false,
+  "deployment_authorized": false,
+  "reviewer_remote_access": false,
+  "reviewer_repeated_windows": 0
+}
