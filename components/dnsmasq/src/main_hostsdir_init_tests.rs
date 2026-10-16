@@ -143,12 +143,12 @@ fn initial_hosts_rename_precedes_lease_retention_in_both_mixed_chain_orders() {
     assert!(observations.iter().all(|(_, _, matched)| *matched), "{observations:?}");
 }
 
-pub(super) fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
-    let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+pub(super) fn queued_dns(owner: &mut SinglePoll) -> (Rc<DnsSocket>, std::net::UdpSocket) {
+    let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
     peer.send_to(&query(), udp.local_addr().unwrap()).unwrap();
-    owner.add_listener(SocketToken(1), Some(Arc::clone(&udp)), None);
+    owner.add_listener(SocketToken(1), Some(Rc::clone(&udp)), None);
     (udp, peer)
 }
 

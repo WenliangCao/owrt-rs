@@ -46,7 +46,7 @@ fn stale_refresh_log_case(deliver_late_reply: bool) {
             parent.query_ids.next(false, None);
         }
     }
-    let listener = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+    let listener = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let address = listener.local_addr().unwrap();
     owner.add_listener(SocketToken(1), Some(listener), None);
     let suffix = if deliver_late_reply { "late" } else { "withheld" };

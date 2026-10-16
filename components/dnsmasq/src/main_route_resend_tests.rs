@@ -49,7 +49,7 @@ impl PendingCaller {
         .unwrap();
         daemon.enable_cache(8, 0, 0, StalePolicy::Disabled);
         let mut owner = super::tests::test_owner(config, Some(daemon));
-        let dns = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let dns = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let address = dns.local_addr().unwrap();
         owner.add_listener(SocketToken(1), Some(dns), None);
         let client = UdpSocket::bind("127.0.0.1:0").unwrap();

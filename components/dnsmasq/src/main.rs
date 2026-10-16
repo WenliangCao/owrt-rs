@@ -2083,7 +2083,9 @@ fn dns_local_addresses(
         .collect()
 }
 
-type DnsListenerPair = (Option<Arc<DnsSocket>>, Option<TcpListener>);
+// UDP listener handles and deferred admissions stay in the single poll owner.
+// Rc retains a removed listener until its last pending work releases it, without atomics.
+type DnsListenerPair = (Option<Rc<DnsSocket>>, Option<TcpListener>);
 
 fn suppressed_listener_error(error: &io::Error, dynamic: bool) -> bool {
     listeners::is_unsupported_socket_error(error)
@@ -2107,7 +2109,7 @@ fn open_dns_listener(
         DnsSocket::bind_config(address, config, interfaces),
         config.bind_dynamic,
     )?
-    .map(Arc::new);
+    .map(Rc::new);
     let tcp = optional_listener(listeners::tcp_bind(address), config.bind_dynamic)?;
     if let Some(tcp) = &tcp {
         tcp.set_nonblocking(true)?;
@@ -2122,13 +2124,13 @@ fn open_late_dns_listener(
     address: SocketAddr,
     config: &DnsConfig,
     interfaces: &[DnsInterface],
-) -> (Option<Arc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
+) -> (Option<Rc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
     let mut errors = Vec::new();
     let udp = match optional_listener(
         DnsSocket::bind_config(address, config, interfaces),
         config.bind_dynamic,
     ) {
-        Ok(socket) => socket.map(Arc::new),
+        Ok(socket) => socket.map(Rc::new),
         Err(error) => {
             errors.push(error);
             None
@@ -2373,7 +2375,7 @@ struct SinglePoll {
 
 struct PollListener {
     token: SocketToken,
-    udp: Option<Arc<DnsSocket>>,
+    udp: Option<Rc<DnsSocket>>,
     tcp: Option<TcpListener>,
 }
 
@@ -2620,7 +2622,7 @@ struct PendingEdnsUdp {
 struct PendingInterfaceUdp {
     query_context: dnsmasq_rs::query_logging::QueryContext,
     token: SocketToken,
-    udp: Arc<DnsSocket>,
+    udp: Rc<DnsSocket>,
     client: ClientRequest,
     query: Vec<u8>,
     mac: Option<Vec<u8>>,
@@ -2628,7 +2630,7 @@ struct PendingInterfaceUdp {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 struct PendingUdpAdmission {
     token: SocketToken,
-    udp: Arc<DnsSocket>,
+    udp: Rc<DnsSocket>,
     incoming: listeners::Incoming,
     query: Vec<u8>,
     loopback: bool,
@@ -3127,7 +3129,7 @@ impl SinglePoll {
         packet_limit: usize,
         tcp_limit: usize,
         edns_max: u16,
-        listeners: Vec<(SocketToken, Option<Arc<DnsSocket>>, Option<TcpListener>)>,
+        listeners: Vec<(SocketToken, Option<Rc<DnsSocket>>, Option<TcpListener>)>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] dhcp: Option<DhcpService>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] helper: Option<Helper>,
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))] tftp: Option<
@@ -4502,7 +4504,7 @@ impl SinglePoll {
     fn add_listener(
         &mut self,
         token: SocketToken,
-        udp: Option<Arc<DnsSocket>>,
+        udp: Option<Rc<DnsSocket>>,
         tcp: Option<TcpListener>,
     ) {
         self.listeners.push(PollListener { token, udp, tcp });
@@ -5004,7 +5006,7 @@ impl SinglePoll {
         }
         // Receiving and discarding do not retain the socket. Take shared
         // ownership only when admission or processing may queue this packet.
-        let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
+        let Some(udp) = self.listeners[index].udp.as_ref().map(Rc::clone) else {
             return false;
         };
         match self.admit_udp(&udp, incoming) {
@@ -5028,7 +5030,7 @@ impl SinglePoll {
         result
     }
 
-    fn process_admitted_udp(&mut self, token: SocketToken, udp: Arc<DnsSocket>,
+    fn process_admitted_udp(&mut self, token: SocketToken, udp: Rc<DnsSocket>,
                             incoming: listeners::Incoming, query: Cow<'_, [u8]>) -> bool {
         let query_context = match self.service.try_borrow_mut() {
             Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
@@ -5163,7 +5165,7 @@ impl SinglePoll {
                 .iter()
                 .find(|listener| listener.token == pending.listener)
                 .and_then(|listener| listener.udp.as_ref())
-                .map(Arc::clone);
+                .map(Rc::clone);
             if let Some(udp) = udp {
                 self.process_udp(
                     pending.listener,
@@ -5182,7 +5184,7 @@ impl SinglePoll {
     fn process_udp(
         &mut self,
         token: SocketToken,
-        udp: Arc<DnsSocket>,
+        udp: Rc<DnsSocket>,
         client: ClientRequest,
         query: Cow<'_, [u8]>,
         mac: Option<Vec<u8>>,
@@ -7766,7 +7768,7 @@ mod tests {
         assert!(provider.file_work_pending() && !provider.files_runnable());
         let peer = attach_test_dhcp(&mut owner, provider);
         peer.send(b"queued-dhcp").unwrap();
-        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let dns_peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         dns_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
         dns_peer.send_to(&test_dns_query(), udp.local_addr().unwrap()).unwrap();
@@ -7901,7 +7903,7 @@ mod tests {
             DaemonOptions::default()).unwrap();
         let mut owner = test_owner(config.clone(), Some(daemon));
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
-        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let tcp = TcpListener::bind(udp.local_addr().unwrap()).unwrap();
         tcp.set_nonblocking(true).unwrap();
         let mut tcp_peer = TcpStream::connect(tcp.local_addr().unwrap()).unwrap();
@@ -7987,7 +7989,7 @@ mod tests {
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
         finish_test_file_init(&mut owner);
         std::fs::write(&path, format!("{}nameserver 127.0.0.3\n", "# padding\n".repeat(128 * 1024))).unwrap();
-        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
         peer.send_to(&test_dns_query(), udp.local_addr().unwrap()).unwrap();
@@ -8090,7 +8092,7 @@ mod tests {
         assert!(owner.files_initializing());
         assert!(!owner.dns_file_work_runnable(), "the opened FIFO waits for input");
         assert!(!owner.dhcp_packet_work_allowed(), "DHCP must also wait for initial hosts");
-        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         let query = test_dns_query();
         peer.send_to(&query, udp.local_addr().unwrap()).unwrap();
@@ -8100,7 +8102,7 @@ mod tests {
         let mut tcp_peer = TcpStream::connect(tcp.local_addr().unwrap()).unwrap();
         let frame = encode_tcp_frame(&query).unwrap();
         tcp_peer.write_all(&frame).unwrap();
-        owner.add_listener(SocketToken(1), Some(Arc::clone(&udp)), Some(tcp));
+        owner.add_listener(SocketToken(1), Some(Rc::clone(&udp)), Some(tcp));
         owner.wait_for_files().unwrap();
         assert!(!owner.poll_fds.iter().any(|fd| fd.fd == udp.as_raw_fd()),
             "a queued but unprocessable DNS packet must not spin normal poll");
@@ -8503,7 +8505,7 @@ mod tests {
         let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
             DaemonOptions::default()).unwrap();
         let mut owner = test_owner(config, Some(daemon));
-        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let address = udp.local_addr().unwrap();
         owner.add_listener(SocketToken(1), Some(udp), None);
         let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();

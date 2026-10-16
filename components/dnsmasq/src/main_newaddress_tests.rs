@@ -99,7 +99,7 @@ fn ordinary_udp_forward_query_still_starts_and_resumes_its_own_enumeration() {
     let config = config(&[]);
     let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
     let mut owner = tests::test_owner(config, Some(daemon));
-    let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+    let udp = Rc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
     peer.send_to(&query(), udp.local_addr().unwrap()).unwrap();
