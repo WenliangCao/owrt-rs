@@ -1,0 +1,59 @@
+{
+  "schema": "lease-expiry-frame-source-independent-review-v1",
+  "status": "PASS_SOURCE_SEMANTICS_REVIEW_ONLY",
+  "source_commit": "84912e5432d9bb9d71aca409f2078cdc78a9368d",
+  "base_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "changed_files": [
+    "components/dnsmasq/src/dns/local.rs"
+  ],
+  "base_local_rs_sha256": "c9f8e89af02d1d66eb43bda6d3b9d077d201b6b13b724aa087312a0a957b1a3f",
+  "candidate_local_rs_sha256": "c86a225007d5d5949d5a6869382ebf3f7d2aff20f9027db13c8c4477cb8e3674",
+  "declared_edits_reverse_to_exact_base_bytes": true,
+  "helper_call_sites": 1,
+  "scope": "Separate base6ab layout prototype; no modification or qualification inheritance for currently measured6ab.",
+  "findings": [
+    {
+      "boundary": "Short-circuit and evaluation order",
+      "conclusion": "Both versions first require CLASS_IN, then test empty entries, then may_have_expired(now). Empty or conservative-live generations yield dotted_name=None. The old helper argument expressions are pure field reads/reborrows; moving these two pure predicates earlier introduces no observable side effect."
+    },
+    {
+      "boundary": "Earlier errors and deferral",
+      "conclusion": "Malformed-header rejection and the interface/NXDOMAIN deferral remain before the guard. No additional guard runs on these returns or on non-IN queries."
+    },
+    {
+      "boundary": "Expiry, negative time and rollback",
+      "conclusion": "Same now value and unchanged may_have_expired retain stale-Forever bypass, unknown-bound fallback, negative-time fallback and exact now>=bound threshold. Original fine-grained LeasePolicy.live wrapping arithmetic remains authoritative inside traversal. Active-entry removals stay sticky on clock rollback."
+    },
+    {
+      "boundary": "CNAME, PTR and copy-on-write",
+      "conclusion": "When the guard passes, the entire traversal body is byte-identical: wire_to_dotted failure remains None, up to100 CNAME links, TYPE_CNAME early return, original-name return, PTR/ANY and configured-PTR precedence, has_expired checks and Arc::make_mut calls in the same order. Additional-record expiry path is unchanged."
+    },
+    {
+      "boundary": "Cache hint generation and ownership",
+      "conclusion": "LeaseView creation and any Arc copy-on-write still precede the same cache.inspect_name/hint assignment. Cached CNAME deferral and single-fresh-address/hint calls remain at identical boundaries with identical dotted_name. Cache generation, validity checks and downstream answer construction are unchanged."
+    },
+    {
+      "boundary": "Failure and interface",
+      "conclusion": "No signature, visibility, caller set, allocation/error-return code or panic branch changes. entries().is_empty and may_have_expired only read LeaseNames fields; inline(never) is the only added compiler attribute."
+    }
+  ],
+  "unchanged_implementation_files": [
+    "components/dnsmasq/src/dns/lease_names.rs",
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs"
+  ],
+  "verification": "Read exact Git diff and sole caller/helper context; reversed declared edits to reproduce complete base local.rs bytes. No new test, benchmark or product/tool change.",
+  "author_reported_checks_not_independently_rerun": {
+    "mac_tests_passed": 725,
+    "ignored": 8,
+    "musl_all_targets_check": "PASS"
+  },
+  "local_codegen_evidence_reviewed": false,
+  "SDK_build_or_budget_verified": false,
+  "new_related_Linux_qualification_verified": false,
+  "full_functional_qualification_verified": false,
+  "performance_accepted": false,
+  "remote_accessed": false,
+  "device_accessed": false,
+  "deployment_authorized": false
+}
