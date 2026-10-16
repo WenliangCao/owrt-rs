@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "status": "PASS_CAPTURED_RECOVERY_AND_NEW_HEALTH_BASELINE_AUDIT",
+  "scope": "Independent local-only review of owner-captured recovery and a new pre-stop health baseline. No device/Oracle access; no performance-result claim.",
+  "author_recovery_commit": "d91816bf",
+  "author_recovery_report_sha256": "b6b25fec739c07c7c07cd49fc6246318eb03fbf265c7088d4b5817340c259253",
+  "old_baseline_still_failed": true,
+  "old_eight_raw_files_rehashed_unchanged": true,
+  "STOP_archive": {
+    "sha256": "96371ef61a5ffe9094ed463487f3f3e72fc565b89227b4fc2ca3fcd0aac2e818",
+    "content_sha256": "ae1e55022d0ec2a41e561ef8020864763560576388e00010308a92f3a578d28c",
+    "single_regular_member": true,
+    "all_recorded_attributes_match": true,
+    "exact_content": "a53_cached_zero_frame_health_preflight_failed\n"
+  },
+  "removal_review": {
+    "script_sha256": "d2b519afa49df1cfdb02b8d8a5d419748b46200d6fa27239a2cfa6deb393d491",
+    "exact_single_task_STOP_removal_only": true,
+    "rechecks_before_removal": [
+      "taskroot mode/uid and no symlink",
+      "regular no-symlink STOP and exact content plus tar metadata hashes",
+      "no active group or owned executable",
+      "production file/live hash and PID/start",
+      "original E/F task slot hashes",
+      "memory>=65536KiB"
+    ],
+    "pre_removal_receipt_sha256": "131ee6bdaf3664382dff0be104f0a7edbf118c8373aa59ecc5c90554c3b59e70",
+    "recovery_receipt_sha256": "c509d91797ed2a138fe90fc4356b95931927aa488516817c8b2048f03e1c1760",
+    "owner_capture_exit": 0,
+    "post_removal_production_PID_start": [
+      3086,
+      2115
+    ]
+  },
+  "new_baseline": {
+    "directory": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/health-a53-cached-zero-frame-prefix-v1",
+    "summary": {
+      "valid": true,
+      "elapsed_seconds": 125.0,
+      "final_elapsed_seconds": 125.801,
+      "dns_samples": 49,
+      "dns_p95_ms": 0.593,
+      "dns_max_ms": 0.846,
+      "http_samples": 23,
+      "http_max_ms": 65.207,
+      "threshold_ms": 200,
+      "qualification_scope": "Complete prefix captured and saved before guard stop request",
+      "qualified_samples": 126,
+      "final_samples": 126,
+      "final_tail_samples": 0,
+      "pre_stop_prefix_sha256": "2a23f25a7cb56d4b8abcf5124d417e4ec6e1977a226a3ad24d95a3f1520ffe63",
+      "raw_sha256": "b25d71df019c7add57a9c9e7c3cadb928ae7ca9b92816bee655d4526ee032d49"
+    },
+    "summary_sha256": "c08357695c8ba795569b9cbb94cc12b96a83d2dfc02df7c813bdf3ba7139b561",
+    "receipt_sha256": "8e19896bca897d5ef99c4b9626981540d8a8130e395382305cbeb35ea58e418f",
+    "all_eight_receipt_file_hashes_match": true,
+    "helper_sha256": "0926acd8d2a204fbd1fe18ca7d2f1e7edd0d02b8ca727544d2217db99e16ebad",
+    "pre_stop_capture_and_prefix_identical": true,
+    "final_starts_with_entire_capture": true,
+    "qualified_DNS_successes": 49,
+    "qualified_HTTP_successes": 23,
+    "external_HTTPS_successes": 10,
+    "minimum_available_memory_kib": 95472,
+    "no_failed_probe_excluded_from_this_new_baseline": true,
+    "tail_samples": 0,
+    "recovery_precedes_new_capture_and_stop_request": true
+  },
+  "limits": [
+    "Recovery checks and STOP removal are retained owner observations, not fresh device verification by this reviewer.",
+    "This validates only the new baseline; all original failed baseline records remain failed and no performance window is accepted by this report."
+  ],
+  "performance_acceptance": false,
+  "deployment": false
+}
