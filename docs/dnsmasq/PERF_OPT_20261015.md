@@ -4,7 +4,7 @@
 直接H/I的UDP命中CPU中位97.52→85.16µs；配对中位−14.54µs，9/9，三个block均超过新A/A7.58µs。
 33项指标3改善、0可辨退化、30未分辨；UDP-miss CPU配对+4.90µs、DHCP150和HUP-large的小幅上升均保留。
 ELF2,288,419B/APK1,295,290B符合新PGO上限2,500,000/1,400,000B。H保留回退；不相加历史收益。
-直接C/I残余对比与D1新源码专属PGO构建并行推进。无固件集成或部署。
+直接C/I16全有效：低率配对I−C为−0.97µs，未见可辨正残余；不宣称等价。继续D1/D2及真实local规则覆盖研究，无部署。
 后续以[统一计划](audits/perf-opt-20261015/FROZEN_RESEARCH_SUPPLEMENT_20261016.md)和
 [统一结果](audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md)为准，下面保留旧阶段事实。
 

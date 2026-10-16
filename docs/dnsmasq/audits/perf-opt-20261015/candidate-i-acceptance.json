@@ -370,5 +370,51 @@
       "Firmware integration, installation/rollback and whole-image/free-space envelope remain unverified."
     ],
     "behavior_fixes": "Approved b1136023 expired-CNAME fix is common to E/G/H/I and not a varying factor in these numbers; its independent cost versus v0.2.0 was not measured. I introduces no new behavior fix. UBus bookkeeping and fixture/tool fixes do not change timed ELF."
+  },
+  "direct_C_residual": {
+    "scope": "Fixed directC/I residual16 only; no equivalence/significance claim and no historical subtraction or pooled latency. Original C/H result unchanged.",
+    "result_path": "private/perf-opt-20261015/research-reset-20261016/residual-c-i16/result.json",
+    "result_sha256": "1390cce884d69720a5faca2ce4ece3fcd8d45ea0f67aad709fb567827051d1ff",
+    "summary_sha256": "924d12a90a0cd34a7751fd322ca491d574a5ab275741cecd3b92bed176462514",
+    "valid_windows": 16,
+    "low_200qps": {
+      "pairs": 5,
+      "C_I_cpu_medians_us": [
+        82.3696533,
+        80.2226416
+      ],
+      "paired_I_minus_C_us": {
+        "median": -0.9725363000000016,
+        "min": -5.619714599999995,
+        "max": 1.2118855000000082,
+        "rounds": [
+          -5.619714599999995,
+          1.2118855000000082,
+          0.30186759999999424,
+          -3.906404099999989,
+          -0.9725363000000016
+        ]
+      }
+    },
+    "high_2000qps": {
+      "pairs": 3,
+      "C_I_cpu_medians_us": [
+        50.10755054,
+        45.8517965
+      ],
+      "paired_I_minus_C_us": {
+        "median": -4.255754039999992,
+        "min": -11.185187299999996,
+        "max": 5.1738053799999975,
+        "rounds": [
+          5.1738053799999975,
+          -11.185187299999996,
+          -4.255754039999992
+        ]
+      }
+    },
+    "conclusion": "No discernible positive residual in this fixture. Not proof of equivalence or consistent superiority; all latency primaries unresolved. Original C/H data unchanged. Continue requested D1/D2 work.",
+    "resources": "Low C/I RSS medians 1244/2300 KiB; high 1216/2236. Low Anon peak medians 228/504; FD medians 11/12. Full ranges retained.",
+    "restoration": "All 720 files verified, 897 guard samples/60 external checks, min MemAvailable 71708 KiB, production/E/F unchanged."
   }
 }

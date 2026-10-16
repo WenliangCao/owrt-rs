@@ -3,7 +3,7 @@
 **I（G+新PGO）已接受：H/I UDP命中CPU中位97.52→85.16µs，配对节省14.54µs，9/9；完整118窗全部有效，33主指标3改善/0可辨退化/30未分辨。**
 实际44族/67任务与shipping边界通过，一次独立复核完成，见[candidate-i-acceptance.json](candidate-i-acceptance.json)。
 当前唯一计划为[FROZEN_RESEARCH_SUPPLEMENT_20261016.md](FROZEN_RESEARCH_SUPPLEMENT_20261016.md)。
-直接C/I残余16窗与D1 Linux测试/新profile构建并行；H保留回退。无固件集成或部署。
+直接C/I16已完成：低率配对I−C为−0.97µs，未见可辨正残余，不宣称等价。D1/D2研究继续；无固件集成或部署。
 Oracle低速C/G用户周期两侧中位数之差约3960，三次配对差的中位数为3550.5712；
 本报告对照决策采用配对结果。
 
@@ -471,3 +471,24 @@ DHCP authoritative也不是EDNS改写/DNS auth开关。真实请求OPT/flags与�
 新回归测试在原ba40上复现不必要的fallback，修正后A/AAAA回答字节及LRU与general一致；
 匹配规则、标签边界、大小写、两种wildcard、dotless、binary escape维持回退。实际Linux/SDK/PGO
 及设备收益尚未验证。它与当前ba40构建分开，后继依据实际数据选D2组合，不加入计时中候选。
+
+
+## 精确C/I残余与当前模型
+
+16/16有效、无补测。200qps两侧CPUclock中位C82.3696533/I80.2226416µs，配对I−C
+[−5.6197146,+1.2118855,+0.3018676,−3.9064041,−0.9725363]，中位−0.9725363；旧tick81→81。
+2000qps两侧50.10755054/45.8517965µs，三对[+5.17380538,−11.1851873,−4.25575404]，
+中位−4.25575404，方向不稳。低/高p50/p95均原门未分辨；不是显著更快或等价证明。
+低率RSS中位C1244/I2300KiB、Anon228/504、FD11/12；高率RSS1216/2236，范围全保留。
+原结果residual-c-i16/result.json SHA1390cce884d69720a5faca2ce4ece3fcd8d45ea0f67aad709fb567827051d1ff；
+720文件核验、897guard/60外网检查通过，最低MemAvailable71708KiB，E/F恢复且生产未改。
+
+决定暂不追加C收发骨架：当前简化命中fixture已无可辨正差距；用户追加D1/D2继续，但主问题
+转为真实配置能否用到优化。root复用既有whole-owner计数，在同一公开local=/lan/配置各跑
+20warm+2000稳定命中，原ba40 general与D1两侧都是10000次alloc/dealloc、236000B；即每查询
+5次/118B，D1全fallback且多了一次plain扫描。独立4cd修正后general和D1两侧都0分配，
+所以收益机制不只属于D1：它也恢复G已有fresh shortcut。旧“零分配”只适用于原简化配置。
+这是本机非PGO插桩计数，不能折算成A53微秒或证明真实请求覆盖率。输入/输出在
+owrt-perf-d1-count-20261016/private/d1-count/local-rule-{before,after}.log，源afd86e27→0bff6d89。
+4cd经独立针对性审查无行为风险发现，f675e9e0另保存4128组旧/新后缀匹配对照。下一轮按真实
+配置因素选择源码与配对，仍保持原正确性语料/基线/失败数据，不新增审计框架。
