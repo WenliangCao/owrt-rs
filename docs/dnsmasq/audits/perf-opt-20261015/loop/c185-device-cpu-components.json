@@ -1,0 +1,335 @@
+{
+  "status": "EXISTING_EXACT_C_G_WINDOWS_REHASHED_DESCRIPTIVE_COMPONENTS_ONLY",
+  "source_report_sha256": "fbd1bcc5d7aa64f4f95a15ce569c6fb09db2f572e3e60dd1e4c7c17961f5d1d9",
+  "source_immutable_result": "fbd1bcc5\u2026f5d1d9",
+  "scope": "First before/after records and four originalCPUfields, same100HZ/5000 completed denominator as original analyzer. All10archives and endpoint bytes verified. No new capture/reclassification/statisticalgate. Separate component medians are not additive and not function costs. Cause of unstable user/system split is not established; no A53PMU/accounting-mode/frequency inference.",
+  "original_primary_total_result_unchanged": true,
+  "rows": [
+    {
+      "round": 1,
+      "side": "c",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-c",
+      "archive_sha256": "2d3a96f3939470a6874723b8396bc489bf5df3b97f9e7406a05eb4011ec6d7e3",
+      "raw_hashes": {
+        "before.jsonl": "bf46a18cff93bc5f7c803949203eb7f66d45178929774afc5b6d64b3409f471c",
+        "after.jsonl": "73da3f38c814bf5287d5a53d7392a15b8c626dcdb9d8452edf0eb03ee10fbafb",
+        "client.json": "dce802c078a59fbf57d78c8517d783e9a4921c49b26f0c918542822f36eea58d",
+        "epoch.json": "3e75393982c34516e008f0c6c62cf0a5a2bd2ddc84f76f4531aab107c09beaf5"
+      },
+      "delta_ticks": {
+        "user_ticks": 0,
+        "system_ticks": 42,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 42,
+      "total_us_per_query": 84,
+      "parent_pid_start": [
+        11995,
+        11084658
+      ]
+    },
+    {
+      "round": 1,
+      "side": "rust",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r1-rust",
+      "archive_sha256": "99fbba3631feab3b30f023f79a422f8c23d2fea38f5c4e1449980f2dc83f26bf",
+      "raw_hashes": {
+        "before.jsonl": "473d9b6c85c5a3904f1238ea58589a008303a5cd03f02fc63f454154e8153f3f",
+        "after.jsonl": "fae86d61925490da8649b282bee08c51a1071a34d5834dcbb3e4faf49925f959",
+        "client.json": "c50b345842ac52ec8ea96a01113c032e11c7ba6a68142ea69d974e1e0f4f821c",
+        "epoch.json": "def73d0d0656c404a79f8c519ca7633e727dd8e0198d14cbe810d6335ad9b724"
+      },
+      "delta_ticks": {
+        "user_ticks": 43,
+        "system_ticks": 14,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 57,
+      "total_us_per_query": 114,
+      "parent_pid_start": [
+        12632,
+        11088462
+      ]
+    },
+    {
+      "round": 2,
+      "side": "rust",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-rust",
+      "archive_sha256": "10f22a12c7ae18ea86167df0ce1f0b1feb8dd44ed9f6ca91a96be00bed867ee6",
+      "raw_hashes": {
+        "before.jsonl": "e5e532012f2cfd81ab22676938fd4a7c54901451f06af46e691936cc5645c88c",
+        "after.jsonl": "af976c68c0011f8a93c1fa977790fa022c29e8a8c68c0049148b9ca569ccd5fb",
+        "client.json": "bee3ca3c91996ef613004dee5cafe7b3134978880a89674ce0c0f92ec762e708",
+        "epoch.json": "14dc1939cfdda9f7a10cdaffc9bed409beb788d1fd6d4b9758669c19046e5543"
+      },
+      "delta_ticks": {
+        "user_ticks": 0,
+        "system_ticks": 61,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 61,
+      "total_us_per_query": 122,
+      "parent_pid_start": [
+        12978,
+        11092773
+      ]
+    },
+    {
+      "round": 2,
+      "side": "c",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r2-c",
+      "archive_sha256": "1e5b0a1c2a0f4a751696b0026708a98a22898414e7195531d89aa28d96a775cd",
+      "raw_hashes": {
+        "before.jsonl": "1c94605d47a6c1f923342d9c33f62001830fa23a18de6c563c5a7407279b861a",
+        "after.jsonl": "108f4a9d50dce54bb259ea99ea7ac48bb3b2cb2b00f8f00b2ad49d4b79aaf7d3",
+        "client.json": "10b1937b9b57a39efa33f03df3f0faeb1c349cc9f1b2361ecf2d4ee5c95c95af",
+        "epoch.json": "b28f2f930f26777a2e0aeec5a812a92729b6afcd3f2866bf9ac9851c6b130f83"
+      },
+      "delta_ticks": {
+        "user_ticks": 27,
+        "system_ticks": 14,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 41,
+      "total_us_per_query": 82,
+      "parent_pid_start": [
+        14025,
+        11097088
+      ]
+    },
+    {
+      "round": 3,
+      "side": "c",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-c",
+      "archive_sha256": "a0ef723e11f267a97fe585493050d6484670943fef47e3c78435296c6bb7cabd",
+      "raw_hashes": {
+        "before.jsonl": "ac777bfbd054c98b5d526a9e95a64281a54ffd49ef6559a312dbb434ab0fbebb",
+        "after.jsonl": "c4233aa77af1c5828e42e3d6874a662ed289b9dc0d7317cc12b9d104c2d39688",
+        "client.json": "11fda70f69b06e48ee493e31c1a1d8c2565010105cb50d6ca1f295f3b1d58646",
+        "epoch.json": "e24f86ec396eb50369a080e0a7675745c3808fc2e70f1d542ba058139651e9fe"
+      },
+      "delta_ticks": {
+        "user_ticks": 21,
+        "system_ticks": 20,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 41,
+      "total_us_per_query": 82,
+      "parent_pid_start": [
+        14637,
+        11100902
+      ]
+    },
+    {
+      "round": 3,
+      "side": "rust",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r3-rust",
+      "archive_sha256": "019245ecd40ef1918b30aea066da187f433725f15dd8c7c63136f4fdf34399d0",
+      "raw_hashes": {
+        "before.jsonl": "96056c677273e405dc3bd7ff0d063d2ebc802c381b21196de45f669c5c32c9f6",
+        "after.jsonl": "8076bf43b3114845e58eab7820705cba3cb9bf963e582f88268ea1eb972793a4",
+        "client.json": "d65c680ab83ff0f66f8d2b5b759468c1f7b73f8457487b828651b7967939c907",
+        "epoch.json": "4a1c2687624ae80eeae3a8f308833eba71f9722bf771610025e4c077cc22bc11"
+      },
+      "delta_ticks": {
+        "user_ticks": 22,
+        "system_ticks": 35,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 57,
+      "total_us_per_query": 114,
+      "parent_pid_start": [
+        15403,
+        11104714
+      ]
+    },
+    {
+      "round": 4,
+      "side": "rust",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-rust",
+      "archive_sha256": "0548df5a5f3e3980f524e2417d43413c00a458b1ad54eccc01ac600f1e08e992",
+      "raw_hashes": {
+        "before.jsonl": "f90488ca508b2bbfb5571f3a89f5b57d1e41be6196236a65e5f3ec5a060909be",
+        "after.jsonl": "0892f8049247bb0bb7b94e8b0f492100146355fa35406035dcb1b203887be8f8",
+        "client.json": "d3648c2f589f62742632143b04c77643669daf562aa96f7b8a5736edf7aee17c",
+        "epoch.json": "869a3a610012d476e4ad412480977ecaafe9582c03ceff16079536e2b952395a"
+      },
+      "delta_ticks": {
+        "user_ticks": 0,
+        "system_ticks": 57,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 57,
+      "total_us_per_query": 114,
+      "parent_pid_start": [
+        15995,
+        11109020
+      ]
+    },
+    {
+      "round": 4,
+      "side": "c",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r4-c",
+      "archive_sha256": "bc9d4545ac53d91f5aabe4261baccc704f28827b14cc8fbeb1c9b3b7493cc0cd",
+      "raw_hashes": {
+        "before.jsonl": "4712f3dde1e1cec5043dc1d51972a671815415c8009e699716760bcc86388e7e",
+        "after.jsonl": "2843a3331019195b0d03a07d425bb093d71509c9a940c72341620a40e72438fe",
+        "client.json": "6e97a2cefbf8dea33ac9db4dd45b1375ee6e48982a03847086d4215c12862876",
+        "epoch.json": "bfd80eefa4f7ab8f89cdf8b9dc2fdf400861d8ca2a2967e014d18cd153a7ddc3"
+      },
+      "delta_ticks": {
+        "user_ticks": 9,
+        "system_ticks": 33,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 42,
+      "total_us_per_query": 84,
+      "parent_pid_start": [
+        16191,
+        11113322
+      ]
+    },
+    {
+      "round": 5,
+      "side": "c",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-c",
+      "archive_sha256": "e7cb5a25c82f609fe60e3901a04a2f58c2a1344d0fd811bc29a89c447c5d8f07",
+      "raw_hashes": {
+        "before.jsonl": "1d1eb05982ca71fade3e8dc44b7d8855dd5b7f6235a679b47958a5f84a8ec593",
+        "after.jsonl": "32d6e932777e3e35fe93e49bd01112a9087f9321da932469a8ae9a5f54264264",
+        "client.json": "5fc4eb37a8ca4326aa1f53b2fd078a113519f519cb0018c676d523d71c5119f7",
+        "epoch.json": "7ef2203bd8cf2b5da45b505ab6cae958d0042b2158e1e64be77cea126d92cb03"
+      },
+      "delta_ticks": {
+        "user_ticks": 25,
+        "system_ticks": 16,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 41,
+      "total_us_per_query": 82,
+      "parent_pid_start": [
+        17449,
+        11117146
+      ]
+    },
+    {
+      "round": 5,
+      "side": "rust",
+      "label": "a53-image-c-zero-frame-exact-c-vs-cached-zero-frame-r5-rust",
+      "archive_sha256": "34b943c2ba42346eabb52a8638885606260c3257aadd6170507cff9c9cbe71f2",
+      "raw_hashes": {
+        "before.jsonl": "763749b500af17a39547b41ef687dcb3aea23ac1ca691807604c9d09042cbafa",
+        "after.jsonl": "24024b5c985a0968bedcd1faea5f9b44821a1dae19fdd9e1d1f599e79f1d2289",
+        "client.json": "0729c600656bbd24eff733331bbff89c503601c30f87d01297a54189924e463e",
+        "epoch.json": "b6efd7ddab9d25b0c7f4e13e35f6375c5f3f771923abb9e3e77bcb4c775f3859"
+      },
+      "delta_ticks": {
+        "user_ticks": 6,
+        "system_ticks": 50,
+        "waited_child_user_ticks": 0,
+        "waited_child_system_ticks": 0
+      },
+      "total_ticks": 56,
+      "total_us_per_query": 112,
+      "parent_pid_start": [
+        18200,
+        11120948
+      ]
+    }
+  ],
+  "component_descriptions": {
+    "c": {
+      "user_ticks": {
+        "rounds": [
+          0,
+          27,
+          21,
+          9,
+          25
+        ],
+        "median": 21
+      },
+      "system_ticks": {
+        "rounds": [
+          42,
+          14,
+          20,
+          33,
+          16
+        ],
+        "median": 20
+      },
+      "waited_child_user_ticks": {
+        "rounds": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "waited_child_system_ticks": {
+        "rounds": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      }
+    },
+    "rust": {
+      "user_ticks": {
+        "rounds": [
+          43,
+          0,
+          22,
+          0,
+          6
+        ],
+        "median": 6
+      },
+      "system_ticks": {
+        "rounds": [
+          14,
+          61,
+          35,
+          57,
+          50
+        ],
+        "median": 50
+      },
+      "waited_child_user_ticks": {
+        "rounds": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "waited_child_system_ticks": {
+        "rounds": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      }
+    }
+  }
+}
