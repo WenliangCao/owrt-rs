@@ -16,6 +16,6 @@ Exact source `8d572ba1348037420da6c6a36dd8623a08572f25` matched all179 SDK recei
 
 Author verification checked10 archives and430 files against manifests/extracted bytes and recomputed the unchanged traffic/statistics. All319 observed samples and final endpoints had one daemon thread; all cases/daemons exited0. Health passed418 guard samples,165 DNS,76 HTTP and28 external dual-stack HTTPS checks; minimum available memory83,436KiB.
 
-Postflight confirmed unchanged production8472/PID-start[3086,2115], original E/F slots restored, no STOP/active group/owned executable. Verified remote window copies and three new immutable source copies were reclaimed; all local artifacts/evidence remain. Postflight shell/capture are retained. Final independent audit is tracked separately.
+Postflight confirmed unchanged production8472/PID-start[3086,2115], original E/F slots restored, no STOP/active group/owned executable. Verified remote window copies and three new immutable source copies were reclaimed; all local artifacts/evidence remain. Postflight shell/capture are retained. Final independent audit `481bf0da` passed10 archives/430 files,179 source files,600 wire samples,319 thread observations, all3 primary and7 resource comparisons, health and reconstructed postflight. Immutable result JSON SHA remains `f081e45f…a5aab3`. Only p50 passes; CPU/p95 remain indistinguishable, no G selection or promotion.
 
 All CPU/latency/resource rounds, gates and archive hashes are in `A53_LOCAL_CACHE_INTEGRATION_DEVICE_RESULT.json`.
