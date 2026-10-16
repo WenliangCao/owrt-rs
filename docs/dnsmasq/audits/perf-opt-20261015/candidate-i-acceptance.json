@@ -1,7 +1,7 @@
 {
-  "candidate": "I: G185+PGO (proposed)",
-  "status": "proposed-not-accepted",
-  "scope": "Exact6ccff2e9 artifact from unchangedG185 source and one freshG-specific training profile. Artifact/training/build/reproduction metadata only; no H qualification,screen result or I acceptance inherited.",
+  "candidate": "I: G185+PGO",
+  "status": "ACCEPTED_DEVICE_PERFORMANCE_CANDIDATE",
+  "scope": "Exact 6ccff2e9 artifact from unchanged G185 source with a new dedicated profile. Accepted after actual-ELF 44/67 and shipping boundaries, complete H/I 118-window matrix and one independent review. No firmware integration or deployment.",
   "decision_record": "docs/dnsmasq/audits/perf-opt-20261015/RESEARCH_RESET_20261016_RESULT.md",
   "source": {
     "commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
@@ -271,10 +271,104 @@
   },
   "not_verified_here": [
     "Byte-identical repeat use build or deterministic retraining.",
-    "I full correctness,physical fullmatrix and independent acceptance; root will fill actual qualification after completion.",
     "Integrated firmware/install/rollback/free-space validation or deployment authorization."
   ],
   "offline_reproduction_inputs_not_locally_available": [
     "Pinned Rust1.98.1/LLVM22.1.8 toolchain and original SDK archive; exact hashes are recorded. AllG merged/raw profiles and useELF/APK/map/prestrip are already local."
-  ]
+  ],
+  "qualification": {
+    "protocol": "FROZEN_RESEARCH_SUPPLEMENT_20261016.md",
+    "actual_shipping_elf": {
+      "families": 44,
+      "jobs": 67,
+      "passed": true,
+      "family_result_sha256": "e06b41753d9bb54339857267fd0e494a05e8cb9a3b2b5de37597621793d74337",
+      "F10": "13 cases / 704 observations; original 44 qualified PTR-order differences retained",
+      "protocol_boundary": "368 pairs, 366 exact; original 2 C forward-pointer defects retained",
+      "TCP_boundary": "13 conditions / 50 pairs; original expected timeout on both sides retained"
+    },
+    "source_level_only": "Same-G 957 checks and source corpora reused with identity. These are not fresh PGO machine-code tests. Original UID2/raw failure retained.",
+    "tool_recovery": "Original m5_rr_filter selected UDP-free but TCP-occupied port; exact C case04 exited 2. ae62721c plus deterministic reproducer 295365fe fix only fixture port selection. Only affected RR gate rerun once; original failure retained, no C expectation/comparator/product change.",
+    "device": {
+      "control_elf_sha256": "0910b49aa24e6fba72e7a45aaf2de2490fe60ab0eda23e1e71ad86b663cb9127",
+      "scenes": 11,
+      "windows": 118,
+      "valid_windows": 118,
+      "failed_windows": 0,
+      "replacement_windows": 0,
+      "primary_metrics": {
+        "improved": 3,
+        "discernible_regressions": 0,
+        "unresolved": 30
+      },
+      "result_path": "private/perf-opt-20261015/research-reset-20261016/h-i-full118-result.json",
+      "result_sha256": "76a3edf7fd493a81bcbe2158d8829b1e6ed9f81d45665fe6ecd1b85904436f97",
+      "udp_hit_cpu_clock_us_per_query_medians": [
+        97.5188992,
+        85.1583325
+      ],
+      "udp_hit_paired_median_difference_us": -14.5439082,
+      "udp_hit_d2_d8_us": [
+        -17.4785219,
+        -9.6761227
+      ],
+      "udp_hit_three_pair_block_medians_us": [
+        -16.8571425,
+        -9.6761227,
+        -15.3597544
+      ],
+      "new_AA_us": 7.5815366,
+      "udp_hit_pairs_improved": 9
+    },
+    "independent_review": {
+      "path": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/g-pgo-qualification/review-i-118-progress.json",
+      "sha256": "a4e5dd1e6a17f465cd7ce8a31cb82bf7d6b68b13427478cae41557f73eab3c35",
+      "result": "No issue found that prevents acceptance under the predeclared I software qualification and performance criteria; final acceptance decision belongs to root. Firmware integration, installation, rollback, rootfs and free-space constraints are separately unverified."
+    },
+    "correctness_summary_sha256": "377630906d868ea60051cc3ea17a6e8709c57e78cf04b1f422585bcfedc48ba5",
+    "correctness_raw_archive_sha256": "cd4147d85d51b8fa32d015e633ebe0dcfaf0cf0c6081c86252cd06bf7847c8d3",
+    "correctness_raw_archive_local_verified": {
+      "files": 83634,
+      "bytes": 681341272
+    },
+    "device_restore": {
+      "result_sha256": "76a3edf7fd493a81bcbe2158d8829b1e6ed9f81d45665fe6ecd1b85904436f97",
+      "closure_sha256": "8201b6388692feb09ebf47f6cf6cfab1107006e4e14f46bee02d401f5a87e357",
+      "guard_segments": 11,
+      "qualified_guard_samples": 4593,
+      "guard_all_samples": 4596,
+      "external_checks": 306,
+      "minimum_MemAvailable_KiB": 66508,
+      "production_and_EF_restored": true,
+      "hit_confirmed_with_each_block_over_new_AA": true,
+      "original_C_port_collision_tool_recovery_disclosed": true,
+      "qualification_archive_sha256": "cd4147d85d51b8fa32d015e633ebe0dcfaf0cf0c6081c86252cd06bf7847c8d3",
+      "qualification_manifest_sha256": "c2130ed7582ec06dffef3f39e722d3c115ad092c33c02bcade145999ec584df7",
+      "qualification_raw_files_verified": 83634,
+      "qualification_raw_bytes_verified": 681341272,
+      "all_required_local_evidence_complete": true,
+      "software_review_conclusion": "No issue found that prevents acceptance under the predeclared I software qualification and performance criteria; final acceptance decision belongs to root. Firmware integration, installation, rollback, rootfs and free-space constraints are separately unverified.",
+      "adverse_metrics_preserved": [
+        "Screen CPU pair3 +0.6557062us and p95 median +18.40475%,4/5 adverse,W119.2867%.",
+        "Full UDP-miss CPUclock paired median +4.8978536us; DHCP150 CPU +1.2867647%,unresolved by original W.",
+        "Home6 DORA maximum 2.284874 to4.747485ms,original warmup cohort.",
+        "HUP-large CPU +2.4827095%,4/5 adverse,W3.1027014%,unresolved; HUP-small CPU+0.1450231%,unresolved."
+      ]
+    },
+    "resources": "RSS median changes -92..+106 KiB; UDP-hit +100, mixed +106. Anon peak median -16..+4 KiB. FD medians match; UDP-miss H range 13..13, I 13..14. Full ranges retained in result. Minimum MemAvailable 66508 KiB exceeds unchanged 65536 KiB reserve; E/F restored and production unchanged.",
+    "adverse_unresolved": [
+      "Screen CPU pair3 +0.6557062us and p95 median +18.40475%,4/5 adverse,W119.2867%.",
+      "Full UDP-miss CPUclock paired median +4.8978536us; DHCP150 CPU +1.2867647%,unresolved by original W.",
+      "Home6 DORA maximum 2.284874 to4.747485ms,original warmup cohort.",
+      "HUP-large CPU +2.4827095%,4/5 adverse,W3.1027014%,unresolved; HUP-small CPU+0.1450231%,unresolved."
+    ],
+    "limits": [
+      "H/I changes source and profile, so this is a combined measured effect; do not add historical E/G/H/I percentages.",
+      "CPU clock gives sub-tick accumulation, not nanosecond accuracy; pair interval independence is not established.",
+      "30 unresolved primaries are not proven equivalence or zero effect. UDP-hit p95 has two adverse pairs.",
+      "Oracle complete timing matrix not repeated under research supplement; PMU diagnostics remain separate.",
+      "Firmware integration, installation/rollback and whole-image/free-space envelope remain unverified."
+    ],
+    "behavior_fixes": "Approved b1136023 expired-CNAME fix is common to E/G/H/I and not a varying factor in these numbers; its independent cost versus v0.2.0 was not measured. I introduces no new behavior fix. UBus bookkeeping and fixture/tool fixes do not change timed ELF."
+  }
 }

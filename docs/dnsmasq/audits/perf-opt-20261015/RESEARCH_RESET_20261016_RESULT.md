@@ -1,9 +1,9 @@
 # 研究方向调整：本批统一结果
 
-**PGO对同源E的独立九对真机UDP命中CPU全部更快，配对中位节省47.90µs（31.78%）；
-实际产物44族/67任务及G/PGO的118窗完整矩阵均已通过；继续完成独立复核和直接C残余对照。**
-H已完成一次独立复核并接受为新的软件性能候选，见[candidate-h-acceptance.json](candidate-h-acceptance.json)。当前唯一计划/新测量规则是
-[FROZEN_RESEARCH_SUPPLEMENT_20261016.md](FROZEN_RESEARCH_SUPPLEMENT_20261016.md)，提交d81f3f1d。
+**I（G+新PGO）已接受：H/I UDP命中CPU中位97.52→85.16µs，配对节省14.54µs，9/9；完整118窗全部有效，33主指标3改善/0可辨退化/30未分辨。**
+实际44族/67任务与shipping边界通过，一次独立复核完成，见[candidate-i-acceptance.json](candidate-i-acceptance.json)。
+当前唯一计划为[FROZEN_RESEARCH_SUPPLEMENT_20261016.md](FROZEN_RESEARCH_SUPPLEMENT_20261016.md)。
+直接C/I残余16窗与D1 Linux测试/新profile构建并行；H保留回退。无固件集成或部署。
 Oracle低速C/G用户周期两侧中位数之差约3960，三次配对差的中位数为3550.5712；
 本报告对照决策采用配对结果。
 
@@ -437,4 +437,23 @@ m5_rr_filter夹具仅选UDP空闲端口，精确C启动时TCP地址被占用。d
 选择，c5e21447保存确定性复现（旧函数失败、新函数通过）；未改C期望/比较器/I源码，
 只重跑该门，其他成功前缀复用、未执行族按原序列完成。原失败attempt和rr重跑全保留。
 原raw归档201752610B、SHAcd4147d85d51b8fa32d015e633ebe0dcfaf0cf0c6081c86252cd06bf7847c8d3，
-目前仍在Oracle待设备恢复gap下载。I完整物理矩阵/最终接受尚未完成。
+已在设备恢复gap下载，全83634个regular文件/681341272B逐hash核验。I最终接受见下。
+
+
+## I完整验收与下一轮决定
+
+H/I全部118/118有效、无补测，结果SHA76a3edf7fd493a81bcbe2158d8829b1e6ed9f81d45665fe6ecd1b85904436f97。
+UDP命中CPUclock配对中位−14.5439082µs，d2/d8为[−17.4785219,−9.6761227]；三个block
+−16.8571425/−9.6761227/−15.3597544µs，各超过本批AA7.5815366。旧tick97→86也过门。
+另两改善为hit p50（.157962→.142650ms）与mixed p50（.162963→.147652ms）。
+不利项保留：miss CPUclock配对+4.8978536µs，DHCP150 CPU2176→2204µs，HUP-large CPU+2.4827%；
+均未分辨。home6 DORA最大2.284874→4.747485ms来自原warmup cohort，不与其他分位数合并。
+RSS中位变动−92..+106KiB，Anon peak−16..+4KiB；FD中位相同但miss范围H13..13/I13..14。
+11健康段4593/4596合格样本、306外网检查通过，最低MemAvailable66508KiB；恢复E/F，生产未变。
+全部3850个设备raw文件及正确性归档已下载核验；原端口工具失败保留，仅相关门重跑。
+
+决定接受I，H保留回退。当前模型：PGO和G组合继续改善，但不能把14.54µs从历史C/H10.40µs
+残差直接相减；正在运行的C/I低高载直接配对才能回答。D1已在新I源基上准备，重复通用名字
+处理降为一次plain扫描是待测机制，不是已证明收益；按a0b59eb4完成Linux专项、独立新训练
+与95秒长窗14窗。D2保留为后继或组合，metrics收益与D1重叠；不重试D3。
+行为修复b1136023在E/G/H/I共同存在，不贡献本轮变量差；独立对v0.2.0代价未测。工具修复不改计时ELF。
