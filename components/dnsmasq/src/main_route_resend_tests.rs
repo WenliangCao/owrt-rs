@@ -366,3 +366,30 @@ fn plain_udp_owner_feature_rejection_keeps_packet_and_counters() {
         assert_eq!(fixture.owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 1);
     }
 }
+
+
+#[test]
+fn plain_udp_owner_allocation_count_comparison() {
+    let mut fixture = PendingCaller::new(true, true);
+    let query = query("cached.route.test", 0x2345);
+    let mut response = [0; 512];
+    for enabled in [false, true] {
+        D1_FAST_ENABLED.store(enabled, Ordering::Relaxed);
+        for _ in 0..20 {
+            assert!(fixture.send_client(&query));
+            fixture.client.recv_from(&mut response).unwrap();
+        }
+        let before = udp_allocation_diagnostic::cached_totals();
+        for _ in 0..2000 {
+            assert!(fixture.send_client(&query));
+            let (length, _) = fixture.client.recv_from(&mut response).unwrap();
+            assert_eq!(Header::parse(&response[..length]).unwrap().id, 0x2345);
+            assert_eq!(&response[length - 4..length], &[192, 0, 2, 55]);
+        }
+        let after = udp_allocation_diagnostic::cached_totals();
+        let delta: [u64; 6] = std::array::from_fn(|i| after[i] - before[i]);
+        assert_eq!(delta[0], 2000);
+        println!("D1_ALLOCATION fast={enabled} columns=query,alloc,dealloc,realloc,requested,released values={delta:?}");
+    }
+    D1_FAST_ENABLED.store(true, Ordering::Relaxed);
+}

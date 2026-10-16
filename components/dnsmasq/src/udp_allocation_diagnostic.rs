@@ -123,3 +123,9 @@ pub fn write_report() -> std::io::Result<()> {
     let mut file = std::fs::File::create(path)?;
     writeln!(file, "{{\"scope\":\"count-only diagnostic, not timing; complete step_udp including receive/admission/process/send and owned drops; single-thread UDP workload required; startup/wait/control work outside step excluded\",\"kinds\":[\"no_packet_or_error\",\"other_packet\",\"local\",\"cached\",\"stale\"],\"columns\":[\"alloc\",\"dealloc\",\"realloc\",\"requested_bytes\",\"released_bytes\"],\"queries\":{queries:?},\"totals\":{totals:?},\"cached_allocation_histogram_64_is_overflow\":{histogram:?},\"nested_steps\":{nested},\"unscoped_classifications\":{unscoped},\"turn_kinds\":[\"no_packet\",\"cached_only\",\"mixed_or_other\"],\"turn_columns\":[\"turns\",\"cached_queries\",\"alloc\",\"dealloc\",\"realloc\",\"requested_bytes\",\"released_bytes\"],\"whole_owner_turns\":{turns:?}}}")
 }
+
+#[cfg(test)]
+pub fn cached_totals() -> [u64; 6] {
+    let kind = Kind::Cached as usize;
+    std::array::from_fn(|i| if i == 0 { QUERIES[kind].load(Relaxed) } else { TOTALS[kind][i - 1].load(Relaxed) })
+}

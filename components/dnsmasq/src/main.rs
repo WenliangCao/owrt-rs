@@ -7,6 +7,9 @@
 
 // Excluded whole-owner allocation diagnostic; never a performance candidate.
 mod udp_allocation_diagnostic;
+#[cfg(test)]
+static D1_FAST_ENABLED: AtomicBool = AtomicBool::new(true);
+
 #[global_allocator]
 static DIAGNOSTIC_ALLOCATOR: udp_allocation_diagnostic::Meter = udp_allocation_diagnostic::Meter;
 
@@ -5033,6 +5036,8 @@ impl SinglePoll {
     // receive path owns mutable packet storage; deferred packets stay general.
     fn try_plain_udp_hit(&mut self, udp: &DnsSocket, incoming: listeners::Incoming,
                          packet: &mut [u8]) -> bool {
+        #[cfg(test)]
+        if !D1_FAST_ENABLED.load(Ordering::Relaxed) { return false; }
         if self.query_logging.enabled || self.config.edns.active() || self.config.loop_detect
             || self.config.auth.has_interfaces()
         { return false; }
@@ -5048,6 +5053,7 @@ impl SinglePoll {
         let Some(length) = daemon.try_plain_cached_udp_in_place(packet, incoming.len, local) else {
             return false;
         };
+        udp_allocation_diagnostic::classify(udp_allocation_diagnostic::Kind::Cached);
         let context = query_ids.next(false, Some(incoming.peer));
         daemon.set_query_context(context);
         if let Ok(interfaces) = self.interfaces.try_borrow_mut() {
