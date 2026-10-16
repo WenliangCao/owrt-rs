@@ -1,0 +1,235 @@
+{
+  "schema": "bare1df-actual-original-gates-and-canonical-sdk-result-v1",
+  "status": "ACTUAL963_AND_CANONICAL_SDK_DOWNLOADED_PENDING_ACTUAL_AUDIT_AND_HANDOFF",
+  "source_commit": "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "source_files_verified": 179,
+  "source_manifest_sha256": "cbba1df59b5655cbf22de35003a579d95884895b50eb03437e200e6981d3ebd0",
+  "git_identity_sha256": "d1adeb59ceae6e7c0d62ee220c3d69c435d5e706e1a8d2d7ddf0d5698e340362",
+  "source_input_changes": [
+    "components/dnsmasq/src/dns/cache.rs",
+    "components/dnsmasq/src/dns/cache_engine.rs",
+    "components/dnsmasq/src/dns/cache_tests.rs"
+  ],
+  "bare_source_only": true,
+  "execution_plan": {
+    "path": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/execution-plan.json",
+    "sha256": "ca4b8235ac1526f149d8ee8ec670f0ba4b64c0e3f7aa6eaa56398cd1ef8c0398",
+    "release_binding_review_commit": "84b59217",
+    "release_binding_review_sha256": "9dc20eda31515c793edef6916acc2aae58e3be562ae1def5bd867f4b43c60dce",
+    "actual803_release": {
+      "path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/185-opt2-owner32-release-to-dns-bare1df.json",
+      "sha256": "a0e3fd07ea97490196da80eaad36cd852b18c463196e29cacd986d231a33ea39",
+      "closeout_commit": "03d9c6c6",
+      "closeout_report_sha256": "baedf464b88e139eed160761631a9f6ece6bcd5882a71f911004cc4247d5dc8d"
+    }
+  },
+  "related": {
+    "status": "PASS_FRESH_ORIGINAL_FIVE_RELATED_GROUPS_AND_QUIET",
+    "verified_receipt_sha256": "c08905f96b9bc9a896b6105a8f83b98687c406289a4ac05f0323331a9de9bdb0",
+    "unit_raw_sha256": "8feed74338a33b3767430363f0b171f28515f2c699ea3145773c77062fa48efd",
+    "total_passed": 963,
+    "groups": [
+      {
+        "gate": "lib",
+        "exit": 0,
+        "passed": 842,
+        "failed": 0,
+        "ignored": 22,
+        "listed_tests": 864,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "5e5bcf37690bb690484bcdfb3bb8b5d718a9be27d2be82afb57b4a06d30c00fa",
+        "listing_sha256": "b0ddffac82f7c710607b275aee3853c1f302f722d91c65d9dcefb40c38233d08",
+        "binary_sha256": "e09da10477ed9caa02e370fb4a66a8780b8946323b0752abbae1c89c172231c0"
+      },
+      {
+        "gate": "bin",
+        "exit": 0,
+        "passed": 82,
+        "failed": 0,
+        "ignored": 4,
+        "listed_tests": 86,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "88a10e6d954686b49b6c87d3b9fa5db8067ba7849521a59aa89d99859f95c269",
+        "listing_sha256": "93dc3117e9508025e732b030938a7b80ad5d40cb86077aaf6c7b8e2a4ddcea61",
+        "binary_sha256": "7fb69e8fca4b2c6762bf0629341136ad49fecca40a5b0e28a9fd862cb3862984"
+      },
+      {
+        "gate": "allocations",
+        "exit": 0,
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 17,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "1e1be75731699f28f345fbcde92da06f294d735bf9edb7803ad7b478d0001851",
+        "listing_sha256": "b8deb760fdeb632fce3d4e1a86272ef2f0b8b86437ca91e8283a99b6c1668f11",
+        "binary_sha256": "324375936d273724b40ae00d63cb4654f52bf9f6f273170996ffa8f556f8ff3b"
+      },
+      {
+        "gate": "lib-ignored-live",
+        "exit": 0,
+        "passed": 18,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 18,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "b219b1b57db547435f8bd31dc97cde423febf23731da24ee0bb9522b1322de90",
+        "listing_sha256": "a14640e9dc9a370d3ce73035b29b2e2751adce58a73db02e75ce0edbdd935726",
+        "binary_sha256": "e09da10477ed9caa02e370fb4a66a8780b8946323b0752abbae1c89c172231c0"
+      },
+      {
+        "gate": "bin-ignored-live",
+        "exit": 0,
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "listed_tests": 4,
+        "listed_names_match_actual_log": true,
+        "log_sha256": "2d4322cb29b1f63b77a31088ade5008b90bcbabd5fceca9c9c64b2922982f7f1",
+        "listing_sha256": "d75e093a6c878d0a4067dab118f063cd842d5a5edf9846c857d236573bc6e58c",
+        "binary_sha256": "7fb69e8fca4b2c6762bf0629341136ad49fecca40a5b0e28a9fd862cb3862984"
+      }
+    ],
+    "all_original6ab_passed_test_names_retained": true,
+    "added_tests_exactly": [
+      "dns::cache::tests::inline_address_details_preserve_record_bytes_and_snapshot_visibility",
+      "dns::cache::tests::snapshot_metadata_updates_keep_target_and_authority_independent"
+    ],
+    "original_dev_test_builds_unchanged": true,
+    "first_and_only_run": true,
+    "wrapper_exited": true,
+    "download": {
+      "status": "BARE1DF_RELATED_RAW_AND_THREE_TEST_ELFS_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/related-immutable-results.tar.gz",
+      "archive_sha256": "01021b45916fb334e60337b0fe5959c76805378abf628661582cd7b6c5229989",
+      "archive_bytes": 37536796,
+      "regular_files_including_manifest": 47,
+      "manifest_entries": 46,
+      "manifest_sha256": "d04ed07409ccbfda3289972ef12acb1ccd6808e40b8297529c3f92406ce7e179",
+      "raw_bytes": 158621373,
+      "root": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/related-downloaded"
+    },
+    "collector_omission": {
+      "fix_commit": "51e1ccf2",
+      "report_sha256": "8712331907e2edcae3858bd53daeddbb89cb99e05eb455287809a079467a8d23",
+      "scope": "Originalpackage kept. Twoincorrectextra803wrapperfiles arenotactual1dfinputs; originalexecuted1dfwrapperbytes supplementedagainstoriginalpreflighthashes. No test/build rerun.",
+      "supplement": {
+        "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/related-wrapper-supplement.tar.gz",
+        "archive_sha256": "1ed5de3755646f3b3fc1aa856d9e3ebab913e4855a9dfe1ff6fd12d29c7abc45",
+        "archive_bytes": 2256,
+        "receipt_sha256": "5f4e22e4d487132377d70bf524b00efdccd30be0f60ad9b1c2553be865858d7f",
+        "omission_record_sha256": "0b67c50a99f1491bbe7603950a86895ceddfa90ee08aff27491a29e6a65647c7",
+        "directory": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/related-wrapper-supplement"
+      }
+    }
+  },
+  "SDK": {
+    "status": "built-unqualified",
+    "command_returncode": 0,
+    "command": [
+      "python3",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-builder-5e6c41f6/perf_opt_sdk_build.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/source-inline-address-details",
+      "--commit",
+      "1df135dc2401a9f0ec2f219b1e4a8f07dd637db1",
+      "--epoch",
+      "1792129714",
+      "--sdk",
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+      "--out",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-inline-address-details",
+      "--cargo",
+      "/home/ubuntu/.cargo/bin/cargo",
+      "--build-slot",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot",
+      "--cargo-target",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-cargo-target"
+    ],
+    "builder_sha256": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "helper_sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+    "build_receipt_sha256": "04e582299d5e7a13002c36d37be421af3c651c4ec66eef15d80dfd8753a669f6",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2145051,
+        "sha256": "f7cde2e91c19d3aa535ef87078144acde965999163cbdd689bfff73ffa08b53d"
+      }
+    ],
+    "APK": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1167447,
+      "sha256": "7f928a01bdeffa807c89130e77d647d030066eac9bc2d8f97fbfcc6a463e5e86"
+    },
+    "link_map": {
+      "path": "link.map",
+      "sha256": "ea0bf7b17e529c33df54bd36dd90bbd52387f64551a4b0a5ba0c2bec43bb61bb"
+    },
+    "prestrip": {
+      "sha256": "807ee2e603224b2dbcc92e9b910054a413c7c018e239a5ed2026fdae81607826",
+      "bytes": 2146784
+    },
+    "original_opt_level": "3",
+    "features": "",
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "within_existing_budget": true,
+    "elf_layout": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "source_unchanged": true,
+    "SDK_inputs_unchanged": true,
+    "recipe_restored": true,
+    "recipe_restore_basis": "Unchanged helper completed finally restoration; backup absent; current recipe files recorded without inventing a prebuild hash snapshot.",
+    "recipe_current_files": {
+      "Makefile": "be342e2ce19feca34789322644c3938e97c8b70dd238720c47d10cb81887fd7b",
+      "README.md": "977e2372dae8927a5dce8557b73aede00193d017b386acdc46b49e28cb21cbfc"
+    },
+    "original_fakeroot_warning_lines_retained": 21,
+    "first_and_only_build": true,
+    "download": {
+      "status": "BARE1DF_SDK_AND_PAYLOAD_DOWNLOADED_REHASHED",
+      "archive": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/sdk-immutable-results.tar.gz",
+      "archive_sha256": "5438196e4bcf4a8fc4d2c912d141cdad864d7ecabd2be332292189809bc6da7d",
+      "archive_bytes": 5042660,
+      "regular_files_including_manifest": 40,
+      "manifest_entries": 39,
+      "manifest_sha256": "857b9f397b30f94a76442d8ce9b22fb4b35282b2a937bc75a2b6c9773c3c33ab",
+      "raw_bytes": 10941443,
+      "root": "/Users/USER/Developer/owrt-perf-post185-sdk-preparation-20261016/private/perf-opt-20261015/inline-address-details-execution-preparation/execution/sdk-downloaded"
+    }
+  },
+  "postflight": {
+    "sha256": "2d79becfc39108e30d2d2b395809bc960d563364d5b2a550adf166f368a688e1",
+    "tool_sha256": "fa7371659832e8a22d5e0d45fef8f1e2d0a4d29d0b0f0397ac681312a9952e18",
+    "controller_sha256": "4f84097431a366bf4f7ec0d8d2d5f05a0457d70c9b0680fd6751cf2dbb15a448",
+    "epoch": 1792139264.1438203,
+    "controller_and_builder_exited": true,
+    "research_including_exact_image_C": [],
+    "locks_available": [
+      "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+      "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+    ],
+    "accepted_G_unchanged": true
+  },
+  "independent_actual_review": null,
+  "final_quiet_release": null,
+  "runtime_hardening_verified": false,
+  "performance_timing_started_by_DNS": false,
+  "qualification": "Actualfreshoriginalrelated+canonicalSDKsource/staticbudget only; no fullfunctional/performance or deploymentinheritance.",
+  "next_queue": "Actualrelated/SDKindependentreview, allnecessarytools/artifactpretransfers andfreshdevicegates, finalquiet; thenoriginalG/1dfnative240\u2192owner32 anddevice10 undertheiroriginalowners.025/5cremainbehind1dfresults."
+}
