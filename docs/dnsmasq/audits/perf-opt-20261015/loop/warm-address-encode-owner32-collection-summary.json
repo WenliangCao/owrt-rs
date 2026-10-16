@@ -1,0 +1,10 @@
+{
+  "archive_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-smallraw.tar.gz",
+  "archive_sha256": "2d213fad9c7c96e1e014ebbcbb19ed1eec58df39e449845e9aa79aa59d8b966b",
+  "archive_bytes": 964559,
+  "files": 1172,
+  "omitted": 192,
+  "collection_path": "/home/ubuntu/dnsmasq-perf-20261015/loop/private/warm-address-encode-owner32-smallraw-collection.json",
+  "collection_sha256": "89c4a2003f1ce3d164ab16f7b866cdf24c0e8843a6eaf6990981c2eab46a196a",
+  "downloaded": false
+}

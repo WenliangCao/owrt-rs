@@ -1,0 +1,14 @@
+{
+  "status": "RETAINED_LOCAL_RELEASE_ADAPTER_ASSERTION_BEFORE_REMOTE_SEND",
+  "epoch": 1792149996.839782,
+  "check": "assert 'WARM_' not in s",
+  "reason": "Check matched intentional EXPLICIT_QUIET_RELEASE_TO_CORRECTNESS_ORIGINAL_WARM_OWNER32_REMOTE_RAW_AUDIT status after all four placeholders were replaced.",
+  "failed_error": "AssertionError at local adapter line6",
+  "template_sha256": "ad5b4d76b5f7315d7b2a8ba757ac1fcdf852e080f1656b87bfbb1462d4842e61",
+  "intended_remote_script_sha256": "417b5196c97b68de83e3004e8e7b89c2a4239888f93704beec9612a029ba20db",
+  "remote_script_written": false,
+  "remote_release_attempted": false,
+  "measurement_retries": 0,
+  "analysis_retries": 0,
+  "correction": "Check only the exact four placeholder tokens; remote script content and all measurement/analysis remain unchanged."
+}

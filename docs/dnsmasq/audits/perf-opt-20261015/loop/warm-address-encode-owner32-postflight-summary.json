@@ -1,0 +1,22 @@
+{
+  "status": "PASS_OWNER32_ORIGINAL_ANALYZER_FULL_RAW_AND_SOURCE_IDENTITY",
+  "epoch": 1792149906.3918824,
+  "windows": 32,
+  "stat_windows": 12,
+  "plain_windows": 20,
+  "all48_PMU_events_unscaled": true,
+  "controller_exited": true,
+  "plan_sha256": "a26e73f253cda85388ef0b65454ff609fa704c6ca82c8c0f9f4362f07ff7ceb2",
+  "identity_sha256": "17ae9faca685b761acf2948689724c1757632193abc5bb1b8a7c6dad0d4f65c0",
+  "progress_sha256": "e772ef7cdd08a6ecd9397656b3c19c673a889bbbedd995dd8f737fa4bf2b9fa0",
+  "complete_sha256": "65bf5eb769af539b28c6c41868942603f5315219722a9cfe154636942e4813aa",
+  "analysis_sha256": "bc7faa39c37de60402c362d7dbd82a6704dc42cd2317b1e75964c89a0ac141e8",
+  "analysis_tool_sha256": "434eb14be206085d7e4fe39f30a831e8ee7b5f298b53d82324f7518cbd5f624a",
+  "source_files_verified_each": 179,
+  "raw_file_count": 1264,
+  "raw_binary_bytes": 3624051024,
+  "all_raw_including_bins_remain_remote": true,
+  "measurement_retries": 0,
+  "original_full_postflight_sha256": "d62d8789a1d74ec89b34ef5674c2acb59913b9a063bce33f3c5924dcb55e7b8b",
+  "scope": "Small summary only; full original raw-file inventory remains remote pending bulk release."
+}
