@@ -1,0 +1,97 @@
+{
+  "schema": "canonical-host-presence-source-review-v1",
+  "status": "PASS_SOURCE_ONLY_CURRENT_CANONICAL_NAME_CALLERS_AND_MEMBERSHIP_SEMANTICS",
+  "source_commit": "2155eabadfacf5e46d478d8395dae3234ea4b616",
+  "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "changed_product_files": [
+    "components/dnsmasq/src/hosts.rs",
+    "components/dnsmasq/src/dns/local.rs"
+  ],
+  "source_files_sha256": {
+    "components/dnsmasq/src/dns/local.rs": "f8e60f811bdf374195696509b97627aea9f35d1958e63143387d769aef250abd",
+    "components/dnsmasq/src/hosts.rs": "0dac900d6933503bc166bcec4ecf2226e43bbbc2793adfecb82b1e06ed783638",
+    "components/dnsmasq/src/dns/wire.rs": "13f9a954c09ff296d40f27c4925528aad15e3ba8a30e7c2e0e2d4a5ccf4082ea"
+  },
+  "exact_reverse_substitution_restores_both_base_files": true,
+  "all_other_source_files_unchanged": true,
+  "caller_count_excluding_definition": 2,
+  "findings": [
+    "Public name_exists keeps the original empty-forward/nonterminal guard before uppercase scanning or allocation. Nonempty mixed-case input makes the same lowercase Vec. Canonical input remains allocation-free; lookup order remains forward then nonterminal.",
+    "cached_address_is_unclaimed has one call, from the class-IN fresh A/AAAA cache branch after expiry and configured/cached CNAME guards. It changes only the hosts callee; all ownership guards and the short-circuit lease lookup remain byte-identical.",
+    "Some(name) comes only from unchanged expire_lease_lookups, which returns the ASCII-folded original query_name from wire_to_dotted. Configured CNAME expiry traversal changes only its private cursor, never the returned query spelling.",
+    "None uses unchanged query_dotted_name and its 253-byte stack scratch. Both converters fold every ASCII uppercase byte and preserve non-ASCII/NUL bytes. Root becomes an empty slice; literal label dots or invalid bounds keep the existing false/fallback behavior.",
+    "There is no empty-host-table shortcut before conversion in cached_address_is_unclaimed: its is_published guard tests bulk.is_none(). Both the public method and new helper retain the explicit empty forward/nonterminal membership guard. The helper debug assertion runs before its guard; all current callers satisfy the canonical precondition even for empty tables.",
+    "New helper is crate-private and read-only. Its debug assertion makes future canonical-caller obligations explicit. No allocation is removed from the already-canonical cached path; this only avoids the release uppercase scan. Public API may incur an extra helper call; performance is unmeasured."
+  ],
+  "peer_receipt_sha256": "6a4b69fe36ebb1d81a33b544894b30ed74e359b1df3819fefbb4cb1da2d9ff0c",
+  "peer_receipt_path": "/Users/USER/Developer/owrt-perf-post185-screen-prep-20261016/private/perf-opt-20261015/canonical-host-presence-review/source-review.json",
+  "peer_review": {
+    "status": "PASS_LOCAL_SOURCE_ONLY_CANONICAL_HOST_PRESENCE_CALLER_REVIEW",
+    "source_commit": "2155eabadfacf5e46d478d8395dae3234ea4b616",
+    "base_source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+    "source_worktree": "/Users/USER/Developer/owrt-perf-canonical-host-presence-20261016",
+    "source_files_sha256": {
+      "components/dnsmasq/src/dns/local.rs": "f8e60f811bdf374195696509b97627aea9f35d1958e63143387d769aef250abd",
+      "components/dnsmasq/src/hosts.rs": "0dac900d6933503bc166bcec4ecf2226e43bbbc2793adfecb82b1e06ed783638",
+      "components/dnsmasq/src/dns/wire.rs": "13f9a954c09ff296d40f27c4925528aad15e3ba8a30e7c2e0e2d4a5ccf4082ea"
+    },
+    "product_diff_sha256": "b9c7a17cfa838c39f90bc15228d9d760960ec981ed11fa159765f45f73d6da36",
+    "changed_files": [
+      "components/dnsmasq/src/dns/local.rs",
+      "components/dnsmasq/src/hosts.rs"
+    ],
+    "callers": [
+      {
+        "path": "components/dnsmasq/src/dns/local.rs",
+        "line": 333,
+        "callee": "cached_address_is_unclaimed",
+        "finding": "Only one call site. dotted_name is local output of expire_lease_lookups at279-286; it is not provided by an external caller."
+      },
+      {
+        "path": "components/dnsmasq/src/dns/local.rs",
+        "line": 891,
+        "finding": "Some path converts the original question with wire_to_dotted and returns the original query_name at898/921. The CNAME expiry cursor may change to a configured target at908 but never replaces returned query_name."
+      },
+      {
+        "path": "components/dnsmasq/src/dns/local.rs",
+        "line": 981,
+        "finding": "wire_to_dotted maps every label byte through u8::to_ascii_lowercase and inserts only dot separators. Root returns empty bytes at967-968; literal label dot or invalid label/extent returns None at970-976."
+      },
+      {
+        "path": "components/dnsmasq/src/dns/local.rs",
+        "line": 643,
+        "finding": "None path uses unchanged query_dotted_name into253-byte stack scratch. Every copied label byte is to_ascii_lowercase at1014-1015; root returns length0; dot/invalid/bounds failures returnfalse before helper at643."
+      },
+      {
+        "path": "components/dnsmasq/src/hosts.rs",
+        "line": 1500,
+        "finding": "Only other helper call is public name_exists after its unchanged uppercase scan and conditional ASCII-lowercase allocation. Existing empty-forward-and-nonterminal guard remains before scan/allocation at1490-1492."
+      }
+    ],
+    "semantics": {
+      "root": "Empty canonical byte slice reaches the same forward/nonterminal membership queries as before. Empty tables still return false. No root-specific behavior added.",
+      "binary_names": "ASCII A-Z bytes are folded by both existing converters; all other bytes, including NUL/high bytes, are preserved. No Unicode normalization or escaped-dot expansion added.",
+      "dot_or_invalid_conversion": "Existing conversion failures return false from cached_address_is_unclaimed; original local-answer fallback remains selected.",
+      "public_api_allocations": "Empty tables return before allocation; nonempty uppercase input uses the same one lowercase Vec; canonical input remains allocation-free. New helper adds no allocation and does not change lookup order or short-circuit lease lookup.",
+      "debug_assert": "No current path can supply ASCII uppercase to the helper: both dotted converters fold and public API normalizes first. Assertion precedes helper empty guard, but current callers still satisfy it even with empty tables. Crate-private future callers must preserve that precondition.",
+      "mutable_state": "Read-only hosts membership and existing lease lookup; no record/expiry/rotation/ownership changes."
+    },
+    "unchanged_converter_source_bytes_verified": true,
+    "current_helper_call_sites": 2,
+    "source_review_limits": [
+      "No runtime/performance claim. No tests or builds were executed; prior reported725Mac/8ignored/musl-all-targets/two shortcut tests were not rerun or independently revalidated here.",
+      "No remote or physical device access.",
+      "Debug builds retain the assertion scan; release speed is a later measurement question."
+    ],
+    "blocking_findings": [],
+    "target_files_modified": false
+  },
+  "scope_limits": [
+    "No tests, compilation, SDK work, captures, remote access, or device operations were performed.",
+    "Author reports release725/8ignored, musl all-target checks and two existing debug guard tests. Those results and codegen were not independently revalidated by this source-only review.",
+    "Independent6ab candidate; not included in actual803 or bare1df and not authorized for remote scheduling by this report.",
+    "No runtime, performance, shipping artifact, or deployment acceptance."
+  ],
+  "blocking_findings": [],
+  "reviewer_script_sha256": "ab86e59cb51cfe3d28b3b7d6917d624b484122adf159a0c01f5f16afd85e3539"
+}
