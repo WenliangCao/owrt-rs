@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "status": "PASS_LOCAL_SDK_AND_OWNER32_BINDING_REVIEW",
+  "scope": "Independent local artifact and source checks; original owner32 setup review. No remote command, build, runtime protection probe or timing executed by reviewer.",
+  "source_commit": "185db90c9cabd26c0af09765636ef15bf6d35f79",
+  "source": "/home/ubuntu/dnsmasq-perf-20261015/root/source-cached-zero-frame",
+  "source_identity_sha256": "0fdf69233a1c32cfe2ae3d1280801e1256b7542b4df68c732e028ddc29670762",
+  "source_digest": "4116339b41acfee6c331db99c223300067c2e1848f79ed07dfa6468ba41901c7",
+  "source_files_rehashed_against_git": 179,
+  "local_SDK_directory": "/Users/USER/Developer/owrt-perf-cached-zero-frame-owner32-20261016/private/perf-opt-20261015/cached-zero-frame-owner32-inputs/sdk-cached-zero-frame",
+  "artifacts": {
+    "dnsmasq-rs": {
+      "sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+      "bytes": 2145051
+    },
+    "link.map": {
+      "sha256": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+      "bytes": 3023902
+    },
+    "build.json": {
+      "sha256": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10",
+      "bytes": 43975
+    }
+  },
+  "build_configuration": {
+    "features": "",
+    "opt_level": "3",
+    "source_unchanged": true,
+    "recipe_restored": true,
+    "budget": {
+      "elf_max_bytes": 2200000,
+      "apk_max_bytes": 1200000
+    },
+    "apk_bytes": 1167095,
+    "within_existing_budget": true,
+    "static_layout_from_hash_bound_receipt": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "runtime_protections_independently_retested": false
+  },
+  "size_context": {
+    "ELF_bytes": 2145051,
+    "accepted_E_bytes": 2136859,
+    "delta_vs_E_bytes": 8192,
+    "previous_0161_bytes": 2140955,
+    "delta_vs_0161_bytes": 4096,
+    "scope": "Within the original size budget; this is not proof of acceptable runtime memory growth."
+  },
+  "related_Linux": {
+    "verified_receipt_sha256": "b5089b4b54bcde00a4d887453a1912965c10062066bb48323ea7607f2b651501",
+    "passed": 940,
+    "source_and_gate_binding_verified": true
+  },
+  "owner32": {
+    "plan_sha256": "e05c8b0ae0de73bcbac5a7eac0fa1ed92dcf8026df390fb2121c03c078d59ba1",
+    "controller_sha256": "b9ce540f671a6c34160888cebf9258da25655d2633d316805c22631d68805b49",
+    "analyzer_sha256": "ad0097a97eefbbe4ffd3a7aec5bc30ef994a961ca50f2c7e2472fe89f71f5cee",
+    "baseline_E_source": "4f869c885b47dcf60d56c872e5b0b3c62237beea",
+    "baseline_E_elf_sha256": "8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27",
+    "both_SDK_source_sets_rehashed": 358,
+    "all_eight_analysis_input_file_hashes_verified": true,
+    "candidate_identity_and_actual_940_pass_binding": true,
+    "runner_changes": "Candidate paths/source identity, actual gate count and frozen-plan status assertion only; original32-window order, process-group cleanup, timeout and preservation remain.",
+    "analyzer_changes": "Only the scope label changes from0161 to185; all calculations are byte-identical.",
+    "statistical_rules": "Original low-load fixed-cohort CPU precision and W/direction; high-load variable-N diagnostic with no precision pass; no old control pooling.",
+    "execution_boundary": "Wait for directE/185 native240 completion and explicit exclusive Oracle slot release."
+  },
+  "prior_0161_evidence": "Original A53 CPU gate failure and owner32 low-load non-improvement/high send-lag regressions remain. This is a separate185 candidate.",
+  "full44_qualified": false,
+  "selected_G": false,
+  "performance_accepted": false,
+  "deployment": false
+}
