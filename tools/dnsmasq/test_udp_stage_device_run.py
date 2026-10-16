@@ -100,8 +100,10 @@ class StageGateTests(unittest.TestCase):
         import udp_thread_local_handles_device_run as handles
         import opt2_codegen_device_run as opt2
         import inline_address_details_device_run as inline_address
+        import owner_ready_frames_device_run as ready_frames
         for entry, role in ((handles, 'udp-thread-local-handles'), (opt2, 'opt2-codegen'),
-                            (inline_address, 'inline-address-details')):
+                            (inline_address, 'inline-address-details'),
+                            (ready_frames, 'owner-ready-frames')):
             with patch.multiple(stage, PREFIX=stage.PREFIX, GROUPS=stage.GROUPS,
                                 ARTIFACT_ROLES=stage.ARTIFACT_ROLES, EXPERIMENT_ROLE=stage.EXPERIMENT_ROLE):
                 entry.configure()
