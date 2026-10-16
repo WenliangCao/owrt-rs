@@ -156,6 +156,67 @@ fn plain_hit_matches_original_bytes_ttl_lru_and_counted_eviction() {
 }
 
 #[test]
+fn plain_dual_family_hit_matches_general_bytes_and_eviction_order() {
+    for owner in [name("dual.example"), name("DuAl.example")] {
+        for order in [[1, 28], [28, 1]] {
+            for round_robin in [false, true] {
+                let mut reference = Cache::new(8, Policy::default());
+                let mut counters = CacheCounters::default();
+                for rrtype in order {
+                    insert(&mut reference, &mut counters, address(owner.clone(), rrtype, 7));
+                }
+                insert(&mut reference, &mut counters, address(name("other.example"), 1, 8));
+                let mut actual = reference.snapshot();
+                let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+                Arc::make_mut(&mut local.config).no_round_robin = !round_robin;
+                for rrtype in [1, 28, 1, 28] {
+                    let packet = query(&owner, rrtype);
+                    let header = Header::parse(&packet).unwrap();
+                    let question = Question::parse_with_header(&packet, header).unwrap();
+                    // Bypass every shortcut in the reference, including the
+                    // general owner's newly eligible dual-family hint.
+                    let expected = CacheContext::answer_records_general(&mut reference,
+                        &question, header, 101, &mut local, 512, false, false, None)
+                        .unwrap().packet.unwrap();
+                    let answer = in_place_answer(&mut actual, &packet, &mut local, 101,
+                        &mut Vec::with_capacity(64)).expect("one address per family is eligible").unwrap();
+                    assert_eq!(answer, expected);
+                    assert_eq!(entries(&actual), entries(&reference));
+                    assert_eq!(eviction_trace(&actual, counters), eviction_trace(&reference, counters));
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn plain_dual_family_rejects_other_member_expiry_and_invalid_addresses() {
+    let owner = name("dual.example");
+    for requested in [1, 28] {
+        let other = if requested == 1 { 28 } else { 1 };
+        for mode in ["expired", "stale", "negative", "wrong-length", "third-record"] {
+            let policy = Policy { stale: if mode == "stale" { StalePolicy::Forever }
+                else { StalePolicy::Disabled }, ..Policy::default() };
+            let mut cache = Cache::new(8, policy);
+            let mut counters = CacheCounters::default();
+            insert(&mut cache, &mut counters, address(owner.clone(), requested, 7));
+            cache.start_insert();
+            let mut record = address(owner.clone(), other, 8);
+            if mode == "negative" { record.negative = true; record.data.clear(); }
+            if mode == "wrong-length" { record.data.pop(); }
+            cache.insert_counted(record, 100,
+                if mode == "expired" || mode == "stale" { 1 } else { 60 }, &mut counters).unwrap();
+            if mode == "third-record" {
+                cache.insert_counted(address(owner.clone(), other, 9), 100, 60, &mut counters).unwrap();
+            }
+            assert!(cache.commit_counted(&mut counters));
+            let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+            reject_unchanged(&mut cache, counters, &mut local, &query(&owner, requested), 102);
+        }
+    }
+}
+
+#[test]
 fn plain_packet_rejections_leave_semantics_untouched() {
     let owner = name("hit.test");
     let original = query(&owner, 1);
