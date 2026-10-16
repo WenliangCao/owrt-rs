@@ -1,0 +1,38 @@
+{
+  "status": "PASS_ACTUAL_IDENTITY_BINDING_DELTA_NOT_EXECUTION_RELEASE",
+  "commit": "153493e3",
+  "plan_sha256": "bba07fc6768e0ca6d59e821bb798b557de6991d9d21c92bdb116787db0f5b167",
+  "actual961_sha256": "671ac4f17b2755064149705902c77f289cd289818c527028d7777309f4fd66f8",
+  "artifact_hashes_reverified": {
+    "dnsmasq-rs": {
+      "sha256": "ef08ab9d873ff3c89abd139a019cd785da7e0bcf2a476de554b9d796cab36a45",
+      "bytes": 2145051
+    },
+    "link.map": {
+      "sha256": "b9a3bf7fc440fa2dba745d5e8cebc7e4c4f668cc4801fb8956985a59efad92c4",
+      "bytes": 3023638
+    },
+    "build.json": {
+      "sha256": "daa630ffac35d25f54fd3ae5e1a17660b55000fdde3d9ab0d804d23224786c66",
+      "bytes": 43982
+    },
+    "dnsmasq-2.93-r4.apk": {
+      "sha256": "98144d551bcb44b93a47152ae91a28bbf4b0a7f135d702f0c94177c65efbde48",
+      "bytes": 1167379
+    }
+  },
+  "changed_fields": [
+    "artifact_transfer",
+    "artifacts",
+    "declared_plan_commit",
+    "declared_plan_sha256",
+    "linux_gate",
+    "planned_linux_gate",
+    "scope",
+    "screen_plan_independent_review",
+    "status"
+  ],
+  "source179_manifests_and_original32_protocol_tools_unchanged": true,
+  "actual_standalone_signals_and_release_pending_execution_disabled": true,
+  "scope": "Local actualartifact binding againstdownloadedbytes. Originalrules andGidentity unchanged. Signalresult+independentreview, completeallpretransfers andactualquiet muststillbebound. No remote/build/test/timing."
+}
