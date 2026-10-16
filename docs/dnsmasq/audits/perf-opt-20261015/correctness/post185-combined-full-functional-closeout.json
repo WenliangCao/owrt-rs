@@ -1,0 +1,59 @@
+{
+  "status": "EXPLICIT_FULL_FUNCTIONAL_PASS_AND_QUIET_RELEASE_TO_DNS803",
+  "epoch": 1792134460.1243687,
+  "source_commit": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "shipping_elf_sha256": "feac49a01e31b7ee35dfcdaf55ac25ec8e214d986e0bfe246332b29531f31288",
+  "map_sha256": "3c92b784b606b5eb50a968e8605b6e88d17d04436a25dfec3fd6e2cdf4698cf5",
+  "build_receipt_sha256": "3d77809b0552a91f384248b9cc21aba17fab0d1d0776f2d401becc27d4e0859c",
+  "source179_rehashed": true,
+  "source_git_identity_sha256": "0373f001d18204b03d851de8b655e360a7418734dce3666eeb5c2aea4a12c2f8",
+  "original961_evidence_rehashed_not_rerun": true,
+  "related_verified_sha256": "ff6e767b30e3cde7a68c0640abf61fc4c3ee45bdd59a537db475369e0b311255",
+  "families": 44,
+  "jobs": 67,
+  "family_final_audit_sha256": "e94bd25d4f7f0d77f3c99de6dc612ad1652f496d5157b76857a414f4294a54bd",
+  "boundary_audit_sha256": "e4a340c996662873278901a5c3c04500a1e531b2a270032060a89aec9fcfb3f3",
+  "boundary_audit_recheck_byte_identical": true,
+  "original18_tools_unchanged": true,
+  "canonical_builder_helper_hashes": {
+    "perf_opt_sdk_build.py": "f4540b1cbfd235ab2decde1bf7a09a6326fdb6fda7fe4d906239eac55a785f33",
+    "build_package.py": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310"
+  },
+  "accepted_G_unchanged": {
+    "dnsmasq-rs": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+    "link.map": "e1c8638fbb2ff229d736d697dae78a519a914beb975cbf017f7666dd1dbe314f",
+    "build.json": "dfb42af12c623b3eb7551bd9e821ef6fb0d63922f02a8714e7475623b9483f10"
+  },
+  "family_and_remaining_workers_exited": true,
+  "research_including_exact_image_C": [],
+  "locks_available": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-perf-20261015/root/private/native-hit-build.lock",
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock"
+  ],
+  "required_transfer_receipt_sha256": "6d07f81a0ca9142278df6c5dceca8d603a98963e05a211e71057409a56f0b96e",
+  "required_transfers_complete": true,
+  "next_owner": "DNS original803 five fresh related groups then independently reviewed profile2 SDK under existing root authorization; coordinate any transfer with DHCP.",
+  "no_new_performance_measurement_or_deployment_authorized": true,
+  "schema": "post185-combined-full-functional-closeout-v1",
+  "remote_release_path": "/home/ubuntu/dnsmasq-perf-20261015/correctness/private/post185-combined-full-release-to-dns.json",
+  "remote_release_sha256": "6cb8f83379b1d87b575fcaac1301d3db084eeed1ca2d2f715fc6f27e0296314e",
+  "quiet_verifier_sha256": "52ab49a31da901f6b540b515da5c4e4307a00360de42edec1861c39893cd9e68",
+  "full_family_review_commit": "f87257cc",
+  "boundary_review_commit": "4aefe1ab",
+  "UBus": {
+    "paired": 346,
+    "matched": 346,
+    "negative_controls_rejected": 26
+  },
+  "archive": {
+    "sha256": "0d601577b50db70ab82e01cef9daed6f3e62f7c3f94d5ac6701734e3795b0712",
+    "bytes": 257099063,
+    "regular_files_verified": 83115,
+    "raw_regular_bytes": 829538768,
+    "excluded_nonregular_fixture_metadata": 125,
+    "all_raw_still_retained_on_Oracle": true
+  },
+  "functional_pass_scope": "Original same-source961 plus full44/67, F10/protocol/TCP/four corpora completed under unchanged expectations. F10 actual24 PTR-order-only differences and exact source-a2 UID mismatches/rawexit1 remain explicit.",
+  "performance_scope": "Fresh G/6ab ten had no discernible primary gain; no6ab full110 promotion or deployment. Accepted G185 remains unchanged."
+}
