@@ -1,0 +1,353 @@
+{
+  "scope": "Local final Linux target daemon ELF using Rust bundled musl and rust-lld, not the SDK artifact or runtime/performance evidence",
+  "target": "aarch64-unknown-linux-musl",
+  "codegen_flags": [
+    "-Cforce-unwind-tables=no",
+    "-Crelocation-model=pie",
+    "-Ctarget-feature=+crt-static"
+  ],
+  "sources": {
+    "parent": "0161ad9c103459c7f59c44ebce9600db1f1697c6",
+    "frame": "a8dcdacc9567b6f6fa4c2edc11445842db049587"
+  },
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-local-name-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/parent-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-cached-local-name-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-8bc2bc5f57c72ff7.rlib"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--frozen",
+        "--release",
+        "--lib",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/components/dnsmasq/Cargo.toml",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "dnsmasq_rs",
+        "--crate-type",
+        "bin",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "-Copt-level=3",
+        "-Clto=fat",
+        "-Ccodegen-units=1",
+        "-Cpanic=abort",
+        "-Cforce-unwind-tables=no",
+        "-Crelocation-model=pie",
+        "-Ctarget-feature=+crt-static",
+        "--emit=link",
+        "-Clinker=/Users/USER/.rustup/toolchains/1.98.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-lld",
+        "-Clinker-flavor=ld.lld",
+        "-Clink-self-contained=yes",
+        "-o",
+        "/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/frame-daemon-elf",
+        "-L",
+        "dependency=/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps",
+        "/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/components/dnsmasq/src/main.rs",
+        "--extern",
+        "dnsmasq_rs=/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/target/aarch64-unknown-linux-musl/release/libdnsmasq_rs.rlib",
+        "--extern",
+        "owrt_ubus=/Users/USER/Developer/owrt-perf-cached-local-frame-20261016/private/cached-local-frame/cross-daemon-final/target/aarch64-unknown-linux-musl/release/deps/libowrt_ubus-8c670916d2f4eee9.rlib"
+      ],
+      "returncode": 0
+    }
+  ],
+  "outputs": {
+    "parent": {
+      "sha256": "96e09f60fba7d63d3c30d805cd9485524dfb647f18ea8e8728ac53ac8bdd47c6",
+      "bytes": 5020992
+    },
+    "frame": {
+      "sha256": "20bb987eebf369021faf71e616ae051d85761f7b518676338671e770f6b85577",
+      "bytes": 5021168
+    }
+  },
+  "disassembly": {
+    "parent": [
+      {
+        "symbol": "_RNvMs_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed",
+        "address": "000000000031fd0c",
+        "size": 528,
+        "disassembly_sha256": "95142d6e8ad9afa4e64ca6aa613002361b323e641519aed284b51629a174a686",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/parent-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000031fd0c <_RNvMs_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed>:",
+          "  31fd0c: f9400808     \tldr\tx8, [x0, #0x10]",
+          "  31fd10: b4000068     \tcbz\tx8, 0x31fd1c <_RNvMs_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed+0x10>",
+          "  31fd14: 2a1f03e0     \tmov\tw0, wzr",
+          "  31fd18: d65f03c0     \tret",
+          "  31fd1c: d105c3ff     \tsub\tsp, sp, #0x170",
+          "  31fd20: a9147bfd     \tstp\tx29, x30, [sp, #0x140]",
+          "  31fd24: a91557fc     \tstp\tx28, x21, [sp, #0x150]",
+          "  31fd28: a9164ff4     \tstp\tx20, x19, [sp, #0x160]",
+          "  31fd2c: 910503fd     \tadd\tx29, sp, #0x140",
+          "  31fd30: f9405c0a     \tldr\tx10, [x0, #0xb8]",
+          "  31fd34: b400032a     \tcbz\tx10, 0x31fd98 <_RNvMs_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed+0x8c>",
+          "  31fd38: 79403048     \tldrh\tw8, [x2, #0x18]"
+        ]
+      },
+      {
+        "symbol": "_RNvMsb_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "00000000002ac980",
+        "size": 3980,
+        "disassembly_sha256": "fe4d6be1223b74bcb9ad8291249e0eac911b9c2c19705ad6dd9ca19344421a64",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/parent-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "00000000002ac980 <_RNvMsb_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs>:",
+          "  2ac980: a9ba7bfd     \tstp\tx29, x30, [sp, #-0x60]!",
+          "  2ac984: a9016ffc     \tstp\tx28, x27, [sp, #0x10]",
+          "  2ac988: 910003fd     \tmov\tx29, sp",
+          "  2ac98c: a90267fa     \tstp\tx26, x25, [sp, #0x20]",
+          "  2ac990: a9035ff8     \tstp\tx24, x23, [sp, #0x30]",
+          "  2ac994: a90457f6     \tstp\tx22, x21, [sp, #0x40]",
+          "  2ac998: a9054ff4     \tstp\tx20, x19, [sp, #0x50]",
+          "  2ac99c: d10803ff     \tsub\tsp, sp, #0x200",
+          "  2ac9a0: 3941a3b9     \tldrb\tw25, [x29, #0x68]",
+          "  2ac9a4: aa0703fb     \tmov\tx27, x7",
+          "  2ac9a8: aa0603f4     \tmov\tx20, x6",
+          "  2ac9ac: aa0203fc     \tmov\tx28, x2"
+        ]
+      },
+      {
+        "symbol": "_RNvMs_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": "0000000000318808",
+        "size": 14768,
+        "disassembly_sha256": "ae1da1fcb94605c2aeb44f86c787be33807551720b4d36fe63b30fa47bd278aa",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/parent-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "0000000000318808 <_RNvMs_NtNtCs2aGy5zdFPQh_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+          "  318808: fc180fea     \tstr\td10, [sp, #-0x80]!",
+          "  31880c: 6d0123e9     \tstp\td9, d8, [sp, #0x10]",
+          "  318810: a9027bfd     \tstp\tx29, x30, [sp, #0x20]",
+          "  318814: 910083fd     \tadd\tx29, sp, #0x20",
+          "  318818: a9036ffc     \tstp\tx28, x27, [sp, #0x30]",
+          "  31881c: a90467fa     \tstp\tx26, x25, [sp, #0x40]",
+          "  318820: a9055ff8     \tstp\tx24, x23, [sp, #0x50]",
+          "  318824: a90657f6     \tstp\tx22, x21, [sp, #0x60]",
+          "  318828: a9074ff4     \tstp\tx20, x19, [sp, #0x70]",
+          "  31882c: d10b43ff     \tsub\tsp, sp, #0x2d0",
+          "  318830: a946dfbb     \tldp\tx27, x23, [x29, #0x68]",
+          "  318834: 52800108     \tmov\tw8, #0x8                // =8"
+        ]
+      }
+    ],
+    "frame": [
+      {
+        "symbol": "_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed",
+        "address": "000000000031dbbc",
+        "size": 528,
+        "disassembly_sha256": "a6900149760c55ad3cd3c5b64d1ab4c788bde67eb41a6cfc4b363b771282b328",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/frame-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000031dbbc <_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed>:",
+          "  31dbbc: f9400808     \tldr\tx8, [x0, #0x10]",
+          "  31dbc0: b4000068     \tcbz\tx8, 0x31dbcc <_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed+0x10>",
+          "  31dbc4: 2a1f03e0     \tmov\tw0, wzr",
+          "  31dbc8: d65f03c0     \tret",
+          "  31dbcc: d105c3ff     \tsub\tsp, sp, #0x170",
+          "  31dbd0: a9147bfd     \tstp\tx29, x30, [sp, #0x140]",
+          "  31dbd4: a91557fc     \tstp\tx28, x21, [sp, #0x150]",
+          "  31dbd8: a9164ff4     \tstp\tx20, x19, [sp, #0x160]",
+          "  31dbdc: 910503fd     \tadd\tx29, sp, #0x140",
+          "  31dbe0: f9405c0a     \tldr\tx10, [x0, #0xb8]",
+          "  31dbe4: b400032a     \tcbz\tx10, 0x31dc48 <_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer27cached_address_is_unclaimed+0x8c>",
+          "  31dbe8: 79403048     \tldrh\tw8, [x2, #0x18]"
+        ]
+      },
+      {
+        "symbol": "_RNvMsb_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs",
+        "address": "00000000002ac910",
+        "size": 3980,
+        "disassembly_sha256": "7f821111985ad398498ee079254bd3065de607fa7c3d3658a54c11aabd846d3a",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/frame-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "00000000002ac910 <_RNvMsb_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns6daemonNtB5_9DnsDaemon22answer_local_or_cachedCslhjqNMUq7WX_10dnsmasq_rs>:",
+          "  2ac910: a9ba7bfd     \tstp\tx29, x30, [sp, #-0x60]!",
+          "  2ac914: a9016ffc     \tstp\tx28, x27, [sp, #0x10]",
+          "  2ac918: 910003fd     \tmov\tx29, sp",
+          "  2ac91c: a90267fa     \tstp\tx26, x25, [sp, #0x20]",
+          "  2ac920: a9035ff8     \tstp\tx24, x23, [sp, #0x30]",
+          "  2ac924: a90457f6     \tstp\tx22, x21, [sp, #0x40]",
+          "  2ac928: a9054ff4     \tstp\tx20, x19, [sp, #0x50]",
+          "  2ac92c: d10803ff     \tsub\tsp, sp, #0x200",
+          "  2ac930: 3941a3b9     \tldrb\tw25, [x29, #0x68]",
+          "  2ac934: aa0703fb     \tmov\tx27, x7",
+          "  2ac938: aa0603f4     \tmov\tx20, x6",
+          "  2ac93c: aa0203fc     \tmov\tx28, x2"
+        ]
+      },
+      {
+        "symbol": "_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events",
+        "address": "0000000000318798",
+        "size": 4508,
+        "disassembly_sha256": "93b0b034ee5ca03d0e3a640db676f54f7a543d267e51bccb349f2848eab5a0d8",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/frame-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "0000000000318798 <_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events>:",
+          "  318798: d10603ff     \tsub\tsp, sp, #0x180",
+          "  31879c: a9127bfd     \tstp\tx29, x30, [sp, #0x120]",
+          "  3187a0: a9136ffc     \tstp\tx28, x27, [sp, #0x130]",
+          "  3187a4: a91467fa     \tstp\tx26, x25, [sp, #0x140]",
+          "  3187a8: a9155ff8     \tstp\tx24, x23, [sp, #0x150]",
+          "  3187ac: a91657f6     \tstp\tx22, x21, [sp, #0x160]",
+          "  3187b0: a9174ff4     \tstp\tx20, x19, [sp, #0x170]",
+          "  3187b4: 910483fd     \tadd\tx29, sp, #0x120",
+          "  3187b8: 79c00499     \tldrsh\tw25, [x4, #0x2]",
+          "  3187bc: aa0003f6     \tmov\tx22, x0",
+          "  3187c0: 72150f3f     \ttst\tw25, #0x7800",
+          "  3187c4: 540001a0     \tb.eq\t0x3187f8 <_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer31answer_parsed_with_query_events+0x60>"
+        ]
+      },
+      {
+        "symbol": "_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20answer_local_records",
+        "address": "000000000031ad50",
+        "size": 11884,
+        "disassembly_sha256": "ea6bb80e7a1f033551ee133f8e95891834c66f8a6872858f6e9e1be0592a8e09",
+        "entry": [
+          "",
+          "private/cached-local-frame/cross-daemon-final/frame-daemon-elf:\tfile format elf64-littleaarch64",
+          "",
+          "Disassembly of section .text:",
+          "",
+          "000000000031ad50 <_RNvMs_NtNtCseTjGJEXaXOE_10dnsmasq_rs3dns5localNtB4_13LocalAnswerer20answer_local_records>:",
+          "  31ad50: fc180fea     \tstr\td10, [sp, #-0x80]!",
+          "  31ad54: 6d0123e9     \tstp\td9, d8, [sp, #0x10]",
+          "  31ad58: a9027bfd     \tstp\tx29, x30, [sp, #0x20]",
+          "  31ad5c: 910083fd     \tadd\tx29, sp, #0x20",
+          "  31ad60: a9036ffc     \tstp\tx28, x27, [sp, #0x30]",
+          "  31ad64: a90467fa     \tstp\tx26, x25, [sp, #0x40]",
+          "  31ad68: a9055ff8     \tstp\tx24, x23, [sp, #0x50]",
+          "  31ad6c: a90657f6     \tstp\tx22, x21, [sp, #0x60]",
+          "  31ad70: a9074ff4     \tstp\tx20, x19, [sp, #0x70]",
+          "  31ad74: d10a43ff     \tsub\tsp, sp, #0x290",
+          "  31ad78: b900fbe5     \tstr\tw5, [sp, #0xf8]",
+          "  31ad7c: f9400039     \tldr\tx25, [x1]"
+        ]
+      }
+    ]
+  },
+  "source_commit": "a8dcdacc9567b6f6fa4c2edc11445842db049587",
+  "source_file_sha256": "151fe84fb596746c461680b88e53aded2c42d076ecbd235586f67ea6cfabee32",
+  "local_tests": {
+    "library": "720 passed,8ignored",
+    "musl_all_target": "passed",
+    "first_attempt": "Both initial library and musl check failed due immutable lease view at append_mail_addresses; original logs retained. The helper now receives the original mutable Arc owner."
+  },
+  "logs": {
+    "private/cached-local-frame-cross.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/cached-local-frame-test.stderr": "c519aee537cfe7d43bd46d5859e7c03637a5dfbd1fcb040def50fc54163f7bae",
+    "private/cached-local-frame-cross.stdout": "6825476fc045b7a2bd30a5195f30f0e88758b9d19d9995445990c667fb1ae57e",
+    "private/cached-local-frame-test.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/cached-local-frame-test2.stdout": "fcbbcb9409dd4c616675b9174efa0debf066cd80b971bd34e49322118892b66b",
+    "private/cached-local-frame-musl.stderr": "338c2f2dd81cf5d0c9cd55ae57f58b2b40901e5db7b4d340a6e52360a348f536",
+    "private/cached-local-frame-musl2.stderr": "cc30cc603d277839792414283aae84f00cc53315a18b7fd84041e81bef227396",
+    "private/cached-local-frame-musl2.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/cached-local-frame-musl.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/cached-local-frame-test2.stderr": "438bc51f12959a62b0dc949601552f258cc717170ad0abff55c1a243f7937906"
+  },
+  "files": {
+    "private/cached-local-frame/cross-daemon-final.py": "b6e4fe1431300c467748b6613507a764b510f6dfd4f84a7970ff76c166cc02bd",
+    "private/cached-local-frame/parent-nm.txt": "abb751381e351a174c311370bbd94415c75cf9cfa32e26e21e6322f162747553",
+    "private/cached-local-frame/frame-nm.txt": "c2b64c8b34c887a57ef6ef56637c05fe166e52e7c968aeffaae2444ee1b1fdba",
+    "private/cached-local-frame/parent-sections.txt": "463e9064ad733aeab91da653368c583ef974c54679a4faeebdabae5b3d3648cb",
+    "private/cached-local-frame/frame-sections.txt": "56dfd76ea6da249b34625423904ef681820baf22aedf26f38b8de2082934affd"
+  },
+  "frames_bytes": {
+    "parent_local_entry": 848,
+    "prototype_local_entry": 384,
+    "prototype_record_helper": 784,
+    "both_shared_local_cache_caller": 608,
+    "both_unclaimed_helper": 368,
+    "fallback_local_chain_change": 320
+  },
+  "text_bytes": {
+    "parent": 1822648,
+    "frame": 1823512
+  },
+  "limits": [
+    "Rust bundled musl final local ELF, not OpenWrt SDK ELF.",
+    "Entry frame reservations and symbol code extents are not actual per-query stack writes or resident I-cache footprint.",
+    "New fallback includes another call and local two-frame subtotal1168 vs848; possible regressions remain to be measured.",
+    "No SDK qualification, Linux runtime gate, native timing or A53 benefit claimed."
+  ]
+}
