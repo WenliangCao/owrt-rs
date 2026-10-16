@@ -273,7 +273,8 @@ def main():
         qualified, samples, end = health_evidence.validate_guard_evidence(
             (args.out / 'pre-stop-prefix.jsonl').read_bytes(),
             (args.out / (guard_label + '.jsonl')).read_bytes(),
-            [json.loads(line) for line in (args.out / 'external-health.jsonl').read_text().splitlines()], identity)
+            [json.loads(line) for line in (args.out / 'external-health.jsonl').read_text().splitlines()], identity,
+            (args.out / 'pre-stop-capture.raw').read_bytes())
     except Exception as error:
         failure = {'error': repr(error),
                   'scope': 'Final guard evidence gate; original windows retained, no complete marker',

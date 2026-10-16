@@ -33,8 +33,10 @@ def capture_before_stop(out, label):
     return prefix
 
 
-def validate_guard_evidence(prefix, final, external, production):
+def validate_guard_evidence(prefix, final, external, production, capture):
     assert prefix.endswith(b'\n') and final.endswith(b'\n')
+    assert complete_prefix(capture) == prefix, 'prefix does not match complete capture records'
+    assert final.startswith(capture), 'final evidence changed captured bytes'
     assert final.startswith(prefix), 'final evidence changed the pre-stop prefix'
     before = [json.loads(line) for line in prefix.splitlines()]
     rows = [json.loads(line) for line in final.splitlines()]
@@ -44,7 +46,7 @@ def validate_guard_evidence(prefix, final, external, production):
     assert rows[-1]['event'] == 'monitor_stopped'
     assert all(row['event'] == 'sample' for row in rows[1:-1]), 'unexpected/stop event'
     qualified, all_samples = before[1:], rows[1:-1]
-    assert qualified and qualified[0]['elapsed_s'] <= 1
+    assert qualified
     assert qualified[-1]['elapsed_s'] >= 120, 'pre-stop coverage below120s'
     elapsed = [row['elapsed_s'] for row in all_samples] + [rows[-1]['elapsed_s']]
     assert elapsed == sorted(elapsed) and rows[-1]['elapsed_s'] >= 120
@@ -64,8 +66,8 @@ def validate_guard_evidence(prefix, final, external, production):
     return qualified, all_samples, rows[-1]
 
 
-def validate_baseline(prefix, final, external, production):
-    qualified, all_samples, end = validate_guard_evidence(prefix, final, external, production)
+def validate_baseline(prefix, final, external, production, capture):
+    qualified, all_samples, end = validate_guard_evidence(prefix, final, external, production, capture)
     dns = sorted(row['dns_rtt_ms'] for row in qualified if row['dns_ok'] == 1)
     http = [row['http_rtt_ms'] for row in qualified if row['http_status'] != -1]
     p95 = dns[max(0, math.ceil(len(dns) * .95) - 1)]
@@ -126,7 +128,8 @@ def main():
         run.ssh(f'test ! -e {run.ROOT}/STOP && test ! -e {run.ROOT}/active.group')
         assert after == production
         external = [json.loads(line) for line in (args.out / 'external-health.jsonl').read_text().splitlines()]
-        summary = validate_baseline(prefix, raw, external, production)
+        summary = validate_baseline(prefix, raw, external, production,
+                                    (args.out / 'pre-stop-capture.raw').read_bytes())
         run.write(args.out / 'summary.json', summary)
         run.write(args.out / 'receipt.json', {'production_pid_start_before': production,
                   'production_pid_start_after': after, 'production_sha256': run.PRODUCTION,

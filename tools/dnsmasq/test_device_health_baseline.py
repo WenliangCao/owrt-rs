@@ -27,8 +27,9 @@ class PrefixHealthTests(unittest.TestCase):
         external = [dict(ip_version=version, exit=0, result='200 0.08') for version in (4, 6)]
         return prefix, final, external
 
-    def verify(self, prefix, final, external):
-        return validate_baseline(encode(prefix), encode(final), external, [3086, 2115])
+    def verify(self, prefix, final, external, capture=None):
+        return validate_baseline(encode(prefix), encode(final), external, [3086, 2115],
+                                 encode(prefix) if capture is None else capture)
 
     def test_valid_pre_stop_prefix_and_cancelled_tail_preserve_scope(self):
         prefix, final, external = self.fixture()
@@ -39,7 +40,12 @@ class PrefixHealthTests(unittest.TestCase):
         self.assertEqual(result['http_samples'], 2)
         self.assertEqual(result['final_tail_samples'], 1)
         self.assertEqual(result['threshold_ms'], 200)
-        self.assertEqual(complete_prefix(encode(prefix) + b'{"partial":'), encode(prefix))
+        partial = encode(final[len(prefix):])[:17]
+        capture = encode(prefix) + partial
+        self.assertEqual(complete_prefix(capture), encode(prefix))
+        self.assertTrue(self.verify(prefix, final, external, capture)['valid'])
+        with self.assertRaises(AssertionError):
+            self.verify(prefix, final, external, capture[:-1] + b'X')
 
     def test_http_or_dns_failure_inside_prefix_cannot_be_filtered(self):
         for key, value in [('http_status', 0), ('http_status', 500), ('dns_ok', 0)]:
