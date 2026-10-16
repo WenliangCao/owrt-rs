@@ -1,0 +1,32 @@
+{
+  "status": "PASS_LOCAL_DISABLED_G5C_DEVICE_PLAN_AND_OPERATOR_ADAPTATION",
+  "plan_sha256": "50aa132726fc3390b5d24ce01c4d9ca75fa0c37011adad9ec8579717826a7601",
+  "plan_commit": "a04fd0a4",
+  "source_commit": "5c995a8564ce04b81e42c7f1c581bb06e691d87a",
+  "source_parent": "025c2f2c5ca11758c01dd7e58e2b49c4d087ed5c",
+  "source_base": "6ab0f064b69087add3be1cb2bf5604fbaf42dffa",
+  "baseline_G_ELF_sha256": "9109e9871e83f652788621b2fbd5845f7d63e4bf7d05593b5098f741c31d7f99",
+  "entry_sha256": "8ccd77cf916fdf5fd31d883d4830e716f27a8fd855b170d697da4412de204c35",
+  "operator_files": {
+    "launch-a53-owner-ready-frames.py": "e463b28ff6fbc80b30a104e8773749a224561454d38d6c8b0d2022a6131b838c",
+    "stage-a53-owner-ready-frames.py": "96bbd99b404197ebd65aef707cf037bd45ec5149a10858bc86bc216aaefec8f9",
+    "start-a53-owner-ready-frames.py": "e7a97eb499d8630929946eae38258c2ea5d6afe3011e5cd9f8f7c9e7e351ecc1",
+    "verify-a53-owner-ready-frames.py": "a9485ab96c51af075d28184639925b628ee413dd2e7f95a32f09904203f088d1",
+    "postflight-a53-owner-ready-frames.py": "c3650d59b16b7db4f5dd2fac7bca2f85263545fa60794e881884919d8472306e",
+    "report-a53-owner-ready-frames.py": "acbd191874ddc1344d3b7777ce2281b6ca9f83e12f80b78e2a85241447bcd8e3"
+  },
+  "checks": [
+    "OriginalfiveABpairs/10labels/None modes andsharedtools unchanged; Gleft/5cright, E/Frestoreonly.",
+    "Fivelaunch/stage/start/verify/postflight bodies exactlyreproduceoriginal1df versions afterdeclaredcandidate/title/961/priorrestoration substitutions andaddingoneoriginalsignal-result/review presenceassert beforefirstSSH.",
+    "Reportonlyaddsbaseandsignalreceipt fields andcorrect5c/scope descriptions; originalstats/recovery/phasewrites unchanged.",
+    "StageendsbeforePopen; startrequiresoriginalstage/health/preflight hashes plusfinalquietreceipt andsameELF; exactE/F restoration persists.",
+    "Rootcorrectedqueue nowhealth/staging beforefinalquiet/loopready; nodeviceaction here.",
+    "5ccontains025 andinherits6ab,no1df/803; directGcomparison isnotisolateddump/frame attribution; native240excluded."
+  ],
+  "actual_bindings_pending": true,
+  "signal_gate_limit": "Operator asserts presenceofsignalresult/independentreview beforeanySSH. Actualcorrectnessresult/review filehash/source/SDKELF/passedstatus mustbe verifiedandbound byoperatorowner beforeenabling; thisstaticreviewdoesnotclaimtruthypresencealone provesPASS.",
+  "disabled_plan_not_runtime_switch": "Entry/sharedrunner itselfremainsoriginal; authorizedoperator actualbinding/preflight remainsrequired.",
+  "remote_or_device_access": false,
+  "operator_executed": false,
+  "tests_or_builds_rerun": false
+}
