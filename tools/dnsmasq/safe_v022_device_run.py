@@ -414,6 +414,12 @@ def execute(plan, bundle, qualification, out, startup_runner):
         if baseline['minimum_memory_kib'] < 90112:
             raise RuntimeError('baseline below 88MiB entry margin')
         run.write(out / 'baseline.json', baseline)
+        # The new exec boundary is the largest remaining uncertainty. Collect
+        # its fixed40 starts before spending time on the traffic matrix.
+        begin_guard(ctx, plan['prefix'] + '-startup-supplement', baseline['threshold_ms'])
+        supplement = startup_runner.execute_supplement(ctx, qualification)
+        run.write(out / 'startup-supplement.json', supplement)
+        end_guard(ctx); check_live(ctx)
         for group, iterator in itertools.groupby(plan['schedule'], key=lambda row: row['group']):
             original = list(iterator); queue = list(original); pending = set(); group_rows = []; at = 0; extended = False
             begin_guard(ctx, plan['prefix'] + '-' + group, baseline['threshold_ms'])
@@ -447,10 +453,7 @@ def execute(plan, bundle, qualification, out, startup_runner):
                     elif original[0]['stage'] == 'calibration':
                         noise[group] = result['AA_max_absolute_pair_cpu_us']
             end_guard(ctx)
-        begin_guard(ctx, plan['prefix'] + '-startup-supplement', baseline['threshold_ms'])
-        supplement = startup_runner.execute_supplement(ctx, qualification)
-        run.write(out / 'startup-supplement.json', supplement)
-        end_guard(ctx); check_live(ctx)
+        check_live(ctx)
         run.write(out / 'collected.json', {'windows': len(rows), 'selected_groups': results,
                   'startup_supplement': supplement, 'status': 'COLLECTED_REQUIRES_FINAL_REVIEW'})
     except BaseException as error:

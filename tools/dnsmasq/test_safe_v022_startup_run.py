@@ -67,6 +67,21 @@ def save_rows(folder, rows):
 
 
 class StartupValidationTests(unittest.TestCase):
+    def test_sub_millisecond_cpu_cost_requests_review_independently_of_ready_floor(self):
+        baseline = [2000, 2010, 1990, 2020, 2005, 2015, 2000, 2025, 2010, 2000]
+        def rows(values, setup=20):
+            return [dict(children_user_usec=value + setup, children_system_usec=0,
+                         timed_tree_user_usec=value, timed_tree_system_usec=0) for value in values]
+        clear = startup.cpu_comparison(rows(baseline), rows([value + 400 for value in baseline]), 'timed')
+        self.assertTrue(clear['review_required'])
+        self.assertEqual(clear['median_ordinal_difference_us'], 400)
+        self.assertEqual(clear['ten_start_total_us']['candidate'] - clear['ten_start_total_us']['k'], 4000)
+        for deltas in ([3] * 10, [20] * 10, [400] * 8 + [-1, -1]):
+            measured = startup.cpu_comparison(rows(baseline), rows([a + b for a, b in zip(baseline, deltas)]), 'timed')
+            self.assertFalse(measured['review_required'])
+        self.assertTrue(startup.cpu_comparison(rows(baseline), rows(baseline, setup=420), 'whole')['review_required'])
+        self.assertFalse(startup.cpu_comparison(rows(baseline), rows(baseline, setup=420), 'timed')['review_required'])
+
     def test_callback_contents_and_final_count_are_not_normalized_away(self):
         for defect in ('raw-count', 'reported-count', 'wrong-callback'):
             with self.subTest(defect=defect), tempfile.TemporaryDirectory() as temporary:

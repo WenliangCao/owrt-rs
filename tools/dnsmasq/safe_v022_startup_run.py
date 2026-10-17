@@ -14,6 +14,28 @@ def labels(prefix):
     return [f'{prefix}-startup-{mode}-{role}' for mode, role in ORDER]
 
 
+def cpu_comparison(left, right, scope):
+    keys = ('children_user_usec', 'children_system_usec') if scope == 'whole' else (
+        'timed_tree_user_usec', 'timed_tree_system_usec')
+    baseline = [sum(row[key] for key in keys) for row in left]
+    candidate = [sum(row[key] for key in keys) for row in right]
+    deltas = [b - a for a, b in zip(baseline, candidate)]
+    adjacent = [baseline[i + 1] - baseline[i] for i in range(0, 10, 2)]
+    noise = max(map(abs, adjacent))
+    median = statistics.median(deltas)
+    positive = sum(delta > 0 for delta in deltas)
+    return {'k_cpu_us': baseline, 'candidate_cpu_us': candidate,
+            'ten_start_total_us': {'k': sum(baseline), 'candidate': sum(candidate)},
+            'ordinal_differences_us': deltas, 'median_ordinal_difference_us': median,
+            'positive_ordinal_differences': positive,
+            'K_internal_adjacent_differences_us': adjacent, 'K_internal_max_absolute_difference_us': noise,
+            'review_required': positive >= 9 and median > max(noise, 6),
+            'scope': 'Two sequential ten-start blocks; ordinal differences are not time-interleaved pairs. '
+                     'Internal K differences supply a conservative observed floor, not an independence/significance claim. '
+                     'More than6us also clears worst-case rounding of two cumulative user/system differences '
+                     'minus two user/system setup baselines; actual accuracy is not implied.'}
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -130,6 +152,8 @@ def execute_supplement(ctx, qualification):
             'ten_start_timed_tree_cpu_us': {role: sum(group['summary'][key] for key in
                  ('timed_tree_user_usec', 'timed_tree_system_usec')) for role, group in (('k', left), ('candidate', right))},
             'scope': 'one ten-start block per artifact, no paired-order or significance claim; 1ms ready observation floor',
+            'cpu_comparisons': {scope: cpu_comparison(left['starts'], right['starts'], scope)
+                                for scope in ('whole', 'timed')},
         }
         if mode == 'helper':
             counts = {role: [row['callback_count'] for row in group['starts']]
@@ -143,8 +167,13 @@ def execute_supplement(ctx, qualification):
                     'pending resolver pipe/stdio evidence belongs to separate qualified Oracle pressure fixture',
               'scope': 'helper no-proc; resolver proc-visible on both sides because K no-proc runtime lookup fails',
               'status': 'COLLECTED_REQUIRES_FINAL_REVIEW'}
+    cpu_review = [mode + ':' + scope for mode, value in comparisons.items()
+                  for scope, measured in value['cpu_comparisons'].items() if measured['review_required']]
+    result['cpu_review_required'] = cpu_review
+    if cpu_review: result['status'] = 'STARTUP_CPU_REVIEW_REQUIRED'
     run.write(ctx['out'] / 'startup-supplement.json', result)
     require(comparisons['helper']['callback_workload_equal'], 'helper callback workload differs between K and candidate')
+    require(not cpu_review, 'startup CPU review required before traffic: ' + ', '.join(cpu_review))
     require(all(value['median_ready_delta_ms'] <= 1 for value in comparisons.values()),
             'startup median regressed by more than1ms; final promotion requires root review')
     return result

@@ -102,6 +102,7 @@ def make_plan(prefix, bundle):
         'recovered_files': files,
         'plan_tool_sha256': digest(Path(__file__)),
         'stage_window_counts': {'calibration': 12, 'full118': 118, 'dual-confirm': 18},
+        'execution_order': ['fresh-health-baseline', 'startup40', 'calibration12', 'full118', 'dual-confirm18'],
         'schedule': windows,
         'startup_supplement': {
             'tool': 'device_selfexec_lifecycle', 'modes': ['helper', 'resolver'],
@@ -119,6 +120,9 @@ def make_plan(prefix, bundle):
             'observer_resolution_ms': 1,
             'stop': 'any failed start, incomplete reaping, forced cleanup or cadence overrun',
             'regression_review_ms': 1,
+            'cpu_review': 'whole and timed tree CPU separately; >=9/10 positive ordinal differences and '
+                          'median delta greater than both6us and K internal adjacent-pair maxabs => stop for root review; '
+                          'sequential blocks are not randomized pairs or proof of significance',
             'qualification': 'SDK build and Oracle rehearsal still required',
         },
         'entry_requirements': [
