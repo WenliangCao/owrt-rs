@@ -3,13 +3,7 @@
 use std::io::{self, IoSlice};
 use std::os::fd::{AsFd, OwnedFd, RawFd};
 
-pub use owrt_platform::ubusd::{Ucred, peer_cred};
-
-pub use owrt_ubus::sys::{ignore_signal, set_signal_handler, POLLIN, POLLOUT, POLLERR, POLLHUP, SIGPIPE, SIGTERM, SIGINT};
-pub use owrt_platform::unix::read_fd;
-#[cfg(test)]
-pub use owrt_platform::unix::write_fd;
-pub use owrt_ubus::sys::nonblocking_pipe;
+pub type Ucred = owrt_platform::ubusd::Ucred;
 
 /// Only the owned metadata fields consumed by ACL policy, not a foreign ABI.
 pub struct Stat { pub mode: u32, pub uid: u32, pub gid: u32 }
@@ -88,7 +82,6 @@ pub fn accept(fd: impl AsFd) -> io::Result<Option<OwnedFd>> {
     }
 }
 
-pub use owrt_platform::identity::{user_name, group_name};
 pub fn user_id(name: &str) -> Option<u32> {
     owrt_platform::identity::lookup_user(c_prefix(name)).map(|(uid, _)| uid)
 }

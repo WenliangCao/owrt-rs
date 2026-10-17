@@ -114,12 +114,12 @@ impl Server {
     // ---------------------------------------------------------------- clients
 
     pub fn add_client(&mut self, sock: OwnedFd) -> std::io::Result<u32> {
-        let cred = crate::sys::peer_cred(&sock)?;
+        let cred = owrt_platform::ubusd::peer_cred(&sock)?;
         // The C daemon refuses a connection whose uid or gid has no entry
         // rather than inventing a name for it.
-        let user = crate::sys::user_name(cred.uid)
+        let user = owrt_platform::identity::user_name(cred.uid)
             .ok_or_else(|| std::io::Error::other("no passwd entry for peer uid"))?;
-        let group = crate::sys::group_name(cred.gid)
+        let group = owrt_platform::identity::group_name(cred.gid)
             .ok_or_else(|| std::io::Error::other("no group entry for peer gid"))?;
 
         let id = Registry::alloc_id(|id| self.clients.contains_key(&id))?;

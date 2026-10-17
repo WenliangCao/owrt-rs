@@ -378,7 +378,7 @@ impl Client {
             if let Some(large) = &mut self.large {
                 // Like C's body read: never past this frame, and ancillary
                 // data arriving here is discarded by the kernel.
-                let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
+                let n = match owrt_platform::unix::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
                     Ok(v) => v,
                     Err(e) if would_block(&e) => return Ok(None),
                     Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,

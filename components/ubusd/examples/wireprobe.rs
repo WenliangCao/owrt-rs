@@ -760,7 +760,7 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         let object = provider.add_object(None, &["first", "second"]);
         let first = frame(object, 101, "first");
         let second = frame(object, 102, "second");
-        let (read_fd, write_fd) = fd_sys::nonblocking_pipe().expect("witness pipe");
+        let (read_fd, write_fd) = owrt_ubus::sys::nonblocking_pipe().expect("witness pipe");
         let witness = b"r113-fd-boundary-witness";
         assert_eq!(owrt_platform::unix::write_fd(write_fd.as_raw_fd(), witness), witness.len() as isize);
         let mut received = Vec::new();
@@ -829,7 +829,7 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         counts
     }
 
-    fd_sys::ignore_signal(fd_sys::SIGPIPE);
+    owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
     let baseline = fd_count();
     // C reads exactly a 12-byte prefix with recvmsg, then the body with
     // read, so body descriptors are discarded. Restore these assertions for

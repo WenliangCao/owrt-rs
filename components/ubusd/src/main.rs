@@ -17,6 +17,7 @@ mod server;
 mod sys;
 
 use server::Server;
+use owrt_ubus::sys as bus_sys;
 use std::io::Write;
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
@@ -52,9 +53,9 @@ fn wake() {
 #[cfg(all(test, target_os = "linux"))]
 #[test]
 fn saturated_signal_pipe_preserves_errno() {
-    let (_read, write) = sys::nonblocking_pipe().unwrap();
+    let (_read, write) = bus_sys::nonblocking_pipe().unwrap();
     let fd = write.as_raw_fd();
-    while sys::write_fd(fd, &[0u8; 4096]) > 0 {}
+    while owrt_platform::unix::write_fd(fd, &[0u8; 4096]) > 0 {}
     assert_eq!(std::io::Error::last_os_error().kind(), std::io::ErrorKind::WouldBlock);
     let previous = WAKE_FD.swap(fd, Ordering::SeqCst);
     let (_, after) = owrt_platform::ubusd::with_errno(22, wake);
@@ -106,13 +107,13 @@ fn main() {
 
 fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
     // A dead peer must not kill the daemon; every write reports EPIPE instead.
-    sys::ignore_signal(sys::SIGPIPE);
+    bus_sys::ignore_signal(bus_sys::SIGPIPE);
 
-    let (wake_r, wake_w) = sys::nonblocking_pipe()?;
+    let (wake_r, wake_w) = bus_sys::nonblocking_pipe()?;
     WAKE_FD.store(wake_w.as_raw_fd(), Ordering::SeqCst);
-    sys::set_signal_handler(sys::SIGHUP, on_sighup);
-    sys::set_signal_handler(sys::SIGTERM, on_term);
-    sys::set_signal_handler(sys::SIGINT, on_term);
+    bus_sys::set_signal_handler(sys::SIGHUP, on_sighup);
+    bus_sys::set_signal_handler(bus_sys::SIGTERM, on_term);
+    bus_sys::set_signal_handler(bus_sys::SIGINT, on_term);
 
     let listener = sys::listen_unix(socket)?;
     let mut server = Server::new(acl_dir.to_owned())?;
@@ -166,7 +167,7 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
         // takes effect before any client is served.
         if ready.iter().any(|r| r.token == TOKEN_WAKE) {
             let mut buf = [0u8; 64];
-            while sys::read_fd(wake_r.as_raw_fd(), &mut buf).unwrap_or(0) > 0 {}
+            while owrt_platform::unix::read_fd(wake_r.as_raw_fd(), &mut buf).unwrap_or(0) > 0 {}
         }
         if RELOAD.swap(false, Ordering::SeqCst) {
             server.load_acl();
@@ -179,7 +180,7 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
             match r.token {
                 TOKEN_WAKE => {}
                 TOKEN_LISTENER => {
-                    if r.revents & sys::POLLIN != 0 && !accept_all(server, listener, &mut poller) {
+                    if r.revents & bus_sys::POLLIN != 0 && !accept_all(server, listener, &mut poller) {
                         poller.remove(listener.as_raw_fd())?;
                         listener_retry_at = Some(Instant::now() + ACCEPT_RETRY_DELAY);
                     }
@@ -273,11 +274,11 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
 
 /// Drive one connection for this poll round. Returns false to disconnect it.
 fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; client::RX_SIZE]) -> bool {
-    if revents & (sys::POLLERR) != 0 {
+    if revents & (bus_sys::POLLERR) != 0 {
         return false;
     }
 
-    if revents & sys::POLLOUT != 0 {
+    if revents & bus_sys::POLLOUT != 0 {
         let Some(c) = server.clients.get_mut(&id) else { return false };
         if !c.flush() {
             return false;
@@ -290,7 +291,7 @@ fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; clie
         }
     }
 
-    if revents & (sys::POLLIN | sys::POLLHUP) != 0 {
+    if revents & (bus_sys::POLLIN | bus_sys::POLLHUP) != 0 {
         let Some(mut c) = server.clients.get_mut(&id) else { return false };
         c.begin_read(rx);
         loop {
