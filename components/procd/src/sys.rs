@@ -420,7 +420,6 @@ mod atoi_tests {
 /// `reboot(2)` magic (linux/reboot.h). `RB_DISABLE_CAD` makes ctrl-alt-del
 /// deliver SIGINT to PID 1 instead of hard-rebooting.
 pub const RB_AUTOBOOT: i32 = 0x01234567;
-pub const RB_HALT_SYSTEM: i32 = 0xcdef0123u32 as i32;
 pub const RB_POWER_OFF: i32 = 0x4321fedc;
 pub const RB_DISABLE_CAD: i32 = 0;
 
