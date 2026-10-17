@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Build the checked-out dnsmasq revision for OpenWrt and reject compiler warnings.
 
-This produces diagnostic ELF/APK evidence only; it has no PGO, firmware,
-publication, installation or deployment path.
+This produces diagnostic ELF/APK evidence only. The default CLI builds plain;
+a candidate caller can supply a frozen PGO spec. It never builds firmware,
+publishes, installs or deploys.
 """
 import argparse
 import hashlib
@@ -37,6 +38,8 @@ def freeze_source(out, spec):
     frozen.mkdir()
     subprocess.run(["tar", "-xf", str(archive), "-C", str(frozen)], check=True)
     files, digest = builder.source_identity(spec, frozen)
+    builder.audit.require(len(files) == spec.get("source_file_count", len(files)),
+                          "frozen source input count differs from candidate")
     builder.write(out / "source-manifest.json", {
         "commit": spec["source_commit"], "digest": digest, "files": files,
         "archive_sha256": builder.audit.sha(archive)})
@@ -69,13 +72,14 @@ def retain_outputs(out, report):
     if not artifacts:
         for package in (out / "sdk-output").rglob("dnsmasq-*.apk"):
             shutil.copy2(package, out / package.name)
-    retained = [path for pattern in ("*.apk", "*.log", "source.tar", "source-manifest.json", "dnsmasq-rs")
+    retained = [path for pattern in ("*.apk", "*.log", "source.tar", "source-manifest.json", "dnsmasq-rs",
+                                    "pgo/*", "pgo-compilation/*", "pgo-*.json", "pgo-cargo")
                 for path in out.glob(pattern) if path.is_file()]
-    report["retained"] = {path.name: {"bytes": path.stat().st_size, "sha256": builder.audit.sha(path)}
+    report["retained"] = {str(path.relative_to(out)): {"bytes": path.stat().st_size, "sha256": builder.audit.sha(path)}
                           for path in sorted(retained)}
 
 
-def run(work):
+def run(work, *, spec=None):
     builder.audit.require(platform.system() == "Linux" and platform.machine() == "x86_64",
                           "native x86_64 Linux host required; no SDK wrapper modifications")
     out = work / "out/dnsmasq"
@@ -85,11 +89,15 @@ def run(work):
               "runner_commit": subprocess.check_output(
                   ["git", "-C", str(builder.REPO), "rev-parse", "HEAD"], text=True).strip()}
     try:
-        spec = source_spec()
+        if spec is None:
+            spec = source_spec()
+        builder.write(out / "build-spec.json", spec)
         frozen = freeze_source(out, spec)
         prepare_sdk(work, out, frozen)
         builder.build(work, spec, report, frozen_source=frozen)
-        report["checked_product_commit"] = report.pop("accepted_product_commit")
+        if "reference_elf_bytes" in spec:
+            builder.audit.require(report["elf"]["size"] == spec["reference_elf_bytes"],
+                                  "fresh CI ELF size differs from frozen reference")
         warnings = scan(sorted(out.glob("*.log")))
         report["warnings"] = warnings
         builder.audit.require(warnings["strict_compiler_warnings_zero"],
@@ -102,6 +110,8 @@ def run(work):
         report.update(status="failed", error=str(error))
         raise
     finally:
+        if "accepted_product_commit" in report:
+            report["checked_product_commit"] = report.pop("accepted_product_commit")
         report["warnings"] = scan(sorted(out.glob("*.log")))
         builder.write(out / "warnings.json", report["warnings"])
         retain_outputs(out, report)

@@ -159,7 +159,8 @@ def build(work, spec, report, *, frozen_source=None):
         "rustc": audit.run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip(),
         "target_cc": audit.run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip(),
     }
-    build_dir = pgo_build_slot() if "pgo" in spec else out / "package-build"
+    build_dir = (pgo_build_slot(audit.safe_path(Path(spec["pgo"].get("build_slot", PGO_BUILD_SLOT))))
+                 if "pgo" in spec else out / "package-build")
     output = out / "sdk-output"
     cargo_home = audit.safe_path(Path(env.get("CARGO_HOME", str(Path.home() / ".cargo"))).resolve())
     rustup_home = audit.safe_path(Path(env.get("RUSTUP_HOME", str(Path.home() / ".rustup"))).resolve())
@@ -170,7 +171,7 @@ def build(work, spec, report, *, frozen_source=None):
               out / "cargo-fetch.log", env=env)
     build_cargo = cargo
     if "pgo" in spec:
-        audit.require(env["RUSTUP_TOOLCHAIN"] == "1.98.1", "K PGO requires pinned Rust 1.98.1")
+        audit.require(env["RUSTUP_TOOLCHAIN"] == "1.98.1", "PGO requires pinned Rust 1.98.1")
         profile, download = download_profile(spec["pgo"], out)
         build_cargo = out / "pgo-cargo"
         shutil.copy2(REPO / "tools/ci_dnsmasq_pgo_cargo.py", build_cargo)
@@ -243,7 +244,7 @@ def build(work, spec, report, *, frozen_source=None):
                      "matches_accepted_reference": audit.sha(elf) == spec["reference_elf_sha256"]}
     if "pgo" in spec:
         audit.require(report["elf"]["matches_accepted_reference"],
-                      "fresh CI PGO ELF differs from accepted K; preserve evidence and investigate, never substitute the reference")
+                      "fresh CI PGO ELF differs from frozen reference; preserve evidence and investigate, never substitute the reference")
         audit.require(b"__llvm_profile_runtime" not in elf.read_bytes(), "profile generation runtime in release ELF")
     report["artifact"] = {"name": artifact.name, "sha256": audit.sha(artifact), "size": artifact.stat().st_size}
     report["budget"] = {key: spec[key] for key in ("elf_max_bytes", "apk_max_bytes")}
