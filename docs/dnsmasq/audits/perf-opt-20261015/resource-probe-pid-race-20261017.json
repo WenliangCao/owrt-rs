@@ -86,5 +86,47 @@
     "quiet": true,
     "scope": "After evidence copy; created target/helper cats were closed and reaped by the harness."
   },
-  "quiet_snapshot_note": "Two inline quiet checks matched a shell command containing the scan predicate itself; the second captured that command explicitly. The same read-only scan delivered by stdin passes. No mechanism experiment or monitor was repeated."
+  "quiet_snapshot_note": "Two inline quiet checks matched a shell command containing the scan predicate itself; the second captured that command explicitly. The same read-only scan delivered by stdin passes. No mechanism experiment or monitor was repeated.",
+  "canonical_fix_regression": {
+    "status": "PASS",
+    "commit": "ade5309e",
+    "source_pins": {
+      "device_perf_case.sh": "ad91c3b4a464963331b3c053a424b8281649467becf75b429ccf30fb593606d9",
+      "test_device_perf_case_observer.py": "0ea5f87f6bf9bbac01c5938ed2ecf2db2a5798cab3c5b3dba175190ba241f97a"
+    },
+    "tests_passed": 4,
+    "records": [
+      {
+        "label": "sh-n",
+        "argv": [
+          "sh",
+          "-n",
+          "device_perf_case.sh"
+        ],
+        "exit": 0,
+        "log_bytes": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "unittest",
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "-v",
+          "test_device_perf_case_observer.py"
+        ],
+        "exit": 0,
+        "log_bytes": 698,
+        "log_sha256": "35ee5071d6c6d49fa3d0dcdd3ef641617ec00bbde6c252725b3e4339c4f13206"
+      }
+    ],
+    "scope": "Only copied canonical case and its existing four deterministic regression tests; no product/probe build, full case execution, network workload or router access. Original r7 root cause remains unproven.",
+    "local_evidence": "/Users/USER/Developer/owrt-perf-opt-20261015/private/resource-probe-pid-race-20261017/fix-ade5309e",
+    "quiet": {
+      "experimental_processes": [],
+      "quiet": true,
+      "scope": "After evidence copy; created target/helper cats were closed and reaped by the harness."
+    }
+  }
 }
