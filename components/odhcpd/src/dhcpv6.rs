@@ -26,6 +26,14 @@ pub struct RequestContext<'a> {
     pub clock: Clock,
 }
 
+#[derive(Debug, Default)]
+pub struct DhcpOutcome {
+    pub reply: Option<Vec<u8>>,
+    /// Mirrors C's statefiles_write() event, independently of whether a reply
+    /// is sent. Information Request and UseMulticast are not lease events.
+    pub write_state: bool,
+}
+
 #[derive(Default)]
 pub struct Dhcpv6 {
     leases: Vec<Lease>,
@@ -562,7 +570,17 @@ impl Dhcpv6 {
         packet: &[u8],
         context: RequestContext<'_>,
         apply: &mut impl FnMut(&Route, bool) -> io::Result<()>,
-    ) -> Option<Vec<u8>> {
+    ) -> DhcpOutcome {
+        self.handle_packet(packet, context, apply)
+            .unwrap_or_default()
+    }
+
+    fn handle_packet(
+        &mut self,
+        packet: &[u8],
+        context: RequestContext<'_>,
+        apply: &mut impl FnMut(&Route, bool) -> io::Result<()>,
+    ) -> Option<DhcpOutcome> {
         if packet.len() < 4
             || !context.pool.dhcpv6
             || !matches!(packet[0], 1 | 3 | 4 | 5 | 6 | 8 | 9 | 11)
@@ -625,7 +643,10 @@ impl Dhcpv6 {
         }
         if !context.destination.is_multicast() && matches!(message, 3 | 5 | 8 | 9) {
             status_option(&mut reply, 5);
-            return Some(reply);
+            return Some(DhcpOutcome {
+                reply: Some(reply),
+                write_state: false,
+            });
         }
         push_option(
             &mut reply,
@@ -647,13 +668,12 @@ impl Dhcpv6 {
             push_option(&mut reply, 24, &domains);
         }
         let mut ias = Vec::new();
+        let mut write_state = false;
         if message == 11 {
             push_option(&mut ias, 32, &600u32.to_be_bytes());
         } else if let Some(duid) = client.filter(|client| (10..=130).contains(&client.len())) {
             let hostname = request_hostname(&parsed);
             let mut confirm_on_link = true;
-            let mut confirm_has_binding = false;
-            let mut confirm_has_address = false;
             for ia in parsed
                 .iter()
                 .filter(|option| matches!(option.code, IA_NA | IA_PD))
@@ -687,11 +707,13 @@ impl Dhcpv6 {
                         && suboptions
                             .iter()
                             .any(|option| option.code == IA_ADDR && option.value.len() >= 24);
-                    confirm_has_address |= has_address;
                     if has_address && !on_link(&suboptions, kind, &context) {
                         confirm_on_link = false;
+                    } else if !has_address
+                        || !existing.is_some_and(|index| self.leases[index].bound)
+                    {
+                        return None;
                     }
-                    confirm_has_binding |= existing.is_some_and(|index| self.leases[index].bound);
                     continue;
                 }
                 let status = if matches!(message, 5 | 8 | 9) && existing.is_none() {
@@ -894,13 +916,11 @@ impl Dhcpv6 {
                 }
             }
             if message == 4 {
-                if !confirm_has_address || confirm_on_link && !confirm_has_binding {
-                    return None;
-                }
                 status_option(&mut ias, if confirm_on_link { 0 } else { 4 });
             } else if matches!(message, 8 | 9) {
                 status_option(&mut ias, 0);
             }
+            write_state = true;
         }
         self.leases.sort_by_key(|lease| {
             (
@@ -911,7 +931,10 @@ impl Dhcpv6 {
         });
         let _ = self.remove_unused_routes(apply);
         if matches!(message, 4 | 6) && ias.is_empty() {
-            return None;
+            return Some(DhcpOutcome {
+                reply: None,
+                write_state,
+            });
         }
         reply.extend(ias);
         let requested = parsed
@@ -936,7 +959,10 @@ impl Dhcpv6 {
                 }
             }
         }
-        Some(reply)
+        Some(DhcpOutcome {
+            reply: Some(reply),
+            write_state,
+        })
     }
 }
 
@@ -1153,6 +1179,7 @@ mod tests {
             .handle(&packet, context(&config, &link), &mut |_, _| {
                 panic!("NA must not write routes")
             })
+            .reply
             .unwrap();
         assert_eq!(reply[0], 7);
         assert_eq!(&reply[1..4], &[0x12, 0x34, 0x56]);
@@ -1176,6 +1203,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Err(io::Error::other("injected ACK failure")),
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_PD), 6);
         assert!(failed.leases().is_empty());
@@ -1190,6 +1218,7 @@ mod tests {
                     Ok(())
                 },
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_PD), 0);
         assert_eq!(operations.len(), 1);
@@ -1211,6 +1240,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         let old = engine.leases()[0].addresses[0].clone();
         link.addresses.clear();
@@ -1220,6 +1250,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_NA), 0);
         let parsed = options(&reply[4..]).unwrap();
@@ -1240,6 +1271,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         engine
             .handle(
@@ -1250,6 +1282,7 @@ mod tests {
                     Err(io::Error::other("delete failed"))
                 },
             )
+            .reply
             .unwrap();
         assert!(engine.leases().is_empty());
         assert_eq!(engine.pending_routes().len(), 1);
@@ -1287,6 +1320,7 @@ mod tests {
             .handle(&packet, context(&config, &link), &mut |_, _| panic!(
                 "no route writes"
             ))
+            .reply
             .is_none());
         assert!(engine.leases().is_empty());
     }
@@ -1301,6 +1335,7 @@ mod tests {
             .handle(&packet, context(&config, &link), &mut |_, _| {
                 panic!("no routes")
             })
+            .reply
             .unwrap();
         let parsed = options(&reply[4..]).unwrap();
         assert_eq!(
@@ -1332,6 +1367,7 @@ mod tests {
             .handle(&packet(5, IA_NA, 1, None), unicast, &mut |_, _| {
                 panic!("no routes")
             })
+            .reply
             .unwrap();
         assert_eq!(
             options(&reply[4..])
@@ -1348,6 +1384,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| panic!("no routes"),
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_NA), 3);
         assert!(engine.leases().is_empty());
@@ -1372,6 +1409,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         let reply = engine
             .handle(
@@ -1379,6 +1417,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_NA), 0);
         assert_eq!(engine.leases().len(), 1);
@@ -1400,6 +1439,7 @@ mod tests {
         request[8..18].copy_from_slice(&duid);
         let reply = engine
             .handle(&request, context(&config, &link), &mut |_, _| Ok(()))
+            .reply
             .unwrap();
         assert_eq!(engine.leases()[0].assigned, 0x9ed);
         let parsed = options(&reply[4..]).unwrap();
@@ -1425,6 +1465,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         let old = engine.pending_routes()[0].clone();
         link.addresses[1].address = "fd00:2::1".parse().unwrap();
@@ -1479,6 +1520,7 @@ mod tests {
                     }
                 },
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_PD), 6);
         assert!(engine.leases().is_empty());
@@ -1517,6 +1559,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         config.hosts.push(HostConfig {
             duids: vec![HostDuid {
@@ -1533,6 +1576,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         assert_eq!(ia_status(&reply, IA_NA), 3);
         assert!(engine.leases().is_empty());
@@ -1542,6 +1586,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         assert_eq!(engine.leases()[0].assigned, 0x234);
         assert_eq!(
@@ -1562,6 +1607,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         let assigned = engine.leases()[0].assigned;
         engine
@@ -1570,6 +1616,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| panic!("NA has no routes"),
             )
+            .reply
             .unwrap();
         assert_eq!(engine.leases()[0].addresses.len(), 2);
         link.addresses[0].address = "2001:db8:2::1".parse().unwrap();
@@ -1621,6 +1668,7 @@ mod tests {
                 context(&config, &link),
                 &mut |_, _| Ok(()),
             )
+            .reply
             .unwrap();
         assert!(engine
             .leases()
@@ -1648,6 +1696,7 @@ mod tests {
                     context(&config, &link),
                     &mut |_, _| Ok(()),
                 )
+                .reply
                 .unwrap();
             engine
                 .handle(
@@ -1655,6 +1704,7 @@ mod tests {
                     context(&config, &link),
                     &mut |_, _| Ok(()),
                 )
+                .reply
                 .unwrap();
             let kernel = KernelState {
                 links: vec![link.clone()],
@@ -1689,6 +1739,7 @@ mod tests {
                     context(&config, &link),
                     &mut |_, _| Ok(()),
                 )
+                .reply
                 .unwrap();
         }
         assert_eq!(engine.leases().len(), 2);
@@ -1716,5 +1767,104 @@ mod tests {
             .unwrap();
         assert_eq!(retries, 1);
         assert!(engine.pending_routes().is_empty());
+    }
+
+    #[test]
+    fn reply_presence_is_independent_of_the_c_statefile_event_boundary() {
+        let (config, link) = fixture();
+        let without_ia = |message| {
+            let mut bytes = vec![message, 1, 2, 3];
+            push_option(&mut bytes, CLIENT_ID, CLIENT);
+            bytes
+        };
+        let mut no_duid = vec![3, 1, 2, 3];
+        no_duid.extend_from_slice(&packet(3, IA_NA, 1, None)[18..]);
+        let old_address = |address| {
+            Some(LeaseAddress {
+                address,
+                length: 128,
+                preferred_until: 1000,
+                valid_until: 2000,
+            })
+        };
+        // C dhcpv6.c:783 bypasses the IA handler for UseMulticast; :822
+        // bypasses it for Information Request. IA handler :1434 is reached
+        // even for an empty Rebind that the outer handler does not transmit.
+        let cases = [
+            ("information request", vec![11, 1, 2, 3], false, true, false),
+            (
+                "unicast request",
+                packet(3, IA_NA, 1, None),
+                true,
+                true,
+                false,
+            ),
+            ("no DUID request", no_duid, false, true, false),
+            (
+                "unknown renew",
+                packet(5, IA_NA, 1, None),
+                false,
+                true,
+                true,
+            ),
+            ("empty request", without_ia(3), false, true, true),
+            ("empty rebind", without_ia(6), false, false, true),
+            ("empty confirm", without_ia(4), false, true, true),
+            (
+                "confirm IA without address",
+                packet(4, IA_NA, 1, None),
+                false,
+                false,
+                false,
+            ),
+            (
+                "confirm unbound on-link",
+                packet(4, IA_NA, 1, old_address("2001:db8:1::123".parse().unwrap())),
+                false,
+                false,
+                false,
+            ),
+            (
+                "confirm off-link",
+                packet(4, IA_NA, 1, old_address("2001:db8:9::123".parse().unwrap())),
+                false,
+                true,
+                true,
+            ),
+        ];
+        for (name, bytes, unicast, replies, writes) in cases {
+            let mut engine = Dhcpv6::default();
+            let mut ctx = context(&config, &link);
+            if unicast {
+                ctx.destination = "2001:db8:1::1".parse().unwrap();
+            }
+            let outcome = engine.handle(&bytes, ctx, &mut |_, _| panic!("no PD routes"));
+            assert_eq!(outcome.reply.is_some(), replies, "{name}: reply");
+            assert_eq!(outcome.write_state, writes, "{name}: statefile event");
+            assert!(engine.leases().is_empty(), "{name}");
+        }
+    }
+
+    #[test]
+    fn confirm_aborts_on_any_unbound_on_link_ia_without_a_statefile_event() {
+        let (config, link) = fixture();
+        let mut engine = Dhcpv6::default();
+        let bound = engine.handle(
+            &packet(3, IA_NA, 1, None),
+            context(&config, &link),
+            &mut |_, _| Ok(()),
+        );
+        assert!(bound.reply.is_some() && bound.write_state);
+        let address = engine.leases()[0].addresses[0].clone();
+        let mut confirm = packet(4, IA_NA, 1, Some(address.clone()));
+        let accepted = engine.handle(&confirm, context(&config, &link), &mut |_, _| Ok(()));
+        assert!(accepted.reply.is_some() && accepted.write_state);
+        // Same client, a second on-link IAID without a binding: C returns from
+        // inside its IA loop, even after the first IA was confirmed.
+        confirm.extend_from_slice(&packet(4, IA_NA, 2, Some(address))[18..]);
+        let ignored = engine.handle(&confirm, context(&config, &link), &mut |_, _| Ok(()));
+        assert!(ignored.reply.is_none());
+        assert!(!ignored.write_state);
+        assert_eq!(engine.leases().len(), 1);
     }
 }
