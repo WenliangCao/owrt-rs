@@ -178,6 +178,25 @@ pub fn isolated_pipe_command(
     commands: OwnedFd,
     events: OwnedFd,
 ) -> io::Result<()> {
+    isolated_command(command, commands, events, false)
+}
+
+/// Resolver children keep the former fork child's default termination signals
+/// and discard inherited standard streams before entering the fresh image.
+pub fn isolated_lookup_command(
+    command: &mut Command,
+    request: OwnedFd,
+    result: OwnedFd,
+) -> io::Result<()> {
+    isolated_command(command, request, result, true)
+}
+
+fn isolated_command(
+    command: &mut Command,
+    commands: OwnedFd,
+    events: OwnedFd,
+    resolver: bool,
+) -> io::Result<()> {
     let maximum = rustix::process::getrlimit(rustix::process::Resource::Nofile)
         .current
         .unwrap_or(i32::MAX as u64)
@@ -202,10 +221,19 @@ pub fn isolated_pipe_command(
                     return Err(io::Error::last_os_error());
                 }
             }
-            for sig in [2, 13, 14, 15] {
-                signal(sig, 1);
+            if resolver {
+                for sig in [2, 13, 15] {
+                    signal(sig, 0);
+                }
+                for fd in [0, 1, 2] {
+                    close(fd);
+                }
+            } else {
+                for sig in [2, 13, 14, 15] {
+                    signal(sig, 1);
+                }
+                signal(17, 0);
             }
-            signal(17, 0);
             Ok(())
         });
     }

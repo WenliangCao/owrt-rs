@@ -1,22 +1,72 @@
-//! One bounded result pipe for blocking libc hostname lookup in a child.
+//! Bounded request/result pipes for a self-exec libc hostname lookup child.
 //! The daemon remains single-threaded and polls this pipe. No live owner call
 //! invokes getaddrinfo or a blocking waitpid.
-use super::{endpoints, RuleTarget, ServerHost, ServerRule};
-use owrt_ubus::sys::PollFd;
+use super::{
+    endpoints, DomainPattern, RuleTarget, ServerEndpoint, ServerHost, ServerRule, SourceBinding,
+};
+use dnsmasq_platform::poll::PollFd;
+use rustix::process::{Pid, Signal, WaitOptions};
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::fd::{AsFd, AsRawFd};
+use std::process::Command;
 
-unsafe extern "C" {
-    fn pipe2(fds: *mut i32, flags: i32) -> i32;
-    fn fork() -> i32;
-    fn close(fd: i32) -> i32;
-    fn fcntl(fd: i32, command: i32, ...) -> i32;
-    fn signal(number: i32, handler: usize) -> usize;
-    fn kill(pid: i32, signal: i32) -> i32;
-    fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32;
-    fn _exit(code: i32) -> !;
+const INTERNAL_LOOKUP: &str = "--dnsmasq-internal-lookup-v1";
+const MAX_REQUEST: usize = 4 * 1024 * 1024;
+#[cfg(test)]
+const TEST_CHANNELS: &str = "DNSMASQ_TEST_LOOKUP_CHANNELS";
+
+/// Called before normal CLI parsing or service resource creation.
+pub fn dispatch_internal_lookup() -> Option<i32> {
+    let mut args = std::env::args_os().skip(1);
+    if args.next().as_deref() != Some(std::ffi::OsStr::new(INTERNAL_LOOKUP)) {
+        return None;
+    }
+    let descriptors = args
+        .next()
+        .and_then(|value| value.to_str().map(str::to_owned));
+    if args.next().is_some() {
+        return Some(1);
+    }
+    Some(descriptors.as_deref().map_or(1, dispatch_channels))
+}
+
+fn dispatch_channels(descriptors: &str) -> i32 {
+    let Some((input, output)) = descriptors.split_once(':') else {
+        return 1;
+    };
+    let Ok(input) = input.parse() else {
+        return 1;
+    };
+    let Ok(output) = output.parse() else {
+        return 1;
+    };
+    let Ok(mut input) = dnsmasq_platform::process::inherited_pipe(input, true) else {
+        return 1;
+    };
+    let Ok(mut output) = dnsmasq_platform::process::inherited_pipe(output, false) else {
+        return 1;
+    };
+    let Ok((rules, reverse)) = read_request(&mut input) else {
+        return 1;
+    };
+    if rules
+        .first()
+        .is_some_and(|rule| !matches!(rule.target, RuleTarget::Upstream(_)))
+    {
+        return 1;
+    }
+    let expanded = endpoints::resolve_rules(&rules, reverse);
+    i32::from(output.write_all(&encode(&rules, expanded)).is_err())
+}
+
+fn nonblocking(fd: impl AsFd) -> io::Result<()> {
+    let flags = rustix::fs::fcntl_getfl(&fd)?;
+    Ok(rustix::fs::fcntl_setfl(
+        fd,
+        flags | rustix::fs::OFlags::NONBLOCK,
+    )?)
 }
 
 pub struct LookupResult {
@@ -27,6 +77,9 @@ pub struct LookupResult {
 pub struct EndpointLookup {
     pid: Option<i32>,
     reader: File,
+    writer: Option<File>,
+    request: Vec<u8>,
+    written: usize,
     bytes: Vec<u8>,
     eof: bool,
     cancelled: bool,
@@ -36,62 +89,43 @@ pub struct EndpointLookup {
 }
 
 impl EndpointLookup {
-    /// Call only from the single-threaded service owner. The child closes its
-    /// inherited listener/helper descriptors before entering the libc resolver.
+    /// The isolated exec image inherits only its private pipes. Neither the
+    /// child resolver nor its response writer can block the service owner.
     pub fn start(rules: Vec<ServerRule>, reverse: bool) -> io::Result<Self> {
-        let mut fds = [-1; 2];
-        // SAFETY: pipe2 initializes the two-fd buffer and creates new owners.
-        if unsafe { pipe2(fds.as_mut_ptr(), 0o2000000 | 0o4000) } != 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: successful pipe2 created both fresh fds; give each one File owner.
-        let reader = unsafe { File::from_raw_fd(fds[0]) };
-        let mut writer = unsafe { File::from_raw_fd(fds[1]) };
-        let inherited: Vec<i32> = std::fs::read_dir("/proc/self/fd")?
-            .filter_map(|entry| entry.ok()?.file_name().to_str()?.parse().ok())
-            .collect();
-        // SAFETY: the caller is the documented single-thread owner. The child
-        // uses only its forked memory/FD table and terminates via _exit.
-        let pid = unsafe { fork() };
-        if pid < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        if pid == 0 {
-            for fd in inherited {
-                if fd != writer.as_raw_fd() {
-                    // SAFETY: this fork child owns its copied fd table; it
-                    // retains only writer and terminates via _exit, without
-                    // dropping parent File objects after closing their copies.
-                    unsafe {
-                        close(fd);
-                    }
-                }
-            }
-            // SAFETY: scalar POSIX dispositions and fcntl flags apply only to
-            // this single-threaded fork child and its live retained writer.
-            unsafe {
-                signal(2, 0);
-                signal(15, 0);
-                signal(13, 0);
-                let flags = fcntl(writer.as_raw_fd(), 3);
-                if flags >= 0 {
-                    fcntl(writer.as_raw_fd(), 4, flags & !0o4000);
-                }
-            }
-            let expanded = endpoints::resolve_rules(&rules, reverse);
-            let bytes = encode(&rules, expanded);
-            let exit = if writer.write_all(&bytes).is_ok() {
-                0
-            } else {
-                1
-            };
-            // SAFETY: child-only exit never runs parent-object destructors.
-            unsafe { _exit(exit) };
-        }
-        drop(writer);
+        let request = encode_request(&rules, reverse)?;
+        let (request_read, request_write) =
+            rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?;
+        let (result_read, result_write) =
+            rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?;
+        nonblocking(&request_write)?;
+        nonblocking(&result_read)?;
+        let descriptors = format!("{}:{}", request_read.as_raw_fd(), result_write.as_raw_fd());
+        let mut command = Command::new("/proc/self/exe");
+        #[cfg(not(test))]
+        command.arg(INTERNAL_LOOKUP).arg(&descriptors);
+        #[cfg(test)]
+        command
+            .args([
+                "--exact",
+                "config::dns::lookup::tests::internal_lookup_entry",
+                "--nocapture",
+                "--test-threads=1",
+            ])
+            .env(TEST_CHANNELS, &descriptors);
+        dnsmasq_platform::process::isolated_lookup_command(
+            &mut command,
+            request_read,
+            result_write,
+        )?;
+        let process = command.spawn()?;
+        let pid = i32::try_from(process.id()).map_err(|_| invalid_request())?;
+        drop(command);
         Ok(Self {
             pid: Some(pid),
-            reader,
+            reader: File::from(result_read),
+            writer: Some(File::from(request_write)),
+            request,
+            written: 0,
             bytes: Vec::new(),
             eof: false,
             cancelled: false,
@@ -102,30 +136,62 @@ impl EndpointLookup {
     }
 
     pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>) {
-        if !self.eof && !self.cancelled {
-            fds.push(PollFd {
-                fd: self.reader.as_raw_fd(),
-                events: 1,
-                revents: 0,
-            });
+        if !self.cancelled {
+            if !self.eof {
+                fds.push(PollFd {
+                    fd: self.reader.as_raw_fd(),
+                    events: 1,
+                    revents: 0,
+                });
+            }
+            if let Some(writer) = &self.writer {
+                fds.push(PollFd {
+                    fd: writer.as_raw_fd(),
+                    events: 4,
+                    revents: 0,
+                });
+            }
         }
     }
 
     pub fn cancel(&mut self) {
         if !self.cancelled {
             self.cancelled = true;
+            self.writer.take();
+            self.request.clear();
             if let Some(pid) = self.pid {
-                // SAFETY: pid is the positive, unreaped child owned by this
-                // job; cancellation never targets a process group or foreign pid.
-                unsafe {
-                    kill(pid, 9);
-                }
+                let _ = rustix::process::kill_process(Pid::from_raw(pid).unwrap(), Signal::KILL);
             }
         }
     }
 
-    /// At most one 4096-byte read and one WNOHANG reap in each owner turn.
+    /// At most one 4096-byte write/read and one WNOHANG reap per owner turn.
     pub fn step(&mut self) -> Option<LookupResult> {
+        if let Some(writer) = &mut self.writer {
+            let end = self.request.len().min(self.written + 4096);
+            match writer.write(&self.request[self.written..end]) {
+                Ok(0) => {
+                    self.failure = Some("endpoint resolver request pipe: zero write".into());
+                    self.cancel();
+                }
+                Ok(length) => {
+                    self.written += length;
+                    if self.written == self.request.len() {
+                        self.writer.take();
+                        self.request.clear();
+                    }
+                }
+                Err(error)
+                    if matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                    ) => {}
+                Err(error) => {
+                    self.failure = Some(format!("endpoint resolver request pipe: {error}"));
+                    self.cancel();
+                }
+            }
+        }
         if !self.eof && !self.cancelled {
             let mut buffer = [0; 4096];
             match self.reader.read(&mut buffer) {
@@ -143,18 +209,16 @@ impl EndpointLookup {
             }
         }
         if let Some(pid) = self.pid {
-            let mut status = 0;
-            // SAFETY: waitpid is restricted to this owned child; WNOHANG
-            // never waits for the resolver or steals another helper's status.
-            let reaped = unsafe { waitpid(pid, &mut status, 1) };
-            if reaped == pid {
-                self.pid = None;
-                self.status = Some(status);
-            } else if reaped < 0 && io::Error::last_os_error().raw_os_error() == Some(10) {
-                self.pid = None;
-                self.failure = Some("endpoint resolver child was already reaped".into());
-            } else {
-                return None;
+            match rustix::process::waitpid(Pid::from_raw(pid), WaitOptions::NOHANG) {
+                Ok(Some((_, status))) => {
+                    self.pid = None;
+                    self.status = Some(status.as_raw());
+                }
+                Err(rustix::io::Errno::CHILD) => {
+                    self.pid = None;
+                    self.failure = Some("endpoint resolver child was already reaped".into());
+                }
+                _ => return None,
             }
         }
         if self.cancelled {
@@ -194,14 +258,235 @@ impl Drop for EndpointLookup {
         if let Some(pid) = self.pid {
             // Shutdown callers retain the job until step reaps it. This is a
             // last-resort cancellation for an abruptly abandoned owner only.
-            // SAFETY: positive owned child remains unreaped; cancellation and
-            // WNOHANG wait are specific to it, with an optional null status pointer.
-            unsafe {
-                kill(pid, 9);
-                waitpid(pid, std::ptr::null_mut(), 1);
-            }
+            let _ = rustix::process::kill_process(Pid::from_raw(pid).unwrap(), Signal::KILL);
+            let _ = rustix::process::waitpid(Pid::from_raw(pid), WaitOptions::NOHANG);
         }
     }
+}
+
+fn invalid_request() -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        "invalid endpoint resolver request",
+    )
+}
+
+fn request_bytes(output: &mut Vec<u8>, bytes: Option<&[u8]>) -> io::Result<()> {
+    match bytes {
+        Some(bytes) => {
+            if output.len().saturating_add(4).saturating_add(bytes.len()) > MAX_REQUEST {
+                return Err(invalid_request());
+            }
+            output.extend_from_slice(&(bytes.len() as u32).to_be_bytes());
+            output.extend_from_slice(bytes);
+        }
+        None => output.extend_from_slice(&u32::MAX.to_be_bytes()),
+    }
+    Ok(())
+}
+
+fn request_ip(output: &mut Vec<u8>, address: Option<IpAddr>) {
+    match address {
+        None => output.push(0),
+        Some(IpAddr::V4(address)) => {
+            output.push(4);
+            output.extend(address.octets());
+        }
+        Some(IpAddr::V6(address)) => {
+            output.push(6);
+            output.extend(address.octets());
+        }
+    }
+}
+
+/// This transport preserves the original typed rules. The child executes the
+/// single existing expansion implementation; it never parses a second syntax.
+fn encode_request(rules: &[ServerRule], reverse: bool) -> io::Result<Vec<u8>> {
+    let count = u32::try_from(rules.len()).map_err(|_| invalid_request())?;
+    let mut output = b"DNSLKP01".to_vec();
+    output.push(u8::from(reverse));
+    output.extend(count.to_be_bytes());
+    for rule in rules {
+        output.push(
+            u8::from(rule.domain.wildcard)
+                | (u8::from(rule.domain.wildcard_dot) << 1)
+                | (u8::from(rule.domain.dotless) << 2),
+        );
+        request_bytes(&mut output, Some(&rule.domain.suffix))?;
+        match &rule.target {
+            RuleTarget::Upstream(endpoint) => {
+                output.push(0);
+                match &endpoint.host {
+                    ServerHost::Address(address) => request_ip(&mut output, Some(*address)),
+                    ServerHost::Name(name) => {
+                        output.push(0);
+                        request_bytes(&mut output, Some(name))?;
+                    }
+                }
+                output.extend(endpoint.port.to_be_bytes());
+                request_bytes(&mut output, endpoint.scope.as_deref())?;
+                output.push(u8::from(endpoint.scope_id.is_some()));
+                if let Some(index) = endpoint.scope_id {
+                    output.extend(index.to_be_bytes());
+                }
+                output.push(u8::from(endpoint.source.is_some()));
+                if let Some(source) = &endpoint.source {
+                    request_ip(&mut output, source.address);
+                    request_bytes(&mut output, source.interface.as_deref())?;
+                    output.extend(source.port.to_be_bytes());
+                }
+            }
+            RuleTarget::DefaultResolvers => output.push(1),
+            RuleTarget::LocalOnly => output.push(2),
+            RuleTarget::Literal(address) => {
+                output.push(3);
+                request_ip(&mut output, Some(*address));
+            }
+            RuleTarget::ZeroAddresses => output.push(4),
+        }
+        if output.len() > MAX_REQUEST {
+            return Err(invalid_request());
+        }
+    }
+    let mut framed = (output.len() as u32).to_be_bytes().to_vec();
+    framed.extend(output);
+    Ok(framed)
+}
+
+struct RequestReader<'a>(&'a [u8]);
+impl<'a> RequestReader<'a> {
+    fn take(&mut self, length: usize) -> io::Result<&'a [u8]> {
+        let (head, tail) = self
+            .0
+            .split_at_checked(length)
+            .ok_or_else(invalid_request)?;
+        self.0 = tail;
+        Ok(head)
+    }
+    fn byte(&mut self) -> io::Result<u8> {
+        Ok(self.take(1)?[0])
+    }
+    fn boolean(&mut self) -> io::Result<bool> {
+        match self.byte()? {
+            0 => Ok(false),
+            1 => Ok(true),
+            _ => Err(invalid_request()),
+        }
+    }
+    fn short(&mut self) -> io::Result<u16> {
+        Ok(u16::from_be_bytes(self.take(2)?.try_into().unwrap()))
+    }
+    fn integer(&mut self) -> io::Result<u32> {
+        Ok(u32::from_be_bytes(self.take(4)?.try_into().unwrap()))
+    }
+    fn bytes(&mut self) -> io::Result<Option<Vec<u8>>> {
+        let length = self.integer()?;
+        if length == u32::MAX {
+            Ok(None)
+        } else {
+            Ok(Some(self.take(length as usize)?.to_vec()))
+        }
+    }
+    fn ip(&mut self, family: u8) -> io::Result<Option<IpAddr>> {
+        match family {
+            0 => Ok(None),
+            4 => Ok(Some(IpAddr::V4(Ipv4Addr::from(
+                <[u8; 4]>::try_from(self.take(4)?).unwrap(),
+            )))),
+            6 => Ok(Some(IpAddr::V6(Ipv6Addr::from(
+                <[u8; 16]>::try_from(self.take(16)?).unwrap(),
+            )))),
+            _ => Err(invalid_request()),
+        }
+    }
+}
+
+fn decode_request(bytes: &[u8]) -> io::Result<(Vec<ServerRule>, bool)> {
+    if bytes.len() > MAX_REQUEST {
+        return Err(invalid_request());
+    }
+    let mut input = RequestReader(bytes);
+    if input.take(8)? != b"DNSLKP01" {
+        return Err(invalid_request());
+    }
+    let reverse = input.boolean()?;
+    let count = input.integer()? as usize;
+    // Every rule contains at least flags, a four-byte name size and a target.
+    // Reject forged counts before allocating typed rules.
+    if count > input.0.len() / 6 {
+        return Err(invalid_request());
+    }
+    let mut rules = Vec::new();
+    for _ in 0..count {
+        let flags = input.byte()?;
+        if flags > 7 {
+            return Err(invalid_request());
+        }
+        let domain = DomainPattern {
+            suffix: input.bytes()?.ok_or_else(invalid_request)?,
+            wildcard: flags & 1 != 0,
+            wildcard_dot: flags & 2 != 0,
+            dotless: flags & 4 != 0,
+        };
+        let target = match input.byte()? {
+            0 => {
+                let family = input.byte()?;
+                let host = match input.ip(family)? {
+                    Some(address) => ServerHost::Address(address),
+                    None => ServerHost::Name(input.bytes()?.ok_or_else(invalid_request)?),
+                };
+                let port = input.short()?;
+                let scope = input.bytes()?;
+                let scope_id = if input.boolean()? {
+                    Some(input.integer()?)
+                } else {
+                    None
+                };
+                let source = if input.boolean()? {
+                    let family = input.byte()?;
+                    Some(SourceBinding {
+                        address: input.ip(family)?,
+                        interface: input.bytes()?,
+                        port: input.short()?,
+                    })
+                } else {
+                    None
+                };
+                RuleTarget::Upstream(ServerEndpoint {
+                    host,
+                    port,
+                    scope,
+                    scope_id,
+                    source,
+                })
+            }
+            1 => RuleTarget::DefaultResolvers,
+            2 => RuleTarget::LocalOnly,
+            3 => {
+                let family = input.byte()?;
+                RuleTarget::Literal(input.ip(family)?.ok_or_else(invalid_request)?)
+            }
+            4 => RuleTarget::ZeroAddresses,
+            _ => return Err(invalid_request()),
+        };
+        rules.push(ServerRule { domain, target });
+    }
+    if !input.0.is_empty() {
+        return Err(invalid_request());
+    }
+    Ok((rules, reverse))
+}
+
+fn read_request(input: &mut File) -> io::Result<(Vec<ServerRule>, bool)> {
+    let mut length = [0; 4];
+    input.read_exact(&mut length)?;
+    let length = u32::from_be_bytes(length) as usize;
+    if !(13..=MAX_REQUEST).contains(&length) {
+        return Err(invalid_request());
+    }
+    let mut bytes = vec![0; length];
+    input.read_exact(&mut bytes)?;
+    decode_request(&bytes)
 }
 
 fn encode(original: &[ServerRule], expanded: endpoints::Expansion) -> Vec<u8> {
@@ -279,6 +564,142 @@ fn decode(original: &[ServerRule], bytes: &[u8]) -> Result<LookupResult, ()> {
 mod tests {
     use super::*;
     use crate::config::{dns::parse_rules, EncodedArg};
+    #[test]
+    fn internal_lookup_entry() {
+        if let Ok(descriptors) = std::env::var(TEST_CHANNELS) {
+            std::process::exit(dispatch_channels(&descriptors));
+        }
+    }
+
+    fn finish(lookup: &mut EndpointLookup) -> LookupResult {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        loop {
+            if let Some(result) = lookup.step() {
+                return result;
+            }
+            assert!(std::time::Instant::now() < deadline, "lookup timeout");
+            let mut fds = Vec::new();
+            lookup.append_poll_fds(&mut fds);
+            dnsmasq_platform::poll::poll_fds(&mut fds, 10).unwrap();
+        }
+    }
+
+    #[test]
+    fn private_request_preserves_every_field_and_partial_result_origin() {
+        let endpoint = ServerEndpoint {
+            host: ServerHost::Name(b"upstream.example".to_vec()),
+            port: 5353,
+            scope: Some(b"scope-\xff".to_vec()),
+            scope_id: Some(77),
+            source: Some(SourceBinding {
+                address: Some("2001:db8::5".parse().unwrap()),
+                interface: Some(b"source-\xff".to_vec()),
+                port: 5300,
+            }),
+        };
+        let first = ServerRule {
+            domain: DomainPattern {
+                suffix: b".one.example".to_vec(),
+                wildcard: true,
+                wildcard_dot: true,
+                dotless: false,
+            },
+            target: RuleTarget::Upstream(endpoint),
+        };
+        let mut second = first.clone();
+        second.domain = DomainPattern {
+            suffix: Vec::new(),
+            wildcard: false,
+            wildcard_dot: false,
+            dotless: true,
+        };
+        let original = vec![first, second];
+        for reverse in [false, true] {
+            let framed = encode_request(&original, reverse).unwrap();
+            let (transferred, actual_reverse) = decode_request(&framed[4..]).unwrap();
+            assert_eq!((&transferred, actual_reverse), (&original, reverse));
+            // A successful later-origin row followed by a scope error must
+            // keep that original row's domain and complete source binding.
+            let mut partial = transferred[1].clone();
+            let RuleTarget::Upstream(endpoint) = &mut partial.target else {
+                unreachable!()
+            };
+            endpoint.host = ServerHost::Address("192.0.2.53".parse().unwrap());
+            endpoint.scope_id = None;
+            let expanded = endpoints::Expansion {
+                rules: vec![partial.clone()],
+                origins: vec![1],
+                error: Some(crate::config::Error("bad interface name")),
+            };
+            let result = decode(&original, &encode(&transferred, expanded)).unwrap();
+            assert_eq!(result.rules, vec![partial]);
+            assert_eq!(result.error.as_deref(), Some("bad interface name"));
+        }
+    }
+
+    #[test]
+    fn private_request_rejects_bad_header_flags_counts_and_truncation() {
+        let rules = parse_rules(b"server", &EncodedArg::command_line(b"/one/127.0.0.2")).unwrap();
+        let framed = encode_request(&rules, false).unwrap();
+        let bytes = &framed[4..];
+        for length in 0..bytes.len() {
+            assert!(decode_request(&bytes[..length]).is_err());
+        }
+        for (index, value) in [(0, 0), (8, 2), (9, 255), (13, 8)] {
+            let mut malformed = bytes.to_vec();
+            malformed[index] = value;
+            assert!(decode_request(&malformed).is_err());
+        }
+        let mut trailing = bytes.to_vec();
+        trailing.push(0);
+        assert!(decode_request(&trailing).is_err());
+    }
+
+    #[test]
+    fn self_exec_lookup_preserves_rules_and_cancel_reaps_before_result() {
+        let mut rules = parse_rules(
+            b"server",
+            &EncodedArg::command_line(b"/one/two/127.0.0.2#5353@192.0.2.1#5300"),
+        )
+        .unwrap();
+        for rule in &mut rules {
+            let RuleTarget::Upstream(endpoint) = &mut rule.target else {
+                unreachable!()
+            };
+            endpoint.host = ServerHost::Name(b"127.0.0.2".to_vec());
+        }
+        let expected = endpoints::resolve_rules(&rules, false);
+        let mut lookup = EndpointLookup::start(rules.clone(), false).unwrap();
+        let result = finish(&mut lookup);
+        assert_eq!(result.rules, expected.rules);
+        assert!(result.error.is_none());
+        assert!(lookup.pid.is_none());
+
+        let mut cancelled = EndpointLookup::start(rules, false).unwrap();
+        cancelled.cancel();
+        let result = finish(&mut cancelled);
+        assert!(result.rules.is_empty() && result.error.is_none());
+        assert!(cancelled.pid.is_none());
+    }
+
+    #[test]
+    fn large_request_uses_poll_write_interest_and_bounded_owner_turns() {
+        let one = parse_rules(b"server", &EncodedArg::command_line(b"/one/127.0.0.2"))
+            .unwrap()
+            .remove(0);
+        let rules = vec![one; 512];
+        let mut lookup = EndpointLookup::start(rules.clone(), false).unwrap();
+        assert!(lookup.request.len() > 4096);
+        let mut fds = Vec::new();
+        lookup.append_poll_fds(&mut fds);
+        assert!(fds.iter().any(|fd| fd.events == 4));
+        assert!(lookup.step().is_none());
+        assert!(lookup.written <= 4096 && lookup.writer.is_some());
+        let result = finish(&mut lookup);
+        assert_eq!(result.rules, rules);
+        assert!(result.error.is_none());
+    }
+
     #[test]
     fn result_roundtrip_preserves_partial_error_and_rejects_truncation() {
         let original =
