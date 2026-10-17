@@ -1,0 +1,90 @@
+{
+  "status": "PASS",
+  "probe_sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+  "scope": "Deterministic isolated tool mechanism reproduction; does not establish the cause of original K r7-J loss.",
+  "pre_experiment": {
+    "prediction": "An empty helper is rejected before any sample with exit 2 and zero streams. Pausing between create/write exposes an empty published file; temporary-plus-rename does not.",
+    "falsifier": "Any nonzero output for empty helper, failed valid-helper sampling, old reader rejecting the forced gap, or visible empty final atomic path rejects the proposed mechanism.",
+    "measurement_scope": "Exit statuses and exact bytes, no CPU/latency/PGO/performance or product test."
+  },
+  "empty_helper": {
+    "exit": 2,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0
+  },
+  "valid_helpers": {
+    "exit": 0,
+    "sample_rows": 2,
+    "stdout_bytes": 2760,
+    "stderr_bytes": 0
+  },
+  "legacy_publication": {
+    "before_release": {
+      "published_exists": true,
+      "published_bytes": 0,
+      "temporary_exists": false
+    },
+    "writer_exit": 0,
+    "after_release_positive_pid": true,
+    "old_reader_exit": 0,
+    "old_reader_observed_empty_client": true
+  },
+  "atomic_publication": {
+    "before_release": {
+      "published_exists": false,
+      "published_bytes": null,
+      "temporary_exists": true
+    },
+    "writer_exit": 0,
+    "after_release_positive_pid": true,
+    "old_reader_exit": null,
+    "old_reader_observed_empty_client": false
+  },
+  "no_product_build_or_router_access": true,
+  "local_evidence": "/Users/USER/Developer/owrt-perf-opt-20261015/private/resource-probe-pid-race-20261017",
+  "harness_sha256": "d698c4e458ebc85db1de3b6fffd996e10299d4d2eaee78ca32a962b471831978",
+  "raw_files": {
+    "legacy.pid": {
+      "bytes": 2,
+      "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8"
+    },
+    "valid-helpers.stdout": {
+      "bytes": 2760,
+      "sha256": "cb07ca86de10256f2d42101b35e05e238c3d699e171d01671562598ede09aac1"
+    },
+    "result.json": {
+      "bytes": 1566,
+      "sha256": "fdddf542549e6593fea9f5be417f85009115df833409ac780187ddfd5975813c"
+    },
+    "valid-helpers.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "atomic.pid": {
+      "bytes": 3,
+      "sha256": "1a252402972f6057fa53cc172b52b9ffca698e18311facd0f3b06ecaaef79e17"
+    },
+    "old-reader-at-empty-publication.stdout": {
+      "bytes": 29,
+      "sha256": "40b22eb2facaf0d4926f508ae72f7ebc722c3cfca2313a309309f2fd1cbf7132"
+    },
+    "empty-helper.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "empty-helper.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "old-reader-at-empty-publication.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "quiet": {
+    "experimental_processes": [],
+    "quiet": true,
+    "scope": "After evidence copy; created target/helper cats were closed and reaped by the harness."
+  },
+  "quiet_snapshot_note": "Two inline quiet checks matched a shell command containing the scan predicate itself; the second captured that command explicitly. The same read-only scan delivered by stdin passes. No mechanism experiment or monitor was repeated."
+}
