@@ -112,6 +112,52 @@ def archive_run(out, label):
     return target / label
 
 
+def fixed_mixed_cohort_valid(folder, scene, load, upstream):
+    """Check the fixed request set, independently of upstream wall-clock buckets."""
+    if scene != ('udp-mixed', 'udp', 'mixed', 200, 5, 20, 150):
+        return False
+    expected = dict(schema=1, enabled=True, prefill_unique=800,
+                    warmup_miss_unique=200, measurement_miss_unique=800,
+                    duplicate_queries=0, unexpected_queries=0)
+    cohort = upstream.get('mixed_cohort', {})
+    if any(cohort.get(key) != value for key, value in expected.items()):
+        return False
+    try:
+        prewarm = json.loads((folder / 'prewarm.json').read_text())
+    except (OSError, ValueError):
+        return False
+    common = dict(mode='udp', clients=32, rate=200, seed=0x293001,
+                  qtype='aaaa30', name_prefix='m6a.test', saturation_seconds=0,
+                  interrupted=False, output_failed=False)
+    for report, profile, warm, duration in ((prewarm, 'hit', 0, 5), (load, 'mixed', 5, 20)):
+        shape = dict(common, profile=profile, warmup_seconds=warm, measurement_seconds=duration)
+        if any(report.get(key) != value for key, value in shape.items()):
+            return False
+    for phase, count in (('warmup', 0), ('measurement', 1000)):
+        counters = prewarm.get(phase, {})
+        if (any(counters.get(key) != count for key in ('scheduled', 'sent', 'correct'))
+                or any(counters.get(key) != 0 for key in
+                       ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))):
+            return False
+    try:
+        if not (prewarm['run_end_ns'] < load['warmup_start_ns']
+                and 0 < load['run_end_ns'] - prewarm['warmup_start_ns'] < 120_000_000_000):
+            return False
+        if (upstream['total']['requests'] != 1800 or upstream['total']['replies'] != 1800
+                or upstream['total']['udp_requests'] != 1800 or upstream['total']['tcp_requests']
+                or upstream['ttl'] != 120 or upstream['delay_us'] != 1000):
+            return False
+        phases = upstream['phases']
+        if (sum(phases[name]['requests'] for name in
+                ('setup_warmup', 'steady', 'saturation', 'fault', 'recovery')) != 1800
+                or any(phases[name]['requests'] != phases[name]['replies'] for name in phases)
+                or any(phases[name]['requests'] for name in ('fault', 'recovery'))):
+            return False
+    except (KeyError, TypeError):
+        return False
+    return True
+
+
 def validate(folder, scene, expected_hash):
     errors = []
     if not (folder / 'COMPLETE').exists():
@@ -150,6 +196,9 @@ def validate(folder, scene, expected_hash):
                     or any(up['phases'][phase]['requests'] for phase in ('fault', 'recovery'))
                     or up['total']['requests'] != expected):
                 errors.append('upstream miss cohort count')
+        elif scene[2] == 'mixed' and 'mixed_cohort' in up:
+            if not fixed_mixed_cohort_valid(folder, scene, load, up):
+                errors.append('upstream mixed cohort count')
         elif up['phases']['steady']['requests'] != {'hit':0, 'miss':4000, 'mixed':800}[scene[2]]:
             errors.append('upstream hit/miss count')
     return errors
