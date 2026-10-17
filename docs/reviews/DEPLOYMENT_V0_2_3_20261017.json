@@ -1,0 +1,59 @@
+{
+  "version": "v0.2.3",
+  "source_commit": "0a925bcc2ec065eebaae51811c1a6252007b9d56",
+  "image_sha256": "02b6a3283140126a9c7d3ccc0404afe42077924b6b1229b3b96859cf449d8606",
+  "image_bytes": 13793568,
+  "single_preserving_config_flash": true,
+  "extra_reboots": false,
+  "continuous_client_health_s": 187.91370691599997,
+  "same_confirmed_boot_after_cleanup": true,
+  "client_dns_transport": "tcp",
+  "client_https_ipv4": true,
+  "client_https_ipv6": true,
+  "watchdog_running": true,
+  "observation": {
+    "samples": 60,
+    "all_interfaces_up": true,
+    "distinct_wan6_address_sets": 4,
+    "distinct_rule_handle_states": 1,
+    "cache_present_samples": 60,
+    "source_commit": "0a925bcc2ec065eebaae51811c1a6252007b9d56",
+    "seconds": 300,
+    "qualification": "Sampled rules/handles and interface state; not netifd syscall tracing or a latency benchmark"
+  },
+  "cache_metadata_available": false,
+  "cache_metadata_reason": "stat is absent on this image; optional inode field was empty, not a measurement of zero inode changes.",
+  "distinct_cache_sha256": 1,
+  "startup_connection_errors": 14,
+  "window_snapshot_errors": 0,
+  "lease_log_entries": 10,
+  "stable_renewal_intervals_s": [
+    30.075999975204468,
+    30.075999975204468,
+    30.072999954223633,
+    30.09000015258789,
+    30.073999881744385,
+    30.075000047683716,
+    30.147000074386597,
+    30.07799983024597,
+    30.0770001411438
+  ],
+  "guard_exited_normally": true,
+  "guard_removed": true,
+  "cleanup_parser_issue": "Router tr retained NUL in cmdline. Initial space-delimited argv assertion failed; shell continued owned cleanup. Preserved archive subsequently passed original remote SHA and every file hash; argv verified with NUL separators. No evidence lost.",
+  "guard_archive_sha256": "8aa0d5a218c1ae55183a4eb912128ab0cf7b0b422a39c91c4e90f25456bb6bec",
+  "clean_backup": {
+    "sha256": "b8702654472e3aec26c233e30f1ad2192e351d4d572965768c880c945562b650",
+    "bytes": 9662,
+    "members": 46,
+    "no_trial_members": true,
+    "original_config_members_preserved": true
+  },
+  "private_evidence_sha256": {
+    "result-initial.json": "03d051555b4a842308f9d629062f660fa069d26dfef825dbc1bee8377e06bf13",
+    "final-health.json": "89d2a9a36a631c6a6493b0049b452c53fd67211040c730553f5db4f1029455af",
+    "event-observation/events.jsonl": "7098ef6ff701da530a0dd336e3861199459cfeacc903d464b25f063c1b293040",
+    "event-observation/logread-last.txt": "7752fafd05c32b9e83848da8cd1f8bf82b1424e39581031661f70845a8c7f393",
+    "recovery-gate.json": "e65a94d15e887242c79c05d452e5ea647ff28f279300a352c4c63f08b871eb3c"
+  }
+}
