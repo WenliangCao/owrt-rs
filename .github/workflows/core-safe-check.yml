@@ -129,6 +129,7 @@ jobs:
           PYTHONPATH: tools
         run: |
           python3 -m unittest \
+            test_ci_check_core \
             test_ci_dnsmasq_target.TargetCheckTests.test_all_rust_cargo_and_unknown_warning_forms_fail \
             test_ci_dnsmasq_target.TargetCheckTests.test_sdk_kconfig_warnings_are_retained_separately \
             test_ci_dnsmasq_target.TargetCheckTests.test_only_exact_sdk_openssl_configuration_message_is_exempt

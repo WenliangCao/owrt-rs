@@ -29,6 +29,20 @@ def write(path, value):
 
 def warnings(output, logs):
     result = scan([path for path in logs if path.is_file()])
+    # The unmodified ImageBuilder checks its local repository before generating
+    # the initial index. Keep that one known metadata message separate, only
+    # in its image log; the common compiler scanner stays unchanged.
+    initial_index = re.compile(
+        r"^WARNING: opening /[^\s]+/openwrt-imagebuilder-[0-9]+\.[0-9]+\.[0-9]+-"
+        r"[^/\s]+/packages/packages\.adb: No such file or directory$")
+    compiler = []
+    for entry in result["compiler_or_unclassified"]:
+        if entry["log"] == "image.log" and initial_index.fullmatch(entry["text"]):
+            result["sdk_metadata"].append(entry)
+        else:
+            compiler.append(entry)
+    result["compiler_or_unclassified"] = compiler
+    result["strict_compiler_warnings_zero"] = not compiler
     write(output, result)
     print(f"compiler/unclassified warnings: {len(result['compiler_or_unclassified'])}; "
           f"SDK metadata warnings: {len(result['sdk_metadata'])}", flush=True)
