@@ -12,6 +12,7 @@ mod flowtable;
 mod input;
 mod ip;
 mod parse;
+mod reload;
 mod render;
 mod sections;
 mod state;
@@ -87,13 +88,19 @@ fn die(quiet: bool, msg: &str) -> ! {
 /// `exec 1>/dev/null; exec 2>/dev/null` from the shell wrapper (R88 fw4 F4).
 fn silence_stdio() {
     use std::os::fd::{AsRawFd, IntoRawFd};
-    if let Ok(null) = rustix::fs::open(c"/dev/null", rustix::fs::OFlags::WRONLY, rustix::fs::Mode::empty()) {
+    if let Ok(null) = rustix::fs::open(
+        c"/dev/null",
+        rustix::fs::OFlags::WRONLY,
+        rustix::fs::Mode::empty(),
+    ) {
         let _ = rustix::stdio::dup2_stdout(&null);
         let _ = rustix::stdio::dup2_stderr(&null);
         // An already-closed standard stream may receive the open itself.
         // Keep that descriptor as the original wrapper did; only a temporary
         // FD above 2 is closed after duplication.
-        if null.as_raw_fd() <= 2 { let _ = null.into_raw_fd(); }
+        if null.as_raw_fd() <= 2 {
+            let _ = null.into_raw_fd();
+        }
     }
 }
 
@@ -104,7 +111,12 @@ const UCODE_ABORT: i32 = 254;
 /// `ACTION=start|print`: render the ruleset; with `use_statefile` also write
 /// the state file like ucode's `load(true)`.  `None` is ucode aborting inside
 /// `load()` — nothing is rendered and no state file is written.
-fn render(quiet: bool, use_statefile: bool) -> Option<String> {
+struct Rendered {
+    ruleset: String,
+    effective: Option<reload::Eligible>,
+}
+
+fn render(quiet: bool, use_statefile: bool) -> Option<Rendered> {
     let mut fw = new_fw4(quiet);
     fw.load().ok()?;
     if use_statefile {
@@ -116,7 +128,11 @@ fn render(quiet: bool, use_statefile: bool) -> Option<String> {
             ));
         }
     }
-    Some(fw.render_ruleset())
+    let ruleset = fw.render_ruleset();
+    let effective = use_statefile
+        .then(|| reload::effective_rules(&fw, &ruleset))
+        .flatten();
+    Some(Rendered { ruleset, effective })
 }
 
 /// Feed `ruleset` to `nft [-e] [-c] -f -`; returns the exit code.
@@ -393,15 +409,32 @@ fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> 
     }
     // The wrapper runs its includes phase even when the render pipeline
     // aborted. With no state file this supplies the observed exit code 1.
-    let ruleset = render(quiet, true).unwrap_or_default();
+    let rendered = render(quiet, true);
     // nft and includes are separate children of the stock shell wrapper.
     let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
-    nft_load(&ruleset, verbose, false, false, sigpipe);
+    let effective = rendered.as_ref().and_then(|r| r.effective.as_ref());
+    if mode == "reload" && _lock.is_some() && effective.is_some_and(reload::unchanged) {
+        return run_includes(quiet);
+    }
+    // Never certify a failed/partial apply, including a renderer abort.
+    reload::invalidate();
+    let ruleset = rendered
+        .as_ref()
+        .map(|r| r.ruleset.as_str())
+        .unwrap_or_default();
+    let generation = effective.and_then(|_| reload::generation());
+    let applied = nft_load(ruleset, verbose, false, false, sigpipe) == 0;
+    if applied && _lock.is_some() {
+        if let (Some(effective), Some(generation)) = (effective, generation) {
+            reload::remember(effective, generation);
+        }
+    }
     run_includes(quiet)
 }
 
 fn stop() -> i32 {
     let _lock = lock();
+    reload::invalidate();
     let _ = Command::new("nft")
         .args(["delete", "table", "inet", "fw4"])
         .status();
@@ -411,6 +444,7 @@ fn stop() -> i32 {
 
 fn flush() -> i32 {
     let _lock = lock();
+    reload::invalidate();
     if let Ok(out) = Command::new("nft").args(["list", "tables"]).output() {
         for line in String::from_utf8_lossy(&out.stdout).lines() {
             let parts: Vec<&str> = line.split_whitespace().collect();
@@ -471,7 +505,7 @@ pub fn run(mut args: Vec<String>) -> ! {
                     "The rendered ruleset contains errors, not doing firewall restart.",
                 )
             };
-            if nft_load(&ruleset, verbose, true, false, sigpipe) != 0 {
+            if nft_load(&ruleset.ruleset, verbose, true, false, sigpipe) != 0 {
                 die(
                     quiet,
                     "The rendered ruleset contains errors, not doing firewall restart.",
@@ -492,7 +526,7 @@ pub fn run(mut args: Vec<String>) -> ! {
             // The success message is the stock wrapper's shell builtin echo,
             // outside the ucode renderer and its libubox signal handling.
             let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
-            let rc = nft_load(&ruleset, verbose, true, quiet, sigpipe);
+            let rc = nft_load(&ruleset.ruleset, verbose, true, quiet, sigpipe);
             if rc == 0 && !quiet {
                 if let Err(error) = writeln!(std::io::stdout(), "Ruleset passes nftables check.") {
                     let _ = writeln!(
@@ -509,11 +543,14 @@ pub fn run(mut args: Vec<String>) -> ! {
             let Some(out) = render(quiet, false) else {
                 std::process::exit(UCODE_ABORT)
             };
-            let _ = std::io::stdout().write_all(out.as_bytes());
+            let _ = std::io::stdout().write_all(out.ruleset.as_bytes());
             0
         }
         "reload-sets" => {
             let _lock = if is_mock() { None } else { lock() };
+            if !is_mock() {
+                reload::invalidate();
+            }
             let out = reload_sets(quiet);
             if is_mock() {
                 let _ = std::io::stdout().write_all(out.as_bytes());
@@ -522,7 +559,12 @@ pub fn run(mut args: Vec<String>) -> ! {
                 nft_load(&out, verbose, false, false, sigpipe)
             }
         }
-        "includes" => run_includes(quiet),
+        "includes" => {
+            if !is_mock() {
+                reload::invalidate();
+            }
+            run_includes(quiet)
+        }
         "network" | "device" | "zone" => {
             let _lock = if is_mock() { None } else { lock() };
             lookup(

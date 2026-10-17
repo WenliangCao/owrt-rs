@@ -79,6 +79,11 @@ fn interpret(reply: &[u8]) -> Option<bool> {
 /// `Some(exists)` when the kernel answered, `None` when it could not be asked.
 pub fn exists(table: &str, name: &str) -> Option<bool> {
     let (msg, len) = request(table, name)?;
+    interpret(&exchange(&msg[..len])?)
+}
+
+/// One bounded netfilter query; callers validate the response and sequence.
+pub(crate) fn exchange(msg: &[u8]) -> Option<Vec<u8>> {
     let fd = net::socket_with(
         AddressFamily::NETLINK,
         SocketType::RAW,
@@ -93,7 +98,7 @@ pub fn exists(table: &str, name: &str) -> Option<bool> {
     )
     .ok()?;
     let kernel = net::netlink::SocketAddrNetlink::new(0, 0);
-    if net::sendto(&fd, &msg[..len], SendFlags::empty(), &kernel).ok()? != len {
+    if net::sendto(&fd, msg, SendFlags::empty(), &kernel).ok()? != msg.len() {
         return None;
     }
     let mut reply = [0u8; 8192];
@@ -103,7 +108,7 @@ pub fn exists(table: &str, name: &str) -> Option<bool> {
     if n == 0 || n > reply.len() {
         return None;
     }
-    interpret(&reply[..n])
+    Some(reply[..n].to_vec())
 }
 
 #[cfg(test)]
