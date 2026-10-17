@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "date": "2026-10-17",
+  "status": "AUTHORIZED_RESEARCH_CLEANUP_COMPLETE_WITH_EXPLICIT_RELEASE_CWD_HOLD",
+  "deployment_report": "DEPLOYMENT_V0_2_1_20261017.md",
+  "oracle": {
+    "deleted_old_roots": 5,
+    "du_deleted_bytes": 88458121216,
+    "du_deleted_GiB": 82.3830451965332,
+    "df_available_before_bytes": 62994690048,
+    "df_available_after_bytes": 151430119424,
+    "df_available_increase_bytes": 88435429376,
+    "df_available_increase_GiB": 82.36191177368164,
+    "docker_unchanged": true,
+    "docker_counts": {
+      "containers": 7,
+      "running": 7,
+      "healthy": 7,
+      "images": 19,
+      "volumes": 5,
+      "networks": 7
+    },
+    "v022_input_files_preserved": 2331,
+    "v022_old_root_references": 0,
+    "shm_deleted_bytes": 0
+  },
+  "mac_stage1": {
+    "worktrees_removed": 23,
+    "local_branches_removed": 21,
+    "cache_paths_removed": 26,
+    "external_old_evidence_directory_removed": true,
+    "du_deleted_kib": 53320344,
+    "du_deleted_GiB": 50.850242614746094,
+    "df_available_before_kib": 185850220,
+    "df_available_after_kib": 238529304,
+    "df_available_increase_kib": 52679084,
+    "df_available_increase_GiB": 50.23868942260742,
+    "historical_recovery_files_rehashed": 106
+  },
+  "mac_final_P": {
+    "removed": true,
+    "directory": "private/release-v0.2.1",
+    "du_deleted_kib": 675980,
+    "du_deleted_GiB": 0.6446647644042969,
+    "df_available_before_kib": 238406712,
+    "df_available_after_kib": 239098580,
+    "df_available_increase_kib": 691868,
+    "df_available_increase_GiB": 0.6598167419433594,
+    "protected_files_rehashed": 118,
+    "compact_metadata_migrated_before_deletion": true,
+    "raw_data_rearchived": false,
+    "directory_permission_repairs": []
+  },
+  "host_totals": {
+    "mac_du_deleted_bytes": 55292235776,
+    "mac_du_deleted_GiB": 51.49490737915039,
+    "mac_observed_df_increase_bytes": 54651854848,
+    "mac_observed_df_increase_GiB": 50.89850616455078,
+    "oracle_plus_mac_du_deleted_bytes": 143750356992,
+    "oracle_plus_mac_du_deleted_GiB": 133.8779525756836,
+    "oracle_plus_mac_observed_df_increase_bytes": 143087284224,
+    "oracle_plus_mac_observed_df_increase_GiB": 133.26041793823242,
+    "scope": "Sum of separate observation intervals on two hosts. Path du allocation and df free-space changes differ; APFS shared extents/snapshots, background reclamation and concurrent active work affect observed df. Router figures are separate."
+  },
+  "router": {
+    "tmp_used_kib_before_after": [
+      1088,
+      104
+    ],
+    "overlay_used_kib_before_after": [
+      13224,
+      108
+    ],
+    "guard_trial_du_kib": 13840,
+    "observation_tmp_du_kib": 980,
+    "fresh_backup_tmp_du_kib": 12,
+    "preflash_old_perf_directory_du_kib": 23428,
+    "preflash_reclaim_reported_separately": true,
+    "reboot_tmp_clear_counted_as_cleanup": false,
+    "guard_disarmed_normally": true,
+    "configuration_files_unchanged": 45,
+    "client_health_passed": true,
+    "no_new_reboot_or_service_restart": true
+  },
+  "preservation": {
+    "remote_old_refs_verified": 403,
+    "remote_old_branches": 21,
+    "remote_perf_archive_tags": 382,
+    "all_local_tags_preserved": 429,
+    "remote_release_branch": "release/v0.2.1-20261017",
+    "remote_release_branch_head": "82d9ae397afd9b9841ff356c57f39aa7a6b202f5",
+    "remote_release_archive_tag": "archive/release/v0.2.1-20261017-final",
+    "remote_release_archive_object": "a668151a440c83328eb69dfa97038d43869d5daa",
+    "remote_release_archive_peeled": "82d9ae397afd9b9841ff356c57f39aa7a6b202f5",
+    "v021_product_tag_unchanged": "867c9c53d65b03d5d8266df278a03b87b5b791af",
+    "user_uncommitted_files_SHA_unchanged": 11,
+    "keep": [
+      "main worktree and tracked source/reports/manifests",
+      "safe-v022 and stage1-ci active worktrees and their private inputs",
+      "private/backup and router-config-latest",
+      "clean before/after config, exactv020/v021 firmware, XiaomiTFTP and originalMTD/Factory",
+      "Docker data,SDK/base image infrastructure,local tags and remote backups",
+      ".delta and unrelated projects/caches"
+    ]
+  },
+  "explicit_hold": {
+    "release_worktree": "owrt-release-v021-20261017",
+    "allocated_kib": 127796,
+    "allocated_MiB": 124.80078125,
+    "local_branch_kept": true,
+    "reason": "Host cwd references confirmed in stage1. Per root instruction final phase did not recheck,delete,kill or wait for these processes.",
+    "remote_backup_completed": true
+  },
+  "execution_notes": [
+    "The old performance root was deleted last. One owned0555 raw directory blocked its first removal; owner write permission was added only inside the already-authorized retired root, then exact deletion completed.",
+    "No raw evidence was archived again. Oracle execution/remote-ref verification/user-file hashes and compact publication/deployment/cleanup receipts were retained before P removal.",
+    "This cleanup did not merge or deployv0.2.2."
+  ],
+  "evidence_sha256": {
+    "cleanup-metadata/oracle-cleanup.json": "7b5dcf7cf5ffa2d48445c83ad8b6208178b242ee7a5823d45efcc523b08089d9",
+    "cleanup-metadata/remote-verified-403.json": "1fb4e24ec9e06faf8dd669147cb4db2659eac47df3f262c1d6ca650fdaf754d3",
+    "cleanup-metadata/remote-refs-403.json": "965a464bf86528407a394367a5ce5c1a01180ef125536492d26fca748f59f93d",
+    "cleanup-metadata/user-work-preserve.json": "f2dd55adbc8262fbf2b3454e57272c0928d8d4a3474556d57f5f7c5eb68b9300",
+    "cleanup-metadata/migration.json": "6347f92ae53a89aa601b8ec50700bb4b8037943c4ca15ae9677a66d32230e10b",
+    "cleanup-mac.json": "a37cf0529929ec26942f76bbd6955e314dcd60234dcec03e901123fb277b2dbd",
+    "cleanup-mac-final.json": "e9af706cb43e3443016abca2d896cdd005d55ec636157671cbe6634548cac625",
+    "release-retirement-refs.json": "a83580ec3f0cac55c3b35ba89af8765cd43eea1451b832dd8efe33ced82115b0",
+    "deployment-final-derived.json": "25fc21f28e1399e276a285f14d2cd9b01998fb5074a885231d61781ad5a7d567"
+  }
+}
