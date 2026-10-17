@@ -2030,6 +2030,11 @@ class StartupPipeSelector:
         self.events.append({'kind': 'startup-pipe-fds', 'reader': reader, 'writer': writer})
 
 
+def keepcaps_enable(args):
+    """Select only PR_SET_KEEPCAPS(1), not an earlier unrelated prctl."""
+    return args[0] == 8 and args[1] == 1
+
+
 def traced_startup(argv, case, side, stdout, stderr, report_path):
     if platform.machine() != 'aarch64':
         raise RuntimeError('startup syscall ABI is pinned AArch64')
@@ -2127,7 +2132,9 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     match &= pid != process.pid
                 if case.get('fault_follow_child'):
                     match &= followed_children == case.get('fault_follow_depth', 1)
-                if case['fault'] == 'error-pipe':
+                if case['fault'] == 'keepcaps':
+                    match &= keepcaps_enable(args)
+                elif case['fault'] == 'error-pipe':
                     match &= selected_pipe
                 elif case['fault'] == 'error-pipe-flags':
                     match &= args[0] == startup_pipe.writer and args[1] == 4
