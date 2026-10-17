@@ -1,11 +1,15 @@
 # AX3000T 救援手册（离线可用）
 
-**当前状态（2026-10-14）：已上线 v0.2.0 十组件原生 Rust 固件，当前恢复入口以[发布说明](RELEASE.md#恢复路径)为准。**
+**当前状态（2026-10-17）：已刷入 v0.2.1 十组件原生 Rust 固件，当前恢复入口以[发布说明](RELEASE.md#恢复路径)为准。**
 `owrt-recover-c` 从 `/usr/libexec/owrt-stock/` 成套恢复十个 C 程序及 dnsmasq 原 init/ACL，共十二份文件；
-`/rom` 内对应入口也是 Rust，不能作为 C 原件。该操作不等同于回到 v0.1.1；本次版本回滚使用已核验的
-v0.1.1 镜像和独立配置备份，由操作方手动执行，未安装自动回退守卫。
-本页第 1–3 节针对历史 stock/overlay，第 7 节针对历史九组件镜像；不要将其旧文件集合套用到 v0.2.0。
-按键、lan4 和 TFTP 步骤继续作为硬件恢复参考。当前部署见[记录](reviews/DEPLOYMENT_V0_2_0_20261014.md)。
+`/rom` 内对应入口也是 Rust，不能作为 C 原件。该操作不等同于刷回 v0.2.0；本次版本回滚使用已核验的
+v0.2.0 镜像和独立配置备份，保存在 `private/backup/release-v0.2.1/`。验收期临时自动回退守卫以
+v0.2.0 为目标，最终验收后移除并另取干净配置备份，完成状态见[部署记录](reviews/DEPLOYMENT_V0_2_1_20261017.md)。
+回滚固件 SHA256 为 `2f8083e44a548802de1738ecd8ef5231f74fda950a0a69a44f0e10e2e1d30ffd`；
+TFTP 救援镜像 `private/images/stock-rd03/miwifi_rd03_firmware_ef0ee_1.0.47.bin`，SHA256 为
+`77bf35b27b6ec29fbfe2c3f4280618cd70bade5e9998d407b634ce8a12825cc6`。
+本页第 1–3 节针对历史 stock/overlay，第 7 节针对历史九组件镜像；不要将其旧文件集合套用到十组件。
+按键、lan4 和 TFTP 步骤继续作为硬件恢复参考。
 
 适用：Xiaomi AX3000T（RD03，MT7981，原厂小米 bootloader），OpenWrt 25.12.5 stock 布局，
 本项目六个 Rust 组件以 boot-enable 运行，procd/ubusd/netifd 在 overlay 中替换。写给失联时独自操作的人；每一级都比上一级更重，
