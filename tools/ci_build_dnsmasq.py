@@ -110,24 +110,31 @@ def verify_pgo_build(out, report):
                          profile_diagnostics=bad, compile_warning_lines=sum("warning:" in line for line in log.splitlines()))
 
 
-def source_identity(spec):
-    files = audit.inputs(REPO)
+def source_identity(spec, frozen_source=None):
+    root = REPO if frozen_source is None else frozen_source
+    files = audit.inputs(root)
     digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     audit.require(digest == spec["source_digest"], "dnsmasq source/SDK recipe differs from accepted main product")
-    status = subprocess.check_output(["git", "-C", str(REPO), "status", "--porcelain", "--", *files], text=True)
-    audit.require(not status, "dnsmasq release inputs have uncommitted changes")
+    if frozen_source is None:
+        status = subprocess.check_output(["git", "-C", str(REPO), "status", "--porcelain", "--", *files], text=True)
+        audit.require(not status, "dnsmasq release inputs have uncommitted changes")
     return files, digest
 
 
-def build(work, spec, report):
-    files, digest = source_identity(spec)
+def build(work, spec, report, *, frozen_source=None):
+    # Target-only validation supplies a git archive whose complete input digest
+    # must match its frozen spec. Release builds retain the clean-checkout gate.
+    root = REPO if frozen_source is None else frozen_source
+    files, digest = source_identity(spec, frozen_source)
     out = work / "out/dnsmasq"
     source = out / "source"
-    audit.snapshot(REPO, source, files)
+    audit.snapshot(root, source, files)
+    commit = (spec["source_commit"] if frozen_source is not None else
+              subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip())
     report.update(source_files=files, source_digest=digest,
-                  source_commit=subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip(),
+                  source_commit=commit,
                   accepted_product_commit=spec["source_commit"], build_mode="compile-and-package")
-    epoch = subprocess.check_output(["git", "-C", str(REPO), "show", "-s", "--format=%ct", "HEAD"], text=True).strip()
+    epoch = subprocess.check_output(["git", "-C", str(REPO), "show", "-s", "--format=%ct", commit], text=True).strip()
     archive_name, archive_hash = json.loads((source / "manifests/release-25.12.5.json").read_text())["inputs"]["sdk"].split(" sha256 ")
     archive = work / "dl" / archive_name
     audit.require(audit.sha(archive) == archive_hash, "SDK archive differs from accepted release")
@@ -224,7 +231,7 @@ def build(work, spec, report):
     report["elf_layout"] = audit.audit_elf(elf.read_bytes(), text)
     metadata = audit.run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
     report["apk_metadata"] = audit.audit_metadata(metadata, spec["package_release"])
-    audit.require(audit.inputs(REPO) == files, "dnsmasq source changed while building")
+    audit.require(audit.inputs(root) == files, "dnsmasq source changed while building")
     report["elf"] = {"sha256": audit.sha(elf), "size": elf.stat().st_size,
                      "reference_sha256": spec["reference_elf_sha256"],
                      "matches_accepted_reference": audit.sha(elf) == spec["reference_elf_sha256"]}
