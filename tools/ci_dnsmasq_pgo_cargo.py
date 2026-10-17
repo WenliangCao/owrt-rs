@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Append the frozen profile-use flags after the unchanged SDK recipe sets flags."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def prepare(plan, argv, env):
+    if argv == ["--version"]:
+        return None
+    build = Path(plan["build_dir"])
+    expected_argv = ["build", "--release", "--frozen", "--manifest-path",
+                     str(build / "dnsmasq/Cargo.toml"), "--bin", "dnsmasq-rs",
+                     "--target-dir", str(build / "dnsmasq/target")]
+    if argv != expected_argv:
+        raise ValueError("unexpected SDK Cargo invocation")
+    expected = plan["recipe_environment"]
+    for name, value in expected.items():
+        if env.get(name) != value:
+            raise ValueError("unexpected SDK recipe environment: " + name)
+    for name, value in env.items():
+        if value and (name in {"CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER",
+                              "RUSTC_WORKSPACE_WRAPPER", "LLVM_PROFILE_FILE", "CARGO_TARGET_DIR"}
+                      or name.startswith("CARGO_PROFILE_") and name != "CARGO_PROFILE_RELEASE_PANIC"):
+            raise ValueError("unexpected compiler/profile override: " + name)
+    linker = env["CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER"]
+    if sha(linker) != plan["static_pie_linker_sha256"]:
+        raise ValueError("static PIE linker identity changed")
+    profile = Path(plan["profile"])
+    if (not profile.is_absolute() or any(c.isspace() for c in str(profile))
+            or profile.stat().st_size != plan["profile_bytes"] or sha(profile) != plan["profile_sha256"]):
+        raise ValueError("frozen PGO profile identity changed")
+    recipe_flags = env["RUSTFLAGS"]
+    if "profile-" in recipe_flags or "pgo-" in recipe_flags:
+        raise ValueError("recipe already supplies PGO flags")
+    added = f"-Cprofile-use={profile} -Cllvm-args=-pgo-warn-missing-function"
+    return {"mode": "use", "argv": argv, "recipe_environment": expected,
+            "recipe_rustflags": recipe_flags, "added_rustflags": added,
+            "effective_rustflags": recipe_flags + " " + added,
+            "profile_sha256": plan["profile_sha256"], "profile_bytes": plan["profile_bytes"],
+            "static_pie_linker_sha256": sha(linker), "wrapper_sha256": sha(__file__)}
+
+
+def main():
+    plan_path = Path(os.environ["DNSMASQ_PGO_BUILD_PLAN"])
+    plan = json.loads(plan_path.read_text())
+    argv = sys.argv[1:]
+    receipt = prepare(plan, argv, os.environ)
+    if receipt is not None:
+        receipt["plan_sha256"] = sha(plan_path)
+        with Path(plan["receipt"]).open("x") as stream:
+            json.dump(receipt, stream, indent=2)
+            stream.write("\n")
+        os.environ["RUSTFLAGS"] = receipt["effective_rustflags"]
+    os.execv(plan["cargo"], [plan["cargo"], *argv])
+
+
+if __name__ == "__main__":
+    main()

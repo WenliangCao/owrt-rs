@@ -66,7 +66,11 @@ jobs:
         run: sh tools/ci_build_core.sh "$GITHUB_WORKSPACE/work"
 
       - name: build accepted dnsmasq through its SDK package recipe
-        run: python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m unittest discover -s tools -p test_ci_dnsmasq_pgo.py
+          python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
 
       - name: integrate ten native components and verify the final image
         run: sh tools/ci_integrate_image.sh "$GITHUB_WORKSPACE/work"
@@ -92,6 +96,7 @@ jobs:
             work/out/*manifest.json
             work/out/dnsmasq/*.log
             work/out/dnsmasq/manifest.json
+            work/out/dnsmasq/pgo-*.json
             work/native/*.log
             work/native/build-inputs.json
             work/native/bin/*-sysupgrade.bin
