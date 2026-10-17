@@ -5,7 +5,7 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 保留精确 C 原件与离线恢复材料。
 
-**现状（2026-10-17）：[v0.2.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.2) 十组件固件已保留配置上线，业务 unsafe 从 545 处降到 0，目标编译警告清零。**
+**现状（2026-10-17）：[v0.2.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.2) 十组件固件已保留配置上线并设为 Latest，业务 unsafe 从 545 处降到 0，目标编译警告清零。**
 本版统一整理系统调用与安全封装，业务 crate 禁止 unsafe，CI 遇到编译警告即失败。
 完整正确性及用户指定的 24 个流量窗口、10 次启动检查通过；短检查未见可辨退化，
 UDP 命中的小幅不利趋势和瞬时 FD 审查保留，不宣称严格等效或提速。
