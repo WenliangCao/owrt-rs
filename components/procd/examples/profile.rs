@@ -4,13 +4,6 @@
 macro_rules! log {
     ($priority:expr, $($arg:tt)*) => { crate::sys::ulog($priority, &format!($($arg)*)) };
 }
-macro_rules! debug {
-    ($level:expr, $($arg:tt)*) => {
-        if crate::sys::debug_level() >= $level {
-            crate::sys::ulog(crate::sys::LOG_NOTICE, &format!($($arg)*));
-        }
-    };
-}
 #[path = "../src/instance.rs"]
 mod instance;
 #[path = "../src/dispatch.rs"]
