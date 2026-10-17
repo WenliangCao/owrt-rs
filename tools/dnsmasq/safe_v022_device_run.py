@@ -71,8 +71,11 @@ def stage_files(ctx, qualification, labels):
     run.ssh(f'''set -eu
 test ! -L {root}
 if test ! -e {root}; then mkdir -m 700 {root}; fi
-test "$(stat -c %u {root})" = 0
-test "$(stat -c %a {root})" = 700
+# Exact stock BusyBox has ls but no stat applet. The fixed task path has no
+# whitespace; numeric ls metadata preserves the same root/0700 checks.
+set -- $(ls -ldn {root})
+test "$1" = drwx------
+test "$3" = 0
 test ! -e {root}/STOP
 test ! -e {root}/active.group
 test ! -L {root}/runs
