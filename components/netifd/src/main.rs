@@ -730,16 +730,22 @@ impl Netifd {
         // enable, with the interface's new metric and tables
         let base = now().min(u32::MAX as u64) as u32;
         for (set, is_proto) in [(&mut config_ip, false), (&mut proto_ip, true)] {
-            for a in &set.addresses {
+            set.device_index = Some(di);
+            for a in &mut set.addresses {
                 let mut sa = sys::Address::new(a.addr, a.mask);
-                sa.broadcast = a.broadcast;
+                sa.broadcast = a.broadcast.filter(|b| !b.is_unspecified());
+                sa.point_to_point = a.point_to_point.and_then(|p| match p {
+                    IpAddr::V4(p) if !p.is_unspecified() => Some(p),
+                    _ => None,
+                });
                 if a.addr.is_ipv4() {
                     sa = sa.with_default_broadcast();
                 }
                 sa.offlink = a.offlink;
                 sa.preferred = a.preferred_until.map(|u| u.saturating_sub(base));
                 sa.valid = a.valid_until.map(|u| u.saturating_sub(base));
-                if self.sys.add_address(di, &sa).is_ok() {
+                a.failed = self.sys.add_address(di, &sa).is_err();
+                if !a.failed {
                     self.replace_subnet_route(di, &sa, &ic);
                 }
             }
@@ -748,7 +754,7 @@ impl Netifd {
                 r.enabled = !(is_proto && nodef && r.mask == 0);
                 if r.enabled {
                     let d = if r.flags & interface::devroute::NODEV != 0 { 0 } else { di };
-                    let _ = self.sys.add_route(d, &sys_route(r));
+                    r.failed = self.sys.add_route(d, &sys_route(r)).is_err();
                 }
             }
             set.routes.sort_by(interface::route_order);
@@ -2004,6 +2010,12 @@ impl Netifd {
             logging::log!(Warning, "{name}: proto reported device {l3}, which does not exist");
             return status::INVALID_ARGUMENT;
         }
+        // Entries were installed on the old L3 device. An identical lease
+        // on a replacement device still needs every kernel operation.
+        let same_device = self.iface_index(name).is_some_and(|i| {
+            self.interfaces[i].l3_device.as_deref() == Some(l3.as_str())
+                && self.interfaces[i].proto_ip.device_index == Some(devidx)
+        });
         if !keep {
             let _ = devidx;
             self.iface_claim(name, &l3, true);
@@ -2027,6 +2039,7 @@ impl Netifd {
         // parsed since R45 but never applied until R81 F06
         ipset.no_dns = ic.peerdns == Some(false);
         ipset.no_defaultroute = ic.defaultroute == Some(false);
+        ipset.device_index = Some(devidx);
 
         // proto_apply_ip_settings: `ipaddr`/`ip6addr` are arrays of tables,
         // each carrying its own mask. A rejected item abandons the remaining
@@ -2036,14 +2049,18 @@ impl Netifd {
         let mut bad = false;
         for (key, v6) in [("ipaddr", false), ("ip6addr", true)] {
             let Some(list) = find(key) else { continue };
-            for item in list.children() {
+            for (index, item) in list.children().enumerate() {
                 let Some(a) = proto::parse_addr_item(&item, v6) else {
                     logging::log!(Warning, "{name}: proto sent an address this build rejects");
                     bad = true;
                     break;
                 };
                 let mut sa = sys::Address::new(a.ip, a.mask);
-                sa.broadcast = a.broadcast;
+                sa.broadcast = a.broadcast.filter(|b| !b.is_unspecified());
+                sa.point_to_point = a.point_to_point.and_then(|p| match p {
+                    IpAddr::V4(p) if !p.is_unspecified() => Some(p),
+                    _ => None,
+                });
                 sa = sa.with_default_broadcast();
                 // v6 carries the lifetimes the protocol reported, and
                 // `offlink` becomes IFA_F_NOPREFIXROUTE -- netifd manages the
@@ -2053,31 +2070,58 @@ impl Netifd {
                 sa.preferred = a.preferred;
                 sa.valid = a.valid;
                 sa.offlink = a.offlink;
-                if let Err(e) = self.sys.add_address(devidx, &sa) {
-                    logging::log!(Warning, "{name}: cannot add {}/{}: {e}", a.ip, a.mask);
-                    continue;
-                }
-                if !a.offlink {
-                    self.replace_subnet_route(devidx, &sa, &ic);
-                } else if !previous.addresses.iter().any(|old| {
-                    old.addr == a.ip && old.mask == a.mask && old.offlink
-                }) {
-                    if let Some(route) = sys::offlink_route(&sa) {
-                        if let Err(e) = self.sys.add_route(0, &route) {
-                            logging::log!(Warning, "{name}: cannot add offlink null route: {e}");
-                        }
-                    }
-                }
                 let mut ia = Address::new(a.ip, a.mask);
-                ia.point_to_point = a.point_to_point;
+                ia.index = index;
+                ia.point_to_point = sa.point_to_point.map(IpAddr::V4);
                 ia.class = a.class.clone();
                 // `parse_address_item`: lifetimes become deadlines here
                 let base = now().min(u32::MAX as u64) as u32;
                 ia.preferred_until = a.preferred.map(|p| base.saturating_add(p));
                 ia.valid_until = a.valid.map(|v| base.saturating_add(v));
-                ia.broadcast = a.broadcast;
+                ia.broadcast = sa.broadcast;
                 ia.offlink = a.offlink;
-                ipset.addresses.push(ia);
+                let unchanged = same_device
+                    && previous.addresses.iter().any(|old| keep_proto_address(old, &ia, base));
+                if !unchanged {
+                    // IPv4 CREATE|REPLACE does not change an existing peer or
+                    // broadcast. The C callback removes the old address when
+                    // keep=false, but only refreshes in place for lifetimes.
+                    if let Some(old) = previous.addresses.iter().find(|old| {
+                        same_device && same_proto_address(old, &ia)
+                            && (old.failed || (a.ip.is_ipv4()
+                                && (old.broadcast != ia.broadcast
+                                    || old.point_to_point != ia.point_to_point)))
+                    }) {
+                        let mut remove = sys::Address::new(old.addr, old.mask);
+                        remove.broadcast = old.broadcast;
+                        remove.point_to_point = old.point_to_point.and_then(|p| match p {
+                            IpAddr::V4(p) => Some(p),
+                            _ => None,
+                        });
+                        let _ = self.sys.del_address(devidx, &remove);
+                    }
+                    if let Err(e) = self.sys.add_address(devidx, &sa) {
+                        logging::log!(Warning, "{name}: cannot add {}/{}: {e}", a.ip, a.mask);
+                        ipset.addresses.retain(|old| !same_proto_address(old, &ia));
+                        continue;
+                    }
+                    if !a.offlink {
+                        self.replace_subnet_route(devidx, &sa, &ic);
+                    } else if !previous.addresses.iter().any(|old| {
+                        old.addr == a.ip && old.mask == a.mask && old.offlink
+                    }) {
+                        if let Some(route) = sys::offlink_route(&sa) {
+                            if let Err(e) = self.sys.add_route(0, &route) {
+                                logging::log!(Warning, "{name}: cannot add offlink null route: {e}");
+                            }
+                        }
+                    }
+                }
+                if let Some(old) = ipset.addresses.iter_mut().find(|old| same_proto_address(old, &ia)) {
+                    *old = ia;
+                } else {
+                    ipset.addresses.push(ia);
+                }
                 counts[v6 as usize] += 1;
             }
             if bad {
@@ -2152,7 +2196,10 @@ impl Netifd {
                     r.table = t;
                     r.flags |= interface::devroute::SRCTABLE;
                 }
-                self.add_iface_route(name, devidx, &r, &mut ipset);
+                let old = same_device.then(|| previous.routes.iter().find(|old| {
+                    interface::route_order(old, &r).is_eq()
+                })).flatten();
+                self.add_iface_route(name, devidx, &r, &mut ipset, old);
             }
         }
 
@@ -2161,7 +2208,10 @@ impl Netifd {
             let Some(list) = find(key) else { continue };
             for item in list.children() {
                 let Some(r) = proto::parse_route_item(&item, v6) else { continue };
-                self.add_iface_route(name, devidx, &r, &mut ipset);
+                let old = same_device.then(|| previous.routes.iter().find(|old| {
+                    interface::route_order(old, &r).is_eq()
+                })).flatten();
+                self.add_iface_route(name, devidx, &r, &mut ipset, old);
             }
         }
         // `neighbor`/`neighbor6`: permanent entries the protocol asks for
@@ -2334,13 +2384,19 @@ impl Netifd {
         devidx: u32,
         r: &interface::Route,
         ipset: &mut interface::IpSettings,
+        old: Option<&interface::Route>,
     ) {
+        ipset.routes.retain(|entry| !interface::route_order(entry, r).is_eq());
         // `enable_route`: with `no_defaultroute` a default route stays in the
         // list -- dumped under `inactive` -- but out of the kernel
         if ipset.no_defaultroute && r.mask == 0 {
             let mut held = r.clone();
             held.enabled = false;
             ipset.routes.push(held);
+            return;
+        }
+        if old.is_some_and(|old| keep_proto_route(old, r, now())) {
+            ipset.routes.push(r.clone());
             return;
         }
         let k = sys_route(r);
@@ -3439,7 +3495,7 @@ impl Netifd {
                 if let Ok(di) = self.sys.if_index(&dev) {
                     if di != 0 {
                         let mut ipset = self.interfaces[idx].proto_ip.clone();
-                        self.add_iface_route(&name, di, &r, &mut ipset);
+                        self.add_iface_route(&name, di, &r, &mut ipset, None);
                         if let Some(idx) = self.iface_index(&name) {
                             self.interfaces[idx].proto_ip = ipset;
                             self.interfaces[idx].proto_ip.routes.sort_by(interface::route_order);
@@ -4498,6 +4554,39 @@ fn same_address(a: &interface::Address, b: &interface::Address) -> bool {
     a.addr == b.addr && a.mask == b.mask
 }
 
+/// C's address callback keeps a successful vlist entry unless flags or IPv4
+/// broadcast/peer change; changed deadlines still require a lifetime refresh.
+/// The address list only records successful initial installs. `failed` covers
+/// subsequent reload_ip failures, which must not become a false cache hit.
+fn keep_proto_address(old: &Address, new: &Address, now: u32) -> bool {
+    same_proto_address(old, new)
+        && old.enabled
+        && !old.failed
+        && old.preferred_until == new.preferred_until
+        && old.valid_until == new.valid_until
+        && old.valid_until.is_none_or(|until| until > now)
+        && (old.addr.is_ipv6()
+            || (old.broadcast == new.broadcast && old.point_to_point == new.point_to_point))
+}
+
+fn same_proto_address(old: &Address, new: &Address) -> bool {
+    same_address(old, new) && old.index == new.index && old.offlink == new.offlink
+}
+
+/// The route vlist key includes flags, metric, table and source. Its callback
+/// then compares these four non-key fields. Route lifetimes are daemon expiry
+/// deadlines, not kernel attributes: renewing one alone needs no netlink write.
+fn keep_proto_route(old: &interface::Route, new: &interface::Route, now: u64) -> bool {
+    interface::route_order(old, new).is_eq()
+        && old.nexthop == new.nexthop
+        && old.mtu == new.mtu
+        && old.ty == new.ty
+        && old.proto == new.proto
+        && old.enabled
+        && !old.failed
+        && old.valid_until.is_none_or(|until| u64::from(until) > now)
+}
+
 // ---------------------------------------------------------------------------
 // network.wireless: driving the radios
 // ---------------------------------------------------------------------------
@@ -5435,6 +5524,77 @@ fn main() {
     n.reload();
     n.wireless_load();
     n.run()
+}
+
+#[cfg(test)]
+mod proto_keep_tests {
+    use super::*;
+
+    #[test]
+    fn address_keep_requires_success_and_all_kernel_attributes() {
+        let mut old = Address::new("192.0.2.2".parse().unwrap(), 24);
+        old.broadcast = Some("192.0.2.255".parse().unwrap());
+        assert!(keep_proto_address(&old, &old, 10));
+        for mutate in [
+            |a: &mut Address| a.failed = true,
+            |a: &mut Address| a.enabled = false,
+            |a: &mut Address| a.index = 1,
+            |a: &mut Address| a.offlink = true,
+            |a: &mut Address| a.broadcast = Some("192.0.2.127".parse().unwrap()),
+            |a: &mut Address| a.point_to_point = Some("192.0.2.1".parse().unwrap()),
+        ] {
+            let mut changed = old.clone();
+            mutate(&mut changed);
+            assert!(!keep_proto_address(&changed, &old, 10));
+        }
+    }
+
+    #[test]
+    fn address_lifetime_refresh_and_expiry_are_not_kept() {
+        let mut old = Address::new("2001:db8::2".parse().unwrap(), 64);
+        old.preferred_until = Some(20);
+        old.valid_until = Some(30);
+        assert!(keep_proto_address(&old, &old, 10));
+        assert!(!keep_proto_address(&old, &old, 30));
+        let mut renewed = old.clone();
+        renewed.preferred_until = Some(21);
+        assert!(!keep_proto_address(&old, &renewed, 10));
+        renewed = old.clone();
+        renewed.valid_until = Some(31);
+        assert!(!keep_proto_address(&old, &renewed, 10));
+        renewed = old.clone();
+        renewed.class = Some("metadata-only".into());
+        assert!(keep_proto_address(&old, &renewed, 10));
+    }
+
+    #[test]
+    fn route_keep_uses_full_key_and_non_key_attributes_but_not_deadline() {
+        let old = interface::Route::new(
+            "0.0.0.0".parse().unwrap(), 0, "192.0.2.1".parse().unwrap(),
+        );
+        assert!(keep_proto_route(&old, &old, 10));
+        for mutate in [
+            |r: &mut interface::Route| r.failed = true,
+            |r: &mut interface::Route| r.enabled = false,
+            |r: &mut interface::Route| r.flags = interface::devroute::ONLINK,
+            |r: &mut interface::Route| r.metric = 1,
+            |r: &mut interface::Route| r.table = 100,
+            |r: &mut interface::Route| r.source = "192.0.2.2".parse().unwrap(),
+            |r: &mut interface::Route| r.sourcemask = 24,
+            |r: &mut interface::Route| r.nexthop = "192.0.2.3".parse().unwrap(),
+            |r: &mut interface::Route| r.mtu = 1400,
+            |r: &mut interface::Route| r.ty = 6,
+            |r: &mut interface::Route| r.proto = 16,
+            |r: &mut interface::Route| r.valid_until = Some(10),
+        ] {
+            let mut changed = old.clone();
+            mutate(&mut changed);
+            assert!(!keep_proto_route(&changed, &old, 10));
+        }
+        let mut renewed = old.clone();
+        renewed.valid_until = Some(60);
+        assert!(keep_proto_route(&old, &renewed, 10));
+    }
 }
 
 #[cfg(test)]

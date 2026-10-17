@@ -33,6 +33,7 @@ r53|r53_fault_diff.sh|netifd|
 r54|r54_reload_diff.sh|netifd|
 r55|r55_writemethods_diff.sh|netifd|
 r56|r56_dhcpv6_diff.sh|netifd|
+renewal_keep|netifd_renewal_keep.sh|netifd|
 r57|r57_busreconnect_diff.sh|netifd|
 r58|r58_devobjects_diff.sh|netifd|
 r59|r59_wireless_diff.sh|netifd|

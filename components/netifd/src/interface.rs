@@ -33,6 +33,8 @@ pub mod updated {
 pub struct Address {
     pub addr: IpAddr,
     pub mask: u8,
+    /// Position in this protocol's address-family list, part of C's vlist key.
+    pub index: usize,
     pub point_to_point: Option<IpAddr>,
     /// DEADLINES on the monotonic clock, as `preferred_until`/`valid_until`
     /// are in the C (`parse_address_item` adds `now`); the status prints what
@@ -47,6 +49,8 @@ pub struct Address {
     pub offlink: bool,
     /// Applied to the device, as opposed to held back — the `inactive` table.
     pub enabled: bool,
+    /// A failed re-apply must be retried even when the next lease is identical.
+    pub failed: bool,
 }
 
 impl Address {
@@ -54,6 +58,7 @@ impl Address {
         Self {
             addr,
             mask,
+            index: 0,
             point_to_point: None,
             preferred_until: None,
             valid_until: None,
@@ -61,6 +66,7 @@ impl Address {
             broadcast: None,
             offlink: false,
             enabled: true,
+            failed: false,
         }
     }
 }
@@ -111,6 +117,7 @@ pub struct Route {
     /// A deadline on the monotonic clock; the status prints what is left.
     pub valid_until: Option<u32>,
     pub enabled: bool,
+    pub failed: bool,
 }
 
 impl Route {
@@ -134,6 +141,7 @@ impl Route {
             table: 0,
             valid_until: None,
             enabled: true,
+            failed: false,
         }
     }
 }
@@ -208,6 +216,9 @@ pub struct PrefixAssignment {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct IpSettings {
+    /// Device on which successful entries were installed; a reused name is
+    /// not sufficient to keep addresses or routes after link replacement.
+    pub device_index: Option<u32>,
     pub addresses: Vec<Address>,
     pub routes: Vec<Route>,
     pub prefixes: Vec<Prefix>,
