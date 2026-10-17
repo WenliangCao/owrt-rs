@@ -21,6 +21,7 @@ from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "dnsmasq"))
 import build_package as audit
+from compiler_warnings import scan as scan_compiler_warnings
 
 
 REPO = Path(__file__).resolve().parent.parent
@@ -162,6 +163,11 @@ def build(work, spec, report, *, frozen_source=None):
     output = out / "sdk-output"
     cargo_home = audit.safe_path(Path(env.get("CARGO_HOME", str(Path.home() / ".cargo"))).resolve())
     rustup_home = audit.safe_path(Path(env.get("RUSTUP_HOME", str(Path.home() / ".rustup"))).resolve())
+    # Populate the locked registry inputs before the SDK's offline Cargo build.
+    # Cargo verifies each registry checksum; this does not rewrite the lockfile.
+    audit.run([str(cargo), "fetch", "--locked", "--target", "aarch64-unknown-linux-musl",
+               "--manifest-path", str(source / "components/dnsmasq/Cargo.toml")],
+              out / "cargo-fetch.log", env=env)
     build_cargo = cargo
     if "pgo" in spec:
         audit.require(env["RUSTUP_TOOLCHAIN"] == "1.98.1", "K PGO requires pinned Rust 1.98.1")
@@ -245,6 +251,9 @@ def build(work, spec, report, *, frozen_source=None):
     report["binary_sha256"] = {"dnsmasq-rs": audit.sha(elf)}
     report["source_date_epoch"] = epoch
     report["physical_boot_tested"] = False
+    report["compiler_warnings"] = scan_compiler_warnings(sorted(out.glob("*.log")))
+    audit.require(report["compiler_warnings"]["strict_compiler_warnings_zero"],
+                  "compiler/Cargo warning in dnsmasq build; original diagnostics retained")
     report["status"] = "built-and-audited"
 
 

@@ -1,7 +1,24 @@
 name: dnsmasq-target-check
 on:
   push:
-    branches: [validation/dnsmasq-stage1-20261017]
+    branches: [main, research/dnsmasq-safe-v022-20261017]
+    paths:
+      - "components/dnsmasq/**"
+      - "components/ubus/**"
+      - "packaging/openwrt/owrt-dnsmasq/**"
+      - "tools/ci_*dnsmasq*.py"
+      - "tools/dnsmasq/**"
+      - "rust-toolchain.toml"
+      - ".github/workflows/dnsmasq-target-check.yml"
+  pull_request:
+    paths:
+      - "components/dnsmasq/**"
+      - "components/ubus/**"
+      - "packaging/openwrt/owrt-dnsmasq/**"
+      - "tools/ci_*dnsmasq*.py"
+      - "tools/dnsmasq/**"
+      - "rust-toolchain.toml"
+      - ".github/workflows/dnsmasq-target-check.yml"
   workflow_dispatch:
 
 permissions:
@@ -35,13 +52,13 @@ jobs:
           key: dnsmasq-target-sdk-ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25
       - name: validate compiler-warning hard gate
         run: python3 -m unittest discover -s tools -p test_ci_dnsmasq_target.py
-      - name: build frozen plain target and reject every compiler warning
+      - name: build current revision for OpenWrt and reject every compiler warning
         run: python3 tools/ci_check_dnsmasq_target.py "$GITHUB_WORKSPACE/work"
       - name: preserve actual target artifacts and all build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dnsmasq-stage1-target-${{ github.sha }}
+          name: dnsmasq-target-${{ github.sha }}
           path: |
             work/out/dnsmasq/*.apk
             work/out/dnsmasq/dnsmasq-rs

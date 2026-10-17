@@ -55,15 +55,16 @@ class TargetCheckTests(unittest.TestCase):
                 log.write_text(changed + "\n")
                 self.assertFalse(scan([log])["strict_compiler_warnings_zero"])
 
-    def test_frozen_source_archive_matches_stage1_inventory(self):
-        frozen = target.freeze_source(self.root)
-        files, digest = target.builder.source_identity(target.SPEC, frozen)
-        self.assertEqual(len(files), 183)
-        self.assertEqual(digest, target.SOURCE_DIGEST)
+    def test_frozen_source_archive_matches_current_revision(self):
+        spec = target.source_spec()
+        frozen = target.freeze_source(self.root, spec)
+        files, digest = target.builder.source_identity(spec, frozen)
+        self.assertEqual(files, target.builder.audit.inputs(target.builder.REPO))
+        self.assertEqual(digest, spec["source_digest"])
         self.assertIn("components/dnsmasq/platform/src/lib.rs", files)
         (frozen / "components/dnsmasq/platform/src/lib.rs").write_text("changed")
         with self.assertRaisesRegex(ValueError, "differs"):
-            target.builder.source_identity(target.SPEC, frozen)
+            target.builder.source_identity(spec, frozen)
 
     def test_successful_build_with_linker_warning_fails_and_retains_outputs(self):
         def successful_build(work, spec, report, **kwargs):
@@ -73,7 +74,7 @@ class TargetCheckTests(unittest.TestCase):
             (out / "payload/usr/sbin").mkdir(parents=True)
             (out / "payload/usr/sbin/dnsmasq").write_bytes(b"actual elf")
             (out / "dnsmasq-2.93-r4.apk").write_bytes(b"actual apk")
-            report["accepted_product_commit"] = target.SOURCE_COMMIT
+            report["accepted_product_commit"] = spec["source_commit"]
 
         with patch.object(target.platform, "system", return_value="Linux"), \
              patch.object(target.platform, "machine", return_value="x86_64"), \

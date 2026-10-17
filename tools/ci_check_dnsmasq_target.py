@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""One plain SDK build of frozen stage1, with strict compiler warning denial.
+"""Build the checked-out dnsmasq revision for OpenWrt and reject compiler warnings.
 
 This produces diagnostic ELF/APK evidence only; it has no PGO, firmware,
 publication, installation or deployment path.
 """
 import argparse
+import hashlib
 import json
 import platform
 from pathlib import Path
@@ -15,25 +16,29 @@ import ci_build_dnsmasq as builder
 from dnsmasq.compiler_warnings import scan
 
 
-SOURCE_COMMIT = "08f665502ad0ef72f3a33fcc5717ff1fea9e50f7"
-SOURCE_DIGEST = "5d1c283e5603a1d943312fa92d3b9cf80cb3d29c86fcb90385eb9ff74bfbb379"
-SPEC = {"source_commit": SOURCE_COMMIT, "source_digest": SOURCE_DIGEST,
-        "package_release": "4", "reference_elf_sha256": None,
-        "elf_max_bytes": 2_500_000, "apk_max_bytes": 1_400_000}
+def source_spec():
+    files = builder.audit.inputs(builder.REPO)
+    digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    commit = subprocess.check_output(["git", "-C", str(builder.REPO), "rev-parse", "HEAD"], text=True).strip()
+    spec = {"source_commit": commit, "source_digest": digest,
+            "package_release": "4", "reference_elf_sha256": None,
+            "elf_max_bytes": 2_500_000, "apk_max_bytes": 1_400_000}
+    builder.source_identity(spec)  # Reject dirty product/recipe inputs before archiving.
+    return spec
 
 
-def freeze_source(out):
+def freeze_source(out, spec):
     # Git, not the current checkout, supplies every product/recipe input.
     files = builder.audit.inputs(builder.REPO)
     archive = out / "source.tar"
     subprocess.run(["git", "-C", str(builder.REPO), "archive", "--format=tar",
-                    "--output", str(archive), SOURCE_COMMIT, "--", *files], check=True)
+                    "--output", str(archive), spec["source_commit"], "--", *files], check=True)
     frozen = out / "frozen-source"
     frozen.mkdir()
     subprocess.run(["tar", "-xf", str(archive), "-C", str(frozen)], check=True)
-    files, digest = builder.source_identity(SPEC, frozen)
+    files, digest = builder.source_identity(spec, frozen)
     builder.write(out / "source-manifest.json", {
-        "commit": SOURCE_COMMIT, "digest": digest, "files": files,
+        "commit": spec["source_commit"], "digest": digest, "files": files,
         "archive_sha256": builder.audit.sha(archive)})
     return frozen
 
@@ -80,10 +85,11 @@ def run(work):
               "runner_commit": subprocess.check_output(
                   ["git", "-C", str(builder.REPO), "rev-parse", "HEAD"], text=True).strip()}
     try:
-        frozen = freeze_source(out)
+        spec = source_spec()
+        frozen = freeze_source(out, spec)
         prepare_sdk(work, out, frozen)
-        builder.build(work, SPEC, report, frozen_source=frozen)
-        report["frozen_product_commit"] = report.pop("accepted_product_commit")
+        builder.build(work, spec, report, frozen_source=frozen)
+        report["checked_product_commit"] = report.pop("accepted_product_commit")
         warnings = scan(sorted(out.glob("*.log")))
         report["warnings"] = warnings
         builder.audit.require(warnings["strict_compiler_warnings_zero"],
