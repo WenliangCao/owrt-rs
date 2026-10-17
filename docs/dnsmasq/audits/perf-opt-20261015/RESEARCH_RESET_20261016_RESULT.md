@@ -783,3 +783,10 @@ mkdir即碰到保留的旧partial，daemon/预热未启动。收到的45文件�
 按新冻结接续保留4AA，唯一远端前缀先跑r2–r5八窗，最后AB整对补r1一次；原r1-J不选用。
 最终仍14个固定有效窗，不重做有效AA，不拼旧内存失败数据；开跑前检查所有新label不存在，
 新125秒基线仍须88MiB。当前仍无完整K性能窗，修正规则没有根据候选效应选择数据。
+
+接续工具已通过一次有界静态核对：实际schedule与唯一label清单逐字段一致，r2–r5顺序
+BA/AB/BA/AB，末尾r1 AB；最终14严格取新4AA+10比较窗，confirm18和条件118绑定同一
+选择与AA。接续125秒基线最低104336KiB，10个唯一远端label在基线前后均确认不存在，
+固定10窗已开始。入口`run-k-fixed-continuation.py`，选择计划`k-dual-family-resume-selection.json`；
+真实新增输出`k-dual-family-screen-resume10`，最终派生目录`k-dual-family-screen14-selected`。
+上述路径均相对`private/perf-opt-20261015/research-reset-20261016/`；旧目录不可当当前入口重开。
