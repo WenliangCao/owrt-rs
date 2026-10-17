@@ -144,21 +144,33 @@ def inner(root, side):
             path = f.output / "nft-args"
             return sum(" -f " in " " + line + " " for line in path.read_text().splitlines()) if path.exists() else 0
 
-        def check(name, expected, action="reload"):
+        def snapshot_count():
+            path = f.output / "nft-args"
+            return path.read_text().splitlines().count("-s list table inet fw4") if path.exists() else 0
+
+        def check(name, expected, action="reload", snapshots=None):
             before = count()
+            before_snapshots = snapshot_count()
             result = command(f.binary, action)
             delta = count() - before
-            observations.append({"name": name, "applies": delta, "expected": expected, "exit": result.returncode})
+            reads = snapshot_count() - before_snapshots
+            observations.append({"name": name, "applies": delta, "expected": expected, "exit": result.returncode,
+                                 "snapshots": reads, "expected_snapshots": snapshots})
             with (f.output / "commands.log").open("ab") as log:
                 log.write(name.encode() + b"\n" + result.stdout + result.stderr)
             assert result.returncode == 0 and delta == expected, observations[-1]
+            assert snapshots is None or reads == snapshots, observations[-1]
 
-        check("start", 1, "start")
-        check("flowtable_warmup", 1)
+        check("start", 1, "start", snapshots=0)
+        assert not (root / "var/run/fw4.reload-state").exists()
+        certify_reads = 1 if side == "candidate" else 0
+        check("flowtable_warmup", 1, snapshots=certify_reads)
+        if side == "candidate":
+            assert (root / "var/run/fw4.reload-state").exists()
         stable = 0 if side == "candidate" else 1
         original = table()
         assert b"flowtable ft" in original, original
-        check("unchanged", stable)
+        check("unchanged", stable, snapshots=certify_reads)
         assert (table() == original) == (side == "candidate")
         for i in range(3):
             state["interface"][0]["ipv6-address"][0]["address"] = f"2001:db8:{i + 1}::1"
@@ -178,8 +190,11 @@ def inner(root, side):
             assert table() == before, "skip must retain counters and handles"
         changed = CONFIG + "config rule\n option name 'changed'\n option src 'wan'\n option proto 'tcp'\n option dest_port '12345'\n option target 'ACCEPT'\n"
         write(root / "etc/config/firewall", changed)
-        check("real_rule_change", 1)
+        check("real_rule_change", 1, snapshots=certify_reads)
         assert b"12345" in table()
+        # Changed reload still certifies its successful apply. Its next
+        # unchanged event must skip immediately, without a deferred rebuild.
+        check("unchanged_after_rule_change", stable, snapshots=certify_reads)
         assert command("/usr/sbin/nft.real", "add", "rule", "inet", "fw4", "input", "counter", "drop").returncode == 0
         check("external_rule_change", 1)
         assert command("/usr/sbin/nft.real", "delete", "table", "inet", "fw4").returncode == 0
@@ -237,11 +252,12 @@ def inner(root, side):
         check("named_set_1", 1)
         check("named_set_2", 1)
         write(root / "etc/config/firewall", changed)
-        check("restart", 2, "restart")
+        check("restart", 2, "restart", snapshots=0)
+        assert not (root / "var/run/fw4.reload-state").exists()
         check("after_restart_warmup", 1)
         check("stop", 0, "stop")
         assert not (root / "var/run/fw4.reload-state").exists()
-        check("start_after_stop", 1, "start")
+        check("start_after_stop", 1, "start", snapshots=0)
         check("flush", 0, "flush")
         assert not (root / "var/run/fw4.reload-state").exists()
         write(f.output / "result.json", json.dumps(observations, indent=2) + "\n")

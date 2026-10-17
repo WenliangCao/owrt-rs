@@ -111,12 +111,13 @@ const UCODE_ABORT: i32 = 254;
 /// `ACTION=start|print`: render the ruleset; with `use_statefile` also write
 /// the state file like ucode's `load(true)`.  `None` is ucode aborting inside
 /// `load()` — nothing is rendered and no state file is written.
+/// Only reload requests comparison/certification inputs.
 struct Rendered {
     ruleset: String,
     effective: Option<reload::Eligible>,
 }
 
-fn render(quiet: bool, use_statefile: bool) -> Option<Rendered> {
+fn render(quiet: bool, use_statefile: bool, compare_rules: bool) -> Option<Rendered> {
     let mut fw = new_fw4(quiet);
     fw.load().ok()?;
     if use_statefile {
@@ -129,7 +130,7 @@ fn render(quiet: bool, use_statefile: bool) -> Option<Rendered> {
         }
     }
     let ruleset = fw.render_ruleset();
-    let effective = use_statefile
+    let effective = compare_rules
         .then(|| reload::effective_rules(&fw, &ruleset))
         .flatten();
     Some(Rendered { ruleset, effective })
@@ -409,7 +410,9 @@ fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> 
     }
     // The wrapper runs its includes phase even when the render pipeline
     // aborted. With no state file this supplies the observed exit code 1.
-    let rendered = render(quiet, true);
+    // Starting/restarting must apply. Avoid preparing a reload certificate on
+    // that path; the first subsequent reload can establish one safely.
+    let rendered = render(quiet, true, mode == "reload");
     // nft and includes are separate children of the stock shell wrapper.
     let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
     let effective = rendered.as_ref().and_then(|r| r.effective.as_ref());
@@ -496,7 +499,7 @@ pub fn run(mut args: Vec<String>) -> ! {
         "restart" => {
             // the shell runs `QUIET=1 print` in a pipeline, so an abort there
             // reaches `die` just like a ruleset nft rejects.
-            let rendered = render(true, false);
+            let rendered = render(true, false, false);
             // The shell itself retains its original disposition.
             let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
             let Some(ruleset) = rendered else {
@@ -520,7 +523,7 @@ pub fn run(mut args: Vec<String>) -> ! {
             if quiet {
                 silence_stdio();
             }
-            let Some(ruleset) = render(quiet, false) else {
+            let Some(ruleset) = render(quiet, false, false) else {
                 std::process::exit(UCODE_ABORT)
             };
             // The success message is the stock wrapper's shell builtin echo,
@@ -540,7 +543,7 @@ pub fn run(mut args: Vec<String>) -> ! {
             rc
         }
         "print" => {
-            let Some(out) = render(quiet, false) else {
+            let Some(out) = render(quiet, false, false) else {
                 std::process::exit(UCODE_ABORT)
             };
             let _ = std::io::stdout().write_all(out.ruleset.as_bytes());
