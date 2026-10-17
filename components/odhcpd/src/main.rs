@@ -192,7 +192,9 @@ impl App {
             services: Vec::new(),
             dhcp: Dhcpv6::default(),
             files: StateFiles::default(),
-            files_dirty: true,
+            // Like C, a process restart does not import or immediately erase
+            // the old export. Publish on an IA/address event instead.
+            files_dirty: false,
             bus,
             random: File::open("/dev/urandom")?,
         };
@@ -214,7 +216,7 @@ impl App {
         self.state = self.kernel.snapshot(now)?;
         self.kernel_dirty = false;
         self.services(true, &Changes::default(), None, now)?;
-        self.reconcile(now, true);
+        self.reconcile(now, false);
         Ok(())
     }
 
@@ -305,12 +307,13 @@ impl App {
             }
             if reload
                 || changes.affects_router(link.index)
-                || (changes.address_interfaces.contains(&link.index)
-                    && owrt_odhcpd::kernel::ra_addresses_changed(
-                        previous.and_then(|state| state.link(device)),
+                || previous.is_some_and(|state| {
+                    owrt_odhcpd::kernel::ra_addresses_changed(
+                        state.link(device),
                         link,
                         now.seconds(),
-                    ))
+                    )
+                })
             {
                 if let Some(ra) = &mut service.ra {
                     ra.router.trigger(now);
@@ -344,6 +347,29 @@ impl App {
                 }
             }
         }
+        Ok(())
+    }
+
+    fn refresh_kernel(&mut self, changes: &Changes, now: Clock) -> io::Result<()> {
+        let state = self.kernel.snapshot(now)?;
+        let previous = std::mem::replace(&mut self.state, state);
+        self.kernel_dirty = false;
+        let address_change = self.services.iter().any(|service| {
+            service.dhcp.is_some()
+                && self.state.links.iter().any(|link| {
+                    link.index == service.index
+                        && owrt_odhcpd::kernel::ra_addresses_changed(
+                            previous.link(&link.name),
+                            link,
+                            now.seconds(),
+                        )
+                })
+        });
+        // A snapshot after our PD route ACK may also observe a concurrent
+        // address/link change. Always consume its old -> new transition here;
+        // the later queued notification must not compare the new state to itself.
+        self.services(false, changes, Some(&previous), now)?;
+        self.reconcile(now, address_change);
         Ok(())
     }
 
@@ -432,7 +458,7 @@ impl App {
         } else {
             self.config.hosts.push(host);
         }
-        self.reconcile(now, true);
+        self.reconcile(now, false);
     }
 
     fn call(&mut self, call: Call, now: Clock) {
@@ -599,15 +625,15 @@ impl App {
                         };
                         let kernel = &mut self.kernel;
                         let dirty = &mut self.kernel_dirty;
-                        if let Some(reply) =
+                        let outcome =
                             self.dhcp.handle(&packet.bytes, context, &mut |route, add| {
                                 let result = kernel.route(route, add);
                                 if result.is_ok() {
                                     *dirty = true;
                                 }
                                 result
-                            })
-                        {
+                            });
+                        if let Some(reply) = outcome.reply {
                             let mut destination = packet.source;
                             destination.set_port(546);
                             if destination.ip().is_unicast_link_local() {
@@ -616,8 +642,8 @@ impl App {
                             if let Err(error) = socket.send(&reply, destination, None) {
                                 self.logger.message(4, &format!("DHCPv6 reply: {error}"));
                             }
-                            self.files_dirty = true;
                         }
+                        self.files_dirty |= outcome.write_state;
                     }
                 }
             }
@@ -667,7 +693,7 @@ impl App {
 
     fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let mut next_expiry = clock().monotonic_ms + 1000;
-        self.reconcile(clock(), true);
+        self.reconcile(clock(), false);
         loop {
             if STOP.load(Ordering::Relaxed) {
                 break;
@@ -680,8 +706,7 @@ impl App {
                 }
             }
             if self.kernel_dirty {
-                self.state = self.kernel.snapshot(now)?;
-                self.kernel_dirty = false;
+                self.refresh_kernel(&Changes::default(), now)?;
             }
             if now.monotonic_ms >= next_expiry {
                 self.reconcile(now, false);
@@ -737,11 +762,7 @@ impl App {
             if descriptors[0].revents != 0 {
                 let changes = self.kernel.changed()?;
                 if changes.any {
-                    let state = self.kernel.snapshot(now)?;
-                    let previous = std::mem::replace(&mut self.state, state);
-                    self.kernel_dirty = false;
-                    self.services(false, &changes, Some(&previous), now)?;
-                    self.reconcile(now, true);
+                    self.refresh_kernel(&changes, now)?;
                 }
             }
             if self.bus.as_ref().is_some_and(|bus| {
