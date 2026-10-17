@@ -1,6 +1,6 @@
 # dnsmasq-rs 持续研究结果：2026-10-17
 
-**K仍为接受候选；按用户第三次专家复核指示，停止未命中/DHCP候选推进，只完成一次小HUP诊断后收尾，不发布。**
+**20/20小HUP内部计时中位129.32µs，全部同次调用完成；未发现简单顺序问题，性能课题收尾。K保持接受但不发布。**
 本轮计划见[研究计划](PERF_RESEARCH_20261017_PLAN.md)。J/K原接受证据与所有失败保持不变。
 
 ## 当前模型与第一轮决策
@@ -89,3 +89,35 @@ hint/布局因果；这些科学限制不影响当前产品价值上的停止决
 `/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-name-reuse-20261017/`。
 唯一映射仍是`audits/perf-opt-20261015/dns/preparation-worktrees-cleanup-20261017.json`。
 K产品/接受身份不改，所有探索失败保留。当前仅最后小HUP一次诊断待收尾，不涉及路由器。
+
+
+## 最后小HUP诊断：同次调用完成，没有值得改的一行顺序问题
+
+按第三份专家复核做最后一次可选项。原始5f5a4674的20次HUP全正确，但eprintln被正常
+foreground的startup标准流重定向到/dev/null，0行计时；精确源码及ELF含timing字节确认。
+原attempt1与空日志保留，没有补造分段。b6c396c3只修末读数后写独立私有文件；一次另名
+native构建、完整20事件补测结束，此后无实验。SDK/PGO与K正式产物从未重建或修改。
+
+| Oracle N1非PGO诊断，20事件 | 中位µs | 范围/性质 |
+| --- | ---: | --- |
+| process_reload_before_dns总elapsed | 129.32 | 118.92–166.88，包含抢占 |
+| reload_data互斥部分 | 94.82 | 读取/重建准备 |
+| 文件推进互斥部分 | 12.52 | 已扣除嵌套publication |
+| LeasePublisher发布 | 20.84 | 全部嵌套在文件阶段 |
+
+每事件file_turns=5、publication_calls=1，结束runnable/hosts_pending均false；全部新marker
+第一次probe即可见，原helper exit0且正常SIGTERM、无强杀。5次是同次调用内的有界文件
+状态推进，未出现跨轮挂起或16轮空转。逐行data+file=total、互斥data+file+publication=total
+精确成立；独立中位不能相加。25MHz计数器tick40ns。外部可见性中位329.803µs保留，但
+包含计时结束后的诊断文件写入、调度和原1ms探针，不能拿来与A53/C或无插桩值相减。
+
+诊断ELF03df5d8b0216fd80bd35d38d3c70e09a3cc3ed1b7636fe140ed3b5eef8050e37；完整摘要
+`private/r17-small-hup-diagnostic/summary.json` SHA
+a80db83f913fb4ebce65cf3f710af6aaf9d2249cb47f212774ec542b1ec6fdf8。首次15文件、末次16文件
+均已回收验证，Oracle quiet；本轮从未启动路由器新测试。诊断时间仅限非PGO N1，不能证明
+A53的约0.3ms历史量级由哪个阶段导致，也不构成产品性能改善。
+
+决定停止：没有能靠一行顺序修正获得有用收益的证据；必要的读取、索引/快照与同步发布
+不为低频小HUP微秒而重写。保留K与J回退、不发布、不部署、不推送、不合产品到main。
+本轮名字复用原型及诊断源码通过archive refs保留，清理映射仍在原cleanup manifest。
+已发现的高规模DHCP内存申请线索留待真实负载需要时再议，不作为当前继续研究的理由。
