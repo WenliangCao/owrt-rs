@@ -23,9 +23,13 @@ Oracle 只读源码位于
 | LAN 可用池 | GUA `/64` 加 ULA `/60`；WAN6 获得 PD `/64` |
 | 客户端快照 | 三个 IA_NA 租约，`accept-reconf=false`，无 IA_PD 租约 |
 
-没有静态 UCI host、定制 DUID 或其余 IPv6 服务选项。PXE、NTP/SNTP、DNR、
-时区、Captive Portal、raw DHCPv6 options 不因参考源码支持而扩入本轮。
+没有静态 UCI host、定制 DUID 或其余显式 IPv6 服务选项。PXE、NTP/SNTP、DNR、
+Captive Portal、raw DHCPv6 options 不因参考源码支持而扩入本轮。
 默认 DUID 和 DNS/search 行为仍属于现有默认服务，不能省略。
+后续核对纠正了时区边界：C 默认 `enable_tz=1`，本机 system timezone 为
+`CET-1CEST,M3.5.0,M10.5.0/3`、zonename 为 `Europe/Berlin`。客户端 ORO 请求时
+必须输出相应 POSIX/TZDB 字符串选项 41/42；只传配置字符串，无需时区数据库。
+依据：`src/config.c:39`，`src/dhcpv6.c:581`。这是默认有效行为的证据纠正。
 
 用户明示要求 IA_NA 和 IA_PD，因此无现存 PD 客户端不构成删除 PD 支持的理由。
 GUA `/64` 无可分配的下游 PD 空间；ULA `/60` 可提供 `/62` 等更长子前缀。
