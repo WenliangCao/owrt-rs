@@ -46,3 +46,22 @@ linker warning、profile missing/mismatch 均失败；最终预算仍为 2.5/1.4
 两份原始结果均保留。`-vv` 也将 registry dependency 的 `--cap-lints allow` 改为
 `warn`，所以不声称全部 rustc argv 相同，也不声称第三方 verbose 诊断为空。
 统一链只声称实际执行的普通发行构建 0 编译警告；不加白名单、nightly 或 vendor 修改。
+
+## 最小证据复用边界
+
+`a97edbc1` 与整合树 `bbcaec4f` 比较，dnsmasq 的 `src`、`platform/src` 共 162 个
+文件及两份 Cargo.toml 逐 blob 相同；变化是 DNS 锁、owrt-ubus 的 connect/readiness/
+sys/lib、共享 platform 与打包输入闭包。最终冻结后重查这份差异，不能把当前比较当
+作最终源码冻结。
+
+| 已有证据 | 可复用范围 | 新整合候选必须绑定的内容 |
+| --- | --- | --- |
+| native 988 项 | 未变 DNS 函数体的算法与边界证据；保留原源码身份 | 共享依赖/feature 闭包变化后的编译与相关集成测试，不能把旧 988 报成新运行 |
+| 8 组源码 corpus | 未变 config/cache/lease 函数体及固定 C oracle；既有 lease 布局差异继续保留 | 最终冻结若修改相应函数体或 oracle/fixture，则只重跑受影响组 |
+| 原训练场景、种子、负载工具与 C helper | 经原哈希验证后复用，不重新设计 workload | 新 CI instrumented ELF 的 excluded smoke、11 场景/50 profile；旧 profile 不复用 |
+| 旧 ELF 的 44/67、no-proc、FD、shipping、startup | 历史行为及原失败/纠正记录 | 共享依赖影响实际 ELF；最终新 ELF 的这些行为重新绑定，尤其 UBus/readiness/fork |
+| 旧 K 对照与设备负载工具 | 固定基线身份、原 workload、噪声与分析方法 | 整合候选的统一现场批次；旧 a97 独立 40/148 自动排程已撤回 |
+
+keepcaps 精确选项注入、UBus 346 项清单以及已验证的 startup snapshot 修正随工具
+迁入整合树，不通过重现已经定位的 fixture 错误来增加新候选工作量。所有旧原始记录
+保留；复用算法证据与新二进制资格分别标明。
