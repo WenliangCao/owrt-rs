@@ -731,7 +731,8 @@ mod tests {
             &Reply { status: 0, data: vec![], fd: None });
         let RpcResponse::Encoded(ref bytes) = response else { panic!("call not encoded") };
         let allocation = bytes.as_ptr();
-        assert_eq!(response.into_bytes().as_ptr(), allocation);
+        let returned = response.into_bytes();
+        assert_eq!(returned.as_ptr(), allocation);
     }
 
     #[test]

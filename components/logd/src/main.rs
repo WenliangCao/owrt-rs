@@ -382,7 +382,7 @@ impl Daemon {
             // A pipe, as in exact C logd (R89..R93 used a Unix stream socket).
             let pair = io::pipe().and_then(|(read_end, write_end)| {
                 let (read_end, write_end) = (OwnedFd::from(read_end), OwnedFd::from(write_end));
-                sys::set_nonblocking(&write_end)?;
+                sys::set_nonblocking(write_end.as_raw_fd())?;
                 let _ = set_pipe_capacity(&write_end, PIPE_CAPACITY);
                 Ok((read_end, write_end))
             });
