@@ -63,7 +63,7 @@ class CandidateTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(ValueError):
                 candidate.load_spec(self.save(spec))
 
-    def test_git_archive_freezes_8adc_source_not_tooling_head(self):
+    def test_git_archive_freezes_product_source_not_tooling_head(self):
         frozen = candidate.target.freeze_source(self.root, self.spec)
         files, digest = candidate.target.builder.source_identity(self.spec, frozen)
         self.assertEqual(len(files), 193)

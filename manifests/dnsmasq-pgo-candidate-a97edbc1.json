@@ -3,16 +3,16 @@
   "source_digest": "c47f95e99a966ec6433f37e0a7d36a8d8a7e9b360f63de6e905e0993e1bfc671",
   "source_file_count": 193,
   "source_date_epoch": 1792244626,
-  "reference_elf_sha256": null,
-  "reference_elf_bytes": null,
+  "reference_elf_sha256": "bd72ec58df820714800b5de2cbb8a84dfb3e45a901c634bada25191d95a073f7",
+  "reference_elf_bytes": 2304803,
   "elf_max_bytes": 2500000,
   "apk_max_bytes": 1400000,
   "package_release": "4",
-  "qualification": "Unfrozen candidate: profile and actual Oracle PGO ELF identities must be filled before any build. This does not alter the accepted K release or qualify deployment.",
+  "qualification": "Frozen candidate for canonical reproduction; final runtime correctness and device acceptance remain required. This does not alter the accepted K release or authorize deployment.",
   "pgo": {
     "build_slot": "/home/ubuntu/dnsmasq-safe-v022-20261017/private/sdk-build-slot",
-    "profile_url": null,
-    "profile_sha256": null,
-    "profile_bytes": null
+    "profile_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/dnsmasq-k-pgo-inputs-20261017/dnsmasq-a97edbc1-e7a9c7226d475b4d07ae41d54e0250bfe525522b13dfe37f37a42fe9f77639b6.profdata",
+    "profile_sha256": "e7a9c7226d475b4d07ae41d54e0250bfe525522b13dfe37f37a42fe9f77639b6",
+    "profile_bytes": 1163496
   }
 }
