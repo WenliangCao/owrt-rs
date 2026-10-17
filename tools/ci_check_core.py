@@ -57,20 +57,29 @@ def host(work, env, report):
     out = work / "out/core-host"
     out.mkdir(parents=True, exist_ok=True)
     for component in COMPONENTS:
-        manifest = REPO / "components" / component / "Cargo.toml"
+        crate = REPO / "components" / component
+        manifest = crate / "Cargo.toml"
         common = ["cargo", "test", "--locked", "--manifest-path", manifest]
-        compile_code = run(common + ["--all-targets", "--no-run"], out / f"build-{component}.log", env)
-        test_code = None
+        # --tests retains the normal lib/bin/integration test targets. Turning
+        # examples which include src modules into extra libtest roots would
+        # duplicate their tests in an unsupported crate-root environment.
+        compile_code = run(common + ["--tests", "--no-run"], out / f"build-{component}.log", env)
+        test_code = doc_code = example_code = None
         if compile_code == 0:
-            # Only the shared ABI crate now combines the old process-global
-            # signal/errno tests. Other components retain their existing mode.
             options = ["--", "--test-threads=1"] if component == "platform" else []
-            test_code = run(common + options, out / f"test-{component}.log", env)
-        report["commands"].append({"component": component, "compile": compile_code, "test": test_code})
-        if component in COMMON and (compile_code or test_code):
+            test_code = run(common + ["--tests", "--no-fail-fast"] + options, out / f"test-{component}.log", env)
+            if (crate / "src/lib.rs").is_file():
+                doc_code = run(common + ["--doc"], out / f"doc-{component}.log", env)
+        if any((crate / "examples").glob("*.rs")):
+            example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path", manifest],
+                               out / f"examples-{component}.log", env)
+        report["commands"].append({"component": component, "compile": compile_code,
+                                   "test": test_code, "doc": doc_code, "examples": example_code})
+        if component in COMMON and (compile_code or test_code or doc_code):
             break
     return out, len(report["commands"]) == len(COMPONENTS) and all(
-        row["compile"] == 0 and row["test"] == 0 for row in report["commands"])
+        row["compile"] == 0 and row["test"] == 0 and row["doc"] in (0, None)
+        and row["examples"] in (0, None) for row in report["commands"])
 
 
 def sdk_check(work, env, report):
@@ -94,15 +103,21 @@ def sdk_check(work, env, report):
         "RUSTFLAGS": env["RUSTFLAGS"] + " " + LINK_FLAGS,
     })
     # Shipped release ELFs above use the unchanged fixed SDK/core source slots.
-    # Also compile cfg/test/example paths for the router architecture; these
+    # Also compile business tests and normal examples for the router architecture; these
     # check-only products cannot be substituted for those release artifacts.
     for component in COMPONENTS:
-        code = run(["cargo", "check", "--locked", "--all-targets", "--manifest-path",
+        code = run(["cargo", "check", "--locked", "--tests", "--manifest-path",
                     REPO / "components" / component / "Cargo.toml", "--target-dir", work / "target-check"],
                    out / f"check-target-{component}.log", check_env)
         report["commands"].append({"target_check": component, "returncode": code})
         if code and component in COMMON:
             return out, False
+        crate = REPO / "components" / component
+        if any((crate / "examples").glob("*.rs")):
+            example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path",
+                                crate / "Cargo.toml", "--target-dir", work / "target-check"],
+                               out / f"check-examples-{component}.log", check_env)
+            report["commands"].append({"target_examples": component, "returncode": example_code})
     if any(row.get("returncode", 0) for row in report["commands"]):
         return out, False
     candidates = out / "core-candidates"

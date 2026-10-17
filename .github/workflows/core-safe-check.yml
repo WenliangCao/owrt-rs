@@ -73,7 +73,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
           key: core-host-registry-${{ hashFiles('components/*/Cargo.lock') }}
-      - name: compile every host target and run the existing component tests
+      - name: run existing host tests and check normal diagnostic examples
         run: python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work"
       - name: retain downloaded host dependencies after compile failures
         if: always() && steps.host-registry.outputs.cache-hit != 'true'
@@ -131,7 +131,7 @@ jobs:
             test_ci_dnsmasq_target.TargetCheckTests.test_all_rust_cargo_and_unknown_warning_forms_fail \
             test_ci_dnsmasq_target.TargetCheckTests.test_sdk_kconfig_warnings_are_retained_separately \
             test_ci_dnsmasq_target.TargetCheckTests.test_only_exact_sdk_openssl_configuration_message_is_exempt
-      - name: build all nine through canonical recipes and check every router target
+      - name: build all nine through canonical recipes and check router tests/examples
         run: python3 tools/ci_check_core.py target "$GITHUB_WORKSPACE/work"
       - name: retain checksum-verified SDK downloads after compile failures
         if: always() && steps.sdk-downloads.outputs.cache-hit != 'true' && hashFiles('work/out/sdk-downloads-verified') != ''
