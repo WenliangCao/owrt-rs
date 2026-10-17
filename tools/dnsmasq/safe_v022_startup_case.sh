@@ -29,7 +29,10 @@ trap 'exit 143' TERM
 mkdir "$out/input"
 binary=$out/input/dnsmasq
 ln "$root/artifact-$artifact" "$binary"
-[ "$(stat -c '%a:%u:%g' "$binary")" = 755:0:0 ]
+# Metadata belongs to fixture setup, before every measured start. The exact
+# stock BusyBox has no stat applet; numeric ls retains all three assertions.
+set -- $(ls -ldn "$binary")
+[ "$1" = -rwxr-xr-x ] && [ "$3" = 0 ] && [ "$4" = 0 ]
 sha256sum "$binary" > "$out/elf.sha256"
 sha256sum "$root/device_selfexec_lifecycle" "$root/m6a_upstream" \
     "$root/safe_v022_startup_case.sh" "$root/safe_v022_startup_group.sh" > "$out/tools.sha256"
