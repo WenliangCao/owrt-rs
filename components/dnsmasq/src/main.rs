@@ -55,6 +55,8 @@ use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::borrow::Cow;
 use std::cell::RefCell;
+#[cfg(all(feature = "m6b-diagnostics", target_os = "linux", target_arch = "aarch64"))]
+mod hup_timing;
 use std::ffi::OsString;
 #[cfg(feature = "m6b-diagnostics")]
 use std::fs::File;
@@ -641,6 +643,8 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
         &mut self,
         records: &[dnsmasq_rs::dhcp::persistence::DnsLeaseRecord<'_>],
     ) -> io::Result<()> {
+        #[cfg(all(feature = "m6b-diagnostics", target_os = "linux", target_arch = "aarch64"))]
+        let _publication_timing = hup_timing::Publication::start();
         let mut parent = self
             .parent
             .try_borrow_mut()
@@ -3408,7 +3412,11 @@ impl SinglePoll {
         if !signaled && !file_reload {
             return Ok(());
         }
+        #[cfg(all(feature = "m6b-diagnostics", target_os = "linux", target_arch = "aarch64"))]
+        let mut timing = hup_timing::Reload::start(signaled);
         self.reload_data(local_ttl)?;
+        #[cfg(all(feature = "m6b-diagnostics", target_os = "linux", target_arch = "aarch64"))]
+        timing.data_done();
         #[cfg(target_os = "linux")]
         {
             if signaled {
@@ -3423,6 +3431,8 @@ impl SinglePoll {
                 if !self.reload_file_work_runnable() {
                     break;
                 }
+                #[cfg(all(feature = "m6b-diagnostics", target_os = "linux", target_arch = "aarch64"))]
+                timing.file_turn();
                 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
                 self.step_dhcp_files();
                 self.step_dns_files();
@@ -3432,6 +3442,8 @@ impl SinglePoll {
                 }
             }
         }
+        #[cfg(all(feature = "m6b-diagnostics", target_os = "linux", target_arch = "aarch64"))]
+        timing.complete(self.reload_file_work_runnable(), self.hosts_work_pending());
         Ok(())
     }
 
