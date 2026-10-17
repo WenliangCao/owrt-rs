@@ -52,6 +52,19 @@ class StartupPipeTargetTests(unittest.TestCase):
         self.assertEqual(self.syscall(selector, 59, (300, 0, 0, 0, 0, 0)), (False, False))
         self.assertEqual(selector.writer, 9)
 
+    def test_keepcaps_fault_ignores_auxv_get_and_disable(self):
+        # Actual failed-run PR_GET_AUXV, plus the other keepcaps operation/value.
+        for args in [(0x41555856, 281474688573008, 512, 0, 0, 1685382482),
+                     (7, 0, 0, 0, 0, 0), (8, 0, 0, 0, 0, 0)]:
+            with self.subTest(args=args):
+                self.assertFalse(logging.keepcaps_enable(args))
+
+    def test_keepcaps_fault_selects_enable_without_constraining_tail_registers(self):
+        for tail in [(0, 0, 0, 4294967288), (1, 2, 3, 0xffffffffffffffff)]:
+            self.assertTrue(logging.keepcaps_enable((8, 1, *tail)))
+        case = next(row for row in logging.cases() if row['id'] == 'credential-fault-keepcaps')
+        self.assertEqual((case['fault_number'], case['fault_errno'], case['exit']), (167, 1, 5))
+
     def test_fault_expectations_remain_exact(self):
         cases = {row['id']: row for row in logging.cases()}
         for name in ['startup-fault-error-pipe', 'startup-fault-error-pipe-flags']:
