@@ -21,7 +21,18 @@ out=$root/runs/$label
 mkdir "$out"
 daemon= upstream= observer= timer= client= client_timer=
 daemon_start= upstream_start= observer_start= timer_start= client_start= client_timer_start=
-starttime() { awk '{print $22}' "/proc/$1/stat" 2>/dev/null; }
+starttime() {
+    # An empty PID otherwise reads /proc//stat, the system-wide stat file.
+    case "$1" in ''|*[!0-9]*) return 1;; esac
+    awk '{print $22}' "/proc/$1/stat" 2>/dev/null
+}
+reap_observer() {
+    [ -n "$observer" ] || return 0
+    observer_status=0
+    wait "$observer" || observer_status=$?
+    printf '%s\n' "$observer_status" > "$out/observer.exit"
+    observer=
+}
 owned_signal() {
     target=$1 expected=$2 signal=$3
     [ -n "$target" ] && [ -n "$expected" ] || return 0
@@ -50,7 +61,8 @@ cleanup() {
     owned_signal "$client" "$client_start" KILL
     owned_signal "$client_timer" "$client_timer_start" TERM
     owned_signal "$timer" "$timer_start" TERM
-    for pid in $observer $daemon $upstream $timer $client_timer; do wait "$pid" 2>/dev/null || :; done
+    reap_observer
+    for pid in $daemon $upstream $timer $client_timer; do wait "$pid" 2>/dev/null || :; done
 }
 trap cleanup EXIT
 trap 'exit 143' TERM
@@ -105,7 +117,7 @@ EOF
     done
 fi
 sha256sum "$out/config" > "$out/config.sha256"
-/usr/bin/time -f '%U %S %e' -o "$out/upstream.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/upstream.pid" "$root/m6a_upstream" --port 15354 --delay-us 1000 --ttl 120 --output "$out/upstream.json" --ready-file "$out/upstream.ready" --epoch-file "$out/epoch" --steady-seconds "$seconds" > "$out/upstream.stdout" 2> "$out/upstream.stderr" &
+/usr/bin/time -f '%U %S %e' -o "$out/upstream.time" /bin/sh -c 'echo $$ > "$1.tmp" && mv "$1.tmp" "$1" || exit 1; shift; exec "$@"' sh "$out/upstream.pid" "$root/m6a_upstream" --port 15354 --delay-us 1000 --ttl 120 --output "$out/upstream.json" --ready-file "$out/upstream.ready" --epoch-file "$out/epoch" --steady-seconds "$seconds" > "$out/upstream.stdout" 2> "$out/upstream.stderr" &
 timer=$!
 timer_start=$(starttime "$timer")
 i=0
@@ -134,7 +146,7 @@ if [ "$mode" = dhcp ]; then
     clients=$dhcp_clients; port=67
     extra="--client-port 68 --interface lo --dhcp-first-address 127.0.0.10 --dhcp-renew-only"
 fi
-/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.test --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
+/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1.tmp" && mv "$1.tmp" "$1" || exit 1; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.test --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
 client_timer=$!
 client_timer_start=$(starttime "$client_timer")
 i=0
@@ -142,17 +154,23 @@ while [ ! -f "$out/client.pid" ]; do [ "$i" -lt 5 ]; kill -0 "$client_timer"; sl
 client=$(cat "$out/client.pid")
 client_start=$(starttime "$client")
 # Known helper PIDs are sampled directly, separately from the service tree.
+printf '%s\n' "$daemon" "$((warm+seconds+5))" "$client" "$upstream" > "$out/observer.args"
 "$root/device_perf_resource_probe" monitor "$daemon" "$((warm+seconds+5))" "$client" "$upstream" > "$out/resources.jsonl" 2> "$out/resources.stderr" &
 observer=$!
+printf '%s\n' "$observer" > "$out/observer.pid"
 observer_start=$(starttime "$observer")
+printf '%s\n' "$observer_start" > "$out/observer.starttime"
 wait "$client_timer"
 client= client_timer=
 sleep 1
 "$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/after.jsonl"
 cat /proc/$daemon/stat > "$out/final.stat"
 owned_signal "$observer" "$observer_start" TERM
-wait "$observer" 2>/dev/null || :
-observer=
+reap_observer
+# The sampler returns 1 on our normal SIGTERM, 0 if its duration elapsed.
+[ "$observer_status" -le 1 ]
+[ -s "$out/resources.jsonl" ]
+[ ! -s "$out/resources.stderr" ]
 owned_signal "$upstream" "$upstream_start" TERM
 wait "$timer"
 upstream= timer=
