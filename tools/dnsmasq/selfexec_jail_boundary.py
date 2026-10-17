@@ -24,6 +24,9 @@ Example (Linux Oracle only; NEVER use the router):
 Use --expect proc-selfexec-failure for the frozen b8617f57 negative control,
 with its own exact binary hash and fresh output. Each invocation runs both
 helper and resolver once; this is a behavioral gate, not a timing benchmark.
+--case helper narrows a necessary helper-only recheck. Exact K's preexisting
+no-/proc lookup boundary uses --case resolver --expect resolver-proc-failure;
+it does not borrow the b861 helper expectation.
 """
 from __future__ import annotations
 
@@ -34,6 +37,7 @@ import json
 import os
 from pathlib import Path
 import select
+import resource
 import shutil
 import signal
 import socket
@@ -44,7 +48,7 @@ import sys
 import time
 
 from dns_service_probe import answer, query, read_name, rr, semantics
-from m2_rootfs import image_path, sha256
+from m2_rootfs import bind_unix_socket, image_path, sha256
 
 TARGET = '/usr/sbin/dnsmasq'
 CALLBACK = 'old 02:00:00:de:00:01 127.0.0.10 startup\n'
@@ -69,7 +73,7 @@ def namespaces(pid):
     return {name: os.readlink(f'/proc/{pid}/ns/{name}') for name in ['mnt', 'pid', 'net']}
 
 
-def boundary_errors(row, observer, runtime):
+def boundary_errors(row, observer, runtime, proc_visible=False):
     errors = []
     identity = 453 if runtime else 0
     if row['status'].get('Uid') != [identity] * 4 or row['status'].get('Gid') != [identity] * 4:
@@ -80,8 +84,8 @@ def boundary_errors(row, observer, runtime):
         errors.append('target did not get private mount/PID namespaces')
     if row['namespaces'].get('net') != observer['net']:
         errors.append('target left the isolated observer network')
-    if row.get('proc_exists') is not False:
-        errors.append('/proc exists inside target root')
+    if row.get('proc_exists') is not proc_visible:
+        errors.append('wrong target /proc visibility')
     if row.get('target_metadata') != {'regular': True, 'mode': 0o755, 'uid': 0, 'gid': 0, 'file_capability': None}:
         errors.append('target is not a regular root:root 0755 executable')
     if runtime:
@@ -104,7 +108,10 @@ def metadata(path):
             'uid': value.st_uid, 'gid': value.st_gid, 'file_capability': capability}
 
 
-def child_entry(root, entry_fd, release_fd):
+def child_entry(root, entry_fd, release_fd, proc_visible=False):
+    if proc_visible:
+        (Path(root) / 'proc').mkdir()
+        subprocess.run(['mount', '-t', 'proc', 'proc', str(Path(root) / 'proc')], check=True)
     os.chroot(root)
     os.chdir('/')
     receipt = {'uid': os.getuid(), 'gid': os.getgid(), 'namespace_pid': os.getpid(),
@@ -135,7 +142,7 @@ def write_image(root, name, text, mode=0o644):
     return path
 
 
-def prepare_root(image, binary, folder, helper):
+def prepare_root(image, binary, folder, helper, proc_visible=False):
     root = folder / 'rootfs'
     shutil.copytree(image, root, symlinks=True)
     remove(root / 'proc')
@@ -168,8 +175,9 @@ def prepare_root(image, binary, folder, helper):
         config += 'dhcp-script=/fixture/script\n'
         write_image(root, '/fixture/script', '#!/bin/sh\n'
                     '[ "$#" -eq 4 ] && [ "$1" = old ] && [ "$2" = 02:00:00:de:00:01 ] && '
-                    '[ "$3" = 127.0.0.10 ] && [ "$4" = startup ] || exit 64\n'
-                    '[ ! -e /proc ] && [ ! -L /proc ] || exit 65\n'
+                    '[ "$3" = 127.0.0.10 ] && [ "$4" = startup ] || exit 64\n' +
+                    ('[ -d /proc/self/fd ] || exit 65\n' if proc_visible else
+                     '[ ! -e /proc ] && [ ! -L /proc ] || exit 65\n') +
                     'printf "%s %s %s %s\\n" "$1" "$2" "$3" "$4" >> /fixture/callback\n', 0o755)
     else:
         config += 'servers-file=/fixture/servers\n'
@@ -180,11 +188,12 @@ def prepare_root(image, binary, folder, helper):
     return root
 
 
-def observe(pid, root, observer, runtime, digest):
+def observe(pid, root, observer, runtime, digest, proc_visible=False):
     proc = Path('/proc') / str(pid)
     actual_root = Path(os.path.realpath(proc / 'root'))
     if actual_root != root: raise AssertionError('wrong target chroot')
     row = {'pid': pid, 'root': str(actual_root), 'status': status(pid), 'namespaces': namespaces(pid),
+           'nofile': list(resource.prlimit(pid, resource.RLIMIT_NOFILE)),
            'comm': (proc / 'comm').read_text().rstrip('\n'),
            'proc_exists': os.path.lexists(proc / 'root/proc'),
            'target_metadata': metadata(proc / ('root' + TARGET)),
@@ -192,7 +201,7 @@ def observe(pid, root, observer, runtime, digest):
     if runtime:
         row['exe_sha256'] = sha256(proc / 'exe')
         if row['exe_sha256'] != digest: raise AssertionError('running target ELF mismatch')
-    row['errors'] = boundary_errors(row, observer, runtime)
+    row['errors'] = boundary_errors(row, observer, runtime, proc_visible)
     if row['errors']: raise AssertionError(row['errors'])
     return row
 
@@ -210,13 +219,14 @@ def read_entry(fd):
     raise RuntimeError('target entry handshake missing')
 
 
-def worker_observation(owner_pid, root, digest, kind):
+def worker_observation(owner_pid, root, digest, kind, proc_visible=False):
     """Lookup is held at its DNS question; helper is observed after callback."""
     children = Path(f'/proc/{owner_pid}/task/{owner_pid}/children').read_text().split()
     if len(children) != 1:
         return {'captured': False, 'reason': f'{kind} did not have exactly one direct child', 'children': children}
     pid = int(children[0]); proc = Path('/proc') / str(pid)
     row = {'captured': True, 'pid': pid, 'status': status(pid), 'namespaces': namespaces(pid),
+           'nofile': list(resource.prlimit(pid, resource.RLIMIT_NOFILE)),
            'comm': (proc / 'comm').read_text().rstrip('\n'),
            'argv': (proc / 'cmdline').read_bytes().split(b'\0')[:-1],
            'exe_sha256': sha256(proc / 'exe'), 'root': os.path.realpath(proc / 'root'),
@@ -229,15 +239,15 @@ def worker_observation(owner_pid, root, digest, kind):
     row['valid'] = (row['status']['Uid'] == [expected_uid] * 4 and row['status']['Gid'] == [expected_uid] * 4
                     and row['status']['NoNewPrivs'] == 0 and row['status']['Seccomp'] == 0
                     and row['namespaces'] == namespaces(owner_pid) and row['root'] == str(root)
-                    and not row['proc_exists'] and row['exe_sha256'] == digest)
+                    and row['proc_exists'] == proc_visible and row['exe_sha256'] == digest)
     # Record the child's own CapEff/CapPrm without requiring inherited 0x3400.
     return row
 
 
-def resolver_answer(packet):
+def resolver_answer(packet, expected_name='selfexec-resolver.test'):
     name, end = read_name(packet, 12)
     kind, cls = struct.unpack_from('!HH', packet, end)
-    if name.lower() != 'selfexec-resolver.test' or cls != 1 or kind not in [1, 28]:
+    if name.lower() != expected_name or cls != 1 or kind not in [1, 28]:
         raise AssertionError('unexpected libc resolver question')
     data = rr(1, socket.inet_aton('127.0.0.1')) if kind == 1 else b''
     return packet[:2] + struct.pack('!5H', 0x8180, 1, int(kind == 1), 0, 0) + packet[12:end + 4] + data
@@ -277,20 +287,30 @@ def probe(name, upstream, receipts, process, timeout=5, resolver=None, on_lookup
     return {'ok': False, 'name': name, 'attempts': attempts}
 
 
-def run_case(args, mode, observer):
+def run_case(args, mode, observer, prepare_hook=None, trial=None):
     folder = args.output / mode; folder.mkdir()
-    root = prepare_root(args.image_root, args.binary, folder, mode == 'helper').resolve()
+    proc_visible = getattr(args, 'proc_visible', False)
+    root = prepare_root(args.image_root, args.binary, folder, mode == 'helper', proc_visible).resolve()
+    if prepare_hook is not None: prepare_hook(root, mode)
     row = {'mode': mode, 'expect': args.expect, 'passed': False, 'upstream': [], 'forced': False}
     entry_read, entry_write = os.pipe(); release_read, release_write = os.pipe()
     process = None; target_pid = None; target_fd = None
     with (folder / 'stdout').open('wb') as stdout, (folder / 'stderr').open('wb') as stderr, \
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as upstream, \
-            socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as resolver:
+            socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as resolver, \
+            socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as syslog:
         upstream.bind(('127.0.0.1', 15354))
         resolver.bind(('127.0.0.2', 53))
+        bind_unix_socket(syslog, root / 'dev/log')
+        (root / 'dev/log').chmod(0o666)
+        syslog.setblocking(False)
         try:
             argv = ['unshare', '--mount', '--pid', '--fork', sys.executable, str(Path(__file__).resolve()),
                     '--child', str(root), str(entry_write), str(release_read)]
+            if proc_visible: argv.append('--proc-visible')
+            if getattr(args, 'initial_nofile', None):
+                soft, hard = args.initial_nofile
+                argv = ['prlimit', f'--nofile={soft}:{hard}', '--', *argv]
             save(folder / 'command.json', argv)
             process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
                                        pass_fds=(entry_write, release_read), start_new_session=True)
@@ -301,14 +321,14 @@ def run_case(args, mode, observer):
             if len(children) != 1: raise AssertionError('unshare did not own exactly one target entry')
             target_pid = int(children[0])
             target_fd = os.pidfd_open(target_pid)
-            row['entry_boundary'] = observe(target_pid, root, observer, False, args.sha256)
-            if row['entry_receipt'] != {'uid': 0, 'gid': 0, 'namespace_pid': 1, 'proc_exists': False,
+            row['entry_boundary'] = observe(target_pid, root, observer, False, args.sha256, proc_visible)
+            if row['entry_receipt'] != {'uid': 0, 'gid': 0, 'namespace_pid': 1, 'proc_exists': proc_visible,
                                        'target_metadata': row['entry_boundary']['target_metadata'], 'target_sha256': args.sha256}:
                 raise AssertionError('inside/outside entry witnesses disagree')
             os.write(release_write, b'G'); os.close(release_write); release_write = -1
             row['initial_dns'] = probe('ready.jail.test', upstream, row['upstream'], process)
             if row['initial_dns']['ok']:
-                row['runtime_boundary'] = observe(target_pid, root, observer, True, args.sha256)
+                row['runtime_boundary'] = observe(target_pid, root, observer, True, args.sha256, proc_visible)
             if mode == 'helper':
                 callback = root / 'fixture/callback'
                 deadline = time.monotonic() + 3
@@ -316,7 +336,7 @@ def run_case(args, mode, observer):
                     row['callback_health'] = probe('ready.jail.test', upstream, row['upstream'], process, .1)
                     select.select([], [], [], .05)
                 row['callback'] = callback.read_text() if callback.exists() else None
-                row['helper_child'] = (worker_observation(target_pid, root, args.sha256, 'helper')
+                row['helper_child'] = (worker_observation(target_pid, root, args.sha256, 'helper', proc_visible)
                                        if row['initial_dns']['ok'] and process.poll() is None else
                                        {'captured': False, 'reason': 'helper startup did not complete'})
             else:
@@ -328,7 +348,7 @@ def run_case(args, mode, observer):
                 row['resolver_dns'] = []
                 def pending_lookup(packet, received_at):
                     if not row['resolver_child']['captured']:
-                        try: row['resolver_child'] = worker_observation(target_pid, root, args.sha256, 'lookup')
+                        try: row['resolver_child'] = worker_observation(target_pid, root, args.sha256, 'lookup', proc_visible)
                         except (OSError, ValueError) as error:
                             row['resolver_child'] = {'captured': False, 'reason': str(error)}
                     row['resolver_dns'].append({'request': packet.hex(), 'received_ns': received_at,
@@ -337,7 +357,9 @@ def run_case(args, mode, observer):
                 row['after'] = probe('probe.after.jail.test', upstream, row['upstream'], process,
                                      resolver=resolver, on_lookup=pending_lookup)
                 row['after_health'] = probe('ready.jail.test', upstream, row['upstream'], process)
-                row['after_boundary'] = observe(target_pid, root, observer, True, args.sha256)
+                row['after_boundary'] = observe(target_pid, root, observer, True, args.sha256, proc_visible)
+            if trial is not None:
+                row['fd_pressure'] = trial(args, mode, root, row, process, target_pid, target_fd, upstream, resolver)
         except Exception as error:
             row['error'] = f'{type(error).__name__}: {error}'
         finally:
@@ -353,10 +375,14 @@ def run_case(args, mode, observer):
                     os.killpg(process.pid, signal.SIGKILL)
                     row['exit'] = process.wait(timeout=2)
             if target_fd is not None: os.close(target_fd)
+            row['syslog'] = []
+            while True:
+                try: row['syslog'].append(syslog.recv(65535).hex())
+                except BlockingIOError: break
     row['stderr'] = (folder / 'stderr').read_text(errors='backslashreplace')
     log = root / 'fixture/daemon.log'
     row['daemon_log'] = log.read_text(errors='backslashreplace') if log.exists() else ''
-    text = row['stderr'] + row['daemon_log']
+    text = row['stderr'] + row['daemon_log'] + ''.join(bytes.fromhex(value).decode(errors='backslashreplace') for value in row['syslog'])
     missing = 'No such file or directory' in text or 'os error 2' in text
     if 'error' not in row and not row['forced']:
         if args.expect == 'success':
@@ -369,6 +395,8 @@ def run_case(args, mode, observer):
         else:
             row['passed'] = (not row['after']['ok'] and row['after_health']['ok'] and row.get('exit') == 0
                              and missing and 'at line 1 of /fixture/servers' in text)
+    if trial is not None:
+        row['passed'] = row['passed'] and row.get('fd_pressure', {}).get('passed') is True
     save(folder / 'result.json', row)
     return row
 
@@ -404,19 +432,22 @@ def self_test():
 
 def main():
     if sys.argv[1:2] == ['--child']:
-        child_entry(sys.argv[2], int(sys.argv[3]), int(sys.argv[4])); return 1
+        child_entry(sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), sys.argv[5:] == ['--proc-visible']); return 1
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path)
     parser.add_argument('--binary', type=Path)
     parser.add_argument('--sha256')
     parser.add_argument('--source-commit')
-    parser.add_argument('--expect', choices=['success', 'proc-selfexec-failure'])
+    parser.add_argument('--expect', choices=['success', 'proc-selfexec-failure', 'resolver-proc-failure'])
+    parser.add_argument('--case', choices=['both', 'helper', 'resolver'], default='both')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
     if args.self_test: self_test(); return 0
     if not all([args.image_root, args.binary, args.sha256, args.source_commit, args.expect, args.output]):
         parser.error('image-root/binary/sha256/source-commit/expect/output required')
+    if args.expect == 'resolver-proc-failure' and args.case != 'resolver':
+        parser.error('resolver-proc-failure requires --case resolver')
     if sys.platform != 'linux' or os.geteuid() != 0:
         parser.error('Linux Oracle root required')
     if not hasattr(os, 'pidfd_open') or not hasattr(signal, 'pidfd_send_signal'):
@@ -436,7 +467,7 @@ def main():
     result = {'source_commit': args.source_commit, 'binary_sha256': args.sha256, 'tool_sha256': sha256(__file__),
               'image_root': str(args.image_root), 'expect': args.expect, 'observer': {'namespaces': observer, 'status': owner_status},
               'scope': 'no-proc self-exec startup/drop-to-453 boundary; not a complete ujail replica', 'cases': []}
-    for mode in ['helper', 'resolver']:
+    for mode in (['helper', 'resolver'] if args.case == 'both' else [args.case]):
         result['cases'].append(run_case(args, mode, observer))
         save(args.output / 'result.json', result)
     result['passed'] = all(row['passed'] for row in result['cases'])
