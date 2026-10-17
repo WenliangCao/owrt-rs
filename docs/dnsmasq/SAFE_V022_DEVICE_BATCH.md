@@ -85,6 +85,11 @@ RUSAGE_SELF，外部 subreaper 收齐自有后代后读 RUSAGE_CHILDREN；同时
 交主代理审查。原 helper 的 FD=2 首跑结论保留；新 selfexec 四 FD/两底层 pipe 结构资格
 单列，不用改断言把资源代价变成相同。
 
+首次 Oracle jail 夹具将 helper 回调固定为一次，两侧均失败：exact K 与 8adc 的完整文件
+均为相同 `old` 行两次，正常退出和身份成立。原 strict1 结果保留。启动计时现以首个
+完整合法回调为 ready，最终校验所有回调内容并保留数量；K/候选十次逐序数量不一致则
+停止比较，不删重复回调或将它当作零成本。
+
 正常 FD 增量分项：owner 常驻可执行映像 O_PATH 1 个；helper 两根 pipe 各一个副本，
 额外 2 个；pending resolver 的请求/结果 pipe 与可能重开的 stdio 按实际捕获报告。
 FD 压力只在 Oracle 对最终 PGO 验收，按实际 holes 设置 2/4/8 空闲槽，恢复限额后再次

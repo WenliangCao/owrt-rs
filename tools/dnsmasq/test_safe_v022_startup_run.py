@@ -38,6 +38,8 @@ def fixture(folder, mode='helper', role='candidate'):
         resources = [dict(uid=453, gid=453, cap_eff=0x3400, fd_count=len(owner))]
         if mode == 'helper':
             write_fds(trial / 'helper-fds.raw', helper)
+            (trial / 'rootfs/fixture').mkdir(parents=True)
+            (trial / 'rootfs/fixture/callback').write_bytes(b'old 02:00:00:de:00:01 127.0.0.10 startup\n' * 2)
             resources.append(dict(uid=0, gid=0, fd_count=len(helper)))
         start = 1_000_000_000 + index * 500_000_000
         rows.append(dict(kind='startup', index=index, mode=mode,
@@ -50,7 +52,8 @@ def fixture(folder, mode='helper', role='candidate'):
             setup_user_usec=10 + index, setup_system_usec=20 + index,
             children_user_usec=110 + index, children_system_usec=220 + index,
             timed_tree_user_usec=100, timed_tree_system_usec=200,
-            callback_exact_once=True if mode == 'helper' else None, resources=resources))
+            callback_valid=True if mode == 'helper' else None, callback_count=2 if mode == 'helper' else 0,
+            callback_exact_once=False if mode == 'helper' else None, resources=resources))
     summary = dict(kind='summary', mode=mode, ok=True, completed=10, cpu_complete=True)
     for key in ('children_user_usec', 'children_system_usec', 'timed_tree_user_usec', 'timed_tree_system_usec'):
         summary[key] = sum(row[key] for row in rows)
@@ -64,6 +67,20 @@ def save_rows(folder, rows):
 
 
 class StartupValidationTests(unittest.TestCase):
+    def test_callback_contents_and_final_count_are_not_normalized_away(self):
+        for defect in ('raw-count', 'reported-count', 'wrong-callback'):
+            with self.subTest(defect=defect), tempfile.TemporaryDirectory() as temporary:
+                folder = Path(temporary); rows = fixture(folder)
+                path = folder / 'trials/run-00/rootfs/fixture/callback'
+                if defect == 'raw-count':
+                    path.write_bytes(path.read_bytes() * 2)
+                elif defect == 'reported-count':
+                    rows[0]['callback_count'] = 3; save_rows(folder, rows)
+                else:
+                    path.write_bytes(path.read_bytes().replace(b'old ', b'new '))
+                with self.assertRaisesRegex(ValueError, 'raw callback'):
+                    startup.validate(folder, 'helper', 'candidate', ELF)
+
     def test_ten_starts_and_all_fd_records_pass_for_four_cells(self):
         for mode in ('helper', 'resolver'):
             for role in ('k', 'candidate'):

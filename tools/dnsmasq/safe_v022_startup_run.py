@@ -77,8 +77,13 @@ def validate(folder, mode, role, expected):
                 'owner retained image FD contract differs')
         item = {'index': row['index'], 'owner': owner}
         if mode == 'helper':
-            require(row['callback_exact_once'] is True and resources[1]['uid'] == resources[1]['gid'] == 0,
+            require(row['callback_valid'] is True and type(row['callback_count']) is int and row['callback_count'] >= 1 and
+                    row['callback_exact_once'] == (row['callback_count'] == 1) and
+                    resources[1]['uid'] == resources[1]['gid'] == 0,
                     'helper callback or credentials differ')
+            require((trial / 'rootfs/fixture/callback').read_bytes() ==
+                    b'old 02:00:00:de:00:01 127.0.0.10 startup\n' * row['callback_count'],
+                    'helper raw callback count/content differs')
             helper = fd_inventory(trial / 'helper-fds.raw')
             require(len(helper) == resources[1]['fd_count'], 'helper FD inventory differs')
             pipes = [fd for fd in helper if fd['fd'] > 2]
@@ -126,6 +131,11 @@ def execute_supplement(ctx, qualification):
                  ('timed_tree_user_usec', 'timed_tree_system_usec')) for role, group in (('k', left), ('candidate', right))},
             'scope': 'one ten-start block per artifact, no paired-order or significance claim; 1ms ready observation floor',
         }
+        if mode == 'helper':
+            counts = {role: [row['callback_count'] for row in group['starts']]
+                      for role, group in (('k', left), ('candidate', right))}
+            comparisons[mode]['callback_counts'] = counts
+            comparisons[mode]['callback_workload_equal'] = counts['k'] == counts['candidate']
     result = {'starts': 40, 'groups': groups, 'comparisons': comparisons,
               'cpu': 'RUSAGE_CHILDREN after all owned descendants reaped; whole and measured pre-exec setup retained; '
                      'timed subtracts only child RUSAGE_SELF setup; returned unit1us, not a measured accuracy guarantee',
@@ -134,6 +144,7 @@ def execute_supplement(ctx, qualification):
               'scope': 'helper no-proc; resolver proc-visible on both sides because K no-proc runtime lookup fails',
               'status': 'COLLECTED_REQUIRES_FINAL_REVIEW'}
     run.write(ctx['out'] / 'startup-supplement.json', result)
+    require(comparisons['helper']['callback_workload_equal'], 'helper callback workload differs between K and candidate')
     require(all(value['median_ready_delta_ms'] <= 1 for value in comparisons.values()),
             'startup median regressed by more than1ms; final promotion requires root review')
     return result

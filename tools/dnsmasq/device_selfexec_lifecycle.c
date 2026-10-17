@@ -101,13 +101,17 @@ static bool empty_directory(const char *name) {
         if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) empty = false;
     closedir(folder); return empty;
 }
-static bool exact_file(const char *name, const char *expected) {
-    char bytes[256]; FILE *file = fopen(name, "r");
-    if (!file) return false;
+static int callback_count(bool final) {
+    char bytes[4096]; FILE *file = fopen(callback, "r");
+    if (!file) return errno == ENOENT ? 0 : -1;
     size_t length = fread(bytes, 1, sizeof bytes, file);
-    bool ok = !ferror(file) && feof(file) && length == strlen(expected) &&
-              !memcmp(bytes, expected, length);
-    fclose(file); return ok;
+    bool ok = !ferror(file) && feof(file); fclose(file);
+    if (!ok) return -1;
+    size_t line = strlen(callback_text), complete = length / line, partial = length % line;
+    for (size_t i = 0; i < complete; ++i)
+        if (memcmp(bytes + i * line, callback_text, line)) return -1;
+    if (partial && (final || memcmp(bytes + complete * line, callback_text, partial))) return -1;
+    return (int)complete;
 }
 static bool finish_file(FILE *file) {
     bool ok = !ferror(file);
@@ -209,7 +213,7 @@ static int target_entry(void *opaque) {
     if (!transfer(args->report[1], &marker, 1, true) ||
         !transfer(args->release[0], &marker, 1, false) || marker != 'G') _exit(126);
     close(args->release[0]);
-    struct entry entry;
+    struct entry entry = {0};
     if (getrusage(RUSAGE_SELF, &entry.usage)) _exit(126);
     entry.start_ns = now_ns();
     if (!transfer(args->report[1], &entry, sizeof entry, true)) _exit(126);
@@ -330,7 +334,11 @@ static struct readiness wait_ready(bool helper) {
     uint64_t deadline = now_ns() + 3 * NS;
     while (!stopped && now_ns() < deadline) {
         uint64_t turn = now_ns();
-        if (helper && !result.callback && exact_file(callback, callback_text)) result.callback = now_ns();
+        if (helper && !result.callback) {
+            int callbacks = callback_count(false);
+            if (callbacks < 0) break;
+            if (callbacks > 0) result.callback = now_ns();
+        }
         if (!result.dns) {
             ++result.attempts;
             if (send(fd, query, size, 0) < 0 && errno != ECONNREFUSED && errno != EINTR) break;
@@ -471,6 +479,9 @@ int main(int argc, char **argv) {
     if (unshare(CLONE_NEWNS) || mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) || setrlimit(RLIMIT_NOFILE, &nofile)) {
         perror("private mount namespace or NOFILE setup"); return 2;
     }
+    /* NSS/servers files must remain readable after the target drops to453,
+     * independently of the invoking shell's private-output umask. */
+    umask(022);
     for (const unsigned char *at = (const unsigned char *)root; *at; ++at)
         if (!isalnum(*at) && !strchr("/._-", *at)) { fputs("unsafe fixture path\n", stderr); return 2; }
     pid_t existing[MAX_CHILDREN];
@@ -504,17 +515,20 @@ int main(int argc, char **argv) {
         uint64_t setup_user = usec(entry.usage.ru_utime), setup_system = usec(entry.usage.ru_stime);
         cpu = cpu && launched && user >= setup_user && system >= setup_system;
         if (cpu) { timed_user += user - setup_user; timed_system += system - setup_system; }
-        bool callback_ok = !helper || exact_file(callback, callback_text);
+        int callbacks = helper ? callback_count(true) : 0;
+        bool callback_ok = !helper || callbacks > 0;
         uint64_t finished = now_ns(), next = schedule + PERIOD_NS;
         bool passed = launched && ready.ready && snapshot && callback_ok && cpu && closed.owner_reaped &&
                       !closed.forced && !closed.bad_exits && !stopped && finished <= next;
         printf("{\"kind\":\"startup\",\"mode\":\"%s\",\"index\":%u,\"ok\":%s,"
                "\"start_ns\":%" PRIu64 ",\"start_lag_ns\":%" PRIu64 ",\"dns_ready_ns\":%" PRIu64 ","
                "\"callback_ready_ns\":%" PRIu64 ",\"ready_ns\":%" PRIu64 ",\"latency_ns\":%" PRIu64 ","
-               "\"probe_attempts\":%u,\"callback_exact_once\":%s,\"snapshot_ns\":%" PRIu64 ",\"resources\":[",
+               "\"probe_attempts\":%u,\"callback_valid\":%s,\"callback_count\":%d,\"callback_exact_once\":%s,"
+               "\"snapshot_ns\":%" PRIu64 ",\"resources\":[",
                argv[1], iteration, passed ? "true" : "false", start, lag, ready.dns, ready.callback,
                ready.ready, ready.ready ? ready.ready - start : 0, ready.attempts,
-               helper ? (callback_ok ? "true" : "false") : "null", snapshot_at);
+               helper ? (callback_ok ? "true" : "false") : "null", callbacks,
+               helper ? (callbacks == 1 ? "true" : "false") : "null", snapshot_at);
         if (snapshot) { emit_resource(&resources[0]); if (helper) { putchar(','); emit_resource(&resources[1]); } }
         printf("],\"proc_mode\":\"%s\",\"nofile_soft\":%lu,\"nofile_hard\":%" PRIu64 ","
                "\"setup_user_usec\":%" PRIu64 ",\"setup_system_usec\":%" PRIu64 ","
