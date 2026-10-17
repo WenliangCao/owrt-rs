@@ -27,12 +27,8 @@ def fixture(folder, mode='helper', role='candidate'):
     for index in range(10):
         owner = [(0, '/dev/null', 0), (1, '/dev/null', 1), (2, '/dev/null', 1),
                  (3, 'socket:[200]', CLOEXEC | 2)]
-        if role == 'candidate':
-            owner.append((4, '/usr/sbin/dnsmasq', OPATH | CLOEXEC))
         helper = [(0, '/dev/null', 0), (1, '/dev/null', 1), (2, '/dev/null', 1),
                   (3, 'pipe:[300]', CLOEXEC), (4, 'pipe:[301]', CLOEXEC | 1)]
-        if role == 'candidate':
-            helper += [(5, 'pipe:[300]', CLOEXEC), (6, 'pipe:[301]', CLOEXEC | 1)]
         trial = folder / 'trials' / f'run-{index:02d}'; trial.mkdir(parents=True)
         write_fds(trial / 'owner-fds.raw', owner)
         resources = [dict(uid=453, gid=453, cap_eff=0x3400, fd_count=len(owner))]
@@ -104,42 +100,45 @@ class StartupValidationTests(unittest.TestCase):
                     result = startup.validate(folder, mode, role, ELF)
                     self.assertEqual(len(result['starts']), 10)
                     self.assertEqual(result['summary']['timed_tree_user_usec'], 1000)
-                    self.assertEqual(len(result['fd_inventory'][0]['owner']), 5 if role == 'candidate' else 4)
+                    self.assertEqual(len(result['fd_inventory'][0]['owner']), 4)
+                    self.assertFalse(any(fd['opath'] for fd in result['fd_inventory'][0]['owner']))
                     if mode == 'helper':
-                        self.assertEqual(len(result['fd_inventory'][0]['helper']), 7 if role == 'candidate' else 5)
+                        self.assertEqual(len(result['fd_inventory'][0]['helper']), 5)
 
-    def test_wrong_image_opath_and_missing_image_cloexec_are_rejected(self):
-        for wrong_target, wrong_flags in [
-            ('/usr/sbin/other-image', OPATH | CLOEXEC),
-            ('/usr/sbin/dnsmasq', OPATH),
-            ('/usr/sbin/dnsmasq', CLOEXEC),
-        ]:
-            with self.subTest(target=wrong_target, flags=wrong_flags), tempfile.TemporaryDirectory() as temporary:
-                folder = Path(temporary); fixture(folder)
-                path = folder / 'trials/run-00/owner-fds.raw'
-                owner = startup.fd_inventory(path)
-                write_fds(path, [(row['fd'], wrong_target if row['opath'] else row['target'],
-                                 wrong_flags if row['opath'] else row['flags']) for row in owner])
-                with self.assertRaisesRegex(ValueError, 'owner retained image FD'):
-                    startup.validate(folder, 'helper', 'candidate', ELF)
+    def test_any_owner_opath_is_rejected_for_both_fork_roles(self):
+        for mode in ('helper', 'resolver'):
+            for role in ('k', 'candidate'):
+                for flags in (OPATH, OPATH | CLOEXEC):
+                    with self.subTest(mode=mode, role=role, flags=flags), tempfile.TemporaryDirectory() as temporary:
+                        folder = Path(temporary); rows = fixture(folder, mode, role)
+                        path = folder / 'trials/run-00/owner-fds.raw'
+                        owner = [(row['fd'], row['target'], row['flags']) for row in startup.fd_inventory(path)]
+                        owner.append((4, '/usr/sbin/dnsmasq', flags))
+                        write_fds(path, owner)
+                        rows[0]['resources'][0]['fd_count'] += 1; save_rows(folder, rows)
+                        with self.assertRaisesRegex(ValueError, 'owner retained image FD'):
+                            startup.validate(folder, mode, role, ELF)
 
-    def test_helper_extra_socket_wrong_direction_and_missing_cloexec_are_rejected(self):
-        for defect in ('socket', 'direction', 'cloexec'):
-            with self.subTest(defect=defect), tempfile.TemporaryDirectory() as temporary:
-                folder = Path(temporary); rows = fixture(folder)
-                path = folder / 'trials/run-00/helper-fds.raw'
-                descriptors = [(row['fd'], row['target'], row['flags']) for row in startup.fd_inventory(path)]
-                if defect == 'socket':
-                    descriptors.append((7, 'socket:[999]', CLOEXEC | 2))
-                    rows[0]['resources'][1]['fd_count'] += 1
+    def test_helper_extra_fds_wrong_direction_and_missing_cloexec_are_rejected(self):
+        for role in ('k', 'candidate'):
+            for defect in ('socket', 'duplicated-pipes', 'direction', 'cloexec'):
+                with self.subTest(role=role, defect=defect), tempfile.TemporaryDirectory() as temporary:
+                    folder = Path(temporary); rows = fixture(folder, role=role)
+                    path = folder / 'trials/run-00/helper-fds.raw'
+                    descriptors = [(row['fd'], row['target'], row['flags']) for row in startup.fd_inventory(path)]
+                    if defect == 'socket':
+                        descriptors.append((7, 'socket:[999]', CLOEXEC | 2))
+                    elif defect == 'duplicated-pipes':
+                        descriptors += [(5, 'pipe:[300]', CLOEXEC), (6, 'pipe:[301]', CLOEXEC | 1)]
+                    elif defect == 'direction':
+                        descriptors[4] = (4, 'pipe:[301]', CLOEXEC)
+                    else:
+                        descriptors[3] = (3, 'pipe:[300]', 0)
+                    rows[0]['resources'][1]['fd_count'] = len(descriptors)
                     save_rows(folder, rows)
-                elif defect == 'direction':
-                    descriptors[4] = (4, 'pipe:[301]', CLOEXEC)
-                else:
-                    descriptors[3] = (3, 'pipe:[300]', 0)
-                write_fds(path, descriptors)
-                with self.assertRaisesRegex(ValueError, 'helper inherited|pipe directions|missing CLOEXEC'):
-                    startup.validate(folder, 'helper', 'candidate', ELF)
+                    write_fds(path, descriptors)
+                    with self.assertRaisesRegex(ValueError, 'helper inherited|pipe directions|missing CLOEXEC'):
+                        startup.validate(folder, 'helper', role, ELF)
 
     def test_microsecond_terminal_sum_and_setup_subtraction_are_rejected(self):
         for defect in ('children_user_usec', 'children_system_usec', 'timed_tree_user_usec', 'timed_tree_system_usec', 'setup'):

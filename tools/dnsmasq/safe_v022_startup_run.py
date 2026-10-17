@@ -94,8 +94,7 @@ def validate(folder, mode, role, expected):
         owner = fd_inventory(trial / 'owner-fds.raw')
         require(len(owner) == resources[0]['fd_count'], 'owner FD inventory differs')
         image = [fd for fd in owner if fd['opath']]
-        require(len(image) == (1 if role == 'candidate' else 0) and
-                all(fd['cloexec'] and fd['target'].endswith('/usr/sbin/dnsmasq') for fd in image),
+        require(len(image) == 0,
                 'owner retained image FD contract differs')
         item = {'index': row['index'], 'owner': owner}
         if mode == 'helper':
@@ -109,16 +108,15 @@ def validate(folder, mode, role, expected):
             helper = fd_inventory(trial / 'helper-fds.raw')
             require(len(helper) == resources[1]['fd_count'], 'helper FD inventory differs')
             pipes = [fd for fd in helper if fd['fd'] > 2]
-            copies = 2 if role == 'candidate' else 1
-            require(len(pipes) == 2 * copies and all(fd['pipe'] for fd in pipes), 'helper inherited unexpected FD')
+            require(len(pipes) == 2 and all(fd['pipe'] for fd in pipes), 'helper inherited unexpected FD')
             groups = {}
             for fd in pipes:
                 groups.setdefault(fd['target'], []).append(fd)
-            require(len(groups) == 2 and all(len(group) == copies for group in groups.values()),
+            require(len(groups) == 2 and all(len(group) == 1 for group in groups.values()),
                     'helper underlying pipe count differs')
             require(sorted([sorted(fd['flags'] & 3 for fd in group) for group in groups.values()]) ==
-                    [[0] * copies, [1] * copies], 'helper pipe directions differ')
-            require(role != 'candidate' or all(fd['cloexec'] for fd in pipes), 'helper pipe missing CLOEXEC')
+                    [[0], [1]], 'helper pipe directions differ')
+            require(all(fd['cloexec'] for fd in pipes), 'helper pipe missing CLOEXEC')
             item['helper'] = helper
         inventory.append(item)
     for key in ('children_user_usec', 'children_system_usec', 'timed_tree_user_usec', 'timed_tree_system_usec'):
@@ -163,7 +161,8 @@ def execute_supplement(ctx, qualification):
     result = {'starts': 40, 'groups': groups, 'comparisons': comparisons,
               'cpu': 'RUSAGE_CHILDREN after all owned descendants reaped; whole and measured pre-exec setup retained; '
                      'timed subtracts only child RUSAGE_SELF setup; returned unit1us, not a measured accuracy guarantee',
-              'fd': 'all descriptors include stdio; owner O_PATH+1 and helper two-pipe duplication+2 checked; '
+              'fd': 'all descriptors include stdio; both owners have zero O_PATH pins; '
+                    'both helpers have exactly two non-stdio CLOEXEC endpoints, one read and one write on two distinct pipes; '
                     'pending resolver pipe/stdio evidence belongs to separate qualified Oracle pressure fixture',
               'scope': 'helper no-proc; resolver proc-visible on both sides because K no-proc runtime lookup fails',
               'status': 'COLLECTED_REQUIRES_FINAL_REVIEW'}
