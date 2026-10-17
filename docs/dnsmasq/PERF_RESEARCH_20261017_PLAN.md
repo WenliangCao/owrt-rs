@@ -1,5 +1,29 @@
 # dnsmasq-rs 持续研究：2026-10-17
 
+**最新决定：按用户第三次专家复核的指示，只完成可选小HUP一次分段诊断；如无简单顺序
+问题即停止性能课题，不发布。** 下文此前的持续规则和候选准备保留为历史，不再触发
+UDP miss、DHCP150、编译调优或快路扩面实验。租约名字原型56320021只归档，DHCP14不执行。
+
+## 最后一项：小HUP一次分段观察
+
+依据`owrt-control-plane-rs/docs/dnsmasq/PERF_EXPERT_REVIEW_3_20261017.md`。接受产品价值
+停止标准：收益应乘以发生频率及用户感知，不能以接近物理极限要求无限研究。跨轮C/K
+只看量级，mixed +4.21µs的具体因果仍未证明；这些限制不构成继续投入的理由。
+
+精确K源码4ce24c62派生一个仅`m6b-diagnostics`+Linux/aarch64启用的诊断树：用cntvct_el0
+记录`process_reload_before_dns`总时间、reload_data、原有界文件推进、嵌套LeasePublisher。
+记录原始tick/frequency、两个父阶段扣除publication后的互斥时间、publication次数、file
+轮数及退出时pending/runnable；在结束读数后输出，不改变原重载顺序、预算或等待条件。
+虚拟计数器是elapsed含抢占，不是CPU；父子阶段不重复相加。若未在该调用完成发布则如实
+记pending，不能将这段时间叫完整HUP延迟。
+
+Oracle仅一次Linux native release构建（固定Rust1.98.1），无PGO/SDK/产品候选；复用原
+device_perf_lifecycle单批20个小HUP事件，7普通hosts+marker=8、6租约、原1秒间隔。
+预测成本来自读取、索引快照、租约同步发布的正常必要工作，而不是16次无效轮询；只有
+出现可直接定位的一行顺序/无效等待问题才考虑小修。无新正确性矩阵/真机窗口；原helper
+仍验证新marker可见、正常结束，失败保留不补。N1非PGO插桩时间不宣称解释A53约0.3ms
+跨轮差距，不按旧1ms可见性探针比较微秒。结果记录后关闭课题并归档未选原型。
+
 用户授权继续自主研究，不发布；沿 AGENTS、原协议与已批准测量修复。主代理维护模型与
 选实验，子代理做构建、验收、隔离真机和 Oracle 操作。原 J/K 接受与失败证据不改。
 本轮只维护本计划和 `PERF_RESEARCH_20261017_RESULT.md`，探索不再增加独立审计门。
