@@ -2,16 +2,14 @@
 //!
 //! The image's log.c is the formatting, reconnect and overflow reference.
 //! Writes and retry work are bounded: the owner never sleeps for a logger.
-use dnsmasq_platform::connect;
 pub use crate::query_logging as query;
 pub mod startup;
 use crate::config::logging::LoggingConfig;
 use crate::startup::{ProcessConfig, StartupError};
 use std::collections::VecDeque;
-use std::ffi::{c_char, c_int, c_void, CStr};
 use std::fs::{File, OpenOptions};
 use std::io::{self, Write};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::Path;
@@ -20,9 +18,7 @@ use std::time::{Duration, Instant};
 
 const PROGRAM: &str = "dnsmasq";
 const MAX_MESSAGE: usize = 1024;
-const O_NONBLOCK: i32 = 0x800;
-const SOCK_CLOEXEC: i32 = 0x80000;
-const SOCK_NONBLOCK: i32 = 0x800;
+const O_NONBLOCK: i32 = rustix::fs::OFlags::NONBLOCK.bits() as i32;
 
 /// Keep the original log argument and errno for the startup parent's C event.
 /// Formatting it before transport loses read_event's missing-argument fallback.
@@ -165,14 +161,18 @@ enum Destination {
         stream: bool,
     },
 }
+impl Destination {
+    fn fd(&self) -> Option<BorrowedFd<'_>> {
+        match self {
+            Self::File(fd) => Some(fd.as_ref().as_fd()),
+            Self::WaitingFile | Self::Closed => None,
+            Self::Stderr(fd) | Self::Syslog { fd, .. } => Some(fd.as_ref().as_fd()),
+        }
+    }
+}
 impl AsRawFd for Destination {
     fn as_raw_fd(&self) -> RawFd {
-        match self {
-            Self::File(fd) => fd.as_raw_fd(),
-            Self::WaitingFile | Self::Closed => -1,
-            Self::Stderr(fd) => fd.as_raw_fd(),
-            Self::Syslog { fd, .. } => fd.as_raw_fd(),
-        }
+        self.fd().map_or(-1, |fd| fd.as_raw_fd())
     }
 }
 
@@ -181,7 +181,7 @@ pub struct Logger {
     destination: Destination,
     // Debug mode preserves inherited stderr for the process lifetime. C
     // writes it directly; allocating another FD adds a spurious EMFILE gate.
-    echo: Option<RawFd>,
+    echo: Option<BorrowedFd<'static>>,
     echo_queue: VecDeque<Record>,
     queue: VecDeque<Record>,
     limit: usize,
@@ -249,7 +249,8 @@ impl Logger {
 
     pub fn tcp_retry_deadline(&self, context: &TcpLogContext) -> Option<Instant> {
         matches!(context.destination, Destination::WaitingFile)
-            .then_some(context.fifo_retry_at).flatten()
+            .then_some(context.fifo_retry_at)
+            .flatten()
     }
 
     pub fn tcp_finished(&self, context: &TcpLogContext) -> bool {
@@ -258,7 +259,8 @@ impl Logger {
 
     pub fn retry_deadline(&self) -> Option<Instant> {
         matches!(self.destination, Destination::WaitingFile)
-            .then_some(self.fifo_retry_at).flatten()
+            .then_some(self.fifo_retry_at)
+            .flatten()
     }
 
     fn exchange_tcp_context(&mut self, context: &mut TcpLogContext) {
@@ -297,7 +299,9 @@ impl Logger {
             open_destination(config).map_err(|error| LogStartError::new(config, error))?;
         let stderr = matches!(destination, Destination::Stderr(_));
         let echo = if process.debug && !stderr {
-            make_nonblocking(2).ok().map(|()| 2)
+            make_nonblocking(rustix::stdio::stderr())
+                .ok()
+                .map(|()| rustix::stdio::stderr())
         } else {
             None
         };
@@ -325,16 +329,18 @@ impl Logger {
             if let Ok(metadata) = file.metadata() {
                 // C makes a root-group file group-writable before changing its
                 // owner; it never changes the existing group ID.
-                // SAFETY: getgid has no pointer or descriptor preconditions.
-                if unsafe { getgid() } == 0 && metadata.gid() == 0 && metadata.mode() & 0o020 == 0 {
+                if rustix::process::getgid().is_root()
+                    && metadata.gid() == 0
+                    && metadata.mode() & 0o020 == 0
+                {
                     let _ = file
                         .set_permissions(std::fs::Permissions::from_mode(metadata.mode() | 0o020));
                 }
             }
-            // SAFETY: file owns a live fd for this call; (gid_t)-1 leaves the
-            // group unchanged. Failure is returned as the ownership warning.
-            if unsafe { fchown(file.as_raw_fd(), uid, u32::MAX) } != 0 {
-                ownership_warning = Some(io::Error::last_os_error());
+            if let Err(error) =
+                rustix::fs::fchown(file, Some(rustix::process::Uid::from_raw(uid)), None)
+            {
+                ownership_warning = Some(error.into());
             }
         }
         let limit = if matches!(destination, Destination::Syslog { .. }) {
@@ -462,16 +468,7 @@ impl Logger {
             let _ = write!(bytes, "<{}>", self.facility | priority as i32);
         }
         if !self.omit_timestamp {
-            let mut timestamp = [0u8; 26];
-            let mut now = 0;
-            // ctime_r is local-time and yields the RFC3164 field at bytes4..19.
-            // SAFETY: Linux64 time_t is i64; now and the required 26-byte
-            // ctime_r output remain live, writable and separate for both calls.
-            unsafe {
-                time(&mut now);
-                ctime_r(&now, timestamp.as_mut_ptr().cast());
-            }
-            bytes.extend_from_slice(&timestamp[4..19]);
+            bytes.extend_from_slice(&dnsmasq_platform::libc_format::log_timestamp());
             bytes.push(b' ');
         }
         // libc openlog keeps one program identifier after log.c falls back;
@@ -490,7 +487,11 @@ impl Logger {
             bytes.push(b'\n');
         }
         bytes.push(if syslog { 0 } else { b'\n' });
-        Record { bytes, offset: 0, pid }
+        Record {
+            bytes,
+            offset: 0,
+            pid,
+        }
     }
 
     /// Include this descriptor with POLLOUT only while it is returned. Failed
@@ -505,7 +506,7 @@ impl Logger {
             self.echo
                 .as_ref()
                 .filter(|_| !self.echo_queue.is_empty())
-                .copied(),
+                .map(AsRawFd::as_raw_fd),
         )
     }
 
@@ -582,21 +583,16 @@ impl Logger {
             );
             let bytes = &record.bytes[record.offset..record.bytes.len() - usize::from(datagram)];
             self.connection_good = true;
-            // SAFETY: bytes borrows the front record throughout the call.
-            // The owner retains its destination fd; write keeps no pointer.
-            // A closed destination uses fd=-1 and produces a handled EBADF.
-            let result = unsafe {
-                write(
-                    self.destination.as_raw_fd(),
-                    bytes.as_ptr().cast(),
-                    bytes.len(),
-                )
-            };
-            if result >= 0 {
+            let result = self
+                .destination
+                .fd()
+                .ok_or(rustix::io::Errno::BADF)
+                .and_then(|fd| rustix::io::write(fd, bytes));
+            if let Ok(result) = result {
                 if result == 0 {
                     break;
                 }
-                record.offset += result as usize;
+                record.offset += result;
                 if record.offset == record.bytes.len() - usize::from(datagram) {
                     self.queue.pop_front();
                     if self.lost != 0 {
@@ -611,7 +607,7 @@ impl Logger {
                 }
                 continue;
             }
-            let error = io::Error::last_os_error();
+            let error = io::Error::from(result.unwrap_err());
             match error.raw_os_error() {
                 Some(4) => continue, // EINTR
                 Some(11) => break,   // EAGAIN
@@ -629,7 +625,7 @@ impl Logger {
                         continue;
                     }
                 } else if matches!(error.raw_os_error(), Some(111 | 107 | 89 | 104)) {
-                    match connect_syslog(fd.as_raw_fd()) {
+                    match connect_syslog(fd.as_ref()) {
                         Ok(()) => continue,
                         Err(error) if error.raw_os_error() == Some(91) => {
                             // EPROTOTYPE
@@ -737,16 +733,27 @@ mod tests {
     #[test]
     fn immediate_and_external_flushes_discard_inherited_records() {
         let path = std::env::temp_dir().join(format!("dnsmasq-log-pid-{}", std::process::id()));
-        let config = LoggingConfig { file: Some(path.clone()), ..Default::default() };
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            ..Default::default()
+        };
         let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
-        let inherited = || Record { bytes: b"inherited\n".to_vec(), offset: 0, pid: 0 };
+        let inherited = || Record {
+            bytes: b"inherited\n".to_vec(),
+            offset: 0,
+            pid: 0,
+        };
         logger.queue.push_back(inherited());
         logger.flush_ready();
         assert!(std::fs::read(&path).unwrap().is_empty());
 
         logger.limit = 2;
         logger.queue.push_back(inherited());
-        logger.emit(LogEvent::new(Service::Dns, Priority::Info, b"current".to_vec()));
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"current".to_vec(),
+        ));
         let text = std::fs::read_to_string(&path).unwrap();
         assert!(!text.contains("inherited"));
         assert!(text.contains(&format!("dnsmasq[{}]: current\n", std::process::id())));
@@ -789,10 +796,12 @@ mod tests {
     #[test]
     fn fifo_without_reader_keeps_service_nonblocking_and_recovers_records() {
         let path = std::env::temp_dir().join(format!("dnsmasq-log-fifo-{}", std::process::id()));
-        let name = std::ffi::CString::new(path.as_os_str().as_bytes()).unwrap();
-        // SAFETY: CString supplies a live NUL-terminated path; mkfifo retains
-        // no pointer and the fixture checks its result before opening it.
-        assert_eq!(unsafe { mkfifo(name.as_ptr(), 0o600) }, 0);
+        rustix::fs::mkfifoat(
+            rustix::fs::CWD,
+            &path,
+            rustix::fs::Mode::from_bits_retain(0o600),
+        )
+        .unwrap();
         let config = LoggingConfig {
             file: Some(path.clone()),
             ..Default::default()
@@ -869,29 +878,25 @@ mod tests {
     }
 }
 
-fn drain_echo(fd: RawFd, records: &mut VecDeque<Record>) {
+fn drain_echo(fd: impl AsFd, records: &mut VecDeque<Record>) {
     for _ in 0..128 {
         let Some(record) = records.front_mut() else {
             break;
         };
         let bytes = &record.bytes[record.offset..];
-        // SAFETY: the borrowed record and owner-provided echo fd remain live
-        // for synchronous write; errno, short writes and offsets are handled.
-        let written = unsafe { write(fd, bytes.as_ptr().cast(), bytes.len()) };
-        if written > 0 {
-            record.offset += written as usize;
-            if record.offset == record.bytes.len() {
-                records.pop_front();
-            }
-        } else {
-            if written < 0 {
-                match io::Error::last_os_error().raw_os_error() {
-                    Some(4) => continue,
-                    Some(11) => (),
-                    _ => records.clear(),
+        match rustix::io::write(&fd, bytes) {
+            Ok(0) | Err(rustix::io::Errno::AGAIN) => break,
+            Ok(written) => {
+                record.offset += written;
+                if record.offset == record.bytes.len() {
+                    records.pop_front();
                 }
             }
-            break;
+            Err(rustix::io::Errno::INTR) => continue,
+            Err(_) => {
+                records.clear();
+                break;
+            }
         }
     }
 }
@@ -921,92 +926,38 @@ fn open_destination(config: &LoggingConfig) -> io::Result<Destination> {
     }
 }
 fn duplicate_stderr() -> io::Result<OwnedFd> {
-    // SAFETY: dup accepts any numeric fd; a missing stderr returns a checked
-    // error. A successful fd is newly owned by this function.
-    let fd = unsafe { dup(2) };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: successful dup returned this unique open fd, transferred once.
-    let fd = unsafe { OwnedFd::from_raw_fd(fd) };
-    make_nonblocking(fd.as_raw_fd())?;
+    let fd = rustix::io::dup(rustix::stdio::stderr())?;
+    make_nonblocking(&fd)?;
     Ok(fd)
 }
-fn make_nonblocking(fd: RawFd) -> io::Result<()> {
-    // SAFETY: F_GETFL (3) takes no variadic argument; invalid fds return errno.
-    let flags = unsafe { fcntl(fd, 3) };
-    // SAFETY: F_SETFL (4) consumes exactly this integer flag argument. The
-    // caller owns the fd and both syscall failures become ordinary io errors.
-    if flags < 0 || unsafe { fcntl(fd, 4, flags | O_NONBLOCK) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
+fn make_nonblocking(fd: impl AsFd) -> io::Result<()> {
+    let flags = rustix::fs::fcntl_getfl(&fd)?;
+    Ok(rustix::fs::fcntl_setfl(
+        fd,
+        flags | rustix::fs::OFlags::NONBLOCK,
+    )?)
 }
 fn syslog_socket(stream: bool) -> io::Result<Destination> {
-    // SAFETY: Linux AF_UNIX and stream/datagram flags require no pointers;
-    // the result is checked before taking unique descriptor ownership.
-    let fd = unsafe {
-        socket(
-            1,
-            (if stream { 1 } else { 2 }) | SOCK_NONBLOCK | SOCK_CLOEXEC,
-            0,
-        )
-    };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
+    let fd = rustix::net::socket_with(
+        rustix::net::AddressFamily::UNIX,
+        if stream {
+            rustix::net::SocketType::STREAM
+        } else {
+            rustix::net::SocketType::DGRAM
+        },
+        rustix::net::SocketFlags::NONBLOCK | rustix::net::SocketFlags::CLOEXEC,
+        None,
+    )?;
     Ok(Destination::Syslog {
-        // SAFETY: socket returned a new valid fd; Rc shares this one OwnedFd
-        // among owner-local TCP snapshots and closes it exactly once.
-        fd: Rc::new(unsafe { OwnedFd::from_raw_fd(fd) }),
+        fd: Rc::new(fd),
         stream,
     })
 }
-fn connect_syslog(fd: RawFd) -> io::Result<()> {
-    #[repr(C)]
-    struct Address {
-        family: u16,
-        path: [u8; 108],
-    }
-    let mut address = Address {
-        family: 1,
-        path: [0; 108],
-    };
-    address.path[..8].copy_from_slice(b"/dev/log");
-    // SAFETY: Address has the Linux sockaddr_un layout and a terminated path;
-    // its full size is supplied and the synchronous syscall retains no pointer.
-    // The caller's destination owns fd; connect failures return an io error.
-    if unsafe {
-        connect(
-            fd,
-            (&address as *const Address).cast(),
-            std::mem::size_of::<Address>() as u32,
-        )
-    } < 0
-    {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(())
-    }
+fn connect_syslog(fd: impl AsFd) -> io::Result<()> {
+    let address = rustix::net::SocketAddrUnix::new("/dev/log")?;
+    Ok(rustix::net::connect(fd, &address)?)
 }
-pub fn error_text(error: &io::Error) -> String {
-    match error.raw_os_error() {
-        Some(code) => {
-            // SAFETY: strerror accepts any errno value and returns libc-owned
-            // storage. Copy it before another libc call can replace that text.
-            let message = unsafe { strerror(code) };
-            if message.is_null() {
-                return format!("OS error {code}");
-            }
-            // SAFETY: the non-NULL strerror result is a terminated C string;
-            // it remains valid through this immediate owned copy.
-            unsafe { CStr::from_ptr(message) }
-                .to_string_lossy()
-                .into_owned()
-        }
-        None => error.to_string(),
-    }
-}
+pub use dnsmasq_platform::libc_format::error_text;
 
 pub fn ownership_warning(path: &Path, error: &io::Error) -> LogEvent {
     let mut message = b"warning: failed to change owner of ".to_vec();
@@ -1015,20 +966,6 @@ pub fn ownership_warning(path: &Path, error: &io::Error) -> LogEvent {
     message.extend_from_slice(error_text(error).as_bytes());
     LogEvent::new(Service::Dns, Priority::Warning, message)
 }
-unsafe extern "C" {
-    #[cfg(test)]
-    fn mkfifo(path: *const c_char, mode: u32) -> c_int;
-    fn time(result: *mut i64) -> i64;
-    fn ctime_r(value: *const i64, output: *mut c_char) -> *mut c_char;
-    fn strerror(error: c_int) -> *mut c_char;
-    fn getgid() -> u32;
-    fn fchown(fd: c_int, uid: u32, gid: u32) -> c_int;
-    fn dup(fd: c_int) -> c_int;
-    fn fcntl(fd: c_int, operation: c_int, ...) -> c_int;
-    fn socket(domain: c_int, kind: c_int, protocol: c_int) -> c_int;
-    fn write(fd: c_int, bytes: *const c_void, length: usize) -> isize;
-}
-
 /// log_start failure reaches fatal_event/die before a logging destination is
 /// usable. Report both critical records through the libc-format syslog path;
 /// the entry point separately prints only the first message to stderr.

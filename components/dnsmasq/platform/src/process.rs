@@ -168,17 +168,7 @@ pub fn close_file(file: File) -> io::Result<()> {
     }
 }
 
-/// std resets SIGPIPE during spawn; C's popen/exec paths preserve SIG_IGN.
-pub fn preserve_ignored_sigpipe(command: &mut Command) {
-    // SAFETY: the fixed hook only calls async-signal-safe signal with scalars;
-    // it neither allocates nor invokes user code after fork.
-    unsafe {
-        command.pre_exec(|| {
-            signal(13, 1);
-            Ok(())
-        });
-    }
-}
+pub use crate::libc_format::preserve_ignored_sigpipe;
 
 /// Keep exactly the two owned IPC pipes across exec, preserving standard IO.
 /// Their numbers remain unchanged, so std's private exec-error pipe cannot be

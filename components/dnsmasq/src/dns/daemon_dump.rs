@@ -132,10 +132,7 @@ fn expiry(expires: Option<i64>) -> String {
     let Some(expires) = expires else { return String::new(); };
     #[cfg(target_pointer_width = "64")]
     {
-        unsafe extern "C" { fn ctime_r(time: *const i64, buffer: *mut u8) -> *mut u8; }
-        let mut buffer = [0u8; 26];
-        // ctime_r writes the fixed 26-byte C representation into caller storage.
-        if !unsafe { ctime_r(&expires, buffer.as_mut_ptr()) }.is_null() {
+        if let Some(buffer) = dnsmasq_platform::libc_format::local_time(expires) {
             return String::from_utf8_lossy(&buffer[..24]).into_owned();
         }
     }

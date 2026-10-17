@@ -6,7 +6,7 @@ use super::{
     OccurrenceTracker, OptionSpec, Origin, OPTIONS,
 };
 use std::collections::HashSet;
-use std::ffi::{c_int, OsString};
+use std::ffi::OsString;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
@@ -15,10 +15,6 @@ use std::os::unix::fs::MetadataExt;
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-
-extern "C" {
-    fn signal(signum: c_int, handler: usize) -> usize;
-}
 
 const SHORT_OPTIONS: &[u8] = b"951yZDNLERKzowefnbvhdkqr:m:p:c:l:s:i:t:u:g:a:x:S:C:A:T:H:Q:I:B:F:G:O:M:X:V:U:j:P:J:W:Y:2:4:6:7:8:0:3:";
 
@@ -450,14 +446,7 @@ where
             // that disposition in its shell. Command resets it before exec;
             // restore the inherited contract using only an async-signal-safe
             // operation in the child.
-            // SAFETY: the post-fork hook performs only async-signal-safe
-            // signal(2), with scalar SIGPIPE/SIG_IGN, before the shell exec.
-            unsafe {
-                command.pre_exec(|| {
-                    signal(13, 1);
-                    Ok(())
-                });
-            }
+            dnsmasq_platform::libc_format::preserve_ignored_sigpipe(&mut command);
             let mut child = command
                 .spawn()
                 .map_err(|e| LoadError::path_io(&location, 3, "cannot execute", path, e))?;
