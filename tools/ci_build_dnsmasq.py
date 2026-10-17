@@ -184,6 +184,22 @@ def verify_pgo_elf(stage, elf, report):
                                       "candidate-use": "unqualified-candidate"}[stage]
 
 
+def source_epoch(spec, release_commit):
+    """Keep frozen product packaging time distinct from release provenance.
+
+    Native integration needs source_commit=the common release checkout; PGO
+    inputs retain their original product commit and deterministic package epoch.
+    Legacy specs without an epoch keep the previous release-HEAD behavior.
+    """
+    frozen = spec.get("source_date_epoch")
+    commit = spec["source_commit"] if frozen is not None else release_commit
+    epoch = subprocess.check_output(
+        ["git", "-C", str(REPO), "show", "-s", "--format=%ct", commit], text=True).strip()
+    audit.require(frozen is None or (type(frozen) is int and frozen > 0 and str(frozen) == epoch),
+                  "source timestamp differs from frozen product commit")
+    return epoch
+
+
 def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use"):
     # Target-only validation supplies a git archive whose complete input digest
     # must match its frozen spec. Release builds retain the clean-checkout gate.
@@ -198,9 +214,7 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use"):
     report.update(source_files=files, source_digest=digest,
                   source_commit=commit,
                   accepted_product_commit=spec["source_commit"], build_mode="compile-and-package")
-    epoch = subprocess.check_output(["git", "-C", str(REPO), "show", "-s", "--format=%ct", commit], text=True).strip()
-    audit.require(str(spec.get("source_date_epoch", epoch)) == epoch,
-                  "source timestamp differs from frozen candidate")
+    epoch = source_epoch(spec, commit)
     archive_name, archive_hash = json.loads((source / "manifests/release-25.12.5.json").read_text())["inputs"]["sdk"].split(" sha256 ")
     archive = work / "dl" / archive_name
     audit.require(audit.sha(archive) == archive_hash, "SDK archive differs from accepted release")

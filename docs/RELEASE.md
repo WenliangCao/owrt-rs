@@ -54,6 +54,42 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 
 失败流水线另存诊断日志和已生成的候选镜像；未通过的候选不作为发布完成证据。
 
+## v0.2.2 统一候选的接入（尚未发布）
+
+十组件以 `research/core-safe-20261017` 为整合主线，一起验收、正式构建并最终只刷一次。
+当前 `native-25.12.5.json` 有意保留 v0.2.1/K 已接受身份；九组件 CI 与 DNS plain 构建
+通过尚不足以修改它。共享 platform、ubus、锁文件和构建槽已纳入新 DNS 输入闭包，
+旧独立 DNS 候选及其 profile 不作为整合版资格。
+
+完整正确性和真机验收接受实际新 PGO ELF 后，在同一提交中将配方 `version` 改为
+`0.2.2-r1`，把 `dnsmasq_build` 替换为对应的完整 `frozen-use` spec：产品提交、冻结
+时间、全部文件哈希/count/digest、实际接受的 ELF SHA256/字节数、profile URL/SHA256/
+字节数及训练来源。保留中间包 `package_release="4"` 与 2.5/1.4 MB 预算；不能预填
+参考 SHA 或将 `matches_accepted_reference=false` 放行。PGO `build_slot` 必须显式为
+`/home/ubuntu/owrt-unified-v022-20261017/private/dnsmasq-sdk-build-slot`，保留同构建
+link map 的选择，不落回历史 K 默认槽。步骤详见[统一 PGO 链](dnsmasq/CANONICAL_PGO_PIPELINE.md)。
+另外九个 `components` 条目也须各自填写验收过的 `reference_elf_sha256`；v0.2.2 起
+native 整合拒绝缺项、部分清单或任一正式重建漂移，不能仅比较同一次构建的自报 SHA。
+
+正式 `release-image` 仍使用新 checkout 编译，`source_commit` 记录本次正式构建提交，
+便于六包、三核心与 DNS 在 native 整合时一致；DNS `accepted_product_commit` 和
+`source_date_epoch` 分别保留已验收产品提交及其 Git 时间。完整 Git 历史用于核验该
+冻结时间，因此后续版本/报告提交不能改变 DNS 的冻结打包时间。真实新构建必须复现
+接受的 ELF；native 整合再次核验 SHA、字节数、profile/slot 和无诊断候选标记。
+
+`tools/test_native_image.py::test_current_source_matches_accepted_product` 目前仍断言
+历史 K 的 181 输入及旧 digest，这是待接受身份更新前的实际阻断。最终接受时应把
+这两个固定值与新的实际清单一起更新，保留 `source_identity` 的工作树漂移拒绝测试；
+不得删掉身份断言以让研究分支冒充正式通过。正式 main CI 还会执行 DNS 隔离测试、
+工具/镜像/benchmark 既有检查；九组件 CI 不等同于这些整合门已经执行。
+
+离线对比 v0.2.1 的已安装 manifest，`e21245d2` 九个 SDK ELF 总计从 7,762,326 增至
+7,774,614 B，增加 **12,288 B（0.1583%）**。netifd +8,192 B（0.7575%），ubusd
++4,096 B（0.7937%），procd +4,096 B（0.4673%），rpcd −4,096 B（−0.3250%）；
+其余五项文件大小相同，但九项 SHA 都已改变。该数字仅描述 ELF 文件长度，不代表
+.text、RSS、压缩固件体积或性能；启动/空闲资源观察优先留意前三项常驻服务，所有
+组件仍须按统一性能门验收。最终 DNS PGO 体积另以实际接受产物补齐。
+
 ## v0.2.1 发布与部署
 
 实际构建为 [run 39007479025](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39007479025)，

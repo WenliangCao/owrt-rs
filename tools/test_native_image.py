@@ -131,6 +131,64 @@ class NativeDnsmasqTests(unittest.TestCase):
             with self.assertRaises(AssertionError):
                 self.integrate(paths)
 
+    def test_all_nine_release_rebuilds_must_equal_the_accepted_binaries(self):
+        spec = copy.deepcopy(SPEC)
+        spec["version"] = "0.2.2-r1"
+        hashes = {}
+        for name, component in spec["components"].items():
+            value = hashlib.sha256(name.encode()).hexdigest()
+            hashes[component["binary"]] = value
+            if name != "dnsmasq":
+                component["reference_elf_sha256"] = value
+        native_image.verify_component_references(hashes, spec)
+        for name, component in spec["components"].items():
+            if name == "dnsmasq":
+                continue
+            with self.subTest(component=name):
+                changed = dict(hashes, **{component["binary"]: "f" * 64})
+                with self.assertRaisesRegex(AssertionError, "identity drift"):
+                    native_image.verify_component_references(changed, spec)
+                incomplete = copy.deepcopy(spec)
+                del incomplete["components"][name]["reference_elf_sha256"]
+                with self.assertRaisesRegex(AssertionError, "missing accepted"):
+                    native_image.verify_component_references(hashes, incomplete)
+        legacy = copy.deepcopy(spec)
+        legacy["version"] = "0.2.1-r1"
+        for component in legacy["components"].values():
+            component.pop("reference_elf_sha256", None)
+        native_image.verify_component_references(hashes, legacy)
+        legacy["version"] = "0.2.2-r1"
+        with self.assertRaisesRegex(AssertionError, "missing accepted"):
+            native_image.verify_component_references(hashes, legacy)
+
+    def test_native_integration_rejects_unqualified_or_changed_dnsmasq(self):
+        spec = {"source_commit": "a" * 40, "source_digest": "b" * 64,
+                "reference_elf_sha256": "c" * 64, "reference_elf_bytes": 1234,
+                "source_date_epoch": 2345, "pgo": {
+                    "profile_url": "https://example.invalid/frozen.profdata",
+                    "profile_sha256": "d" * 64, "profile_bytes": 10,
+                    "build_slot": "/fixed/product-slot", "training": {"receipt": "e" * 64}}}
+        report = {"status": "built-and-audited", "source_digest": spec["source_digest"],
+                  "accepted_product_commit": spec["source_commit"], "source_date_epoch": "2345",
+                  "elf": {"sha256": "c" * 64, "reference_sha256": "c" * 64,
+                          "size": 1234, "matches_accepted_reference": True},
+                  "pgo": dict(spec["pgo"], mode="use", profile_diagnostics=[])}
+        native_image.verify_dnsmasq_reference(report, spec)
+        mutations = [("elf", "sha256", "f" * 64), ("elf", "size", 1235),
+                     ("elf", "matches_accepted_reference", False), ("pgo", "mode", "generate"),
+                     ("pgo", "build_slot", "/different/slot"),
+                     ("pgo", "profile_diagnostics", ["hash mismatch"])]
+        for section, key, value in mutations:
+            with self.subTest(section=section, key=key):
+                changed = copy.deepcopy(report)
+                changed[section][key] = value
+                with self.assertRaises(AssertionError):
+                    native_image.verify_dnsmasq_reference(changed, spec)
+        with self.assertRaisesRegex(AssertionError, "diagnostic"):
+            native_image.verify_dnsmasq_reference(dict(report, release_qualified=False), spec)
+        with self.assertRaisesRegex(AssertionError, "epoch"):
+            native_image.verify_dnsmasq_reference(dict(report, source_date_epoch=2346), spec)
+
     def test_current_source_matches_accepted_product(self):
         files, digest = ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"])
         self.assertEqual(len(files), 181)

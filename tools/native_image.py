@@ -105,6 +105,42 @@ def fetch(work, spec, apk):
                     "-C", str(native)], check=True)
 
 
+def verify_component_references(hashes, spec):
+    """Rebuilds of the other nine programs must equal their accepted ELFs."""
+    components = {name: item for name, item in spec["components"].items() if name != "dnsmasq"}
+    # Historic native recipes did not carry separate accepted references.
+    # v0.2.2 and later must bind every component; a partial map is never valid.
+    version = tuple(int(part) for part in spec["version"].split("-", 1)[0].split("."))
+    has_references = any("reference_elf_sha256" in item for item in components.values())
+    if version < (0, 2, 2) and not has_references:
+        return
+    for name, item in components.items():
+        expected = item.get("reference_elf_sha256")
+        assert isinstance(expected, str) and len(expected) == 64 and all(
+            byte in "0123456789abcdef" for byte in expected), f"missing accepted ELF identity: {name}"
+        assert hashes[item["binary"]] == expected, f"accepted ELF identity drift: {name}"
+
+
+def verify_dnsmasq_reference(report, spec):
+    """Only an exact accepted use ELF may enter the native release payload."""
+    assert report["status"] == "built-and-audited"
+    assert report["source_digest"] == spec["source_digest"]
+    assert report["accepted_product_commit"] == spec["source_commit"]
+    elf = report["elf"]
+    assert elf["matches_accepted_reference"] is True, "unqualified dnsmasq ELF"
+    assert elf["reference_sha256"] == elf["sha256"] == spec["reference_elf_sha256"], "dnsmasq reference hash differs"
+    assert elf["size"] == spec["reference_elf_bytes"], "dnsmasq reference size differs"
+    assert report.get("release_qualified") is not False, "diagnostic candidate is not an accepted release"
+    if "source_date_epoch" in spec:
+        assert str(report["source_date_epoch"]) == str(spec["source_date_epoch"]), "dnsmasq product epoch differs"
+    if "pgo" in spec:
+        pgo = report["pgo"]
+        assert pgo["mode"] == "use" and not pgo["profile_diagnostics"], "invalid release PGO mode/diagnostics"
+        for key in ("profile_url", "profile_sha256", "profile_bytes", "build_slot", "training"):
+            if key in spec["pgo"]:
+                assert pgo[key] == spec["pgo"][key], f"dnsmasq PGO identity differs: {key}"
+
+
 def prepare(work, spec, apk):
     assert os.geteuid() == 0, "native image prepare requires root to verify protected stock configuration"
     out = work / "out"
@@ -114,12 +150,12 @@ def prepare(work, spec, apk):
     core = read(out / "core-manifest.json")
     dnsmasq = read(out / "dnsmasq/manifest.json")
     assert image["source_commit"] == core["source_commit"] == dnsmasq["source_commit"]
-    assert dnsmasq["status"] == "built-and-audited"
-    assert dnsmasq["source_digest"] == spec["dnsmasq_build"]["source_digest"]
+    verify_dnsmasq_reference(dnsmasq, spec["dnsmasq_build"])
     assert image["openwrt"] == core["openwrt"] == spec["openwrt"]
     assert core["image_manifest_sha256"] == sha(out / "manifest.json")
     hashes = image["binary_sha256"] | core["binary_sha256"] | dnsmasq["binary_sha256"]
     assert set(hashes) == {c["binary"] for c in spec["components"].values()}
+    verify_component_references(hashes, spec)
     installed = packages(apk, root)
     owners = sorted({c["stock_package"] for c in spec["components"].values()})
     payload = work / "native/payload"

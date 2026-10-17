@@ -30,6 +30,18 @@ class PgoReleaseTests(unittest.TestCase):
         self.argv = ["build", "--release", "--frozen", "--manifest-path", str(self.root / "dnsmasq/Cargo.toml"),
                      "--bin", "dnsmasq-rs", "--target-dir", str(self.root / "dnsmasq/target")]
 
+    def test_release_commit_does_not_replace_the_frozen_product_epoch(self):
+        spec = {"source_commit": "a" * 40, "source_date_epoch": 1234}
+        with patch.object(builder.subprocess, "check_output", return_value="1234\n") as git:
+            self.assertEqual(builder.source_epoch(spec, "b" * 40), "1234")
+            self.assertEqual(git.call_args.args[0][-1], "a" * 40)
+        with patch.object(builder.subprocess, "check_output", return_value="1235\n"):
+            with self.assertRaisesRegex(ValueError, "frozen product commit"):
+                builder.source_epoch(spec, "b" * 40)
+        with patch.object(builder.subprocess, "check_output", return_value="5678\n") as git:
+            self.assertEqual(builder.source_epoch({"source_commit": "a" * 40}, "b" * 40), "5678")
+            self.assertEqual(git.call_args.args[0][-1], "b" * 40)
+
     def test_recipe_receives_one_exact_profile_use_suffix(self):
         result = wrapper.prepare(self.plan, self.argv, self.env)
         self.assertEqual(result["effective_rustflags"], self.env["RUSTFLAGS"] +
