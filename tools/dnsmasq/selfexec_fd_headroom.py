@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixed 2/4/8 FD-hole pressure and recovery, Oracle/local Linux only.
+"""Fixed 2/3/4/8 FD-hole pressure and recovery, Oracle/local Linux only.
 
 Use the SAME command/configuration for exact K and the candidate, changing only
 binary/hash/source/output. Default private /proc is visible: K's lookup needs
@@ -12,7 +12,7 @@ wrapper documented by selfexec_jail_boundary.py. This Python entry requires
 resource.prlimit and pidfd support on the SAME Linux host as the target. It is
 not a remote-SSH controller or a claim that OpenWrt already has Python.
 
-Every helper/resolver x 2/4/8 case starts a fresh isolated service. Each case
+Every helper/resolver x 2/3/4/8 case starts a fresh isolated service. Each case
 starts at the observed router's exact soft/hard NOFILE limits 1024/4096.
 uses one fixed 2-second pressure operation and one recovery operation, with
 20 parallel local DNS health requests and up to 0.5 seconds to drain replies.
@@ -43,7 +43,7 @@ import time
 
 import selfexec_jail_boundary as jail
 
-LEVELS = (2, 4, 8)
+LEVELS = (2, 3, 4, 8)
 PAYLOAD = b'fd-headroom-fixture'
 
 
@@ -180,7 +180,7 @@ def prepare_pressure(root, mode):
     old = script.read_text()
     extra = ('if [ "$1" = tftp ]; then\n'
              f'  [ "$#" -eq 4 ] && [ "$2" = {len(PAYLOAD)} ] && [ "$3" = 127.0.0.1 ] || exit 66\n'
-             '  case "$4" in /fixture/tftp/fd-pressure-[248].bin|/fixture/tftp/fd-recovery-[248].bin) ;; *) exit 67;; esac\n'
+             '  case "$4" in /fixture/tftp/fd-pressure-[2348].bin|/fixture/tftp/fd-recovery-[2348].bin) ;; *) exit 67;; esac\n'
              '  printf "%s %s %s %s\\n" "$1" "$2" "$3" "$4" >> /fixture/callback\n  exit 0\nfi\n')
     script.write_text('#!/bin/sh\n' + extra + old.removeprefix('#!/bin/sh\n'))
 

@@ -51,7 +51,7 @@ class HoleTests(unittest.TestCase):
 
     def test_invalid_inventory_and_insufficient_old_limit_are_rejected(self):
         for fds, wanted, old in [([0, 0], 2, 1024), ([-1], 2, 1024), ([True], 2, 1024),
-                                 ([0], 3, 1024), ([0, 1, 2], 2, 4)]:
+                                 ([0], 5, 1024), ([0, 1, 2], 2, 4)]:
             with self.subTest(fds=fds, wanted=wanted, old=old), self.assertRaises(ValueError):
                 pressure.limit_for_holes(fds, wanted, old)
 
