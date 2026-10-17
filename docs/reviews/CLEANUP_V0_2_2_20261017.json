@@ -1,0 +1,49 @@
+{
+  "release": "v0.2.2",
+  "release_id": 415986117,
+  "latest": true,
+  "image_sha256": "af05e9325e43b4961bb332aa8d004f9141a040d88ee87c7f77515e628406693d",
+  "mac": {
+    "available_bytes_increase_entire_cleanup": 5195415552,
+    "available_gib_increase": 4.8386077880859375,
+    "retired_worktrees_removed": 7,
+    "local_branches_removed": 7,
+    "raw_and_redundant_backup_files_removed": 1299,
+    "raw_and_redundant_backup_logical_bytes": 118577111,
+    "tags_preserved": 433,
+    "user_files_hash_unchanged": 12,
+    "protected_recovery_primaries_verified": 5,
+    "active_host_cwd_worktree_retained": "owrt-release-v021-20261017",
+    "active_host_cwd_allocated_mib": 124.8,
+    "unrelated_20260831_external_evidence_retained": true
+  },
+  "oracle": {
+    "available_bytes_increase": 12709838848,
+    "available_gib_increase": 11.836959838867188,
+    "paths_removed": 256,
+    "remaining_task_paths": 0,
+    "docker_services_unchanged": 7,
+    "docker_mutations": 0,
+    "dev_shm": "empty before and after, no deletion",
+    "SDK_Rust_stock_main_and_backups_preserved": true
+  },
+  "router": {
+    "owned_paths_verified_absent": 13,
+    "final_phase_files_removed": 0,
+    "final_phase_available_bytes_increase": 0,
+    "earlier_cleanup_logical_bytes_excluding_symlink": 14394848,
+    "earlier_cleanup_net_space_not_measured": true,
+    "normal_tmp_preserved": true,
+    "final_component_and_health_check": true,
+    "additional_reboots": 0
+  },
+  "evidence_policy": "Raw tests and build caches retired after derived reports and unique tools were preserved under verified Git refs. Real router/config backups, current and rollback images, all tags and user work retained.",
+  "measurement_note": "Mac uses first pre-cleanup df to final post-cleanup df, not the sum of phases. Filesystem net changes include concurrent system writes and can differ from du/logical file sizes. Router earlier file bytes are not a measured df gain.",
+  "private_receipt_sha256": {
+    "mac-phase1-result.json": "b5a3adbba73ad824bde84bbab458c9875857a41392b3d2431342cfa7dc315e8a",
+    "mac-backup-raw-result.json": "189ce109c92bb945b50d0dc420cc57730575dcfbfecdc23d35b042ba9d4404eb",
+    "mac-core-retirement-result.json": "0bb8df8c4e519b2f4e8ae52468c6c6888460e393a3b5a59bce2f75822bdc5b25",
+    "oracle-result.json": "9ddcb87b6395c1fffdd2db2dead00c3731ad7bfa49122863bf6bb9f198fcbc3b",
+    "router-result.json": "cd9523e52177e0cfd3e36a3348dcd30b035d926d17f72a985d1d0bbbb6a4e92a"
+  }
+}
