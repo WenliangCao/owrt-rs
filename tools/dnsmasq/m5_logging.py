@@ -1915,6 +1915,63 @@ def proc_state(pid, root):
         return None
 
 
+def helper_fd_observation(fd, target, fdinfo):
+    """Decode Linux /proc evidence without using the observer host's O_CLOEXEC."""
+    flags_line = re.search(r'^flags:\s+([0-7]+)\s*$', fdinfo, re.M)
+    if flags_line is None:
+        raise ValueError(f'missing Linux fdinfo flags for helper FD {fd}')
+    flags = int(flags_line[1], 8)
+    pipe = re.fullmatch(r'pipe:\[(\d+)\]', target)
+    return {'fd': fd, 'target': target, 'flags_octal': flags_line[1],
+            'pipe_inode': int(pipe[1]) if pipe else None,
+            'direction': {0: 'read', 1: 'write', 2: 'read-write', 3: 'invalid'}[flags & 3],
+            'cloexec': bool(flags & 0o2000000)}
+
+
+def observe_helper_fds(pid, proc_root=Path('/proc')):
+    folder = proc_root / str(pid)
+    descriptors = []
+    for entry in sorted((folder / 'fd').iterdir(), key=lambda path: int(path.name)):
+        fd = int(entry.name)
+        if fd > 2:
+            descriptors.append(helper_fd_observation(
+                fd, os.readlink(entry), (folder / 'fdinfo' / entry.name).read_text()))
+    return {'pid': pid, 'descriptors': descriptors}
+
+
+def helper_pipe_errors(observations, copies):
+    """Require exactly two pipe endpoints, one read and one write, with N copies."""
+    if (not isinstance(observations, list) or len(observations) != 1
+            or not isinstance(observations[0], dict)):
+        return ['expected exactly one observed helper']
+    descriptors = observations[0].get('descriptors')
+    if not isinstance(descriptors, list) or len(descriptors) != 2 * copies:
+        return [f'expected exactly {2 * copies} nonstdio helper FDs']
+    groups, seen = {}, set()
+    for descriptor in descriptors:
+        try:
+            if not isinstance(descriptor, dict):
+                return ['incomplete helper FD observation']
+            fd = descriptor['fd']
+            if type(fd) is not int or fd <= 2 or fd in seen:
+                return ['invalid or repeated helper FD number']
+            seen.add(fd)
+            actual = helper_fd_observation(fd, descriptor['target'],
+                                           'flags:\t' + descriptor['flags_octal'] + '\n')
+            if any(descriptor.get(key) != actual[key] for key in ['pipe_inode', 'direction', 'cloexec']):
+                return ['helper FD metadata disagrees with raw target/flags']
+            if actual['pipe_inode'] is None or actual['pipe_inode'] <= 0:
+                return ['helper inherited a non-pipe FD']
+            if copies == 2 and not actual['cloexec']:
+                return ['self-exec helper FD is missing CLOEXEC']
+            groups.setdefault(actual['pipe_inode'], []).append(actual['direction'])
+        except (KeyError, TypeError, ValueError):
+            return ['incomplete helper FD observation']
+    if len(groups) != 2 or sorted(groups.values()) != [['read'] * copies, ['write'] * copies]:
+        return [f'expected two distinct pipes with {copies} read copies and {copies} write copies']
+    return []
+
+
 def reap_children():
     reaped = {}
     while True:
@@ -2249,22 +2306,25 @@ def run_daemon(root, side, case, out):
                             if 'expected_helper_uid' in case:
                                 helpers = []
                                 helper_states = []
+                                helper_fd_observations = []
                                 for item in Path('/proc').iterdir():
                                     if item.name.isdigit() and int(item.name) != service_pid:
                                         child = proc_state(int(item.name), root)
                                         if child and child['state'] != 'Z' and child['ppid'] == service_pid:
                                             helpers.append(child['uid'][1])
                                             if case.get('helper_fds'):
-                                                descriptors = [os.readlink(fd) for fd in Path(f'/proc/{child["pid"]}/fd').iterdir()
-                                                               if int(fd.name) > 2]
+                                                fd_observation = observe_helper_fds(child['pid'])
+                                                helper_fd_observations.append(fd_observation)
+                                                descriptors = fd_observation['descriptors']
                                                 helper_states.append({'same_session': child['sid'] == state['sid'],
                                                     'same_group': child['pgrp'] == state['pgrp'],
                                                     'cwd': child['cwd'], 'stdio': child['stdio'],
                                                     'fd_count': len(descriptors),
-                                                    'only_command_event_pipes': all(target.startswith('pipe:[') for target in descriptors)})
+                                                    'only_command_event_pipes': all(fd['target'].startswith('pipe:[') for fd in descriptors)})
                                 observed['helper_uids'] = sorted(helpers)
                                 if case.get('helper_fds'):
                                     observed['helper_states'] = helper_states
+                                    observed['helper_fd_observations'] = helper_fd_observations
                             observed['pid_written'] = pid_path.exists() and pid_path.read_text() != 'sentinel\n'
                             if not case.get('daemonized') or parent_exit == 0:
                                 break
@@ -2438,13 +2498,21 @@ def compare(reference, candidate, case, reference_only=False):
                 failures.append({'kind': 'PID-symlink-target-control', 'side': side})
     if case.get('helper_fds'):
         debug = '-d' in case['mode']
-        wanted = [{'same_session': True, 'same_group': True, 'cwd': '/m2/logging' if debug else '/',
-                   'stdio': ['null', 'capture', 'capture'] if debug else ['null'] * 3,
-                   'fd_count': 2, 'only_command_event_pipes': True}]
+        contract = case.get('helper_fd_contract', 'legacy')
+        if contract not in ['legacy', 'fork', 'selfexec']:
+            raise ValueError('unknown helper FD contract')
         for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            copies = 2 if contract == 'selfexec' and side == 'rust' else 1
+            wanted = [{'same_session': True, 'same_group': True, 'cwd': '/m2/logging' if debug else '/',
+                       'stdio': ['null', 'capture', 'capture'] if debug else ['null'] * 3,
+                       'fd_count': 2 * copies, 'only_command_event_pipes': True}]
             if row.get('helper_states') != wanted:
                 failures.append({'kind': 'helper-startup-owned-FD-control', 'side': side,
                                  'expected': wanted, 'actual': row.get('helper_states')})
+            if contract != 'legacy':
+                failures.extend({'kind': 'helper-startup-FD-structure', 'side': side,
+                                 'contract': contract, 'error': error}
+                                for error in helper_pipe_errors(row.get('helper_fd_observations'), copies))
     if 'facility' in case and expected_ready:
         if not reference['syslog'] and not case.get('allow_no_syslog'):
             failures.append({'kind': 'C-no-syslog-records'})
@@ -2715,6 +2783,15 @@ def compare(reference, candidate, case, reference_only=False):
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
+    if case.get('helper_fds'):
+        for row in [left, right]:
+            # Absolute FD numbers/inodes stay in raw evidence. The default
+            # comparison still requires the original exact two-FD state.
+            row.pop('helper_fd_observations', None)
+            if case.get('helper_fd_contract', 'legacy') != 'legacy':
+                # Each side's complete state and explicit pipe topology were
+                # checked above; only selfexec permits the disclosed 2 -> 4.
+                row.pop('helper_states', None)
     if case.get('dhcp_probes'):
         for side, row in [('c', left), ('rust', right)]:
             try:
@@ -3027,6 +3104,8 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--scopes', default='sink,cli,identity')
     parser.add_argument('--scenarios')
+    parser.add_argument('--helper-fd-contract', choices=['legacy', 'fork', 'selfexec'], default='legacy',
+                        help='supplemental helper-only gate: fork=two FDs, selfexec=candidate four CLOEXEC FDs; default keeps original gate')
     parser.add_argument('--reference-only', action='store_true')
     parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
@@ -3043,13 +3122,18 @@ def main():
     out = args.output.resolve()
     if 'private' not in out.parts or out.exists():
         parser.error('fresh private output required')
-    out.mkdir(parents=True)
     scenarios = [case for case in cases() if case['scope'] in args.scopes.split(',')]
     if args.scenarios:
         wanted = set(args.scenarios.split(','))
         if wanted - {case['id'] for case in scenarios}:
             parser.error('unknown scenario')
         scenarios = [case for case in scenarios if case['id'] in wanted]
+    if args.helper_fd_contract != 'legacy':
+        if not args.scenarios or not scenarios or any(not case.get('helper_fds') for case in scenarios):
+            parser.error('supplemental helper FD contract requires explicit helper-startup scenarios only')
+        for case in scenarios:
+            case['helper_fd_contract'] = args.helper_fd_contract
+    out.mkdir(parents=True)
     driver = out / 'driver'
     driver.mkdir()
     for name in [Path(__file__).name, *DEPENDENCIES]:
@@ -3058,6 +3142,7 @@ def main():
     roots = {side: prepare(args.image_root, None, out / side, args.rust) for side in sides}
     result = {'source_commit': args.source_commit, 'rust_sha256': args.rust_sha256,
               'c_sha256': STOCK_SHA256, 'reference_only': args.reference_only,
+              'helper_fd_contract': args.helper_fd_contract,
               'required_sha256': sha256(Path(__file__).with_name('m5_logging_requirements.json')),
               'driver_sha256': sha256(Path(__file__)), 'negative_controls': calibration,
               'scenarios': [], 'failures': [], 'closed': []}
