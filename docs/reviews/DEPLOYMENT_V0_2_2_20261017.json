@@ -1,0 +1,384 @@
+{
+  "version": "v0.2.2",
+  "status": "deployed-and-accepted",
+  "image": {
+    "bytes": 13783328,
+    "sha256": "af05e9325e43b4961bb332aa8d004f9141a040d88ee87c7f77515e628406693d",
+    "build_source": "598b19a77021fef9abf62048d5c1e5b01c6c147c"
+  },
+  "rollback": {
+    "version": "v0.2.1",
+    "bytes": 13762848,
+    "sha256": "d1537ba13e792f2123d32f17c9e554b02bf365114548379da7f60d37598c3d74"
+  },
+  "physical": {
+    "sysupgrade_submissions": 1,
+    "extra_reboots": 0,
+    "stable_client_confirmation_seconds": 184.026213417,
+    "installed_ROM_components": 10,
+    "runtime_daemons": 7,
+    "integration_files": 2,
+    "stock_recovery_files": 12,
+    "final_client_health_passed": true,
+    "configuration_and_protected_files_preserved": true,
+    "user_reported_connectivity_restored": true,
+    "physical_power_cut_tested": false
+  },
+  "short_regression": {
+    "startup_starts": 10,
+    "traffic_windows": 24,
+    "conclusion": "No discernible performance regression in the user-selected short check; not equivalence or speedup.",
+    "scenes": {
+      "udp-hit": {
+        "pairs": 3,
+        "p50_us": [
+          130.648,
+          128.878
+        ],
+        "p95_us": [
+          299.228,
+          339.546
+        ],
+        "cpu_us": [
+          75.0,
+          78.0
+        ],
+        "original_stop_reasons": [],
+        "cpu_clock_pair_differences_us": [
+          2.173024499999997,
+          5.921157799999989,
+          0.5065263000000044
+        ],
+        "resource_stop_reviewed": false
+      },
+      "udp-miss": {
+        "pairs": 3,
+        "p50_us": [
+          1559.309,
+          1552.846
+        ],
+        "p95_us": [
+          2367.587,
+          2157.458
+        ],
+        "cpu_us": [
+          378.0,
+          378.0
+        ],
+        "original_stop_reasons": [
+          "tree_fd_peak exceeds bound growth",
+          "parent_fd_peak exceeds bound growth"
+        ],
+        "cpu_clock_pair_differences_us": [
+          7.4736177999999995,
+          -27.725872400000014,
+          4.658313599999985
+        ],
+        "resource_stop_reviewed": true
+      },
+      "tcp-hit": {
+        "pairs": 3,
+        "p50_us": [
+          185.892,
+          188.97
+        ],
+        "p95_us": [
+          567.217,
+          380.479
+        ],
+        "cpu_us": [
+          124.0,
+          124.0
+        ],
+        "original_stop_reasons": [],
+        "cpu_clock_pair_differences_us": null,
+        "resource_stop_reviewed": false
+      },
+      "dhcp-home6": {
+        "pairs": 3,
+        "p50_us": [
+          345.54699999999997,
+          354.088
+        ],
+        "p95_us": [
+          611.305,
+          632.772
+        ],
+        "cpu_us": [
+          352.0,
+          356.0
+        ],
+        "original_stop_reasons": [],
+        "cpu_clock_pair_differences_us": null,
+        "resource_stop_reviewed": false
+      }
+    },
+    "original_resource_stop_preserved": true,
+    "transient_fd_explicitly_reviewed": true
+  },
+  "observation": {
+    "seconds": 600.0000897100001,
+    "samples": 121,
+    "client_checks": 21,
+    "all_client_checks_passed": true,
+    "dns_resource_summary": {
+      "valid_observation_window": true,
+      "errors": [],
+      "samples": 121,
+      "duration_seconds": 600.0000897100001,
+      "clock_ticks_per_second": 100,
+      "main_cpu_seconds": 0.41,
+      "main_average_one_core_percent": 0.06833332311636263,
+      "main_interval_one_core_percent": {
+        "min": 0.0,
+        "median": 0.0,
+        "max": 0.7999959945800583
+      },
+      "waited_children_cpu_seconds": 0.0,
+      "main_plus_waited_cpu_seconds": 0.41,
+      "main_plus_waited_average_one_core_percent": 0.06833332311636263,
+      "child_free_endpoints_observed": true,
+      "tree_cpu_qualification": "main plus waited children at child-free sampled endpoints; proc reads are not atomic",
+      "main": {
+        "rss_kib": {
+          "min": 2556,
+          "median": 2568,
+          "max": 2568
+        },
+        "rss_anon_kib": {
+          "min": 424,
+          "median": 436,
+          "max": 436
+        },
+        "fd_count": {
+          "min": 40,
+          "median": 42,
+          "max": 44
+        },
+        "thread_count": {
+          "min": 1,
+          "median": 1,
+          "max": 1
+        }
+      },
+      "tree_shared_pages_recounted": {
+        "rss_kib": {
+          "min": 2556,
+          "median": 2568,
+          "max": 2568
+        },
+        "rss_anon_kib": {
+          "min": 424,
+          "median": 436,
+          "max": 436
+        },
+        "fd_count": {
+          "min": 40,
+          "median": 42,
+          "max": 44
+        },
+        "thread_count": {
+          "min": 1,
+          "median": 1,
+          "max": 1
+        }
+      },
+      "process_count": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "children_disappeared_total": 0,
+      "lease_count": {
+        "min": 5,
+        "median": 5,
+        "max": 5
+      },
+      "lease_count_missing_samples": 0,
+      "observer_cpu_seconds": 0.56,
+      "observer_average_one_core_percent": 0.09333331937844652,
+      "sample_duration_ms": {
+        "min": 4.351747,
+        "median": 4.649468,
+        "max": 8.468739
+      },
+      "limitations": [
+        "Daily usage, not controlled workload or performance ranking.",
+        "RSS and RssAnon are not PSS or USS; tree memory recounts shared pages.",
+        "Short-lived children may only appear in waited-child CPU counters.",
+        "Observer CPU excludes SSH, network probes and local analysis.",
+        "No query logging or per-client/name/address collection."
+      ],
+      "raw_sha256": "3e235259d1e5fd2a2afd1637b86c52063d588d0b7030b6a244475a9b9d008e0c"
+    },
+    "other_daemon_scope": "Two readonlysnapshots insideoriginalDNS600observation; notcontinuous6daemonobservation",
+    "other_daemon_snapshot_interval_seconds": 450.1065709590912,
+    "daemon_snapshots": [
+      {
+        "name": "dnsmasq",
+        "pid": 3360,
+        "start_ticks": 2926,
+        "sha256": "0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244",
+        "user_ticks": 22,
+        "system_ticks": 72,
+        "rss_kib": 2568,
+        "anon_kib": 436,
+        "threads": 1,
+        "fd_count": 40,
+        "delta": {
+          "user_ticks": 5,
+          "system_ticks": 23,
+          "rss_kib": 4,
+          "anon_kib": 4,
+          "threads": 0,
+          "fd_count": -2
+        }
+      },
+      {
+        "name": "httpd",
+        "pid": 2351,
+        "start_ticks": 2429,
+        "sha256": "f7da1ab1e91c8669db8a7e66496cafb44a6541279f2373b27f4fbedc23020f87",
+        "user_ticks": 3,
+        "system_ticks": 30,
+        "rss_kib": 1604,
+        "anon_kib": 172,
+        "threads": 4,
+        "fd_count": 19,
+        "delta": {
+          "user_ticks": 1,
+          "system_ticks": 6,
+          "rss_kib": 16,
+          "anon_kib": 16,
+          "threads": 0,
+          "fd_count": 0
+        }
+      },
+      {
+        "name": "logd",
+        "pid": 1479,
+        "start_ticks": 2050,
+        "sha256": "b64dc342f1a9201da0c0be8acea9d5f7c64accff16df387ea2ed07444439572e",
+        "user_ticks": 1,
+        "system_ticks": 14,
+        "rss_kib": 588,
+        "anon_kib": 192,
+        "threads": 1,
+        "fd_count": 6,
+        "delta": {
+          "user_ticks": 0,
+          "system_ticks": 4,
+          "rss_kib": 0,
+          "anon_kib": 0,
+          "threads": 0,
+          "fd_count": 0
+        }
+      },
+      {
+        "name": "netifd",
+        "pid": 1972,
+        "start_ticks": 2282,
+        "sha256": "0131ce3feeec074bfa6f5046ff3732ec235495442956407e7ea17559ce747a93",
+        "user_ticks": 34,
+        "system_ticks": 106,
+        "rss_kib": 1248,
+        "anon_kib": 264,
+        "threads": 1,
+        "fd_count": 14,
+        "delta": {
+          "user_ticks": 8,
+          "system_ticks": 18,
+          "rss_kib": 4,
+          "anon_kib": 4,
+          "threads": 0,
+          "fd_count": 0
+        }
+      },
+      {
+        "name": "procd",
+        "pid": 1,
+        "start_ticks": 0,
+        "sha256": "d66b0f1dd488313999235c267f07bc26573aa7cb7fcb5bd6664efd288c61ade6",
+        "user_ticks": 23,
+        "system_ticks": 180,
+        "rss_kib": 1028,
+        "anon_kib": 248,
+        "threads": 1,
+        "fd_count": 11,
+        "delta": {
+          "user_ticks": 3,
+          "system_ticks": 5,
+          "rss_kib": 0,
+          "anon_kib": 0,
+          "threads": 0,
+          "fd_count": 0
+        }
+      },
+      {
+        "name": "rpcd",
+        "pid": 1533,
+        "start_ticks": 2069,
+        "sha256": "dad2ed085e3d8fba90e45c55daf0783080d7478c5e3d19e0658f2e54eca4ffc2",
+        "user_ticks": 0,
+        "system_ticks": 14,
+        "rss_kib": 1056,
+        "anon_kib": 64,
+        "threads": 1,
+        "fd_count": 7,
+        "delta": {
+          "user_ticks": 0,
+          "system_ticks": 0,
+          "rss_kib": 0,
+          "anon_kib": 0,
+          "threads": 0,
+          "fd_count": 0
+        }
+      },
+      {
+        "name": "ubusd",
+        "pid": 969,
+        "start_ticks": 1770,
+        "sha256": "ee1d44a0a4612acf4724e05cf64d028c154ce93d7fbbd399982c61068d52a73e",
+        "user_ticks": 6,
+        "system_ticks": 53,
+        "rss_kib": 580,
+        "anon_kib": 124,
+        "threads": 1,
+        "fd_count": 21,
+        "delta": {
+          "user_ticks": 4,
+          "system_ticks": 13,
+          "rss_kib": 0,
+          "anon_kib": 0,
+          "threads": 0,
+          "fd_count": 0
+        }
+      }
+    ],
+    "CLI_resident_memory": "not applicable; three CLI components have no resident daemon"
+  },
+  "cleanup": {
+    "guard_normal_disarm": true,
+    "guard_and_boot_service_removed": true,
+    "exact_owned_temp_paths_removed": true,
+    "production_not_restarted": true,
+    "permanent_images_config_and_recovery_retained": true
+  },
+  "clean_backup": {
+    "file": "config-backup-20261017T182052Z.tar.gz",
+    "bytes": 9666,
+    "members": 46,
+    "sha256": "3e19b84765b5276cdc35a2d178627d527a9999a73d63f9f6a97d7a0bc34d6666",
+    "temporary_trial_members": 0
+  },
+  "evidence_sha256": {
+    "deploy-v022-20261017/result-initial.json": "954073dea85887c851c6c93168810d018eb727f926ff17ed7ec3ee8218496b86",
+    "deploy-v022-20261017/final-health.json": "d443c8590a05c3a4b944471eaefa93df4a91226864cc0c6a4c60e2e9fffffb4a",
+    "deploy-v022-20261017/router-cleanup/result.json": "577e3e6dca14a30bfdbf332ebbce422d176c2d5fbea37a7ecc7902867ac1062b",
+    "deploy-v022-20261017/observation600/result.json": "7dc7794edbf3c9c26fc363db6e6f79f89e2173982276b22dddb701eb034743be",
+    "deploy-v022-20261017/observation600/resource-summary.json": "87a3a2e3e0bc88b9b9538f1045fb530a433572b4f9889921d351e3124b708396",
+    "deploy-v022-20261017/observation600/daemon-snapshot-comparison.json": "fcf0a82bbe53c111b1ea5b4ee087bf130ca67bb6eec5c3b24e71c7dc999aa10c",
+    "deploy-v022-20261017/clean-backup.json": "76fcdb130d7e2fb1c0dc6cb2c2009d7da7b78e6b5fa97a9e429c71a88b4d0933",
+    "device-dns-unified/short-combined-result.json": "4dddfb79d3202efee9ff30da537ea493c2a5898b0f029606202adf490c70839e"
+  }
+}
