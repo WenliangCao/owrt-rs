@@ -14,14 +14,30 @@
 #
 # Optional R75_FAKE_WATCHDOG=1 adds a private regular-file watchdog and
 # validates its actual FD handover through PID1 exec. No hardware is exposed.
+# R75_EXEC_FAILURE=1 (requires FAKE_WATCHDOG) instead checks failed PID1 exec:
+# an independent observer survives service_stop_all, checks the same watchdog
+# FD/CLOEXEC and original root, then the outer runner ends only this namespace.
 # Usage: r75_sysupgrade_probe.sh <rootfs> <candidate> <outdir>
 set -eu
 root=$1; cand=$2; out=$3
 case "${R75_FAKE_WATCHDOG:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${R75_EXEC_FAILURE:-0}" in 0) ;; 1) [ "${R75_FAKE_WATCHDOG:-0}" = 1 ] || exit 2 ;; *) exit 2 ;; esac
 mkdir -p "$out"
+if [ "${R75_EXEC_FAILURE:-0}" = 1 ]; then
+    [ ! -e "$out/c-observer.exit" ] && [ ! -e "$out/rs-observer.exit" ] || exit 2
+fi
 work=$(mktemp -d /tmp/rv-r75-XXXXXX)
-trap 'rm -rf "$work"' EXIT
-{ echo "candidate: $cand"; md5sum "$cand"; echo "rootfs: $root"; date +%Y-%m-%dT%H:%M:%S; echo "fake_watchdog: ${R75_FAKE_WATCHDOG:-0}"; } > "$out/inputs.txt"
+namespace_pid=
+cleanup() {
+    if [ -n "$namespace_pid" ]; then
+        kill -KILL "$namespace_pid" 2>/dev/null || true
+        wait "$namespace_pid" 2>/dev/null || true
+    fi
+    rm -rf "$work"
+}
+trap cleanup EXIT
+
+{ echo "candidate: $cand"; md5sum "$cand"; echo "rootfs: $root"; date +%Y-%m-%dT%H:%M:%S; echo "fake_watchdog: ${R75_FAKE_WATCHDOG:-0}"; echo "exec_failure: ${R75_EXEC_FAILURE:-0}"; } > "$out/inputs.txt"
 
 for tag in ${SIDES:-c rs}; do
 	r="$work/$tag-root"
@@ -58,6 +74,80 @@ exit 0
 X
 	chmod 0755 "$r/sbin/upgraded"
 
+    if [ "${R75_EXEC_FAILURE:-0}" = 1 ]; then
+        mkdir "$r/tmp/r75-upgrade-prefix"
+        # This prefix exists, but cannot execute /sbin/upgraded (ENOENT).
+        echo original-private-root > "$r/tmp/out/root.marker"
+        mkfifo "$r/tmp/out/completion.fifo"
+        cat > "$r/tmp/observe-failed-exec.sh" <<'X'
+#!/bin/sh
+set -eu
+out=/tmp/out
+finish() {
+    status=$?
+    trap - EXIT
+    echo "$status" > "$out/observer.exit"
+    printf 'observer finished\n' > "$out/completion.fifo"
+    exit "$status"
+}
+trap finish EXIT
+fd=
+for entry in /proc/1/fd/*; do
+    if [ "$(readlink "$entry" 2>/dev/null || true)" = /dev/watchdog ]; then
+        [ -z "$fd" ] || exit 21
+        fd=${entry##*/}
+    fi
+done
+[ -n "$fd" ] && [ -f "/proc/1/fd/$fd" ]
+root_before=$(stat -Lc '%d:%i' /proc/1/root)
+exe_before=$(sha256sum /proc/1/exe | cut -d' ' -f1)
+printf '%s\n' "$exe_before" > "$out/pid1-before.sha256"
+fd_before=$(stat -Lc '%d:%i' "/proc/1/fd/$fd")
+cat "/proc/1/fdinfo/$fd" > "$out/watchdog-before-fdinfo.txt"
+flags=$(awk '$1 == "flags:" {print $2}' "$out/watchdog-before-fdinfo.txt")
+[ "$((0$flags & 02000000))" -ne 0 ]
+printf '%s\n' "$fd" > "$out/watchdog-fd-number"
+printf '%s\n' "$root_before" > "$out/root-before.txt"
+[ -d /tmp/r75-upgrade-prefix ] && [ ! -e /tmp/r75-upgrade-prefix/sbin/upgraded ]
+echo '{"valid": true, "forceable": true, "allow_backup": true}' > /tmp/validate.json
+# This observer has its own session and is neither an inittab entry nor a
+# supervised service. Its client may lose ubus, but the observer remains.
+ubus -t 3 call system sysupgrade '{"path":"/tmp/fake.img","prefix":"/tmp/r75-upgrade-prefix","command":"stage2-cmd"}' > "$out/handover-client.txt" 2>&1 || true
+attempt=0
+while :; do
+    # The failure message precedes cleanup in both implementations. Wait for
+    # the actual restored state too, rather than racing that log write.
+    flags=$(awk '$1 == "flags:" {print $2}' "/proc/1/fdinfo/$fd" 2>/dev/null || true)
+    current_root=$(stat -Lc '%d:%i' /proc/1/root 2>/dev/null || true)
+    if grep -q 'Failed to exec upgraded' "$out/pid1.log" && [ -n "$flags" ] && \
+       [ "$((0${flags:-0} & 02000000))" -ne 0 ] && [ "$current_root" = "$root_before" ]; then
+        break
+    fi
+    [ "$attempt" -lt 30 ] || exit 22
+    sleep 1
+    attempt=$((attempt + 1))
+done
+! grep -q 'Failed to chroot for upgraded exec\|Failed to reset chroot' "$out/pid1.log"
+[ "$(readlink "/proc/1/fd/$fd")" = /dev/watchdog ]
+[ -f "/proc/1/fd/$fd" ]
+[ "$(stat -Lc '%d:%i' "/proc/1/fd/$fd")" = "$fd_before" ]
+cat "/proc/1/fdinfo/$fd" > "$out/watchdog-after-fdinfo.txt"
+flags=$(awk '$1 == "flags:" {print $2}' "$out/watchdog-after-fdinfo.txt")
+[ "$((0$flags & 02000000))" -ne 0 ]
+root_after=$(stat -Lc '%d:%i' /proc/1/root)
+printf '%s\n' "$root_after" > "$out/root-after.txt"
+[ "$root_after" = "$root_before" ]
+[ "$(sha256sum /proc/1/exe | cut -d' ' -f1)" = "$exe_before" ]
+[ "$(cat /proc/1/root/tmp/out/root.marker)" = original-private-root ]
+[ ! -e "$out/upgraded.txt" ]
+printf '%s\n' 'failed-exec: observed' 'watchdog: same open FD and inode' \
+    'watchdog: CLOEXEC restored' 'root: original root restored' > "$out/failed-exec.txt"
+# /proc/1/environ may contain the old environment memory range after unsetenv;
+# WDTFD removal remains covered by source and the existing unit test, not here.
+X
+        chmod 0755 "$r/tmp/observe-failed-exec.sh"
+    fi
+
 	cat > "$r/tmp/drive.sh" <<'X'
 #!/bin/sh
 [ -e /tmp/out/drive.stamp ] && exec sleep 100000
@@ -85,6 +175,11 @@ ubus call system sysupgrade '{"path":"/tmp/fake.img","prefix":"/","backup":"/tmp
 log "--- 4: missing prefix is INVALID_ARGUMENT with no error table"
 ubus call system sysupgrade '{"path":"/tmp/fake.img"}' >> /tmp/out/drive.txt 2>&1 || log "rc=$?"
 
+if [ -x /tmp/observe-failed-exec.sh ]; then
+    log "--- 5: valid image -- missing upgraded must restore PID1 state"
+    setsid /bin/sh /tmp/observe-failed-exec.sh < /dev/null > /tmp/out/observer.log 2>&1 &
+    exec sleep 100000
+fi
 log "--- 5: valid image -- this exec ends the namespace"
 echo '{"valid": true, "forceable": true, "allow_backup": true}' > /tmp/validate.json
 # A successful call execs PID 1 and the fake upgraded exits immediately.
@@ -101,7 +196,7 @@ X
 null::respawn:/bin/sh /tmp/drive.sh
 X
 
-	container=1 timeout -s KILL 120 unshare --mount --net --pid --fork --kill-child /bin/sh -c '
+    namespace_script='
 		root=$1
 		mount --make-rprivate /
 		mount -t proc proc "$root/proc"
@@ -116,10 +211,25 @@ X
 			exec chroot "$root" /sbin/procd -S
 		else
 			exec chroot "$root" /sbin/procd-rs
-		fi
-	' sh "$r" "$tag" "${R75_FAKE_WATCHDOG:-0}" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
+		fi'
+    if [ "${R75_EXEC_FAILURE:-0}" = 1 ]; then
+        container=1 unshare --mount --net --pid --fork --kill-child /bin/sh -c "$namespace_script" \
+            sh "$r" "$tag" 1 > "$r/tmp/out/pid1.log" 2>&1 &
+        namespace_pid=$!
+        # The FIFO is an event notification, not a sleep/poll loop. A timeout
+        # or observer error is a failed fixture, never a successful handoff.
+        timeout -s KILL 90 cat "$r/tmp/out/completion.fifo" > "$out/$tag-completion.txt" || true
+        echo 'intentional failed-exec fixture cleanup: kill only owned unshare launcher' > "$out/$tag-cleanup.txt"
+        kill -KILL "$namespace_pid" 2>/dev/null || true
+        wait "$namespace_pid" 2>/dev/null || true
+        namespace_pid=
+        cp "$r/tmp/out/pid1.log" "$out/$tag-pid1.log"
+    else
+        container=1 timeout -s KILL 120 unshare --mount --net --pid --fork --kill-child /bin/sh -c "$namespace_script" \
+            sh "$r" "$tag" "${R75_FAKE_WATCHDOG:-0}" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
+    fi
 	umount "$r/proc" "$r/dev" 2>/dev/null || true
-	for f in drive.txt upgraded.txt handover-client.txt watchdog-fdinfo.txt; do
+	for f in drive.txt upgraded.txt handover-client.txt watchdog-fdinfo.txt failed-exec.txt observer.exit observer.log watchdog-before-fdinfo.txt watchdog-after-fdinfo.txt watchdog-fd-number root-before.txt root-after.txt pid1-before.sha256; do
 		cp "$r/tmp/out/$f" "$out/$tag-$f" 2>/dev/null || true
 	done
 done
@@ -134,6 +244,15 @@ for tag in ${SIDES:-c rs}; do
 		|| fail "no invalid-image error reply"
 	grep -q "Firmware image doesn.t allow preserving a backup" "$out/$tag-drive.txt" 2>/dev/null \
 		|| fail "no backup-denied error reply"
+    if [ "${R75_EXEC_FAILURE:-0}" = 1 ]; then
+        [ "$(cat "$out/$tag-observer.exit" 2>/dev/null)" = 0 ] || fail "failed-exec observer did not complete"
+        grep -q '^root: original root restored$' "$out/$tag-failed-exec.txt" 2>/dev/null || fail "PID1 root not restored"
+        grep -q '^watchdog: CLOEXEC restored$' "$out/$tag-failed-exec.txt" 2>/dev/null || fail "watchdog CLOEXEC not restored"
+        grep -q '^watchdog: same open FD and inode$' "$out/$tag-failed-exec.txt" 2>/dev/null || fail "watchdog ownership changed"
+        grep -q 'Failed to exec upgraded' "$out/$tag-pid1.log" || fail "did not reach exec failure branch"
+        [ ! -e "$out/$tag-upgraded.txt" ] || fail "upgraded unexpectedly executed"
+        continue
+    fi
 	grep -q "STILL ALIVE" "$out/$tag-drive.txt" 2>/dev/null \
 		&& fail "the valid sysupgrade did not exec"
 	grep -q "argv: /sbin/upgraded /tmp/fake.img stage2-cmd" "$out/$tag-upgraded.txt" 2>/dev/null \
@@ -158,9 +277,11 @@ for tag in ${SIDES:-c rs}; do
 	fi
 	sed 's/^WDTFD=[0-9][0-9]*$/WDTFD=<inherited>/' "$out/$tag-upgraded.txt" > "$out/$tag-upgraded-normalized.txt"
 done
-if ! diff -u "$out/c-upgraded-normalized.txt" "$out/rs-upgraded-normalized.txt" > "$out/upgraded.diff" 2>&1; then
-	echo "r75: FAIL: upgraded.txt differs across sides (see $out/upgraded.diff)" >&2
-	rc=1
+comparison=upgraded-normalized
+[ "${R75_EXEC_FAILURE:-0}" != 1 ] || comparison=failed-exec
+if ! diff -u "$out/c-$comparison.txt" "$out/rs-$comparison.txt" > "$out/upgraded.diff" 2>&1; then
+    echo "r75: FAIL: $comparison differs across sides (see $out/upgraded.diff)" >&2
+    rc=1
 fi
 # Compare all completed error replies byte-for-byte. The final successful
 # exec is asserted above; its caller is killed with the namespace.
