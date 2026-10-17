@@ -20,8 +20,6 @@ unsafe extern "C" {
     fn system_poll(fds: *mut PollFd, count: Nfds, timeout: i32) -> i32;
     fn fcntl(fd: i32, operation: i32, ...) -> i32;
     fn signal(number: i32, handler: usize) -> usize;
-    fn setgid(gid: u32) -> i32;
-    fn setuid(uid: u32) -> i32;
     fn strerror(error: i32) -> *const c_char;
     fn read(fd: i32, data: *mut u8, length: usize) -> isize;
     fn write(fd: i32, data: *const u8, length: usize) -> isize;
@@ -89,10 +87,8 @@ pub fn inherit_signal(command: &mut Command, number: i32, previous: SignalDispos
 
 /// libc changes credentials process-wide, unlike raw per-thread Linux syscalls.
 pub fn drop_privileges(uid: u32, gid: u32) -> io::Result<()> {
-    // SAFETY: scalar IDs, no caller memory; preserve gid-before-uid ordering.
-    if unsafe { setgid(gid) } < 0 || unsafe { setuid(uid) } < 0 {
-        Err(io::Error::last_os_error())
-    } else { Ok(()) }
+    crate::identity::set_gid(gid)?;
+    crate::identity::set_uid(uid)
 }
 pub fn error_text(code: i32) -> String {
     // SAFETY: target musl returns a static terminated string; supported glibc

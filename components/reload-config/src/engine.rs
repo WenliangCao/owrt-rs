@@ -5,8 +5,6 @@ use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufWriter, Read, Write};
-#[cfg(test)]
-use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
@@ -589,8 +587,7 @@ mod tests {
     #[test]
     fn baseline_limit_applies_when_metadata_understates_readable_bytes() {
         use std::io::Write;
-        #[cfg(test)]
-use std::os::fd::AsRawFd;
+        use std::os::fd::AsRawFd;
         let (reader, writer) = owrt_ubus::sys::pipe().unwrap();
         let path = format!("/proc/self/fd/{}", reader.as_raw_fd());
         assert_eq!(fs::metadata(&path).unwrap().len(), 0);

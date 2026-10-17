@@ -28,3 +28,6 @@ pub mod ubusd;
 pub mod text;
 #[cfg(target_os = "linux")]
 pub mod httpd;
+
+#[cfg(target_os = "linux")]
+pub mod identity;

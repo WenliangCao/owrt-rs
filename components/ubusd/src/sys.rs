@@ -94,12 +94,12 @@ pub fn peer_cred(fd: impl AsFd) -> io::Result<Ucred> {
     Ok(Ucred { pid: cred.pid.as_raw_nonzero().get(), uid: cred.uid.as_raw(), gid: cred.gid.as_raw() })
 }
 
-pub use owrt_platform::procd::identity::{user_name, group_name};
+pub use owrt_platform::identity::{user_name, group_name};
 pub fn user_id(name: &str) -> Option<u32> {
-    owrt_platform::procd::identity::lookup_user(c_prefix(name)).map(|(uid, _)| uid)
+    owrt_platform::identity::lookup_user(c_prefix(name)).map(|(uid, _)| uid)
 }
 pub fn group_id(name: &str) -> Option<u32> {
-    owrt_platform::procd::identity::lookup_group(c_prefix(name))
+    owrt_platform::identity::lookup_group(c_prefix(name))
 }
 pub fn stat_of(path: &str) -> Option<Stat> {
     let stat = rustix::fs::stat(c_prefix(path)).ok()?;
