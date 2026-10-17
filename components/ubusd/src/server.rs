@@ -114,8 +114,7 @@ impl Server {
     // ---------------------------------------------------------------- clients
 
     pub fn add_client(&mut self, sock: OwnedFd) -> std::io::Result<u32> {
-        let fd = std::os::fd::AsRawFd::as_raw_fd(&sock);
-        let cred = crate::sys::peer_cred(fd)?;
+        let cred = crate::sys::peer_cred(&sock)?;
         // The C daemon refuses a connection whose uid or gid has no entry
         // rather than inventing a name for it.
         let user = crate::sys::user_name(cred.uid)
@@ -1810,18 +1809,11 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     fn lookup_client() -> (Client, std::os::unix::net::UnixStream) {
-        use std::os::fd::AsRawFd;
         use std::os::unix::net::UnixStream;
-        unsafe extern "C" {
-            fn setsockopt(fd: i32, level: i32, name: i32, value: *const i32, len: u32) -> i32;
-        }
         let (sock, peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();
         peer.set_nonblocking(true).unwrap();
-        let size: i32 = 4096;
-        // SAFETY: size is a live i32 with the declared byte length. These are
-        // Linux SOL_SOCKET/SO_SNDBUF, and sock is an owned connected socket.
-        assert_eq!(unsafe { setsockopt(sock.as_raw_fd(), 1, 7, &size, 4) }, 0);
+        rustix::net::sockopt::set_socket_send_buffer_size(&sock, 4096).unwrap();
         (Client::new(sock.into(), crate::sys::Ucred::default(), String::new(), String::new()), peer)
     }
 

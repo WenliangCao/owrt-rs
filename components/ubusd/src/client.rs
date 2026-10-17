@@ -952,54 +952,9 @@ mod tests {
     }
 
     #[cfg(target_os = "linux")]
-    fn set_send_buffer(fd: RawFd, bytes: i32) -> i32 {
-        unsafe extern "C" {
-            fn setsockopt(
-                fd: i32,
-                level: i32,
-                name: i32,
-                value: *const i32,
-                len: u32,
-            ) -> i32;
-            fn getsockopt(
-                fd: i32,
-                level: i32,
-                name: i32,
-                value: *mut sys::Ucred,
-                len: *mut u32,
-            ) -> i32;
-        }
-
-        const SOL_SOCKET: i32 = 1;
-        const SO_SNDBUF: i32 = 7;
-        // SAFETY: bytes is a live i32 with the declared byte length; fd is
-        // an owned connected socket created by this test.
-        let rc = unsafe {
-            setsockopt(
-                fd,
-                SOL_SOCKET,
-                SO_SNDBUF,
-                &bytes,
-                std::mem::size_of::<i32>() as u32,
-            )
-        };
-        assert_eq!(rc, 0, "setsockopt(SO_SNDBUF) failed: {}", io::Error::last_os_error());
-        let mut actual = 0i32;
-        let mut len = std::mem::size_of::<i32>() as u32;
-        // SAFETY: actual and len are live, correctly sized output values.
-        // The declaration matches sys's SO_PEERCRED use, but SO_SNDBUF and
-        // len tell libc to write only this i32, not a whole Ucred.
-        let rc = unsafe {
-            getsockopt(
-                fd,
-                SOL_SOCKET,
-                SO_SNDBUF,
-                (&mut actual as *mut i32).cast(),
-                &mut len,
-            )
-        };
-        assert_eq!(rc, 0, "getsockopt(SO_SNDBUF) failed: {}", io::Error::last_os_error());
-        actual
+    fn set_send_buffer(fd: impl std::os::fd::AsFd, bytes: i32) -> i32 {
+        rustix::net::sockopt::set_socket_send_buffer_size(&fd, bytes as usize).unwrap();
+        rustix::net::sockopt::socket_send_buffer_size(fd).unwrap() as i32
     }
 
     #[cfg(target_os = "linux")]
@@ -1019,7 +974,7 @@ mod tests {
         let (sock, mut peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();
         peer.set_nonblocking(true).unwrap();
-        let actual_buf = set_send_buffer(sock.as_raw_fd(), 4096) as usize;
+        let actual_buf = set_send_buffer(&sock, 4096) as usize;
         assert!(actual_buf >= 1024, "unexpectedly small send buffer: {actual_buf}");
 
         // Put one or two complete frames before the partial frame, followed

@@ -32,7 +32,7 @@ fn epoll_event_matches_the_sdk_layout() {
 }
 
 unsafe extern "C" {
-    fn epoll_ctl(epfd: i32, op: i32, fd: i32, event: *mut Event) -> i32;
+    fn epoll_ctl(epfd: i32, op: i32, fd: i32, event: *const std::ffi::c_void) -> i32;
     fn epoll_wait(epfd: i32, events: *mut Event, count: i32, timeout: i32) -> i32;
 }
 
@@ -40,12 +40,12 @@ pub fn register(fds: [RawFd; 2]) -> io::Result<OwnedFd> {
     let owned = rustix::event::epoll::create(rustix::event::epoll::CreateFlags::CLOEXEC)?;
     let fd = owned.as_raw_fd();
     for (token, target) in fds.into_iter().enumerate() {
-        let mut event = Event {
+        let event = Event {
             events: 1,
             token: token as u64,
         }; // EPOLLIN, level triggered
            // SAFETY: event is a live SDK-layout epoll_event for this call.
-        if unsafe { epoll_ctl(fd, 1, target, &mut event) } < 0 {
+        if unsafe { epoll_ctl(fd, 1, target, (&event as *const Event).cast()) } < 0 {
             return Err(io::Error::last_os_error());
         }
     }

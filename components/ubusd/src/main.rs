@@ -2,12 +2,11 @@
 //!
 //! Behaviour is specified by docs/contracts/ubusd.md, which is derived from
 //! the pinned ubus 24864e78 source. Single-threaded readiness loop (epoll on
-//! Linux, as uloop gives the C daemon), no async runtime, no third-party crates.
+//! Linux, as uloop gives the C daemon), with no async runtime.
 //!
-//! Every `unsafe` block here is a syscall the standard library does not
-//! expose, and each one has to say why it is sound: the lint below makes that
-//! a build error rather than a convention.
+//! Business code forbids unsafe; libc ABI operations live in owrt-platform.
 
+#![forbid(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -46,20 +45,8 @@ extern "C" fn on_term(_: i32) {
 
 /// Async-signal-safe wake-up: one byte down the self-pipe.
 fn wake() {
-    #[cfg(target_os = "linux")]
-    // SAFETY: preserve this thread's interrupted errno across the pipe write.
-    let (errno, saved_errno) = unsafe {
-        extern "C" { fn __errno_location() -> *mut i32; }
-        let errno = __errno_location();
-        (errno, *errno)
-    };
     let fd = WAKE_FD.load(Ordering::SeqCst);
-    if fd >= 0 {
-        sys::write_fd(fd, &[0u8]);
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: this thread-local errno cell remains live.
-    unsafe { *errno = saved_errno; }
+    if fd >= 0 { owrt_platform::ubusd::wake(fd); }
 }
 
 #[cfg(all(test, target_os = "linux"))]
@@ -70,16 +57,7 @@ fn saturated_signal_pipe_preserves_errno() {
     while sys::write_fd(fd, &[0u8; 4096]) > 0 {}
     assert_eq!(std::io::Error::last_os_error().kind(), std::io::ErrorKind::WouldBlock);
     let previous = WAKE_FD.swap(fd, Ordering::SeqCst);
-    // SAFETY: __errno_location returns this thread's live error cell.
-    let errno = unsafe {
-        extern "C" { fn __errno_location() -> *mut i32; }
-        __errno_location()
-    };
-    // SAFETY: simulate the error from an interrupted syscall.
-    unsafe { *errno = 22; }
-    wake();
-    // SAFETY: the thread-local cell remains live.
-    let after = unsafe { *errno };
+    let (_, after) = owrt_platform::ubusd::with_errno(22, wake);
     WAKE_FD.store(previous, Ordering::SeqCst);
     assert_eq!(after, 22);
 }
@@ -263,7 +241,7 @@ fn disconnect(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id
 fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::readiness::Poller) -> bool {
     let mut transient_errors = 0;
     loop {
-        match sys::accept(listener.as_raw_fd()) {
+        match sys::accept(listener) {
             Ok(Some(sock)) => match server.add_client(sock) {
                 Ok(id) => {
                     let Some(c) = server.clients.get_mut(&id) else { continue };
