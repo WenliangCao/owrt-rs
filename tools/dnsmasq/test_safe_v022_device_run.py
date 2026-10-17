@@ -127,10 +127,11 @@ class DriverTests(unittest.TestCase):
         self.assertEqual(len(rows), 6)
         self.assertFalse(rows[0]['valid'])
 
-    def assessment(self, deltas, stage='full118', group='full-udp-mixed'):
+    def assessment(self, deltas, stage='full118', group='full-udp-mixed', short=False):
         # Isolate the additional CPU-clock gates from the unchanged legacy gate.
         analyze = SimpleNamespace(
-            compare=lambda *args, **kwargs: dict(direction='within_variation_or_resolution', discernible=False, same_direction_pairs=0),
+            compare=lambda *args, **kwargs: dict(direction='within_variation_or_resolution', discernible=False,
+                same_direction_pairs=0, precision_ok=True, relative_change_pct=0, W_pct=0),
             spread=lambda values: dict(median=statistics.median(values), rounds=values))
         rows = []
         for number, delta in enumerate(deltas, 1):
@@ -142,7 +143,51 @@ class DriverTests(unittest.TestCase):
                 rows.append(dict(round=number, side=side, valid=True, stage=stage,
                     scene=['udp-mixed', 'udp', 'mixed', 200, 5, 20, 150],
                     execution_index=len(rows) + 1, measurement=measurement))
-        return driver.assess({'analyze': analyze}, group, rows, {'mixed-aa': 1.0}, {})
+        return driver.assess({'analyze': analyze, 'short': short}, group, rows, {'mixed-aa': 1.0}, {})
+
+    def test_short_regression_keeps_all_three_pair_directions(self):
+        self.assertFalse(self.assessment([-.5, .2, -.1], short=True)['stop_reasons'])
+        self.assertIn('three-pair consistent CPU regression',
+                      self.assessment([3, 3.2, 2.9], short=True)['stop_reasons'])
+        with self.assertRaisesRegex(RuntimeError, 'three complete pairs'):
+            self.assessment([3, 3], short=True)
+
+    def test_short_schedule_has_only_four_three_pair_scenes_and_no_extension(self):
+        with patch.object(driver.plan_tool, 'verify_bundle', return_value={}):
+            plan = driver.plan_tool.make_plan('short', BUNDLE, short=True)
+        self.assertEqual(len(plan['schedule']), 26)
+        startup, traffic = plan['schedule'][:2], plan['schedule'][2:]
+        self.assertEqual(sum(row['cpu_operations'] for row in startup), 10)
+        self.assertTrue(all(row['scene'][1] == 'life-startup' and row['scene'][4] == 5 for row in startup))
+        self.assertEqual({row['scene'][0] for row in traffic},
+                         {'udp-hit', 'udp-miss', 'tcp-hit', 'dhcp-home6'})
+        self.assertEqual({row['round'] for row in traffic}, {1, 2, 3})
+        self.assertEqual(driver.extension_windows(plan), [])
+
+    def test_short_startup_requires_all_five_successful_starts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            (folder / 'COMPLETE').touch()
+            (folder / 'elf.sha256').write_text('abc  dnsmasq\n')
+            (folder / 'lifecycle.stderr').write_text('children_cpu_usec=25000 clk_tck=100\n')
+            names = ['m6a_loadgen', 'm6a_upstream', 'device_perf_resource_probe', 'device_perf_lifecycle',
+                     'safe_v022_full_case.sh', 'safe_v022_group.sh', 'research_cpu_clock_probe']
+            (folder / 'tools.sha256').write_text(''.join('abc  /task/' + name + '\n' for name in names))
+            values = [dict(index=i, ok=True, mode='startup', hosts=8, initial_leases=6, threads=1,
+                           start_ns=i * 10000000, visible_ns=i * 10000000 + 2000000,
+                           latency_ns=2000000, fds=8, rss_kib=2000) for i in range(5)]
+            analyze = SimpleNamespace(json_lines=lambda p: [json.loads(v) for v in p.read_text().splitlines()],
+                                      quantiles=lambda v: dict(p50=statistics.median(v), p95=max(v)))
+            ctx = dict(short=True, run=SimpleNamespace(ROOT='/task'), analyze=analyze,
+                       research=SimpleNamespace(tool_invalid=lambda *args: False))
+            window = dict(scene=['startup-small', 'life-startup', 7, 6, 5, 1000, 150],
+                          artifact='candidate', case_kind='full', cpu_operations=5)
+            qualification = {'artifacts': {'candidate': {'sha256': 'abc'}},
+                             'files': {name: {'sha256': 'abc'} for name in names}}
+            for samples, valid in ((values, True), (values[:-1], False),
+                                   ([dict(v, ok=False) if i == 2 else v for i, v in enumerate(values)], False)):
+                (folder / 'lifecycle.jsonl').write_text(''.join(json.dumps(v) + '\n' for v in samples))
+                self.assertEqual(driver.measure_window(ctx, window, folder, 0, qualification)['valid'], valid)
 
     def test_only_five_positive_small_deltas_trigger_fixed_extension(self):
         self.assertFalse(self.assessment([3, 3, 3, 3, -.1])['extend_mixed'])

@@ -27,7 +27,8 @@ LABEL = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
 
 def load_plan(path, bundle):
     value = json.loads(path.read_text())
-    if value != plan_tool.make_plan(value['prefix'], bundle):
+    if value != plan_tool.make_plan(value['prefix'], bundle,
+                                    short=value.get('scope') == 'short-safety-regression'):
         raise ValueError('plan differs from the frozen local schedule/tool/bundle')
     return value
 
@@ -210,7 +211,14 @@ def measure_window(ctx, window, folder, exit_code, qualification):
     artifact = qualification['artifacts'][window['artifact']]
     measurement = None; errors = []
     try:
-        errors.extend(run.validate(folder, scene, artifact['sha256']))
+        short_startup = ctx.get('short') and scene[1] == 'life-startup'
+        if short_startup:
+            if not (folder / 'COMPLETE').is_file():
+                errors.append('case did not complete')
+            if (folder / 'elf.sha256').read_text().split()[0] != artifact['sha256']:
+                errors.append('elf.sha256 identity')
+        else:
+            errors.extend(run.validate(folder, scene, artifact['sha256']))
         if exit_code:
             errors.append('case exit ' + str(exit_code))
         if window['case_kind'] == 'dual':
@@ -224,7 +232,24 @@ def measure_window(ctx, window, folder, exit_code, qualification):
         expected = {run.ROOT + '/' + name: qualification['files'][name]['sha256'] for name in expected_tools}
         if actual_tools != expected:
             errors.append('actual measurement tool identities')
-        if scene[1].startswith('life-'):
+        if short_startup:
+            values = analyze.json_lines(folder / 'lifecycle.jsonl')
+            if (len(values) != 5 or [v['index'] for v in values] != list(range(5)) or
+                    any(not v['ok'] or v['mode'] != 'startup' or v['hosts'] != 8 or
+                        v['initial_leases'] != 6 or v['threads'] != 1 or
+                        v['visible_ns'] - v['start_ns'] != v['latency_ns'] for v in values)):
+                raise ValueError('five-start workload/count/readiness differs')
+            cpu, hz = map(int, re.search(r'children_cpu_usec=(\d+) clk_tck=(\d+)',
+                                         (folder / 'lifecycle.stderr').read_text()).groups())
+            measurement = {'latency_ms': analyze.quantiles([v['latency_ns'] / 1e6 for v in values]),
+                           'startup_ready_ms': [v['latency_ns'] / 1e6 for v in values],
+                           'cpu_ticks': cpu / 1e6 * hz, 'cpu_hz': hz, 'cpu_operations': 5,
+                           'cpu_us_per_operation': cpu / 5,
+                           'cpu_scope': 'whole five-start RUSAGE_CHILDREN; descriptive, one block per version',
+                           'tree_fd_peak': max(v['fds'] for v in values),
+                           'parent_fd_peak': max(v['fds'] for v in values),
+                           'rss_peak_kib': max(v['rss_kib'] for v in values)}
+        elif scene[1].startswith('life-'):
             measurement = analyze.lifecycle(folder, {'valid': not errors})
         else:
             if (folder / 'netns.txt').read_bytes() != (folder / 'daemon.netns').read_bytes():
@@ -281,12 +306,40 @@ def assess(ctx, group, rows, noise, qualification):
     pairs = selected_pairs(rows); analyze = ctx['analyze']; count = len(pairs)
     left, right = [[pair[side]['measurement'] for pair in pairs] for side in (0, 1)]
     scene = rows[0]['scene']; calibration = rows[0]['stage'] == 'calibration'
+    if ctx.get('short') and scene[1] == 'life-startup':
+        if count != 1:
+            raise RuntimeError('short startup requires one five-start block per version')
+        a, b = left[0], right[0]
+        latency = analyze.compare(a['startup_ready_ms'], b['startup_ready_ms'], resolution=1)
+        reasons = ['startup readiness regression'] if latency['direction'] == 'slower' else []
+        if b['parent_fd_peak'] > a['parent_fd_peak']:
+            reasons.append('startup FD growth')
+        return {'starts': 10, 'latency_ms': latency, 'blocks': {'k': a, 'candidate': b},
+                'stop_reasons': reasons, 'extend_mixed': False,
+                'scope': 'Original startup-small, five starts per version; CPU descriptive, 1ms readiness floor.'}
     metrics = {key + '_ms': analyze.compare([r['latency_ms'][key] for r in left],
                [r['latency_ms'][key] for r in right], resolution=1 if scene[1].startswith('life-') else 0)
                for key in ('p50', 'p95')}
     metrics['cpu_us'] = analyze.compare([r['cpu_us_per_operation'] for r in left],
         [r['cpu_us_per_operation'] for r in right],
         cpu=([r['cpu_ticks'] for r in left], [r['cpu_ticks'] for r in right]))
+    if ctx.get('short'):
+        if count != 3:
+            raise RuntimeError('short regression requires three complete pairs')
+        for key, metric in metrics.items():
+            # The historical comparator requires four directions out of five;
+            # a three-pair check must not silently make regression impossible.
+            precision = metric['precision_ok']
+            if key == 'cpu_us':
+                precision = (min(r['cpu_ticks'] for r in left + right) >= 10 and
+                             abs(statistics.median(r['cpu_ticks'] for r in right) -
+                                 statistics.median(r['cpu_ticks'] for r in left)) > 2)
+            discernible = (abs(metric['relative_change_pct']) > metric['W_pct'] and
+                           metric['same_direction_pairs'] == count and precision)
+            metric.update(direction_pairs_required=count, precision_ok=precision,
+                          discernible=discernible,
+                          direction=('slower' if metric['relative_change_pct'] > 0 else 'faster')
+                          if discernible else 'within_variation_or_resolution')
     if count == 9:
         for metric in metrics.values():
             metric['direction_pairs_required'] = 8
@@ -327,6 +380,13 @@ def assess(ctx, group, rows, noise, qualification):
                     result['stop_reasons'].append('nine-pair CPU-clock regression')
             if median >= 5:
                 result['stop_reasons'].append('adverse CPU median >=5us; model review required')
+            if ctx.get('short'):
+                floor = max(max(r['cpu_clock']['cpu_us_per_operation'] for r in side) -
+                            min(r['cpu_clock']['cpu_us_per_operation'] for r in side)
+                            for side in (left, right))
+                result['within_version_cpu_range_us'] = floor
+                if all(v > 0 for v in deltas) and median > max(floor, resolution):
+                    result['stop_reasons'].append('three-pair consistent CPU regression')
             if count == 5 and aa is not None and all(v > 0 for v in deltas) and median > max(aa, resolution):
                 if group == 'full-udp-mixed' and median < 5 and not result['stop_reasons']:
                     result['extend_mixed'] = True
@@ -382,6 +442,8 @@ def end_guard(ctx, baseline=False):
 
 
 def extension_windows(plan):
+    if plan.get('scope') == 'short-safety-regression':
+        return []
     template = next(row for row in plan['schedule'] if row['group'] == 'full-udp-mixed')
     rows = []
     for number in range(6, 10):
@@ -401,13 +463,15 @@ def execute(plan, bundle, qualification, out, startup_runner):
            'research': modules['research_device_run'], 'shared': modules['udp_stage_device_run'],
            'health': modules['device_health_baseline'], 'guard': None, 'owns_root': False,
            'failed': threading.Event(), 'archived': set()}
+    ctx['short'] = plan.get('scope') == 'short-safety-regression'
     ctx['identity'] = run.production_identity(); ctx['boot'] = current_boot(run)
     run.write(out / 'launch.json', {'plan': plan, 'qualification': qualification,
               'driver_sha256': plan_tool.digest(Path(__file__)), 'production_pid_start': ctx['identity'], 'boot': ctx['boot']})
     extensions = extension_windows(plan)
     all_labels = [row['label'] for row in plan['schedule'] + extensions]
     all_labels += [label + '-repeat1' for label in all_labels]
-    all_labels += startup_runner.labels(plan['prefix'])
+    if not ctx['short']:
+        all_labels += startup_runner.labels(plan['prefix'])
     finished = threading.Event(); rows = []; results = {}; noise = {}; cleanup = []
     monitor = threading.Thread(target=run.external_health, args=(out, finished, ctx['failed']), daemon=True)
     try:
@@ -424,10 +488,12 @@ def execute(plan, bundle, qualification, out, startup_runner):
         run.write(out / 'baseline.json', baseline)
         # The new exec boundary is the largest remaining uncertainty. Collect
         # its fixed40 starts before spending time on the traffic matrix.
-        begin_guard(ctx, plan['prefix'] + '-startup-supplement', baseline['threshold_ms'])
-        supplement = startup_runner.execute_supplement(ctx, qualification)
-        run.write(out / 'startup-supplement.json', supplement)
-        end_guard(ctx); check_live(ctx)
+        supplement = {'scope': 'short startup-small is included in the main schedule'}
+        if not ctx['short']:
+            begin_guard(ctx, plan['prefix'] + '-startup-supplement', baseline['threshold_ms'])
+            supplement = startup_runner.execute_supplement(ctx, qualification)
+            run.write(out / 'startup-supplement.json', supplement)
+            end_guard(ctx); check_live(ctx)
         for group, iterator in itertools.groupby(plan['schedule'], key=lambda row: row['group']):
             original = list(iterator); queue = list(original); pending = set(); group_rows = []; at = 0; extended = False
             begin_guard(ctx, plan['prefix'] + '-' + group, baseline['threshold_ms'])
@@ -510,7 +576,8 @@ def main():
     plan = load_plan(args.plan, args.bundle.resolve())
     if not args.execute:
         print(json.dumps({'status': 'DRY_RUN_ONLY', 'windows': len(plan['schedule']),
-                          'conditional_extra_windows': 8, 'startup_starts': 40,
+                          'conditional_extra_windows': 0 if plan.get('scope') == 'short-safety-regression' else 8,
+                          'startup_starts': plan['startup_supplement']['total_starts'],
                           'qualification_supplied': args.qualification is not None,
                           'remote_access': False, 'root': plan_tool.ROOT}))
         return

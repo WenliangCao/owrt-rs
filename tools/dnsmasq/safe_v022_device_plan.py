@@ -87,10 +87,10 @@ def verify_bundle(bundle):
     return {name: row['sha256'] for name, row in files.items()}
 
 
-def make_plan(prefix, bundle):
+def make_plan(prefix, bundle, *, short=False):
     files = verify_bundle(bundle)
     windows = schedule(prefix)
-    return {
+    plan = {
         'schema': 1,
         'status': 'PREPARATION_ONLY_EXECUTION_BLOCKED',
         'device_root': ROOT,
@@ -215,6 +215,37 @@ def make_plan(prefix, bundle):
             'legacy_private_raw': 'deleted; this is source-based reconstruction, not replay of old bytes',
         },
     }
+    if short:
+        selected = {'udp-hit', 'udp-miss', 'tcp-hit', 'dhcp-home6'}
+        traffic = [row for row in windows if row['stage'] == 'full118'
+                   and row['scene'][0] in selected and row['round'] <= 3]
+        startup = []
+        for row in windows:
+            if row['group'] == 'full-startup-small' and row['round'] == 1:
+                scene = list(row['scene']); scene[4] = 5
+                startup.append({**row, 'scene': scene, 'cpu_operations': 5,
+                                'group_argv': ['full', row['side'], row['label'], *map(str, scene[1:])]})
+        plan['schedule'] = startup + traffic
+        plan['scope'] = 'short-safety-regression'
+        plan['stage_window_counts'] = {'startup-blocks': 2, 'short-regression': 24}
+        plan['execution_order'] = ['fresh-health-baseline', 'startup-comparison', 'short-regression24']
+        plan['conditional_mixed_extension'] = None
+        plan['startup_supplement'] = {
+            'tool': 'device_perf_lifecycle', 'total_starts': 10, 'starts_per_artifact': 5,
+            'scope': 'Existing startup-small workload; helper/resolver/no-proc boundaries retain Oracle qualification.',
+            'period_ms': 1000, 'observer_resolution_ms': 1,
+        }
+        plan['workload_contracts']['lifecycle'] = 'Original startup-small, five repetitions per artifact; 1ms readiness floor.'
+        plan['decision_rules'] = {
+            'objective': 'User-approved short no-regression check, not optimization or equivalence proof.',
+            'pairs_per_scene': 3,
+            'latency_and_cpu': 'Keep original measurements and variation/quantization analysis; '
+                               'all three adverse differences beyond the observed floor require root review.',
+            'udp_cpu': 'Retain nanosecond process clocks; adverse median >=5us requires review.',
+            'correctness_health_resources': 'All existing count, identity, health and FD checks unchanged.',
+            'prior_observations': 'Retain all already completed observations, never select favorable windows.',
+        }
+    return plan
 
 
 def main():
@@ -222,17 +253,18 @@ def main():
     parser.add_argument('--bundle', required=True, type=Path)
     parser.add_argument('--out', required=True, type=Path)
     parser.add_argument('--prefix', default='v022')
+    parser.add_argument('--short', action='store_true', help='four scenes, three pairs each; user-approved safety regression')
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[2]
     out = args.out.resolve()
     if (repo / 'private').resolve() not in out.parents:
         parser.error('--out must be under this repository/private')
-    plan = make_plan(args.prefix, args.bundle.resolve())
+    plan = make_plan(args.prefix, args.bundle.resolve(), short=args.short)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open('x') as stream:
         stream.write(json.dumps(plan, indent=2) + '\n')
     print(json.dumps({'status': plan['status'], 'windows': len(plan['schedule']),
-                      'startup_supplement': 40, 'sha256': digest(out)}))
+                      'startup_supplement': plan['startup_supplement']['total_starts'], 'sha256': digest(out)}))
 
 
 if __name__ == '__main__':
