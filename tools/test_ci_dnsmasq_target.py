@@ -41,6 +41,20 @@ class TargetCheckTests(unittest.TestCase):
         self.assertTrue(result["strict_compiler_warnings_zero"])
         self.assertEqual([entry["line"] for entry in result["sdk_metadata"]], [1, 2, 3, 4])
 
+    def test_only_exact_sdk_openssl_configuration_message_is_exempt(self):
+        log = self.root / "compile.log"
+        text = "WARNING: can't open config file: /builder/shared-workdir/build/staging_dir/host/etc/ssl/openssl.cnf"
+        log.write_text(text + "\n")
+        result = scan([log])
+        self.assertTrue(result["strict_compiler_warnings_zero"])
+        self.assertEqual(result["sdk_metadata"][0]["text"], text)
+        for changed in [text.replace("WARNING:", "warning:"),
+                        text.replace("/builder/shared-workdir/build/staging_dir/host/etc/ssl/", "/tmp/"),
+                        "warning: linker stderr: " + text]:
+            with self.subTest(text=changed):
+                log.write_text(changed + "\n")
+                self.assertFalse(scan([log])["strict_compiler_warnings_zero"])
+
     def test_frozen_source_archive_matches_stage1_inventory(self):
         frozen = target.freeze_source(self.root)
         files, digest = target.builder.source_identity(target.SPEC, frozen)
