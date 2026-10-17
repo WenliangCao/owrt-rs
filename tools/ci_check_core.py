@@ -80,9 +80,16 @@ def host(work, env, report):
                                    "test": test_code, "doc": doc_code, "examples": example_code})
         if component in COMMON and (compile_code or test_code or doc_code):
             break
-    return out, len(report["commands"]) == len(COMPONENTS) and all(
+    passed = len(report["commands"]) == len(COMPONENTS) and all(
         row["compile"] == 0 and row["test"] == 0 and row["doc"] in (0, None)
         and row["examples"] in (0, None) for row in report["commands"])
+    # The existing benchmark checks validate the client that will measure all
+    # candidates. Run once after component gates pass, with its locked graph.
+    report["benchmark_returncode"] = None
+    if passed:
+        report["benchmark_returncode"] = run(["make", "check-benchmark"], out / "benchmark.log", env)
+        passed = report["benchmark_returncode"] == 0
+    return out, passed
 
 
 def sdk_check(work, env, report):

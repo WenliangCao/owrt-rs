@@ -64,6 +64,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
+          components: rustfmt
       - name: existing component test prerequisites
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
       - uses: actions/cache/restore@v4
