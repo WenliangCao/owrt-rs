@@ -410,9 +410,10 @@ static bool owner_boundary(const struct resources *value) {
     }
     return true;
 }
-static bool dump_fds(const struct resources *value, const char *label) {
+static bool dump_fds(const struct resources *value, const char *label, unsigned attempt, unsigned *captured) {
     char source[128], output[PATH_MAX], bytes[4096], suffix[64];
-    snprintf(suffix, sizeof suffix, "%s-fds.raw", label);
+    *captured = 0;
+    snprintf(suffix, sizeof suffix, "%s-fds-attempt-%03u.raw", label, attempt);
     if (!path(output, suffix)) return false;
     FILE *out = fopen(output, "wx"); if (!out) return false;
     snprintf(source, sizeof source, "/proc/%ld/fd", (long)value->pid);
@@ -435,18 +436,77 @@ static bool dump_fds(const struct resources *value, const char *label) {
         fclose(info); ++count;
     }
     closedir(folder);
+    *captured = count;
     struct resources after = {0};
     return finish_file(out) && ok && count == value->fds && identity(value->pid, &after) && after.start == value->start;
 }
+static bool publish_fds(const char *label, unsigned attempt) {
+    char suffix[64], source[PATH_MAX], target[PATH_MAX], bytes[4096];
+    snprintf(suffix, sizeof suffix, "%s-fds-attempt-%03u.raw", label, attempt);
+    if (!path(source, suffix)) return false;
+    snprintf(suffix, sizeof suffix, "%s-fds.raw", label);
+    if (!path(target, suffix)) return false;
+    FILE *input = fopen(source, "r"); if (!input) return false;
+    FILE *output = fopen(target, "wx"); if (!output) { fclose(input); return false; }
+    size_t count; bool ok = true;
+    while ((count = fread(bytes, 1, sizeof bytes, input)))
+        if (fwrite(bytes, 1, count, output) != count) { ok = false; break; }
+    if (ferror(input)) ok = false;
+    fclose(input);
+    return finish_file(output) && ok;
+}
+static bool same_sample_identity(const struct resources *left, const struct resources *right) {
+    return left->pid == right->pid && left->start == right->start && left->ppid == right->ppid &&
+           left->fds == right->fds && left->threads == right->threads && left->uid == right->uid &&
+           left->gid == right->gid && left->capabilities == right->capabilities;
+}
 static bool quiet_snapshot(bool helper, struct resources value[2]) {
     uint64_t deadline = now_ns() + NS / 5;
+    unsigned attempt = 0;
+    struct resources pinned[2] = {{0}, {0}};
     do {
         pid_t direct[MAX_CHILDREN], nested[MAX_CHILDREN], after[MAX_CHILDREN];
         int count = children(owner, direct), wanted = helper ? 1 : 0;
-        if (count == wanted && resource_snapshot(owner, &value[0]) && owner_boundary(&value[0]) &&
+        struct resources current[2] = {{0}, {0}};
+        bool identities = identity(owner, &current[0]);
+        if (helper && count == 1) identities = identities && identity(direct[0], &current[1]);
+        for (unsigned i = 0; i < (helper && count == 1 ? 2U : 1U); ++i) {
+            if (pinned[i].pid && (pinned[i].pid != current[i].pid || pinned[i].start != current[i].start ||
+                                  pinned[i].ppid != current[i].ppid)) identities = false;
+            if (!pinned[i].pid) pinned[i] = current[i];
+        }
+        if (!identities) {
+            printf("{\"kind\":\"snapshot-identity-error\",\"index\":%u,\"attempt\":%u}\n", iteration, attempt);
+            return false;
+        }
+        memset(value, 0, 2 * sizeof *value);
+        struct resources post[2] = {{0}, {0}};
+        bool before = count == wanted && resource_snapshot(owner, &value[0]) && owner_boundary(&value[0]) &&
             (!helper || (children(direct[0], nested) == 0 && resource_snapshot(direct[0], &value[1]) &&
                          value[1].ppid == owner)) && children(owner, after) == wanted &&
-            (!helper || after[0] == direct[0])) return true;
+            (!helper || after[0] == direct[0]);
+        unsigned owner_count = 0, helper_count = 0;
+        bool owner_dump = before && dump_fds(&value[0], "owner", attempt, &owner_count);
+        bool helper_dump = before && (!helper || dump_fds(&value[1], "helper", attempt, &helper_count));
+        bool consistent = owner_dump && helper_dump && resource_snapshot(owner, &post[0]) &&
+            same_sample_identity(&value[0], &post[0]) &&
+            (!helper || (resource_snapshot(direct[0], &post[1]) &&
+                         same_sample_identity(&value[1], &post[1]) && children(direct[0], nested) == 0)) &&
+            children(owner, after) == wanted && (!helper || after[0] == direct[0]);
+        // A script output pipe can exist before fork, when children is empty.
+        // Wait only within the original200ms static-point boundary; never
+        // accept that transient pipe as part of the idle two-IPC-FD contract.
+        bool accepted = consistent && (!helper || value[1].fds == 5) && !stopped && now_ns() < deadline;
+        printf("{\"kind\":\"snapshot-attempt\",\"index\":%u,\"attempt\":%u,\"at_ns\":%" PRIu64 ","
+               "\"cohort_before\":%s,\"owner_fds_before\":%u,\"helper_fds_before\":%u,"
+               "\"owner_dump_count\":%u,\"helper_dump_count\":%u,\"owner_dump_complete\":%s,"
+               "\"helper_dump_complete\":%s,\"owner_fds_after\":%u,\"helper_fds_after\":%u,"
+               "\"consistent\":%s,\"accepted\":%s}\n",
+               iteration, attempt, now_ns(), before ? "true" : "false", value[0].fds, value[1].fds,
+               owner_count, helper_count, owner_dump ? "true" : "false", helper_dump ? "true" : "false",
+               post[0].fds, post[1].fds, consistent ? "true" : "false", accepted ? "true" : "false");
+        if (accepted) return publish_fds("owner", attempt) && (!helper || publish_fds("helper", attempt)) && now_ns() < deadline;
+        ++attempt;
         delay_ns(1000000);
     } while (!stopped && now_ns() < deadline);
     return false;
@@ -509,8 +569,7 @@ int main(int argc, char **argv) {
         uint64_t lag = start > schedule ? start - schedule : 0;
         struct readiness ready = launched ? wait_ready(helper) : (struct readiness){0};
         struct resources resources[2] = {{0}, {0}};
-        bool snapshot = ready.ready && quiet_snapshot(helper, resources) && dump_fds(&resources[0], "owner") &&
-                        (!helper || dump_fds(&resources[1], "helper"));
+        bool snapshot = ready.ready && quiet_snapshot(helper, resources);
         uint64_t snapshot_at = snapshot ? now_ns() : 0;
         struct cleanup closed = cleanup();
         bool cpu = !getrusage(RUSAGE_CHILDREN, &after) && closed.complete;

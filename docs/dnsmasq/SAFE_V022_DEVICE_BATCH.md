@@ -92,6 +92,12 @@ RUSAGE_SELF，外部 subreaper 收齐自有后代后读 RUSAGE_CHILDREN；同时
 交主代理审查。两侧严格要求 owner 无 O_PATH pin，helper 非 stdio 恰为两根 pipe 的
 两个 CLOEXEC 端点；不接受可选的0/1 pin或2/4端点。原 selfexec 四FD结果保留为历史。
 
+a97 最终 PGO 的首次工具预演在 candidate helper 第4次留下资源采样失败：ready和最终
+两条回调成功、正常退出，但FD捕获遇到脚本临时输出pipe。旧失败不改写。资源与FD捕获、
+后验身份/数量/children一致性现合入原200ms静态点等待边界，每次尝试单独留raw；最终
+helper仍严格总FD5/非stdio两IPC，持续多FD、身份变化或超时仍停止。ready时点、最终
+整树CPU与500ms周期不改，资源仍不是峰值；仅重做受影响的完整40次工具预演。
+
 首次 Oracle jail 夹具将 helper 回调固定为一次，两侧均失败：exact K 与 8adc 的完整文件
 均为相同 `old` 行两次，正常退出和身份成立。原 strict1 结果保留。启动计时现以首个
 完整合法回调为 ready，最终校验所有回调内容并保留数量；K/候选十次逐序数量不一致则
