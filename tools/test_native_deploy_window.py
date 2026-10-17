@@ -168,6 +168,32 @@ class NativeProductionProbe(unittest.TestCase):
         self.snapshots = 0
         self.fault = None
 
+    def test_client_egress_requires_both_families_on_the_lan(self):
+        answers = ["example.com. 60 IN A 192.0.2.1", "example.com. 60 IN AAAA 2001:db8::1"]
+        response = subprocess.CompletedProcess([], 0, b"<title>Example Domain</title>", b"")
+        with patch.object(self.health, "run", side_effect=answers) as dns, \
+                patch.object(self.health.subprocess, "run", return_value=response) as https:
+            result = self.health.client_egress("en0", "192.168.1.100")
+        self.assertTrue(all(result.values()))
+        self.assertEqual(len(result), 4)
+        self.assertEqual(dns.call_count, 2)
+        for family, call in zip(("-4", "-6"), https.call_args_list):
+            argv = call.args[0]
+            self.assertIn(family, argv)
+            self.assertEqual(argv[argv.index("--interface") + 1], "en0")
+            self.assertEqual(argv[argv.index("--noproxy") + 1], "*")
+            self.assertNotIn("-k", argv)
+
+    def test_client_egress_rejects_missing_dns_and_false_https_success(self):
+        with patch.object(self.health, "run", return_value=""):
+            with self.assertRaisesRegex(RuntimeError, "DNS answer"):
+                self.health.client_egress("en0", "192.168.1.100", False)
+        for code, body in ((7, b"Example Domain"), (0, b"captive portal")):
+            with patch.object(self.health, "run", return_value="example.com. 60 IN A 192.0.2.1"), \
+                    patch.object(self.health.subprocess, "run", return_value=subprocess.CompletedProcess([], code, body, b"")):
+                with self.assertRaisesRegex(RuntimeError, "HTTPS"):
+                    self.health.client_egress("en0", "192.168.1.100", False)
+
     def remote(self, host, command, **_):
         import shlex
         self.assertEqual(host, "fixture-host")

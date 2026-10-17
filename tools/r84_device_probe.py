@@ -145,8 +145,35 @@ done
     return "\n".join(lines) + "\n"
 
 
+def client_egress(interface, address, ipv6=True):
+    """Require DNS through the router and real client HTTPS on its LAN link."""
+    result = {}
+    for family, record in ((4, "A"), (6, "AAAA")) if ipv6 else ((4, "A"),):
+        answer = run(["dig", "-b", address, "@192.168.1.1", "example.com", record,
+                      "+time=2", "+tries=1", "+noall", "+answer"])
+        found = False
+        for line in answer.splitlines():
+            fields = line.split()
+            if len(fields) >= 5 and fields[-2] == record:
+                try:
+                    found |= ipaddress.ip_address(fields[-1]).version == family
+                except ValueError:
+                    pass
+        require(found, f"client received no IPv{family} DNS answer through router")
+        result[f"client_dns_ipv{family}"] = True
+        fetched = subprocess.run(
+            ["curl", "--interface", interface, "--noproxy", "*", f"-{family}",
+             "-f", "-sS", "--connect-timeout", "3", "--max-time", "8", "https://example.com/"],
+            capture_output=True, timeout=10)
+        require(fetched.returncode == 0 and b"Example Domain" in fetched.stdout,
+                f"client IPv{family} HTTPS through router failed")
+        result[f"client_https_ipv{family}"] = True
+    return result
+
+
 def probe(host="openwrt", mode="existing", interface=None, ipv6=True,
-          static_client=False, native_manifest=None, host_bundle="/root/r84"):
+          static_client=False, native_manifest=None, host_bundle="/root/r84",
+          require_client_egress=False):
     boot = ssh(host, "cat /proc/sys/kernel/random/boot_id")
     result = {"boot_id": boot, "mode": mode}
     require(re.fullmatch(r"[0-9a-f-]{36}", boot), "invalid boot identity")
@@ -226,10 +253,9 @@ def probe(host="openwrt", mode="existing", interface=None, ipv6=True,
         instances = services.get(name, {}).get("instances", {})
         require(instances and all(i.get("running") is True for i in instances.values()),
                 f"{name} has a stopped instance")
-    # Router DNS + internet, checked from the router itself over ssh. A
-    # per-application VPN on the client blocks both a raw dig and curl's
-    # Mac->internet egress, so the Mac-through-router variant is untestable
-    # here; the router's own resolver and fetch are the real health signal.
+    # Retain the router-side checks used by historical probes. Deployments
+    # additionally require direct client egress; a router-only pass is not
+    # sufficient when client routing/NAT is broken.
     nsout = ssh(host, "nslookup example.com 127.0.0.1")
     families = [4, 6] if ipv6 else [4]
     for family in families:
@@ -247,6 +273,8 @@ def probe(host="openwrt", mode="existing", interface=None, ipv6=True,
     require("OK" in ssh(host, "uclient-fetch -q -T 8 -O /dev/null https://example.com/ && echo OK"),
             "router could not fetch https://example.com")
     result["router_internet_https"] = True
+    if require_client_egress:
+        result.update(client_egress(interface, address, ipv6))
     require(ssh(host, "cat /proc/sys/kernel/random/boot_id") == boot, "router rebooted during probe")
     return result
 
@@ -260,10 +288,12 @@ def main():
     parser.add_argument("--host-bundle", default="/root/r84")
     parser.add_argument("--ipv4-only", action="store_true")
     parser.add_argument("--static-client", action="store_true")
+    parser.add_argument("--require-client-egress", action="store_true")
     args = parser.parse_args()
     try:
         print(json.dumps(probe(args.host, args.mode, args.interface, not args.ipv4_only,
-                               args.static_client, args.native_manifest, args.host_bundle), sort_keys=True))
+                               args.static_client, args.native_manifest, args.host_bundle,
+                               args.require_client_egress), sort_keys=True))
     except (RuntimeError, OSError, ValueError, KeyError,
             subprocess.TimeoutExpired) as exc:
         print(json.dumps({"error": str(exc)}))

@@ -217,7 +217,7 @@ test ! -e /root/owrt-native-trial/c-bridge-used
         staged_files()
         check = remote("/sbin/sysupgrade -T -f " + remote_config + " " + remote_image, timeout=60)
         (base / "sysupgrade-test.log").write_text(check + "\n")
-        health = probe(host=args.host, interface=args.interface)
+        health = probe(host=args.host, interface=args.interface, require_client_egress=True)
         ready = {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "boot_id": health["boot_id"],
                  "image_sha256": sha(image), "config_sha256": sha(config), "sysupgrade_test_passed": True,
                  "driver_sha256": sha(Path(__file__).resolve()), "client_health": health}
@@ -231,7 +231,7 @@ test ! -e /root/owrt-native-trial/c-bridge-used
     upgrade = None
     if args.phase == "activate":
         staged_files()
-        probe(host=args.host, interface=args.interface)
+        probe(host=args.host, interface=args.interface, require_client_egress=True)
         with (base / "ACTIVATION_STARTED").open("x") as stamp:
             stamp.write(datetime.datetime.now(datetime.timezone.utc).isoformat() + "\n")
         log("flash_requested", image_sha256=sha(image), preserve_config=True)
@@ -254,7 +254,7 @@ test ! -e /root/owrt-native-trial/c-bridge-used
                 (base / "guard-after-fallback.log").write_text(remote("cat /root/owrt-native-trial/guard.log"))
                 log("C_bridge_detected_not_a_completed_firmware_rollback", boot_id=boot)
                 raise RuntimeError("C bridge is requesting the complete rollback")
-            health = probe(host=args.host, interface=args.interface)
+            health = probe(host=args.host, interface=args.interface, require_client_egress=True)
             require(health["boot_id"] == boot, "boot changed during health probe")
             if verified_boot != boot:
                 identity = native_identities()
