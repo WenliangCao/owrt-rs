@@ -1,0 +1,203 @@
+{
+  "status": "accepted-short-regression-no-discernible-regression",
+  "baseline_sha256": "f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08",
+  "candidate_sha256": "0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244",
+  "startup_starts": 10,
+  "traffic_windows": 24,
+  "all_traffic_valid": true,
+  "scenes": {
+    "udp-hit": {
+      "pairs": 3,
+      "p50_us": [
+        130.648,
+        128.878
+      ],
+      "p95_us": [
+        299.228,
+        339.546
+      ],
+      "cpu_us": [
+        75.0,
+        78.0
+      ],
+      "original_stop_reasons": [],
+      "cpu_clock_pair_differences_us": [
+        2.173024499999997,
+        5.921157799999989,
+        0.5065263000000044
+      ],
+      "resource_stop_reviewed": false
+    },
+    "udp-miss": {
+      "pairs": 3,
+      "p50_us": [
+        1559.309,
+        1552.846
+      ],
+      "p95_us": [
+        2367.587,
+        2157.458
+      ],
+      "cpu_us": [
+        378.0,
+        378.0
+      ],
+      "original_stop_reasons": [
+        "tree_fd_peak exceeds bound growth",
+        "parent_fd_peak exceeds bound growth"
+      ],
+      "cpu_clock_pair_differences_us": [
+        7.4736177999999995,
+        -27.725872400000014,
+        4.658313599999985
+      ],
+      "resource_stop_reviewed": true
+    },
+    "tcp-hit": {
+      "pairs": 3,
+      "p50_us": [
+        185.892,
+        188.97
+      ],
+      "p95_us": [
+        567.217,
+        380.479
+      ],
+      "cpu_us": [
+        124.0,
+        124.0
+      ],
+      "original_stop_reasons": [],
+      "cpu_clock_pair_differences_us": null,
+      "resource_stop_reviewed": false
+    },
+    "dhcp-home6": {
+      "pairs": 3,
+      "p50_us": [
+        345.54699999999997,
+        354.088
+      ],
+      "p95_us": [
+        611.305,
+        632.772
+      ],
+      "cpu_us": [
+        352.0,
+        356.0
+      ],
+      "original_stop_reasons": [],
+      "cpu_clock_pair_differences_us": null,
+      "resource_stop_reviewed": false
+    }
+  },
+  "startup": {
+    "starts": 10,
+    "latency_ms": {
+      "left": {
+        "median": 4.485882,
+        "min": 4.250516,
+        "max": 6.048347,
+        "rounds": [
+          4.485882,
+          4.250516,
+          4.382164,
+          6.048347,
+          5.566612
+        ]
+      },
+      "right": {
+        "median": 4.144104,
+        "min": 4.070317,
+        "max": 4.618145,
+        "rounds": [
+          4.618145,
+          4.183653,
+          4.10548,
+          4.070317,
+          4.144104
+        ]
+      },
+      "relative_change_pct": -7.618969914946505,
+      "W_pct": 40.077536591466284,
+      "same_direction_pairs": 4,
+      "precision_ok": true,
+      "discernible": false,
+      "direction": "within_variation_or_resolution"
+    },
+    "blocks": {
+      "k": {
+        "latency_ms": {
+          "n": 5,
+          "min": 4.250516,
+          "p50": 4.485882,
+          "p95": 6.048347,
+          "p99": null,
+          "max": 6.048347
+        },
+        "startup_ready_ms": [
+          4.485882,
+          4.250516,
+          4.382164,
+          6.048347,
+          5.566612
+        ],
+        "cpu_ticks": 2.6891000000000003,
+        "cpu_hz": 100,
+        "cpu_operations": 5,
+        "cpu_us_per_operation": 5378.2,
+        "cpu_scope": "whole five-start RUSAGE_CHILDREN; descriptive, one block per version",
+        "tree_fd_peak": 18,
+        "parent_fd_peak": 18,
+        "rss_peak_kib": 2076
+      },
+      "candidate": {
+        "latency_ms": {
+          "n": 5,
+          "min": 4.070317,
+          "p50": 4.144104,
+          "p95": 4.618145,
+          "p99": null,
+          "max": 4.618145
+        },
+        "startup_ready_ms": [
+          4.618145,
+          4.183653,
+          4.10548,
+          4.070317,
+          4.144104
+        ],
+        "cpu_ticks": 2.4976000000000003,
+        "cpu_hz": 100,
+        "cpu_operations": 5,
+        "cpu_us_per_operation": 4995.2,
+        "cpu_scope": "whole five-start RUSAGE_CHILDREN; descriptive, one block per version",
+        "tree_fd_peak": 18,
+        "parent_fd_peak": 18,
+        "rss_peak_kib": 2144
+      }
+    },
+    "stop_reasons": [],
+    "extend_mixed": false,
+    "scope": "Original startup-small, five starts per version; CPU descriptive, 1ms readiness floor."
+  },
+  "fd_review": {
+    "sha256": "bccfd3eca2e09280259a87cdd0e8ef78517d270b6ce5ed5000cb65395a1ee72d"
+  },
+  "source_results": {
+    "private/device-dns-unified/short-run-0421a5d0/progress.json": "4ed9a9ba5ee3894a855151e4bae8b67ffefc3f6502c1608586041bc8e673a42d",
+    "private/device-dns-unified/short-run-0421a5d0/comparisons.json": "9e3aaca65d745a5006a9773b1801734bb519013c4a374eaf6ed630980c54e123",
+    "private/device-dns-unified/short-tail-0421a5d0/progress.json": "a429968371ded6fa61274763803bcabe6f582749f8297930790b06fbff3ec035",
+    "private/device-dns-unified/short-tail-0421a5d0/comparisons.json": "20746f7c015ed6fbde6fc3e11900163b5f7d81b3d093086a52d7fdfd231ec051",
+    "private/device-dns-unified/short-tail-0421a5d0/cleanup.json": "339acc3b09add3c3d0e689adf17878a1bd264d3a3f00fccce7db538630e20066",
+    "private/device-dns-unified/short-tail-0421a5d0/restored.json": "e23857b1c32ebed942fd67e1ba1c3155882d47e00bdbe553de01037f4b5bb684"
+  },
+  "cleanup": {
+    "errors": []
+  },
+  "restored": {
+    "slots": "K/K"
+  },
+  "original_resource_stop_retained": true,
+  "prior0start_tool_attempts_retained": true,
+  "interpretation": "Short safety regression only; UDP hit has a small adverse CPU trend below observed variation. Transient miss FD peak was reviewed from unchanged policy and full return to baseline; FD kinds were not observed. No strict equivalence or performance gain is claimed."
+}
