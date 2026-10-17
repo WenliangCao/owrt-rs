@@ -518,7 +518,7 @@ def main():
     if not args.inside:
         Path(args.out).mkdir(mode=0o700, parents=True, exist_ok=False)
         shutil.copy2(__file__, Path(args.out) / "instrument.py")
-        command = ["unshare", "--mount", "--net", "--pid", "--fork", "--mount-proc",
+        command = ["unshare", "--mount", "--net", "--pid", "--fork", "--kill-child=KILL", "--mount-proc",
                    sys.executable, str(Path(__file__).resolve()), "--inside", "--rootfs", args.rootfs, "--out", args.out]
         if args.daemon:
             command += ["--daemon", args.daemon]
