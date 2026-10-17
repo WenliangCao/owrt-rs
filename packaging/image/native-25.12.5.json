@@ -11,7 +11,7 @@
       "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
       "stock_package": "firewall4",
       "binary": "fw4-rs",
-      "reference_elf_sha256": "2a077d0d268fca821463919219ee339b629c37cab2f47b2584b382074a83a72c"
+      "reference_elf_sha256": "1f53b868cb3fc9c205257a41bd17918d93cc38ba7cb84138e57154d10840f3f8"
     },
     "httpd": {
       "path": "/usr/sbin/uhttpd",
