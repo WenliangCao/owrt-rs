@@ -62,6 +62,36 @@ class LoadElf:
 EVENTS = ('instructions:u', 'instructions:k', 'cycles:u', 'cycles:k')
 
 
+def sample_read_metadata(raw, attributes, samples, period):
+    """Bind :S exported read deltas to the configured hardware period."""
+    event_lines = [line for line in attributes.splitlines() if line.startswith(samples[0].event + ':')]
+    if (len(event_lines) != 1 or f'{{ sample_period, sample_freq }}: {period},' not in event_lines[0]
+            or 'sample_type: IP|TID|TIME|READ|' not in event_lines[0]
+            or 'read_format: TOTAL_TIME_ENABLED|TOTAL_TIME_RUNNING|ID|LOST' not in event_lines[0]
+            or 'exclude_kernel: 1' not in event_lines[0]):
+        raise ValueError('sample read attributes do not match the frozen user event')
+    periods = [int(value) for value in re.findall(r'PERF_RECORD_SAMPLE\([^\n]+ period: (\d+) addr:', raw)]
+    enabled = [int(value, 16) for value in re.findall(r'^\.+ time enabled ([0-9a-f]+)$', raw, re.M)]
+    running = [int(value, 16) for value in re.findall(r'^\.+ time running ([0-9a-f]+)$', raw, re.M)]
+    reads = re.findall(r'^\.+ id ([0-9a-f]+), value ([0-9a-f]+), lost (\d+)$', raw, re.M)
+    if not (len(periods) == len(enabled) == len(running) == len(reads) == len(samples)):
+        raise ValueError('sample read metadata count differs from exported samples')
+    previous = {}
+    for index, (identifier, value, lost) in enumerate(reads):
+        value = int(value, 16)
+        delta = value - previous.get(identifier, 0)
+        if (periods[index] != period or int(lost) or enabled[index] <= 0
+                or enabled[index] != running[index] or delta != samples[index].period):
+            raise ValueError('sample read delta, period, lost or running time mismatch')
+        previous[identifier] = value
+    return {'read_samples': len(reads), 'all_observed_enabled_equal_running': True,
+            'configured_period': period, 'exported_weight': 'Exact consecutive per-event raw READ count deltas',
+            'observed_weight_range': [min(row.period for row in samples), max(row.period for row in samples)],
+            'last_observed_time_enabled_ns': enabled[-1], 'last_observed_time_running_ns': running[-1],
+            'counter_values_by_event_id': previous,
+            'limit': 'Timing metadata is recorded at samples, not a separate final counter read; zero THROTTLE is checked independently.'}
+
+
 def stat_counts(text, verbose, pid, operations):
     """Retain perf's raw read values separately from its possibly scaled CSV."""
     attrs = verbose.split('perf_event_attr:')[1:]
@@ -380,8 +410,14 @@ def main():
             symbols[path] = proof
         samples = samples_from_text((root / 'samples.txt').read_text())
         if (scope['sample_event'] not in ('instructions:u', 'cycles:u', 'instructions:uS', 'cycles:uS')
-                or any(row.event != scope['sample_event'] or row.period != scope['sample_period'] for row in samples)):
+                or any(row.event != scope['sample_event'] for row in samples)):
             raise ValueError('unexpected sampling event or period')
+        if scope.get('sample_running_time'):
+            output['sample_read_metadata'] = sample_read_metadata(
+                (root / 'raw-records.txt').read_text(), (root / 'event-attributes.txt').read_text(),
+                samples, scope['sample_period'])
+        elif any(row.period != scope['sample_period'] for row in samples):
+            raise ValueError('unexpected fixed sampling period')
         totals = check_report((root / 'self.txt').read_text(), samples)
         lineage = task_tree((root / 'task-events.txt').read_text(), identity['pid'], before, samples)
         result = attribute_samples(samples, before, images)

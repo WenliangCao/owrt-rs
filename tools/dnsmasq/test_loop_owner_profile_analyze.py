@@ -1,11 +1,30 @@
 import unittest
 
-from loop_owner_profile_analyze import EVENTS, attribute_samples, stat_counts, task_tree
+from loop_owner_profile_analyze import EVENTS, attribute_samples, sample_read_metadata, stat_counts, task_tree
 from perf_link_map_profile import Sample
 from r121_symbolize import parse_proc_maps
 
 
 class ProfileAnalysisTests(unittest.TestCase):
+    def test_read_sample_weights_are_bound_to_raw_counter_deltas(self):
+        samples = [Sample(42, 42, 'U', weight, 'cycles:uS', 0x1010, '[unknown]', '/exact')
+                   for weight in (200005, 199998)]
+        attributes = ('cycles:uS: { sample_period, sample_freq }: 200000, '
+                      'sample_type: IP|TID|TIME|READ|IDENTIFIER, '
+                      'read_format: TOTAL_TIME_ENABLED|TOTAL_TIME_RUNNING|ID|LOST, exclude_kernel: 1')
+        raw = ''.join('PERF_RECORD_SAMPLE(IP, 0x2): 42/42: 0x1010 period: 200000 addr: 0\n'
+                      f'...... time enabled {index:016x}\n...... time running {index:016x}\n'
+                      f'..... id 0001, value {value:016x}, lost 0\n'
+                      for index, value in enumerate((200005, 400003), 1))
+        result = sample_read_metadata(raw, attributes, samples, 200000)
+        self.assertEqual(result['observed_weight_range'], [199998, 200005])
+        for broken, attrs in [(raw.replace('time running 0000000000000001', 'time running 0000000000000000'), attributes),
+                              (raw.replace('lost 0', 'lost 1', 1), attributes),
+                              (raw.replace('period: 200000', 'period: 10000', 1), attributes),
+                              (raw, attributes.replace('exclude_kernel: 1', 'exclude_kernel: 0'))]:
+            with self.assertRaises(ValueError):
+                sample_read_metadata(broken, attrs, samples, 200000)
+
     def test_stat_preserves_scaling_and_rejects_missing_inheritance(self):
         verbose = ''.join(
             'perf_event_attr:\n  inherit 1\n  ' +
