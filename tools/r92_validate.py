@@ -143,6 +143,12 @@ def main():
     selected = [g for g in gates if g[0] in a.groups and (not a.gates or g[1] in a.gates)]
     if not selected or (a.gates and set(a.gates) != {g[1] for g in selected}):
         p.error("empty selection or unknown gate")
+    if {g[1] for g in selected} & {"httpd-cgi-stress", "fw4-image"}:
+        missing = [str(bins / name) for name in ("ns-exec", "owrt-benchmark")
+                   if not (bins / name).is_file() or not os.access(bins / name, os.X_OK)]
+        if missing:
+            p.error("isolated workloads require runtime tools in the candidate bundle: "
+                    + ", ".join(missing))
     try:
         example_identity = example_inputs({g[1] for g in selected}, examples)
     except ValueError as error:
