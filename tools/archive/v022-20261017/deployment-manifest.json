@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "scope": "Two deployment shell tools only; no observations or active device bindings",
+  "source_tree_label": "release-v0.2.2/deployment",
+  "files": [
+    {
+      "source": "observation600/daemon-snapshot.sh",
+      "original_sha256": "3803d13706e7d96e31c2106756c9418288abfbf8a556de050c3da9f790df528c",
+      "original_bytes": 1429,
+      "strategy": "archived",
+      "archive_path": "sources/deployment/observation600/daemon-snapshot.sh",
+      "archived_sha256": "e52bbe2f4fbde26fe4ae922832c4ffe8f0fcdac2f07affa09442b16833d8b761",
+      "required_environment": [
+        "DNSMASQ_PID",
+        "HTTPD_PID",
+        "LOGD_PID",
+        "NETIFD_PID",
+        "PROCD_PID",
+        "RPCD_PID",
+        "UBUSD_PID"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "router-cleanup/disarm-command.sh",
+      "original_sha256": "373df6e198628fe94fead69c8d989727bc5980f7662d8579b47a13aed43803fe",
+      "original_bytes": 1117,
+      "strategy": "archived",
+      "archive_path": "sources/deployment/router-cleanup/disarm-command.sh",
+      "archived_sha256": "2fac9e8a7ffb54dbb41b048fa5515945f5b722f3ae6437a34e76078355692aac",
+      "required_environment": [
+        "TRIAL_ROOT",
+        "EXPECTED_BOOT_ID",
+        "EXPECTED_GUARD_SHA256",
+        "ROLLBACK_MARKER",
+        "GUARD_LOCK"
+      ],
+      "exact_inverse_verified": true
+    }
+  ]
+}

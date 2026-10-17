@@ -81,3 +81,27 @@ their original bytes. Python sources were parsed and shell sources checked with
 literal, private key, token, email address or real client/server IP literal.
 The original machine paths were replaced reversibly. Only loopback and
 documentation-network synthetic fixtures remain.
+
+## Deployment tool supplement
+
+`deployment-manifest.json` preserves two additional scripts found alongside the
+final deployment raw files. Neither exact script nor its generator was found in
+Git. They live under `sources/deployment/` and are not raw observations:
+
+- `observation600/daemon-snapshot.sh` requires explicitly supplied `DNSMASQ_PID`,
+  `HTTPD_PID`, `LOGD_PID`, `NETIFD_PID`, `PROCD_PID`, `RPCD_PID` and `UBUSD_PID`.
+  Its process-stat, executable-hash, status and FD-count observations are
+  unchanged; the script contains no recorded results or actual observed PIDs.
+- `router-cleanup/disarm-command.sh` requires `TRIAL_ROOT`, `EXPECTED_BOOT_ID`,
+  `EXPECTED_GUARD_SHA256`, `ROLLBACK_MARKER` and `GUARD_LOCK`. The accepted-boot,
+  guard identity, rollback/bridge absence, owned process identity and normal
+  disarm checks are retained. It still removes the armed marker when explicitly
+  run; archiving it does not authorize or perform that operation.
+
+The exact original bindings are retained only in main's protected non-raw
+`private/backup/v0.2.2-tool-archive/deployment-restore-bindings.json` (0600).
+Both inverse substitutions reproduce their recorded original SHA256. Both
+scripts passed `sh -n`; neither was executed during preservation. No actual
+boot UUID, process PID, guard digest, private deployment path or token remains
+in their public script bodies. Historical source-file digests in the manifest
+are retained solely for provenance.
