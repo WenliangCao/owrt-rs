@@ -45,6 +45,10 @@
 
 正常输入若内核确为 GUA `/64` 与 ULA `/60`，两条线上 PIO 都为 `/64`；
 PIO 状态文件和 `dhcp.ipv6ra` 的 ULA `length` 仍为原来的 **60**，不能混用。
+二者的 `prefix` 也保留接口地址的 host bits（例如 `2001:db8:1::1`），仅线上
+PIO 清零 host bits；同前缀匹配比较原地址的 `max(64,旧长度,新长度)` 位，匹配后
+地址 host bits 变化仍更新保存值。精确 C 隔离实证见
+[C 基线](../reviews/ODHCPD_C_BASELINE_20261018.md)。
 正常排序为有效 GUA 在前、ULA 在后，来自 C 地址排序；不能按文本地址另排序。
 没有配置 DNSSL、PREF64、DNR、Captive Portal，故这些选项缺席。
 RIO 不能只因 UCI 没有显式配置就省略，其输入是 reject route；不硬编码其数量。

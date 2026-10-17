@@ -894,6 +894,56 @@ mod tests {
     }
 
     #[test]
+    fn same_prefix_new_interface_host_bits_replace_history_without_withdrawal() {
+        let directory = Temporary::new();
+        let pool = pool();
+        let mut kernel = kernel();
+        kernel.links[0].addresses[0] = address("2001:db8:1::1", 64);
+        kernel.links[0].addresses[1] = address("fd12:3456:789a::1", 60);
+        let mut router = Router::new("br-lan", clock(0));
+        router.timer(&context(&pool, &kernel, 1000)).unwrap();
+        router.sent();
+        router.save_state(&directory.0, clock(1000)).unwrap();
+        let state =
+            json::parse_bytes(&fs::read(directory.0.join("odhcpd.pio.br-lan")).unwrap()).unwrap();
+        assert_eq!(
+            state,
+            Json::Object(vec![(
+                "slaac".into(),
+                Json::Array(vec![
+                    Json::Object(vec![
+                        ("prefix".into(), Json::Str("2001:db8:1::1".into())),
+                        ("length".into(), Json::Int(64))
+                    ]),
+                    Json::Object(vec![
+                        ("prefix".into(), Json::Str("fd12:3456:789a::1".into())),
+                        ("length".into(), Json::Int(60))
+                    ]),
+                ])
+            )])
+        );
+        kernel.links[0].addresses[0].address = ip("2001:db8:1::2");
+        let packet = router
+            .solicit(&context(&pool, &kernel, 2000), ip("fe80::1"))
+            .unwrap();
+        assert_eq!(options(&packet.bytes, 3).len(), 2);
+        assert_eq!(
+            u32_at(&prefix_option(&packet.bytes, "2001:db8:1::"), 4),
+            5400
+        );
+        router.sent();
+        assert_eq!(
+            router.ipv6ra(clock(2000)).as_array().unwrap()[0].get("prefix"),
+            Some(&Json::Str("2001:db8:1::2".into()))
+        );
+        router.save_state(&directory.0, clock(2000)).unwrap();
+        let saved = fs::read_to_string(directory.0.join("odhcpd.pio.br-lan")).unwrap();
+        assert!(saved.contains("2001:db8:1::2"));
+        assert!(!saved.contains("2001:db8:1::1"));
+        assert!(!saved.contains("\"time\""));
+    }
+
+    #[test]
     fn deprecated_address_is_withdrawn_and_failed_send_does_not_commit_it() {
         let pool = pool();
         let mut kernel = kernel();
