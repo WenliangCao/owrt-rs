@@ -27,6 +27,14 @@ static double fault_start=-1, fault_end=-1;
 static const char *epoch_file, *output, *ready_file;
 struct counts { uint64_t requests,replies,generated,disabled,dropped,invalid,udp,tcp; };
 static struct counts total, phases[5]; /* setup/warm, steady, saturation, fault, recovery */
+static bool audit_fixed_mixed_cohort;
+/* Fixed m6a.test/seed 0x293001 fixture: 800 prefill names and 1000 unique
+ * misses among 1000 warmup + 4000 measurement requests. No wall-clock split. */
+static struct {
+  unsigned char seen[225];
+  uint64_t prefill_unique,warmup_miss_unique,measurement_miss_unique;
+  uint64_t duplicate_queries,unexpected_queries;
+} mixed_cohort;
 struct connection { int fd; unsigned char rx[BUFFER],tx[BUFFER]; size_t rn,tn,sent; unsigned phase; uint64_t due; };
 static struct connection clients[CONNECTIONS];
 struct datagram {
@@ -45,10 +53,52 @@ static void put16(unsigned char *p,unsigned n) { p[0]=(unsigned char)(n>>8);p[1]
 static void put32(unsigned char *p,uint32_t n) {
   p[0]=(unsigned char)(n>>24);p[1]=(unsigned char)(n>>16);p[2]=(unsigned char)(n>>8);p[3]=(unsigned char)n;
 }
+static void read_epoch(void);
+static void audit_mixed(const char *host,size_t hn,unsigned type,bool tcp,
+                        const unsigned char *wire_name) {
+  static const unsigned char suffix[]={3,'m','6','a',4,'t','e','s','t',0};
+  const uint64_t base=UINT64_C(0x29300100000000);
+  unsigned digits,slot,index;uint64_t value=0,*counter;
+  if(tcp)goto unexpected;
+  if(hn==14 && host[0]=='q')digits=4;
+  else if(hn==24 && host[0]=='u')digits=14;
+  else goto unexpected;
+  /* The main client publishes its epoch after prefill, before sending any
+   * request. Refresh here: a packet can wake a poll begun before publication. */
+  read_epoch();
+  if((digits==4 && epoch) || (digits==14 && !epoch))goto unexpected;
+  if(memcmp(host+digits+1,".m6a.test",9) || wire_name[0]!=digits+1 ||
+     memcmp(wire_name+digits+2,suffix,sizeof suffix))goto unexpected;
+  for(unsigned i=1;i<=digits;i++) {
+    unsigned char c=(unsigned char)host[i];unsigned nibble;
+    if(c>='0' && c<='9')nibble=c-'0';
+    else if(c>='a' && c<='f')nibble=c-'a'+10;
+    else goto unexpected;
+    value=(value<<4)|nibble;
+  }
+  if(digits==4) {
+    if(value>=800)goto unexpected;
+    slot=index=(unsigned)value;counter=&mixed_cohort.prefill_unique;
+  } else {
+    if(value<=base || value>base+5000 || value%5!=4)goto unexpected;
+    unsigned sequence=(unsigned)(value-base);
+    index=(unsigned)(value%800);slot=800+(sequence-1)/5;
+    counter=sequence<=1000?&mixed_cohort.warmup_miss_unique:&mixed_cohort.measurement_miss_unique;
+  }
+  if(type!=(index%10<7?1u:28u))goto unexpected;
+  unsigned char mask=(unsigned char)(1u<<(slot%8));
+  if(mixed_cohort.seen[slot/8]&mask)mixed_cohort.duplicate_queries++;
+  else {mixed_cohort.seen[slot/8]|=mask;(*counter)++;}
+  return;
+unexpected: mixed_cohort.unexpected_queries++;
+}
 static void read_epoch(void) {
   if(epoch || !epoch_file)return;
-  FILE *f=fopen(epoch_file,"r");if(!f)return;
-  char b[512];size_t n=fread(b,1,sizeof b-1,f);fclose(f);b[n]=0;
+  int fd;do fd=open(epoch_file,O_RDONLY);while(fd<0 && errno==EINTR && running);
+  if(fd<0)return;
+  char b[512];ssize_t n;
+  do n=read(fd,b,sizeof b-1);while(n<0 && errno==EINTR && running);
+  close(fd);if(n<=0)return;b[n]=0;
   char *p=b;
   if(b[0]=='{') { p=strstr(b,"measurement_start_ns");if(!p)return;p=strchr(p,':');if(!p)return;p++; }
   errno=0;char *end;uint64_t v=strtoull(p,&end,10);
@@ -67,9 +117,10 @@ static size_t record(unsigned char *out,const unsigned char *owner,size_t owner_
 }
 static size_t answer(const unsigned char *q,size_t n,unsigned char *out,bool tcp) {
   uint64_t t=now_ns();unsigned p=phase(t);answer_phase=p;struct counts *c=&phases[p];
+  bool cohort_counted=false;
   total.requests++;c->requests++;if(tcp){total.tcp++;c->tcp++;}else{total.udp++;c->udp++;}
-  if(!enabled){total.disabled++;c->disabled++;return 0;}
-  if(p==3){total.dropped++;c->dropped++;return 0;}
+  if(!enabled){total.disabled++;c->disabled++;if(audit_fixed_mixed_cohort)mixed_cohort.unexpected_queries++;return 0;}
+  if(p==3){total.dropped++;c->dropped++;if(audit_fixed_mixed_cohort)mixed_cohort.unexpected_queries++;return 0;}
   size_t at=12,hn=0;char host[256];
   if(n<17 || get16(q+4)!=1 || (q[2]&0x80))goto invalid;
   while(at<n && q[at]) {
@@ -79,6 +130,7 @@ static size_t answer(const unsigned char *q,size_t n,unsigned char *out,bool tcp
   }
   if(at>=n || at+5>n)goto invalid;
   host[hn]=0;at++;unsigned type=get16(q+at);if(get16(q+at+2)!=1)goto invalid;at+=4;
+  if(audit_fixed_mixed_cohort){audit_mixed(host,hn,type,tcp,q+12);cohort_counted=true;}
   bool cname=!strncmp(host,"cname-",6);
   if(type!=1 && type!=28 && type!=16)goto invalid;
   memcpy(out,q,at);put16(out+2,0x8180);put16(out+6,cname?2:1);put16(out+8,0);put16(out+10,0);
@@ -96,7 +148,9 @@ static size_t answer(const unsigned char *q,size_t n,unsigned char *out,bool tcp
     size+=record(out+size,pointer,sizeof pointer,type,data,count);
   }
   total.generated++;c->generated++;return size;
-invalid: total.invalid++;c->invalid++;return 0;
+invalid:
+  if(audit_fixed_mixed_cohort && !cohort_counted)mixed_cohort.unexpected_queries++;
+  total.invalid++;c->invalid++;return 0;
 }
 static int listener(unsigned port,int kind) {
   int fd=socket(AF_INET,kind,0),one=1; if(fd<0){perror("socket");exit(2);}
@@ -127,6 +181,7 @@ int main(int argc,char **argv) {
   unsigned port=15354;
   for(int i=1;i<argc;i++) {
     if(!strcmp(argv[i],"--disabled")){enabled=0;continue;}
+    if(!strcmp(argv[i],"--audit-fixed-mixed-cohort")){audit_fixed_mixed_cohort=true;continue;}
     if(i+1>=argc){fprintf(stderr,"missing argument\n");return 2;}
     const char *key=argv[i],*v=argv[++i];
     if(!strcmp(key,"--port"))port=(unsigned)strtoul(v,NULL,10);
@@ -140,7 +195,8 @@ int main(int argc,char **argv) {
     else if(!strcmp(key,"--steady-seconds"))steady_ns=(uint64_t)(strtod(v,NULL)*1e9);
     else {fprintf(stderr,"unknown argument %s\n",key);return 2;}
   }
-  if(!output || !ready_file || !answer_ttl || !port || port>65535 || (fault_start>=0 && fault_end<=fault_start))return 2;
+  if(!output || !ready_file || !answer_ttl || !port || port>65535 ||
+     (audit_fixed_mixed_cohort && !epoch_file) || (fault_start>=0 && fault_end<=fault_start))return 2;
   signal(SIGTERM,stop_handler);signal(SIGINT,stop_handler);signal(SIGUSR1,stop_handler);signal(SIGUSR2,stop_handler);
   signal(SIGPIPE,SIG_IGN);
   int udp=listener(port,SOCK_DGRAM),tcp=listener(port,SOCK_STREAM);
@@ -213,5 +269,11 @@ int main(int argc,char **argv) {
   emit_counts(f,&total);fprintf(f,",\"delay_us\":%"PRIu64",\"ttl\":%u,\"delay_queue_dropped\":%"PRIu64,delay_ns/1000,answer_ttl,delay_queue_dropped);fprintf(f,",\"requests\":%"PRIu64",\"disabled_requests\":%"PRIu64",\"invalid_queries\":%"PRIu64",\"phases\":{",total.requests,total.disabled,total.invalid);
   static const char *names[]={"setup_warmup","steady","saturation","fault","recovery"};
   for(unsigned i=0;i<5;i++){if(i)fputc(',',f);fprintf(f,"\"%s\":",names[i]);emit_counts(f,&phases[i]);}
-  fprintf(f,"}}\n");if(fclose(f))return 2;return failed?1:0;
+  fputc('}',f);
+  if(audit_fixed_mixed_cohort)fprintf(f,",\"mixed_cohort\":{\"enabled\":true,\"schema\":1,"
+    "\"prefill_unique\":%"PRIu64",\"warmup_miss_unique\":%"PRIu64",\"measurement_miss_unique\":%"PRIu64
+    ",\"duplicate_queries\":%"PRIu64",\"unexpected_queries\":%"PRIu64"}",
+    mixed_cohort.prefill_unique,mixed_cohort.warmup_miss_unique,mixed_cohort.measurement_miss_unique,
+    mixed_cohort.duplicate_queries,mixed_cohort.unexpected_queries);
+  fprintf(f,"}\n");if(fclose(f))return 2;return failed?1:0;
 }
