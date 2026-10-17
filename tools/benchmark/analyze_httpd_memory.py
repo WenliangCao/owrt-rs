@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from analyze import stats
+from analyze_candidate import verify_native_health
 from analyze_httpd import read
 
 FIELDS = ("VmRSS", "RssAnon", "RssFile", "VmHWM", "VmPTE", "Threads", "fds")
@@ -18,6 +19,7 @@ def derive(root):
     before, after = read(root / "health-before.json"), read(root / "health-after.json")
     assert before["boot_id"] == after["boot_id"]
     assert (root / "config-before.sha256").read_bytes() == (root / "config-after.sha256").read_bytes()
+    host_health = verify_native_health(root, settings, before, after)
     subjects, order = read(root / "subjects.json"), read(root / "order.json")
     assert set(order) == {"stock", "candidate"} and order.count("stock") == order.count("candidate")
     probe = read(root / "memory-probe.json")["sha256"]
@@ -51,7 +53,7 @@ def derive(root):
                      "archive_sha256": hashlib.sha256((local / "raw.tar.gz").read_bytes()).hexdigest(),
                      "kernel": (raw / "kernel.txt").read_text().strip()})
     assert len(identities) == 1, "benchmark or harness changed between sides"
-    return {"schema_version": 1, "subjects": {side: subjects[side] for side in ("stock", "candidate")},
+    return {"schema_version": 1, "subjects": {side: subjects[side] for side in ("stock", "candidate")}, **host_health,
             "memory_probe_sha256": probe, "host_gates_passed": True, "connections": 64,
             "response_bytes": 16384, "requests_per_connection": 2, "order": order,
             "rows": rows,

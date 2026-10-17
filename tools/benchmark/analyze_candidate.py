@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import re
 import statistics
 
 from analyze import COMPONENT_WORK, logd_idle, memory, native, stats, timing
@@ -27,10 +28,61 @@ RELOAD_METRICS = ("ubusd_cpu_clock_us_per_op", "receiver_cpu_clock_us_per_op", "
                   "prepare_us_per_op", "validation_us_per_op")
 CLOCK_METRICS = ("subject_own_cpu_clock_us_per_op", "dependency_own_cpu_clock_us_per_op",
                  "client_cpu_clock_us_per_op")
+NATIVE_COMPONENTS = tuple(sorted(("uci", "reload-config", "fw4", "logd", "httpd", "rpcd",
+                                  "procd", "ubusd", "netifd", "dnsmasq")))
 
 
 def read(path):
     return json.loads(path.read_text())
+
+
+def verify_native_health(root, settings, before, after):
+    """Bind native-only health evidence without changing historical mode gates."""
+    if "native" not in (settings.get("stack"), before.get("mode"), after.get("mode")):
+        return {}
+    assert settings.get("stack") == before.get("mode") == after.get("mode") == "native", "native health mode mismatch"
+    manifest_bytes = (root / "native-manifest.json").read_bytes()
+    manifest_sha = hashlib.sha256(manifest_bytes).hexdigest()
+    manifest = json.loads(manifest_bytes)
+    assert manifest["deployment_layout"] == "native-ten", "native manifest layout mismatch"
+    assert set(manifest["components"]) == set(NATIVE_COMPONENTS), "native manifest must cover exactly ten components"
+    source = manifest["source_commit"]
+    assert re.fullmatch(r"[0-9a-f]{40}", source), "invalid native source commit"
+    assert settings["native_manifest_sha256"] == manifest_sha, "native manifest bytes changed"
+    identity_bytes = (root / "host-running-hashes.txt").read_bytes()
+    identity = identity_bytes.decode()
+    for health in (before, after):
+        verified = health["verified_components"]
+        assert len(verified) == 10 and set(verified) == set(NATIVE_COMPONENTS), "native health must verify exactly ten components"
+        assert health["native_manifest_sha256"] == manifest_sha, "native health manifest mismatch"
+        assert health["native_source_commit"] == source, "native health source mismatch"
+        assert health["native_identity"] == identity, "native health identity mismatch"
+    names, pids = [], set()
+    for line in identity.splitlines():
+        fields = line.split()
+        assert len(fields) == 4, "invalid native identity row"
+        name, pid, start, digest = fields
+        assert name in NATIVE_COMPONENTS, "unknown native component"
+        assert name == "dnsmasq" or name not in names, "duplicate native component"
+        names.append(name)
+        assert re.fullmatch(r"[0-9a-f]{64}", digest), "invalid native binary hash"
+        assert digest == manifest["components"][name]["rust_sha256"], "native binary differs from manifest"
+        if name in ("uci", "reload-config", "fw4"):
+            assert pid == start == "-", "native CLI has a daemon identity"
+        else:
+            assert re.fullmatch(r"[0-9]+", pid) and int(pid) > 0, "invalid native daemon PID"
+            assert re.fullmatch(r"[0-9]+", start), "invalid native daemon start time"
+            assert int(pid) not in pids, "duplicate native daemon PID"
+            pids.add(int(pid))
+            assert name != "procd" or int(pid) == 1, "native procd must be PID 1"
+    assert set(names) == set(NATIVE_COMPONENTS), "native identities must cover exactly ten components"
+    for index, side in enumerate(read(root / "order.json"), 1):
+        local = root / f"{index:02d}-{side}"
+        for phase in ("before", "after"):
+            assert (local / f"production-{phase}.txt").read_bytes() == identity_bytes, "native production identity changed"
+    return {"native_health": {"mode": "native", "verified_components": list(NATIVE_COMPONENTS),
+                              "source_commit": source, "manifest_sha256": manifest_sha,
+                              "identity_sha256": hashlib.sha256(identity_bytes).hexdigest()}}
 
 
 def process_clock_delta(before, after):
@@ -419,6 +471,7 @@ def derive(root, label):
     before, after = read(root / "health-before.json"), read(root / "health-after.json")
     assert before["boot_id"] == after["boot_id"]
     assert (root / "config-before.sha256").read_bytes() == (root / "config-after.sha256").read_bytes()
+    host_health = verify_native_health(root, settings, before, after)
     rows, residents, sources = [], [], []
     initialization_settled = []
     identities = set()
@@ -626,7 +679,7 @@ def derive(root, label):
         limitations.append("Process CPU-clock metrics are unavailable for some observations; legacy ticks remain separate.")
     if initialization_settled and not all(initialization_settled):
         limitations.append("This netifd matrix lacks complete evidence for finished hotplug callbacks, reaped children checked through proc status PPid, and stable child CPU before queries. Timings/CPU are retained for diagnosis, not acceptance; rerun with the complete initialization gate.")
-    return {"schema_version": 1, "label": label, "component": component, "matrix": matrix, "subjects": subjects,
+    return {"schema_version": 1, "label": label, "component": component, "matrix": matrix, "subjects": subjects, **host_health,
             "benchmark_sha256": client, "namespace_sha256": namespace, "harness_sha256": harness,
             "order": order, "host_gates_passed": True, "acceptance_eligible": not limitations,
             "limitations": limitations, "runs": rows, "summary": summary,

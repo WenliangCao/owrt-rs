@@ -10,6 +10,8 @@ import tempfile
 import unittest
 
 from analyze_candidate import derive
+from analyze_httpd_memory import derive as derive_memory
+from analyze_rpc_client import derive as derive_rpc_client
 from run_candidate import extra_baseline_records
 from selftest_lanes import native_sample
 
@@ -88,6 +90,41 @@ class FourSideAnalysisTests(unittest.TestCase):
     def put(self, name, value):
         (self.root / name).write_text(json.dumps(value))
 
+    def store_native_identity(self, identity):
+        (self.root / 'host-running-hashes.txt').write_text(identity)
+        for phase in ('before', 'after'):
+            path = self.root / ('health-' + phase + '.json')
+            health = json.loads(path.read_text())
+            health['native_identity'] = identity
+            self.put(path.name, health)
+        for index, side in enumerate(self.order, 1):
+            for phase in ('before', 'after'):
+                (self.root / f'{index:02d}-{side}' / f'production-{phase}.txt').write_text(identity)
+
+    def enable_native(self, extra_dns=False):
+        names = sorted(('uci', 'reload-config', 'fw4', 'logd', 'httpd', 'rpcd',
+                        'procd', 'ubusd', 'netifd', 'dnsmasq'))
+        components = {name: {'rust_sha256': hashlib.sha256(name.encode()).hexdigest()} for name in names}
+        manifest = {'deployment_layout': 'native-ten', 'source_commit': 'e' * 40,
+                    'components': components}
+        self.put('native-manifest.json', manifest)
+        digest = hashlib.sha256((self.root / 'native-manifest.json').read_bytes()).hexdigest()
+        self.put('settings.json', {**self.settings, 'stack': 'native', 'native_manifest_sha256': digest})
+        health = {'boot_id': 'boot', 'mode': 'native', 'verified_components': names,
+                  'native_source_commit': manifest['source_commit'], 'native_manifest_sha256': digest}
+        for phase in ('before', 'after'):
+            self.put('health-' + phase + '.json', health)
+        rows = []
+        for index, name in enumerate(names, 10):
+            pid, start = ('-', '-') if name in ('uci', 'reload-config', 'fw4') else (str(index), '100')
+            if name == 'procd': pid = '1'
+            rows.append(f'{name} {pid} {start} {components[name]["rust_sha256"]}')
+        if extra_dns:
+            rows.append('dnsmasq 99 101 ' + components['dnsmasq']['rust_sha256'])
+        identity = '\n'.join(rows) + '\n'
+        self.store_native_identity(identity)
+        return health, manifest, identity
+
     def test_four_sides_and_r94_delta_survive_aggregation(self):
         result = derive(self.root, 'fixture')
         self.assertEqual(result['measured_sides'], tuple(self.sides))
@@ -116,6 +153,89 @@ class FourSideAnalysisTests(unittest.TestCase):
     def test_dependency_change_is_rejected(self):
         (self.root / '01-stock/raw/dependencies-sha256.txt').write_text('other ubusd\n')
         with self.assertRaisesRegex(AssertionError, 'exact image'): derive(self.root, 'bad')
+
+    def test_native_exact_ten_and_multiple_dns_instances_are_preserved(self):
+        _, manifest, identity = self.enable_native(extra_dns=True)
+        result = derive(self.root, 'native fixture')
+        health = result['native_health']
+        self.assertEqual(health['mode'], 'native')
+        self.assertEqual(health['source_commit'], manifest['source_commit'])
+        self.assertEqual(len(health['verified_components']), 10)
+        self.assertIn('dnsmasq', health['verified_components'])
+        self.assertEqual(health['identity_sha256'], hashlib.sha256(identity.encode()).hexdigest())
+        self.assertNotIn('native_identity', health)
+
+    def test_native_health_rejects_missing_extra_and_duplicate_components(self):
+        health, _, identity = self.enable_native()
+        health['native_identity'] = identity
+        names = health['verified_components']
+        for invalid in (names[:-1], names + ['other'], names[:-1] + [names[0]],
+                        sorted(['other' if name == 'dnsmasq' else name for name in names])):
+            with self.subTest(components=invalid):
+                self.put('health-after.json', {**health, 'verified_components': invalid})
+                with self.assertRaisesRegex(AssertionError, 'exactly ten'):
+                    derive(self.root, 'invalid native components')
+
+    def test_native_mode_cannot_be_mislabelled(self):
+        health, _, identity = self.enable_native()
+        self.put('health-after.json', {**health, 'native_identity': identity, 'mode': 'rust'})
+        with self.assertRaisesRegex(AssertionError, 'mode mismatch'):
+            derive(self.root, 'mixed modes')
+        self.enable_native()
+        settings = json.loads((self.root / 'settings.json').read_text())
+        self.put('settings.json', {**settings, 'stack': 'rust'})
+        with self.assertRaisesRegex(AssertionError, 'mode mismatch'):
+            derive(self.root, 'native evidence labelled rust')
+
+    def test_native_manifest_requires_exact_bytes_and_matching_source(self):
+        self.enable_native()
+        path = self.root / 'native-manifest.json'
+        path.write_bytes(path.read_bytes() + b'\n')
+        with self.assertRaisesRegex(AssertionError, 'manifest bytes changed'):
+            derive(self.root, 'reserialized manifest')
+        health, _, identity = self.enable_native()
+        for phase in ('before', 'after'):
+            self.put('health-' + phase + '.json', {**health, 'native_identity': identity,
+                                                 'native_source_commit': 'f' * 40})
+        with self.assertRaisesRegex(AssertionError, 'source mismatch'):
+            derive(self.root, 'different source')
+
+    def test_native_identity_rejects_wrong_hash_missing_component_and_duplicate_pid(self):
+        _, manifest, identity = self.enable_native()
+        rows = identity.splitlines()
+        variants = (
+            (identity.replace(manifest['components']['dnsmasq']['rust_sha256'], '0' * 64), 'differs from manifest'),
+            ('\n'.join(row for row in rows if not row.startswith('dnsmasq ')) + '\n', 'exactly ten'),
+            (identity + next(row for row in rows if row.startswith('rpcd ')) + '\n', 'duplicate native component'),
+            (identity + next(row for row in rows if row.startswith('dnsmasq ')) + '\n', 'duplicate native daemon PID'),
+            (identity.replace('procd 1 ', 'procd 88 '), 'PID 1'),
+        )
+        for invalid, expected in variants:
+            with self.subTest(expected=expected):
+                self.store_native_identity(invalid)
+                with self.assertRaisesRegex(AssertionError, expected):
+                    derive(self.root, 'invalid native identity')
+
+    def test_native_window_identity_change_is_rejected(self):
+        _, _, identity = self.enable_native()
+        (self.root / '03-r94/production-after.txt').write_text(identity.replace('procd 1 ', 'procd 88 '))
+        with self.assertRaisesRegex(AssertionError, 'production identity changed'):
+            derive(self.root, 'changed production')
+
+    def test_native_diagnostic_analyzers_apply_the_same_health_gate(self):
+        health, _, identity = self.enable_native()
+        self.put('health-after.json', {**health, 'native_identity': identity,
+                                      'verified_components': health['verified_components'][:-1]})
+        settings = json.loads((self.root / 'settings.json').read_text())
+        self.put('settings.json', {**settings, 'matrix': False, 'held_connections': 64})
+        with self.assertRaisesRegex(AssertionError, 'exactly ten'):
+            derive_memory(self.root)
+        self.put('order.json', ['stock', 'candidate'])
+        self.put('settings.json', {**settings, 'component': 'rpcd', 'matrix': False,
+                                   'rpc_client_diagnostic': True})
+        self.put('client-probe.json', {'diagnostic_only': True})
+        with self.assertRaisesRegex(AssertionError, 'exactly ten'):
+            derive_rpc_client(self.root)
 
 
 class UciFourSideAnalysisTests(unittest.TestCase):

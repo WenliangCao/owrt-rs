@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from analyze import stats
-from analyze_candidate import METRICS, parallel, read, serial
+from analyze_candidate import METRICS, parallel, read, serial, verify_native_health
 
 
 def derive(root):
@@ -23,6 +23,7 @@ def derive(root):
     before, after = read(root / "health-before.json"), read(root / "health-after.json")
     assert before["boot_id"] == after["boot_id"]
     assert (root / "config-before.sha256").read_bytes() == (root / "config-after.sha256").read_bytes()
+    host_health = verify_native_health(root, settings, before, after)
     rows, sources, fixtures, identities = [], [], set(), set()
     verified_files = 0
     names = [f"diagnostic_{mode}_64{suffix}" for mode in ("tree", "wire") for suffix in ("", "_c4")]
@@ -66,7 +67,7 @@ def derive(root):
             metric: (grouped["candidate"][metric]["median"] / grouped["stock"][metric]["median"] - 1) * 100
             for metric in METRICS if grouped["stock"][metric]["median"] > 0}
         summary[name] = grouped
-    return {"diagnostic_only": True, "subjects": subjects, "client_probe_sha256": probe["sha256"],
+    return {"diagnostic_only": True, "subjects": subjects, "client_probe_sha256": probe["sha256"], **host_health,
             "repeats_per_side": order.count("stock"), "verified_raw_files": verified_files,
             "host_gates_passed": True, "runs": rows, "summary": summary, "sources": sources,
             "method": "Same diagnostic client binary in both modes. Tree mode decodes and validates the complete fixture on each call; wire mode validates the first warm-up reply semantically and compares every subsequent DATA byte to that immutable reference. No extra uncounted invoke. Four-client CPU uses one outer interval including warmups. Both modes run on the same router CPUs; these data diagnose client contention and do not replace the frozen R84 client matrix."}
