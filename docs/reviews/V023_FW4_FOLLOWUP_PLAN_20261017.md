@@ -34,3 +34,10 @@ B=这一次小修的 canonical SDK ELF，上传前冻结 SHA；不使用 Oracle 
 配置、进程身份和客户端 TCP DNS/双栈 HTTPS，删除自有临时沙箱。首轮已证明当前
 客户端 UDP DNS 有单独限制，不能冒称本轮通过 UDP。通过以上门后才重建最终镜像，
 执行恢复资格、当次备份/自动回滚、刷机和持续客户端健康验收。
+
+采样前身份冻结：source `de7e5a691f79c106afeb9af89a58548f34a96cf0`，canonical core
+CI `39070644856` host/target 通过，严格编译/未分类警告为 0。新 B ELF SHA256 为
+`1f53b868cb3fc9c205257a41bd17918d93cc38ba7cb84138e57154d10840f3f8`，另外八个
+core ELF 不变；DNS 冻结输入不变。追加批次 bundle SHA256 为
+`b71f3e42b478d0a5a74228ac75e5a6018dce8e3e7d4cf12fbd1201c81788e45b`，上传后
+13 文件逐个校验通过。新取配置备份仍为 `3e19b847…6666`，46 成员与已验证备份一致。
