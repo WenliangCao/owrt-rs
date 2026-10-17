@@ -1,5 +1,16 @@
 //! One-shot research instrumentation; never part of a shipping candidate.
 use std::cell::Cell;
+use std::io::Write;
+
+fn emit(line: std::fmt::Arguments<'_>) {
+    // Foreground production mode also redirects stderr to /dev/null. The
+    // harness supplies a unique private file; all output I/O follows the end
+    // counter read, with no change to the daemon's logging or reload policy.
+    let Some(path) = std::env::var_os("DNSMASQ_HUP_TIMING") else { return };
+    if let Ok(mut output) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+        let _ = writeln!(output, "{line}");
+    }
+}
 
 thread_local! {
     static ACTIVE: Cell<bool> = const { Cell::new(false) };
@@ -65,16 +76,16 @@ impl Reload {
         self.complete = true;
         // Emit after the measured interval. Publication nests within the data
         // or file stage; expose both raw and exclusive values, never add twice.
-        eprintln!("HUP_TIMING {{\"frequency_hz\":{},\"total_ticks\":{},\"data_ticks\":{},\"file_ticks\":{},\"publication_ticks\":{},\"data_exclusive_ticks\":{},\"file_exclusive_ticks\":{},\"publication_calls\":{},\"file_turns\":{},\"signaled\":{},\"runnable_after\":{},\"hosts_pending_after\":{},\"complete\":true}}",
+        emit(format_args!("HUP_TIMING {{\"frequency_hz\":{},\"total_ticks\":{},\"data_ticks\":{},\"file_ticks\":{},\"publication_ticks\":{},\"data_exclusive_ticks\":{},\"file_exclusive_ticks\":{},\"publication_calls\":{},\"file_turns\":{},\"signaled\":{},\"runnable_after\":{},\"hosts_pending_after\":{},\"complete\":true}}",
             frequency(), end.wrapping_sub(self.start), data, files, publication,
             data.saturating_sub(self.data_publication),
             files.saturating_sub(publication.saturating_sub(self.data_publication)),
-            calls, self.file_turns, self.signaled, runnable, hosts_pending);
+            calls, self.file_turns, self.signaled, runnable, hosts_pending));
     }
 }
 impl Drop for Reload {
     fn drop(&mut self) {
         ACTIVE.set(false);
-        if !self.complete { eprintln!("HUP_TIMING {{\"complete\":false}}"); }
+        if !self.complete { emit(format_args!("HUP_TIMING {{\"complete\":false}}")); }
     }
 }
