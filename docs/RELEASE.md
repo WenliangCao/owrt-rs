@@ -1,6 +1,6 @@
 # 集成固件的发布与维护
 
-2026-10-17。当前 `v0.2.1` 配方交付 dnsmasq K，生成一个小米 AX3000T sysupgrade 镜像。十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.1-r1`** APK 管理；dnsmasq 的已验收 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，当前进度见[实际报告](reviews/DEPLOYMENT_V0_2_1_20261017.md)。
+2026-10-17。当前配方构建十组件统一 **`v0.2.2` 候选**，尚未发布或部署；现役仍为 v0.2.1/K。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，候选进度见[统一验收报告](reviews/CORE_SAFE_20261017.md)，现役记录见[v0.2.1 部署报告](reviews/DEPLOYMENT_V0_2_1_20261017.md)。
 
 适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定标准路径、C 原件哈希、原软件包所有者及 dnsmasq 的构建输入。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
 
@@ -32,11 +32,11 @@ v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历�
 |---|---|
 | SDK 与六个包 | `tools/ci_build_image.sh` 校验官方下载，按既有 SDK 配方构建六个 Rust 程序及中间镜像 |
 | 三个核心程序 | `tools/ci_build_core.sh` 构建 procd/ubusd/netifd，固定源码路径及工具链，核验 ABI 与归档身份 |
-| dnsmasq | `tools/ci_build_dnsmasq.py` 核验已验收 main 产品的源码和 SDK 配方 digest，通过原 SDK recipe 新编译；记录实际 ELF、init、ACL 及参考 ELF 比较 |
+| dnsmasq | `tools/ci_build_dnsmasq.py` 核验冻结产品的源码和 SDK 配方 digest，通过原 SDK recipe 新编译；记录实际 ELF、init、ACL 及参考 ELF 比较 |
 | 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
 | 内容审计 | 十个程序、init/ACL、APK 所有权、十二份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
-最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前 canonical 发布参考为 K 的 `f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。最终 CI 精确复现 K，0 PGO missing/mismatch。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格仍分别记录，不能混用；本轮 v0.2.0/J 直接比较使用实际 `8472be5a…`。
+最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前候选的 canonical 参考为 `0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.2.1 的 CI 已精确复现 K；v0.2.2 的统一 generator/use 已完成且 0 PGO missing/mismatch，整镜像重建仍必须逐字节复现新参考。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格仍分别记录，不能混用；本轮 v0.2.0/J 直接比较使用实际 `8472be5a…`。
 
 可先在 Actions 页面选择已审阅分支，或执行：
 
@@ -57,38 +57,36 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 ## v0.2.2 统一候选的接入（尚未发布）
 
 十组件以 `research/core-safe-20261017` 为整合主线，一起验收、正式构建并最终只刷一次。
-当前 `native-25.12.5.json` 有意保留 v0.2.1/K 已接受身份；九组件 CI 与 DNS plain 构建
-通过尚不足以修改它。共享 platform、ubus、锁文件和构建槽已纳入新 DNS 输入闭包，
-旧独立 DNS 候选及其 profile 不作为整合版资格。
+产品冻结 `e21245d2`，配方 `0.2.2-r1` 绑定 core CI `39047139959` 的九个 ELF，及
+DNS canonical use CI `39048357460` 的实际 ELF。共享 platform、ubus、锁文件和构建槽
+都在新 DNS 的 212 输入闭包中；旧 a97 独立候选及 profile 不转授给整合版。
 
-完整正确性和真机验收接受实际新 PGO ELF 后，在同一提交中将配方 `version` 改为
-`0.2.2-r1`，把 `dnsmasq_build` 替换为对应的完整 `frozen-use` spec：产品提交、冻结
-时间、全部文件哈希/count/digest、实际接受的 ELF SHA256/字节数、profile URL/SHA256/
-字节数及训练来源。保留中间包 `package_release="4"` 与 2.5/1.4 MB 预算；不能预填
-参考 SHA 或将 `matches_accepted_reference=false` 放行。PGO `build_slot` 必须显式为
-`/home/ubuntu/owrt-unified-v022-20261017/private/dnsmasq-sdk-build-slot`，保留同构建
-link map 的选择，不落回历史 K 默认槽。步骤详见[统一 PGO 链](dnsmasq/CANONICAL_PGO_PIPELINE.md)。
-另外九个 `components` 条目也须各自填写验收过的 `reference_elf_sha256`；v0.2.2 起
-native 整合拒绝缺项、部分清单或任一正式重建漂移，不能仅比较同一次构建的自报 SHA。
+现将十份候选身份提前固定，用普通 `workflow_dispatch` 构建统一镜像，让实际镜像的
+离线 boot/install/recovery/handoff 验收与组件正确性和真机性能重叠。此调整只缩短等待：
+**参考身份表示必须重建出同一份待验程序，不代表运行或硬件验收通过。** 不创建 Release，
+不推版本标签，不部署；任何产品修复均作废受影响的候选镜像。全部原定门通过后才发布
+和刷写这一份实际验收镜像。构建状态与最终接受决定分别记录，不能用新镜像跳过组件门。
 
-正式 `release-image` 仍使用新 checkout 编译，`source_commit` 记录本次正式构建提交，
-便于六包、三核心与 DNS 在 native 整合时一致；DNS `accepted_product_commit` 和
-`source_date_epoch` 分别保留已验收产品提交及其 Git 时间。完整 Git 历史用于核验该
-冻结时间，因此后续版本/报告提交不能改变 DNS 的冻结打包时间。真实新构建必须复现
-接受的 ELF；native 整合再次核验 SHA、字节数、profile/slot 和无诊断候选标记。
+DNS `frozen-use` spec 保留产品提交、冻结时间、完整文件哈希/count/digest、实际 ELF
+SHA256/字节数、profile URL/SHA256/字节数和训练来源。中间包仍为 `package_release="4"`，
+最终预算 2.5/1.4 MB。PGO 槽为
+`/home/ubuntu/owrt-unified-v022-20261017/private/dnsmasq-sdk-build-slot`。
+九个非 DNS 条目也各有 `reference_elf_sha256`；native 整合拒绝漏项和任一重建漂移。
+[统一 PGO 链](dnsmasq/CANONICAL_PGO_PIPELINE.md)保留 generator/use 的独立来源。
 
-`tools/test_native_image.py::test_current_source_matches_accepted_product` 目前仍断言
-历史 K 的 181 输入及旧 digest，这是待接受身份更新前的实际阻断。最终接受时应把
-这两个固定值与新的实际清单一起更新，保留 `source_identity` 的工作树漂移拒绝测试；
-不得删掉身份断言以让研究分支冒充正式通过。正式 main CI 还会执行 DNS 隔离测试、
-工具/镜像/benchmark 既有检查；九组件 CI 不等同于这些整合门已经执行。
+正式 checkout 重新编译；manifest 的 `source_commit` 是统一构建提交，DNS 的
+`accepted_product_commit` 和 `source_date_epoch` 保留原产品身份与 Git 时间。
+这些既有字段是构建归属，不代替硬件接受记录。完整 Git 历史用于核验冻结时间；后续
+版本/报告提交不改变 DNS 打包时间。native 整合再次核验 ELF SHA、大小和 profile/slot，
+不把 diagnostic candidate 输出直接装入镜像。
 
-离线对比 v0.2.1 的已安装 manifest，`e21245d2` 九个 SDK ELF 总计从 7,762,326 增至
-7,774,614 B，增加 **12,288 B（0.1583%）**。netifd +8,192 B（0.7575%），ubusd
-+4,096 B（0.7937%），procd +4,096 B（0.4673%），rpcd −4,096 B（−0.3250%）；
-其余五项文件大小相同，但九项 SHA 都已改变。该数字仅描述 ELF 文件长度，不代表
-.text、RSS、压缩固件体积或性能；启动/空闲资源观察优先留意前三项常驻服务，所有
-组件仍须按统一性能门验收。最终 DNS PGO 体积另以实际接受产物补齐。
+身份测试现固定新的 212 输入与 `0f87482e…` digest，工作树漂移负控仍保留。另九组件
+原路径、C 身份、包所有者及程序名的历史摘要不变；新 ELF 参考另由九项漂移负控覆盖。
+主 CI 的 DNS 隔离测试、工具/镜像/benchmark 检查仍须通过。
+
+相对 v0.2.1，九个 SDK ELF 总计 7,762,326 → 7,774,614 B（+12,288 B）；新 DNS 为
+2,308,899 B（+12,288 B），十项合计 **+24,576 B**。该数不是 RSS、压缩镜像大小或性能；
+所有组件仍按统一性能门验收，netifd/procd/ubusd 的启动与空闲资源另作观察。
 
 ## v0.2.1 发布与部署
 

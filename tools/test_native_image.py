@@ -189,10 +189,10 @@ class NativeDnsmasqTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "epoch"):
             native_image.verify_dnsmasq_reference(dict(report, source_date_epoch=2346), spec)
 
-    def test_current_source_matches_accepted_product(self):
+    def test_current_source_matches_frozen_product(self):
         files, digest = ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"])
-        self.assertEqual(len(files), 181)
-        self.assertEqual(digest, "6505f110f02b8488c14a9261c37e13362d4227fdaffb4c2a23380e17029de4b7")
+        self.assertEqual(len(files), 212)
+        self.assertEqual(digest, "0f87482e7482f472c879db4cdb98b725d1c047f6867e606aacacf8e2d33162b7")
 
     def test_source_drift_cannot_inherit_accepted_identity(self):
         with patch.object(ci_build_dnsmasq.audit, "inputs", return_value={"changed": "a" * 64}):
@@ -205,6 +205,10 @@ class NativeDnsmasqTests(unittest.TestCase):
         previous = {key: copy.deepcopy(SPEC[key]) for key in
                     ("components", "stock_image", "luci_source", "translations")}
         previous["components"].pop("dnsmasq")
+        # New reference hashes bind the rebuilt implementations; the original
+        # paths, stock identities, package owners and binary names stay fixed.
+        for component in previous["components"].values():
+            component.pop("reference_elf_sha256", None)
         self.assertEqual(len(previous["components"]), 9)
         digest = hashlib.sha256(json.dumps(previous, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         self.assertEqual(digest, "bac71f5c50f91dce84dcf7652cb353f1c5d92852118a13c7b5df24eb1e07d496")
