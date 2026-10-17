@@ -66,7 +66,8 @@ jobs:
           toolchain: ${{ steps.rust.outputs.channel }}
       - name: existing component test prerequisites
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: host-registry
         with:
           path: |
             ~/.cargo/registry
@@ -74,6 +75,14 @@ jobs:
           key: core-host-registry-${{ hashFiles('components/*/Cargo.lock') }}
       - name: compile every host target and run the existing component tests
         run: python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work"
+      - name: retain downloaded host dependencies after compile failures
+        if: always() && steps.host-registry.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ steps.host-registry.outputs.cache-primary-key }}
       - name: retain all host diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -102,11 +111,13 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq build-essential clang flex bison g++ gawk gcc-multilib gettext \
             git libncurses-dev libssl-dev python3-setuptools rsync unzip zlib1g-dev file wget curl zstd squashfs-tools
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: sdk-downloads
         with:
           path: work/dl
           key: core-openwrt-dl-${{ env.OPENWRT_VERSION }}
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: target-registry
         with:
           path: |
             ~/.cargo/registry
@@ -122,6 +133,20 @@ jobs:
             test_ci_dnsmasq_target.TargetCheckTests.test_only_exact_sdk_openssl_configuration_message_is_exempt
       - name: build all nine through canonical recipes and check every router target
         run: python3 tools/ci_check_core.py target "$GITHUB_WORKSPACE/work"
+      - name: retain checksum-verified SDK downloads after compile failures
+        if: always() && steps.sdk-downloads.outputs.cache-hit != 'true' && hashFiles('work/out/sdk-downloads-verified') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: work/dl
+          key: ${{ steps.sdk-downloads.outputs.cache-primary-key }}
+      - name: retain downloaded target dependencies after compile failures
+        if: always() && steps.target-registry.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ steps.target-registry.outputs.cache-primary-key }}
       - name: retain candidates and original SDK diagnostics
         if: always()
         uses: actions/upload-artifact@v4

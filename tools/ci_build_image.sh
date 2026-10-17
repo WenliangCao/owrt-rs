@@ -25,6 +25,7 @@ NPROC=$(nproc 2>/dev/null || echo 2)
 log() { printf '\n== %s\n' "$*"; }
 [ -f "$PKGLIST" ] || { echo "no package list for $ver: $PKGLIST (capture it with: ssh router 'apk info' | sort)" >&2; exit 1; }
 mkdir -p "$WORK/dl" "$OUT"
+rm -f "$OUT/sdk-downloads-verified"
 finish_image_build() {
     image_build_status=$?
     trap - EXIT
@@ -49,6 +50,7 @@ for f in $(grep -oE "openwrt-(sdk|imagebuilder)-$ver-[^ ]*\.tar\.(zst|xz)" sha25
 	[ -f "$f" ] || curl -sSfL -o "$f" "$BASE/$f"
 done
 grep -E 'openwrt-(sdk|imagebuilder)-' sha256sums | sha256sum -c
+: > "$OUT/sdk-downloads-verified"
 cd "$WORK"
 for f in dl/openwrt-sdk-$ver-*.tar.* dl/openwrt-imagebuilder-$ver-*.tar.*; do
 	d=$(basename "${f%.tar.*}")
