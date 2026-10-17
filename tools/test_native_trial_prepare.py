@@ -14,7 +14,7 @@ def member(name, kind=tarfile.REGTYPE, target=""):
 
 class BackupPaths(unittest.TestCase):
     reserved = ["root/owrt-native-trial", "etc/init.d/owrt-native-trial",
-                "etc/rc.d/S01owrt-native-trial", "root/owrt-v0.2.0-rollback-receipt"]
+                "etc/rc.d/S01owrt-native-trial", "root/owrt-v0.2.1-rollback-receipt"]
 
     def reject(self, entries):
         with self.assertRaises(AssertionError):
