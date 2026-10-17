@@ -12,6 +12,8 @@ name = "netifd-rs"
 path = "src/main.rs"
 
 [dependencies]
+owrt-platform = { path = "../platform" }
+rustix = { version = "=1.1.5", features = ["event", "fs", "net", "pipe", "process", "time"] }
 owrt-ubus = { path = "../ubus" }
 owrt-uci = { path = "../uci" }
 

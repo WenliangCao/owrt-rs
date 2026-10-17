@@ -9,16 +9,9 @@
 //! encoders below use `to_le_bytes` unconditionally rather than native order.
 
 use std::io;
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, OwnedFd};
+use rustix::net::{AddressFamily, SocketType, SocketFlags, RecvFlags, SendFlags};
 
-const AF_NETLINK: i32 = 16;
-const SOCK_RAW: i32 = 3;
-const SOCK_CLOEXEC: i32 = 0o2000000;
-const NETLINK_ROUTE: i32 = 0;
-const SOL_NETLINK: i32 = 270;
-const NETLINK_EXT_ACK: i32 = 11;
-const SOL_SOCKET: i32 = 1;
-const SO_RCVBUF: i32 = 8;
 const EVENT_BUFFER: i32 = 65535;
 // Growth is only a mitigation; correctness comes from a fresh link dump.
 // Bound requests even on a kernel with a very large rmem_max.
@@ -48,23 +41,6 @@ pub const RTNLGRP_IPV6_ROUTE: u32 = 11;
 /// `1 << (grp - 1)`, the bitmask form `bind(2)` takes for the first 32 groups.
 pub const fn grp(g: u32) -> u32 {
     1 << (g - 1)
-}
-
-#[repr(C)]
-struct SockaddrNl {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-
-extern "C" {
-    fn socket(domain: i32, ty: i32, proto: i32) -> i32;
-    fn bind(fd: i32, addr: *const SockaddrNl, len: u32) -> i32;
-    fn setsockopt(fd: i32, level: i32, name: i32, val: *const i32, len: u32) -> i32;
-    fn send(fd: i32, buf: *const u8, len: usize, flags: i32) -> isize;
-    fn recv(fd: i32, buf: *mut u8, len: usize, flags: i32) -> isize;
-    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
 }
 
 /// One received netlink message: header type/flags/seq and the payload that
@@ -210,27 +186,10 @@ pub struct Netlink {
 impl Netlink {
     /// `groups` is the multicast bitmask; 0 for a command socket.
     pub fn open(groups: u32) -> io::Result<Self> {
-        // SAFETY: socket(2) with constant arguments; the return value is
-        // checked before it is used as a descriptor.
-        let raw = unsafe { socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: socket(2) just returned this descriptor, nothing else holds
-        // it, so OwnedFd may take over closing it.
-        let fd = unsafe { OwnedFd::from_raw_fd(raw) };
-        let sa = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups };
-        // SAFETY: bind(2) with an address that outlives the call and a length
-        // describing it.
-        if unsafe { bind(fd.as_raw_fd(), &sa, std::mem::size_of::<SockaddrNl>() as u32) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        let one: i32 = 1;
-        // SAFETY: setsockopt(2) with a live i32 and its size; a kernel too old
-        // for NETLINK_EXT_ACK returns an error we deliberately ignore.
-        unsafe {
-            setsockopt(fd.as_raw_fd(), SOL_NETLINK, NETLINK_EXT_ACK, &one, 4);
-        }
+        let fd = rustix::net::socket_with(AddressFamily::NETLINK, SocketType::RAW, SocketFlags::CLOEXEC, None)?;
+        rustix::net::bind(&fd, &rustix::net::netlink::SocketAddrNetlink::new(0, groups))?;
+        // Older kernels may refuse NETLINK_EXT_ACK; retain best-effort setup.
+        let _ = owrt_platform::netifd::enable_netlink_ext_ack(&fd);
         let mut socket = Self { fd, seq: 0, event_buffer: EVENT_BUFFER, reply: Vec::new() };
         if groups != 0 {
             socket.set_event_buffer(EVENT_BUFFER)?;
@@ -243,10 +202,7 @@ impl Netlink {
     }
 
     fn set_event_buffer(&mut self, bytes: i32) -> io::Result<()> {
-        // SAFETY: SO_RCVBUF reads a live int; the kernel applies rmem_max.
-        if unsafe { setsockopt(self.as_raw_fd(), SOL_SOCKET, SO_RCVBUF, &bytes, 4) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        rustix::net::sockopt::set_socket_recv_buffer_size(&self.fd, bytes as usize)?;
         self.event_buffer = bytes;
         Ok(())
     }
@@ -259,20 +215,8 @@ impl Netlink {
 
     /// O_NONBLOCK, for the event socket read from the poll loop.
     pub fn set_nonblocking(&self) -> io::Result<()> {
-        const F_GETFL: i32 = 3;
-        const F_SETFL: i32 = 4;
-        const O_NONBLOCK: i32 = 0o4000;
-        // SAFETY: fcntl(2) on a descriptor we own, with the two-argument then
-        // three-argument forms the commands require.
-        let fl = unsafe { fcntl(self.fd.as_raw_fd(), F_GETFL, 0) };
-        if fl < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: as above.
-        if unsafe { fcntl(self.fd.as_raw_fd(), F_SETFL, fl | O_NONBLOCK) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(())
+        let flags = rustix::fs::fcntl_getfl(&self.fd)?;
+        Ok(rustix::fs::fcntl_setfl(&self.fd, flags | rustix::fs::OFlags::NONBLOCK)?)
     }
 
     fn next_seq(&mut self) -> u32 {
@@ -296,10 +240,7 @@ impl Netlink {
         req.extend_from_slice(hdr);
         req.resize(16 + hdr_pad, 0);
         req.extend_from_slice(attrs);
-        // SAFETY: req is live for the call and its length is passed alongside.
-        if unsafe { send(self.fd.as_raw_fd(), req.as_ptr(), req.len(), 0) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        rustix::net::send(&self.fd, &req, SendFlags::empty())?;
         Ok(seq)
     }
 
@@ -310,11 +251,7 @@ impl Netlink {
         let seq = self.send_msg(ty, flags | NLM_F_REQUEST | NLM_F_ACK, hdr, attrs)?;
         let mut buf = vec![0u8; 32768];
         loop {
-            // SAFETY: buf is a live allocation of the length passed.
-            let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), 0) };
-            if n < 0 {
-                return Err(io::Error::last_os_error());
-            }
+            let (_, n) = rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty())?;
             for m in split(&buf[..n as usize]) {
                 if m.seq != seq {
                     continue;
@@ -344,11 +281,7 @@ impl Netlink {
         let mut out = Vec::new();
         let mut buf = vec![0u8; 1 << 17];
         loop {
-            // SAFETY: buf is a live allocation of the length passed.
-            let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), 0) };
-            if n < 0 {
-                return Err(io::Error::last_os_error());
-            }
+            let (_, n) = rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty())?;
             for m in split(&buf[..n as usize]) {
                 if m.seq != seq {
                     continue;
@@ -392,15 +325,9 @@ impl Netlink {
         self.reply.clear();
         self.reply.reserve(1 << 16);
         loop {
-            // SAFETY: reply owns capacity() writable bytes. recv does not
-            // read them, and no uninitialized byte is exposed as a Rust slice.
-            let n = unsafe { recv(self.fd.as_raw_fd(), self.reply.as_mut_ptr(), self.reply.capacity(), 0) };
-            if n < 0 {
-                return Err(io::Error::last_os_error());
-            }
-            // SAFETY: recv without MSG_TRUNC returns at most the supplied
-            // capacity and has initialized all n bytes, including on reuse.
-            unsafe { self.reply.set_len(n as usize) };
+            self.reply.clear();
+            let (_, n) = rustix::net::recv(&self.fd,
+                rustix::buffer::spare_capacity(&mut self.reply), RecvFlags::empty())?;
             for m in split(&self.reply[..n as usize]) {
                 if m.seq != seq {
                     continue;
@@ -433,16 +360,11 @@ impl Netlink {
     /// Drain whatever the event socket has; `Ok(vec![])` when it would block.
     pub fn recv_events(&self) -> io::Result<Vec<Msg>> {
         let mut buf = vec![0u8; 1 << 17];
-        const MSG_TRUNC: i32 = 0x20;
-        // SAFETY: buf is a live allocation of the length passed.
-        let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), MSG_TRUNC) };
-        if n < 0 {
-            let e = io::Error::last_os_error();
-            if e.kind() == io::ErrorKind::WouldBlock {
-                return Ok(Vec::new());
-            }
-            return Err(e);
-        }
+        let (_, n) = match rustix::net::recv(&self.fd, &mut buf, RecvFlags::TRUNC) {
+            Ok(result) => result,
+            Err(rustix::io::Errno::AGAIN) => return Ok(Vec::new()),
+            Err(error) => return Err(error.into()),
+        };
         if n as usize > buf.len() {
             // recv(MSG_TRUNC) reports the full datagram size. A discarded
             // tail loses events just like a receive-queue overflow.

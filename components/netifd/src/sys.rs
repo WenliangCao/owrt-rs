@@ -10,14 +10,10 @@
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd};
 
 use crate::netlink::{self, Attrs, Netlink};
 
-extern "C" {
-    fn socket(domain: i32, ty: i32, proto: i32) -> i32;
-    fn ioctl(fd: i32, req: u64, arg: *mut u8) -> i32;
-}
 
 pub const AF_UNSPEC: u8 = 0;
 pub const AF_INET: u8 = 2;
@@ -859,32 +855,20 @@ impl AsRawFd for IfIoctl {
     }
 }
 
+impl AsFd for IfIoctl {
+    fn as_fd(&self) -> BorrowedFd<'_> { self.fd.as_fd() }
+}
+
 impl IfIoctl {
     pub fn open() -> io::Result<Self> {
-        const SOCK_DGRAM: i32 = 2;
-        const SOCK_CLOEXEC: i32 = 0o2000000;
-        // SAFETY: socket(2) with constant arguments; checked before use.
-        let raw = unsafe { socket(AF_INET as i32, SOCK_DGRAM | SOCK_CLOEXEC, 0) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: socket(2) just returned this descriptor; nothing else holds it.
-        Ok(Self { fd: unsafe { std::os::fd::OwnedFd::from_raw_fd(raw) } })
+        let fd = rustix::net::socket_with(rustix::net::AddressFamily::INET,
+            rustix::net::SocketType::DGRAM, rustix::net::SocketFlags::CLOEXEC, None)?;
+        Ok(Self { fd })
     }
 
-    /// `struct ifreq`: 16 bytes of name then a 24-byte union.
+    /// Only the fixed SIOCGIF* byte layouts used by this component.
     fn call(&self, ifname: &str, req: u64) -> io::Result<[u8; 40]> {
-        let mut r = [0u8; 40];
-        let n = ifname.as_bytes();
-        let len = n.len().min(15);
-        r[..len].copy_from_slice(&n[..len]);
-        // SAFETY: ioctl(2) on our own socket with a 40-byte `struct ifreq`
-        // buffer that lives across the call; these SIOCGIF* commands read the
-        // name and write inside the same struct.
-        if unsafe { ioctl(self.fd.as_raw_fd(), req, r.as_mut_ptr()) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(r)
+        owrt_platform::netifd::interface_query(&self.fd, ifname, req)
     }
 
     /// A numeric field of the ifreq union, at `off` bytes into the struct.

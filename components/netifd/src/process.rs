@@ -23,7 +23,7 @@
 //!     iteration instead of immediately.
 
 use std::io::{self, Read};
-use std::os::fd::{AsRawFd, IntoRawFd};
+use std::os::fd::AsFd;
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 
@@ -77,20 +77,11 @@ impl Process {
             c.current_dir(d);
         }
         let child = c.spawn()?;
-        // non-blocking, so reading while the child runs cannot stall the loop
-        for fd in [
-            child.stdout.as_ref().map(|p| p.as_raw_fd()),
-            child.stderr.as_ref().map(|p| p.as_raw_fd()),
-        ]
-        .into_iter()
-        .flatten()
-        {
-            // SAFETY: fcntl on a pipe fd this Child owns and keeps open.
-            unsafe {
-                let f = fcntl(fd, F_GETFL, 0);
-                if f >= 0 {
-                    fcntl(fd, F_SETFL, f | O_NONBLOCK);
-                }
+        // Preserve the existing best-effort nonblocking setup.
+        for fd in [child.stdout.as_ref().map(AsFd::as_fd), child.stderr.as_ref().map(AsFd::as_fd)]
+            .into_iter().flatten() {
+            if let Ok(flags) = rustix::fs::fcntl_getfl(fd) {
+                let _ = rustix::fs::fcntl_setfl(fd, flags | rustix::fs::OFlags::NONBLOCK);
             }
         }
         Ok(Self { child, argv0: cmd.clone(), partial: String::new() })
@@ -185,13 +176,8 @@ impl Process {
     /// `proto_shell_kill_command` does.
     pub fn signal(&self, sig: u32) -> io::Result<()> {
         let sig = if sig > 31 { SIGTERM } else { sig as i32 };
-        // SAFETY: kill(2) with our own child's pid and a signal number
-        // clamped to the range the kernel defines. The pid is live because
-        // `Child` has not been reaped.
-        if unsafe { kill(self.child.id() as i32, sig) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(())
+        owrt_platform::netifd::signal_child(self.child.id(), sig)
+
     }
 
     /// `netifd_kill_process`: SIGKILL, without a blocking wait. Called before starting a new
@@ -211,15 +197,6 @@ impl Process {
 
 pub const SIGTERM: i32 = 15;
 pub const SIGKILL: i32 = 9;
-
-const F_GETFL: i32 = 3;
-const F_SETFL: i32 = 4;
-const O_NONBLOCK: i32 = 0o4000;
-
-extern "C" {
-    fn kill(pid: i32, sig: i32) -> i32;
-    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-}
 
 /// A process slot: at most one child, replaced rather than accumulated.
 #[derive(Default)]
@@ -297,134 +274,11 @@ impl Slot {
     }
 }
 
-/// A signal self-pipe: SIGCHLD wakes the event loop at once, and the four
-/// signals `netifd_setup_signals` catches (SIGINT, SIGTERM, SIGUSR1, SIGUSR2)
-/// set `exit_requested` and wake it too, so the loop can do what the C does
-/// after `uloop_end`: kill every process it started, then exit (R81 F03).
-///
-/// The C reaps from a SIGCHLD handler through uloop, so a helper's death is
-/// noticed immediately. Polling alone made it up to one poll timeout late,
-/// which is observable: an `ifdown` of a DHCP interface left the lease on the
-/// device for that long, where the C had already removed it.
-pub struct ChildSignal {
-    read: i32,
-}
-
-static mut CHILD_PIPE_W: i32 = -1;
-static EXIT_REQUESTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-
-extern "C" {
-    fn signal(sig: i32, handler: extern "C" fn(i32)) -> usize;
-    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-}
-
-const SIGCHLD: i32 = 17;
-const SIGINT: i32 = 2;
-const SIGUSR1: i32 = 10;
-const SIGUSR2: i32 = 12;
-
-extern "C" fn on_exit_signal(sig: i32) {
-    EXIT_REQUESTED.store(true, std::sync::atomic::Ordering::SeqCst);
-    on_sigchld(sig);
-}
-
-extern "C" fn on_sigchld(_sig: i32) {
-    #[cfg(target_os = "linux")]
-    // SAFETY: preserve the interrupted syscall's thread-local errno.
-    let (errno, saved_errno) = unsafe {
-        extern "C" { fn __errno_location() -> *mut i32; }
-        let errno = __errno_location();
-        (errno, *errno)
-    };
-    // async-signal-safe: one byte down a non-blocking pipe, errors ignored
-    // SAFETY: reading a fd set once before any child exists, and write(2) is
-    // on the list of functions safe to call from a signal handler.
-    unsafe {
-        let w = CHILD_PIPE_W;
-        if w >= 0 {
-            let byte = 1u8;
-            let _ = write(w, &byte, 1);
-        }
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: this thread's errno cell remains live across the pipe write.
-    unsafe { *errno = saved_errno; }
-}
-
-impl ChildSignal {
-    pub fn install() -> io::Result<Self> {
-        let (read, write) = owrt_ubus::sys::pipe()?;
-        owrt_ubus::sys::set_nonblocking(read.as_raw_fd())?;
-        owrt_ubus::sys::set_nonblocking(write.as_raw_fd())?;
-        // Only publish after both nonblocking operations succeed. OwnedFd
-        // closes both ends on failure; the installed pipe lives until exit.
-        let fds = [read.into_raw_fd(), write.into_raw_fd()];
-        // SAFETY: single-threaded startup, before any child is spawned, so no
-        // handler can observe a partially written value.
-        unsafe {
-            CHILD_PIPE_W = fds[1];
-            signal(SIGCHLD, on_sigchld);
-            for s in [SIGINT, SIGTERM, SIGUSR1, SIGUSR2] {
-                signal(s, on_exit_signal);
-            }
-        }
-        Ok(Self { read: fds[0] })
-    }
-
-    /// One of the exit signals arrived. Latched: the loop exits on seeing it.
-    pub fn exit_requested(&self) -> bool {
-        EXIT_REQUESTED.load(std::sync::atomic::Ordering::SeqCst)
-    }
-
-    pub fn as_raw_fd(&self) -> i32 {
-        self.read
-    }
-
-    /// Drain the pipe. Any number of signals collapses into one wake-up; the
-    /// caller then polls every slot, so nothing is missed.
-    pub fn drain(&self) {
-        let mut buf = [0u8; 64];
-        loop {
-            // SAFETY: our own read end, non-blocking.
-            let n = unsafe { read(self.read, buf.as_mut_ptr(), buf.len()) };
-            if n <= 0 {
-                break;
-            }
-        }
-    }
-}
+pub use owrt_platform::netifd::ChildSignal;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[cfg(target_os = "linux")]
-    #[test]
-    fn saturated_signal_pipe_preserves_errno() {
-        use std::os::fd::AsRawFd;
-        let (_read, write_end) = owrt_ubus::sys::pipe().unwrap();
-        let fd = write_end.as_raw_fd();
-        owrt_ubus::sys::set_nonblocking(fd).unwrap();
-        let bytes = [0u8; 4096];
-        // SAFETY: the pipe is nonblocking and the stack buffer stays live.
-        while unsafe { write(fd, bytes.as_ptr(), bytes.len()) } > 0 {}
-        assert_eq!(io::Error::last_os_error().kind(), io::ErrorKind::WouldBlock);
-        // SAFETY: no test installs this process-global handler; call it directly
-        // with our own pipe, restoring the startup value before dropping it.
-        let previous = unsafe { let old = CHILD_PIPE_W; CHILD_PIPE_W = fd; old };
-        // SAFETY: __errno_location returns this thread's live error cell.
-        let errno = unsafe {
-            extern "C" { fn __errno_location() -> *mut i32; }
-            __errno_location()
-        };
-        // SAFETY: simulate an interrupted syscall's error.
-        unsafe { *errno = 22; }
-        on_sigchld(SIGCHLD);
-        // SAFETY: the thread-local cell remains live, and restore the private fd.
-        let after = unsafe { let error = *errno; CHILD_PIPE_W = previous; error };
-        assert_eq!(after, 22);
-    }
 
     fn sh(script: &str) -> Vec<String> {
         vec!["/bin/sh".into(), "-c".into(), script.into()]

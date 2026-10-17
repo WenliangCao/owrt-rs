@@ -12,6 +12,7 @@
 //! interface write methods beyond `up`/`down`/`reload`/`restart`. Those
 //! register with their real signatures and refuse.
 
+#![forbid(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 

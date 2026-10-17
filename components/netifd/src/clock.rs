@@ -4,27 +4,8 @@
 //! and every lifetime and uptime computed against `SystemTime` moved with it
 //! (R81 F07).
 
-#[repr(C)]
-struct Timespec {
-    tv_sec: i64,
-    tv_nsec: i64,
-}
-
-const CLOCK_MONOTONIC: i32 = 1;
-
-extern "C" {
-    fn clock_gettime(clk: i32, ts: *mut Timespec) -> i32;
-}
-
-fn read() -> Timespec {
-    let mut ts = Timespec { tv_sec: 0, tv_nsec: 0 };
-    // SAFETY: clock_gettime writes a timespec into the struct we own; the
-    // layout matches the 64-bit kernel ABI on every target this crate builds
-    // for (aarch64 and x86_64 musl/gnu).
-    unsafe {
-        clock_gettime(CLOCK_MONOTONIC, &mut ts);
-    }
-    ts
+fn read() -> rustix::time::Timespec {
+    rustix::time::clock_gettime(rustix::time::ClockId::Monotonic)
 }
 
 /// Seconds since boot, truncated -- what `system_get_rtime` returns.

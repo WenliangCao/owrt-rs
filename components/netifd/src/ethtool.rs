@@ -6,13 +6,12 @@
 
 use std::ffi::{CStr, CString};
 use std::io::{self, Read};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsFd, OwnedFd};
 
 use crate::ethtool_modes::{
     ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT, ETHTOOL_LINK_MODE_PAUSE_BIT, ETHTOOL_MODES,
 };
 
-const SIOCETHTOOL: u64 = 0x8946;
 
 const ETHTOOL_GPAUSEPARAM: u32 = 0x12;
 const ETHTOOL_GSTRINGS: u32 = 0x1b;
@@ -23,31 +22,14 @@ const ETHTOOL_GLINKSETTINGS: u32 = 0x4c;
 
 const ETH_SS_FEATURES: u32 = 4;
 const ETH_GSTRING_LEN: usize = 32;
-const IFNAMSIZ: usize = 16;
 
 const DUPLEX_HALF: u8 = 0;
 const SPEED_UNKNOWN: u32 = u32::MAX;
-
-extern "C" {
-    fn ioctl(fd: i32, req: u64, arg: *mut u8) -> i32;
-    fn openat(dir: i32, path: *const std::ffi::c_char, flags: i32, ...) -> i32;
-}
 
 /// The ioctl socket netifd keeps open for the lifetime of the process
 /// (`sock_ioctl` in system-linux.c).
 pub struct Ethtool {
     ioctl: crate::sys::IfIoctl,
-}
-
-/// `struct ifreq`: a 16-byte name followed by a union whose largest member is
-/// 24 bytes; on 64-bit `ifr_data` is a pointer at offset 16.
-fn ifreq(name: &str, data: *mut u8) -> [u8; 40] {
-    let mut r = [0u8; 40];
-    let n = name.as_bytes();
-    let len = n.len().min(IFNAMSIZ - 1);
-    r[..len].copy_from_slice(&n[..len]);
-    r[16..24].copy_from_slice(&(data as usize as u64).to_le_bytes());
-    r
 }
 
 fn u32_at(b: &[u8], off: usize) -> u32 {
@@ -85,14 +67,7 @@ impl Ethtool {
     }
 
     fn call(&self, name: &str, buf: &mut [u8]) -> io::Result<()> {
-        let mut req = ifreq(name, buf.as_mut_ptr());
-        // SAFETY: ioctl(2) on our own socket. `req` describes a live buffer
-        // whose lifetime spans the call; the kernel writes only inside `buf`,
-        // whose length each caller sized from the command's own header.
-        if unsafe { ioctl(self.ioctl.as_raw_fd(), SIOCETHTOOL, req.as_mut_ptr()) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(())
+        owrt_platform::netifd::ethtool_query(&self.ioctl, name, buf)
     }
 
     /// `ETHTOOL_GPAUSEPARAM`; on failure netifd reports autoneg with no
@@ -396,22 +371,13 @@ pub fn statistics(ifname: &str) -> Vec<(&'static str, u64)> {
     statistics_at(&path)
 }
 
-fn open_readonly_at(dir: i32, path: &CStr) -> Option<OwnedFd> {
-    const O_CLOEXEC: i32 = 0o2000000;
-    // SAFETY: path is NUL-terminated and live; O_RDONLY | O_CLOEXEC does
-    // not take a mode argument. A failed open never transfers ownership.
-    let fd = unsafe { openat(dir, path.as_ptr(), O_CLOEXEC) };
-    if fd < 0 {
-        None
-    } else {
-        // SAFETY: openat returned a new, uniquely owned descriptor.
-        Some(unsafe { OwnedFd::from_raw_fd(fd) })
-    }
+fn open_readonly_at(dir: impl AsFd, path: &CStr) -> Option<OwnedFd> {
+    rustix::fs::openat(dir, path, rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC,
+        rustix::fs::Mode::empty()).ok()
 }
 
 fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
-    const AT_FDCWD: i32 = -100;
-    let Some(dir) = open_readonly_at(AT_FDCWD, path) else { return Vec::new() };
+    let Some(dir) = open_readonly_at(rustix::fs::CWD, path) else { return Vec::new() };
     let mut values = Vec::with_capacity(STAT_COUNTERS.len());
     for &name in STAT_COUNTERS {
         // Kernel counter names are fixed and fit here. Reuse stack storage
@@ -419,7 +385,7 @@ fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
         let mut name_buf = [0u8; 32];
         name_buf[..name.len()].copy_from_slice(name.as_bytes());
         let path = CStr::from_bytes_with_nul(&name_buf[..name.len() + 1]).unwrap();
-        let Some(fd) = open_readonly_at(dir.as_raw_fd(), path) else { continue };
+        let Some(fd) = open_readonly_at(&dir, path) else { continue };
         let mut file = std::fs::File::from(fd);
         // sysfs emits at most 20 decimal digits plus a newline for u64.
         // Reading that bounded value needs neither fstat nor an EOF probe.
@@ -444,23 +410,6 @@ fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn ifreq_puts_the_pointer_at_offset_sixteen() {
-        let mut buf = [0u8; 8];
-        let r = ifreq("br-lan", buf.as_mut_ptr());
-        assert_eq!(&r[..6], b"br-lan");
-        assert_eq!(r[6], 0);
-        assert_eq!(u64::from_le_bytes(r[16..24].try_into().unwrap()), buf.as_ptr() as u64);
-    }
-
-    #[test]
-    fn a_too_long_name_is_truncated_and_still_terminated() {
-        let mut buf = [0u8; 8];
-        let r = ifreq("0123456789abcdefghij", buf.as_mut_ptr());
-        assert_eq!(&r[..15], b"0123456789abcde");
-        assert_eq!(r[15], 0);
-    }
 
     #[test]
     fn link_modes_use_the_generated_order_and_suffixes() {

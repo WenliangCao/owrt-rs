@@ -4,7 +4,7 @@
 //! messages therefore go through libc's syslog, with -S selecting stderr.
 //! libc supplies framing, bounded messages and recovery when logd restarts.
 
-use std::ffi::{c_char, CString};
+use std::ffi::{CStr, CString};
 use std::fmt;
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
@@ -23,26 +23,17 @@ static LOG_LEVEL: AtomicI32 = AtomicI32::new(DEFAULT_LEVEL);
 // Diagnostics that include this module without starting a daemon use stderr.
 static STDERR: AtomicBool = AtomicBool::new(true);
 
-extern "C" {
-    fn atoi(text: *const c_char) -> i32;
-    fn openlog(ident: *const c_char, option: i32, facility: i32);
-    fn syslog(priority: i32, format: *const c_char, ...);
-}
-
 /// main.c uses atoi (including decimal prefixes and invalid input -> 0),
 /// clamps only the upper end and allows negative levels to disable logging.
 pub fn parse_level(text: &str) -> i32 {
     let Ok(text) = CString::new(text) else { return 0 };
-    // SAFETY: the argument is a live NUL-terminated string.
-    unsafe { atoi(text.as_ptr()) }.min(Level::Debug as i32)
+    owrt_platform::netifd::atoi(&text).min(Level::Debug as i32)
 }
 
 /// Called once, before config loading or child creation.
 pub fn init(stderr: bool, level: i32) {
     if !stderr {
-        // SAFETY: openlog retains a pointer to this static ident. LOG_DAEMON
-        // is 3 << 3 on the image's musl; no LOG_PID flag, matching main.c.
-        unsafe { openlog(c"netifd".as_ptr(), 0, 3 << 3) };
+        owrt_platform::netifd::open_log();
     }
     LOG_LEVEL.store(level.min(Level::Debug as i32), Ordering::Relaxed);
     STDERR.store(stderr, Ordering::Relaxed);
@@ -65,10 +56,9 @@ pub fn write(level: Level, args: fmt::Arguments<'_>) {
         };
         let mut line = args.to_string();
         line.push('\0');
-        // SAFETY: both strings are NUL-terminated and live for this call.
-        // A fixed %s format keeps child output from becoming a format string;
-        // an embedded NUL terminates it just as in the original's %s path.
-        unsafe { syslog(priority, c"%s".as_ptr(), line.as_ptr().cast::<c_char>()) };
+        // Preserve libc %s truncation at an embedded NUL.
+        let line = CStr::from_bytes_until_nul(line.as_bytes()).unwrap();
+        owrt_platform::netifd::log(priority, line);
     }
 }
 

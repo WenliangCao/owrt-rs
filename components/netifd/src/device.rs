@@ -9,7 +9,6 @@
 
 use std::ffi::{CStr, CString};
 use std::io::{self, Read};
-use std::os::fd::FromRawFd;
 
 use owrt_ubus::blob::BlobBuf;
 
@@ -159,22 +158,13 @@ pub fn merge_settings(configured: &Settings, orig: &Settings) -> Settings {
 }
 
 fn open_sysctl(path: &CStr) -> io::Result<std::fs::File> {
-    extern "C" {
-        fn openat(dir: i32, path: *const std::ffi::c_char, flags: i32, ...) -> i32;
-    }
-    const AT_FDCWD: i32 = -100;
-    const O_CLOEXEC: i32 = 0o2000000;
     loop {
-        // SAFETY: path is live and NUL-terminated. O_RDONLY | O_CLOEXEC
-        // needs no mode argument; the Linux kernel sets CLOEXEC atomically.
-        let fd = unsafe { openat(AT_FDCWD, path.as_ptr(), O_CLOEXEC) };
-        if fd >= 0 {
-            // SAFETY: openat returned a new, uniquely owned descriptor.
-            return Ok(unsafe { std::fs::File::from_raw_fd(fd) });
-        }
-        let error = io::Error::last_os_error();
-        if error.kind() != io::ErrorKind::Interrupted {
-            return Err(error);
+        match rustix::fs::openat(rustix::fs::CWD, path,
+            rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC,
+            rustix::fs::Mode::empty()) {
+            Ok(fd) => return Ok(std::fs::File::from(fd)),
+            Err(rustix::io::Errno::INTR) => continue,
+            Err(error) => return Err(error.into()),
         }
     }
 }
@@ -678,15 +668,9 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn sysctl_open_keeps_close_on_exec_and_open_errors() {
-        use std::os::fd::AsRawFd;
-        extern "C" {
-            fn fcntl(fd: i32, cmd: i32, ...) -> i32;
-        }
         let file = open_sysctl(c"/proc/sys/kernel/osrelease").unwrap();
-        // SAFETY: file owns a live descriptor; F_GETFD takes no extra argument.
-        let flags = unsafe { fcntl(file.as_raw_fd(), 1) };
-        assert!(flags >= 0);
-        assert_ne!(flags & 1, 0, "FD_CLOEXEC must remain set");
+        let flags = rustix::io::fcntl_getfd(&file).unwrap();
+        assert!(flags.contains(rustix::io::FdFlags::CLOEXEC), "FD_CLOEXEC must remain set");
         assert_eq!(open_sysctl(c"/proc/sys/h7b-nonexistent").unwrap_err().kind(), io::ErrorKind::NotFound);
     }
 
