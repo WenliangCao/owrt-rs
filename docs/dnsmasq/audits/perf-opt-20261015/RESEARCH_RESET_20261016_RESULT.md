@@ -883,3 +883,42 @@ JSON字段且回答字节相同。Mac缺Linux ppoll只记skip，未冒称实际�
 f12f7386c87ac61ca31827cd58f6012b884f9eceee7beff40ca54f5fc72736fd；Oracle已quiet。
 合并独立审阅通过。此复现证明新仪器能区分边界与语义错误，不追认原r2-K或证明其实际根因。
 按冻结30+88接续；mixed每对两侧同版，mixed r1旧版与后四对新版差异必须保留。
+
+
+## K正式接受：双栈确认净省39.47µs，原118无可辨退化但保留mixed不利趋势
+
+K源4ce24c627615ae5ff42d3dcdbccb66d57b218b5a、ELFf6710d37、APK93a6f026及profile
+a26b78f1的原产物正式接受为性能候选；J保留回退，无部署、推送或产品合入main。
+完整身份及证据见`candidate-k-acceptance.json`，tag `perf/dnsmasq-candidate-k-pgo-20261017`。
+构建/44族67任务/shipping/source边界、双栈14筛选及九对确认均复用已完成的实际证据。
+双栈J123.08019→K83.11558µs，配对中位−39.46670µs、9/9，p50降低22.64665%；
+该效果不与v0.2.0/J单族直接对照相加，也不是C/K双栈比较。
+
+原完整矩阵严格选30+88=118有效窗，总尝试119窗；旧mixed r2-K仍由旧validator判失败并
+排除，批末一次完整BA替换。新88全部有效，8个新mixed精确得到800/200/800、重复/异常0。
+4162个raw与78个observer身份核验通过，33个原primary全未分辨，0可辨改善/退化。
+简化hit CPUclock中位75.2794→74.7028µs，配对−0.37336µs且方向不稳，只作描述。
+对内工具一致；mixed r1仍原helper，其余四对精确cohort helper，阶段中断与差异明确保留。
+
+不利观察不因过门而消失：mixed CPUclock五对差[+3.08674,+3.33643,+4.32091,+13.32655,
++4.20964]µs，配对中位+4.20964、5/5变慢；旧tick CPU130→138µs（+6.15%，W8.70%，
+精度门未过），p50+4.6642%（W6.4673%）。miss CPUclock配对+3.74646µs，3/5变慢。
+DHCP6 p50+1.4639%且5/5变慢、p95+8.5297%，均未过原门。FD峰miss J13..13/K13..14、
+mixed J12..12/K12..13。hit RSS中位均2360KiB；其它完整资源范围和全部33项见最终复核。
+“0可辨退化”不是“没有小退化”或“全部场景更快”，也不把不同负载的AA套在这些ns列上。
+
+12段完整guard共4526个qualified样本及3个边界后tail；原中断mixed段只记125个observed
+prefix，无terminal，不伪造完整资格。310次外网检查、运行最低MemAvailable88972KiB；
+生产PID3086/start2115、E/F原hash恢复，结束MemAvailable97688KiB，DNS/HTTP/IPv4/IPv6健康。
+纯本地closure首次错误地要求旧异常段含terminal，原失败与脚本保留；另名汇总器只修该历史
+段的呈现，不重测、不改raw、不补造结束事件。最终独立增量复核通过，设备及Oracle无研究
+任务残留。result SHA3dea7dc421c9155056d70510ab0710027140dcdde89cd3370e860d1ffbbfea43，
+selection SHA04bbb60715518f21abf809cd23bb6d43bba53736ec1e8d968b1e7d1fb23c79e3，
+closure SHA190809f6c59001f9328caf6634246b03874583438f98ac7e5445fefe1b9f718b，均在`j-k-full118-selected`。
+
+当前模型：K使恰好一个fresh A+一个fresh AAAA的同名缓存避免整条通用路径，约35–40µs
+收益已由独立九对确认；源码和PGO贡献未分离，不能归为11次分配的单独成本。mixed的稳定
+小幅不利方向提示形状覆盖与代码布局有取舍，当前证据不能外推所有客户端负载。
+下一项会改变实际使用判断的未知数是全天流量和缓存形状分布；600秒19条样本不足回答，
+备用AD/CD/空OPT扩面没有新增覆盖证据，暂不启用。已完成本轮J/K接受与两个直接对照，
+不为现成原型或低于5µs的未分辨残差追加实验。
