@@ -186,3 +186,23 @@ daemon重启后保持旧leasefile，trigger累计C/R均7，两个待修复项已
 
 本轮没有正式latency批次，也未接触router。产品冻结该SHA；后续SDK沿用受影响
 功能门，时间/内存隔离门由独立工具按既定C/C噪声计划执行。
+
+### 精确 SDK ELF 功能资格
+
+SDK source `d0ef9f04`，CI `39078678256`，静态AArch64 ELF 790640字节，SHA256
+`79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55`。
+冻结工具SHA256为
+`69b852e8e9d4cdaede130f42540d36f2c4892a36e1974fb4a07f432d6d5b44ef`。
+按baseline→四个扩展case顺序执行一次，不重跑C，不更换输入，没有失败重试。
+
+- baseline **20/20**；19条收到的协议报文与已有C06逐字节相同。
+- finite **19/19**、link **12/12**、control **14/14**、reject **17/17**，
+  扩展合计 **62/62**。活跃PD不重叠已成为正式运行断言。
+- Decline后的三个ubus快照与C06完整相同；daemon重启保留旧导出，trigger双方均7。
+- 旧route清理、ifindex/link-local自动重绑、ubus对象/dump/DNS恢复及七类拒启门
+  均通过。前述已接受的Release分配时机与畸形包差异继续保留，不扩大等价声明。
+
+Oracle原件为 `/home/ubuntu/odhcpd-validation-20261018/sdk-functional-01/`，
+本地ignored `private/odhcpd-20261018/sdk-functional-01/observations.tar.gz`
+保存包、状态、日志与执行脚本。功能namespace全部退出后才通知主线程可开启
+独立性能批次；本次没有与性能批次并行，没有访问router或实施部署。
