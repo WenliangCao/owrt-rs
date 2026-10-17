@@ -24,6 +24,12 @@ device_perf_lifecycle单批20个小HUP事件，7普通hosts+marker=8、6租约�
 仍验证新marker可见、正常结束，失败保留不补。N1非PGO插桩时间不宣称解释A53约0.3ms
 跨轮差距，不按旧1ms可见性探针比较微秒。结果记录后关闭课题并归档未选原型。
 
+首次20事件全部正确但0行timing：原keep-in-foreground仍由startup把stderr重定向到
+/dev/null（只有debug豁免），已用精确源码及ELF含日志字节确认。原事件与空日志不追认，
+也不能用缺失计时推断无优化空间。允许一次工具输出修复：末读数之后写入环境变量
+DNSMASQ_HUP_TIMING指定的唯一私有文件，不更改debug/日志/重载行为；另名构建与完整
+20事件一次，旧attempt1保留，任何新缺失或失败即停止如实报告。计时点/fixture/判断不变。
+
 用户授权继续自主研究，不发布；沿 AGENTS、原协议与已批准测量修复。主代理维护模型与
 选实验，子代理做构建、验收、隔离真机和 Oracle 操作。原 J/K 接受与失败证据不改。
 本轮只维护本计划和 `PERF_RESEARCH_20261017_RESULT.md`，探索不再增加独立审计门。
