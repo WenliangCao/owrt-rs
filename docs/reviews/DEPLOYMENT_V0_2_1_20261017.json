@@ -1,0 +1,355 @@
+{
+  "schema": 1,
+  "date": "2026-10-17",
+  "status": "PUBLISHED_LATEST_DEVICE_ACCEPTED_AND_CLEANED",
+  "publication": {
+    "status": "published_latest",
+    "GitHub_published_verified": true,
+    "Latest_verified": true,
+    "release_id": 415736917,
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1",
+    "tag": "v0.2.1",
+    "annotated_tag_object": "e32d13017c7626e9479407927043b41a6389e8dc",
+    "tag_target": "867c9c53d65b03d5d8266df278a03b87b5b791af",
+    "tag_moved": false,
+    "main_commit_at_publication": "b896859dfecacba9512575208ce659246d9a9138",
+    "main_host_CI": {
+      "run": 39024788942,
+      "head_sha": "b896859dfecacba9512575208ce659246d9a9138",
+      "conclusion": "success"
+    },
+    "prerelease_published_UTC": "2026-10-17T10:25:31Z",
+    "public_download_verified_UTC": "2026-10-17T10:26:23.582134+00:00",
+    "Latest_verified_UTC": "2026-10-17T10:27:55.457963+00:00",
+    "assets": 13,
+    "outer_checksum_entries_verified": 12,
+    "public_asset_hashes_verified": 13,
+    "GitHub_asset_digests_verified": 13,
+    "assets_replaced": false,
+    "image_rebuilt": false,
+    "workflow_before": "active",
+    "workflow_after": "active",
+    "workflow_restored_UTC": "2026-10-17T10:24:44.372973+00:00",
+    "delayed_tag_runs_observed": 0,
+    "user_files_preserved": 11,
+    "docs_prompts_committed_diff_empty": true,
+    "v022_merged_or_published": false,
+    "evidence_sha256": {
+      "main-ff.json": "8c147aac691ce4bed0f42e8a86644b33dabd02ec1a8dc676b817c0ffbbabb44c",
+      "asset-manifest.json": "c610febd413aab031511268b5c664417130ac4f06d0a19c1f062825d04d59490",
+      "tag-publication.json": "0231529a3eba303fd4a4cc7ace777e4796c48186499e1dbad48b59eb65db4b3c",
+      "release-create.json": "2b7cb194ebb62f7988751ab011125cc9700b7e2ae972df8ba4ad2049d4f0d54f",
+      "public-assets-verified.json": "8b8adbb7790eab0b1bca96bc55937f0e9a3309991d8d2df4b8cca0ebd85547f2",
+      "main-host-ci.json": "72972fb1b7440dcc4a1b69a8453ced76bf8c3e12694d0395d2b19e8ba7fc86c3",
+      "release-promoted.json": "77ae7e46753498ef2151e916b42454a183ec10cb48ed4192ad8f0a3b29681663"
+    }
+  },
+  "identity": {
+    "CI_run": 39007479025,
+    "source_commit": "867c9c53d65b03d5d8266df278a03b87b5b791af",
+    "image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 13762848,
+      "sha256": "d1537ba13e792f2123d32f17c9e554b02bf365114548379da7f60d37598c3d74"
+    },
+    "dnsmasq_ELF_sha256": "f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08",
+    "dnsmasq_ELF_bytes": 2296611,
+    "native_components": 10,
+    "integration_files": 2,
+    "stock_recovery_files": 12,
+    "other_nine_ELF_same_as_v020": true,
+    "kernel_CONTROL_same_as_v020": true
+  },
+  "offline": {
+    "image_migration_install_recovery_checks_passed": 10,
+    "guard_cases_passed": 23,
+    "native_boot_DNS_DHCP_passed": true,
+    "actual_PID1_handoff_cases_passed": 2,
+    "handoff_delayed_term_timeout_seconds": 70,
+    "physical_rollback_not_rehearsed": true,
+    "summary_sha256": "2746995ec0e4260353276ef0650bf73ecd5dc3e0162afdd5d61df14ee80ee0c4"
+  },
+  "physical": {
+    "preserving_flash_submissions": 1,
+    "normal_reboot_submissions": 1,
+    "forced_reboots": 0,
+    "flash_retries": 0,
+    "initial_continuous_client_health_s": 188.614633416,
+    "normal_continuous_client_health_s": 189.56828675,
+    "seconds_to_first_observed_healthy_after_flash": 90.68552803993225,
+    "seconds_to_first_observed_healthy_after_normal_reboot": 52.60597109794617,
+    "outage_scope": "Time to first complete healthy observation, not exact packet-level outage.",
+    "ten_components_and_ROM_verified_both_boots": true,
+    "dnsmasq_integration_files_verified": 2,
+    "stock_recovery_verified_both_boots": 12,
+    "preserved_configuration_files": 45,
+    "UDP_TCP_A_AAAA_and_wifi_IPv4_IPv6_HTTPS_checks": {
+      "initial": 6,
+      "normal": 6
+    },
+    "both_radio_bridges_DHCP_watchdog_LuCI_router_DNS_and_HTTPS": true,
+    "normal_fresh_DHCP_ACK": true,
+    "normal_lease_start_after_reboot_request_s": 41.51394605636597,
+    "guard_confirmed_on_each_boot": true,
+    "physical_power_cycle_claimed": false
+  },
+  "observation": {
+    "status": "COMPLETE_RESOURCE_AND_HEALTH_WINDOW_PASS_WITH_PASSIVE_COVERAGE_LIMITS",
+    "start": {
+      "utc": "2026-10-17T09:16:08.474401+00:00",
+      "local": "2026-10-17T11:16:08.474401+02:00"
+    },
+    "end": {
+      "utc": "2026-10-17T10:16:10.239918+00:00",
+      "local": "2026-10-17T12:16:10.239918+02:00"
+    },
+    "resource_duration_seconds": 3600.0000679799996,
+    "passive_duration_seconds": 3600.005,
+    "samples": 721,
+    "health_groups": 120,
+    "health_checks_passed": 600,
+    "resources": {
+      "main_cpu_seconds": 4.88,
+      "main_average_one_core_percent": 0.13555555299581487,
+      "waited_children_cpu_seconds": 0.0,
+      "main": {
+        "rss_kib": {
+          "min": 2544,
+          "median": 2556,
+          "max": 2560
+        },
+        "rss_anon_kib": {
+          "min": 428,
+          "median": 440,
+          "max": 444
+        },
+        "fd_count": {
+          "min": 38,
+          "median": 44,
+          "max": 45
+        },
+        "thread_count": {
+          "min": 1,
+          "median": 1,
+          "max": 1
+        }
+      },
+      "process_count": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "children_disappeared_total": 0,
+      "lease_count": {
+        "min": 5,
+        "median": 5,
+        "max": 5
+      },
+      "observer_cpu_seconds": 3.43,
+      "sample_duration_ms": {
+        "min": 4.417638,
+        "median": 4.773884,
+        "max": 15.022444
+      },
+      "service_age_at_start_seconds": 10754.888333642,
+      "one_tick_window_percentage_points": 0.0002777777777777778
+    },
+    "udp_query_shapes": {
+      "queries": 259,
+      "excluded_health_name": 119,
+      "malformed": 14,
+      "ad": 0,
+      "cd": 0,
+      "ad_cd": 0,
+      "opt": 0,
+      "empty_opt": 0,
+      "do_bit": 0,
+      "opt_options": 0,
+      "opt_nonzero_version": 0,
+      "a": 169,
+      "aaaa": 46,
+      "https": 25,
+      "other_type": 5,
+      "address_queries": 215,
+      "j_shape": 215,
+      "reserve_shape": 215,
+      "reserve_extra": 0
+    },
+    "complete_parsed_queries": 245,
+    "same_source_name_pairing": {
+      "window_seconds": 10,
+      "capacity": 2048,
+      "eligible_queries": 215,
+      "tracked_queries": 215,
+      "overflow_queries": 0,
+      "tracked_a": 169,
+      "tracked_aaaa": 46,
+      "same_family_repeats": 36,
+      "groups": 143,
+      "a_only_groups": 97,
+      "aaaa_only_groups": 10,
+      "dual_groups": 36,
+      "dual_group_queries": 72,
+      "expired_groups": 143,
+      "final_partial_groups": 0,
+      "closed_windows": 360,
+      "populated_windows": 97
+    },
+    "dual_group_fraction": 0.2517482517482518,
+    "dual_group_query_fraction": 0.33488372093023255,
+    "transport_counters": {
+      "frames": 2264,
+      "udp4_datagrams": 362,
+      "udp6_datagrams": 16,
+      "tcp_segments": 716,
+      "tcp_data_segments": 119,
+      "socket_stats_available": true,
+      "socket_packets": 2264,
+      "socket_drops": 0,
+      "fragment_packets_skipped": 6,
+      "truncated": 0,
+      "receive_errors": 0
+    },
+    "captured_packet_coverage_qualified": false,
+    "limits": [
+      "CPU includes client health probes and guard loopback DNS; not divided by passive queries and not a performance comparison.",
+      "AD/CD counts cover parsed query headers; OPT counts require fully parsed packets. No observed flags/OPT does not establish zero use outside this window.",
+      "Six fragment frames were skipped and14 messages malformed; no packet content was retained to classify them further. Full packet coverage is explicitly not qualified.",
+      "Only local-address br-lan UDP53 is parsed. DoH/DoT and bypass traffic are invisible. TCP716 segments and119 data segments include health traffic and are not DNS query counts.",
+      "Pairing uses source IP/family plus case-normalized name in fixed10s windows; sourceport ignored.36/143groups and72/215trackedqueries are distinct denominators; neither is a proven cache-hit or household traffic share.",
+      "119 fixed health-name UDP queries were excluded. All120 client health groups passed; packet capture and client health start boundaries differ, so exclusion count is not a health success count."
+    ],
+    "evidence_sha256": {
+      "observation-3600/result.json": "09f0de58af8ca9622b97fc8800c1fdbc8306e3f0cb9a3d55ee051f3169e026ea",
+      "observation-3600/usage.jsonl": "7d59d6a666b8a22211bf072711559fd8a0daad7fd3d2b44ec1fb32ad5532fc84",
+      "observation-3600/health.jsonl": "6183c51be2b6e245e9a0382dad1b3e1466be173c28f1f7edd8f9cc7722b13538",
+      "observation-3600/pairing.json": "8f3dec80274688897b0896728a56320b17b5e148cff9949de5e7bd543fb679ea",
+      "observation-3600/collection.json": "b7fc9aa6b724919fdf43ca43cdfaf388b29949d907ec85af538a94c3c7a65af6",
+      "observation-controller-exit.json": "9450877e314bb4f2591e149c9ff970ed717dc343e1a06552dc1d48a4c33583e5"
+    }
+  },
+  "resource_trend": {
+    "FD_first_last": [
+      42,
+      42
+    ],
+    "FD_15minute_boundary_points": [
+      42,
+      44,
+      44,
+      44,
+      42
+    ],
+    "FD_each_15minute_first_last": [
+      [
+        42,
+        44
+      ],
+      [
+        44,
+        44
+      ],
+      [
+        44,
+        44
+      ],
+      [
+        44,
+        42
+      ]
+    ],
+    "RSS_KiB_15minute_boundary_points": [
+      2544,
+      2556,
+      2556,
+      2560,
+      2560
+    ],
+    "FD_continuous_growth_observed": false,
+    "last15minute_RSS_stable": true,
+    "long_term_leak_freedom_proven": false
+  },
+  "cleanup": {
+    "completed_UTC": "2026-10-17T10:18:21.278775+00:00",
+    "completed_Berlin": "2026-10-17T12:18:21.278775+02:00",
+    "same_boot_and_dnsmasq_identity": true,
+    "guard_normal_disarm": true,
+    "guard_startup_init_trial_removed": true,
+    "guard_log": {
+      "normal_disarm_terminal_record": true,
+      "health_lost_records": 0,
+      "rollback_requested_records": 0,
+      "C_bridge_staged_records": 0
+    },
+    "configuration_files_unchanged": 45,
+    "final_native_components": 10,
+    "integration_files": 2,
+    "stock_recovery": 12,
+    "final_client_health_passed": true,
+    "all_identified_device_test_deployment_tmp_removed": true,
+    "production_leases_sockets_cache_preserved": true,
+    "no_additional_reboot_or_service_restart": true,
+    "tmp_used_KiB_before_after": [
+      1088,
+      104
+    ],
+    "overlay_used_KiB_before_after": [
+      13224,
+      108
+    ],
+    "MemAvailable_KiB_before_after": [
+      112780,
+      128856
+    ],
+    "path_allocated_KiB_before_removal": {
+      "root_trial": 13840,
+      "observation_tmp": 980,
+      "fresh_config_temp": 12
+    },
+    "earlier_preflash_old_perf_KiB": 23428,
+    "reboot_tmp_reclaim_counted_as_current_cleanup": false,
+    "Mac_Oracle_cleanup_status": "pending",
+    "branch_tag_cleanup_requires_successful_GitHub_push_first": true,
+    "v022_workspace_untouched": true
+  },
+  "configuration_backups": {
+    "before": {
+      "file": "config-before.tar.gz",
+      "bytes": 9665,
+      "members": 46,
+      "live_files_matching": 45,
+      "sha256": "b0a1012161b8e70498f4fc002b981b48573358a2014bb25145dcf4535888cc9b",
+      "retained": true
+    },
+    "after": {
+      "file": "config-after-20261017T101811Z.tar.gz",
+      "bytes": 9664,
+      "members": 46,
+      "live_files_matching": 45,
+      "generated_service_state_matches": true,
+      "temporary_guard_members": 0,
+      "sha256": "04627ca816bb6c7f04d0e650f2352f5d081ca685781eed37038f4ffae5998293",
+      "latest_copy_verified": true,
+      "retained_in_permanent_recovery_set": true
+    }
+  },
+  "next24hours": {
+    "status": "not_yet_claimed_complete",
+    "checks": [
+      "No unexplained daemon identity changes, crashes, OOM or repeated restarts",
+      "RSS/Anon and FD trends after cache warming; distinguish stable plateaus from transient peaks",
+      "Natural DHCP renewals and new client admission; UDP/TCP A/AAAA DNS",
+      "WAN/Wi-Fi reconnect, IPv4/IPv6 internet, LuCI and system logs"
+    ]
+  },
+  "evidence_sha256": {
+    "physical-boot-summary.json": "801a523e4a56812bb767dbc145bdbe413e47aab24dd2656700efafde9ab202d7",
+    "observation-summary-compact.json": "940f67fa31fde3ea0f2ee147fcf8ec0a81f7ddb19d307c8c3a019000990813a2",
+    "observation-3600/result.json": "09f0de58af8ca9622b97fc8800c1fdbc8306e3f0cb9a3d55ee051f3169e026ea",
+    "router-cleanup/result.json": "2525d6cd72eb6b97e98d37af176924379fed20b8e7a59bc57f72679eacd56302",
+    "router-cleanup/pre-disarm.stdout": "c8ddd07ac10cbceb927f356590324fe5f41773c54d6556cf1c07926f6b6bff80",
+    "router-cleanup/final-space-and-inventory.stdout": "4ce68f12694a84f03f89adc91ddb19c344142b7e4e1b0a3fc96a30b54f495af9",
+    "router-cleanup/final-health.json": "b68391d2b83ac33675fdecc63f1be8782edfb13ab53e105f10d4a09479f8c900",
+    "router-cleanup-controller-exit.json": "58066916cfa4face341f57aa80d27af7f6de144c65b999f201665d09ff998e93"
+  }
+}
