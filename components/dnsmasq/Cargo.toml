@@ -14,6 +14,7 @@ m6b-diagnostics = []
 [dependencies]
 owrt-ubus = { path = "../ubus" }
 dnsmasq-platform = { path = "platform" }
+rustix = { version = "=1.1.5", features = ["event", "fs", "mm", "net", "param", "pipe", "process", "runtime", "stdio", "system", "thread", "time"] }
 
 [lib]
 name = "dnsmasq_rs"
