@@ -2395,25 +2395,23 @@ impl Netifd {
         ipset: &mut interface::IpSettings,
         old: Option<&interface::Route>,
     ) {
-        ipset.routes.retain(|entry| !interface::route_order(entry, r).is_eq());
         // `enable_route`: with `no_defaultroute` a default route stays in the
         // list -- dumped under `inactive` -- but out of the kernel
+        let mut applied = r.clone();
         if ipset.no_defaultroute && r.mask == 0 {
-            let mut held = r.clone();
-            held.enabled = false;
-            ipset.routes.push(held);
-            return;
+            applied.enabled = false;
+        } else if !old.is_some_and(|old| keep_proto_route(old, r, now())) {
+            let k = sys_route(r);
+            if let Err(e) = self.sys.add_route(devidx, &k) {
+                logging::log!(Warning, "{name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+                // A prior occurrence in this notification may have succeeded.
+                // Failed REPLACE leaves that route in the kernel; retain its
+                // successful state so a later withdrawal can still remove it.
+                return;
+            }
         }
-        if old.is_some_and(|old| keep_proto_route(old, r, now())) {
-            ipset.routes.push(r.clone());
-            return;
-        }
-        let k = sys_route(r);
-        if let Err(e) = self.sys.add_route(devidx, &k) {
-            logging::log!(Warning, "{name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
-            return;
-        }
-        ipset.routes.push(r.clone());
+        ipset.routes.retain(|entry| !interface::route_order(entry, r).is_eq());
+        ipset.routes.push(applied);
     }
 
     fn iface_error(&mut self, name: &str, subsystem: &str, code: &str, data: &[&str]) {

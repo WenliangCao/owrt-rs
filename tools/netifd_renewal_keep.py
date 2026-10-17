@@ -124,6 +124,7 @@ def inside(args):
             for route in event.get('routes', []):
                 if not any(r.get('dst') == route['target'] for r in result['routes']):
                     raise AssertionError(f'{label}: retry did not restore the kernel route')
+        return result
 
     base = {'ipaddr': [{'ipaddr': '192.0.2.2', 'mask': '24'}],
             'routes': [{'target': '0.0.0.0', 'netmask': '0', 'gateway': '192.0.2.1'}]}
@@ -140,6 +141,23 @@ def inside(args):
     step('duplicate-route-following-renewal', base, 0, 0)
     step('gateway-and-route-last-value-wins', {**base, 'gateway': '192.0.2.3'}, 0, 2)
     step('gateway-and-route-following-renewal', base, 0, 0)
+    addresses_only = {'ipaddr': base['ipaddr']}
+    step('clear-before-failed-route-batch', addresses_only, 0, 0)
+    failing_batch = {**addresses_only, 'routes': [
+        {'target': '198.18.1.0/24', 'gateway': '192.0.2.1'},
+        {'target': '198.18.1.0/24', 'gateway': '198.51.100.1'},
+    ]}
+    failed_batch = step('duplicate-route-last-write-failure', failing_batch, 0, 2, compare=False)
+    withdrawn = step('withdraw-after-failed-route-batch', addresses_only, 0, 0)
+    if args.side == 'rs':
+        tracked = any(r.get('target') == '198.18.1.0' and r.get('nexthop') == '192.0.2.1'
+                      for r in failed_batch['status']['route'])
+        present_before = any(r.get('dst') == '198.18.1.0/24' and r.get('gateway') == '192.0.2.1'
+                             for r in failed_batch['routes'])
+        present_after = any(r.get('dst') == '198.18.1.0/24' for r in withdrawn['routes'])
+        if not tracked or not present_before or present_after:
+            raise AssertionError('successful route was untracked after failed replacement or survived withdrawal')
+    step('restore-after-failed-route-batch', base, 0, 1)
     changed = copy.deepcopy(base)
     changed['routes'][0]['gateway'] = '192.0.2.3'
     step('changed-gateway', changed, 0, 1)
@@ -170,6 +188,15 @@ def inside(args):
     if any(a.get('local') == '2001:db8::2' for a in
            json.loads(run('ip', '-j', 'addr', 'show', 'dev', 'wan'))[0]['addr_info']):
         raise AssertionError('short-lived IPv6 address did not expire in the kernel')
+    if args.side == 'c':
+        # C's one-second cleanup uses deadline < now, so the kernel can have
+        # expired the address before C removes its vlist node. Wait for that
+        # observable edge before asserting the new-node null-route write.
+        deadline = time.monotonic() + 3
+        while any(a.get('address') == '2001:db8::2' for a in bus('status')['ipv6-address']):
+            if time.monotonic() >= deadline:
+                raise AssertionError('C did not retire the expired address from its vlist')
+            time.sleep(0.05)
     step('v6-expired-reinstall', infinite, 1, 1 if args.side == 'c' else 0)
     step('v6-expired-reinstall-repeat', infinite, 0, 0)
 
