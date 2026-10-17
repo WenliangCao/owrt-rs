@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "plan": "docs/reviews/V023_FW4_FOLLOWUP_PLAN_20261017.md",
+  "decision": "START_PASS_CHANGED_ACCEPTED",
+  "accepted_necessary_snapshot_regressions": [
+    "changed_cpu"
+  ],
+  "subjects_sha256": {
+    "A": "ee5a9c5685f7363be3fc2bd5039546b2f01327633afc24031b446fc0fb7f5b55",
+    "B": "1f53b868cb3fc9c205257a41bd17918d93cc38ba7cb84138e57154d10840f3f8"
+  },
+  "metrics": {
+    "start_wall": {
+      "unit": "ns",
+      "calibration": {
+        "A": [
+          26257852,
+          25824357,
+          54397935
+        ],
+        "B": [
+          27826704,
+          26140283,
+          25833972
+        ]
+      },
+      "noise": 28573578,
+      "formal_pairs_A_B": [
+        [
+          25496426,
+          26561460
+        ],
+        [
+          25408785,
+          25911297
+        ],
+        [
+          25520966,
+          25364235
+        ],
+        [
+          25893595,
+          26326779
+        ]
+      ],
+      "pair_differences_B_minus_A": [
+        1065034,
+        502512,
+        -156731,
+        433184
+      ],
+      "A_median": 25508696.0,
+      "B_median": 26119038.0,
+      "median_change_percent": 2.392682087708442,
+      "largest_pair_regression": 1065034,
+      "regression_pairs": [],
+      "regression": false
+    },
+    "start_cpu": {
+      "unit": "ns",
+      "calibration": {
+        "A": [
+          23609000,
+          23407000,
+          25869000
+        ],
+        "B": [
+          24118000,
+          23537000,
+          23352000
+        ]
+      },
+      "noise": 2462000,
+      "formal_pairs_A_B": [
+        [
+          23214000,
+          23989000
+        ],
+        [
+          23155000,
+          23215000
+        ],
+        [
+          23186000,
+          23057000
+        ],
+        [
+          23365000,
+          24055000
+        ]
+      ],
+      "pair_differences_B_minus_A": [
+        775000,
+        60000,
+        -129000,
+        690000
+      ],
+      "A_median": 23200000.0,
+      "B_median": 23602000.0,
+      "median_change_percent": 1.732758620689645,
+      "largest_pair_regression": 775000,
+      "regression_pairs": [],
+      "regression": false
+    },
+    "changed_wall": {
+      "unit": "ns",
+      "calibration": {
+        "A": [
+          65626244,
+          86042696,
+          56544131
+        ],
+        "B": [
+          205748930,
+          86449647,
+          66296475
+        ]
+      },
+      "noise": 139452455,
+      "formal_pairs_A_B": [
+        [
+          66667564,
+          86526957
+        ],
+        [
+          66179820,
+          76571019
+        ],
+        [
+          56407620,
+          86162472
+        ],
+        [
+          56469095,
+          95796930
+        ]
+      ],
+      "pair_differences_B_minus_A": [
+        19859393,
+        10391199,
+        29754852,
+        39327835
+      ],
+      "A_median": 61324457.5,
+      "B_median": 86344714.5,
+      "median_change_percent": 40.79980161259478,
+      "largest_pair_regression": 39327835,
+      "regression_pairs": [],
+      "regression": false
+    },
+    "changed_cpu": {
+      "unit": "ns",
+      "calibration": {
+        "A": [
+          23702000,
+          23682000,
+          23673000
+        ],
+        "B": [
+          43224000,
+          38270000,
+          38214000
+        ]
+      },
+      "noise": 5010000,
+      "formal_pairs_A_B": [
+        [
+          24183000,
+          38654000
+        ],
+        [
+          24075000,
+          38611000
+        ],
+        [
+          23951000,
+          38565000
+        ],
+        [
+          23566000,
+          37257000
+        ]
+      ],
+      "pair_differences_B_minus_A": [
+        14471000,
+        14536000,
+        14614000,
+        13691000
+      ],
+      "A_median": 24013000.0,
+      "B_median": 38588000.0,
+      "median_change_percent": 60.696289509848825,
+      "largest_pair_regression": 14614000,
+      "regression_pairs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "regression": true
+    }
+  },
+  "exec_floor": [
+    {
+      "schema": 1,
+      "exit": 0,
+      "wall_ns": 1522610,
+      "cpu_us": 1345,
+      "user_us": 1345,
+      "system_us": 0,
+      "start_monotonic_ns": 8185875339256,
+      "end_monotonic_ns": 8185876861866,
+      "wall_resolution_ns": 1,
+      "cpu_resolution_us": 1,
+      "maxrss_kib": 728,
+      "minor_faults": 32,
+      "major_faults": 0
+    },
+    {
+      "schema": 1,
+      "exit": 0,
+      "wall_ns": 1441052,
+      "cpu_us": 1271,
+      "user_us": 1271,
+      "system_us": 0,
+      "start_monotonic_ns": 8185878017539,
+      "end_monotonic_ns": 8185879458591,
+      "wall_resolution_ns": 1,
+      "cpu_resolution_us": 1,
+      "maxrss_kib": 820,
+      "minor_faults": 33,
+      "major_faults": 0
+    },
+    {
+      "schema": 1,
+      "exit": 0,
+      "wall_ns": 1446130,
+      "cpu_us": 1286,
+      "user_us": 1286,
+      "system_us": 0,
+      "start_monotonic_ns": 8185880636192,
+      "end_monotonic_ns": 8185882082322,
+      "wall_resolution_ns": 1,
+      "cpu_resolution_us": 1,
+      "maxrss_kib": 824,
+      "minor_faults": 35,
+      "major_faults": 0
+    },
+    {
+      "schema": 1,
+      "exit": 0,
+      "wall_ns": 1435743,
+      "cpu_us": 1273,
+      "user_us": 1273,
+      "system_us": 0,
+      "start_monotonic_ns": 8185883213065,
+      "end_monotonic_ns": 8185884648808,
+      "wall_resolution_ns": 1,
+      "cpu_resolution_us": 1,
+      "maxrss_kib": 820,
+      "minor_faults": 35,
+      "major_faults": 0
+    },
+    {
+      "schema": 1,
+      "exit": 0,
+      "wall_ns": 1445591,
+      "cpu_us": 1269,
+      "user_us": 1269,
+      "system_us": 0,
+      "start_monotonic_ns": 8185885767933,
+      "end_monotonic_ns": 8185887213524,
+      "wall_resolution_ns": 1,
+      "cpu_resolution_us": 1,
+      "maxrss_kib": 808,
+      "minor_faults": 33,
+      "major_faults": 0
+    },
+    {
+      "schema": 1,
+      "exit": 0,
+      "wall_ns": 1446360,
+      "cpu_us": 1279,
+      "user_us": 1279,
+      "system_us": 0,
+      "start_monotonic_ns": 8185888468453,
+      "end_monotonic_ns": 8185889914813,
+      "wall_resolution_ns": 1,
+      "cpu_resolution_us": 1,
+      "maxrss_kib": 824,
+      "minor_faults": 36,
+      "major_faults": 0
+    }
+  ],
+  "elapsed_seconds": 59.24000000000069,
+  "private_evidence_sha256": {
+    "results.tar.gz": "fdb71366e371ffc3c6240ae9c590840480627dd7ec66b0eb39a14a61887ce606",
+    "analysis.json": "4d11abb6f923f1e8696ca20bdf141357eeee5a011618eb5444421a29aa3f3706",
+    "device-bundle.tar.gz": "b71f3e42b478d0a5a74228ac75e5a6018dce8e3e7d4cf12fbd1201c81788e45b",
+    "client-health-after.json": "378b2a1c7d30ccca62332db8d288fda3638d1fc573be745ea2fa7d47492033ed"
+  },
+  "production": {
+    "same_boot": true,
+    "same_native_process_identities": true,
+    "config_and_protected_hashes_unchanged": true,
+    "client_tcp_dns_and_dual_stack_https": true,
+    "owned_sandboxes_removed": true,
+    "installed_version": "0.2.2",
+    "flashed": false
+  }
+}
