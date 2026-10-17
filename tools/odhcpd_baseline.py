@@ -2,6 +2,7 @@
 """Exact-ELF odhcpd protocol fixture. Linux root, private namespaces only."""
 import argparse
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -114,15 +115,20 @@ def client():
         if kind == "stop":
             return
         sock = ra if kind in ("ra", "rs") else udp
-        if kind != "ra":
+        if kind != "ra" or request.get("drain"):
             while select.select([sock], [], [], 0)[0]:
                 sock.recv(65535)
         sent = time.monotonic_ns()
         if kind == "rs":
-            sock.sendto(bytes.fromhex("8500000000000000"), ("ff02::2", 0, 0, idx))
+            sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, request.get("hop_limit", 255))
+            sock.sendto(bytes.fromhex(request.get("hex", "8500000000000000")), ("ff02::2", 0, 0, idx))
         elif kind == "dhcp":
             packet = bytes.fromhex(request["hex"])
             sock.sendto(packet, (request.get("destination", "ff02::1:2"), 547, 0, idx))
+        if request.get("ack_send"):
+            print(json.dumps({"sent_ns": sent, "phase": "sent"}), flush=True)
+            if sys.stdin.readline().strip() != "continue":
+                raise RuntimeError("missing instrument continuation")
         deadline = time.monotonic() + request.get("timeout", 3)
         response = {"sent_ns": sent, "timeout": True}
         while time.monotonic() < deadline:
@@ -149,6 +155,8 @@ class Fixture:
         self.children = []
         self.results = {"clock": vars(time.get_clock_info("monotonic")), "events": {}, "checks": {}}
         self.counter = 0
+        if getattr(args, "case", "baseline") != "baseline":
+            self.results["case"] = args.case
 
     def record(self, name, value):
         self.results["events"][name] = value
@@ -202,12 +210,24 @@ class Fixture:
         self.daemon = self.spawn("odhcpd", ["chroot", str(self.root), "/usr/sbin/odhcpd", "-f"])
         self.record("daemon_start_ns", self.started)
 
-    def request(self, name, kind, **args):
+    def request(self, name, kind, on_sent=None, **args):
+        if on_sent:
+            args["ack_send"] = True
         self.client.stdin.write(json.dumps({"kind": kind, **args}) + "\n")
         self.client.stdin.flush()
         if not select.select([self.client.stdout], [], [], args.get("timeout", 3) + 2)[0]:
             raise RuntimeError("client instrument did not respond")
         value = json.loads(self.client.stdout.readline())
+        if on_sent:
+            if value.get("phase") != "sent":
+                raise RuntimeError("missing client sent acknowledgement")
+            self.record(name + "_sent", value)
+            on_sent()
+            self.client.stdin.write("continue\n")
+            self.client.stdin.flush()
+            if not select.select([self.client.stdout], [], [], args.get("timeout", 3) + 2)[0]:
+                raise RuntimeError("client instrument did not finish acknowledged request")
+            value = json.loads(self.client.stdout.readline())
         return self.record(name, value)
 
     def dhcp(self, name, msgtype, ias=(), server=None, extra=b"", duid=DUID, timeout=3, destination=None):
@@ -436,6 +456,309 @@ writefile('/tmp/fixture.ready', 'ready'); run();
         self.request("ubus_restarted_rs", "rs")
         self.snapshot("ubus_restarted")
 
+    def expect(self, name, value):
+        self.check(name, value)
+        if not value:
+            raise RuntimeError("failed assertion: " + name)
+
+    def enhancement(self, name, value):
+        self.results.setdefault("enhancements", {})[name] = bool(value)
+        self.record("last_enhancement", name)
+        if self.args.daemon:
+            self.expect(name, value)
+
+    @staticmethod
+    def ia_items(packet, code):
+        return [item for entry in packet.get("decoded", {}).get("options", [])
+                if entry.get("code") == code for item in entry["items"]]
+
+    @staticmethod
+    def status_codes(packet):
+        found = []
+        for entry in packet.get("decoded", {}).get("options", []):
+            if entry.get("code") == 13:
+                found.append(entry["status"])
+            found += [x["status"] for x in entry.get("items", []) if x.get("code") == 13]
+        return found
+
+    @staticmethod
+    def raw_option(packet, code):
+        return next(body for kind, body in options(bytes.fromhex(packet["hex"])[4:]) if kind == code)
+
+    def begin_case(self):
+        self.start_daemon()
+        first = self.request("initial_ra", "ra", drain=True)
+        self.expect("initial_ra", not first.get("timeout"))
+        return first
+
+    def bind_pair(self, name, naid, pdid):
+        reply = self.dhcp(name, 1, [(3, struct.pack("!III", naid, 0, 0)),
+                                   (25, struct.pack("!III", pdid, 0, 0))], extra=opt(14, b""))
+        self.expect(name + "_reply", reply.get("decoded", {}).get("type") == 7)
+        self.server = self.raw_option(reply, 2)
+        return reply, self.raw_option(reply, 3), self.raw_option(reply, 25)
+
+    def case_finite(self):
+        for addr in (GUA, ULA):
+            run("ip", "-6", "addr", "replace", addr, "dev", "br-lan", "nodad",
+                "preferred_lft", "30", "valid_lft", "60")
+        self.begin_case()
+        reply, na, pd = self.bind_pair("finite_bound", 11, 12)
+        items = self.ia_items(reply, 3) + self.ia_items(reply, 25)
+        self.expect("finite_lifetimes", len(items) == 3 and all(
+            0 < x.get("preferred", 0) <= 30 and x.get("preferred", 0) <= x.get("valid", 0) <= 60 for x in items))
+        confirm = self.dhcp("confirm_on_link", 4, [(3, na)])
+        self.expect("confirm_on_link_success", self.status_codes(confirm) == [0])
+        wrong = struct.pack("!III", 11, 0, 0) + opt(5, socket.inet_pton(socket.AF_INET6, "2001:db8:ffff::1") + struct.pack("!II", 30, 60))
+        confirm = self.dhcp("confirm_off_link", 4, [(3, wrong)])
+        self.expect("confirm_not_on_link", self.status_codes(confirm) == [4])
+        rebind = self.dhcp("known_rebind", 6, [(3, na), (25, pd)])
+        self.expect("rebind_resources", len(self.ia_items(rebind, 3)) == 2 and len(self.ia_items(rebind, 25)) == 1)
+        release = self.dhcp("finite_release", 8, [(25, pd)], server=self.server)
+        self.expect("release_success", self.status_codes(release) == [0])
+        released = self.snapshot("finite_released")
+        self.expect("release_route_absent", not any(r.get("gateway") == "fe80::2" for r in released["routes"]))
+        decline = self.dhcp("finite_decline", 9, [(3, na)], server=self.server)
+        self.expect("decline_success", self.status_codes(decline) == [0])
+        self.snapshot("finite_declined")
+        again, na, pd = self.bind_pair("finite_rebound", 13, 14)
+        old_addresses = {x["address"] for x in self.ia_items(reply, 3)}
+        self.expect("decline_iid_quarantined", old_addresses.isdisjoint({x["address"] for x in self.ia_items(again, 3)}))
+        # A PD transaction immediately precedes the kernel prefix event. No
+        # RS or provider reload may mask a lost unsolicited-RA timer update.
+        def replace_prefix():
+            self.record("race_prefix_change_ns", time.monotonic_ns())
+            run("ip", "-6", "addr", "add", "2001:db8:2::1/64", "dev", "br-lan", "nodad",
+                "preferred_lft", "30", "valid_lft", "60")
+            run("ip", "-6", "addr", "del", GUA, "dev", "br-lan")
+        self.counter += 1
+        race = bytes([1]) + self.counter.to_bytes(3, "big") + opt(1, DUID) + opt(14, b"") + opt(25, struct.pack("!III", 15, 0, 0))
+        raced = self.request("pd_prefix_race", "dhcp", hex=race.hex(), on_sent=replace_prefix)
+        active_pd = [ipaddress.IPv6Network((item["prefix"], item["length"]), strict=False)
+                     for packet in (again, raced) for item in self.ia_items(packet, 25)
+                     if item.get("valid", 0) > 0]
+        self.expect("active_pd_no_overlap", len(active_pd) == 2 and not active_pd[0].overlaps(active_pd[1]))
+        ra = self.request("race_unsolicited_withdraw", "ra", drain=True)
+        pios = {p.get("prefix"): p for p in ra.get("decoded", {}).get("options", []) if p.get("type") == 3}
+        self.expect("race_unsolicited_old_zero", pios.get("2001:db8:1::", {}).get("valid") == 0)
+        self.expect("race_unsolicited_new_valid", pios.get("2001:db8:2::", {}).get("valid", 0) > 0)
+        for addr in ("2001:db8:2::1/64", ULA):
+            run("ip", "-6", "addr", "replace", addr, "dev", "br-lan", "nodad",
+                "preferred_lft", "1", "valid_lft", "3")
+        time.sleep(.1)
+        short = self.dhcp("shortened_renew", 5, [(3, na), (25, pd)], server=self.server)
+        self.expect("renew_shortened_valid", short.get("decoded", {}).get("type") == 7 and
+                    bool(self.ia_items(short, 3) + self.ia_items(short, 25)) and
+                    all(x.get("valid", 0) <= 3 for x in self.ia_items(short, 3) + self.ia_items(short, 25)))
+        self.snapshot("before_expiry")
+        time.sleep(4.2)
+        expired = self.snapshot("after_expiry_before_packet")
+        remaining = [a for link in expired["addresses"] if link["ifname"] == "br-lan"
+                     for a in link.get("addr_info", []) if a.get("scope") == "global"]
+        self.expect("kernel_addresses_expired", not remaining)
+        ra = self.request("expired_rs", "rs")
+        self.expect("expired_pio_not_positive", not ra.get("timeout") and not any(
+            p.get("type") == 3 and p.get("valid", 0) > 0 for p in ra["decoded"]["options"]))
+        absent = self.dhcp("no_pool", 1, [(3, struct.pack("!III", 21, 0, 0)),
+                                         (25, struct.pack("!III", 22, 0, 0))])
+        self.expect("no_pool_no_resources", absent.get("decoded", {}).get("type") == 2 and
+                    self.status_codes(absent) == [2, 6] and
+                    not any(x.get("valid", 0) for x in self.ia_items(absent, 3) + self.ia_items(absent, 25)))
+        self.enhancement("expiry_no_old_pd_route", not any(r.get("gateway") == "fe80::2" for r in expired["routes"]))
+        self.record("expiry_export_before_packet", expired["files"].get("tmp/odhcpd.leases", ""))
+
+    def restart_client(self):
+        self.client.terminate()
+        self.client.wait(3)
+        self.client = subprocess.Popen(self.ns + [sys.executable, __file__, "--client"],
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
+                                       stderr=open(self.out / "client-recreated.log", "w"))
+        self.children.append(self.client)
+        if not select.select([self.client.stdout], [], [], 3)[0] or not json.loads(self.client.stdout.readline()).get("ready"):
+            raise RuntimeError("recreated client not ready")
+
+    def restart_daemon(self):
+        self.daemon.terminate()
+        self.daemon.wait(3)
+        self.start_daemon()
+        time.sleep(.2)
+
+    def case_link(self):
+        self.begin_case()
+        initial_index = socket.if_nametoindex("br-lan")
+        run("ip", "link", "set", "br-lan", "down")
+        self.snapshot("link_down")
+        run("ip", "link", "set", "br-lan", "up")
+        for addr in ("fe80::1/64", GUA, ULA):
+            run("ip", "-6", "addr", "replace", addr, "dev", "br-lan", "nodad")
+        time.sleep(.2)
+        self.expect("link_up_rs", not self.request("link_up_rs", "rs").get("timeout"))
+        self.client.terminate()
+        self.client.wait(3)
+        run("ip", "link", "del", "br-lan")
+        run("ip", "link", "add", "br-lan", "type", "veth", "peer", "name", "client0")
+        for name, mac in (("br-lan", "02:00:00:00:00:01"), ("client0", "02:00:00:00:00:02")):
+            run("ip", "link", "set", name, "address", mac)
+        run("ip", "link", "set", "client0", "netns", str(self.netns.pid))
+        for name in ("br-lan", "client0"):
+            prefix = self.ns if name == "client0" else []
+            run(*prefix, "sysctl", "-q", "-w", f"net.ipv6.conf.{name}.addr_gen_mode=1")
+            run(*prefix, "ip", "link", "set", name, "up")
+        run(*self.ns, "sysctl", "-q", "-w", "net.ipv6.conf.client0.accept_ra=0")
+        run(*self.ns, "ip", "-6", "addr", "add", "fe80::2/64", "dev", "client0", "nodad")
+        for addr in ("fe80::3/64", "2001:db8:3::1/64", "fd12:3456:789c::1/60"):
+            run("ip", "-6", "addr", "add", addr, "dev", "br-lan", "nodad")
+        self.restart_client()
+        self.expect("ifindex_changed", socket.if_nametoindex("br-lan") != initial_index)
+        time.sleep(.2)
+        ra = self.request("new_ifindex_rs", "rs")
+        self.enhancement("ifindex_without_provider_rebind", ra.get("source") == "fe80::3")
+        self.bus("fixture", "notify")
+        time.sleep(.2)
+        ra = self.request("new_ifindex_notified_rs", "rs")
+        self.expect("new_interface_source", ra.get("source") == "fe80::3")
+        self.expect("new_interface_pio", any(p.get("prefix") == "2001:db8:3::" and p.get("valid", 0) > 0 for p in ra["decoded"]["options"]))
+        self.snapshot("new_ifindex_state")
+        run("ip", "-6", "addr", "add", "fe80::4/64", "dev", "br-lan", "nodad")
+        run("ip", "-6", "addr", "del", "fe80::3/64", "dev", "br-lan")
+        time.sleep(.2)
+        ra = self.request("new_link_local_rs", "rs")
+        self.enhancement("link_local_without_provider_rebind", ra.get("source") == "fe80::4")
+        self.bus("fixture", "notify")
+        time.sleep(.2)
+        self.expect("link_local_source_updated", self.request("new_link_local_notified_rs", "rs").get("source") == "fe80::4")
+        for name, contents in (("corrupt", "{"), ("expired", '{"slaac":[{"prefix":"2001:db8:dead::1","length":64,"time":1}]}')):
+            self.daemon.terminate()
+            self.daemon.wait(3)
+            (self.root / "tmp/odhcpd-piodir/odhcpd.pio.br-lan").write_text(contents)
+            self.start_daemon()
+            time.sleep(.2)
+            ra = self.request(name + "_pio_restart", "rs")
+            self.expect(name + "_pio_restart_alive", not ra.get("timeout"))
+            self.expect(name + "_pio_not_restored", not any(p.get("prefix") == "2001:db8:dead::" for p in ra["decoded"]["options"]))
+        self.snapshot("link_complete")
+
+    def case_control(self):
+        self.provider.terminate()
+        self.provider.wait(3)
+        state_path = self.root / "tmp/control-state.json"
+        state = {"interface": [{"interface": "lan", "up": True, "l3_device": "br-lan", "data": {}}]}
+        state_path.write_text(json.dumps(state))
+        (self.root / "tmp/provider.uc").write_text("""import { connect } from 'ubus';
+import { readfile, writefile } from 'fs'; import { init, run } from 'uloop';
+init(); let bus=connect(); let dumps=0; let state=json(readfile('/tmp/control-state.json'));
+let obj=bus.publish('network.interface',{dump:{call:()=>{dumps++; return state;}}});
+bus.publish('fixture', {
+ stats:{call:()=>({dumps})},
+ select:{args:{dns:''},call:r=>{state.interface[0].data.dns=[r.args.dns]; return {};}},
+ notify:{call:()=>{obj.notify('update',{interface:'lan'}); return {};}}
+}); writefile('/tmp/fixture.ready','ready'); run();
+""")
+        self.start_provider()
+        self.begin_case()
+        host_duid = bytes.fromhex("00030001020000000009")
+        added = self.bus("dhcp", "add_lease", {"duid": [host_duid.hex()], "hostid": "abc", "name": "fixed9", "leasetime": "20m"})
+        self.record("add_lease", added)
+        fixed = self.dhcp("fixed_host", 1, [(3, struct.pack("!III", 9, 0, 0))], extra=opt(14, b""), duid=host_duid)
+        self.expect("static_hostid", {x.get("address") for x in self.ia_items(fixed, 3)} == {"2001:db8:1::abc", "fd12:3456:789a::abc"})
+        bad = self.bus("dhcp", "add_lease", {"hostid": "zz"}, check=False)
+        self.record("add_lease_invalid", bad)
+        self.expect("invalid_hostid_rejected", bad["status"] != 0 and "Invalid argument" in bad["stderr"])
+        self.snapshot("static_host_state")
+
+        def dns_request(name):
+            packet = self.dhcp(name, 11, duid=None)
+            return [socket.inet_ntop(socket.AF_INET6, bytes.fromhex(x["hex"])[i:i + 16])
+                    for x in packet.get("decoded", {}).get("options", []) if x["code"] == 23
+                    for i in range(0, len(bytes.fromhex(x["hex"])), 16)]
+
+        def provider_select(dns):
+            before = json.loads(self.bus("fixture", "stats")["stdout"])["dumps"]
+            self.bus("fixture", "select", {"dns": dns})
+            self.bus("fixture", "notify")
+            time.sleep(.2)
+            after = json.loads(self.bus("fixture", "stats")["stdout"])["dumps"]
+            self.record("dump_count_" + dns.rsplit(":", 1)[1], {"before": before, "after": after})
+            self.expect("notify_dump_" + dns.rsplit(":", 1)[1], after > before)
+
+        provider_select("fd12:3456:789a::53")
+        self.expect("notify_dns_applied", dns_request("dns_after_notify") == ["fd12:3456:789a::53"])
+        self.provider.terminate()
+        self.provider.wait(3)
+        self.expect("provider_absent_ra", not self.request("provider_absent_rs", "rs").get("timeout"))
+        self.expect("provider_absent_dhcp", dns_request("provider_absent_dhcp") == ["fd12:3456:789a::53"])
+        state["interface"][0]["data"] = {"dns": ["fd12:3456:789a::53"]}
+        state_path.write_text(json.dumps(state))
+        self.start_provider()
+        time.sleep(.2)
+        provider_select("fd12:3456:789a::54")
+        self.expect("recreated_provider_dns", dns_request("dns_after_provider_recreate") == ["fd12:3456:789a::54"])
+        self.provider.terminate()
+        self.provider.wait(3)
+        self.ubusd.terminate()
+        self.ubusd.wait(3)
+        self.expect("bus_absent_ra", not self.request("bus_absent_rs", "rs").get("timeout"))
+        self.expect("bus_absent_dhcp", dns_request("bus_absent_dhcp") == ["fd12:3456:789a::54"])
+        state["interface"][0]["data"] = {"dns": ["fd12:3456:789a::55"]}
+        state_path.write_text(json.dumps(state))
+        self.start_bus()
+        self.start_provider()
+        time.sleep(1.2)
+        restored = self.bus("dhcp", "ipv6leases", check=False)
+        self.record("control_bus_restored", restored)
+        self.enhancement("bus_restored_object", restored["status"] == 0)
+        stats = self.bus("fixture", "stats")
+        self.record("reconnected_provider_stats", stats)
+        self.enhancement("bus_restored_dump", json.loads(stats["stdout"])["dumps"] > 0)
+        self.enhancement("bus_restored_dns", dns_request("dns_after_bus_reconnect") == ["fd12:3456:789a::55"])
+        self.snapshot("control_complete")
+
+    def case_reject(self):
+        config_path = self.root / "etc/config/dhcp"
+        original = config_path.read_text()
+        modes = {
+            "maindhcp": original.replace(" option maindhcp '0'", " option maindhcp '1'"),
+            "ra_relay": original.replace(" option ra 'server'", " option ra 'relay'"),
+            "ra_hybrid": original.replace(" option ra 'server'", " option ra 'hybrid'"),
+            "dhcpv6_relay": original.replace(" option dhcpv6 'server'", " option dhcpv6 'relay'"),
+            "dhcpv6_hybrid": original.replace(" option dhcpv6 'server'", " option dhcpv6 'hybrid'"),
+            "ndp_relay": original.replace(" option interface 'lan'", " option interface 'lan'\n option ndp 'relay'"),
+            "master": original.replace(" option interface 'lan'", " option interface 'lan'\n option master '1'"),
+        }
+        for name, text in modes.items():
+            config_path.write_text(text)
+            self.start_daemon()
+            time.sleep(.3)
+            status = self.daemon.poll()
+            udp = Path("/proc/net/udp6").read_text()
+            service = any(line.split()[1].endswith(":0223") for line in udp.splitlines()[1:])
+            self.record("mode_" + name, {"exit_status": status, "udp547": service})
+            self.enhancement("reject_" + name, status is not None and status != 0 and not service)
+            if self.daemon.poll() is None:
+                self.daemon.terminate()
+            self.daemon.wait(3)
+        config_path.write_text(original)
+        self.begin_case()
+        reply, na, _ = self.bind_pair("negative_existing", 31, 32)
+        before = self.snapshot("negative_before")
+        bad_server = self.dhcp("wrong_server", 5, [(3, na)], server=bytes.fromhex("000300010200000000ff"), timeout=.3)
+        self.expect("wrong_server_ignored", bad_server.get("timeout"))
+        for name, extra in (("short_ia", opt(3, b"\0" * 11)), ("truncated_option", bytes.fromhex("0003000c01"))):
+            self.dhcp(name, 1, extra=extra, timeout=.3)
+            self.expect(name + "_alive", self.daemon.poll() is None)
+        for name, kwargs in (("wrong_rs_hop", {"hop_limit": 64}),
+                             ("wrong_rs_code", {"hex": "8501000000000000"}),
+                             ("zero_rs_option", {"hex": "85000000000000000100"})):
+            packet = self.request(name, "rs", timeout=.3, **kwargs)
+            self.expect(name + "_ignored", packet.get("timeout"))
+        after = self.snapshot("negative_after")
+        def identity(snapshot):
+            leases = json.loads(snapshot["leases"]["stdout"])["device"]["br-lan"]["leases"]
+            return [(x["duid"], x["iaid"], x["assigned"], x["flags"]) for x in leases]
+        self.expect("malformed_preserves_bindings", identity(before) == identity(after))
+        good = self.dhcp("negative_followup_renew", 5, [(3, na)], server=self.server)
+        self.expect("negative_followup_works", len(self.ia_items(good, 3)) == 2)
+
     def close(self):
         for child in reversed(self.children):
             if child.poll() is None:
@@ -451,6 +774,8 @@ writefile('/tmp/fixture.ready', 'ready'); run();
 
 def summarize(results):
     """Derive checks from retained packets; never replace the raw observations."""
+    if results.get("case", "baseline") != "baseline":
+        return results
     e = results["events"]
     checks = results["checks"]
 
@@ -503,6 +828,7 @@ def summarize(results):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--summarize", help="derive checks from an existing results.json, without rerunning")
+    parser.add_argument("--case", choices=("baseline", "finite", "link", "control", "reject", "extended"), default="baseline")
     parser.add_argument("--rootfs")
     parser.add_argument("--daemon", help="candidate ELF; omit for hash-checked exact C")
     parser.add_argument("--out")
@@ -525,8 +851,21 @@ def main():
     if not args.inside:
         Path(args.out).mkdir(mode=0o700, parents=True, exist_ok=False)
         shutil.copy2(__file__, Path(args.out) / "instrument.py")
+        if args.case == "extended":
+            statuses = {}
+            for name in ("finite", "link", "control", "reject"):
+                command = [sys.executable, str(Path(__file__).resolve()), "--rootfs", args.rootfs,
+                           "--out", str(Path(args.out) / name), "--case", name]
+                if args.daemon:
+                    command += ["--daemon", args.daemon]
+                status = subprocess.run(command, timeout=190).returncode
+                statuses[name] = status
+                (Path(args.out) / "batch.json").write_text(json.dumps(statuses, indent=2))
+                if status:
+                    break
+            sys.exit(0 if all(status == 0 for status in statuses.values()) else 1)
         command = ["unshare", "--mount", "--net", "--pid", "--fork", "--kill-child=KILL", "--mount-proc",
-                   sys.executable, str(Path(__file__).resolve()), "--inside", "--rootfs", args.rootfs, "--out", args.out]
+                   sys.executable, str(Path(__file__).resolve()), "--inside", "--rootfs", args.rootfs, "--out", args.out, "--case", args.case]
         if args.daemon:
             command += ["--daemon", args.daemon]
         result = subprocess.run(command, timeout=180)
@@ -534,9 +873,12 @@ def main():
     fixture = Fixture(args)
     try:
         fixture.setup()
-        fixture.protocol()
-        fixture.prefix()
-        fixture.lifecycle()
+        if args.case == "baseline":
+            fixture.protocol()
+            fixture.prefix()
+            fixture.lifecycle()
+        else:
+            getattr(fixture, "case_" + args.case)()
         summarize(fixture.results)
         fixture.record("complete", True)
         print(json.dumps(fixture.results["checks"], indent=2))
