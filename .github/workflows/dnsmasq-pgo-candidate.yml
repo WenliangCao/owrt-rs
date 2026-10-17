@@ -1,0 +1,68 @@
+name: dnsmasq-pgo-candidate
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Explicit canonical PGO stage
+        required: true
+        type: choice
+        options: [generate, candidate-use, frozen-use]
+      spec:
+        description: Committed freeze for the final integrated source
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dnsmasq-pgo-candidate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  candidate-build:
+    if: github.ref == 'refs/heads/research/core-safe-20261017'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.98.1"
+          targets: aarch64-unknown-linux-musl
+      - name: host packages for the unmodified x86 SDK
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq build-essential clang flex bison g++ gawk gcc-multilib gettext \
+            libncurses-dev libssl-dev python3-setuptools rsync unzip zlib1g-dev file curl zstd
+      - name: cache pinned SDK download only
+        uses: actions/cache@v4
+        with:
+          path: work/dl
+          key: dnsmasq-target-sdk-ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25
+      - name: validate PGO boundaries and compiler-warning gates
+        run: python3 -m unittest discover -s tools -p 'test_ci_dnsmasq*.py'
+      - name: build the explicitly frozen stage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PGO_STAGE: ${{ inputs.stage }}
+          PGO_SPEC: ${{ inputs.spec }}
+        run: python3 tools/ci_check_dnsmasq_pgo_pipeline.py "$GITHUB_WORKSPACE/work" --stage "$PGO_STAGE" --spec "$PGO_SPEC"
+      - name: preserve actual artifacts and original diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnsmasq-pgo-${{ inputs.stage }}-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            work/out/dnsmasq/*.apk
+            work/out/dnsmasq/dnsmasq-rs
+            work/out/dnsmasq/*.log
+            work/out/dnsmasq/*.json
+            work/out/dnsmasq/source.tar
+            work/out/dnsmasq/pgo/*
+            work/out/dnsmasq/pgo-compilation/*
+            work/out/dnsmasq/pgo-cargo
+          if-no-files-found: error
+          retention-days: 90

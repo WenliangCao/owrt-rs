@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append the frozen profile-use flags after the unchanged SDK recipe sets flags."""
+"""Append explicit PGO flags after the unchanged SDK recipe sets flags."""
 import hashlib
 import json
 import os
@@ -32,18 +32,40 @@ def prepare(plan, argv, env):
     linker = env["CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER"]
     if sha(linker) != plan["static_pie_linker_sha256"]:
         raise ValueError("static PIE linker identity changed")
-    profile = Path(plan["profile"])
-    if (not profile.is_absolute() or any(c.isspace() for c in str(profile))
-            or profile.stat().st_size != plan["profile_bytes"] or sha(profile) != plan["profile_sha256"]):
-        raise ValueError("frozen PGO profile identity changed")
+    mapping = plan.get("map_compiler")
+    if mapping is not None:
+        if (env["DNSMASQ_STATIC_PIE_CC"] != mapping["wrapper"]
+                or env["PERF_SDK_CC"] != mapping["sdk_cc"]
+                or env["PERF_LINK_MAP"] != mapping["output_path"]
+                or sha(mapping["wrapper"]) != mapping["wrapper_sha256"]
+                or sha(mapping["sdk_cc"]) != mapping["sdk_cc_sha256"]):
+            raise ValueError("link-map wrapper or SDK compiler identity changed")
     recipe_flags = env["RUSTFLAGS"]
     if "profile-" in recipe_flags or "pgo-" in recipe_flags:
         raise ValueError("recipe already supplies PGO flags")
-    added = f"-Cprofile-use={profile} -Cllvm-args=-pgo-warn-missing-function"
-    return {"mode": "use", "argv": argv, "recipe_environment": expected,
+    mode = plan.get("mode", "use")
+    if mode == "generate":
+        if any(key in plan for key in ("profile", "profile_sha256", "profile_bytes")):
+            raise ValueError("instrumentation must not consume a profile")
+        directory = Path(plan["profile_output_dir"])
+        if not directory.is_absolute() or any(c.isspace() for c in str(directory)):
+            raise ValueError("invalid instrumentation profile output directory")
+        added = f"-Cprofile-generate={directory}"
+        identity = {"profile_output_dir": str(directory)}
+    elif mode == "use":
+        profile = Path(plan["profile"])
+        if (not profile.is_absolute() or any(c.isspace() for c in str(profile))
+                or profile.stat().st_size != plan["profile_bytes"] or sha(profile) != plan["profile_sha256"]):
+            raise ValueError("frozen PGO profile identity changed")
+        added = f"-Cprofile-use={profile} -Cllvm-args=-pgo-warn-missing-function"
+        identity = {"profile_sha256": plan["profile_sha256"], "profile_bytes": plan["profile_bytes"]}
+    else:
+        raise ValueError("unknown PGO mode")
+    return {"mode": mode, "argv": argv, "recipe_environment": expected,
             "recipe_rustflags": recipe_flags, "added_rustflags": added,
             "effective_rustflags": recipe_flags + " " + added,
-            "profile_sha256": plan["profile_sha256"], "profile_bytes": plan["profile_bytes"],
+            **identity,
+            **({"map_compiler": mapping} if mapping is not None else {}),
             "static_pie_linker_sha256": sha(linker), "wrapper_sha256": sha(__file__)}
 
 
@@ -58,9 +80,9 @@ def main():
             json.dump(receipt, stream, indent=2)
             stream.write("\n")
         os.environ["RUSTFLAGS"] = receipt["effective_rustflags"]
-    # Cargo verbosity exposes its actual -Cmetadata and rustc selection without
-    # changing compiler flags, package identity or the frozen SDK recipe.
-    os.execv(plan["cargo"], [plan["cargo"], *argv, *(["-vv"] if receipt is not None else [])])
+    # Preserve normal recipe verbosity. Diagnostic -vv also changes dependency
+    # --cap-lints from allow to warn and emits Cargo's ignored-hint advisories.
+    os.execv(plan["cargo"], [plan["cargo"], *argv])
 
 
 if __name__ == "__main__":
