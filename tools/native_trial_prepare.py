@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import io
 import json
+import re
 from pathlib import Path
 import tarfile
 import uuid
@@ -42,8 +43,11 @@ def main():
                         help="extracted exact candidate image, for recovery identities")
     parser.add_argument("--rollback-image", type=Path, required=True)
     parser.add_argument("--rollback-sha256", required=True,
-                        help="independently verified v0.2.0 Release image SHA256")
+                        help="independently verified rollback Release image SHA256")
+    parser.add_argument("--rollback-version", required=True,
+                        help="verified rollback release, such as v0.2.1")
     args = parser.parse_args()
+    assert re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", args.rollback_version)
     assert not args.output.exists()
     manifest = json.loads(args.manifest.read_text())
     assert manifest["deployment_layout"] == "native-ten"
@@ -71,7 +75,7 @@ def main():
         assert hashlib.sha256((args.rootfs / path.lstrip("/")).read_bytes()).hexdigest() == expected
     recovery = stock + hashlib.sha256((args.rootfs / "usr/sbin/owrt-recover-c").read_bytes()).hexdigest() + "  /usr/sbin/owrt-recover-c\n"
     recovery += hashlib.sha256(stock.encode()).hexdigest() + "  /usr/share/owrt-control-plane/stock.sha256\n"
-    rollback = (args.rollback_sha256 + "  /" + base + "rollback-v0.2.0.bin\n" +
+    rollback = (args.rollback_sha256 + "  /" + base + "rollback.bin\n" +
                 hashlib.sha256(original_config).hexdigest() + "  /" + base + "rollback-config.tar.gz\n" +
                 hashlib.sha256(member_list).hexdigest() + "  /" + base + "rollback-members.txt\n")
     payload = {
@@ -80,7 +84,7 @@ def main():
         base + "armed": ((token + "\n").encode(), 0o600),
         base + "recovery.sha256": (recovery.encode(), 0o600),
         base + "rollback.sha256": (rollback.encode(), 0o600),
-        base + "rollback-v0.2.0.bin": (rollback_image, 0o600),
+        base + "rollback.bin": (rollback_image, 0o600),
         base + "rollback-config.tar.gz": (original_config, 0o600),
         base + "rollback-members.txt": (member_list, 0o600),
         "etc/init.d/owrt-native-trial": ((repo / "tools/native_trial.init").read_bytes(), 0o755),
@@ -91,7 +95,7 @@ def main():
         args.output.chmod(0o600)
         members = old.getmembers()
         validate_members(members, [base.rstrip("/"), *payload, link,
-                                   "root/owrt-v0.2.1-rollback-receipt",
+                                   "root/owrt-native-rollback-receipt",
                                    *(c["path"].lstrip("/") for c in files)])
         names = set()
         for member in members:
@@ -131,7 +135,7 @@ def main():
               "accepted_health_failure_timeout_s": 300, "unhealthy_boot_limit": 3,
               "confirmation_required_each_boot": True,
               "rollback_image_sha256": args.rollback_sha256,
-              "rollback_image_bytes": len(rollback_image), "rollback_version": "v0.2.0",
+              "rollback_image_bytes": len(rollback_image), "rollback_version": args.rollback_version,
               "recovery_rootfs_manifest_sha256": hashlib.sha256((args.rootfs / "usr/share/owrt-control-plane/release.json").read_bytes()).hexdigest()}
     record = args.output.with_suffix(".json")
     assert not record.exists()

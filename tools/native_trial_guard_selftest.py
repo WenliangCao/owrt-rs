@@ -58,7 +58,7 @@ exec /root/owrt-native-trial/bounded-real "$@"
         (base / "armed").write_text("fixture-token\n")
         (base / "recovery.sha256").write_text(
             (source / "usr/share/owrt-control-plane/stock.sha256").read_text())
-        (base / "rollback-v0.2.0.bin").write_bytes(b"synthetic-image-never-flashed")
+        (base / "rollback.bin").write_bytes(b"synthetic-image-never-flashed")
         with tarfile.open(base / "rollback-config.tar.gz", "w:gz") as archive:
             # Real sysupgrade backups commonly omit parent directory members.
             # Repacking must not add 0700 /etc or /etc/config from umask077.
@@ -69,7 +69,7 @@ exec /root/owrt-native-trial/bounded-real "$@"
         (base / "rollback-members.txt").write_text("\n".join(names) + "\n")
         (base / "rollback.sha256").write_text("".join(
             hashlib.sha256((base / name).read_bytes()).hexdigest() + "  /" + BASE + "/" + name + "\n"
-            for name in ("rollback-v0.2.0.bin", "rollback-config.tar.gz", "rollback-members.txt")))
+            for name in ("rollback.bin", "rollback-config.tar.gz", "rollback-members.txt")))
         (root / "sbin/sysupgrade").write_text('''#!/bin/sh
 printf '%s\n' "$*" >> /tmp/sysupgrade-calls
 if [ "$1" = -T ]; then
@@ -77,7 +77,7 @@ if [ "$1" = -T ]; then
     exit $?
 fi
 [ "$1" = -f ] || exit 2
-cmp -s /root/owrt-native-trial/rollback-v0.2.0.bin "$3" || exit 3
+cmp -s /root/owrt-native-trial/rollback.bin "$3" || exit 3
 mkdir /tmp/restored-config
 tar -xzf "$2" -C /tmp/restored-config || exit 4
 [ ! -f /tmp/handoff-timeout ] || exit 124
@@ -152,7 +152,7 @@ exec /bin/sh /{BASE}/native_trial_guard.sh {command}
             for p in (source / "etc/config").iterdir():
                 assert p.read_bytes() == (restored / "etc/config" / p.name).read_bytes()
                 assert p.stat().st_mode & 0o777 == (restored / "etc/config" / p.name).stat().st_mode & 0o777
-            assert (restored / "root/owrt-v0.2.1-rollback-receipt/guard.log").is_file()
+            assert (restored / "root/owrt-native-rollback-receipt/guard.log").is_file()
             assert not (restored / "root/owrt-native-trial").exists()
             assert not (restored / "etc/init.d/owrt-native-trial").exists()
         if command == "run":
@@ -173,7 +173,7 @@ exec /bin/sh /{BASE}/native_trial_guard.sh {command}
     root = case("matching_client_confirmation_accepted", "", f"confirm fixture-token {BOOT}")
     assert (root / BASE / "accepted").read_text() == f"fixture-token {BOOT}\n"
     case("stale_client_confirmation_rejected", "", f"confirm wrong-token {BOOT}", success=False)
-    for filename in ("rollback-v0.2.0.bin", "rollback-config.tar.gz"):
+    for filename in ("rollback.bin", "rollback-config.tar.gz"):
         case("damaged_" + filename + "_blocks_rollback", f"echo corrupt > /{BASE}/{filename}", "restore", success=False)
     case("damaged_C_original_blocks_rollback", "echo corrupt > /usr/libexec/owrt-stock/sbin/netifd", "restore", success=False)
     case("failed_sysupgrade_preflight_has_no_handoff_or_bridge", "touch /tmp/fail-preflight", "restore", success=False)

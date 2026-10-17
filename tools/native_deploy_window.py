@@ -247,12 +247,12 @@ test ! -e /root/owrt-native-trial/c-bridge-used
             require(boot != previous_boot, "waiting for new boot")
             release = json.loads(remote("cat /usr/share/owrt-control-plane/release.json"))
             if release["source_commit"] == gate["rollback_source_commit"]:
-                log("v0.2.0_firmware_detected_requires_final_rollback_checks", boot_id=boot)
+                log("rollback_firmware_detected_requires_final_checks", boot_id=boot)
                 raise SystemExit(1)
             pid1 = remote("sha256sum /proc/1/exe").split()[0]
             if pid1 == manifest["components"]["procd"]["stock_sha256"]:
                 (base / "guard-after-fallback.log").write_text(remote("cat /root/owrt-native-trial/guard.log"))
-                log("C_bridge_detected_not_a_completed_v0.2.0_rollback", boot_id=boot)
+                log("C_bridge_detected_not_a_completed_firmware_rollback", boot_id=boot)
                 raise RuntimeError("C bridge is requesting the complete rollback")
             health = probe(host=args.host, interface=args.interface)
             require(health["boot_id"] == boot, "boot changed during health probe")
