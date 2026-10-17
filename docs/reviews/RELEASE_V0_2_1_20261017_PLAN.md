@@ -23,6 +23,13 @@
   发布和刷入使用同一批CI字节，禁止本机构建替代。最终tag推送沿原短时workflow停用/
   finally恢复及重复tag-run检查，避免自动重建替换已验收镜像。
 
+首次CI39006620445在PGO门停止：源码/profile正确，但2858条函数missing、0 CFG/hash mismatch。
+精确Cargo797e8a9bc的PackageId/SourceId逻辑及cargo metadata证实，工作区外的兄弟ubus
+依赖把完整绝对路径计入crate标识；CI的package-build根与训练时不同。74425a03仅恢复
+训练时包构建slot，保留当前profile/CARGO_HOME位置与正常remap，不改profile或强制metadata。
+同时保留实际编译产物/小fingerprint到失败artifact。原失败不追认，下一最终CI仍必须零missing
+且ELF精确等于K。正式工具检查更新为181输入，原179项测试冻结只属于v0.2.0。
+
 ## 恢复与真机验收
 
 1. 当次新鲜配置备份、现场成员哈希、服务保留列表、8份历史MTD/Factory与完整备份在Mac
