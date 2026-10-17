@@ -144,5 +144,209 @@ class RuntimeIdentity(unittest.TestCase):
                 self.collect(fault=fault)
 
 
+class NativeProductionProbe(unittest.TestCase):
+    def setUp(self):
+        import r84_device_probe as health
+        self.health = health
+        self.manifest = {
+            "deployment_layout": "native-ten", "source_commit": "a" * 40,
+            "components": {name: {"path": path, "rust_sha256": f"{number:064x}",
+                                   "stock_sha256": "b" * 64}
+                           for number, (name, path) in enumerate(health.NATIVE_PATHS.items(), 1)},
+        }
+        self.release = {**self.manifest, "layout": "native-ten"}
+        self.instances = {"cfg": {"running": True, "jail": {"name": "dnsmasq"}, "pid": 40,
+                                  "command": ["/usr/sbin/dnsmasq", "-C", "/private/config"]}}
+        self.rows = []
+        for number, name in enumerate(("procd", "ubusd", "netifd", "rpcd", "logd", "httpd"), 1):
+            pid = 1 if name == "procd" else 10 + number
+            self.rows.append([pid, 0 if pid == 1 else 1, 100 + number,
+                              self.manifest["components"][name]["rust_sha256"]])
+        self.rows.extend([[40, 1, 400, health.STOCK_UJAIL_SHA256],
+                          [41, 40, 410, self.manifest["components"]["dnsmasq"]["rust_sha256"]]])
+        self.calls = []
+        self.snapshots = 0
+        self.fault = None
+
+    def remote(self, host, command, **_):
+        import shlex
+        self.assertEqual(host, "fixture-host")
+        self.calls.append(command)
+        self.assertNotIn("stack-switch", command)
+        self.assertNotIn("native_trial_guard", command)
+        if command.startswith("sha256sum "):
+            hashes = {prefix + item["path"]: item["rust_sha256"]
+                      for item in self.manifest["components"].values() for prefix in ("", "/rom")}
+            hashes.update({prefix + "/sbin/ujail": self.health.STOCK_UJAIL_SHA256 for prefix in ("", "/rom")})
+            if self.fault == "installed":
+                hashes["/sbin/procd"] = "f" * 64
+            return "\n".join(hashes[path] + "  " + path for path in shlex.split(command)[1:])
+        if command.startswith("cat /usr/share/"):
+            return json.dumps(self.release)
+        if command.startswith("ubus "):
+            return json.dumps({"dnsmasq": {"instances": self.instances}})
+        if command.startswith("set -eu\nfor process"):
+            self.snapshots += 1
+            rows = [row[:] for row in self.rows]
+            if self.fault == "reused" and self.snapshots == 2:
+                rows[-1][2] += 1
+            return "\n".join(" ".join(map(str, row)) for row in rows)
+        if command == "cat /proc/41/cmdline":
+            return "\0".join(self.instances["cfg"]["command"]) + "\0" if self.fault != "argv" else "wrong\0"
+        self.fail("unexpected native read: " + command)
+
+    def identity(self):
+        with patch.object(self.health, "ssh", side_effect=self.remote):
+            return self.health.native_identity("fixture-host", self.manifest)
+
+    def test_native_rows_bind_ten_components_and_ignore_isolated_names(self):
+        # Same executable bytes in isolated siblings are not production.
+        self.rows.extend([[99, 98, 900, self.manifest["components"]["rpcd"]["rust_sha256"]],
+                          [101, 100, 1000, self.manifest["components"]["dnsmasq"]["rust_sha256"]]])
+        rows = [line.split() for line in self.identity().splitlines()]
+        self.assertEqual({row[0] for row in rows}, set(self.health.NATIVE_PATHS))
+        self.assertEqual(len(rows), 10)
+        self.assertEqual(next(row[1:3] for row in rows if row[0] == "procd"), ["1", "101"])
+        self.assertEqual(next(row[1:3] for row in rows if row[0] == "dnsmasq"), ["41", "410"])
+        for row in rows:
+            if row[0] in ("uci", "fw4", "reload-config"):
+                self.assertEqual(row[1:3], ["-", "-"])
+        self.assertEqual(self.snapshots, 2)
+
+    def test_wrong_installed_release_argv_and_reused_pid_fail(self):
+        for fault in ("installed", "argv", "reused"):
+            with self.subTest(fault=fault):
+                self.fault, self.snapshots = fault, 0
+                with self.assertRaises(RuntimeError):
+                    self.identity()
+        self.fault = None
+        self.release["source_commit"] = "c" * 40
+        with self.assertRaisesRegex(RuntimeError, "release"):
+            self.identity()
+
+    def test_duplicate_production_daemon_and_wrong_dns_parent_fail(self):
+        self.rows.append([22, 1, 222, self.manifest["components"]["rpcd"]["rust_sha256"]])
+        with self.assertRaisesRegex(RuntimeError, "one production process"):
+            self.identity()
+        self.rows.pop()
+        self.rows[-2][3] = "f" * 64
+        with self.assertRaisesRegex(RuntimeError, "production ujail"):
+            self.identity()
+
+    def test_two_dns_children_are_not_silently_picked(self):
+        self.rows.append([42, 40, 420, self.manifest["components"]["dnsmasq"]["rust_sha256"]])
+        with self.assertRaisesRegex(RuntimeError, "one DNS child"):
+            self.identity()
+
+    def test_local_native_manifest_requires_exact_paths_and_components(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(json.dumps(self.manifest))
+            manifest, digest = self.health.load_native_manifest(path)
+            self.assertEqual(manifest, self.manifest)
+            self.assertEqual(digest, driver.sha(path))
+            del self.manifest["components"]["dnsmasq"]
+            path.write_text(json.dumps(self.manifest))
+            with self.assertRaisesRegex(RuntimeError, "exactly ten"):
+                self.health.load_native_manifest(path)
+
+    def test_native_runner_rejects_missing_guard_and_rom_before_ssh(self):
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent / "benchmark"))
+        import run_candidate
+        base = [run_candidate.__file__, "candidate", "out", "--interface", "en0", "--stack", "native"]
+        for extra in ([], ["--native-manifest", "unused", "--reference-root", "/stock"],
+                      ["--native-manifest", "unused", "--guard", "guard", "--reference-root", "/rom/"]):
+            with self.subTest(extra=extra), patch("sys.argv", base + extra), \
+                    patch.object(run_candidate.subprocess, "run", side_effect=AssertionError("unexpected process")), \
+                    contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
+                run_candidate.main()
+            self.assertEqual(caught.exception.code, 2)
+
+    def test_native_runner_uses_configured_tools_and_stock_root_without_switching(self):
+        import hashlib
+        import shlex
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent / "benchmark"))
+        import run_candidate
+
+        class WorkloadReached(BaseException):
+            pass
+
+        identity = self.identity()
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            candidate, guard, manifest = (base / name for name in ("candidate", "guard", "manifest.json"))
+            candidate.write_bytes(b"candidate"); guard.write_bytes(b"guard")
+            manifest.write_text(json.dumps(self.manifest))
+            sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+            tools = {"ns-exec": "c" * 64, "owrt-benchmark": "d" * 64}
+            comparison = {"components": {name: {"original": {"sha256": item["stock_sha256"]},
+                                                "rust": {"sha256": item["rust_sha256"]}}
+                                          for name, item in self.manifest["components"].items() if name != "dnsmasq"},
+                          "tools": {name: {"sha256": value} for name, value in tools.items()}}
+            health = {"boot_id": "boot", "mode": "native", "native_identity": identity,
+                      "native_manifest_sha256": sha(manifest)}
+            commands = []
+
+            def run(arguments, **_):
+                if arguments[0] == "scp":
+                    return subprocess.CompletedProcess(arguments, 0, b"", b"")
+                self.assertEqual(arguments[0], "ssh")
+                command = arguments[-1]
+                commands.append(command)
+                self.assertNotIn("stack-switch", command)
+                self.assertNotIn("/root/r84", command)
+                if "/isolated.sh /stock-root " in command:
+                    self.assertTrue(command.startswith("OWRT_BENCH_GUARD="))
+                    raise WorkloadReached()
+                if command.startswith("cat ") and command.endswith("/manifest.json"):
+                    self.assertIn(command, ("cat /host-tools/manifest.json", "cat /v021/manifest.json"))
+                    value = json.dumps(comparison)
+                elif command == "readlink -f /stock-root":
+                    value = "/stock-root"
+                elif command == "sha256sum /etc/config/*":
+                    value = "same config"
+                elif command.startswith("sha256sum "):
+                    values = []
+                    for path in shlex.split(command)[1:]:
+                        name = Path(path).name
+                        if path.startswith("/stock-root/"):
+                            digest = "b" * 64
+                        elif name == "guard":
+                            digest = sha(guard)
+                        elif name == "isolated.sh":
+                            digest = sha(Path(run_candidate.__file__).with_name("isolated.sh"))
+                        elif name == "procd-rs":
+                            digest = sha(candidate)
+                        else:
+                            digest = tools[name]
+                        values.append(digest + "  " + path)
+                    value = "\n".join(values)
+                elif command.startswith("/host-tools/bins/owrt-benchmark snapshot "):
+                    value = "{}"
+                elif command.startswith(("test ! -e ", "cp ", "cat /proc/")):
+                    value = ""
+                else:
+                    self.fail("unexpected collector operation: " + command)
+                return subprocess.CompletedProcess(arguments, 0, value.encode(), b"")
+
+            argv = [run_candidate.__file__, str(candidate), str(base / "out"), "--component", "procd",
+                    "--interface", "en0", "--stack", "native", "--native-manifest", str(manifest),
+                    "--host-bundle", "/host-tools", "--baseline-bundle", "/v021", "--baseline-label", "v021",
+                    "--reference-root", "/stock-root", "--guard", str(guard), "--sides", "stock", "candidate",
+                    "--schedule", "two-side-balanced", "--repeats", "2"]
+            with patch("sys.argv", argv), patch.object(run_candidate, "probe", return_value=health), \
+                    patch.object(run_candidate, "native_identity", return_value=identity), \
+                    patch.object(run_candidate.subprocess, "run", side_effect=run), \
+                    contextlib.redirect_stdout(io.StringIO()), self.assertRaises(WorkloadReached):
+                run_candidate.main()
+            plan = json.loads((base / "out/settings.json").read_text())
+            self.assertEqual(plan["reference_root"], "/stock-root")
+            self.assertEqual(plan["host_bundle"], "/host-tools")
+            self.assertEqual(plan["native_manifest_sha256"], sha(manifest))
+            self.assertEqual(len(json.loads((base / "out/reference-identities.json").read_text())), 10)
+
+
 if __name__ == "__main__":
     unittest.main()

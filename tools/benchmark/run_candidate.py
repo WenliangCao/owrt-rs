@@ -19,7 +19,7 @@ import tarfile
 import uuid
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from r84_device_probe import probe  # noqa: E402
+from r84_device_probe import load_native_manifest, native_identity, probe  # noqa: E402
 
 ORDER = ("stock", "r84", "candidate", "candidate", "r84", "stock",
          "r84", "stock", "candidate", "candidate", "stock", "r84")
@@ -64,8 +64,11 @@ def main():
     parser.add_argument("--access", choices=("wired", "wifi"), default="wifi",
                         help="management path recorded with the measurements; both are authorized")
     parser.add_argument("--host", default="openwrt")
-    parser.add_argument("--stack", choices=("rust", "stock"), default="rust",
+    parser.add_argument("--stack", choices=("rust", "stock", "native"), default="rust",
                         help="production stack the device must be running (verified, never switched)")
+    parser.add_argument("--native-manifest", type=Path, help="local exact native release manifest for production identity")
+    parser.add_argument("--host-bundle", default="/root/r84", help="verified host tools and comparison manifest")
+    parser.add_argument("--reference-root", help="exact stock rootfs; defaults to /rom only in legacy modes")
     parser.add_argument("--baseline-bundle", default="/root/r84",
                         help="frozen comparison bundle on the router, including manifest.json")
     parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
@@ -118,6 +121,23 @@ def main():
     parser.add_argument("--extended", action="store_true",
                         help="ubusd: registration/event lanes and normalized daemon start")
     args = parser.parse_args()
+    native_manifest = None
+    native_manifest_sha256 = None
+    if args.stack == "native":
+        if not args.native_manifest or not args.guard or not args.reference_root:
+            parser.error("native requires --native-manifest, --guard and an explicit --reference-root")
+        if args.reference_root.rstrip("/") == "/rom":
+            parser.error("native /rom contains Rust; --reference-root must be the exact stock rootfs")
+        try:
+            native_manifest, native_manifest_sha256 = load_native_manifest(args.native_manifest)
+        except (OSError, ValueError, RuntimeError, TypeError, KeyError) as exc:
+            parser.error(str(exc))
+    elif args.native_manifest:
+        parser.error("--native-manifest requires --stack native")
+    args.reference_root = args.reference_root or "/rom"
+    for path in (args.host_bundle, args.reference_root):
+        if not path.startswith("/") or any(c in path for c in ("\0", "\n", "\r")):
+            parser.error("host bundle and reference root must be absolute paths")
     if not 1 <= args.repeats <= 64:
         parser.error("repeats must be in 1..64")
     if args.schedule in ("default", "two-side-balanced") and args.repeats not in (2, 4):
@@ -269,7 +289,19 @@ def main():
         else:
             save(name, value)
 
-    current = probe(host=args.host, mode=args.stack, interface=args.interface)
+    def device_probe():
+        health = probe(host=args.host, mode=args.stack, interface=args.interface,
+                       native_manifest=args.native_manifest, host_bundle=args.host_bundle)
+        if native_manifest is not None:
+            assert health["native_manifest_sha256"] == native_manifest_sha256, "local native manifest changed"
+        return health
+
+    def production_identity():
+        if native_manifest is not None:
+            return native_identity(args.host, native_manifest).encode()
+        return ssh("/bin/sh " + shlex.quote(args.host_bundle + "/stack-switch.sh") + " verify " + args.stack)
+
+    current = device_probe()
     if args.resume:
         pre = json.loads((out / "health-before.json").read_text())
         assert current["boot_id"] == pre["boot_id"], "host rebooted before resume"
@@ -277,15 +309,36 @@ def main():
     else:
         pre = current
         save("health-before.json", pre)
-    identity = ssh("/bin/sh /root/r84/stack-switch.sh verify " + args.stack)
+    identity = production_identity()
+    if native_manifest is not None:
+        assert current["native_identity"].encode() == identity, "native process changed after health probe"
+        raw_manifest = args.native_manifest.read_bytes()
+        assert hashlib.sha256(raw_manifest).hexdigest() == native_manifest_sha256
+        if args.resume:
+            assert (out / "native-manifest.json").read_bytes() == raw_manifest, "native manifest changed before resume"
+        else:
+            (out / "native-manifest.json").write_bytes(raw_manifest)
     config = ssh("sha256sum /etc/config/*")
     for name, value in (("host-running-hashes.txt", identity), ("config-before.sha256", config)):
         if args.resume:
             assert (out / name).read_bytes() == value, "host state changed before resume"
         else:
             (out / name).write_bytes(value)
-    manifest = json.loads(ssh("cat /root/r84/manifest.json"))
+    manifest = json.loads(ssh("cat " + shlex.quote(args.host_bundle + "/manifest.json")))
     baseline = json.loads(ssh("cat " + shlex.quote(args.baseline_bundle + "/manifest.json")))
+    if native_manifest is not None:
+        reference = ssh("readlink -f " + shlex.quote(args.reference_root)).decode().strip()
+        assert reference.startswith("/") and reference != "/rom", "native reference resolves to /rom or is missing"
+        expected_reference = {}
+        for name, item in native_manifest["components"].items():
+            expected = item["stock_sha256"]
+            if name != "dnsmasq":
+                assert manifest["components"][name]["original"]["sha256"] == expected, "comparison C identity differs from native stock reference"
+            expected_reference[args.reference_root.rstrip("/") + item["path"]] = expected
+        observed = dict(line.split(None, 1)[::-1] for line in ssh(
+            "sha256sum " + " ".join(shlex.quote(path) for path in expected_reference)).decode().splitlines())
+        assert observed == expected_reference, "reference root does not contain exact stock components"
+        initial("reference-identities.json", expected_reference)
     hashes = {"stock": manifest["components"][component]["original"]["sha256"],
               args.baseline_label: baseline["components"][component]["rust"]["sha256"],
               "candidate": hashlib.sha256(args.candidate.read_bytes()).hexdigest()}
@@ -317,11 +370,14 @@ def main():
                       for side in ORDER[:args.repeats * 3] if side in args.sides)
     initial("order.json", list(order))
     settings = {"component": component, "iterations": args.iterations, "matrix": args.matrix,
+                           "stack": args.stack, "host_bundle": args.host_bundle, "reference_root": args.reference_root,
                            "held_connections": 64 if args.memory_probe else None,
                            "rpc_client_diagnostic": bool(args.rpc_client_probe),
                            "baseline_label": args.baseline_label, "baseline_bundle": args.baseline_bundle,
                            "cpu_affinity": args.cpus,
                            "management_access": args.access, "workload_transport": "namespace loopback"}
+    if native_manifest_sha256:
+        settings["native_manifest_sha256"] = native_manifest_sha256
     if args.schedule != "default":
         settings["schedule"] = args.schedule
     if args.seed is not None:
@@ -402,7 +458,7 @@ def main():
             if baseline_bundle:
                 targets.append(baseline_bundle)
             ssh("mkdir -p " + " ".join(shlex.quote(target) for target in targets)
-                + " && " + " && ".join("cp /root/r84/bins/ns-exec " + shlex.quote(target) + "/"
+                + " && " + " && ".join("cp " + shlex.quote(args.host_bundle + "/bins/ns-exec") + " " + shlex.quote(target) + "/"
                                        for target in targets))
             for target in targets:
                 subprocess.run(["scp", "-O", str(args.bench.resolve()), args.host + ":" + target + "/owrt-benchmark"], check=True)
@@ -410,7 +466,8 @@ def main():
                 ssh("cp " + shlex.quote(args.baseline_bundle + "/bins/" + binary)
                     + " " + shlex.quote(baseline_bundle + "/" + binary))
         else:
-            ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
+            ssh("cp " + " ".join(shlex.quote(args.host_bundle + "/bins/" + name)
+                                 for name in ("ns-exec", "owrt-benchmark")) + " " + bundle + "/")
         for label, target in extra_bundles.items():
             subprocess.run(["scp", "-O", extra_baselines[label]["elf_path"],
                             args.host + ":" + target + "/" + binary], check=True)
@@ -484,7 +541,7 @@ def main():
             raise RuntimeError("extra baseline upload checksum mismatch: " + label)
     monitors = ",".join(line.split()[1] for line in identity.decode().splitlines()
                         if line.split()[1] != "-")
-    snapshot = "/root/r84/bins/owrt-benchmark snapshot " + monitors
+    snapshot = shlex.quote(args.host_bundle + "/bins/owrt-benchmark") + " snapshot " + monitors
     for index, side in enumerate(order, 1):
         local = out / f"{index:02d}-{side}"
         if args.resume and local.exists():
@@ -515,14 +572,14 @@ def main():
         mounts = ssh("cat /proc/self/mountinfo")
         (local / "mounts-before.txt").write_bytes(mounts)
         for suffix, cmd in (("config-before.sha256", "sha256sum /etc/config/*"),
-                            ("production-before.txt", "/bin/sh /root/r84/stack-switch.sh verify " + args.stack)):
-            value = ssh(cmd)
+                            ("production-before.txt", None)):
+            value = production_identity() if cmd is None else ssh(cmd)
             (local / suffix).write_bytes(value)
             assert value == (config if suffix.startswith("config") else identity), "production state changed"
         (local / "environment-before.txt").write_bytes(ssh("cat /proc/uptime /proc/loadavg; for f in /sys/class/thermal/thermal_zone*/temp; do test ! -f \"$f\" || cat \"$f\"; done"))
         print(json.dumps({"event": "started", "side": side, "index": index,
                           "at": datetime.datetime.now(datetime.timezone.utc).isoformat()}), flush=True)
-        command = (f"/bin/sh {remote}/isolated.sh /rom {shlex.quote(selected)} {component} {impl} "
+        command = (f"/bin/sh {remote}/isolated.sh {shlex.quote(args.reference_root)} {shlex.quote(selected)} {component} {impl} "
                    f"{run_out} {args.iterations}")
         if args.cpus:
             command = "taskset -c " + shlex.quote(args.cpus) + " " + command
@@ -608,16 +665,16 @@ def main():
                 ("environment-after.txt", "cat /proc/uptime /proc/loadavg; for f in /sys/class/thermal/thermal_zone*/temp; do test ! -f \"$f\" || cat \"$f\"; done", None),
                 ("mounts-after.txt", "cat /proc/self/mountinfo", mounts),
                 ("config-after.sha256", "sha256sum /etc/config/*", config),
-                ("production-after.txt", "/bin/sh /root/r84/stack-switch.sh verify " + args.stack, identity)):
+                ("production-after.txt", None, identity)):
             try:
-                value = ssh(cmd)
+                value = production_identity() if cmd is None else ssh(cmd)
                 (local / filename).write_bytes(value)
                 assert expected_value is None or value == expected_value, filename + " changed"
             except Exception as exc:
                 failures.append(f"{filename}: {type(exc).__name__}: {exc}")
         if failures:
             try:
-                save(local.name + "/health-after-failure.json", probe(host=args.host, mode=args.stack, interface=args.interface))
+                save(local.name + "/health-after-failure.json", device_probe())
             except Exception as exc:
                 failures.append(f"health: {type(exc).__name__}: {exc}")
         save(local.name + "/result.json", {"command": command, "exit": run_exit, "failures": failures,
@@ -627,13 +684,13 @@ def main():
         ssh("rm -rf -- " + shlex.quote(run_out))
         (local / "COMPLETE").touch()
         print(json.dumps({"event": "complete", "side": side, "index": index}), flush=True)
-    post = probe(host=args.host, mode=args.stack, interface=args.interface)
+    post = device_probe()
     save("health-after.json", post)
     after = ssh("sha256sum /etc/config/*")
     (out / "config-after.sha256").write_bytes(after)
     if pre["boot_id"] != post["boot_id"] or config != after:
         raise RuntimeError("host boot/configuration changed")
-    if ssh("/bin/sh /root/r84/stack-switch.sh verify " + args.stack) != identity:
+    if production_identity() != identity:
         raise RuntimeError("host process identities changed")
     ssh("rm -rf -- " + remote)
     (out / "COMPLETE").touch()
