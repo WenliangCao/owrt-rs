@@ -4,7 +4,7 @@
   "profile": "xiaomi_mi-router-ax3000t",
   "architecture": "aarch64_cortex-a53",
   "package": "owrt-control-plane",
-  "version": "0.2.0-r1",
+  "version": "0.2.1-r1",
   "components": {
     "fw4": {
       "path": "/sbin/fw4",
@@ -105,14 +105,19 @@
     }
   },
   "dnsmasq_build": {
-    "source_commit": "5c1a2f48f4274c6b91ad39d927accd41f20f08c8",
-    "source_digest": "10f7c0b1ae1e5e4459a4937d3a9049b9e708ffe9d8040b6144da093ac50d9ed0",
-    "reference_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
-    "reference_elf_bytes": 2124571,
-    "elf_max_bytes": 2200000,
-    "apk_max_bytes": 1200000,
+    "source_commit": "4ce24c627615ae5ff42d3dcdbccb66d57b218b5a",
+    "source_digest": "6505f110f02b8488c14a9261c37e13362d4227fdaffb4c2a23380e17029de4b7",
+    "reference_elf_sha256": "f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08",
+    "reference_elf_bytes": 2296611,
+    "elf_max_bytes": 2500000,
+    "apk_max_bytes": 1400000,
     "package_release": "4",
-    "qualification": "Source and SDK recipe match the accepted main product. Fresh CI ELF identity is recorded; final image runtime acceptance is separate."
+    "qualification": "Exact accepted candidate K source and fixed PGO profile; canonical CI must rebuild and reproduce the accepted ELF. Final native-ten image and deployment qualification remain separate.",
+    "pgo": {
+      "profile_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/dnsmasq-k-pgo-inputs-20261017/dnsmasq-k.profdata",
+      "profile_sha256": "a26b78f1777a126799592f819cce07f1a904f92db2aa04dbf0a8e1aba4f4bfcc",
+      "profile_bytes": 937008
+    }
   },
   "integration_files": {
     "etc/init.d/dnsmasq": {
