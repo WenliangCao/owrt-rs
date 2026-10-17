@@ -123,25 +123,9 @@ impl std::error::Error for PidStartError {
 /// option.c finalizes MX/SRV defaults before returning from syntax-check mode.
 /// This is a local kernel query, never a DNS resolver lookup.
 pub fn hostname() -> Result<Vec<u8>, StartupError> {
-    unsafe extern "C" {
-        fn gethostname(name: *mut std::ffi::c_char, length: usize) -> std::ffi::c_int;
-    }
-    let mut name = [0u8; 503]; // C MAXDNAMESTR, including room for its terminator.
-                               // SAFETY: gethostname receives the complete writable buffer and its size.
-    if unsafe { gethostname(name.as_mut_ptr().cast(), name.len()) } != 0 {
-        return Err(StartupError {
-            code: 5,
-            message: format!("cannot get host-name: {}", std::io::Error::last_os_error()),
-        });
-    }
-    let end = name
-        .iter()
-        .position(|byte| *byte == 0)
-        .ok_or_else(|| StartupError {
-            code: 5,
-            message: "host-name exceeds the configuration buffer".into(),
-        })?;
-    Ok(name[..end].to_vec())
+    // Linux uname uses the same kernel nodename as gethostname. Its fixed
+    // field is smaller than C MAXDNAMESTR=503, so truncation is impossible.
+    Ok(rustix::system::uname().nodename().to_bytes().to_vec())
 }
 impl std::fmt::Display for StartupError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -150,13 +134,10 @@ impl std::fmt::Display for StartupError {
 }
 impl std::error::Error for StartupError {}
 #[cfg(target_os = "linux")]
-fn failure(code: i32, context: &str) -> StartupError {
+fn failure(code: i32, context: &str, error: io::Error) -> StartupError {
     StartupError {
         code,
-        message: format!(
-            "{context}: {}",
-            crate::logging::error_text(&io::Error::last_os_error())
-        ),
+        message: format!("{context}: {}", crate::logging::error_text(&error)),
     }
 }
 
@@ -209,52 +190,16 @@ pub fn network_capabilities(
 #[cfg(target_os = "linux")]
 mod linux {
     use super::*;
-    use std::ffi::{c_char, c_int, CString};
-    use std::os::fd::{AsRawFd, IntoRawFd};
+    use dnsmasq_platform::process;
+    use rustix::thread::{CapabilitySet, CapabilitySets};
     use std::os::unix::fs::OpenOptionsExt;
-    #[repr(C)]
-    struct Passwd {
-        name: *mut c_char,
-        password: *mut c_char,
-        uid: u32,
-        gid: u32,
-        gecos: *mut c_char,
-        directory: *mut c_char,
-        shell: *mut c_char,
-    }
-    #[repr(C)]
-    struct Group {
-        name: *mut c_char,
-        password: *mut c_char,
-        gid: u32,
-        members: *mut *mut c_char,
-    }
-    #[repr(C)]
-    struct CapHeader {
-        version: u32,
-        pid: i32,
-    }
-    #[repr(C)]
-    #[derive(Clone, Copy, Default)]
-    struct CapData {
-        effective: u32,
-        permitted: u32,
-        inheritable: u32,
-    }
-    extern "C" {
-        fn getpwnam(name: *const c_char) -> *mut Passwd;
-        fn getgrnam(name: *const c_char) -> *mut Group;
-        fn getgrgid(gid: u32) -> *mut Group;
-        fn getuid() -> u32;
-        fn geteuid() -> u32;
-        fn setuid(uid: u32) -> c_int;
-        fn setgid(gid: u32) -> c_int;
-        fn setgroups(count: usize, groups: *const u32) -> c_int;
-        fn fchown(fd: c_int, uid: u32, gid: u32) -> c_int;
-        fn close(fd: c_int) -> c_int;
-        fn capget(header: *mut CapHeader, data: *mut CapData) -> c_int;
-        fn capset(header: *const CapHeader, data: *const CapData) -> c_int;
-        fn prctl(option: c_int, a: usize, b: usize, c: usize, d: usize) -> c_int;
+    fn capability_sets(bits: u32) -> CapabilitySets {
+        let flags = CapabilitySet::from_bits_retain(bits as u64);
+        CapabilitySets {
+            effective: flags,
+            permitted: flags,
+            inheritable: CapabilitySet::empty(),
+        }
     }
     pub struct Identity {
         uid: Option<u32>,
@@ -267,8 +212,7 @@ mod linux {
         /// File-policy consumers are constructed before the UID transition.
         /// Use the same identity they will execute under after that transition.
         pub fn runtime_uid(&self, config: &ProcessConfig) -> u32 {
-            // SAFETY: geteuid reads process state and has no pointer arguments.
-            let current = unsafe { geteuid() };
+            let current = rustix::process::geteuid().as_raw();
             if !config.debug && self.root {
                 self.uid.filter(|uid| *uid != 0).unwrap_or(current)
             } else {
@@ -283,18 +227,13 @@ mod linux {
         }
 
         pub fn check_capabilities(&self, required: u32) -> Result<bool, StartupError> {
-            let mut header = CapHeader {
-                version: 0x20080522,
-                pid: 0,
-            };
-            let mut data = [CapData::default(); 2];
-            // SAFETY: Linux capability v3 reads exactly two initialized entries.
-            if unsafe { capget(&mut header, data.as_mut_ptr()) } < 0 {
-                return Err(failure(5, "capget"));
-            }
-            if data[0].permitted & required != required {
+            let permitted = rustix::thread::capabilities(None)
+                .map_err(|error| failure(5, "capget", error.into()))?
+                .permitted
+                .bits() as u32;
+            if permitted & required != required {
                 for (bit, name) in [(12, "NET_ADMIN"), (13, "NET_RAW"), (10, "NET_BIND_SERVICE")] {
-                    if required & (1 << bit) != 0 && data[0].permitted & (1 << bit) == 0 {
+                    if required & (1 << bit) != 0 && permitted & (1 << bit) == 0 {
                         return Err(StartupError {
                             code: 5,
                             message: format!("process is missing required capability {name}"),
@@ -306,7 +245,7 @@ mod linux {
                     message: "process is missing required capabilities".into(),
                 });
             }
-            Ok(data[0].permitted & 1 != 0)
+            Ok(permitted & 1 != 0)
         }
 
         pub fn resolve(config: &ProcessConfig) -> Result<Self, StartupError> {
@@ -317,43 +256,18 @@ mod linux {
             let (uid, user_gid) = match &config.user {
                 None => (None, None),
                 Some(name) => {
-                    let name_c = CString::new(name.as_slice()).map_err(|_| unknown(name))?;
-                    // SAFETY: the NUL-terminated name is live; copy fields before another lookup.
-                    let entry = unsafe { getpwnam(name_c.as_ptr()).as_ref() }
-                        .ok_or_else(|| unknown(name))?;
-                    (Some(entry.uid), Some(entry.gid))
+                    let (uid, gid) = process::user_ids(name).ok_or_else(|| unknown(name))?;
+                    (Some(uid), Some(gid))
                 }
             };
             let (gid, group_name) = if let Some(name) = &config.group {
-                let name_c = CString::new(name.as_slice()).map_err(|_| unknown(name))?;
-                // SAFETY: the live CString is terminated; libc owns the result.
-                // Copy its fields before another group database lookup.
-                let group =
-                    unsafe { getgrnam(name_c.as_ptr()).as_ref() }.ok_or_else(|| unknown(name))?;
-                (Some(group.gid), Some(name.clone()))
+                let (gid, _) = process::group_by_name(name).ok_or_else(|| unknown(name))?;
+                (Some(gid), Some(name.clone()))
             } else if !config.group_set {
-                // SAFETY: the constant name is terminated. A gid fallback is
-                // queried only when the first lookup returned a null pointer.
-                // Returned group storage is copied before another libc lookup.
-                let group = unsafe { getgrnam(c"dip".as_ptr()).as_ref() }.or_else(|| {
-                    user_gid.and_then(|gid| {
-                        // SAFETY: this fallback passes a scalar gid to libc;
-                        // the returned record is copied below before another
-                        // group lookup can invalidate its storage.
-                        unsafe { getgrgid(gid).as_ref() }
-                    })
-                });
-                match group {
-                    Some(group) => (
-                        Some(group.gid),
-                        Some(
-                            // SAFETY: libc's successful group record owns a
-                            // terminated name valid until the next group lookup.
-                            unsafe { std::ffi::CStr::from_ptr(group.name) }
-                                .to_bytes()
-                                .to_vec(),
-                        ),
-                    ),
+                match process::group_by_name(b"dip")
+                    .or_else(|| user_gid.and_then(process::group_by_id))
+                {
+                    Some((gid, name)) => (Some(gid), Some(name)),
                     None => (None, None),
                 }
             } else {
@@ -364,8 +278,7 @@ mod linux {
                 user_gid,
                 gid,
                 group_name,
-                // SAFETY: getuid reads process state without pointer arguments.
-                root: unsafe { getuid() } == 0,
+                root: rustix::process::getuid().is_root(),
             })
         }
         pub fn write_pid(&self, config: &ProcessConfig) -> Result<PidFile, PidStartError> {
@@ -395,19 +308,17 @@ mod linux {
                 .filter(|uid| self.root && *uid != 0)
                 .zip(self.user_gid)
             {
-                // SAFETY: fd belongs to file and scalar IDs came from libc.
-                if unsafe { fchown(file.as_raw_fd(), uid, gid) } < 0 {
-                    pid.ownership_warning = Some(io::Error::last_os_error());
+                if let Err(error) = rustix::fs::fchown(
+                    &file,
+                    Some(rustix::process::Uid::from_raw(uid)),
+                    Some(rustix::process::Gid::from_raw(gid)),
+                ) {
+                    pid.ownership_warning = Some(error.into());
                 }
             }
             writeln!(file, "{}", std::process::id())
                 .map_err(|error| PidStartError::new(path, error))?;
-            // Taking the raw descriptor prevents a second close. C treats a
-            // failed close exactly like open/write failure and keeps the path.
-            // SAFETY: into_raw_fd transfers the live descriptor once to close.
-            if unsafe { close(file.into_raw_fd()) } != 0 {
-                return Err(PidStartError::new(path, io::Error::last_os_error()));
-            }
+            process::close_file(file).map_err(|error| PidStartError::new(path, error))?;
             Ok(pid)
         }
         pub fn drop_privileges(
@@ -415,54 +326,37 @@ mod linux {
             config: &ProcessConfig,
             keep: u32,
         ) -> Result<(), StartupError> {
-            let header = CapHeader {
-                version: 0x20080522,
-                pid: 0,
-            };
             if config.debug || !self.root {
                 return Ok(());
             }
             if let Some(gid) = self.gid {
-                // SAFETY: a zero group count permits the null pointer; group
-                // and user IDs are copied scalars. Startup is single-threaded.
-                if unsafe { setgroups(0, std::ptr::null()) } < 0 || unsafe { setgid(gid) } < 0 {
+                if let Err(error) = process::set_process_group(gid) {
                     return Err(failure(
                         5,
                         &format!(
                             "failed to change group-id to {}",
                             String::from_utf8_lossy(self.group_name.as_deref().unwrap_or_default())
                         ),
+                        error,
                     ));
                 }
             }
             if let Some(uid) = self.uid.filter(|uid| *uid != 0) {
-                let mut data = [CapData::default(); 2];
-                data[0].effective = keep | (1 << 7);
-                data[0].permitted = data[0].effective;
-                // SAFETY: Linux capability v3 reads the two initialized live
-                // entries; PR_SET_KEEPCAPS takes scalar arguments only.
-                if unsafe { capset(&header, data.as_ptr()) } < 0
-                    || unsafe { prctl(8, 1, 0, 0, 0) } < 0
-                {
-                    return Err(failure(5, "setting capabilities failed"));
-                }
-                // SAFETY: setuid takes a scalar ID from the resolved passwd record.
-                if unsafe { setuid(uid) } < 0 {
-                    return Err(failure(
+                rustix::thread::set_capabilities(None, capability_sets(keep | (1 << 7)))
+                    .and_then(|()| rustix::thread::set_keep_capabilities(true))
+                    .map_err(|error| failure(5, "setting capabilities failed", error.into()))?;
+                process::set_process_user(uid).map_err(|error| {
+                    failure(
                         5,
                         &format!(
                             "failed to change user-id to {}",
                             String::from_utf8_lossy(config.user.as_deref().unwrap_or_default())
                         ),
-                    ));
-                }
-                data[0].effective = keep;
-                data[0].permitted = keep;
-                // SAFETY: header and both capability entries remain initialized
-                // and live after setuid; capset does not retain their pointers.
-                if unsafe { capset(&header, data.as_ptr()) } < 0 {
-                    return Err(failure(5, "setting capabilities failed"));
-                }
+                        error,
+                    )
+                })?;
+                rustix::thread::set_capabilities(None, capability_sets(keep))
+                    .map_err(|error| failure(5, "setting capabilities failed", error.into()))?;
             }
             Ok(())
         }
@@ -475,10 +369,6 @@ pub use linux::Identity;
 /// before helper startup/UID changes. C tolerates a failed /dev/null open.
 #[cfg(target_os = "linux")]
 pub fn redirect_standard_streams(config: &ProcessConfig) {
-    use std::os::fd::AsRawFd;
-    unsafe extern "C" {
-        fn dup2(old: i32, new: i32) -> i32;
-    }
     if config.debug {
         return;
     }
@@ -487,13 +377,9 @@ pub fn redirect_standard_streams(config: &ProcessConfig) {
         .write(true)
         .open("/dev/null")
     {
-        for target in [0, 1, 2] {
-            // SAFETY: /dev/null is owned and live. dup2 takes scalar FDs and
-            // atomically replaces only this process's standard stream target.
-            unsafe {
-                dup2(null.as_raw_fd(), target);
-            }
-        }
+        let _ = rustix::stdio::dup2_stdin(&null);
+        let _ = rustix::stdio::dup2_stdout(&null);
+        let _ = rustix::stdio::dup2_stderr(&null);
     }
 }
 

@@ -1,73 +1,136 @@
 use super::*;
-use std::ffi::{c_char, c_int, CString, OsString};
+use rustix::event::{PollFd, PollFlags, Timespec};
+use rustix::process::{Pid, WaitOptions};
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::os::fd::{AsFd, AsRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::process::{Command, Stdio};
 
-const O_CLOEXEC: c_int = 0x80000;
-const O_NONBLOCK: c_int = 0x800;
-const F_GETFL: c_int = 3;
-const F_SETFL: c_int = 4;
-const WNOHANG: c_int = 1;
 const POLLIN: i16 = 1;
 const POLLOUT: i16 = 4;
-
-#[repr(C)]
-struct PollFd {
-    fd: c_int,
-    events: i16,
-    revents: i16,
-}
-
-#[repr(C)]
-struct Passwd {
-    name: *mut c_char,
-    password: *mut c_char,
-    uid: u32,
-    gid: u32,
-    gecos: *mut c_char,
-    directory: *mut c_char,
-    shell: *mut c_char,
-}
-extern "C" {
-    fn pipe2(fds: *mut c_int, flags: c_int) -> c_int;
-    fn poll(fds: *mut PollFd, count: usize, timeout: c_int) -> c_int;
-    fn fcntl(fd: c_int, command: c_int, ...) -> c_int;
-    fn fork() -> c_int;
-    fn close(fd: c_int) -> c_int;
-    fn signal(signum: c_int, handler: usize) -> usize;
-    fn setuid(uid: u32) -> c_int;
-    fn setgid(gid: u32) -> c_int;
-    fn setgroups(count: usize, groups: *const u32) -> c_int;
-    fn getpwnam(name: *const c_char) -> *mut Passwd;
-    fn waitpid(pid: c_int, status: *mut c_int, options: c_int) -> c_int;
-    #[cfg(test)]
-    fn kill(pid: c_int, signal: c_int) -> c_int;
-    fn getrlimit(resource: c_int, limit: *mut [usize; 2]) -> c_int;
-    fn _exit(code: c_int) -> !;
-}
+const INTERNAL_HELPER: &str = "--dnsmasq-internal-helper-v1";
+#[cfg(test)]
+const TEST_CHANNELS: &str = "DNSMASQ_TEST_HELPER_CHANNELS";
 
 fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
-    let mut fds = [-1; 2];
-    // SAFETY: pipe2 writes exactly two descriptors, owned only after success.
-    if unsafe { pipe2(fds.as_mut_ptr(), O_CLOEXEC) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: successful pipe2 returned two distinct live FDs; transfer each
-    // exactly once into OwnedFd so every later startup error closes both.
-    Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })
+    Ok(rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?)
 }
-fn nonblocking(fd: RawFd) -> io::Result<()> {
-    // SAFETY: callers retain the owning pipe FD across both calls. GETFL has
-    // no variadic argument; SETFL receives the native int flags it expects.
-    let flags = unsafe { fcntl(fd, F_GETFL) };
-    if flags < 0 || unsafe { fcntl(fd, F_SETFL, flags | O_NONBLOCK) } < 0 {
-        return Err(io::Error::last_os_error());
+fn nonblocking(fd: impl AsFd) -> io::Result<()> {
+    let flags = rustix::fs::fcntl_getfl(&fd)?;
+    Ok(rustix::fs::fcntl_setfl(
+        fd,
+        flags | rustix::fs::OFlags::NONBLOCK,
+    )?)
+}
+
+/// Private self-exec dispatch, called before configuration parsing or opening
+/// service descriptors. A normal command line returns None without side effects.
+pub fn dispatch_internal_helper() -> Option<i32> {
+    let mut args = std::env::args_os().skip(1);
+    if args.next().as_deref() != Some(std::ffi::OsStr::new(INTERNAL_HELPER)) {
+        return None;
     }
-    Ok(())
+    let descriptors = args
+        .next()
+        .and_then(|value| value.to_str().map(str::to_owned));
+    if args.next().is_some() {
+        return Some(5);
+    }
+    Some(descriptors.as_deref().map_or(5, dispatch_channels))
+}
+
+fn dispatch_channels(descriptors: &str) -> i32 {
+    let Some((read, write)) = descriptors.split_once(':') else {
+        return 5;
+    };
+    let Ok(read) = read.parse() else {
+        return 5;
+    };
+    let Ok(write) = write.parse() else {
+        return 5;
+    };
+    let Ok(mut commands) = dnsmasq_platform::process::inherited_pipe(read, true) else {
+        return 5;
+    };
+    let Ok(mut events) = dnsmasq_platform::process::inherited_pipe(write, false) else {
+        return 5;
+    };
+    let decoded = read_startup(&mut commands);
+    match decoded {
+        Ok((config, maximum, identity, initialize)) => {
+            child(config, maximum, identity, commands, events, initialize)
+        }
+        Err(error) => {
+            let _ = send(
+                &mut events,
+                Notice::Error(error.raw_os_error().unwrap_or(22)),
+            );
+            5
+        }
+    }
+}
+
+fn startup_frame(
+    config: &Config,
+    maximum: Option<usize>,
+    identity: Option<(u32, u32)>,
+    initialize: bool,
+) -> io::Result<Vec<u8>> {
+    let mut bytes = b"DNSHLP01".to_vec();
+    bytes.push(
+        u8::from(config.debug)
+            | (u8::from(initialize) << 1)
+            | (u8::from(maximum.is_some()) << 2)
+            | (u8::from(identity.is_some()) << 3),
+    );
+    bytes.extend(maximum.map_or(0, |value| value as u64).to_le_bytes());
+    let (uid, gid) = identity.unwrap_or((0, 0));
+    bytes.extend(uid.to_le_bytes());
+    bytes.extend(gid.to_le_bytes());
+    bytes.extend(config.script.as_os_str().as_bytes());
+    if bytes.len() > wire::MAX_FRAME {
+        return Err(invalid());
+    }
+    Ok(wire::frame(&bytes))
+}
+
+type Startup = (Config, Option<usize>, Option<(u32, u32)>, bool);
+fn read_startup(commands: &mut File) -> io::Result<Startup> {
+    let mut length = [0; 4];
+    commands.read_exact(&mut length)?;
+    let length = u32::from_le_bytes(length) as usize;
+    if !(26..=wire::MAX_FRAME).contains(&length) {
+        return Err(invalid());
+    }
+    let mut bytes = vec![0; length];
+    commands.read_exact(&mut bytes)?;
+    if &bytes[..8] != b"DNSHLP01" || bytes[8] > 15 || bytes[25..].contains(&0) {
+        return Err(invalid());
+    }
+    let maximum = u64::from_le_bytes(bytes[9..17].try_into().unwrap());
+    let uid = u32::from_le_bytes(bytes[17..21].try_into().unwrap());
+    let gid = u32::from_le_bytes(bytes[21..25].try_into().unwrap());
+    Ok((
+        Config {
+            script: OsString::from_vec(bytes[25..].to_vec()).into(),
+            script_user: None,
+            debug: bytes[8] & 1 != 0,
+        },
+        if bytes[8] & 4 == 0 {
+            None
+        } else {
+            Some(usize::try_from(maximum).map_err(|_| invalid())?)
+        },
+        if bytes[8] & 8 == 0 {
+            None
+        } else {
+            Some((uid, gid))
+        },
+        bytes[8] & 2 != 0,
+    ))
 }
 fn start_error(error: io::Error) -> StartError {
     StartError {
@@ -77,7 +140,7 @@ fn start_error(error: io::Error) -> StartError {
 }
 
 pub struct Helper {
-    pid: c_int,
+    pid: i32,
     script: std::path::PathBuf,
     script_user: Option<Vec<u8>>,
     writer: Option<File>,
@@ -87,7 +150,7 @@ pub struct Helper {
     incoming: Vec<u8>,
     stopping: bool,
     eof: bool,
-    reaped: Option<c_int>,
+    reaped: Option<i32>,
     ready: bool,
     init_capacity: Option<usize>,
 }
@@ -140,12 +203,7 @@ impl Helper {
                     code: 1,
                     message: format!("unknown script user {}", String::from_utf8_lossy(name)),
                 };
-                let c_name = CString::new(name.as_slice()).map_err(|_| invalid_user())?;
-                // SAFETY: the sole startup thread supplies a live NUL-terminated
-                // name, checks NULL, and copies UID/GID before another lookup.
-                let value =
-                    unsafe { getpwnam(c_name.as_ptr()).as_ref() }.ok_or_else(invalid_user)?;
-                Some((value.uid, value.gid))
+                Some(dnsmasq_platform::process::user_ids(name).ok_or_else(invalid_user)?)
             }
         };
         Ok(identity)
@@ -165,38 +223,35 @@ impl Helper {
         let identity = Self::startup_identity(&config, init_capacity)?;
         let (commands_read, commands_write) = pipe().map_err(start_error)?;
         let (events_read, events_write) = pipe().map_err(start_error)?;
-        nonblocking(commands_write.as_raw_fd()).map_err(start_error)?;
-        nonblocking(events_read.as_raw_fd()).map_err(start_error)?;
-        // SAFETY: production calls before the single owner starts serving. Child
-        // never returns into the parent's Rust ownership graph, using _exit.
-        let pid = unsafe { fork() };
-        if pid < 0 {
-            return Err(start_error(io::Error::last_os_error()));
-        }
-        if pid == 0 {
-            drop(commands_write);
-            drop(events_read);
-            let code = child(
-                config,
-                init_capacity,
-                identity,
-                File::from(commands_read),
-                File::from(events_write),
-                initialization_only,
-            );
-            // SAFETY: only the fork child reaches this process-exit syscall.
-            // It must never unwind into the copied parent ownership graph.
-            unsafe { _exit(code) }
-        }
-        drop(commands_read);
-        drop(events_write);
+        nonblocking(&commands_write).map_err(start_error)?;
+        nonblocking(&events_read).map_err(start_error)?;
+        let pending = startup_frame(&config, init_capacity, identity, initialization_only)
+            .map_err(start_error)?;
+        let descriptors = format!("{}:{}", commands_read.as_raw_fd(), events_write.as_raw_fd());
+        let mut command = Command::new("/proc/self/exe");
+        #[cfg(not(test))]
+        command.arg(INTERNAL_HELPER).arg(&descriptors);
+        #[cfg(test)]
+        command
+            .args([
+                "--exact",
+                "helper::process::tests::internal_helper_entry",
+                "--nocapture",
+                "--test-threads=1",
+            ])
+            .env(TEST_CHANNELS, &descriptors);
+        dnsmasq_platform::process::isolated_pipe_command(&mut command, commands_read, events_write)
+            .map_err(start_error)?;
+        let process = command.spawn().map_err(start_error)?;
+        let pid = i32::try_from(process.id()).map_err(|_| start_error(invalid()))?;
+        drop(command);
         Ok(Self {
             pid,
             script: config.script,
             script_user: config.script_user,
             writer: Some(File::from(commands_write)),
             reader: Some(File::from(events_read)),
-            pending: Vec::new(),
+            pending,
             written: 0,
             incoming: Vec::new(),
             stopping: false,
@@ -402,15 +457,17 @@ impl Helper {
         if let Some(writer) = &mut self.writer {
             // C writes only after POLLOUT. An optimistic small write can
             // fill more pipe capacity and expose extra callbacks on TERM.
-            let mut readiness = PollFd {
-                fd: writer.as_raw_fd(),
-                events: POLLOUT,
-                revents: 0,
-            };
-            // SAFETY: one valid pollfd, zero timeout; error/hangup readiness
-            // reaches write so the existing EPIPE cleanup remains active.
+            let mut readiness = [PollFd::new(&*writer, PollFlags::OUT)];
             if !self.pending.is_empty()
-                && (self.stopping || unsafe { poll(&mut readiness, 1, 0) } > 0)
+                && (self.stopping
+                    || rustix::event::poll(
+                        &mut readiness,
+                        Some(&Timespec {
+                            tv_sec: 0,
+                            tv_nsec: 0,
+                        }),
+                    )
+                    .is_ok_and(|count| count > 0))
             {
                 match writer.write(&self.pending[self.written..]) {
                     Ok(0) => {
@@ -444,21 +501,17 @@ impl Helper {
             self.writer.take();
         }
         if self.reaped.is_none() {
-            let mut status = 0;
-            // SAFETY: pid names this helper child and status is a live native
-            // int. WNOHANG preserves the poll owner's nonblocking boundary.
-            let result = unsafe { waitpid(self.pid, &mut status, WNOHANG) };
-            if result == self.pid {
-                self.reaped = Some(status);
-                self.pending.clear();
-                self.written = 0;
-                self.writer.take();
-                notices.push(Notice::Reaped(status));
-            } else if result < 0 {
-                let error = io::Error::last_os_error();
-                if error.kind() != io::ErrorKind::Interrupted {
-                    return Err(error);
+            match rustix::process::waitpid(Pid::from_raw(self.pid), WaitOptions::NOHANG) {
+                Ok(Some((_, status))) => {
+                    let status = status.as_raw();
+                    self.reaped = Some(status);
+                    self.pending.clear();
+                    self.written = 0;
+                    self.writer.take();
+                    notices.push(Notice::Reaped(status));
                 }
+                Ok(None) | Err(rustix::io::Errno::INTR) => {}
+                Err(error) => return Err(error.into()),
             }
         }
         Ok(notices)
@@ -472,12 +525,7 @@ impl Drop for Helper {
         // an arbitrary script. init/systemd or the test subreaper owns orphans.
         self.writer.take();
         if self.reaped.is_none() {
-            let mut status = 0;
-            // SAFETY: same owned child PID/status ABI as step; never wait for
-            // an arbitrary script from Drop, including after a startup error.
-            unsafe {
-                waitpid(self.pid, &mut status, WNOHANG);
-            }
+            let _ = rustix::process::waitpid(Pid::from_raw(self.pid), WaitOptions::NOHANG);
         }
     }
 }
@@ -584,45 +632,6 @@ fn send(events: &mut File, notice: Notice) -> io::Result<()> {
     }
 }
 
-fn close_inherited(keep: [RawFd; 2]) -> io::Result<()> {
-    // Snapshot first; closing the directory iterator's own FD during iteration
-    // would be unsafe. /proc is available in the exact OpenWrt rootfs lifecycle.
-    let fds = match std::fs::read_dir("/proc/self/fd") {
-        Ok(entries) => entries
-            .filter_map(Result::ok)
-            .filter_map(|e| e.file_name().to_str()?.parse::<RawFd>().ok())
-            .collect::<Vec<_>>(),
-        Err(_) => {
-            // Match C's fallback when /proc is unavailable in a minimal jail.
-            let mut limit = [0; 2];
-            // SAFETY: this Linux64 module uses two aligned native unsigned
-            // longs for rlimit. RLIMIT_NOFILE is 7 in the target image ABI.
-            if unsafe { getrlimit(7, &mut limit) } < 0 {
-                return Err(io::Error::last_os_error());
-            }
-            for fd in 3..limit[0].min(i32::MAX as usize) {
-                if !keep.contains(&(fd as RawFd)) {
-                    // SAFETY: this post-fork child has no other thread opening
-                    // FDs. close accepts any native int; EBADF is harmless.
-                    unsafe {
-                        close(fd as RawFd);
-                    }
-                }
-            }
-            return Ok(());
-        }
-    };
-    for fd in fds {
-        if fd > 2 && !keep.contains(&fd) {
-            // SAFETY: the iterator has dropped; no FD opens occur between its
-            // snapshot and this child-only close. Commands/events are retained.
-            unsafe {
-                close(fd);
-            }
-        }
-    }
-    Ok(())
-}
 fn child(
     config: Config,
     init_capacity: Option<usize>,
@@ -631,23 +640,6 @@ fn child(
     mut events: File,
     initialization_only: bool,
 ) -> i32 {
-    // C ignores these in the helper and its script descendants. SIGCHLD must
-    // have its default disposition so wait works, independent of owner hooks.
-    // SAFETY: the helper child owns its signal dispositions. Linux uses zero
-    // and one for SIG_DFL/SIG_IGN; every listed signal number is valid here.
-    unsafe {
-        for sig in [2, 13, 14, 15] {
-            signal(sig, 1);
-        }
-        signal(17, 0);
-    }
-    if let Err(error) = close_inherited([commands.as_raw_fd(), events.as_raw_fd()]) {
-        let _ = send(
-            &mut events,
-            Notice::Error(error.raw_os_error().unwrap_or(5)),
-        );
-        return 5;
-    }
     if let Some(maximum) = init_capacity {
         match run_init(&config, maximum, &mut events) {
             Ok(code) if initialization_only => return code,
@@ -657,15 +649,12 @@ fn child(
     }
     if !config.debug {
         if let Some((uid, gid)) = identity.filter(|(uid, _)| *uid != 0) {
-            // SAFETY: credentials change only in this fork child. count=0
-            // permits a NULL group pointer; UID/GID were copied from passwd.
-            if unsafe { setgroups(0, std::ptr::null()) } < 0
-                || unsafe { setgid(gid) } < 0
-                || unsafe { setuid(uid) } < 0
+            if let Err(error) = dnsmasq_platform::process::set_process_group(gid)
+                .and_then(|()| dnsmasq_platform::process::set_process_user(uid))
             {
                 let _ = send(
                     &mut events,
-                    Notice::CredentialError(io::Error::last_os_error().raw_os_error().unwrap_or(1)),
+                    Notice::CredentialError(error.raw_os_error().unwrap_or(1)),
                 );
                 return 5;
             }
@@ -715,11 +704,11 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
     // Only the helper child waits; raw stdout never reaches owner memory.
     let mut command = config.script.as_os_str().to_os_string();
     command.push(" init");
-    let mut process = Command::new("/bin/sh")
-        .arg("-c")
-        .arg(command)
-        .stdout(Stdio::piped())
-        .spawn()?;
+    let mut producer = Command::new("/bin/sh");
+    producer.arg("-c").arg(command).stdout(Stdio::piped());
+    #[cfg(test)]
+    producer.env_remove(TEST_CHANNELS);
+    let mut process = producer.spawn()?;
     // Successful spawn with Stdio::piped always supplies this owned stdout.
     let output = process.stdout.take().unwrap();
     let parsed = crate::dhcp::lease_file::parse_reader_with_warnings(
@@ -792,14 +781,9 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
             command.env_remove(key);
         }
     }
-    // SAFETY: this child hook only restores SIGPIPE's target ABI disposition;
-    // it allocates nothing and accesses no shared Rust state before exec.
-    unsafe {
-        command.pre_exec(|| {
-            signal(13, 1);
-            Ok(())
-        });
-    }
+    dnsmasq_platform::process::preserve_ignored_sigpipe(&mut command);
+    #[cfg(test)]
+    command.env_remove(TEST_CHANNELS);
     let mut output = None;
     if !config.debug {
         let (read, write) = pipe()?;
@@ -887,6 +871,38 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use std::time::{Duration, Instant};
 
+    #[test]
+    fn internal_helper_entry() {
+        if let Ok(descriptors) = std::env::var(TEST_CHANNELS) {
+            std::process::exit(dispatch_channels(&descriptors));
+        }
+    }
+
+    #[test]
+    fn private_startup_preserves_paths_identity_and_capacity() {
+        for (maximum, identity, initialize) in [
+            (None, None, false),
+            (Some(usize::MAX), Some((17, 19)), true),
+        ] {
+            let config = Config {
+                script: OsString::from_vec(b"/tmp/script-\xff".to_vec()).into(),
+                script_user: None,
+                debug: true,
+            };
+            let bytes = startup_frame(&config, maximum, identity, initialize).unwrap();
+            let (reader, writer) = pipe().unwrap();
+            File::from(writer).write_all(&bytes).unwrap();
+            let (decoded, actual_maximum, actual_identity, actual_initialize) =
+                read_startup(&mut File::from(reader)).unwrap();
+            assert_eq!(decoded.script, config.script);
+            assert!(decoded.debug);
+            assert_eq!(
+                (actual_maximum, actual_identity, actual_initialize),
+                (maximum, identity, initialize)
+            );
+        }
+    }
+
     fn script(text: &str) -> (std::path::PathBuf, Config) {
         let folder = std::env::temp_dir().join(format!(
             "dnsmasq-helper-{}-{}",
@@ -930,7 +946,10 @@ mod tests {
         helper.eof = true;
         assert!(helper.needs_reap());
         until(&mut helper, |helper, _| helper.is_finished());
-        assert!(!helper.needs_reap(), "reaped helper must not keep an idle timer");
+        assert!(
+            !helper.needs_reap(),
+            "reaped helper must not keep an idle timer"
+        );
         drop(helper);
         std::fs::remove_dir_all(folder).unwrap();
     }
@@ -1030,7 +1049,7 @@ mod tests {
         let marker = folder.join("must-not-inherit");
         let file = File::create(&marker).unwrap();
         // Clear CLOEXEC to verify helper isolation, not Command's exec closure.
-        assert_eq!(unsafe { fcntl(file.as_raw_fd(), 2, 0) }, 0);
+        rustix::io::fcntl_setfd(&file, rustix::io::FdFlags::empty()).unwrap();
         config.debug = false;
         let mut helper = Helper::start(config).unwrap();
         until(&mut helper, |h, _| h.ready());
@@ -1174,7 +1193,11 @@ case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
         let (folder, config) = script("exit 0");
         let mut helper = Helper::start(config).unwrap();
         until(&mut helper, |h, _| h.ready());
-        assert_eq!(unsafe { kill(helper.pid(), 9) }, 0);
+        rustix::process::kill_process(
+            Pid::from_raw(helper.pid()).unwrap(),
+            rustix::process::Signal::KILL,
+        )
+        .unwrap();
         std::thread::sleep(Duration::from_millis(20));
         // A command raced with the helper death; parent write sees EPIPE.
         helper
@@ -1205,7 +1228,7 @@ case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
             let mut output = File::from(output);
             output.write_all(&partial).unwrap();
             drop(output);
-            nonblocking(input.as_raw_fd()).unwrap();
+            nonblocking(&input).unwrap();
             helper.reader = Some(File::from(input));
             let notices = until(&mut helper, |h, _| h.is_finished());
             assert!(notices.contains(&Notice::Error(22)));

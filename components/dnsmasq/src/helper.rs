@@ -1,4 +1,4 @@
-//! Fixed-command lease/ARP/TFTP helper. Only the forked helper waits for scripts;
+//! Fixed-command lease/ARP/TFTP helper. Only the isolated helper waits for scripts;
 //! the single service owner exchanges bounded frames through nonblocking pipes.
 //! Reference: helper.c:79-134,180-688,773-942; dnsmasq.c:718,1177-1194,1711-1728.
 
@@ -15,7 +15,7 @@ pub use packet::{cpe_data, extra_data};
 #[path = "helper/wire.rs"]
 mod wire;
 #[cfg(target_os = "linux")]
-pub use process::Helper;
+pub use process::{dispatch_internal_helper, Helper};
 
 #[derive(Clone, Debug)]
 pub struct Config {

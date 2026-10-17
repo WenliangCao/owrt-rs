@@ -2,8 +2,8 @@
 //! through a private pipe. Only the original invoking process waits on it.
 use super::{ProcessConfig, StartupError};
 use std::fs::File;
-use std::io::{self, Read};
-use std::os::fd::{AsRawFd, FromRawFd};
+use std::io::{self, IoSlice, Read, Write};
+use std::os::fd::AsFd;
 
 #[derive(Default)]
 pub struct StartupChannel {
@@ -27,55 +27,18 @@ impl StartupChannel {
         if config.keep_in_foreground {
             return Ok(false);
         }
-        let mut fds = [-1; 2];
-        // SAFETY: the array has space for the pipe's two uniquely owned FDs.
-        if unsafe { pipe2(fds.as_mut_ptr(), 0o2000000) } != 0 {
-            return Err(failure("cannot create pipe", io::Error::last_os_error()));
-        }
-        // SAFETY: successful pipe2 initialized both descriptors. Each end is
-        // transferred once into its own File and closed by that owner.
-        let mut reader = unsafe { File::from_raw_fd(fds[0]) };
-        let writer = unsafe { File::from_raw_fd(fds[1]) };
-        // SAFETY: F_SETFL takes a scalar flags value for the live writer fd.
-        if unsafe { fcntl(writer.as_raw_fd(), 4, 0o4000) } < 0 {
-            return Err(failure("cannot create pipe", io::Error::last_os_error()));
-        }
-        // SAFETY: the startup owner is single-threaded. No RefCell borrow is
-        // retained across this fork; the two processes own separate fd copies.
-        let pid = unsafe { fork() };
-        if pid < 0 {
-            return Err(failure(
-                "cannot fork into background",
-                io::Error::last_os_error(),
-            ));
-        }
-        if pid > 0 {
-            drop(writer);
-            return read_startup_event(&mut reader, &mut self.failure_bytes);
-        }
-        drop(reader);
+        let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)
+            .map_err(|error| failure("cannot create pipe", error.into()))?;
+        rustix::fs::fcntl_setfl(&writer, rustix::fs::OFlags::NONBLOCK)
+            .map_err(|error| failure("cannot create pipe", error.into()))?;
+        let writer = dnsmasq_platform::process::background_startup(
+            File::from(reader),
+            File::from(writer),
+            parent_report,
+            fork_failed,
+        )
+        .map_err(|error| failure("cannot fork into background", error))?;
         self.writer = Some(writer);
-        // C ignores setsid failure and still makes its second fork.
-        // SAFETY: setsid uses only process state and has no pointer arguments.
-        unsafe {
-            setsid();
-        }
-        // SAFETY: the first child remains single-threaded with no active borrows.
-        let pid = unsafe { fork() };
-        if pid < 0 {
-            let error = failure("cannot fork into background", io::Error::last_os_error());
-            self.fail(error.code, &error.message);
-            // SAFETY: _exit takes a scalar status and skips inherited cleanup.
-            unsafe {
-                _exit(0);
-            }
-        }
-        if pid > 0 {
-            // SAFETY: the intermediate child must not run service destructors.
-            unsafe {
-                _exit(0);
-            }
-        }
         Ok(false)
     }
 
@@ -94,7 +57,7 @@ impl StartupChannel {
             return;
         };
         let message = &message.as_bytes()[..message.len().min(4084)];
-        write_event(writer.as_raw_fd(), -1, code, message);
+        write_event(&writer, -1, code, message);
     }
 
     /// EVENT_PIDFILE13 uses the same optional raw-argument handoff as C.
@@ -102,7 +65,7 @@ impl StartupChannel {
         let Some(writer) = self.writer.take() else {
             return;
         };
-        write_event(writer.as_raw_fd(), 13, errno, path);
+        write_event(&writer, 13, errno, path);
     }
 
     /// Exact EVENT_LOG_ERR has the original path as argument, not a formatted
@@ -111,7 +74,7 @@ impl StartupChannel {
         let Some(writer) = self.writer.take() else {
             return;
         };
-        write_event(writer.as_raw_fd(), 17, errno, path);
+        write_event(&writer, 17, errno, path);
     }
 
     /// EVENT_TFTP_ERR uses the same errno/optional-path fallback as LOG_ERR.
@@ -119,32 +82,23 @@ impl StartupChannel {
         let Some(writer) = self.writer.take() else {
             return;
         };
-        write_event(writer.as_raw_fd(), 20, errno, path);
+        write_event(&writer, 20, errno, path);
     }
 }
 
-fn write_event(fd: i32, kind: i32, data: i32, argument: &[u8]) {
+fn write_event(fd: impl AsFd, kind: i32, data: i32, argument: &[u8]) {
     let mut header = [0; 12];
     header[..4].copy_from_slice(&kind.to_ne_bytes());
     header[4..8].copy_from_slice(&data.to_ne_bytes());
     header[8..].copy_from_slice(&(argument.len() as i32).to_ne_bytes());
-    let vectors = [
-        Iovec {
-            base: header.as_ptr(),
-            length: header.len(),
-        },
-        Iovec {
-            base: argument.as_ptr(),
-            length: argument.len(),
-        },
-    ];
+    let vectors = [IoSlice::new(&header), IoSlice::new(argument)];
     // SIGPIPE is already ignored by the startup loader. An absent parent
     // cannot terminate the service before its own orderly failure cleanup.
     for _ in 0..128 {
-        // SAFETY: both iovecs and their initialized buffers remain live for
-        // this synchronous write; fd is the startup channel's owned writer.
-        let written = unsafe { writev(fd, vectors.as_ptr(), 2) };
-        if written >= 0 || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
+        if !matches!(
+            rustix::io::writev(&fd, &vectors),
+            Err(rustix::io::Errno::INTR)
+        ) {
             break;
         }
     }
@@ -221,10 +175,41 @@ fn read_startup_event(
     })
 }
 
-#[repr(C)]
-struct Iovec {
-    base: *const u8,
-    length: usize,
+/// The original parent reports startup and exits inside the platform boundary;
+/// it never returns through the service's inherited Rust ownership graph.
+fn parent_report(mut reader: File) -> i32 {
+    let mut bytes = None;
+    let Err(error) = read_startup_event(&mut reader, &mut bytes) else {
+        return 0;
+    };
+    if let Some(message) = bytes {
+        crate::logging::report_startup_failure_bytes(
+            &Default::default(),
+            &Default::default(),
+            &message,
+        );
+        let mut stderr = io::stderr();
+        let _ = stderr.write_all(b"\ndnsmasq: ");
+        let _ = stderr.write_all(&message);
+        let _ = stderr.write_all(b"\n");
+    } else {
+        crate::logging::report_startup_failure(
+            &Default::default(),
+            &Default::default(),
+            &error.message,
+        );
+        eprintln!("\ndnsmasq-rs: {}", error.message);
+    }
+    error.code
+}
+
+fn fork_failed(writer: File, error: io::Error) {
+    let mut channel = StartupChannel {
+        writer: Some(writer),
+        failure_bytes: None,
+    };
+    let error = failure("cannot fork into background", error);
+    channel.fail(error.code, &error.message);
 }
 
 #[cfg(test)]
@@ -298,12 +283,4 @@ fn failure(context: &str, error: io::Error) -> StartupError {
         code: 5,
         message: format!("{context}: {}", crate::logging::error_text(&error)),
     }
-}
-unsafe extern "C" {
-    fn pipe2(fds: *mut i32, flags: i32) -> i32;
-    fn fork() -> i32;
-    fn setsid() -> i32;
-    fn fcntl(fd: i32, operation: i32, ...) -> i32;
-    fn writev(fd: i32, vectors: *const Iovec, count: i32) -> isize;
-    fn _exit(code: i32) -> !;
 }
