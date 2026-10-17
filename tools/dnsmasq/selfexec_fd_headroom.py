@@ -273,7 +273,8 @@ def run_stage(args, mode, root, phase, process, owner, owner_fd, upstream, resol
 def trial(args, mode, root, baseline, process, owner, owner_fd, upstream, resolver):
     result = {'headroom': args.headroom, 'passed': False}
     if (not baseline.get('runtime_boundary') or
-            (mode == 'helper' and (baseline.get('callback') != jail.CALLBACK or not baseline['helper_child'].get('valid'))) or
+            (mode == 'helper' and (not jail.startup_callback_work(baseline.get('callback'))['valid'] or
+                                   not baseline['helper_child'].get('valid'))) or
             (mode == 'resolver' and (not baseline['after']['ok'] or not baseline['resolver_child'].get('valid')))):
         raise RuntimeError('baseline did not qualify for pressure')
     pid = baseline['helper_child']['pid'] if mode == 'helper' else owner
@@ -282,6 +283,11 @@ def trial(args, mode, root, baseline, process, owner, owner_fd, upstream, resolv
     while Path(f'/proc/{pid}/task/{pid}/children').read_text().strip():
         if time.monotonic() >= deadline: raise RuntimeError('pressure target was not idle')
         select.select([], [], [], .002)
+    if mode == 'helper':
+        baseline['callback'] = (root / 'fixture/callback').read_text()
+        baseline['callback_work'] = jail.startup_callback_work(baseline['callback'])
+        if not baseline['callback_work']['valid']:
+            raise RuntimeError('complete startup callback work did not qualify for pressure')
     change = LimitChange(pid, group, args.headroom, root.parent / 'limit-change.json')
     try:
         try:

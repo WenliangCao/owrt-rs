@@ -12,6 +12,33 @@ import selfexec_fd_headroom as pressure
 
 
 class HoleTests(unittest.TestCase):
+    def test_startup_callback_work_preserves_two_and_rejects_wrong_or_partial(self):
+        for count in (1, 2):
+            result = pressure.jail.startup_callback_work(pressure.jail.CALLBACK * count)
+            self.assertTrue(result['valid'])
+            self.assertEqual(result['count'], count)
+            self.assertEqual(result['raw'], pressure.jail.CALLBACK * count)
+        for raw in (None, '', pressure.jail.CALLBACK[:-1], pressure.jail.CALLBACK + 'tftp unrelated\n'):
+            self.assertFalse(pressure.jail.startup_callback_work(raw)['valid'])
+
+    def test_helper_negative_needs_typed_no_proc_failure_not_exit_alone(self):
+        row = {'mode': 'helper', 'forced': False, 'exit': 5, 'initial_dns': {'ok': False},
+               'callback': None, 'helper_child': {'captured': False},
+               'entry_receipt': {'proc_exists': False, 'namespace_pid': 1, 'uid': 0, 'gid': 0},
+               'entry_boundary': {'proc_exists': False, 'errors': []}}
+        self.assertTrue(pressure.jail.helper_negative_shape(row))
+        changes = [('mode', 'resolver'), ('forced', True), ('exit', 1),
+                   ('initial_dns', {'ok': True}), ('callback', pressure.jail.CALLBACK),
+                   ('helper_child', {'captured': True}), ('helper_child', {}),
+                   ('entry_receipt', {'proc_exists': True, 'namespace_pid': 1, 'uid': 0, 'gid': 0}),
+                   ('entry_boundary', {'proc_exists': False, 'errors': ['wrong mount']}),
+                   ('error', 'unrelated tool failure')]
+        for key, value in changes:
+            invalid = copy.deepcopy(row); invalid[key] = value
+            with self.subTest(key=key, value=value):
+                self.assertFalse(pressure.jail.helper_negative_shape(invalid))
+        self.assertFalse(pressure.jail.helper_negative_shape({'exit': 5}))
+
     def test_dense_and_sparse_inventories_keep_exact_holes(self):
         for fds in [list(range(12)), [0, 2, 5, 900], [7, 1000], []]:
             for wanted in pressure.LEVELS:

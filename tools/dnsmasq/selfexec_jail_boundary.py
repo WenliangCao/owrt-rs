@@ -55,6 +55,29 @@ CALLBACK = 'old 02:00:00:de:00:01 127.0.0.10 startup\n'
 CAPS = 0x3400
 
 
+def startup_callback_work(raw):
+    """Keep every completed startup callback; do not collapse repeated work."""
+    lines = raw.splitlines(keepends=True) if isinstance(raw, str) else []
+    return {'valid': bool(lines) and all(line == CALLBACK for line in lines),
+            'count': sum(line == CALLBACK for line in lines),
+            'complete_lines': len(lines), 'raw': raw}
+
+
+def helper_negative_shape(row):
+    """Typed expected failure only; final qualification also binds positive controls.
+
+    The old source executes /proc/self/exe, but early failure emits no usable
+    log on this fixture. Exit5 alone is insufficient and is not observed errno.
+    """
+    inside, outside = row.get('entry_receipt', {}), row.get('entry_boundary', {})
+    return (row.get('mode') == 'helper' and 'error' not in row and row.get('forced') is False
+            and row.get('exit') == 5 and row.get('initial_dns', {}).get('ok') is False
+            and row.get('callback') in (None, '') and row.get('helper_child', {}).get('captured') is False
+            and inside.get('proc_exists') is False and inside.get('namespace_pid') == 1
+            and inside.get('uid') == inside.get('gid') == 0
+            and outside.get('proc_exists') is False and outside.get('errors') == [])
+
+
 def save(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
@@ -332,10 +355,12 @@ def run_case(args, mode, observer, prepare_hook=None, trial=None):
             if mode == 'helper':
                 callback = root / 'fixture/callback'
                 deadline = time.monotonic() + 3
-                while row['initial_dns']['ok'] and not callback.exists() and time.monotonic() < deadline and process.poll() is None:
+                while row['initial_dns']['ok'] and time.monotonic() < deadline and process.poll() is None:
+                    if callback.exists() and callback.read_text().startswith(CALLBACK): break
                     row['callback_health'] = probe('ready.jail.test', upstream, row['upstream'], process, .1)
                     select.select([], [], [], .05)
                 row['callback'] = callback.read_text() if callback.exists() else None
+                row['callback_at_ready'] = row['callback']
                 row['helper_child'] = (worker_observation(target_pid, root, args.sha256, 'helper', proc_visible)
                                        if row['initial_dns']['ok'] and process.poll() is None else
                                        {'captured': False, 'reason': 'helper startup did not complete'})
@@ -384,14 +409,27 @@ def run_case(args, mode, observer, prepare_hook=None, trial=None):
     row['daemon_log'] = log.read_text(errors='backslashreplace') if log.exists() else ''
     text = row['stderr'] + row['daemon_log'] + ''.join(bytes.fromhex(value).decode(errors='backslashreplace') for value in row['syslog'])
     missing = 'No such file or directory' in text or 'os error 2' in text
+    if mode == 'helper':
+        callback = root / 'fixture/callback'
+        row['callback_final'] = callback.read_text() if callback.exists() else None
+        # Pressure adds separately checked unique TFTP callbacks. Preserve its
+        # pre-pressure baseline and the complete final file as separate evidence.
+        if trial is None: row['callback'] = row['callback_final']
+        row['callback_work'] = startup_callback_work(row['callback'])
     if 'error' not in row and not row['forced']:
         if args.expect == 'success':
             row['passed'] = row.get('exit') == 0 and row['initial_dns']['ok'] and bool(row.get('runtime_boundary')) and (
-                row.get('callback') == CALLBACK and row['helper_child'].get('valid') is True
+                row['callback_work']['valid'] and row['helper_child'].get('valid') is True
                 if mode == 'helper' else row['after']['ok'] and row['after_health']['ok']
                 and row['resolver_child'].get('valid') is True)
         elif mode == 'helper':
-            row['passed'] = row.get('exit') == 5 and row.get('callback') is None and missing and 'failed to create helper' in text
+            row['passed'] = helper_negative_shape(row)
+            row['negative_evidence'] = {
+                'typed_failure_shape': row['passed'], 'errno_observed_in_log': missing,
+                'scope': 'exit5 + no ready/callback/helper + independently witnessed absent proc; '
+                         'final qualification also requires same-fixture K and candidate positives',
+                'source_inference': 'old /proc/self/exe execution path is unavailable; this is not a traced errno',
+            }
         else:
             row['passed'] = (not row['after']['ok'] and row['after_health']['ok'] and row.get('exit') == 0
                              and missing and 'at line 1 of /fixture/servers' in text)
