@@ -1,0 +1,18 @@
+{
+  "source_commit": "8adcdeafddb7cfd8bc5d059e396d898c0447cb70",
+  "source_digest": "a6f9f1e7a7aca739842c6695e9c94945b80339cdbce11c88e8c4b950cfa987ae",
+  "source_file_count": 193,
+  "source_date_epoch": 1792237751,
+  "reference_elf_sha256": null,
+  "reference_elf_bytes": null,
+  "elf_max_bytes": 2500000,
+  "apk_max_bytes": 1400000,
+  "package_release": "4",
+  "qualification": "Unfrozen candidate: profile and actual Oracle PGO ELF identities must be filled before any build. This does not alter the accepted K release or qualify deployment.",
+  "pgo": {
+    "build_slot": "/home/ubuntu/dnsmasq-safe-v022-20261017/private/sdk-build-slot",
+    "profile_url": null,
+    "profile_sha256": null,
+    "profile_bytes": null
+  }
+}
