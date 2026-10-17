@@ -1,11 +1,48 @@
 {
   "schema": 1,
   "date": "2026-10-17",
-  "status": "DEVICE_ACCEPTED_AND_CLEANED_PUBLICATION_PENDING",
+  "status": "PUBLISHED_LATEST_DEVICE_ACCEPTED_AND_CLEANED",
   "publication": {
-    "status": "pending",
-    "GitHub_published_verified": false,
-    "Latest_verified": false
+    "status": "published_latest",
+    "GitHub_published_verified": true,
+    "Latest_verified": true,
+    "release_id": 415736917,
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1",
+    "tag": "v0.2.1",
+    "annotated_tag_object": "e32d13017c7626e9479407927043b41a6389e8dc",
+    "tag_target": "867c9c53d65b03d5d8266df278a03b87b5b791af",
+    "tag_moved": false,
+    "main_commit_at_publication": "b896859dfecacba9512575208ce659246d9a9138",
+    "main_host_CI": {
+      "run": 39024788942,
+      "head_sha": "b896859dfecacba9512575208ce659246d9a9138",
+      "conclusion": "success"
+    },
+    "prerelease_published_UTC": "2026-10-17T10:25:31Z",
+    "public_download_verified_UTC": "2026-10-17T10:26:23.582134+00:00",
+    "Latest_verified_UTC": "2026-10-17T10:27:55.457963+00:00",
+    "assets": 13,
+    "outer_checksum_entries_verified": 12,
+    "public_asset_hashes_verified": 13,
+    "GitHub_asset_digests_verified": 13,
+    "assets_replaced": false,
+    "image_rebuilt": false,
+    "workflow_before": "active",
+    "workflow_after": "active",
+    "workflow_restored_UTC": "2026-10-17T10:24:44.372973+00:00",
+    "delayed_tag_runs_observed": 0,
+    "user_files_preserved": 11,
+    "docs_prompts_committed_diff_empty": true,
+    "v022_merged_or_published": false,
+    "evidence_sha256": {
+      "main-ff.json": "8c147aac691ce4bed0f42e8a86644b33dabd02ec1a8dc676b817c0ffbbabb44c",
+      "asset-manifest.json": "c610febd413aab031511268b5c664417130ac4f06d0a19c1f062825d04d59490",
+      "tag-publication.json": "0231529a3eba303fd4a4cc7ace777e4796c48186499e1dbad48b59eb65db4b3c",
+      "release-create.json": "2b7cb194ebb62f7988751ab011125cc9700b7e2ae972df8ba4ad2049d4f0d54f",
+      "public-assets-verified.json": "8b8adbb7790eab0b1bca96bc55937f0e9a3309991d8d2df4b8cca0ebd85547f2",
+      "main-host-ci.json": "72972fb1b7440dcc4a1b69a8453ced76bf8c3e12694d0395d2b19e8ba7fc86c3",
+      "release-promoted.json": "77ae7e46753498ef2151e916b42454a183ec10cb48ed4192ad8f0a3b29681663"
+    }
   },
   "identity": {
     "CI_run": 39007479025,
