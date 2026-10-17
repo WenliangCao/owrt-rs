@@ -166,6 +166,49 @@ fn duplicate_and_read_error_are_not_allocation_failures() {
 }
 
 #[test]
+fn removing_uppercase_name_records_is_atomic_under_allocation_failure() {
+    for shared in [false, true] {
+        for persistent in [false, true] {
+            let mut completed = false;
+            let mut failures = 0;
+            for failure in 0..128 {
+                let mut local = Hosts::new();
+                local.insert(b"Representative.Test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2);
+                local.insert(b"REPRESENTATIVE.TEST".to_vec(), "192.0.2.2".parse().unwrap(), 37, 3);
+                let held = shared.then(|| local.tcp_snapshot());
+                let expected = local.entries().to_vec();
+                let action = || local.try_remove_uid(2);
+                let (result, failed) = if persistent {
+                    with_persistent_failure(failure, action)
+                } else {
+                    with_failure(failure, action)
+                };
+                assert_eq!(result.is_err(), failed);
+                if let Some(held) = &held {
+                    assert_eq!(held.entries(), expected);
+                    assert!(held.name_exists(b"representative.test"));
+                }
+                if let Ok(removed) = result {
+                    assert_eq!(removed, 1);
+                    assert_eq!(local.addresses(b"representative.test").count(), 1);
+                    assert!(local.name_exists(b"representative.test"));
+                    assert!(local.name_exists(b"REPRESENTATIVE.TEST"));
+                    assert_eq!(local.try_remove_uid(3).unwrap(), 1);
+                    assert!(!local.name_exists(b"representative.test"));
+                    completed = true;
+                    break;
+                }
+                assert_eq!(local.entries(), expected);
+                assert_eq!(local.addresses(b"representative.test").count(), 2);
+                assert!(local.name_exists(b"REPRESENTATIVE.TEST"));
+                failures += 1;
+            }
+            assert!(completed && failures > 0);
+        }
+    }
+}
+
+#[test]
 fn failed_hosts_allocations_keep_indexes_valid_and_allow_later_reload() {
     let input = b"192.0.2.1 One.Sub.Test alias.test\n192.0.2.2 One.Sub.Test\n192.0.2.1 One.Sub.Test\n2001:db8::1 v6.test\n";
     let mut exercised = 0;
@@ -775,7 +818,7 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
                         let (mut replacement, removed) = local.try_replace_source_with_leases(
                             2, b"/hostsdir/hosts", records, 37,
                             leases.active_entries().map(|lease| (
-                                lease.name.as_slice(), IpAddr::V4(lease.address),
+                                lease.name.as_ref(), IpAddr::V4(lease.address),
                                 lease.reverse, lease.expires.is_none(),
                             )),
                             [2],

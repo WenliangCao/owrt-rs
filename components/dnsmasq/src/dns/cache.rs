@@ -256,6 +256,25 @@ struct ContentBlock {
 
 type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
 
+#[derive(Clone, Copy)]
+enum NameSelection {
+    Missing,
+    One(EntryId),
+    AddressPair { ipv4: EntryId, ipv6: EntryId },
+}
+
+/// A read-only inspection already required by the local/CNAME ordering. This
+/// query-scoped hint owns no index references, so it cannot create extra COW
+/// allocations. Only a fresh A/AAAA pair can share the single-address shortcut;
+/// other multi-record names retain the ordinary indexed lookup path.
+pub(crate) struct NameLookup<'a> {
+    name: &'a Name,
+    owner: usize,
+    roots: usize,
+    revision: u64,
+    selection: NameSelection,
+}
+
 const CONTENT_BLOCK_SLOTS: usize = 64;
 const NAME_SHARDS: usize = 64;
 
@@ -275,6 +294,9 @@ pub struct Cache {
     failed: bool,
     long_names: usize,
     lease_generation: u64,
+    name_revision: u64,
+    // Deletion may leave this early, but never later than a committed expiry.
+    expiry_lower_bound: i64,
 }
 
 impl Cache {
@@ -310,10 +332,12 @@ impl Cache {
     }
 
     fn names_for_mut(&mut self, key: &[u8]) -> Option<&mut SlotIndices> {
+        self.name_revision = self.name_revision.saturating_add(1);
         Arc::make_mut(&mut self.names[Self::key_shard(key)]).get_mut(key)
     }
 
     fn names_shard_mut(&mut self, key: &[u8]) -> &mut NameIndex {
+        self.name_revision = self.name_revision.saturating_add(1);
         Arc::make_mut(&mut self.names[Self::key_shard(key)])
     }
 
@@ -361,6 +385,8 @@ impl Cache {
             failed: false,
             long_names: 0,
             lease_generation: 0,
+            name_revision: 0,
+            expiry_lower_bound: i64::MAX,
         }
     }
 
@@ -382,16 +408,31 @@ impl Cache {
     /// separately. Keep the allocation and generations so old handles cannot
     /// become valid again when the empty slots are reused.
     pub fn clear(&mut self) {
+        self.name_revision = self.name_revision.saturating_add(1);
+        self.expiry_lower_bound = i64::MAX;
         let capacity = self.slots.len();
+        // Each root's uniqueness is a block-level property. Detach once before
+        // clearing that block, in the same record order, instead of repeating
+        // Arc's atomic ownership check for every slot in the block.
+        for block in 0..self.content.len() {
+            for entry in &mut Arc::make_mut(&mut self.content[block]).entries {
+                *entry = None;
+            }
+        }
         for (index, slot) in self.slots.iter_mut().enumerate() {
-            Arc::make_mut(&mut self.content[index / CONTENT_BLOCK_SLOTS]).entries
-                [index % CONTENT_BLOCK_SLOTS] = None;
             slot.prev = index.checked_sub(1).map(slot_link);
             slot.next = (index + 1 < capacity).then_some(index + 1).map(slot_link);
         }
-        self.names = (0..NAME_SHARDS)
-            .map(|_| Arc::new(NameIndex::new()))
-            .collect();
+        for root in &mut self.names {
+            // An unused unique root is already the reset state. Do not retain
+            // allocated buckets or a shared empty root: both must be replaced
+            // here, preserving memory release and the next insertion's COW
+            // allocation boundary.
+            let unused = Arc::get_mut(root).is_some_and(|names| names.capacity() == 0);
+            if !unused {
+                *root = Arc::new(NameIndex::new());
+            }
+        }
         self.reverse_chain.clear();
         self.pending.clear();
         self.failed = false;
@@ -474,6 +515,144 @@ impl Cache {
                     && !self.invalid(slot, now)
             })
         })
+    }
+
+    /// Inspect without expiry removal, LRU promotion or rotation, exactly as
+    /// has_cname does. Keep the query name borrowed until this synchronous
+    /// answer operation ends; object/root identities also reject replacement
+    /// or movement of the owning cache. Saturation permanently disables reuse.
+    pub(super) fn inspect_name<'a>(&self, name: &'a Name, now: i64) -> (bool, Option<NameLookup<'a>>) {
+        let canonical;
+        let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
+            canonical = name.canonical_wire();
+            canonical.as_slice()
+        } else {
+            name.as_wire()
+        };
+        let indices = self.names_for(key);
+        let cname = indices.is_some_and(|slots| slots.iter().any(|&slot| {
+            self.entry(slot).is_some_and(|entry| entry.record.kind == Kind::Cname)
+                && !self.invalid(slot, now)
+        }));
+        if self.name_revision == u64::MAX {
+            return (cname, None);
+        }
+        let selection = match indices {
+            None | Some(SlotIndices::Empty) => NameSelection::Missing,
+            Some(SlotIndices::One(slot)) => NameSelection::One(self.id(*slot)),
+            Some(SlotIndices::Many(slots)) => {
+                let [first, second] = slots.as_slice() else { return (cname, None) };
+                let (ipv4, ipv6) = match (self.entry(*first), self.entry(*second)) {
+                    (Some(a), Some(b)) if a.record.kind == Kind::Ipv4 && b.record.kind == Kind::Ipv6 =>
+                        (*first, *second),
+                    (Some(a), Some(b)) if a.record.kind == Kind::Ipv6 && b.record.kind == Kind::Ipv4 =>
+                        (*second, *first),
+                    _ => return (cname, None),
+                };
+                // Ordinary lookup expires every name member before selecting
+                // a family. Reject both stale/invalid records without mutation
+                // so that the general path retains those expiry side effects.
+                if !self.fresh_address_slot(ipv4, Kind::Ipv4, now)
+                    || !self.fresh_address_slot(ipv6, Kind::Ipv6, now)
+                { return (cname, None); }
+                NameSelection::AddressPair { ipv4: self.id(ipv4), ipv6: self.id(ipv6) }
+            },
+        };
+        (cname, Some(NameLookup {
+            name,
+            owner: self as *const Self as usize,
+            roots: self.names.as_ptr() as usize,
+            revision: self.name_revision,
+            selection,
+        }))
+    }
+
+    /// The common one-address hit can keep its ID on the stack. A rejected
+    /// hint changes nothing; the ordinary lookup still owns all fallback,
+    /// expiry, negative, CNAME and RRset behavior.
+    pub(super) fn single_fresh_address_with_hint(
+        &mut self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
+    ) -> Option<EntryId> {
+        let id = self.single_fresh_address_id_with_hint(name, kind, now, hint)?;
+        // Exactly the existing single-slot lookup promotion, without a Vec.
+        self.unlink(id.slot);
+        self.link_head(id.slot);
+        Some(self.id(id.slot))
+    }
+
+    /// Read-only eligibility for a query-local shortcut before local ownership.
+    pub(super) fn single_fresh_address_id_with_hint(
+        &self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
+    ) -> Option<EntryId> {
+        let hint = hint?;
+        if !std::ptr::eq(name, hint.name)
+            || hint.owner != self as *const Self as usize
+            || hint.roots != self.names.as_ptr() as usize
+            || hint.revision != self.name_revision
+            || self.name_revision == u64::MAX
+        { return None; }
+        let id = match hint.selection {
+            NameSelection::One(id) => id,
+            NameSelection::AddressPair { ipv4, ipv6 } => {
+                // Hints may outlive the inspection's clock value. Both members
+                // must still be fresh before bypassing the ordinary expiry walk.
+                self.get(ipv4)?;
+                self.get(ipv6)?;
+                if !self.fresh_address_slot(ipv4.slot, Kind::Ipv4, now)
+                    || !self.fresh_address_slot(ipv6.slot, Kind::Ipv6, now)
+                { return None; }
+                match kind { Kind::Ipv4 => ipv4, Kind::Ipv6 => ipv6, _ => return None }
+            },
+            NameSelection::Missing => return None,
+        };
+        let expected_length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return None };
+        let entry = self.get(id)?;
+        if entry.record.kind != kind || entry.record.negative
+            || entry.record.data.len() != expected_length || entry.is_stale(now)
+            || !self.is_valid(id, now)
+        { return None; }
+        Some(id)
+    }
+
+    fn fresh_address_slot(&self, slot: usize, kind: Kind, now: i64) -> bool {
+        let length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return false };
+        self.entry(slot).is_some_and(|entry| entry.record.kind == kind
+            && !entry.record.negative && entry.record.data.len() == length
+            && !entry.is_stale(now) && !self.invalid(slot, now))
+    }
+
+    pub(super) fn lookup_with_hint(
+        &mut self,
+        name: &Name,
+        kinds: &[Kind],
+        now: i64,
+        round_robin: bool,
+        hint: Option<&NameLookup<'_>>,
+    ) -> Vec<EntryId> {
+        let usable = hint.filter(|hint| {
+            std::ptr::eq(name, hint.name)
+                && hint.owner == self as *const Self as usize
+                && hint.roots == self.names.as_ptr() as usize
+                && hint.revision == self.name_revision
+                && self.name_revision != u64::MAX
+        });
+        match usable.map(|hint| hint.selection) {
+            Some(NameSelection::Missing) => Vec::new(),
+            Some(NameSelection::One(id)) if self.get(id).is_some() => {
+                let mut found = Vec::new();
+                // Same single-slot step as lookup; leave its multi-slot loop
+                // intact so it has no extra per-record dispatch or calls.
+                if self.invalid(id.slot, now) {
+                    self.remove(id.slot);
+                } else if kinds.iter().any(|kind| self.entry(id.slot).unwrap().record.kind.matches(*kind)) {
+                    self.unlink(id.slot);
+                    self.link_head(id.slot);
+                    found.push(self.id(id.slot));
+                }
+                found
+            }
+            _ => self.lookup(name, kinds, now, round_robin),
+        }
     }
 
     /// A generic NX marker is inspected before local interface/synthetic
@@ -690,14 +869,20 @@ impl Cache {
         let slot = if let Some(id) = preserved {
             id.slot
         } else {
-            if self.tail.is_some_and(|slot| self.entry(slot).is_some()) {
+            if self.tail.is_some_and(|slot| self.entry(slot).is_some())
+                && self.policy.expired(self.expiry_lower_bound, now)
+            {
                 // Same pressure trigger as C: reclaim expired entries globally
-                // before spilling any live entry. The scan is a baseline cost.
+                // before spilling any live entry. A conservative deadline can
+                // prove this pass has no removals; otherwise keep slot order.
+                self.expiry_lower_bound = i64::MAX;
                 for slot in 0..self.slots.len() {
-                    if self.entry(slot).is_some_and(|entry| {
-                        entry.committed && self.policy.expired(entry.expires, now)
-                    }) {
-                        self.remove(slot);
+                    if let Some(entry) = self.entry(slot).filter(|entry| entry.committed) {
+                        if self.policy.expired(entry.expires, now) {
+                            self.remove(slot);
+                        } else {
+                            self.expiry_lower_bound = self.expiry_lower_bound.min(entry.expires);
+                        }
                     }
                 }
             }
@@ -733,7 +918,7 @@ impl Cache {
             }
             slot
         };
-        let long = record.name.dnsmasq_bytes().len() >= 75;
+        let long = record.name.dnsmasq_bytes_len() >= 75;
         if long && self.long_names >= self.slots.len() / 10 {
             return self.fail(InsertError::LongNameLimit);
         }
@@ -903,20 +1088,21 @@ impl Cache {
                 continue;
             }
             let capacity = self.slots.len();
-            let (key, reverse, name) = {
+            let (key, reverse_name, expires) = {
                 let entry = self.entry_mut(slot).as_mut().unwrap();
                 entry.committed = true;
                 (
                     entry.record.name.canonical_wire(),
-                    entry.record.kind.is_reverse(),
-                    entry.record.name.clone(),
+                    entry.record.kind.is_reverse().then(|| entry.record.name.clone()),
+                    entry.expires,
                 )
             };
+            self.expiry_lower_bound = self.expiry_lower_bound.min(expires);
             self.names_shard_mut(&key)
                 .entry(Arc::from(key.into_boxed_slice()))
                 .or_default()
                 .push(slot);
-            if reverse {
+            if let Some(name) = reverse_name {
                 let bucket = reverse_bucket(&name, capacity);
                 let mut at = self.reverse_chain.partition_point(|&old| {
                     reverse_bucket(&self.entry(old).unwrap().record.name, self.slots.len()) < bucket
@@ -1159,7 +1345,7 @@ impl Cache {
 
     fn free(&mut self, slot: usize) {
         let entry = self.entry_mut(slot).take().unwrap();
-        self.long_names -= usize::from(entry.record.name.dnsmasq_bytes().len() >= 75);
+        self.long_names -= usize::from(entry.record.name.dnsmasq_bytes_len() >= 75);
         self.slots[slot].prev = self.tail.map(slot_link);
         self.slots[slot].next = None;
         if let Some(tail) = self.tail {

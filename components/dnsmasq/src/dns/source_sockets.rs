@@ -4,8 +4,6 @@ use crate::config::ScalarConfig;
 use crate::dns::forward::Random;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
-#[cfg(target_os = "linux")]
-use std::os::fd::AsRawFd;
 use std::os::fd::{FromRawFd, OwnedFd, RawFd};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -303,6 +301,10 @@ pub fn udp(
     settings: SocketSettings,
     random: &mut impl Random,
 ) -> Result<UdpSocket, SocketFailure> {
+    #[cfg(target_os = "linux")]
+    let kind = 2 | 0o4000 | 0o2000000; // SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC
+    #[cfg(not(target_os = "linux"))]
+    let kind = 2;
     // SAFETY: socket has scalar arguments only. The returned descriptor is
     // checked for failure and transferred to a single RAII owner below.
     let fd = unsafe {
@@ -312,7 +314,7 @@ pub fn udp(
             } else {
                 AF_INET6
             },
-            2,
+            kind,
             0,
         )
     };
@@ -384,20 +386,10 @@ pub fn udp(
         binding: true,
     })?;
     let socket = UdpSocket::from(owned);
+    #[cfg(not(target_os = "linux"))]
     socket.set_nonblocking(true)?;
-    // File descriptor ownership is transferred once. Nonblocking and CLOEXEC
-    // are set before this descriptor is published to the owner.
-    #[cfg(target_os = "linux")]
-    {
-        unsafe extern "C" {
-            fn fcntl(fd: i32, command: i32, ...) -> i32;
-        }
-        // SAFETY: Linux F_SETFD accepts the scalar FD_CLOEXEC flag. socket keeps
-        // ownership of this valid descriptor for the entire call.
-        if unsafe { fcntl(socket.as_raw_fd(), 2, 1) } < 0 {
-            return Err(io::Error::last_os_error().into());
-        }
-    }
+    // Linux installs both flags atomically at creation, as the DNS listener
+    // and TCP upstream factories do. Binding/source selection is unchanged.
     Ok(socket)
 }
 
@@ -432,5 +424,29 @@ mod tests {
         };
         let failure = udp(&source, settings, &mut NoRandom).unwrap_err();
         assert_eq!(failure.error.kind(), io::ErrorKind::InvalidInput);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn udp_factory_returns_nonblocking_close_on_exec_descriptors() {
+        use std::os::fd::AsRawFd;
+        unsafe extern "C" { fn fcntl(fd: i32, command: i32, ...) -> i32; }
+        struct NoRandom;
+        impl Random for NoRandom {
+            fn next_u32(&mut self) -> io::Result<u32> {
+                panic!("OS-assigned port does not consume random bytes")
+            }
+        }
+        for upstream in ["127.0.0.1:53", "[::1]:53"] {
+            let source = SourceSpec::wildcard(upstream.parse().unwrap(), 0);
+            let socket = udp(&source, SocketSettings::default(), &mut NoRandom).unwrap();
+            // SAFETY: F_GETFL/F_GETFD take no third argument and inspect the
+            // live exclusively owned descriptor without changing its flags.
+            let status = unsafe { fcntl(socket.as_raw_fd(), 3) };
+            let descriptor = unsafe { fcntl(socket.as_raw_fd(), 1) };
+            assert!(status >= 0 && status & 0o4000 != 0);
+            assert!(descriptor >= 0 && descriptor & 1 != 0);
+            assert_eq!(socket.recv_from(&mut [0; 1]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        }
     }
 }

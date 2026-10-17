@@ -412,6 +412,35 @@ impl DnsSocket {
             Ok(Self { socket })
         }
     }
+
+    /// Only a known local unicast address can replace ipi_spec_dst. Explicit
+    /// unowned/broadcast listeners retain pktinfo even in static binding mode.
+    pub fn bind_config(
+        address: SocketAddr,
+        config: &DnsConfig,
+        interfaces: &[DnsInterface],
+    ) -> io::Result<Self> {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if config.bind_interfaces && !config.bind_dynamic {
+            if let SocketAddr::V4(address) = address {
+                if !address.ip().is_unspecified()
+                    && !address.ip().is_multicast()
+                    && !address.ip().is_broadcast()
+                    && interfaces.iter().any(|interface| {
+                        interface.address == IpAddr::V4(*address.ip()) && !interface.tentative
+                    })
+                {
+                    return Ok(Self {
+                        socket: crate::net::DatagramSocket::bind_dns_static_ipv4(address)?,
+                    });
+                }
+            }
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        let _ = (config, interfaces);
+        Self::bind(address)
+    }
+
     pub fn receive(&self, bytes: &mut [u8]) -> io::Result<Option<Incoming>> {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {
@@ -520,6 +549,84 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    #[ignore = "requires Linux isolated network namespace; run with run_isolated.sh"]
+    fn dns_socket_bound_ipv4_metadata_policy() {
+        use std::net::UdpSocket;
+        use std::time::Duration;
+        extern "C" {
+            fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, len: *mut u32) -> i32;
+        }
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let interfaces = snapshot().unwrap();
+        assert!(interfaces.iter().any(|interface| interface.address == Ipv4Addr::LOCALHOST));
+        for (bind, target, bound, dynamic, configured, no_pktinfo) in [
+            ("127.0.0.1:0", "127.0.0.1", true, false, true, true),
+            ("127.0.0.1:0", "127.0.0.1", false, false, true, false),
+            ("127.0.0.1:0", "127.0.0.1", true, true, true, false),
+            ("127.0.0.1:0", "127.0.0.1", false, true, true, false),
+            ("127.0.0.1:0", "127.0.0.1", true, false, false, false),
+            ("0.0.0.0:0", "127.0.0.1", true, false, true, false),
+            ("[::1]:0", "::1", true, false, true, false),
+            ("[::]:0", "::1", true, false, true, false),
+            // Loopback aliases absent from the published snapshot stay on pktinfo.
+            ("127.0.0.2:0", "127.0.0.2", true, false, true, false),
+            // The loopback directed broadcast has a different ipi_spec_dst.
+            ("127.255.255.255:0", "127.0.0.1", true, false, true, false),
+        ] {
+            let mut config = DnsConfig::default();
+            config.bind_interfaces = bound;
+            config.bind_dynamic = dynamic;
+            let server = if configured {
+                DnsSocket::bind_config(bind.parse().unwrap(), &config, &interfaces).unwrap()
+            } else {
+                DnsSocket::bind(bind.parse().unwrap()).unwrap()
+            };
+            let address = server.local_addr().unwrap();
+            let (level, option) = if address.is_ipv4() { (0, 8) } else { (41, 49) };
+            let (mut enabled, mut size) = (0i32, 4u32);
+            // SAFETY: the live socket option writes one initialized native int.
+            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), level, option, &mut enabled, &mut size) }, 0);
+            assert_eq!(enabled, i32::from(!no_pktinfo), "{bind} bound={bound} dynamic={dynamic}");
+            let client = UdpSocket::bind(if address.is_ipv4() { "127.0.0.1:0" } else { "[::1]:0" }).unwrap();
+            client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+            client.set_broadcast(true).unwrap();
+            let destination = if address.ip().is_unspecified() {
+                SocketAddr::new(target.parse().unwrap(), address.port())
+            } else { address };
+            client.send_to(b"question", destination).unwrap();
+            let mut bytes = [0; 32];
+            let incoming = server.receive(&mut bytes).unwrap().unwrap();
+            assert_eq!(incoming.destination, target.parse::<IpAddr>().unwrap(), "{bind}");
+            assert_eq!(incoming.interface == 0, no_pktinfo, "{bind}");
+            assert_eq!(incoming.peer, client.local_addr().unwrap());
+            assert_eq!(&bytes[..incoming.len], b"question");
+            // Dedicated static sockets choose their existing kernel reply source.
+            server.send(b"answer", incoming.peer, None).unwrap();
+            let (len, peer) = client.recv_from(&mut bytes).unwrap();
+            assert_eq!(&bytes[..len], b"answer");
+            assert_eq!(peer.ip(), incoming.destination);
+            assert_eq!(server.receive(&mut bytes).err().unwrap().kind(), io::ErrorKind::WouldBlock);
+            client.send_to(&[7; 100], destination).unwrap();
+            assert!(server.receive(&mut bytes).unwrap().is_none());
+            client.send_to(b"after-truncation", destination).unwrap();
+            let incoming = server.receive(&mut bytes).unwrap().unwrap();
+            assert_eq!(&bytes[..incoming.len], b"after-truncation");
+        }
+        // These addresses must never gain the cached local-unicast capability.
+        let mut config = DnsConfig::default();
+        config.bind_interfaces = true;
+        for address in ["224.0.0.1:0", "255.255.255.255:0"] {
+            let server = DnsSocket::bind_config(address.parse().unwrap(), &config, &interfaces).unwrap();
+            let (mut enabled, mut size) = (0i32, 4u32);
+            // SAFETY: the live IPv4 option writes one initialized native int.
+            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), 0, 8, &mut enabled, &mut size) }, 0);
+            assert_eq!(enabled, 1);
+        }
+    }
+
     fn interface(address: &str, netmask: &str, index: u32) -> DnsInterface {
         DnsInterface {
             index,

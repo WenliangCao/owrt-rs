@@ -89,7 +89,7 @@ fn exact_c_lease_cache_driver() {
             "D" => {
                 let expiry = fields[1].parse::<i64>().unwrap();
                 inputs.push(LeaseInput {
-                    name: fields[3].as_bytes().to_vec(),
+                    name: fields[3].as_bytes().into(),
                     address: fields[2].parse().unwrap(),
                     expires: (expiry != 0).then_some(expiry),
                 });

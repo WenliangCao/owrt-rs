@@ -97,6 +97,8 @@ impl Header {
 pub struct Name(Vec<u8>);
 
 impl Name {
+    pub(super) fn into_wire_buffer(self) -> Vec<u8> { self.0 }
+
     pub fn root() -> Self {
         Self(vec![0])
     }
@@ -144,6 +146,38 @@ impl Name {
         self.0.to_ascii_lowercase()
     }
 
+    /// Length of the escaped byte string without constructing a temporary.
+    pub(super) fn dnsmasq_bytes_len(&self) -> usize {
+        let mut result = self.0.len().saturating_sub(2);
+        let mut pos = 0;
+        while self.0[pos] != 0 {
+            let length = self.0[pos] as usize;
+            result += self.0[pos + 1..pos + 1 + length]
+                .iter()
+                .filter(|&&byte| matches!(byte, 0 | 1 | b'.'))
+                .count();
+            pos += length + 1;
+        }
+        result
+    }
+
+    /// Narrow plain-question constructor: no pointers or trailing bytes.
+    /// Validate first, then copy once into the existing bounded name scratch.
+    pub(super) fn from_uncompressed_reusing(wire: &[u8], scratch: &mut Vec<u8>) -> Option<Self> {
+        if wire.len() > MAX_NAME_LEN { return None; }
+        let mut pos = 0;
+        loop {
+            match *wire.get(pos)? {
+                0 if pos + 1 == wire.len() => break,
+                1..=63 => pos += 1 + usize::from(wire[pos]),
+                _ => return None,
+            }
+        }
+        scratch.clear();
+        scratch.extend_from_slice(wire);
+        Some(Self(std::mem::take(scratch)))
+    }
+
     /// dnsmasq's internal escaped byte string, without its C NUL terminator.
     pub fn dnsmasq_bytes(&self) -> Vec<u8> {
         let mut result = Vec::with_capacity(self.0.len().saturating_sub(2));
@@ -169,10 +203,40 @@ impl Name {
 /// Follow compression pointers, preserving the cursor after the first pointer.
 /// `extra` bytes must remain after that cursor, not after the pointed-to name.
 pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, usize), WireError> {
+    let mut wire = Vec::with_capacity(32);
+    let next = walk_name(packet, start, extra, |label| wire.extend_from_slice(label))?;
+    Ok((Name(wire), next))
+}
+
+/// Reuse a normal UDP owner's name allocation. On failure the caller keeps
+/// the partial scratch; only a successful walk creates a valid owned Name.
+pub(super) fn decode_name_reusing(
+    packet: &[u8], start: usize, extra: usize, scratch: &mut Vec<u8>,
+) -> Result<(Name, usize), WireError> {
+    scratch.clear();
+    if scratch.capacity() < 32 { scratch.reserve(32); }
+    let next = walk_name(packet, start, extra, |label| scratch.extend_from_slice(label))?;
+    Ok((Name(std::mem::take(scratch)), next))
+}
+
+/// Check the same expanded name and cursor as `decode_name` without keeping
+/// its labels. Unlike `skip_name`, this follows pointers and rejects unsupported
+/// label types. Writers use it when only the validity of an existing owner is
+/// needed; no temporary name allocation or label copy is required.
+pub(super) fn validate_name(packet: &[u8], start: usize, extra: usize) -> Result<usize, WireError> {
+    walk_name(packet, start, extra, |_| {})
+}
+
+fn walk_name(
+    packet: &[u8],
+    start: usize,
+    extra: usize,
+    mut label: impl FnMut(&[u8]),
+) -> Result<usize, WireError> {
     let mut pos = start;
     let mut resume = None;
     let mut hops = 0;
-    let mut wire = Vec::with_capacity(32);
+    let mut expanded = 0;
     loop {
         end(packet, pos, 1)?;
         let length = packet[pos];
@@ -181,16 +245,16 @@ pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, u
             0 => {
                 let next = resume.unwrap_or(pos);
                 end(packet, next, extra)?;
-                wire.push(0);
-                return Ok((Name(wire), next));
+                label(&[0]);
+                return Ok(next);
             }
             1..=63 => {
                 let label_end = end(packet, pos, length as usize)?;
-                if wire.len() + length as usize + 1 >= MAX_NAME_LEN {
+                expanded += length as usize + 1;
+                if expanded >= MAX_NAME_LEN {
                     return Err(WireError::NameTooLong);
                 }
-                wire.push(length);
-                wire.extend_from_slice(&packet[pos..label_end]);
+                label(&packet[pos - 1..label_end]);
                 pos = label_end;
             }
             192..=255 => {
@@ -602,6 +666,12 @@ pub struct PacketWriter {
 
 impl PacketWriter {
     pub fn new(id: u16, flags: u16, limit: usize) -> Result<Self, WireError> {
+        Self::with_buffer(id, flags, limit, Vec::new())
+    }
+
+    pub(crate) fn with_buffer(
+        id: u16, flags: u16, limit: usize, mut packet: Vec<u8>,
+    ) -> Result<Self, WireError> {
         if limit < HEADER_LEN {
             return Err(WireError::Full);
         }
@@ -610,7 +680,8 @@ impl PacketWriter {
             flags,
             ..Header::default()
         };
-        let mut packet = Vec::with_capacity(limit.min(128));
+        packet.clear();
+        packet.reserve_exact(limit.min(128));
         packet.resize(HEADER_LEN, 0);
         header.write(&mut packet)?;
         Ok(Self {
@@ -665,7 +736,7 @@ impl PacketWriter {
         ttl: u32,
         data: &[u8],
     ) -> Result<(), WireError> {
-        let (_, end) = decode_name(owner, 0, 0)?;
+        let end = validate_name(owner, 0, 0)?;
         if end != owner.len() {
             return Err(WireError::InvalidName);
         }
@@ -684,7 +755,7 @@ impl PacketWriter {
         if name_offset >= 0x4000 || usize::from(name_offset) >= self.packet.len() {
             return Err(WireError::InvalidName);
         }
-        decode_name(&self.packet, name_offset.into(), 0)?;
+        validate_name(&self.packet, name_offset.into(), 0)?;
         self.append_record(
             section,
             &(0xc000 | name_offset).to_be_bytes(),

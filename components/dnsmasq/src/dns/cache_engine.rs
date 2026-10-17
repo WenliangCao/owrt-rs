@@ -76,6 +76,7 @@ impl CacheContext<'_> {
             edns_packet_max,
             false,
             self.filter_rr.contains(&question.rrtype),
+            None,
         )
     }
 
@@ -101,6 +102,7 @@ impl CacheContext<'_> {
             edns_packet_max,
             true,
             self.filter_rr.contains(&question.rrtype),
+            None,
         )
     }
 
@@ -115,7 +117,65 @@ impl CacheContext<'_> {
         dnssec_requested: bool,
     ) -> Result<CachedAnswer, CacheError> {
         Self::answer_records_filtered(self.cache, question, header, now, local, limit,
-            dnssec_requested, self.filter_rr.contains(&question.rrtype))
+            dnssec_requested, self.filter_rr.contains(&question.rrtype), None)
+    }
+
+    /// A plain fresh address answer can reuse the received packet. None leaves
+    /// packet/cache/local state unchanged; no fallible work remains after LRU.
+    pub(super) fn try_plain_udp_in_place(
+        cache: &mut Cache, packet: &mut [u8], query_len: usize,
+        local: &mut LocalDnsService, now: i64, scratch: &mut Vec<u8>,
+    ) -> Option<usize> {
+        if local.query_logging || local.config.edns.active() || scratch.capacity() == 0
+            || query_len > usize::from(local.edns_packet_max.max(512))
+        { return None; }
+        let query = packet.get(..query_len)?;
+        let header = Header::parse(query).ok()?;
+        if header.flags != 0x0100 || header.questions != 1 || header.answers != 0
+            || header.authorities != 0 || header.additionals != 0
+        { return None; }
+        let fixed = query_len.checked_sub(4)?;
+        let question = super::forward::Question {
+            name: Name::from_uncompressed_reusing(query.get(12..fixed)?, scratch)?,
+            rrtype: u16::from_be_bytes([query[fixed], query[fixed + 1]]),
+            class: u16::from_be_bytes([query[fixed + 2], query[fixed + 3]]),
+        };
+        let result = (|| {
+            let (kind, data_len) = match question.rrtype {
+                1 => (Kind::Ipv4, 4), 28 => (Kind::Ipv6, 16), _ => return None,
+            };
+            let answer_len = query_len.checked_add(12 + data_len)?;
+            if question.class != 1 || local.config.filter_rr.contains(&question.rrtype)
+                || answer_len > local.max_udp.min(512) || answer_len > packet.len()
+            { return None; }
+            let (_, lookup) = cache.inspect_name(&question.name, now);
+            cache.single_fresh_address_id_with_hint(&question.name, kind, now, lookup.as_ref())?;
+            let answerer = super::local::LocalAnswerer {
+                config: &local.config, hosts: &mut local.hosts,
+                local_ttl: local.local_ttl, max_packet: 512,
+            };
+            if !answerer.plain_cached_address_is_unclaimed(
+                &question, &local.leases, now, &local.interfaces,
+            ) { return None; }
+            let id = cache.single_fresh_address_with_hint(&question.name, kind, now, lookup.as_ref())
+                .expect("read-only checks preserve the selected address");
+            let entry = cache.get(id).expect("selected address remains live");
+            let ttl = entry.reply_ttl(now, cache.policy());
+            // Same question bytes and c00c owner as PacketWriter::record_at.
+            // Capacity and the complete address length were checked above.
+            packet[2..4].copy_from_slice(&0x8180u16.to_be_bytes());
+            packet[6..8].copy_from_slice(&1u16.to_be_bytes());
+            let rr = &mut packet[query_len..answer_len];
+            rr[..2].copy_from_slice(&[0xc0, 0x0c]);
+            rr[2..4].copy_from_slice(&question.rrtype.to_be_bytes());
+            rr[4..6].copy_from_slice(&1u16.to_be_bytes());
+            rr[6..10].copy_from_slice(&ttl.to_be_bytes());
+            rr[10..12].copy_from_slice(&(data_len as u16).to_be_bytes());
+            rr[12..].copy_from_slice(&entry.record.data);
+            Some(answer_len)
+        })();
+        *scratch = question.name.into_wire_buffer();
+        result
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -130,6 +190,7 @@ impl CacheContext<'_> {
         edns_packet_max: u16,
         tcp: bool,
         filtered_type: bool,
+        name_lookup: Option<&super::cache::NameLookup<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
         // interface-name owns this family even when the current interface
         // enumeration is empty. NXDOMAIN is the earlier cache exception.
@@ -165,11 +226,12 @@ impl CacheContext<'_> {
             let mut stale = false;
             if question.class == 1 {
                 let round_robin = !local.config.no_round_robin;
-                let first = cache.lookup(
+                let first = cache.lookup_with_hint(
                     &question.name,
                     &[Kind::Cname, Kind::NxDomain],
                     now,
                     round_robin,
+                    name_lookup,
                 );
                 let entry = first.first().and_then(|id| cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
@@ -187,13 +249,14 @@ impl CacheContext<'_> {
                         _ => None,
                     };
                     if let Some(kind) = kind {
-                        cache.lookup(&question.name, &[kind], now, round_robin);
+                        cache.lookup_with_hint(&question.name, &[kind], now, round_robin, name_lookup);
                     }
-                    cache.lookup(
+                    cache.lookup_with_hint(
                         &question.name,
                         &[Kind::Generic(question.rrtype), Kind::NxDomain],
                         now,
                         round_robin,
+                        name_lookup,
                     );
                 }
             }
@@ -220,6 +283,7 @@ impl CacheContext<'_> {
             max_udp.min(limit),
             dnssec_requested,
             filtered_type,
+            name_lookup,
         )?;
         // The selected cache writer reports overflow before EDNS is appended.
         // Its source is known here independently of the final owner response.
@@ -264,6 +328,61 @@ impl CacheContext<'_> {
         limit: usize,
         dnssec_requested: bool,
         filtered_type: bool,
+        name_lookup: Option<&super::cache::NameLookup<'_>>,
+    ) -> Result<CachedAnswer, CacheError> {
+        let kind = match question.rrtype { 1 => Some(Kind::Ipv4), 28 => Some(Kind::Ipv6), _ => None };
+        if question.class == 1 && header.opcode() == 0 && header.flags & 0x8100 == 0x0100
+            && header.questions == 1 && header.answers == 0 && header.authorities == 0
+            && !dnssec_requested && !filtered_type
+        {
+            if let Some(id) = kind.and_then(|kind| cache.single_fresh_address_with_hint(
+                &question.name, kind, now, name_lookup,
+            )) {
+                return Self::answer_fresh_address(cache, question, header, now, local, limit, id);
+            }
+        }
+        Self::answer_records_general(cache, question, header, now, local, limit,
+            dnssec_requested, filtered_type, name_lookup)
+    }
+
+    // Only a selected fresh hit needs this writer frame. Keep it out of the
+    // shared caller so a fallback does not reserve its space as well.
+    #[inline(never)]
+    fn answer_fresh_address(
+        cache: &Cache,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        id: super::cache::EntryId,
+    ) -> Result<CachedAnswer, CacheError> {
+        let mut writer = PacketWriter::with_buffer(header.id, (header.flags & 0x0110) | 0x8080,
+            limit, std::mem::take(&mut local.cached_reply_buffer))?;
+        writer.question(&question.name, question.rrtype, question.class)?;
+        record_cached(local, cache, id, now);
+        let entry = cache.get(id).expect("selected fresh address remains live");
+        match writer.record_at(Section::Answer, 12, question.rrtype, 1,
+            entry.reply_ttl(now, cache.policy()), &entry.record.data)
+        {
+            Ok(()) | Err(WireError::Full) => Ok(finish_cached_answer(writer, false)?),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    // Keep the unchanged general state machine and its large frame off the
+    // ordinary fresh one-address path; this remains every fallback's owner.
+    #[inline(never)]
+    fn answer_records_general(
+        cache: &mut Cache,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        dnssec_requested: bool,
+        filtered_type: bool,
+        name_lookup: Option<&super::cache::NameLookup<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
         let mut stale = false;
         let round_robin = !local.config.no_round_robin;
@@ -288,7 +407,7 @@ impl CacheContext<'_> {
         } else {
             &ordinary_kinds
         };
-        let ids = cache.lookup(&question.name, kinds, now, round_robin);
+        let ids = cache.lookup_with_hint(&question.name, kinds, now, round_robin, name_lookup);
         if question.rrtype == 12
             && !ids.iter().any(|id| {
                 cache
@@ -357,11 +476,12 @@ impl CacheContext<'_> {
                 && question.rrtype != 255
                 && filtered_type
                 && !cache
-                    .lookup(
+                    .lookup_with_hint(
                         &question.name,
                         &[Kind::Cname, Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
                         now,
                         round_robin,
+                        name_lookup,
                     )
                     .is_empty()
             {
@@ -376,11 +496,12 @@ impl CacheContext<'_> {
             // its lookup promotes it before the caller forwards the query.
             // Generic questions already visited that group above.
             if !matches!(kind, Kind::Generic(_)) {
-                cache.lookup(
+                cache.lookup_with_hint(
                     &question.name,
                     &[Kind::Generic(question.rrtype), Kind::NxDomain],
                     now,
                     round_robin,
+                    name_lookup,
                 );
             }
             return Ok(CachedAnswer {
@@ -416,11 +537,12 @@ impl CacheContext<'_> {
                         .is_some_and(|entry| entry.record.kind == Kind::Cname)
                 })
                 && !cache
-                    .lookup(
+                    .lookup_with_hint(
                         &question.name,
                         &[Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
                         now,
                         round_robin,
+                        name_lookup,
                     )
                     .is_empty()
             {
@@ -641,7 +763,14 @@ impl CacheContext<'_> {
                             && target_entry.record.negative)
                             .then_some(target);
                         stale |= nx_target.is_some_and(|id| {
-                            cache.get(id).is_some_and(|entry| entry.is_stale(now))
+                            // C re-looks up the terminal name before observing
+                            // NXDOMAIN staleness. A retained CNAME handle can
+                            // still point at a negative entry whose finite
+                            // retention just ended; that entry contributes no
+                            // stale bit. Keep the later lookup's pruning/LRU
+                            // effects in their existing order.
+                            cache.is_valid(id, now)
+                                && cache.get(id).is_some_and(|entry| entry.is_stale(now))
                         });
                         if question.rrtype == 12 {
                             if let Some(address) =
@@ -902,11 +1031,12 @@ impl CacheContext<'_> {
             && filtered_type
             && !dnssec_requested
             && !cache
-                .lookup(
+                .lookup_with_hint(
                     &question.name,
                     &[Kind::Cname, Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
                     now,
                     round_robin,
+                    name_lookup,
                 )
                 .is_empty()
         {
@@ -2000,6 +2130,54 @@ fn is_name_suffix(name: &Name, suffix: &Name) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn fresh_address_reply_matches_general_flags_ttl_limits_and_logging() {
+        for rrtype in [1,28] {
+            for now in [100,159,160] {
+                for flags in [0,0x0100,0x0110] {
+                    for dnssec in [false,true] {
+                        for filtered in [false,true] {
+                            for limit in [12,25,26,41,42,53,54,512] {
+                                let name = Name::from_ascii("HiT.test").unwrap();
+                                let kind = if rrtype==1 { Kind::Ipv4 } else { Kind::Ipv6 };
+                                let question = super::super::forward::Question { name, rrtype, class: 1 };
+                                let header = Header { id: 7, flags, questions: 1, ..Header::default() };
+                                let make = || {
+                                    let mut cache = Cache::new(4,Default::default());
+                                    cache.start_insert();
+                                    cache.insert(Record { name: Name::from_ascii("hit.test").unwrap(),
+                                        kind, negative: false, data: if rrtype==1 { vec![192,0,2,7] } else { vec![7;16] } },100,60).unwrap();
+                                    assert!(cache.commit());
+                                    cache
+                                };
+                                let mut reference = make(); let mut candidate = make();
+                                let (_, left_hint) = reference.inspect_name(&question.name,now);
+                                let (_, right_hint) = candidate.inspect_name(&question.name,now);
+                                let mut left = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
+                                let mut right = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
+                                left.query_logging=true;right.query_logging=true;
+                                // Previous packet contents must not survive a
+                                // reused writer, including error/TC boundaries.
+                                right.recycle_cached_reply(vec![0xff; 128]);
+                                let a = CacheContext::answer_records_general(&mut reference,&question,header,now,
+                                    &mut left,limit,dnssec,filtered,left_hint.as_ref());
+                                let b = CacheContext::answer_records_filtered(&mut candidate,&question,header,now,
+                                    &mut right,limit,dnssec,filtered,right_hint.as_ref());
+                                match (a,b) {
+                                    (Ok(a),Ok(b)) => assert_eq!((a.packet,a.stale,a.filtered,a.forward_name),
+                                                               (b.packet,b.stale,b.filtered,b.forward_name)),
+                                    (Err(a),Err(b)) => assert_eq!(format!("{a:?}"),format!("{b:?}")),
+                                    _ => panic!("fresh/general success boundary differs"),
+                                }
+                                assert_eq!(format!("{:?}",left.take_query_events()), format!("{:?}",right.take_query_events()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     use super::*;
     use crate::config::dns::DnsConfig;
     use crate::config::interface_records::InterfaceRule;
@@ -2807,3 +2985,7 @@ mod tests {
         assert!(answer.packet.is_none());
     }
 }
+
+#[cfg(test)]
+#[path = "cache_plain_udp_tests.rs"]
+mod plain_udp_tests;

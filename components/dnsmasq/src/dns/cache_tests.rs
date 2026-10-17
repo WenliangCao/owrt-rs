@@ -1,6 +1,167 @@
 use super::*;
 
 #[test]
+fn dual_family_hint_rechecks_other_family_expiry_and_replacement() {
+    let mut cache = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("dual.example").unwrap();
+    cache.start_insert();
+    let ipv4 = cache.insert(Record { name: name.clone(), kind: Kind::Ipv4,
+        negative: false, data: vec![192, 0, 2, 7] }, 100, 60).unwrap();
+    let ipv6 = cache.insert(Record { name: name.clone(), kind: Kind::Ipv6,
+        negative: false, data: vec![7; 16] }, 100, 1).unwrap();
+    assert!(cache.commit());
+    let (_, hint) = cache.inspect_name(&name, 100);
+    assert_eq!(cache.single_fresh_address_id_with_hint(&name, Kind::Ipv4, 100, hint.as_ref()), Some(ipv4));
+    let before = (cache.head, cache.tail, cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name, Kind::Ipv4, 102, hint.as_ref()), None);
+    assert_eq!((cache.head, cache.tail, cache.name_revision), before);
+    assert!(cache.get(ipv6).is_some(), "fallback still owns expiry");
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 102, true, hint.as_ref()), [ipv4]);
+    assert!(cache.get(ipv6).is_none());
+    assert_eq!(cache.single_fresh_address_with_hint(&name, Kind::Ipv4, 100, hint.as_ref()), None,
+        "the old dual-family hint must not survive removal");
+}
+
+#[test]
+fn fresh_address_hint_promotes_only_an_eligible_single_and_preserves_fallback() {
+    let address = |name: &str, value| Record { name: Name::from_ascii(name).unwrap(),
+        kind: Kind::Ipv4, negative: false, data: vec![192,0,2,value] };
+    let mut cache = Cache::new(4, Policy::default());
+    cache.start_insert();
+    let id = cache.insert(address("fresh.test",7),100,60).unwrap();
+    cache.insert(address("other.test",8),100,60).unwrap();
+    assert!(cache.commit());
+    let name = Name::from_ascii("fresh.test").unwrap();
+    let (_, hint) = cache.inspect_name(&name,100);
+    let before = (cache.head,cache.tail,cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv6,100,hint.as_ref()),None);
+    let other_question = name.clone();
+    assert_eq!(cache.single_fresh_address_with_hint(&other_question,Kind::Ipv4,100,hint.as_ref()),None);
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert_eq!(cache.single_fresh_address_id_with_hint(&name,Kind::Ipv4,100,hint.as_ref()),Some(id));
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before,"read-only selection cannot promote before local ownership");
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,100,hint.as_ref()),Some(id));
+    assert_eq!(cache.head,Some(id.slot));
+    let (_, hint) = cache.inspect_name(&name,100);
+    let before = (cache.head,cache.tail,cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,160,hint.as_ref()),None);
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert!(cache.get(id).is_some(),"fast rejection must not expire the fallback's entry");
+    assert!(cache.lookup_with_hint(&name,&[Kind::Ipv4],160,true,hint.as_ref()).is_empty());
+    assert!(cache.get(id).is_none());
+
+    cache.start_insert();
+    cache.insert(address("fresh.test",1),200,60).unwrap();
+    assert!(cache.commit());
+    let (_, old_hint) = cache.inspect_name(&name,200);
+    cache.start_insert();
+    cache.insert(address("fresh.test",2),200,60).unwrap();
+    cache.insert(address("fresh.test",3),200,60).unwrap();
+    assert!(cache.commit());
+    let before = (cache.head,cache.tail,cache.name_revision);
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,200,old_hint.as_ref()),None);
+    let (_, many) = cache.inspect_name(&name,200);
+    assert!(many.is_none());
+    assert_eq!(cache.single_fresh_address_with_hint(&name,Kind::Ipv4,200,many.as_ref()),None);
+    assert_eq!((cache.head,cache.tail,cache.name_revision),before);
+    assert_eq!(cache.lookup_with_hint(&name,&[Kind::Ipv4],200,true,many.as_ref()).len(),2);
+}
+
+#[test]
+fn name_hint_keeps_inspection_read_only_and_lookup_expiry_effects() {
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    let id = cache.insert(record("hint.test", Kind::Ipv4, 7), 100, 60).unwrap();
+    cache.insert(record("other.test", Kind::Ipv4, 8), 100, 60).unwrap();
+    assert!(cache.commit());
+    let name = Name::from_ascii("hint.test").unwrap();
+    let before = (cache.head, cache.tail, cache.name_revision);
+    let (cname, hint) = cache.inspect_name(&name, 100);
+    assert!(!cname);
+    assert_eq!((cache.head, cache.tail, cache.name_revision), before);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, hint.as_ref()), [id]);
+    assert_eq!(cache.head, Some(id.slot));
+    let (_, hint) = cache.inspect_name(&name, 100);
+    assert!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 160, true, hint.as_ref()).is_empty());
+    assert!(cache.get(id).is_none(), "expiry removal must happen in actual lookup");
+}
+
+#[test]
+fn name_hint_rejects_new_members_and_a_different_question() {
+    let mut cache = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("hint.test").unwrap();
+    let (_, absent) = cache.inspect_name(&name, 100);
+    cache.start_insert();
+    let first = cache.insert(record("hint.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, absent.as_ref()), [first]);
+    let (_, single) = cache.inspect_name(&name, 100);
+    let other = Name::from_ascii("other.test").unwrap();
+    assert!(cache.lookup_with_hint(&other, &[Kind::Ipv4], 100, false, single.as_ref()).is_empty());
+    cache.start_insert();
+    cache.insert(record("hint.test", Kind::Ipv6, 2), 100, 60).unwrap();
+    assert!(cache.commit());
+    assert!(cache.get(first).is_some(), "old handle validity alone cannot detect the new member");
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4, Kind::Ipv6], 100, false, single.as_ref()).len(), 2);
+}
+
+#[test]
+fn name_hint_rejects_cache_replacement_and_saturated_revisions() {
+    let make = |rows: &[(&str, u8)]| {
+        let mut cache = Cache::new(8, Policy::default());
+        cache.start_insert();
+        for (name, value) in rows {
+            cache.insert(record(name, Kind::Ipv4, *value), 100, 60).unwrap();
+        }
+        assert!(cache.commit());
+        cache
+    };
+    let mut cache = make(&[("hint.test", 11), ("other.test", 22)]);
+    let mut replacement = make(&[("other.test", 44), ("hint.test", 33)]);
+    assert_eq!(cache.name_revision, replacement.name_revision);
+    let name = Name::from_ascii("hint.test").unwrap();
+    let (_, hint) = cache.inspect_name(&name, 100);
+    std::mem::swap(&mut cache, &mut replacement);
+    let rows = cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref());
+    assert_eq!(cache.get(rows[0]).unwrap().record.data, [33]);
+    let (_, hint) = cache.inspect_name(&name, 100);
+    let mut moved = Box::new(cache);
+    let rows = moved.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref());
+    assert_eq!(moved.get(rows[0]).unwrap().record.data, [33]);
+
+    let mut cache = Cache::new(8, Policy::default());
+    cache.name_revision = u64::MAX;
+    let (_, hint) = cache.inspect_name(&name, 100);
+    cache.start_insert();
+    let id = cache.insert(record("hint.test", Kind::Ipv4, 55), 100, 60).unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.name_revision, u64::MAX);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, false, hint.as_ref()), [id]);
+}
+
+#[test]
+fn name_hint_does_not_pin_multi_record_lists_or_create_rotation_cow() {
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    for value in [1, 2] {
+        cache.insert(record("hint.test", Kind::Ipv4, value), 100, 60).unwrap();
+    }
+    assert!(cache.commit());
+    let name = Name::from_ascii("hint.test").unwrap();
+    let key = name.canonical_wire();
+    let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    let buffer = indices.as_ptr();
+    assert_eq!(Arc::strong_count(indices), 1);
+    let (_, hint) = cache.inspect_name(&name, 100);
+    let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    assert!(hint.is_none(), "multi-record lookup keeps the ordinary loop");
+    assert_eq!(Arc::strong_count(indices), 1);
+    assert_eq!(cache.lookup_with_hint(&name, &[Kind::Ipv4], 100, true, hint.as_ref()).len(), 2);
+    let SlotIndices::Many(indices) = cache.names_for(&key).unwrap() else { panic!() };
+    assert_eq!(indices.as_ptr(), buffer);
+}
+
+#[test]
 fn real_mixed_rrset_rotation_keeps_unique_many_allocation_and_snapshot_order() {
     let mut parent = Cache::new(8, Policy::default());
     let name = Name::from_ascii("mixed.index.test").unwrap();
@@ -190,6 +351,33 @@ fn tcp_snapshot_clear_is_private_at_zero_small_and_large_capacity() {
         check_ownership(&parent);
         check_ownership(&child);
     }
+}
+
+#[test]
+fn clear_reuses_only_unique_roots_without_allocated_buckets() {
+    let mut cache = Cache::new(128, Policy::default());
+    let empty_root = Arc::as_ptr(&cache.names[0]);
+    cache.clear();
+    assert_eq!(Arc::as_ptr(&cache.names[0]), empty_root);
+    assert_eq!(cache.names[0].capacity(), 0);
+
+    let retained = cache.snapshot();
+    cache.clear();
+    for (parent, child) in retained.names.iter().zip(&cache.names) {
+        assert!(!Arc::ptr_eq(parent, child), "clear must detach even shared empty roots");
+        assert_eq!(Arc::strong_count(child), 1);
+        assert_eq!(child.capacity(), 0);
+    }
+
+    cache.start_insert();
+    let name = Name::from_ascii("allocated.root.test").unwrap();
+    cache.insert(record("allocated.root.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    assert!(cache.commit());
+    let shard = Cache::key_shard(&name.canonical_wire());
+    assert!(cache.names[shard].capacity() > 0);
+    cache.clear();
+    assert_eq!(cache.names[shard].capacity(), 0, "clear still releases allocated buckets");
+    assert_eq!(Arc::strong_count(&cache.names[shard]), 1);
 }
 
 #[test]
@@ -415,6 +603,8 @@ fn forward_name_presence_keeps_index_links_and_expired_records_untouched() {
 }
 
 fn check_ownership(cache: &Cache) {
+    assert!(cache.entries().filter(|entry| entry.committed)
+        .all(|entry| cache.expiry_lower_bound <= entry.expires));
     let mut linked = HashSet::new();
     let mut previous = None;
     let mut at = cache.head;
@@ -453,6 +643,95 @@ fn check_ownership(cache: &Cache) {
             .filter(|(index, _)| cache.entry(*index).is_some_and(|entry| entry.committed))
             .count()
     );
+}
+
+#[test]
+fn expiry_bound_matches_forced_scan_across_pressure_and_clock_changes() {
+    fn same_state(left: &Cache, right: &Cache) {
+        assert_eq!((left.head, left.tail, &left.pending, left.failed, left.long_names),
+                   (right.head, right.tail, &right.pending, right.failed, right.long_names));
+        assert_eq!(left.names, right.names);
+        assert_eq!(left.reverse_chain, right.reverse_chain);
+        assert_eq!(left.name_revision, right.name_revision);
+        for slot in 0..left.slots.len() {
+            let a = &left.slots[slot];
+            let b = &right.slots[slot];
+            assert_eq!((a.generation, a.prev, a.next), (b.generation, b.prev, b.next));
+            assert_eq!(format!("{:?}", left.entry(slot)), format!("{:?}", right.entry(slot)));
+        }
+        check_ownership(left);
+        check_ownership(right);
+    }
+
+    for stale in [StalePolicy::Disabled, StalePolicy::Seconds(5), StalePolicy::Forever] {
+        for capacity in [0, 1, 8, 64] {
+            let mut candidate = Cache::new(capacity, Policy { stale, ..Policy::default() });
+            let mut reference = candidate.snapshot();
+            let mut actual = CacheCounters::default();
+            let mut expected = CacheCounters::default();
+            for round in 0usize..500 {
+                let now = match round % 101 {
+                    97 => i64::MIN + 10,
+                    98 => i64::MAX - 10,
+                    99 => -100,
+                    _ => 100 + (round / 7) as i64,
+                };
+                if round % 97 == 0 {
+                    candidate.clear_counted(&mut actual);
+                    reference.clear_counted(&mut expected);
+                }
+                candidate.start_insert();
+                reference.start_insert();
+                for offset in 0..2 {
+                    let name = format!("e{}", (round * 7 + offset) % (capacity * 3 + 1));
+                    let kind = if round % 17 == 0 { Kind::ReverseIpv4 } else { Kind::Ipv4 };
+                    let ttl = [0, 1, 3, 60, u64::MAX][(round + offset) % 5];
+                    // i64::MIN is a conservative bound that forces the original
+                    // scan whenever any representable expiry could be expired.
+                    reference.expiry_lower_bound = i64::MIN;
+                    assert_eq!(
+                        candidate.insert_ttl_counted(record(&name, kind, round as u8), now, ttl, &mut actual),
+                        reference.insert_ttl_counted(record(&name, kind, round as u8), now, ttl, &mut expected),
+                    );
+                    same_state(&candidate, &reference);
+                }
+                if round % 11 != 0 {
+                    assert_eq!(candidate.commit_counted(&mut actual), reference.commit_counted(&mut expected));
+                }
+                let name = format!("e{}", round % (capacity * 3 + 1));
+                assert_eq!(lookup(&mut candidate, &name, Kind::Ipv4, now),
+                           lookup(&mut reference, &name, Kind::Ipv4, now));
+                assert_eq!(actual, expected);
+                same_state(&candidate, &reference);
+            }
+        }
+    }
+}
+
+#[test]
+fn expiry_bound_is_private_to_snapshots_and_tracks_imported_deadlines() {
+    let mut parent = Cache::new(4, Policy::default());
+    parent.start_insert();
+    let early = parent.insert(record("early.test", Kind::Ipv4, 1), 100, 5).unwrap();
+    parent.insert(record("later.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    assert!(parent.commit());
+    assert_eq!(parent.expiry_lower_bound, 105);
+    let mut child = parent.snapshot();
+    child.remove(early.slot);
+    assert_eq!(child.expiry_lower_bound, 105, "deleting a minimum may leave a conservative bound");
+    child.start_insert();
+    child.insert(record("import.test", Kind::Ipv4, 3), 100, 2).unwrap();
+    let transaction = child.capture_commit_counted(&mut CacheCounters::default()).unwrap();
+    assert_eq!(child.expiry_lower_bound, 102);
+    assert_eq!(parent.expiry_lower_bound, 105);
+    assert!(parent.import_counted(transaction, 101, &mut CacheCounters::default(), |_| None));
+    assert_eq!(parent.expiry_lower_bound, 102);
+    child.clear();
+    assert_eq!(child.expiry_lower_bound, i64::MAX);
+    assert_eq!(parent.expiry_lower_bound, 102);
+    assert!(parent.get(early).is_some());
+    check_ownership(&parent);
+    check_ownership(&child);
 }
 
 #[test]

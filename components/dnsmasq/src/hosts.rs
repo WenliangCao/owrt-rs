@@ -122,7 +122,9 @@ impl<T: Default> Snapshot<T> {
 struct HostsRecords {
     entries: Vec<Host>,
     sources: HashMap<u32, Vec<u8>>,
-    forward: HashMap<Vec<u8>, Vec<usize>>,
+    // Existence needs only a count; individual records and answer order live
+    // in HashOrder. Avoid allocating an index vector for each distinct name.
+    forward: HashMap<Vec<u8>, usize>,
     reverse: HashMap<IpAddr, usize>,
     // Most addresses have one owner. Allocate another list only when C's
     // bulk reverse chain gives the same address additional F_REVERSE records.
@@ -799,6 +801,9 @@ impl Hosts {
     pub fn is_empty(&self) -> bool {
         self.records.entries.is_empty()
     }
+    pub(crate) fn is_published(&self) -> bool {
+        self.bulk.is_none()
+    }
     pub fn entries(&self) -> &[Host] {
         &self.records.entries
     }
@@ -974,6 +979,16 @@ impl Hosts {
     /// Current static records in the actual global bucket order.
     pub fn addresses<'a>(&'a self, name: &'a [u8]) -> impl Iterator<Item = &'a Host> {
         let bucket = name_hash_bucket(name, self.records.name_hash_capacity);
+        self.addresses_in_bucket(name, bucket)
+    }
+
+    /// Reuse a bucket only for the same name and current name_hash_capacity.
+    /// Lease publication pairs this scan with lookup before any hosts update.
+    pub(crate) fn addresses_in_bucket<'a>(
+        &'a self,
+        name: &'a [u8],
+        bucket: usize,
+    ) -> impl Iterator<Item = &'a Host> {
         let offset = self.retained_leases().len();
         self.order.bucket(bucket).filter_map(move |node| {
             let host = self.records.entries.get(node.checked_sub(offset)?)?;
@@ -1090,12 +1105,6 @@ impl Hosts {
         // unsuccessful reservation leaves existing entries and PTR ownership live.
         records.entries.try_reserve(1)?;
         records.forward.try_reserve(1)?;
-        let mut fresh_indices = Vec::new();
-        if let Some(indices) = records.forward.get_mut(&key) {
-            indices.try_reserve(1)?;
-        } else {
-            fresh_indices.try_reserve(1)?;
-        }
         let reverse = match bulk.as_mut().filter(|bulk| bulk.active) {
             Some(bulk) => {
                 bulk.next.try_reserve(1)?;
@@ -1162,9 +1171,8 @@ impl Hosts {
         if let Some(bulk) = bulk.as_mut().filter(|bulk| bulk.active) {
             bulk.push(address, reverse);
         }
-        let indices = records.forward.entry(key).or_insert(fresh_indices);
         let id = records.entries.len();
-        indices.push(id);
+        *records.forward.entry(key).or_insert(0) += 1;
         if reverse {
             if records.reverse.contains_key(&address) {
                 records
@@ -1211,8 +1219,8 @@ impl Hosts {
         for (&source, name) in &records.sources {
             copy.sources.insert(source, try_copy(name)?);
         }
-        for (name, indices) in &records.forward {
-            copy.forward.insert(try_copy(name)?, try_copy(indices)?);
+        for (name, &count) in &records.forward {
+            copy.forward.insert(try_copy(name)?, count);
         }
         copy.reverse
             .extend(records.reverse.iter().map(|(&address, &id)| (address, id)));
@@ -1419,22 +1427,31 @@ impl Hosts {
             .as_ref()
             .map(|bulk| bulk.try_remap(&relocated))
             .transpose()?;
+        let lease_count = self.retained_leases().len();
         let order = self
             .order
-            .remapped(&relocated, self.retained_leases().len())?;
+            .remapped(&relocated, lease_count)?;
+        let mut canonical = Vec::new();
+        let capacity = self.records.entries.iter()
+            .filter(|entry| entry.source == source && entry.name.iter().any(u8::is_ascii_uppercase))
+            .map(|entry| entry.name.len()).max().unwrap_or(0);
+        canonical.try_reserve_exact(capacity)?;
         let records = self.writable_records()?;
+        // Touch each removed name once; no record-index remap or surviving
+        // name search is needed. Scratch growth precedes every state change.
+        for entry in records.entries.iter().filter(|entry| entry.source == source) {
+            let key = if entry.name.iter().any(u8::is_ascii_uppercase) {
+                canonical.clear();
+                canonical.extend_from_slice(&entry.name);
+                canonical.make_ascii_lowercase();
+                canonical.as_slice()
+            } else {
+                entry.name.as_slice()
+            };
+            *records.forward.get_mut(key).unwrap() -= 1;
+        }
         records.entries.retain(|entry| entry.source != source);
-        records.forward.retain(|_, indices| {
-            indices.retain_mut(|id| {
-                if let Some(next) = relocated[*id] {
-                    *id = next;
-                    true
-                } else {
-                    false
-                }
-            });
-            !indices.is_empty()
-        });
+        records.forward.retain(|_, count| *count != 0);
         for extra in records.reverse_extra.values_mut() {
             extra.retain_mut(|id| {
                 if let Some(next) = relocated[*id] {
@@ -1470,19 +1487,40 @@ impl Hosts {
     }
 
     pub fn name_exists(&self, name: &[u8]) -> bool {
-        let key = name.to_ascii_lowercase();
-        self.records.forward.contains_key(&key) || self.records.non_terminals.contains(&key)
+        if self.records.forward.is_empty() && self.records.non_terminals.is_empty() {
+            return false;
+        }
+        let canonical;
+        let key = if name.iter().any(u8::is_ascii_uppercase) {
+            canonical = name.to_ascii_lowercase();
+            canonical.as_slice()
+        } else {
+            name
+        };
+        self.records.forward.contains_key(key) || self.records.non_terminals.contains(key)
     }
 
     /// Return current static bucket order, then apply C's first matching
     /// flags-group rotation, including retained lease nodes before publication.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
+        let bucket = name_hash_bucket(name, self.records.name_hash_capacity);
+        self.lookup_in_bucket(name, ipv6, no_round_robin, bucket)
+    }
+
+    /// Same-name companion to addresses_in_bucket. Neither operation changes
+    /// hash capacity; lookup retains its answer allocation and rotation order.
+    pub(crate) fn lookup_in_bucket(
+        &mut self,
+        name: &[u8],
+        ipv6: Option<bool>,
+        no_round_robin: bool,
+        bucket: usize,
+    ) -> Vec<&Host> {
         let records = &self.records;
         let leases = self
             .bulk
             .as_ref()
             .map_or(&[][..], |bulk| bulk.leases.as_slice());
-        let bucket = name_hash_bucket(name, records.name_hash_capacity);
         let mut matched = 0;
         let mut answer = Vec::new();
         for node in self.order.bucket(bucket) {
@@ -2007,19 +2045,15 @@ mod tests {
 
     const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";
 
-    fn bulk_fixture(retained_lease: Option<bool>) -> Hosts {
+    fn bulk_fixture(retained_lease: Option<(&[u8], bool)>, input: &[u8]) -> Hosts {
         let mut hosts = Hosts::new();
         hosts.begin_bulk(1497, 1000, 1000).unwrap();
-        if let Some(immortal) = retained_lease {
+        if let Some((name, immortal)) = retained_lease {
             hosts
-                .add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, immortal)
+                .add_bulk_lease(name, "192.0.2.1".parse().unwrap(), true, immortal)
                 .unwrap();
         }
-        assert!(
-            !hosts
-                .read(REPEATED_ADDRESS_FIXTURE, 2, 37, false, |_| None)
-                .allocation_failed
-        );
+        assert!(!hosts.read(input, 2, 37, false, |_| None).allocation_failed);
         hosts
     }
 
@@ -2034,7 +2068,7 @@ mod tests {
 
     #[test]
     fn bulk_reverse_link_reuse_preserves_multiple_ptr_owners_and_mixed_rotation() {
-        let mut hosts = bulk_fixture(None);
+        let mut hosts = bulk_fixture(None, REPEATED_ADDRESS_FIXTURE);
         assert_eq!(
             reverse_names(&hosts, "192.0.2.1"),
             [b"x.test".to_vec(), b"y.test".to_vec()]
@@ -2064,8 +2098,23 @@ mod tests {
 
     #[test]
     fn retained_finite_and_immortal_lease_links_follow_exact_c_counterexample() {
-        let finite = bulk_fixture(Some(false));
-        let immortal = bulk_fixture(Some(true));
+        // Both earlier names must be outside the retained lease's bucket.
+        // Either can separate the immortal lease from the later same-name host,
+        // reversing their lookup links and suppressing y.test's PTR too.
+        // Name hashing includes process pointers, so fixed names cannot ensure it.
+        let lease = (0..10000)
+            .map(|id| format!("a{id}.test"))
+            .find(|name| {
+                let bucket = name_hash_bucket(name.as_bytes(), 1000);
+                bucket != name_hash_bucket(b"old.test", 1000)
+                    && bucket != name_hash_bucket(b"x.test", 1000)
+            })
+            .expect("bounded name pool has a separate bucket");
+        let input = std::str::from_utf8(REPEATED_ADDRESS_FIXTURE)
+            .unwrap()
+            .replace("a.test", &lease);
+        let finite = bulk_fixture(Some((lease.as_bytes(), false)), input.as_bytes());
+        let immortal = bulk_fixture(Some((lease.as_bytes(), true)), input.as_bytes());
         assert_eq!(reverse_names(&finite, "192.0.2.1"), [b"x.test".to_vec()]);
         assert_eq!(
             reverse_names(&immortal, "192.0.2.1"),
@@ -2073,14 +2122,14 @@ mod tests {
         );
         assert_eq!(finite.entries().len(), 6);
         assert_eq!(immortal.entries().len(), 6);
-        assert!(finite.entries().iter().all(|entry| entry.name != b"a.test"
+        assert!(finite.entries().iter().all(|entry| entry.name != lease.as_bytes()
             || entry.address != "192.0.2.1".parse::<IpAddr>().unwrap()));
     }
 
     #[test]
     fn bulk_three_address_duplicate_and_no_round_robin_keep_reverse_groups() {
         for no_rr in [false, true] {
-            let mut hosts = bulk_fixture(None);
+            let mut hosts = bulk_fixture(None, REPEATED_ADDRESS_FIXTURE);
             hosts.set_round_robin(!no_rr);
             let before = hosts.len();
             assert!(
@@ -2167,13 +2216,13 @@ mod tests {
         assert_eq!(stats.accepted, 60000);
         assert!(!stats.allocation_failed);
         assert_eq!(
-            hosts
-                .records
-                .forward
-                .values()
-                .filter(|ids| {
-                    ids.len() == 2
-                        && hosts.entries()[ids[0]].reverse != hosts.entries()[ids[1]].reverse
+            (0..30000)
+                .filter(|i| {
+                    let name = format!("host{i:06}.test");
+                    let mut entries = hosts.addresses(name.as_bytes());
+                    let first = entries.next().unwrap();
+                    let second = entries.next().unwrap();
+                    entries.next().is_none() && first.reverse != second.reverse
                 })
                 .count(),
             835
@@ -2404,6 +2453,26 @@ mod tests {
         assert_eq!(hosts.remove_uid(7), 0);
         assert!(hosts.insert(b"new.records.test".to_vec(), address, 0, 7));
         assert_eq!(hosts.reverse(address).unwrap().name, b"new.records.test");
+    }
+
+    #[test]
+    fn source_removal_preserves_presence_until_the_last_static_name_record() {
+        for retained_lease in [false, true] {
+            let mut hosts = Hosts::new();
+            hosts.begin_bulk(1497, 1000, 1000).unwrap();
+            if retained_lease {
+                hosts.add_bulk_lease(b"same.test", "192.0.2.9".parse().unwrap(), true, false).unwrap();
+            }
+            hosts.insert_checked(b"same.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2).unwrap();
+            hosts.insert_checked(b"same.test".to_vec(), "192.0.2.2".parse().unwrap(), 37, 3).unwrap();
+            hosts.seal_bulk();
+            assert_eq!(hosts.try_remove_uid(2).unwrap(), 1);
+            assert!(hosts.name_exists(b"same.test") && hosts.name_exists(b"SAME.TEST"));
+            assert_eq!(hosts.addresses(b"same.test").count(), 1);
+            assert_eq!(hosts.try_remove_uid(3).unwrap(), 1);
+            assert!(!hosts.name_exists(b"same.test") && !hosts.name_exists(b"SAME.TEST"));
+            assert_eq!(hosts.addresses(b"same.test").count(), 0);
+        }
     }
 
     #[test]

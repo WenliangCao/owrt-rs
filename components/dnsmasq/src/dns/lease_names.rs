@@ -8,9 +8,11 @@
 use super::cache::StalePolicy;
 use crate::config::records::Cname;
 use crate::dhcp::persistence::DnsLeaseRecord;
-use crate::hosts::Hosts;
-use std::collections::HashMap;
+use crate::hosts::{name_hash_bucket, Hosts};
+use std::borrow::Cow;
+use std::collections::{hash_map::Entry, HashMap};
 use std::net::{IpAddr, Ipv4Addr};
+use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug)]
 pub struct LeasePolicy {
@@ -111,14 +113,14 @@ impl PublicationCache for () {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LeaseInput {
-    pub name: Vec<u8>,
+    pub name: Arc<[u8]>,
     pub address: Ipv4Addr,
     pub expires: Option<i64>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LeaseName {
-    pub name: Vec<u8>,
+    pub name: Arc<[u8]>,
     pub address: Ipv4Addr,
     pub expires: Option<i64>,
     /// Publication-time ownership. Expiring a different PTR owner does not
@@ -151,11 +153,40 @@ pub struct LeaseNames {
     /// Per-reader cache visibility. Arc copy-on-write preserves the state a
     /// TCP child inherited while expiry removals remain local to that reader.
     active: Vec<bool>,
-    forward: HashMap<Vec<u8>, Vec<usize>>,
+    forward: HashMap<Arc<[u8]>, LeaseIds>,
     reverse: HashMap<Ipv4Addr, usize>,
     non_terminals: HashMap<Vec<u8>, Option<i64>>,
     warnings: Vec<PublicationWarning>,
     policy: LeasePolicy,
+}
+
+#[derive(Clone)]
+enum LeaseIds {
+    One(usize),
+    Many(Vec<usize>),
+}
+
+impl LeaseIds {
+    fn as_slice(&self) -> &[usize] {
+        match self {
+            Self::One(id) => std::slice::from_ref(id),
+            Self::Many(ids) => ids,
+        }
+    }
+
+    fn insert(&mut self, at: usize, id: usize) {
+        match self {
+            Self::One(previous) => {
+                assert!(at <= 1);
+                let pair = if at == 0 { [id, *previous] } else { [*previous, id] };
+                let mut ids = Vec::new();
+                ids.push(pair[0]);
+                ids.push(pair[1]);
+                *self = Self::Many(ids);
+            }
+            Self::Many(ids) => ids.insert(at, id),
+        }
+    }
 }
 
 impl LeaseNames {
@@ -172,7 +203,7 @@ impl LeaseNames {
             inputs: records
                 .iter()
                 .map(|record| LeaseInput {
-                    name: record.name.to_vec(),
+                    name: Arc::from(record.name),
                     address: record.address,
                     expires: record.expires,
                 })
@@ -180,8 +211,8 @@ impl LeaseNames {
             policy,
             ..Self::default()
         };
-        for record in records {
-            result.add(*record, hosts, cnames, cache);
+        for (index, record) in records.iter().enumerate() {
+            result.add(*record, index, hosts, cnames, cache);
         }
         result
     }
@@ -235,10 +266,10 @@ impl LeaseNames {
     /// an IPv4 lease alone must not synthesize an AAAA NODATA response.
     pub fn lookup(&self, name: &[u8], now: i64) -> impl Iterator<Item = &LeaseName> {
         (!self.forward.is_empty())
-            .then(|| self.forward.get(&name.to_ascii_lowercase()))
+            .then(|| self.forward.get(name_key(name).as_ref()))
             .flatten()
             .into_iter()
-            .flatten()
+            .flat_map(|ids| ids.as_slice())
             .filter_map(move |&id| {
                 let entry = &self.entries[id];
                 (self.active[id] && self.policy.live(entry.expires, now)).then_some(entry)
@@ -250,9 +281,9 @@ impl LeaseNames {
     /// an actual lookup (or publication) has removed it.
     pub(crate) fn active_lookup(&self, name: &[u8]) -> impl Iterator<Item = &LeaseName> {
         self.forward
-            .get(&name.to_ascii_lowercase())
+            .get(name_key(name).as_ref())
             .into_iter()
-            .flatten()
+            .flat_map(|ids| ids.as_slice())
             .filter_map(|&id| self.active[id].then_some(&self.entries[id]))
     }
 
@@ -265,10 +296,11 @@ impl LeaseNames {
     /// check_for_local_domain / upstream NXDOMAIN conversion only. A live
     /// non-terminal is not a locally answerable empty RRset.
     pub fn name_exists(&self, name: &[u8], now: i64) -> bool {
-        self.lookup(name, now).next().is_some()
+        let key = name_key(name);
+        self.lookup(&key, now).next().is_some()
             || self
                 .non_terminals
-                .get(&name.to_ascii_lowercase())
+                .get(key.as_ref())
                 .is_some_and(|&expiry| self.policy.live(expiry, now))
     }
 
@@ -276,20 +308,20 @@ impl LeaseNames {
     /// generation shared with a TCP child. Presence checks intentionally do
     /// not call this: cache_find_non_terminal does not remove expired data.
     pub(crate) fn has_expired_name(&self, name: &[u8], now: i64) -> bool {
-        let key = name.to_ascii_lowercase();
-        self.forward.get(&key).is_some_and(|ids| {
-            ids.iter()
+        let key = name_key(name);
+        self.forward.get(key.as_ref()).is_some_and(|ids| {
+            ids.as_slice().iter()
                 .any(|&id| self.active[id] && !self.policy.live(self.entries[id].expires, now))
         }) || self
             .non_terminals
-            .get(&key)
+            .get(key.as_ref())
             .is_some_and(|&expiry| !self.policy.live(expiry, now))
     }
 
     pub(crate) fn expire_name(&mut self, name: &[u8], now: i64) {
-        let key = name.to_ascii_lowercase();
-        if let Some(ids) = self.forward.get(&key) {
-            for &id in ids {
+        let key = name_key(name);
+        if let Some(ids) = self.forward.get(key.as_ref()) {
+            for &id in ids.as_slice() {
                 if !self.policy.live(self.entries[id].expires, now) {
                     self.active[id] = false;
                 }
@@ -297,10 +329,10 @@ impl LeaseNames {
         }
         if self
             .non_terminals
-            .get(&key)
+            .get(key.as_ref())
             .is_some_and(|&expiry| !self.policy.live(expiry, now))
         {
-            self.non_terminals.remove(&key);
+            self.non_terminals.remove(key.as_ref());
         }
     }
 
@@ -323,13 +355,17 @@ impl LeaseNames {
     fn add(
         &mut self,
         record: DnsLeaseRecord<'_>,
+        input: usize,
         hosts: &mut Hosts,
         cnames: &[Cname],
         cache: &mut impl PublicationCache,
     ) {
-        let key = record.name.to_ascii_lowercase();
+        let key = name_key(record.name);
+        // Hosts capacity cannot change between the blocker scan and lookup.
+        // Keep both scans and the lookup's IPv4-only rotation in their order.
+        let host_bucket = name_hash_bucket(record.name, hosts.name_hash_capacity());
         let mut blockers: Vec<_> = hosts
-            .addresses(record.name)
+            .addresses_in_bucket(record.name, host_bucket)
             .map(|host| PublicationBlocker {
                 kind: if host.address.is_ipv4() {
                     BlockerKind::Ipv4
@@ -354,14 +390,16 @@ impl LeaseNames {
                 address: record.address,
             });
         }
-        if let Some(ids) = self.forward.get(&key) {
-            blockers.extend(ids.iter().map(|&id| PublicationBlocker {
+        if let Some(ids) = self.forward.get(key.as_ref()) {
+            blockers.extend(ids.as_slice().iter().map(|&id| PublicationBlocker {
                 kind: BlockerKind::Ipv4,
                 reverse: self.entries[id].reverse,
                 immortal: self.entries[id].expires.is_none(),
             }));
         }
-        let static_addresses = hosts.lookup(record.name, Some(false), self.policy.no_round_robin);
+        let static_addresses = hosts.lookup_in_bucket(
+            record.name, Some(false), self.policy.no_round_robin, host_bucket,
+        );
         cache.prepare_name(ForwardPublication {
             name: record.name,
             no_round_robin: self.policy.no_round_robin,
@@ -396,29 +434,44 @@ impl LeaseNames {
         let id = self.entries.len();
         let expires = record.expires.filter(|&expires| expires != 0);
         let immortal = expires.is_none();
-        let ids = self.forward.entry(key.clone()).or_default();
-        // cache_hash: reverse first; mortal before immortal for non-reverse;
-        // preserve order within the same (reverse, immortal) flags group.
-        let mut at = 0;
-        if !reverse {
-            while at < ids.len() && self.entries[ids[at]].reverse {
-                at += 1;
+        // Borrowed canonical bytes are identical to the retained input. Mixed
+        // case keeps its original spelling and gets a separate lowercase key.
+        let forward_key = if matches!(key, Cow::Borrowed(_)) {
+            Arc::clone(&self.inputs[input].name)
+        } else {
+            Arc::from(key.as_ref())
+        };
+        match self.forward.entry(forward_key) {
+            Entry::Vacant(entry) => {
+                entry.insert(LeaseIds::One(id));
             }
-            if immortal {
-                while at < ids.len() && self.entries[ids[at]].expires.is_some() {
+            Entry::Occupied(mut entry) => {
+                let ids = entry.get_mut();
+                let current = ids.as_slice();
+                // cache_hash: reverse first; mortal before immortal for
+                // non-reverse; preserve order within each flags group.
+                let mut at = 0;
+                if !reverse {
+                    while at < current.len() && self.entries[current[at]].reverse {
+                        at += 1;
+                    }
+                    if immortal {
+                        while at < current.len() && self.entries[current[at]].expires.is_some() {
+                            at += 1;
+                        }
+                    }
+                }
+                while at < current.len()
+                    && self.entries[current[at]].reverse == reverse
+                    && self.entries[current[at]].expires.is_none() == immortal
+                {
                     at += 1;
                 }
+                ids.insert(at, id);
             }
         }
-        while at < ids.len()
-            && self.entries[ids[at]].reverse == reverse
-            && self.entries[ids[at]].expires.is_none() == immortal
-        {
-            at += 1;
-        }
-        ids.insert(at, id);
         self.entries.push(LeaseName {
-            name: record.name.to_vec(),
+            name: Arc::clone(&self.inputs[input].name),
             address: record.address,
             expires,
             reverse,
@@ -427,7 +480,7 @@ impl LeaseNames {
         if reverse {
             self.reverse.insert(record.address, id);
         }
-        self.non_terminals.remove(&key);
+        self.non_terminals.remove(key.as_ref());
         for (index, &byte) in key.iter().enumerate() {
             if byte != b'.' {
                 continue;
@@ -436,14 +489,21 @@ impl LeaseNames {
             // C extends the first existing DHCP record even when it is a
             // real address, not just a synthetic non-terminal.
             if let Some(ids) = self.forward.get(parent) {
-                extend_expiry(&mut self.entries[ids[0]].expires, expires);
+                extend_expiry(&mut self.entries[ids.as_slice()[0]].expires, expires);
+            } else if let Some(expiry) = self.non_terminals.get_mut(parent) {
+                extend_expiry(expiry, expires);
             } else {
-                self.non_terminals
-                    .entry(parent.to_vec())
-                    .and_modify(|expiry| extend_expiry(expiry, expires))
-                    .or_insert(expires);
+                self.non_terminals.insert(parent.to_vec(), expires);
             }
         }
+    }
+}
+
+fn name_key(name: &[u8]) -> Cow<'_, [u8]> {
+    if name.iter().any(u8::is_ascii_uppercase) {
+        Cow::Owned(name.to_ascii_lowercase())
+    } else {
+        Cow::Borrowed(name)
     }
 }
 
@@ -465,6 +525,35 @@ mod tests {
         }
     }
 
+    #[test]
+    fn same_name_entries_keep_reverse_finite_and_immortal_order() {
+        let records = [
+            input(b"ptr-owner.test", 1, Some(900)),
+            input(b"same.test", 1, None),
+            input(b"same.test", 2, Some(800)),
+            input(b"same.test", 1, Some(700)),
+            input(b"same.test", 3, None),
+        ];
+        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        assert_eq!(names.lookup(b"same.test", 100).map(|entry|
+            (entry.address.octets()[3], entry.expires, entry.reverse)
+        ).collect::<Vec<_>>(), [
+            (3, None, true), (2, Some(800), true),
+            (1, Some(700), false), (1, None, false),
+        ]);
+    }
+
+    #[test]
+    fn canonical_index_does_not_change_retained_or_reverse_name_spelling() {
+        let records = [input(b"MiXeD.Example", 7, Some(1000))];
+        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        for generation in [&names, &names.rebuild(&mut Hosts::new(), &[], &mut ())] {
+            assert_eq!(generation.inputs()[0].name.as_ref(), b"MiXeD.Example");
+            assert_eq!(generation.lookup(b"mixed.example", 100).next().unwrap().name.as_ref(), b"MiXeD.Example");
+            assert_eq!(generation.reverse(records[0].address, 100).unwrap().name.as_ref(), b"MiXeD.Example");
+        }
+    }
+
     // Expected cases were first observed using exact C cache.c and
     // rfc1035.c, indexed in docs/dnsmasq/LEASE_NAMES_PHASE.md.
     #[test]
@@ -480,7 +569,7 @@ mod tests {
         };
         let names = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
         assert_eq!(
-            names.reverse(records[0].address, 999).unwrap().name,
+            names.reverse(records[0].address, 999).unwrap().name.as_ref(),
             b"lease.example"
         );
         assert_eq!(

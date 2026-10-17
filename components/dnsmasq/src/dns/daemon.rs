@@ -247,6 +247,10 @@ pub struct DnsDaemon<R = OsRandom> {
     server_notices: Vec<crate::logging::LogEvent>,
     upstream: UpstreamResolver<R>,
     cache: Option<Cache>,
+    // One bounded decode scratch, not a per-name cache. A successful name
+    // is at most255 bytes; Vec's amortized capacity may exceed256 (for
+    // example380 for uneven labels), while ordinary names retain32 bytes.
+    udp_name_buffer: Vec<u8>,
     cache_counters: CacheCounters,
     negative_ttl: u64,
     negative_cache: bool,
@@ -360,6 +364,7 @@ impl<R: Random> DnsDaemon<R> {
             server_notices: Vec::new(),
             upstream,
             cache: None,
+            udp_name_buffer: Vec::new(),
             cache_counters: CacheCounters::default(),
             negative_ttl: 0,
             negative_cache: false,
@@ -949,6 +954,20 @@ impl<R: Random> DnsDaemon<R> {
         self.forward_udp_inner(query, client, listener, Some(local))
     }
 
+    /// Return the response length only after a complete in-place cached hit.
+    /// Rejected packets keep the general owner's admission and expiry path.
+    pub fn try_plain_cached_udp_in_place(
+        &mut self, packet: &mut [u8], query_len: usize, local: &mut LocalDnsService,
+    ) -> Option<usize> {
+        let answer = CacheContext::try_plain_udp_in_place(self.cache.as_mut()?, packet, query_len,
+            local, unix_seconds(), &mut self.udp_name_buffer);
+        if answer.is_some() {
+            // Deferred admission can follow a newer upstream resend save.
+            self.invalidate_udp_resend();
+        }
+        answer
+    }
+
     /// The owner decorates after preserving the original client metadata and
     /// completing MAC I/O. Local/cache envelopes still use the original UDP
     /// query, while forward.c stashes and retries the decorated packet.
@@ -963,31 +982,44 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<QueryResult, DaemonError> {
         self.invalidate_udp_resend();
         let header = Header::parse(original)?;
-        let question = super::forward::Question::parse_with_header(original, header)?;
-        if let Some(answer) = Self::answer_local_or_cached(
-            self.cache.as_mut(),
-            original,
-            header,
-            &question,
-            local,
-            unix_seconds(),
-            !metadata.flags.no_cache,
-            false,
-        )?.answer {
-            return Ok(answer);
-        }
-        if let Some(packet) = self.policy_reply(original, Some(local))? {
-            return Ok(QueryResult::Local(packet));
-        }
-        self.submit_upstream_with_metadata(
-            decorated,
-            original,
-            &question,
-            client,
-            listener,
-            true,
-            Some(metadata),
-        )
+        let mut scratch = std::mem::take(&mut self.udp_name_buffer);
+        let question = match super::forward::Question::parse_with_header_reusing(original, header, &mut scratch) {
+            Ok(question) => question,
+            Err(error) => {
+                self.udp_name_buffer = scratch;
+                return Err(error.into());
+            }
+        };
+        // Forwarding retains its own owned question; no result can borrow
+        // this synchronous decode. Recover the buffer on every result path.
+        let result = (|| {
+            if let Some(answer) = Self::answer_local_or_cached(
+                self.cache.as_mut(),
+                original,
+                header,
+                &question,
+                local,
+                unix_seconds(),
+                !metadata.flags.no_cache,
+                false,
+            )?.answer {
+                return Ok(answer);
+            }
+            if let Some(packet) = self.policy_reply(original, Some(local))? {
+                return Ok(QueryResult::Local(packet));
+            }
+            self.submit_upstream_with_metadata(
+                decorated,
+                original,
+                &question,
+                client,
+                listener,
+                true,
+                Some(metadata),
+            )
+        })();
+        self.udp_name_buffer = question.name.into_wire_buffer();
+        result
     }
 
     pub fn refresh_udp_prepared_on_listener(
@@ -1741,6 +1773,18 @@ impl<R: Random> DnsDaemon<R> {
         self.cache.as_ref()
     }
 
+    /// Retire only the memory-owned cache at the executable's final successful
+    /// shutdown boundary. The process must exit after this call: the kernel
+    /// reclaims these pages without a second allocator walk/unmap pass.
+    ///
+    /// Cache owns records, indices and reference-counted byte storage only;
+    /// sockets, lease persistence, log writers and helper children are outside
+    /// it and must still run their normal shutdown and Drop paths. Library
+    /// users which continue running must use ordinary Drop instead.
+    pub fn retire_cache_for_process_exit(&mut self) {
+        std::mem::forget(self.cache.take());
+    }
+
     pub fn tcp_cache_view(&self) -> Option<Cache> {
         self.cache.as_ref().map(Cache::snapshot)
     }
@@ -1846,7 +1890,10 @@ impl<R: Random> DnsDaemon<R> {
         cacheable: bool,
         tcp: bool,
     ) -> Result<LocalLookup, DaemonError> {
-        let local_answer = local.lookup_local_parsed(query, header, question, now, cache.as_deref_mut(), tcp);
+        let mut name_lookup = None;
+        let local_answer = local.lookup_local_parsed(
+            query, header, question, now, cache.as_deref_mut(), tcp, &mut name_lookup,
+        );
         // A malformed TCP question must reach tcp_request's REFUSED path;
         // UDP admission instead drops it. Valid questions share this lookup.
         let local_answer = if tcp { local_answer.ok().flatten() } else { local_answer? };
@@ -1861,7 +1908,7 @@ impl<R: Random> DnsDaemon<R> {
                 let limit = if tcp { 65536 } else { local.max_udp };
                 let answer = CacheContext::answer_from_cache(
                     cache, query, header, question, now, local,
-                    limit, maximum, tcp, filtered_type,
+                    limit, maximum, tcp, filtered_type, name_lookup.as_ref(),
                 )?;
                 if let Some(packet) = answer.packet {
                     return Ok(LocalLookup::answered(if answer.stale {

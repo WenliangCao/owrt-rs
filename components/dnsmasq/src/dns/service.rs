@@ -46,6 +46,44 @@ pub fn encode_tcp_frame(packet: &[u8]) -> Result<Vec<u8>, FrameError> {
     Ok(frame)
 }
 
+/// An owned answer with its wire prefix kept separately. The packet is already
+/// owned by the answer engine; framing must not allocate and copy it again.
+#[derive(Debug)]
+pub struct TcpWriteFrame {
+    packet: Vec<u8>,
+    length: [u8; 2],
+}
+
+impl TcpWriteFrame {
+    pub fn new(packet: Vec<u8>) -> Result<Self, FrameError> {
+        if packet.is_empty() {
+            return Err(FrameError::Empty);
+        }
+        if packet.len() > u16::MAX as usize {
+            return Err(FrameError::TooLarge);
+        }
+        let length = (packet.len() as u16).to_be_bytes();
+        Ok(Self { packet, length })
+    }
+
+    pub fn wire_len(&self) -> usize {
+        self.packet.len() + self.length.len()
+    }
+
+    /// Write from the same wire offset used for a contiguous length-prefixed
+    /// packet, including a partial write which stops inside the two-byte prefix.
+    pub fn write_from(&self, output: &mut impl Write, offset: usize) -> io::Result<usize> {
+        if offset < self.length.len() {
+            output.write_vectored(&[
+                io::IoSlice::new(&self.length[offset..]),
+                io::IoSlice::new(&self.packet),
+            ])
+        } else {
+            output.write(&self.packet[offset - self.length.len()..])
+        }
+    }
+}
+
 /// Incremental DNS-over-TCP decoder. It never allocates according to an
 /// incomplete frame and rejects zero-length frames before returning payload.
 /// A bounded instance also rejects a length prefix before reading its body,
@@ -81,6 +119,20 @@ impl TcpFramer {
     /// A listener must handle a completed frame before parsing the next one:
     /// a later invalid length must not discard earlier requests in the read.
     pub fn push_frame(&mut self, input: &[u8]) -> Result<(usize, Option<Vec<u8>>), FrameError> {
+        if self.bytes.is_empty() && input.len() >= 2 {
+            let length = u16::from_be_bytes([input[0], input[1]]) as usize;
+            if length == 0 {
+                return Err(FrameError::Empty);
+            }
+            if length > self.max_frame {
+                return Err(FrameError::TooLarge);
+            }
+            if input.len() >= length + 2 {
+                // No fragment needs retaining. Copy directly to the owned
+                // request rather than through the reusable assembly buffer.
+                return Ok((length + 2, Some(input[2..length + 2].to_vec())));
+            }
+        }
         let mut offset = 0;
         if self.bytes.len() < 2 {
             let count = (2 - self.bytes.len()).min(input.len());
@@ -177,6 +229,7 @@ pub struct LocalDnsService {
     pub local_network: Option<(Ipv4Addr, Ipv4Addr)>,
     pub query_logging: bool,
     query_events: Vec<crate::query_logging::QueryEvent>,
+    pub(super) cached_reply_buffer: Vec<u8>,
 }
 
 impl LocalDnsService {
@@ -208,6 +261,7 @@ impl LocalDnsService {
             local_network: None,
             query_logging: false,
             query_events: Vec::new(),
+            cached_reply_buffer: Vec::new(),
         }
     }
 
@@ -230,6 +284,15 @@ impl LocalDnsService {
 
     pub fn take_query_events(&mut self) -> Vec<crate::query_logging::QueryEvent> {
         std::mem::take(&mut self.query_events)
+    }
+
+    /// The UDP owner may return a cache reply after its final send. Retain at
+    /// most one small allocation; large/general replies keep their old lifetime.
+    pub fn recycle_cached_reply(&mut self, mut packet: Vec<u8>) {
+        if packet.capacity() <= 512 && packet.capacity() >= self.cached_reply_buffer.capacity() {
+            packet.clear();
+            self.cached_reply_buffer = packet;
+        }
     }
 
     pub fn handle_udp(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
@@ -292,7 +355,7 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp)?;
+        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;
         Ok(answer.map(|answer| self.finish_local_answer(answer)))
     }
 
@@ -304,14 +367,15 @@ impl LocalDnsService {
     /// Retain forward-rule answers until answer_request's cache lookup has
     /// run. Their query log events belong only to the answer actually sent.
     #[allow(clippy::too_many_arguments)]
-    pub(super) fn lookup_local_parsed(
+    pub(super) fn lookup_local_parsed<'q>(
         &mut self,
         query: &[u8],
         header: Header,
-        question: &super::forward::Question,
+        question: &'q super::forward::Question,
         now: i64,
         cache: Option<&mut Cache>,
         tcp: bool,
+        name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
         // C treats an invalid additional section as no pseudoheader; a
         // valid question may still receive a local answer.
@@ -342,6 +406,7 @@ impl LocalDnsService {
             cache,
             &self.interfaces,
             self.query_logging,
+            name_lookup,
         )?
         else {
             return Ok(None);
@@ -845,5 +910,69 @@ mod tests {
             framer.push(&encode_tcp_frame(b"ok").unwrap()),
             Ok(vec![b"ok".to_vec()])
         );
+    }
+
+    #[test]
+    fn tcp_write_frame_keeps_prefix_and_payload_across_partial_writes() {
+        struct ShortWriter { bytes: Vec<u8>, maximum: usize }
+        impl Write for ShortWriter {
+            fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+                let count = bytes.len().min(self.maximum);
+                self.bytes.extend_from_slice(&bytes[..count]);
+                Ok(count)
+            }
+            fn write_vectored(&mut self, inputs: &[io::IoSlice<'_>]) -> io::Result<usize> {
+                let mut count = 0;
+                for input in inputs {
+                    let take = input.len().min(self.maximum - count);
+                    self.bytes.extend_from_slice(&input[..take]);
+                    count += take;
+                }
+                Ok(count)
+            }
+            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+        }
+        for length in [1, 32, 1232, u16::MAX as usize] {
+            let packet = vec![0xa5; length];
+            let expected = encode_tcp_frame(&packet).unwrap();
+            for maximum in [1, 2, 3, 31, length + 2] {
+                let frame = TcpWriteFrame::new(packet.clone()).unwrap();
+                let mut output = ShortWriter { bytes: Vec::new(), maximum };
+                let mut offset = 0;
+                while offset < frame.wire_len() {
+                    offset += frame.write_from(&mut output, offset).unwrap();
+                }
+                assert_eq!(offset, expected.len());
+                assert_eq!(output.bytes, expected);
+            }
+        }
+        assert!(matches!(TcpWriteFrame::new(Vec::new()), Err(FrameError::Empty)));
+        assert!(matches!(TcpWriteFrame::new(vec![0; 65536]), Err(FrameError::TooLarge)));
+    }
+
+    #[test]
+    fn tcp_framer_all_fragment_boundaries_keep_one_frame_and_tail() {
+        let packet = vec![0xa5; 64];
+        let first = encode_tcp_frame(&packet).unwrap();
+        let second = encode_tcp_frame(b"second").unwrap();
+        for split in 0..=first.len() {
+            let mut framer = TcpFramer::new();
+            let mut input = first[split..].to_vec();
+            input.extend_from_slice(&second);
+            let (_, before) = framer.push_frame(&first[..split]).unwrap();
+            let (used, after) = framer.push_frame(&input).unwrap();
+            if split == first.len() {
+                assert_eq!(before.unwrap(), packet);
+                assert_eq!(after.unwrap(), b"second");
+                assert_eq!(used, second.len());
+            } else {
+                assert!(before.is_none());
+                assert_eq!(after.unwrap(), packet);
+                assert_eq!(used, first.len() - split);
+                assert_eq!(framer.push_frame(&input[used..]).unwrap().1.unwrap(), b"second");
+            }
+            assert_eq!(framer.buffered_len(), 0);
+            assert!(framer.finish().is_ok());
+        }
     }
 }

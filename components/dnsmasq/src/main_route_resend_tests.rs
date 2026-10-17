@@ -314,3 +314,55 @@ fn route_resend_owner_full_reload_clears_without_releasing_its_pending_query() {
     fixture.owner.process_reload_before_dns(37, true).unwrap();
     fixture.assert_no_resend();
 }
+
+
+#[test]
+fn plain_udp_owner_reuses_receive_bytes_and_sends_existing_completion_after_hit() {
+    let mut fixture = PendingCaller::new(true, true);
+    let question = WireQuestion::parse(&fixture.packet, 12).unwrap();
+    let mut writer = PacketWriter::new(Header::parse(&fixture.packet).unwrap().id, 0x8180, 1232).unwrap();
+    writer.question(&question.name, 1, 1).unwrap();
+    writer.record_at(Section::Answer, 12, 1, 1, 600, &[192, 0, 2, 88]).unwrap();
+    fixture.upstream.send_to(&writer.finish(), fixture.peer).unwrap();
+    let before_count = fixture.owner.parent_events.borrow().local_answered;
+    let packet = query("cached.route.test", 0x1234);
+    assert!(fixture.send_client(&packet));
+    assert_eq!(Header::parse(&fixture.owner.udp_buffer).unwrap().flags, 0x8180,
+        "the direct hit must use the receive buffer rather than a copied reply");
+    assert_eq!(&fixture.owner.udp_buffer[12..packet.len()], &packet[12..]);
+    let mut response = [0; 1232];
+    let (length, _) = fixture.client.recv_from(&mut response).unwrap();
+    assert_eq!(Header::parse(&response[..length]).unwrap().id, 0x1234);
+    assert_eq!(&response[length - 4..length], &[192, 0, 2, 55]);
+    let (length, _) = fixture.client.recv_from(&mut response).unwrap();
+    assert_eq!(Header::parse(&response[..length]).unwrap().id, 7,
+        "an already completed upstream reply follows the current cached answer");
+    assert_eq!(&response[length - 4..length], &[192, 0, 2, 88]);
+    assert_eq!(fixture.owner.parent_events.borrow().local_answered, before_count + 1);
+    assert_eq!(fixture.owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 0);
+}
+
+#[test]
+fn plain_udp_owner_feature_rejection_keeps_packet_and_counters() {
+    for excluded in ["logging", "edns", "loop"] {
+        let mut fixture = PendingCaller::new(true, true);
+        match excluded {
+            "logging" => fixture.owner.query_logging.enabled = true,
+            "edns" => { fixture.owner.config.apply(&lex_line(b"add-mac").unwrap().unwrap()).unwrap(); },
+            "loop" => fixture.owner.config.loop_detect = true,
+            _ => unreachable!(),
+        }
+        let query = query("cached.route.test", 0x1234);
+        let mut packet = vec![0xa5; 512];
+        packet[..query.len()].copy_from_slice(&query);
+        let before = packet.clone();
+        let before_count = fixture.owner.parent_events.borrow().local_answered;
+        let udp = Arc::clone(fixture.owner.listeners[0].udp.as_ref().unwrap());
+        let incoming = listeners::Incoming { len: query.len(), peer: fixture.client.local_addr().unwrap(),
+            destination: fixture.dns.ip(), interface: 0 };
+        assert!(!fixture.owner.try_plain_udp_hit(&udp, incoming, &mut packet));
+        assert_eq!(packet, before);
+        assert_eq!(fixture.owner.parent_events.borrow().local_answered, before_count);
+        assert_eq!(fixture.owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 1);
+    }
+}

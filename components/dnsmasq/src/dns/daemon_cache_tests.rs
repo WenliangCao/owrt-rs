@@ -84,6 +84,80 @@ fn shared_answer(daemon: &mut DnsDaemon, query: &[u8], now: i64, tcp: bool) -> O
 }
 
 #[test]
+fn cached_local_shortcut_keeps_same_name_hosts_raw_and_rule_precedence() {
+    use std::sync::Arc;
+    use super::super::cache::{Kind, Record};
+    for rrtype in [1, 28] {
+        for tcp in [false, true] {
+            for mode in ["none", "host", "raw", "literal", "local-only", "configured-cname"] {
+                let mut daemon = daemon();
+                let address = if rrtype == 1 { "192.0.2.9" } else { "2001:db8::9" };
+                let directives = match mode {
+                    "host" => vec![format!("host-record=coexist.test,{address}")],
+                    "raw" => vec![format!("dns-rr=coexist.test,{rrtype},{}", if rrtype == 1 { "c0000209" } else { "20010db8000000000000000000000009" })],
+                    "literal" => vec![format!("address=/coexist.test/{address}")],
+                    "local-only" => vec!["local=/coexist.test/".to_owned()],
+                    "configured-cname" => vec!["cname=coexist.test,target.test".to_owned(), format!("host-record=target.test,{address}")],
+                    _ => Vec::new(),
+                };
+                for line in directives {
+                    Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+                }
+                daemon.local.hosts = super::super::local::configured_hosts(&daemon.local.config, 60);
+                daemon.local.query_logging = true;
+                let data = if rrtype == 1 { vec![192,0,2,7] } else { "2001:db8::7".parse::<std::net::Ipv6Addr>().unwrap().octets().to_vec() };
+                let kind = if rrtype == 1 { Kind::Ipv4 } else { Kind::Ipv6 };
+                let cache = daemon.cache.as_mut().unwrap();
+                cache.start_insert();
+                cache.insert(Record { name: Name::from_ascii("coexist.test").unwrap(), kind, negative: false, data: data.clone() },100,300).unwrap();
+                assert!(cache.commit());
+                let query = packet("coexist.test",rrtype,0x100).finish();
+                let header = Header::parse(&query).unwrap();
+                let question = super::super::forward::Question::parse_with_header(&query,header).unwrap();
+                let (_,hint) = cache.inspect_name(&question.name,100);
+                assert!(cache.single_fresh_address_id_with_hint(&question.name,kind,100,hint.as_ref()).is_some());
+                let answer = DnsDaemon::<OsRandom>::answer_local_or_cached(daemon.cache.as_mut(), &query,
+                    header, &question, &mut daemon.local,100,true,tcp).unwrap().answer.unwrap();
+                let local = matches!(mode,"host"|"raw"|"configured-cname");
+                assert_eq!(matches!(&answer,QueryResult::Local(_)),local,"{mode}/{rrtype}/{tcp}");
+                let response = match answer { QueryResult::Local(p)|QueryResult::Cached(p)=>p,_=>panic!("unexpected answer") };
+                let message = Message::parse(&response).unwrap();
+                let address_record = message.records(Section::Answer).find(|rr|rr.rrtype==rrtype).unwrap();
+                let expected = if local {
+                    if rrtype==1 { vec![192,0,2,9] } else { "2001:db8::9".parse::<std::net::Ipv6Addr>().unwrap().octets().to_vec() }
+                } else { data };
+                assert_eq!(address_record.rdata,expected);
+                assert!(!daemon.local.take_query_events().is_empty(),"logging remains in the selected original answer owner");
+            }
+        }
+    }
+}
+
+#[test]
+fn cached_local_shortcut_expires_live_lease_before_cache_and_clock_rollback() {
+    use std::sync::Arc;
+    use super::super::cache::{Kind, Record};
+    use crate::dhcp::persistence::DnsLeaseRecord;
+    use super::super::lease_names::{LeaseNames, LeasePolicy};
+    for tcp in [false,true] {
+        let mut daemon=daemon();
+        daemon.local.leases=Arc::new(LeaseNames::build(&[DnsLeaseRecord { name:b"coexist.test", address:"192.0.2.9".parse().unwrap(), expires:Some(150) }],
+            &mut daemon.local.hosts,&[],LeasePolicy::default(),&mut ()));
+        let cache=daemon.cache.as_mut().unwrap();
+        cache.start_insert();
+        cache.insert(Record { name:Name::from_ascii("coexist.test").unwrap(),kind:Kind::Ipv4,negative:false,data:vec![192,0,2,7] },100,300).unwrap();
+        assert!(cache.commit());
+        let query=packet("coexist.test",1,0x100).finish();
+        for (now,last) in [(100,9),(160,7),(100,7)] {
+            let response=shared_answer(&mut daemon,&query,now,tcp).unwrap();
+            let message=Message::parse(&response).unwrap();
+            assert_eq!(message.records(Section::Answer).find(|rr|rr.rrtype==1).unwrap().rdata,[192,0,2,last]);
+        }
+        assert!(daemon.local.leases.lookup(b"coexist.test",100).next().is_none());
+    }
+}
+
+#[test]
 fn shared_lookup_checks_cached_terminal_before_local_forward_rules() {
     for directive in ["local=/test/", "address=/test/203.0.113.9"] {
         let mut daemon = daemon();
@@ -670,6 +744,30 @@ fn malformed_replacement_keeps_prefix_removal_but_zero_ttl_stops_before_removal(
 }
 
 #[test]
+fn finite_cname_negative_cutoff_does_not_contribute_stale_metadata() {
+    for (minimum, maximum) in [(0, 0), (4, 12)] {
+        let mut daemon = daemon();
+        daemon.enable_cache(32, minimum, maximum, StalePolicy::Seconds(5));
+        daemon.enable_negative_cache(5, true);
+        let mut reply = packet("alias.test", 1, 0x8183);
+        reply.record_at(Section::Answer, 12, 5, 1, 20,
+            Name::from_ascii("target.test").unwrap().as_wire()).unwrap();
+        let mut soa = Name::from_ascii("ns.test").unwrap().as_wire().to_vec();
+        soa.extend_from_slice(Name::from_ascii("hostmaster.test").unwrap().as_wire());
+        for value in [1u32, 2, 3, 4, 5] { soa.extend_from_slice(&value.to_be_bytes()); }
+        reply.record(Section::Authority, &Name::from_ascii("test").unwrap(), 6, 1, 20, &soa).unwrap();
+        daemon.cache_reply_at(&reply.finish(), 100);
+        let query = packet("alias.test", 1, 0x100).finish();
+        let question = super::super::forward::Question::parse(&query).unwrap();
+        let retained = daemon.cached_answer_at_with_local(&query, &question, 109, None).unwrap();
+        assert!(retained.packet.is_some() && retained.stale);
+        let expired = daemon.cached_answer_at_with_local(&query, &question, 110, None).unwrap();
+        assert!(expired.packet.is_none());
+        assert!(!expired.stale, "exact-C finite/min-max cname-nx-q1-at-110");
+    }
+}
+
+#[test]
 fn zero_ttl_at_expiry_is_not_yet_stale_and_new_address_precedes_old_nxdomain() {
     let mut daemon = daemon();
     daemon.enable_cache(32, 0, 0, StalePolicy::Seconds(30));
@@ -1064,4 +1162,145 @@ fn exact_c_oracle_driver() {
             println!("CACHE_ORACLE {result}");
         }
     }
+}
+
+#[test]
+fn prepared_udp_name_buffer_survives_decode_errors_and_keeps_answers_owned() {
+    let mut daemon = daemon();
+    let now = unix_seconds();
+    for name in ["one.test", "two.test"] {
+        let mut reply = packet(name, 1, 0x8180);
+        reply.record(Section::Answer, &Name::from_ascii(name).unwrap(), 1, 1, 120, &[192,0,2,7]).unwrap();
+        daemon.cache_reply_at(&reply.finish(), now);
+    }
+    let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 120, 1232);
+    let client = ClientRequest { source: "127.0.0.1:53001".parse().unwrap(),
+        destination: "127.0.0.1".parse().unwrap(), interface: 0 };
+    let first = packet("one.test", 1, 0x100).finish();
+    let metadata = super::super::forward_service::query_metadata(&first, 1232).unwrap();
+    let mut answers = Vec::new();
+    let mut allocation = None;
+    for name in ["one.test", "two.test", "one.test"] {
+        let query = packet(name, 1, 0x100).finish();
+        let answer = daemon.answer_udp_prepared_with_local(&query, &query, metadata,
+            client.clone(), None, &mut local).unwrap();
+        let QueryResult::Cached(answer) = answer else { panic!("expected cache hit"); };
+        answers.push((name, answer));
+        let pointer = daemon.udp_name_buffer.as_ptr();
+        if let Some(previous) = allocation { assert_eq!(pointer, previous); }
+        allocation = Some(pointer);
+        assert_eq!(daemon.udp_name_buffer.capacity(), 32);
+        // An invalid pointer loop follows a complete header/question footer.
+        // Failed decoding must return its scratch instead of losing it.
+        let mut malformed = first[..12].to_vec();
+        malformed.extend_from_slice(&[0xc0,12,0,1,0,1]);
+        assert!(matches!(daemon.answer_udp_prepared_with_local(&malformed, &malformed,
+            metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(_))));
+        assert_eq!(daemon.udp_name_buffer.as_ptr(), pointer);
+        for tail in [&[3,b'a',b'b',b'c',4,b'z'][..], &[3,b'a',b'b',b'c',0x40,0,1,0,1][..]] {
+            let mut partial = first[..12].to_vec();
+            partial.extend_from_slice(tail);
+            assert!(matches!(daemon.answer_udp_prepared_with_local(&partial, &partial,
+                metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(_))));
+            assert_eq!(daemon.udp_name_buffer.as_slice(), &[3,b'a',b'b',b'c']);
+            assert_eq!(daemon.udp_name_buffer.as_ptr(), pointer);
+        }
+    }
+    // Reusing and failing the following requests cannot overwrite retained replies.
+    for (name, answer) in answers {
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(super::super::forward::Question::parse(&answer).unwrap().name,
+                   Name::from_ascii(name).unwrap());
+        assert_eq!(message.records(Section::Answer).next().unwrap().rdata, &[192,0,2,7]);
+    }
+    // A compressed question and the longest valid question use the same
+    // decoder/cursor contract; capacity growth remains bounded for DNS names.
+    let mut compressed = first[..12].to_vec();
+    compressed.extend_from_slice(&[0xc0,18,0,1,0,1]);
+    compressed.extend_from_slice(Name::from_ascii("one.test").unwrap().as_wire());
+    assert!(matches!(daemon.answer_udp_prepared_with_local(&compressed, &compressed,
+        metadata, client.clone(), None, &mut local), Ok(QueryResult::Cached(_))));
+    let long_name = ["a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(61)].join(".");
+    let long = packet(&long_name, 1, 0x100).finish();
+    let _ = daemon.answer_udp_prepared_with_local(&long, &long, metadata,
+        client.clone(), None, &mut local);
+    assert_eq!(daemon.udp_name_buffer.len(), 255);
+    assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+    let mut overlong = first[..12].to_vec();
+    for _ in 0..4 {
+        overlong.push(63);
+        overlong.extend_from_slice(&[b'x'; 63]);
+    }
+    overlong.extend_from_slice(&[0,0,1,0,1]);
+    assert!(matches!(daemon.answer_udp_prepared_with_local(&overlong, &overlong,
+        metadata, client.clone(), None, &mut local), Err(DaemonError::Wire(WireError::NameTooLong))));
+    assert_eq!(daemon.udp_name_buffer.len(), 192);
+    assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+    assert!(matches!(daemon.answer_udp_prepared_with_local(&first, &first, metadata,
+        client, None, &mut local), Ok(QueryResult::Cached(_))));
+    assert_eq!(daemon.udp_name_buffer.capacity(), 256);
+    // Irregular label sizes can make amortized growth exceed256 even when
+    // the complete name is shorter. Retention is bounded, not rounded down.
+    let mut irregular_daemon = self::daemon();
+    let irregular_name = ["a".repeat(30), "b".repeat(63), "c".repeat(63), "d".repeat(63)].join(".");
+    let irregular = packet(&irregular_name, 1, 0x100).finish();
+    let _ = irregular_daemon.answer_udp_prepared_with_local(&irregular, &irregular, metadata,
+        ClientRequest { source: "127.0.0.1:53001".parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(), interface: 0 }, None, &mut local);
+    assert_eq!(irregular_daemon.udp_name_buffer.len(), 224);
+    assert!(irregular_daemon.udp_name_buffer.capacity() > 256);
+    assert!(irregular_daemon.udp_name_buffer.capacity() <= 512);
+}
+
+#[test]
+fn prepared_udp_recycled_cache_replies_keep_wire_data_and_ownership() {
+    let mut daemon = daemon();
+    let now = unix_seconds();
+    let long = ["a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(61)].join(".");
+    let cases = [(long.as_str(), 28), ("a.test", 1), ("other.test", 28)];
+    for (name, rrtype) in cases {
+        let mut reply = packet(name, rrtype, 0x8180);
+        let data = if rrtype == 1 { vec![192,0,2,7] } else { vec![7;16] };
+        reply.record(Section::Answer, &Name::from_ascii(name).unwrap(), rrtype, 1, 120, &data).unwrap();
+        daemon.cache_reply_at(&reply.finish(), now);
+    }
+    let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 120, 1232);
+    let client = ClientRequest { source: "127.0.0.1:53001".parse().unwrap(),
+        destination: "127.0.0.1".parse().unwrap(), interface: 0 };
+    let mut held = None;
+    for turn in 0..3 {
+        for (name, rrtype) in cases {
+            for edns in [true, false] {
+                let mut query = packet(name, rrtype, 0x100);
+                if edns {
+                    query.record(Section::Additional, &Name::root(), 41, 1232, 0, &[]).unwrap();
+                }
+                let query = query.finish();
+                let metadata = super::super::forward_service::query_metadata(&query, 1232).unwrap();
+                let answer = daemon.answer_udp_prepared_with_local(&query, &query, metadata,
+                    client.clone(), None, &mut local).unwrap();
+                let QueryResult::Cached(answer) = answer else { panic!("expected fresh cache hit"); };
+                let question = super::super::forward::Question::parse(&answer).unwrap();
+                assert_eq!(question.name, Name::from_ascii(name).unwrap());
+                assert_eq!(question.rrtype, rrtype);
+                let message = Message::parse(&answer).unwrap();
+                assert_eq!(message.header.answers, 1);
+                assert_eq!(message.header.additionals, u16::from(edns));
+                let record = message.records(Section::Answer).next().unwrap();
+                assert_eq!(record.rdata, if rrtype == 1 { &[192,0,2,7][..] } else { &[7;16][..] });
+                if turn == 0 && held.is_none() {
+                    held = Some((answer.clone(), answer));
+                } else {
+                    local.recycle_cached_reply(answer);
+                }
+            }
+        }
+    }
+    let (saved, answer) = held.unwrap();
+    assert_eq!(saved, answer, "a caller-retained reply must remain independent");
+    assert!(local.cached_reply_buffer.capacity() <= 512);
+    let retained = local.cached_reply_buffer.capacity();
+    local.recycle_cached_reply(vec![0; 4096]);
+    assert_eq!(local.cached_reply_buffer.capacity(), retained,
+        "a large general reply must not enlarge retained storage");
 }

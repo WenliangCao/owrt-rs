@@ -7,7 +7,7 @@
 
 use super::doctor::{self, Alias, DoctorOutcome};
 use super::wire::{
-    decode_name, find_pseudoheader, skip_name, skip_questions, Header, Question, RecordRef,
+    decode_name, find_pseudoheader, skip_name, skip_questions, validate_name, Header, Question, RecordRef,
     WireError, HEADER_LEN,
 };
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -281,7 +281,7 @@ fn scan_bad_addresses(
     };
     for _ in 0..answers {
         let fixed = if decode_owner {
-            decode_name(packet, position, 10).map(|(_, fixed)| fixed)
+            validate_name(packet, position, 10)
         } else {
             skip_name(packet, position, 10)
         };

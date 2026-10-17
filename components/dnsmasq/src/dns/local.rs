@@ -230,24 +230,24 @@ impl<'a> LocalAnswerer<'a> {
             .map_err(|_| AnswerError::Malformed)?;
         self.answer_parsed_with_query_events(
             query, header, &question, lease_names, now, local_network,
-            cache, interfaces, logging,
+            cache, interfaces, logging, &mut None,
         )
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub(crate) fn answer_parsed_with_query_events(
+    pub(crate) fn answer_parsed_with_query_events<'q>(
         &mut self,
         query: &[u8],
         header: Header,
-        question: &super::forward::Question,
+        question: &'q super::forward::Question,
         lease_names: &mut Arc<LeaseNames>,
         now: i64,
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
-        mut cache: Option<&mut Cache>,
+        cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
         logging: bool,
+        name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
-        let mut notices = QueryEvents::new(logging);
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
             || header.questions != 1
@@ -273,15 +273,20 @@ impl<'a> LocalAnswerer<'a> {
         {
             return Ok(None);
         }
-        if class_in {
+        // Lease expiry and the subsequent local lookup use the same original
+        // name. Retain that conversion; a configured CNAME still changes only
+        // the expiry traversal cursor, not the caller's question.
+        let dotted_name = if class_in {
             expire_lease_lookups(
                 self.config,
                 lease_names,
                 &question.name,
                 question.rrtype,
                 now,
-            );
-        }
+            )
+        } else {
+            None
+        };
         let leases = LeaseView {
             names: lease_names,
             synth: &self.config.synth_domains,
@@ -290,13 +295,6 @@ impl<'a> LocalAnswerer<'a> {
             local_network,
             interfaces,
         };
-
-        let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
-        let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
-        let mut owned = false;
-        let mut windows_filtered = false;
-        let mut preserve_negative_authority = true;
-        let mut cname_terminal = None;
 
         // CNAME processing runs before every other local record path in C.
         // Once an alias is found, its own address/TXT/etc. records are not
@@ -308,8 +306,73 @@ impl<'a> LocalAnswerer<'a> {
             && {
                 let key = question.name.canonical_wire();
                 self.config.records.cnames.iter()
-                    .any(|record| dotted_key(&record.alias) == key)
+                    .any(|record| dotted_key_matches(&record.alias, &key))
             };
+        if !has_cname && class_in
+            && cache
+                .as_deref()
+                .is_some_and(|cache| {
+                    let (cname, lookup) = cache.inspect_name(&question.name, now);
+                    *name_lookup = lookup;
+                    cname
+                })
+        {
+            // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
+            // local records. Let CacheContext use that chain, including its
+            // RD/DO checks, instead of answering records at the alias owner.
+            // NXDOMAIN alone must not defer typed local answers: a newly
+            // published DHCP A can coexist with an older negative marker.
+            return Ok(None);
+        }
+        if !has_cname && class_in {
+            let address_kind = match question.rrtype {
+                TYPE_A => Some(Kind::Ipv4), TYPE_AAAA => Some(Kind::Ipv6), _ => None,
+            };
+            if address_kind.is_some_and(|kind| cache.as_deref().is_some_and(|cache| {
+                cache.single_fresh_address_id_with_hint(&question.name, kind, now, name_lookup.as_ref()).is_some()
+            })) && self.cached_address_is_unclaimed(question, dotted_name.as_deref(), leases) {
+                return Ok(None);
+            }
+        }
+        self.answer_local_records(query, header, question, lease_names, now, local_network,
+            cache, interfaces, logging, has_cname, dotted_name)
+    }
+
+    // Eligible fresh hits and cached CNAMEs have already returned. Keep record
+    // assembly out of the common ownership/expiry/name-inspection entry path.
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)]
+    fn answer_local_records(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        mut cache: Option<&mut Cache>,
+        interfaces: &super::interface_records::InterfaceRecords,
+        logging: bool,
+        has_cname: bool,
+        dotted_name: Option<Vec<u8>>,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let class_in = question.class == CLASS_IN;
+        let leases = LeaseView {
+            names: lease_names,
+            synth: &self.config.synth_domains,
+            now,
+            local_ttl: self.local_ttl,
+            local_network,
+            interfaces,
+        };
+        let mut notices = QueryEvents::new(logging);
+        let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
+        let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
+        let mut owned = false;
+        let mut windows_filtered = false;
+        let mut preserve_negative_authority = true;
+        let mut cname_terminal = None;
+
         if has_cname {
             let (local_owned, terminal) = add_cname_chain(
                 self.config,
@@ -325,19 +388,8 @@ impl<'a> LocalAnswerer<'a> {
             owned = local_owned;
             preserve_negative_authority = terminal.is_some();
             cname_terminal = terminal;
-        } else if class_in
-            && cache
-                .as_deref()
-                .is_some_and(|cache| cache.has_cname(&question.name, now))
-        {
-            // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
-            // local records. Let CacheContext use that chain, including its
-            // RD/DO checks, instead of answering records at the alias owner.
-            // NXDOMAIN alone must not defer typed local answers: a newly
-            // published DHCP A can coexist with an older negative marker.
-            return Ok(None);
         } else if class_in {
-            if let Some(name) = wire_to_dotted(&question.name) {
+            if let Some(name) = dotted_name.or_else(|| wire_to_dotted(&question.name)) {
                 let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
                     self.hosts,
@@ -566,6 +618,59 @@ impl<'a> LocalAnswerer<'a> {
             forward_rule: false,
             query_events: notices.events,
         }))
+    }
+
+    pub(super) fn plain_cached_address_is_unclaimed(
+        &self, question: &super::forward::Question, leases: &LeaseNames, now: i64,
+        interfaces: &super::interface_records::InterfaceRecords,
+    ) -> bool {
+        let mut scratch = [0; 253];
+        let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
+        let name = &scratch[..length];
+        // Let the general lookup perform sticky expiry before any shortcut.
+        // CNAMEs are excluded below, so only this original name is traversed.
+        !leases.has_expired_name(name, now)
+            && self.cached_address_is_unclaimed(question, Some(name), LeaseView {
+                synth: &self.config.synth_domains, names: leases, now,
+                local_ttl: self.local_ttl, local_network: None, interfaces,
+            })
+    }
+
+    // Only an existing fresh address reaches this check. Paths without such
+    // an entry keep the original lookup; local/cache coexistence falls back.
+    // Lease expiry has already run, and its converted name can be reused.
+    #[inline(never)]
+    fn cached_address_is_unclaimed(
+        &self, question: &super::forward::Question, dotted_name: Option<&[u8]>, leases: LeaseView<'_>,
+    ) -> bool {
+        if !self.config.records.cnames.is_empty()
+            || self.config.records.has_raw_type(question.rrtype)
+            || !leases.interfaces.is_empty()
+            || !self.config.interface_records.rules.is_empty()
+            || !self.config.synth_domains.domains.is_empty()
+            || !self.hosts.is_published()
+        { return false; }
+        let mut scratch = [0; 253];
+        let name = match dotted_name {
+            Some(name) => name,
+            None => {
+                let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
+                &scratch[..length]
+            }
+        };
+        // A local/address rule owns only matching names. Keep every matching
+        // tier on the general path, including upstream overrides; unrelated
+        // RFC6761/LAN rules must not disable all public cache hits. The dotted
+        // scratch omits C's binary label escapes, so those names retain the
+        // general matcher whenever a local rule exists.
+        for rule in &self.config.rules {
+            if matches!(rule.target,
+                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly)
+                && (name.contains(&0) || name.contains(&1)
+                    || matches_domain_bytes(name, &rule.domain))
+            { return false; }
+        }
+        !self.hosts.name_exists(name) && leases.names.lookup(name, leases.now).next().is_none()
     }
 
     /// domain-match.c::is_local_answer/make_local_answer. Select by the
@@ -805,19 +910,18 @@ fn expire_lease_lookups(
     query: &Name,
     qtype: u16,
     now: i64,
-) {
+) -> Option<Vec<u8>> {
     if leases.entries().is_empty() {
-        return;
+        return None;
     }
-    let Some(mut name) = wire_to_dotted(query) else {
-        return;
-    };
+    let query_name = wire_to_dotted(query)?;
+    let mut name = query_name.as_slice();
     for _ in 0..100 {
         if leases.has_expired_name(&name, now) {
             Arc::make_mut(leases).expire_name(&name, now);
         }
         if qtype == TYPE_CNAME {
-            return;
+            return Some(query_name);
         }
         let Some(cname) = config
             .records
@@ -827,7 +931,7 @@ fn expire_lease_lookups(
         else {
             break;
         };
-        name = cname.target.clone();
+        name = &cname.target;
     }
     if (qtype == TYPE_PTR || qtype == 255)
         && arpa_address(&name).is_some()
@@ -840,6 +944,7 @@ fn expire_lease_lookups(
     {
         Arc::make_mut(leases).expire_reverse(now);
     }
+    Some(query_name)
 }
 
 fn dotted_key(name: &[u8]) -> Vec<u8> {
@@ -849,6 +954,33 @@ fn dotted_key(name: &[u8]) -> Vec<u8> {
             name
         })
         .unwrap_or_default()
+}
+
+/// Compare a canonical wire key without constructing each configured alias's
+/// wire name. Invalid dotted names retain dotted_key's empty-key behavior.
+fn dotted_key_matches(name: &[u8], key: &[u8]) -> bool {
+    if name.is_empty() {
+        return key == [0];
+    }
+    let valid = name.len() <= 253
+        && name.split(|&byte| byte == b'.').all(|label| !label.is_empty() && label.len() <= 63);
+    if !valid {
+        return key.is_empty();
+    }
+    if key.len() != name.len() + 2 {
+        return false;
+    }
+    let mut pos = 0;
+    for label in name.split(|&byte| byte == b'.') {
+        let end = pos + label.len() + 1;
+        if key[pos] != label.len() as u8
+            || !key[pos + 1..end].eq_ignore_ascii_case(label)
+        {
+            return false;
+        }
+        pos = end;
+    }
+    key[pos] == 0
 }
 
 pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
@@ -873,6 +1005,42 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
             out.push(b'.');
         }
         out.extend(wire[pos..pos + len].iter().map(u8::to_ascii_lowercase));
+        pos += len;
+    }
+    None
+}
+
+/// Query-scoped counterpart of wire_to_dotted. A valid 255-byte wire name
+/// needs at most 253 dotted bytes; no escaped-name expansion belongs here.
+fn query_dotted_name(name: &Name, out: &mut [u8; 253]) -> Option<usize> {
+    let wire = name.as_wire();
+    let mut pos = 0;
+    let mut written = 0;
+    while pos < wire.len() {
+        let len = usize::from(wire[pos]);
+        pos += 1;
+        if len == 0 {
+            return Some(written);
+        }
+        if len > 63 || pos.checked_add(len)? > wire.len() {
+            return None;
+        }
+        let label = &wire[pos..pos + len];
+        if label.contains(&b'.') {
+            return None;
+        }
+        let separator = usize::from(written != 0);
+        let end = written + separator + len;
+        if end > out.len() {
+            return None;
+        }
+        if separator != 0 {
+            out[written] = b'.';
+        }
+        for (target, source) in out[written + separator..end].iter_mut().zip(label) {
+            *target = source.to_ascii_lowercase();
+        }
+        written = end;
         pos += len;
     }
     None
@@ -988,7 +1156,7 @@ fn add_cname_chain(
             .records
             .cnames
             .iter()
-            .find(|record| dotted_key(&record.alias) == current_key)
+            .find(|record| dotted_key_matches(&record.alias, &current_key))
         else {
             break;
         };
@@ -1049,6 +1217,15 @@ fn add_local_records_for_name(
     cache: Option<&Cache>,
     notices: &mut QueryEvents,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool, bool) {
+    if matches!(qtype, TYPE_A | TYPE_AAAA) && !config.records.has_raw_type(qtype) {
+        // CNAME was resolved by the caller. Without raw records of this type,
+        // only address sources can contribute to an A/AAAA answer here.
+        let mut rows = Vec::new();
+        let owned = add_address_records_for_name(
+            config, hosts, name, qtype, ttl, leases, cache, notices, &mut rows,
+        );
+        return (rows, owned, false);
+    }
     // Raw records and address sources compare dotted names directly. Only
     // the other configured RR loops need a wire-format key.
     let records = &config.records;
@@ -1179,6 +1356,64 @@ fn add_local_records_for_name(
         key
     };
 
+    owned |= add_address_records_for_name(
+        config, hosts, name, qtype, ttl, leases, cache, notices, &mut rows,
+    );
+    let mail_start = rows.len();
+    add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
+    // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
+    // their non-terminals, unless an explicit MX record already matched.
+    // F_NO_RR means this existence check must not rotate address records.
+    if (qtype == TYPE_MX || qtype == 255)
+        && (config.records.self_mx || config.records.local_mx)
+        && !config
+            .records
+            .mx
+            .iter()
+            .any(|record| dotted_key(&record.name) == key)
+        && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
+    {
+        let mut data = 1u16.to_be_bytes().to_vec();
+        let target = if config.records.self_mx {
+            name
+        } else {
+            config.records.mx_target.as_deref().unwrap_or_default()
+        };
+        data.extend(wire_name(target).unwrap_or_else(|| vec![0]));
+        rows.push((TYPE_MX, ttl, data));
+        owned = true;
+    }
+    add_srv(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
+    if qtype == TYPE_SRV || qtype == 255 {
+        config.records.rotate_srv(name);
+    }
+    add_naptr(
+        &config.records.naptr,
+        &key,
+        qtype,
+        ttl,
+        &mut rows,
+        &mut owned,
+    );
+    for row in &rows[mail_start..] {
+        notices.record(qlog::CONFIG, name, row.0, &row.2);
+    }
+    (rows, owned, synthetic_reverse_name.is_some())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn add_address_records_for_name(
+    config: &DnsConfig,
+    hosts: &mut Hosts,
+    name: &[u8],
+    qtype: u16,
+    ttl: u32,
+    leases: LeaseView<'_>,
+    cache: Option<&Cache>,
+    notices: &mut QueryEvents,
+    rows: &mut Vec<(u16, u32, Vec<u8>)>,
+) -> bool {
+    let mut owned = false;
     // The Hosts table passed to this function is already filtered by the
     // loader (`no-hosts` skips /etc/hosts but does not skip addn-hosts).
     // C performs separate IPv4 then IPv6 lookups for ANY. Non-address
@@ -1258,46 +1493,7 @@ fn add_local_records_for_name(
             }
         }
     }
-    let mail_start = rows.len();
-    add_mx(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
-    // rfc1035.c:2201-2214: selfmx applies to hosts/DHCP names, including
-    // their non-terminals, unless an explicit MX record already matched.
-    // F_NO_RR means this existence check must not rotate address records.
-    if (qtype == TYPE_MX || qtype == 255)
-        && (config.records.self_mx || config.records.local_mx)
-        && !config
-            .records
-            .mx
-            .iter()
-            .any(|record| dotted_key(&record.name) == key)
-        && (hosts.name_exists(name) || leases.names.name_exists(name, leases.now))
-    {
-        let mut data = 1u16.to_be_bytes().to_vec();
-        let target = if config.records.self_mx {
-            name
-        } else {
-            config.records.mx_target.as_deref().unwrap_or_default()
-        };
-        data.extend(wire_name(target).unwrap_or_else(|| vec![0]));
-        rows.push((TYPE_MX, ttl, data));
-        owned = true;
-    }
-    add_srv(&config.records, &key, qtype, ttl, &mut rows, &mut owned);
-    if qtype == TYPE_SRV || qtype == 255 {
-        config.records.rotate_srv(name);
-    }
-    add_naptr(
-        &config.records.naptr,
-        &key,
-        qtype,
-        ttl,
-        &mut rows,
-        &mut owned,
-    );
-    for row in &rows[mail_start..] {
-        notices.record(qlog::CONFIG, name, row.0, &row.2);
-    }
-    (rows, owned, synthetic_reverse_name.is_some())
+    owned
 }
 
 fn add_typed_records(
@@ -1560,25 +1756,23 @@ fn matches_domain(name: &Name, pattern: &DomainPattern) -> bool {
     }
     // Keep C's label escapes: an embedded dot cannot become a separator,
     // but later real labels must still match local/address suffix rules.
-    let query = name.dnsmasq_bytes().to_ascii_lowercase();
-    let suffix = pattern.suffix.to_ascii_lowercase();
+    matches_domain_bytes(&name.dnsmasq_bytes(), pattern)
+}
+
+fn matches_domain_bytes(query: &[u8], pattern: &DomainPattern) -> bool {
     if pattern.dotless && (query.is_empty() || query.contains(&b'.')) {
         return false;
     }
+    let suffix = &pattern.suffix;
     if suffix.is_empty() {
         return true;
     }
+    let Some(start) = query.len().checked_sub(suffix.len()) else { return false };
+    if !query[start..].eq_ignore_ascii_case(suffix) { return false; }
     if pattern.wildcard {
-        if pattern.wildcard_dot {
-            query.len() > suffix.len() && query.ends_with(&suffix)
-        } else {
-            query.len() >= suffix.len() && query.ends_with(&suffix)
-        }
+        !pattern.wildcard_dot || start != 0
     } else {
-        query == suffix
-            || (query.len() > suffix.len()
-                && query.ends_with(&suffix)
-                && query[query.len() - suffix.len() - 1] == b'.')
+        start == 0 || query[start - 1] == b'.'
     }
 }
 
@@ -1700,6 +1894,95 @@ mod tests {
     use super::*;
     use crate::config::{lex_line, validate_directive};
 
+    #[test]
+    fn borrowed_domain_match_preserves_frozen_binary_and_wildcard_semantics() {
+        // The pre-4cd1d7c6 predicate is the independent reference. In
+        // particular, compare escaped names rather than unescaped dotted keys.
+        let previous = |name: &Name, pattern: &DomainPattern| {
+            if !pattern.dotless && pattern.suffix.is_empty() { return true; }
+            let query = name.dnsmasq_bytes().to_ascii_lowercase();
+            let suffix = pattern.suffix.to_ascii_lowercase();
+            if pattern.dotless && (query.is_empty() || query.contains(&b'.')) { return false; }
+            if suffix.is_empty() { return true; }
+            if pattern.wildcard {
+                (if pattern.wildcard_dot { query.len() > suffix.len() }
+                 else { query.len() >= suffix.len() }) && query.ends_with(&suffix)
+            } else {
+                query == suffix || (query.len() > suffix.len() && query.ends_with(&suffix)
+                    && query[query.len() - suffix.len() - 1] == b'.')
+            }
+        };
+        let mut config = DnsConfig::default();
+        for directive in ["local=//", "local=/#/", "local=/TEST/", "local=/*test/",
+                          "local=/*.test/", "local=/*./", "local=/.test/", "local=/aZ/"] {
+            apply(&mut config, directive.as_bytes());
+        }
+        let mut names = vec![Name::root(), Name::from_ascii("test").unwrap(),
+            Name::from_ascii("badTEST").unwrap(), Name::from_ascii("x.TeSt").unwrap()];
+        for byte in 0..=255 {
+            for suffix in [false, true] {
+                let mut wire = vec![3, b'a', byte, b'Z'];
+                if suffix { wire.extend_from_slice(b"\x04TeSt"); }
+                wire.push(0);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        for name in names {
+            for rule in &config.rules {
+                assert_eq!(matches_domain(&name, &rule.domain), previous(&name, &rule.domain),
+                    "name={:?} pattern={:?}", name.as_wire(), rule.domain);
+            }
+        }
+    }
+
+    #[test]
+    fn query_dotted_buffer_matches_owned_conversion_for_binary_and_maximum_names() {
+        let mut names = vec![Name::root(), Name::from_ascii("MiXeD.Example.").unwrap()];
+        for byte in 0..=255 {
+            for length in [1, 63] {
+                let mut wire = vec![length as u8];
+                wire.extend(std::iter::repeat_n(byte, length));
+                wire.extend_from_slice(&[1, b'A', 0]);
+                names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
+            }
+        }
+        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        assert_eq!(longest.len(), 253);
+        names.push(Name::from_ascii(&longest).unwrap());
+        let mut buffer = [0x7f; 253];
+        for name in names {
+            let expected = wire_to_dotted(&name);
+            let actual = query_dotted_name(&name, &mut buffer).map(|length| &buffer[..length]);
+            assert_eq!(actual, expected.as_deref(), "{:?}", name.as_wire());
+        }
+    }
+
+    #[test]
+    fn cname_alias_comparison_matches_allocated_keys() {
+        let mut names = vec![
+            Vec::new(), b".".to_vec(), b"a.".to_vec(), b".a".to_vec(),
+            b"a..b".to_vec(), b"Alias.Example".to_vec(), b"alias.example".to_vec(),
+            vec![b'a'; 63], vec![b'a'; 64],
+        ];
+        for last in [61, 62] {
+            let mut name = Vec::new();
+            for length in [63, 63, 63, last] {
+                if !name.is_empty() { name.push(b'.'); }
+                name.extend(std::iter::repeat_n(b'a', length));
+            }
+            names.push(name);
+        }
+        for byte in 0..=255 {
+            names.push(vec![byte, b'.', b'A']);
+        }
+        let keys: Vec<_> = names.iter().map(|name| dotted_key(name)).collect();
+        for (name, expected) in names.iter().zip(&keys) {
+            for key in &keys {
+                assert_eq!(dotted_key_matches(name, key), expected == key, "{name:?} vs {key:?}");
+            }
+        }
+    }
+
     fn apply(config: &mut DnsConfig, line: &[u8]) {
         let directive = lex_line(line).unwrap().unwrap();
         validate_directive(&directive).unwrap();
@@ -1820,6 +2103,68 @@ mod tests {
                 .answers,
             1
         );
+    }
+
+    #[test]
+    fn unrelated_raw_types_do_not_change_address_answers_or_rotation() {
+        let mut direct = DnsConfig::default();
+        for line in [
+            b"host-record=host.test,192.0.2.1,2001:db8::1,30".as_slice(),
+            b"host-record=host.test,192.0.2.2,2001:db8::2,40",
+            b"txt-record=host.test,hello",
+            b"mx-host=host.test,mail.test,10",
+            b"cname=alias.test,host.test",
+        ] {
+            apply(&mut direct, line);
+        }
+        let mut with_raw = direct.clone();
+        apply(&mut with_raw, b"dns-rr=unrelated.test,1,c0000263");
+        apply(&mut with_raw, b"dns-rr=unrelated.test,28,20010db8000000000000000000000063");
+        let mut direct_hosts = configured_hosts(&direct, 37);
+        let mut raw_hosts = configured_hosts(&with_raw, 37);
+        for name in ["host.test", "alias.test", "missing.test"] {
+            for qtype in [TYPE_A, TYPE_AAAA, TYPE_A, TYPE_TXT, TYPE_MX, 255, TYPE_AAAA] {
+                let packet = query(name, qtype);
+                let answer = LocalAnswerer {
+                    config: &direct, hosts: &mut direct_hosts, local_ttl: 37, max_packet: 1232,
+                }.answer(&packet).unwrap();
+                let fallback = LocalAnswerer {
+                    config: &with_raw, hosts: &mut raw_hosts, local_ttl: 37, max_packet: 1232,
+                }.answer(&packet).unwrap();
+                assert_eq!(answer, fallback, "{name} type {qtype}");
+            }
+        }
+    }
+
+    #[test]
+    fn raw_addresses_precede_hosts_and_suppress_synthesis() {
+        let mut config = DnsConfig::default();
+        for line in [
+            b"host-record=raw.test,192.0.2.1,2001:db8::1,30".as_slice(),
+            b"dns-rr=raw.test,1,c0000263",
+            b"dns-rr=raw.test,28,20010db8000000000000000000000063",
+            b"synth-domain=synthetic.test,192.0.2.7,192.0.2.9",
+            b"dns-rr=192-0-2-7.synthetic.test,1,c0000263",
+        ] {
+            apply(&mut config, line);
+        }
+        let mut hosts = configured_hosts(&config, 37);
+        for (name, rrtype, expected) in [
+            ("raw.test", TYPE_A, vec![vec![192, 0, 2, 99], vec![192, 0, 2, 1]]),
+            ("raw.test", TYPE_AAAA, vec![
+                "2001:db8::63".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
+                "2001:db8::1".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
+            ]),
+            ("192-0-2-7.synthetic.test", TYPE_A, vec![vec![192, 0, 2, 99]]),
+        ] {
+            let packet = LocalAnswerer {
+                config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 1232,
+            }.answer(&query(name, rrtype)).unwrap().unwrap();
+            let message = super::super::wire::Message::parse(&packet).unwrap();
+            let actual: Vec<_> = message.records(Section::Answer)
+                .map(|row| (row.rrtype, row.rdata.to_vec())).collect();
+            assert_eq!(actual, expected.into_iter().map(|data| (rrtype, data)).collect::<Vec<_>>());
+        }
     }
 
     #[test]
