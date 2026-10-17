@@ -197,24 +197,17 @@ fn isolated_command(
     events: OwnedFd,
     resolver: bool,
 ) -> io::Result<()> {
-    let maximum = rustix::process::getrlimit(rustix::process::Resource::Nofile)
-        .current
-        .unwrap_or(i32::MAX as u64)
-        .min(i32::MAX as u64) as i32;
     // SAFETY: the closure owns both pipes until exec/Command drop. It calls
     // only async-signal-safe syscalls, with no allocation or Rust locks.
     unsafe {
         command.pre_exec(move || {
             // __NR_close_range=436 on both supported Linux64 ABIs. Flag4 marks
             // CLOEXEC instead of closing std's exec-error pipe before exec.
+            // The fixed OpenWrt kernel supports close_range(CLOEXEC).
+            // Fail closed on any error: scanning soft RLIMIT_NOFILE misses
+            // descriptors retained above a subsequently lowered limit.
             if syscall(436, 3u32, u32::MAX, 4u32) < 0 {
-                let error = io::Error::last_os_error();
-                if !matches!(error.raw_os_error(), Some(22 | 38)) {
-                    return Err(error);
-                }
-                for fd in 3..maximum {
-                    fcntl(fd, 2, 1);
-                }
+                return Err(io::Error::last_os_error());
             }
             for fd in [commands.as_raw_fd(), events.as_raw_fd()] {
                 if fcntl(fd, 2, 0) < 0 {

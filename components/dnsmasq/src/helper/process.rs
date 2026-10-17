@@ -12,7 +12,6 @@ use std::process::{Command, Stdio};
 const POLLIN: i16 = 1;
 const POLLOUT: i16 = 4;
 const INTERNAL_HELPER: &str = "--dnsmasq-internal-helper-v1";
-#[cfg(test)]
 const TEST_CHANNELS: &str = "DNSMASQ_TEST_HELPER_CHANNELS";
 
 fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
@@ -39,10 +38,31 @@ pub fn dispatch_internal_helper() -> Option<i32> {
     if args.next().is_some() {
         return Some(5);
     }
-    Some(descriptors.as_deref().map_or(5, dispatch_channels))
+    Some(
+        descriptors
+            .as_deref()
+            .map_or(5, |descriptors| dispatch_channels(descriptors, false)),
+    )
 }
 
-fn dispatch_channels(descriptors: &str) -> i32 {
+/// Explicit test-harness entry; production main never calls this function and
+/// no environment value can select the production executable or dispatch mode.
+#[doc(hidden)]
+pub fn dispatch_test_helper() -> Option<i32> {
+    std::env::var(TEST_CHANNELS)
+        .ok()
+        .map(|descriptors| dispatch_channels(&descriptors, true))
+}
+
+fn library_test_entry() -> Option<&'static str> {
+    if cfg!(test) {
+        Some("helper::process::tests::internal_helper_entry")
+    } else {
+        None
+    }
+}
+
+fn dispatch_channels(descriptors: &str, test_entry: bool) -> i32 {
     let Some((read, write)) = descriptors.split_once(':') else {
         return 5;
     };
@@ -60,9 +80,9 @@ fn dispatch_channels(descriptors: &str) -> i32 {
     };
     let decoded = read_startup(&mut commands);
     match decoded {
-        Ok((config, maximum, identity, initialize)) => {
-            child(config, maximum, identity, commands, events, initialize)
-        }
+        Ok((config, maximum, identity, initialize)) => child(
+            config, maximum, identity, commands, events, initialize, test_entry,
+        ),
         Err(error) => {
             let _ = send(
                 &mut events,
@@ -147,6 +167,7 @@ pub struct Helper {
     reader: Option<File>,
     pending: Vec<u8>,
     written: usize,
+    startup_pending: bool,
     incoming: Vec<u8>,
     stopping: bool,
     eof: bool,
@@ -162,13 +183,21 @@ impl Helper {
         Self::start_with_init(config, None)
     }
 
+    /// Main-binary unit tests link the non-test library while their current
+    /// executable is libtest. Select its fixed entry explicitly, with no
+    /// process-name detection, global override or executable-path override.
+    #[doc(hidden)]
+    pub fn start_in_main_test(config: Config) -> Result<Self, StartError> {
+        Self::start_inner(config, None, false, Some("tests::internal_helper_entry"))
+    }
+
     /// Leasefile-ro initialization runs in the helper before credentials drop.
     /// The owner consumes bounded InitRecord/InitEnd/InitExit notices in its poll.
     pub fn start_with_init(
         config: Config,
         init_capacity: Option<usize>,
     ) -> Result<Self, StartError> {
-        Self::start_inner(config, init_capacity, false)
+        Self::start_inner(config, init_capacity, false, library_test_entry())
     }
 
     /// Preflight has no pipes, fork, credential changes or producer execution.
@@ -212,13 +241,14 @@ impl Helper {
     /// The prefork owner receives only initialization records and diagnostics.
     /// This child never drops script credentials, emits READY or reads commands.
     pub fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
-        Self::start_inner(config, Some(maximum), true)
+        Self::start_inner(config, Some(maximum), true, library_test_entry())
     }
 
     fn start_inner(
         config: Config,
         init_capacity: Option<usize>,
         initialization_only: bool,
+        test_entry: Option<&'static str>,
     ) -> Result<Self, StartError> {
         let identity = Self::startup_identity(&config, init_capacity)?;
         let (commands_read, commands_write) = pipe().map_err(start_error)?;
@@ -229,17 +259,13 @@ impl Helper {
             .map_err(start_error)?;
         let descriptors = format!("{}:{}", commands_read.as_raw_fd(), events_write.as_raw_fd());
         let mut command = Command::new("/proc/self/exe");
-        #[cfg(not(test))]
-        command.arg(INTERNAL_HELPER).arg(&descriptors);
-        #[cfg(test)]
-        command
-            .args([
-                "--exact",
-                "helper::process::tests::internal_helper_entry",
-                "--nocapture",
-                "--test-threads=1",
-            ])
-            .env(TEST_CHANNELS, &descriptors);
+        if let Some(test_entry) = test_entry {
+            command
+                .args(["--exact", test_entry, "--nocapture", "--test-threads=1"])
+                .env(TEST_CHANNELS, &descriptors);
+        } else {
+            command.arg(INTERNAL_HELPER).arg(&descriptors);
+        }
         dnsmasq_platform::process::isolated_pipe_command(&mut command, commands_read, events_write)
             .map_err(start_error)?;
         let process = command.spawn().map_err(start_error)?;
@@ -253,6 +279,7 @@ impl Helper {
             reader: Some(File::from(events_read)),
             pending,
             written: 0,
+            startup_pending: true,
             incoming: Vec::new(),
             stopping: false,
             eof: false,
@@ -454,6 +481,7 @@ impl Helper {
             self.written = 0;
             self.stopping = true;
         }
+        let mut startup_write_failed = false;
         if let Some(writer) = &mut self.writer {
             // C writes only after POLLOUT. An optimistic small write can
             // fill more pipe capacity and expose extra callbacks on TERM.
@@ -474,12 +502,14 @@ impl Helper {
                         self.pending.clear();
                         self.written = 0;
                         notices.push(Notice::Error(5));
+                        startup_write_failed = self.startup_pending;
                     }
                     Ok(length) => {
                         self.written += length;
                         if self.written == self.pending.len() {
                             self.pending.clear();
                             self.written = 0;
+                            self.startup_pending = false;
                         }
                     }
                     Err(error)
@@ -493,9 +523,23 @@ impl Helper {
                         self.pending.clear();
                         self.written = 0;
                         notices.push(Notice::Error(error.raw_os_error().unwrap_or(5)));
+                        startup_write_failed = self.startup_pending;
                     }
                 }
             }
+        }
+        if startup_write_failed {
+            // A partial startup frame cannot be discarded like a runtime
+            // script event: its child is blocked in read_exact. Keep this
+            // owned PID until the normal WNOHANG path below reaps it.
+            self.writer.take();
+            self.reader.take();
+            self.eof = true;
+            self.stopping = true;
+            let _ = rustix::process::kill_process(
+                Pid::from_raw(self.pid).unwrap(),
+                rustix::process::Signal::KILL,
+            );
         }
         if self.stopping && self.pending.is_empty() {
             self.writer.take();
@@ -639,9 +683,10 @@ fn child(
     mut commands: File,
     mut events: File,
     initialization_only: bool,
+    test_entry: bool,
 ) -> i32 {
     if let Some(maximum) = init_capacity {
-        match run_init(&config, maximum, &mut events) {
+        match run_init(&config, maximum, &mut events, test_entry) {
             Ok(code) if initialization_only => return code,
             Ok(0) => {}
             Ok(_) | Err(_) => return 3,
@@ -692,13 +737,18 @@ fn child(
                 return 5;
             }
         };
-        if run_script(&config, call, &mut events).is_err() {
+        if run_script(&config, call, &mut events, test_entry).is_err() {
             return 5;
         }
     }
 }
 
-fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i32> {
+fn run_init(
+    config: &Config,
+    maximum: usize,
+    events: &mut File,
+    test_entry: bool,
+) -> io::Result<i32> {
     // lease.c parses popen("<fixed script> init", "r") before privilege drop.
     // The existing scanf-width parser bounds scratch space and record count.
     // Only the helper child waits; raw stdout never reaches owner memory.
@@ -706,8 +756,9 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
     command.push(" init");
     let mut producer = Command::new("/bin/sh");
     producer.arg("-c").arg(command).stdout(Stdio::piped());
-    #[cfg(test)]
-    producer.env_remove(TEST_CHANNELS);
+    if test_entry {
+        producer.env_remove(TEST_CHANNELS);
+    }
     let mut process = producer.spawn()?;
     // Successful spawn with Stdio::piped always supplies this owned stdout.
     let output = process.stdout.take().unwrap();
@@ -763,7 +814,12 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
     Ok(status)
 }
 
-fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Result<()> {
+fn run_script(
+    config: &Config,
+    call: Invocation,
+    events: &mut File,
+    test_entry: bool,
+) -> io::Result<()> {
     let mut command = Command::new(&config.script);
     command.arg0(
         config
@@ -782,8 +838,9 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
         }
     }
     dnsmasq_platform::process::preserve_ignored_sigpipe(&mut command);
-    #[cfg(test)]
-    command.env_remove(TEST_CHANNELS);
+    if test_entry {
+        command.env_remove(TEST_CHANNELS);
+    }
     let mut output = None;
     if !config.debug {
         let (read, write) = pipe()?;
@@ -873,8 +930,8 @@ mod tests {
 
     #[test]
     fn internal_helper_entry() {
-        if let Ok(descriptors) = std::env::var(TEST_CHANNELS) {
-            std::process::exit(dispatch_channels(&descriptors));
+        if let Some(code) = dispatch_test_helper() {
+            std::process::exit(code);
         }
     }
 
@@ -935,6 +992,26 @@ mod tests {
         }
         notices
     }
+    #[test]
+    fn failed_startup_write_kills_and_reaps_the_waiting_child() {
+        let (folder, config) = script("echo must-not-run");
+        let mut helper = Helper::start(config).unwrap();
+        // Keep the real command pipe open: EOF cannot explain child exit.
+        // A read-only replacement gives the parent's initial write EBADF.
+        let original_writer = helper.writer.replace(File::open("/dev/null").unwrap());
+        let mut notices = helper.step().unwrap();
+        assert!(notices.contains(&Notice::Error(9)));
+        notices.extend(until(&mut helper, |helper, _| helper.is_finished()));
+        assert!(!helper.ready());
+        assert!(notices
+            .iter()
+            .any(|notice| matches!(notice, Notice::Reaped(_))));
+        assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
+        drop(original_writer);
+        drop(helper);
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
     #[test]
     fn only_unreaped_eof_needs_an_owner_recheck() {
         let (folder, config) = script("exit 0");

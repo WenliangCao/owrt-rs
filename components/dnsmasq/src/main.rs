@@ -8174,8 +8174,16 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn internal_helper_entry() {
+        if let Some(code) = dnsmasq_rs::helper::dispatch_test_helper() {
+            std::process::exit(code);
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub(super) fn ready_test_helper() -> Helper {
-        let mut helper = Helper::start(HelperConfig {
+        let mut helper = Helper::start_in_main_test(HelperConfig {
             script: "/bin/true".into(), script_user: None, debug: false,
         }).unwrap();
         let deadline = Instant::now() + Duration::from_secs(5);
