@@ -51,7 +51,9 @@ def main():
     p.add_argument("rootfs", type=Path)
     p.add_argument("bins", type=Path)
     p.add_argument("output", type=Path)
-    p.add_argument("--baseline", type=Path, required=True, help="formal R89 bundle")
+    p.add_argument("--baseline", type=Path, required=True, help="reference bundle (formal R89 by default)")
+    p.add_argument("--httpd-fuzz-baseline-mode", choices=("r89-transition", "current-release"),
+                   default="r89-transition", help="current-release requires full equality with the released HTTP baseline")
     p.add_argument("--examples", type=Path, required=True)
     p.add_argument("--fw4-source", type=Path, required=True)
     p.add_argument("--network-config", type=Path, required=True)
@@ -102,7 +104,8 @@ def main():
     add("functional", "httpd-extended", ["python3", "tools/r83_httpd_compat.py", rootfs, http, examples / "notifier"])
     add("functional", "httpd-r14", ["python3", "tools/r14_httpd_check.py", "--rootfs", rootfs, "--candidate", http,
         "--output", out / "httpd-r14.json", "--image-id", "ax3000t-stock-openwrt-25.12.5", "--recorded-at", now])
-    add("functional", "httpd-fuzz", ["python3", "tools/r92_httpd_fuzz_gate.py", rootfs, a.baseline.resolve() / "httpd-rs", http, out / "httpd-fuzz"])
+    add("functional", "httpd-fuzz", ["python3", "tools/r92_httpd_fuzz_gate.py", rootfs, a.baseline.resolve() / "httpd-rs", http, out / "httpd-fuzz",
+        "--baseline-mode", a.httpd_fuzz_baseline_mode])
     add("functional", "httpd-cgi-stress", ["sudo", "-n", "env", "OWRT_HTTPD_CGI_STRESS=1", "sh", "tools/benchmark/isolated.sh", rootfs, bins, "httpd", "rs", out / "httpd-cgi-stress", "30000"])
     rpcd = bins / "rpcd-rs"
     for script in ("r13_rpcd_check", "r17_rpcd_core_check", "r18_rpcd_plugins_check", "r19_lucirpc_check"):
