@@ -7,7 +7,8 @@ WARNING = re.compile(r"\bwarning(?:\[[^\]]+\])?:", re.I)
 SDK_WARNING = re.compile(
     r"^(?:WARNING: Makefile '.+' has a dependency on '.+', which does not exist$|"
     r"(?:[^\s:]+/)?(?:\.config(?:-[^\s:]+)?(?:\.in)?|Config(?:-[^\s:]+)?\.in):\d+:warning:|"
-    r"Makefile:\d+: WARNING: skipping [A-Za-z0-9_+.-]+ -- package has no install section$)")
+    r"Makefile:\d+: WARNING: skipping [A-Za-z0-9_+.-]+ -- package has no install section$|"
+    r"WARNING: can't open config file: /builder/shared-workdir/build/staging_dir/host/etc/ssl/openssl\.cnf$)")
 
 
 def scan(logs):
