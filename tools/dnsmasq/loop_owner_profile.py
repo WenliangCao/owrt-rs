@@ -69,19 +69,26 @@ def main():
     parser.add_argument('--c-symbol-receipt', type=Path)
     parser.add_argument('--tools', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--mode', choices=('udp', 'tcp'), required=True)
+    parser.add_argument('--mode', choices=('udp', 'tcp', 'dhcp'), required=True)
     parser.add_argument('--profile', choices=('hit', 'miss', 'mixed'), required=True)
     parser.add_argument('--observer', choices=('stat', 'sample', 'none'), default='sample',
                         help='stat-only totals or separate self-sampling; never concurrent')
     parser.add_argument('--rate', type=int, default=200,
                         help='queries/second; zero is a separately planned unpaced UDP diagnostic')
     parser.add_argument('--loadgen-sha256', default='b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd')
+    parser.add_argument('--upstream-sha256', default='01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68')
+    parser.add_argument('--dhcp-clients', type=int, choices=(6, 150), default=150)
+    parser.add_argument('--fixed-device-counts', action='store_true',
+                        help='apply the existing fixed fixture completion/upstream/DORA validator')
     parser.add_argument('--sample-event', choices=('instructions:u', 'cycles:u'), default='instructions:u')
     parser.add_argument('--stat-events', help='explicit diagnostic event group; preserves raw, unscaled counts')
     parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
     assert args.rate >= 0 and (args.rate != 0 or args.mode == 'udp')
     assert re.fullmatch('[0-9a-f]{64}', args.loadgen_sha256)
+    assert re.fullmatch('[0-9a-f]{64}', args.upstream_sha256)
+    assert args.mode != 'dhcp' or (args.profile == 'hit' and args.rate == 100)
+    assert not args.fixed_device_counts or args.rate == (100 if args.mode == 'dhcp' else 200)
     observer = 'strace' if args.strace else args.observer
     assert args.stat_events is None or observer == 'stat', '--stat-events requires --observer stat'
     assert bool(args.build) != bool(args.stock_image_root), 'select one exact implementation'
@@ -129,10 +136,12 @@ def main():
     image_files[str(artifact)] = expected
     # Alternative diagnostic tools must be explicitly bound before a run.
     assert sha(args.tools / 'm6a_loadgen') == args.loadgen_sha256
-    assert sha(args.tools / 'm6a_upstream') == '01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68'
+    assert sha(args.tools / 'm6a_upstream') == args.upstream_sha256
     save(out / 'profile-scope.json', {'scope': __doc__, 'mode': args.mode,
          'profile': args.profile, 'elf_sha256': expected,
          'observer': observer, 'rate': args.rate, 'loadgen_sha256': args.loadgen_sha256,
+         'upstream_sha256': args.upstream_sha256, 'dhcp_clients': args.dhcp_clients,
+         'fixed_device_counts': args.fixed_device_counts,
          'clock_ticks_per_second': os.sysconf('SC_CLK_TCK'),
          'source_commit': build.get('source_commit'),
          'artifact_file': artifact.name, 'mapped_images': image_files,
@@ -148,6 +157,14 @@ def main():
         'edns-packet-max=1232\ndns-forward-max=150\nserver=127.0.0.1#15354\n'
         'host-record=ready.device-perf.test,192.0.2.1\n'
         f'pid-file={out}/pid\nlog-facility={out}/daemon.log\n')
+    if args.mode == 'dhcp':
+        with (out / 'config').open('a') as config:
+            config.write('no-ping\ndhcp-authoritative\n'
+                         f'dhcp-range=127.0.0.10,127.0.0.{9 + args.dhcp_clients},255.0.0.0,127.255.255.255,12h\n'
+                         f'dhcp-lease-max={args.dhcp_clients}\ndhcp-leasefile={out}/leases\n'
+                         'domain=device-perf.test\n')
+            for index in range(args.dhcp_clients):
+                config.write(f'dhcp-host=02:00:00:6a:00:{index:02x},127.0.0.{index + 10},lease{index:03d}\n')
     children = []
     channels = []
     controls = []
@@ -194,12 +211,19 @@ def main():
     def load(mode, profile, duration, warm, label, rate=200):
         usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
         started = time.monotonic_ns()
+        extra = []
+        if mode == 'dhcp':
+            extra += ['--client-port', '68', '--interface', 'lo',
+                      '--dhcp-first-address', '127.0.0.10', '--dhcp-renew-only']
+        if args.fixed_device_counts and label == 'client':
+            extra += ['--epoch-file', out / 'epoch', '--epoch-output', out / 'epoch.json']
         child = start(['taskset', '-c', '3', args.tools / 'm6a_loadgen', '--mode', mode,
-            '--host', '127.0.0.1', '--port', '15353', '--clients', '8' if mode == 'tcp' else '32',
+            '--host', '127.0.0.1', '--port', '67' if mode == 'dhcp' else '15353',
+            '--clients', str(args.dhcp_clients) if mode == 'dhcp' else '8' if mode == 'tcp' else '32',
             '--duration-seconds', duration, '--warmup-seconds', warm, '--rate', rate,
             '--seed', '0x293001', '--name-prefix', 'm6a.test', '--profile', profile,
             '--qtype', 'aaaa30', '--cache-names', '800', '--timeout-ms', '1000',
-            '--output', out / label], label)
+            '--output', out / label, *extra], label)
         status = child.wait(timeout=duration + warm + 10)
         children.remove(child)
         # This synchronous wait is the only child reaped during load(). Other
@@ -218,9 +242,14 @@ def main():
         return full
 
     try:
+        upstream_extra = []
+        if args.fixed_device_counts:
+            upstream_extra += ['--epoch-file', out / 'epoch', '--steady-seconds', '20']
+            if args.mode == 'udp' and args.profile == 'mixed':
+                upstream_extra.append('--audit-fixed-mixed-cohort')
         upstream = start(['taskset', '-c', '1', args.tools / 'm6a_upstream', '--port', '15354',
             '--delay-us', '1000', '--ttl', '120', '--output', out / 'upstream.json',
-            '--ready-file', out / 'upstream.ready'], 'upstream')
+            '--ready-file', out / 'upstream.ready', *upstream_extra], 'upstream')
         deadline = time.monotonic() + 5
         while not (out / 'upstream.ready').exists():
             assert upstream.poll() is None and time.monotonic() < deadline
@@ -248,7 +277,7 @@ def main():
         identity['mapped_file_identity'] = verify_mapped_files(identity['maps'], image_files)
         identity['mapped_images'] = image_files
         save(out / 'process-identity.json', identity)
-        if args.profile != 'miss':
+        if args.mode != 'dhcp' and args.profile != 'miss':
             load('udp', 'hit', 5, 0, 'prewarm')
         child_path = proc / 'task' / str(daemon.pid) / 'children'
         assert not child_path.read_text().strip(), 'prewarm must leave no unobserved children'
@@ -307,6 +336,19 @@ def main():
         assert re.search(r'TracerPid:\s+0\b', (proc / 'status').read_text())
         assert finish(daemon, signal.SIGTERM) == 0
         assert finish(upstream, signal.SIGTERM) == 0
+        if args.fixed_device_counts:
+            from perf_opt_device_run import validate
+            scene_name = ('dhcp-home6' if args.dhcp_clients == 6 else 'dhcp') if args.mode == 'dhcp' else args.mode + '-' + args.profile
+            scene = (scene_name, args.mode, args.profile, args.rate, 5, 20, args.dhcp_clients)
+            (out / 'elf.sha256').write_text(expected + '\n')
+            (out / 'live.sha256').write_text(identity['sha256'] + '\n')
+            (out / 'COMPLETE').write_text('complete\n')
+            errors = validate(out, scene, expected)
+            if args.mode == 'dhcp':
+                dora = [json.loads(line) for line in (out / 'client.dhcp-dora.jsonl').read_text().splitlines()]
+                assert len(dora) == full_counts['clients'] == full_counts['warmup']['dora_correct']
+            save(out / 'fixed-count-validation.json', {'scene': scene, 'errors': errors})
+            assert not errors, errors
         exports = [] if observer != 'sample' else [(['perf', 'script', '-i', out / 'perf.data', '--hide-call-graph',
                             '-F', 'pid,tid,misc,period,event,ip,sym,dso'], 'samples.txt'),
                            (['perf', 'report', '-i', out / 'perf.data', '--stdio', '--no-children',

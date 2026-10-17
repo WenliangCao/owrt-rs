@@ -281,6 +281,7 @@ def main():
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--demangler')
+    parser.add_argument('--expected-elf-sha256', help='explicit exact Rust artifact; original C/E defaults remain')
     args = parser.parse_args()
     if args.output.exists():
         parser.error('output must be fresh')
@@ -290,14 +291,22 @@ def main():
     scope = json.loads((root / 'profile-scope.json').read_text())
     complete = json.loads((root / 'complete.json').read_text())
     tail = json.loads((root / 'tree-tail.json').read_text())
-    if (complete.get('completed_operations') != 5000 or not complete.get('tree_tail_complete')
+    counts = (500, 2000) if scope['mode'] == 'dhcp' else (1000, 4000)
+    operations = sum(counts)
+    if scope['mode'] == 'dhcp' and (scope['rate'] != 100 or not scope.get('fixed_device_counts')):
+        raise ValueError('DHCP requires the fixed device fixture and count validation')
+    if (complete.get('completed_operations') != operations or not complete.get('tree_tail_complete')
             or not tail['complete'] or tail['remaining_children']
             or tail['root_pid'] != identity['pid']):
-        raise ValueError('incomplete fixed 5000-operation whole-tree capture')
+        raise ValueError('incomplete fixed-operation whole-tree capture')
     artifact = root / scope['artifact_file']
     actual = sha(artifact)
     pinned = {'dnsmasq-c': '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87',
               'dnsmasq-rs': '8b8082b9b77af986749ebbc75a625079ebbcf095cb919363dde3837a622e8d27'}
+    if args.expected_elf_sha256:
+        if not re.fullmatch('[0-9a-f]{64}', args.expected_elf_sha256):
+            raise ValueError('invalid exact artifact SHA256')
+        pinned['dnsmasq-rs'] = args.expected_elf_sha256
     rows = [row for row in build['artifacts'] if row['path'] == artifact.name]
     if (actual != pinned.get(artifact.name) or len(rows) != 1 or rows[0]['sha256'] != actual
             or rows[0]['bytes'] != artifact.stat().st_size or scope['elf_sha256'] != actual):
@@ -321,19 +330,25 @@ def main():
     client = json.loads((root / 'client.json').read_text())
     if client['interrupted'] or client['output_failed']:
         raise ValueError('interrupted or incomplete client output')
-    for phase, count in (('warmup', 1000), ('measurement', 4000)):
+    for phase, count in zip(('warmup', 'measurement'), counts):
         part = client[phase]
         if (any(part[key] != count for key in ('scheduled', 'sent', 'correct'))
                 or any(part[key] for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))):
             raise ValueError('client completion/error counts violate frozen workload')
-    output = {'scope': 'Excluded exact-image C versus E instruction diagnostic',
-              'profile_scope': scope, 'elf_sha256': actual, 'completed_operations': 5000,
+    if scope.get('fixed_device_counts'):
+        validation = json.loads((root / 'fixed-count-validation.json').read_text())
+        if validation['errors']:
+            raise ValueError('fixed fixture validation failed')
+    output = {'scope': 'Excluded exact-artifact owner diagnostic; stat and user self samples remain separate',
+              'profile_scope': scope, 'elf_sha256': actual, 'completed_operations': operations,
               'source_files': {name: sha(root / name) for name in (
                   'process-identity.json', 'profile-scope.json', 'build.json', 'complete.json',
                   'tree-tail.json', 'client.json', 'maps-after', 'mapped-files-after.json')}}
     if scope['observer'] == 'stat':
         result = stat_counts((root / 'perf-stat.csv').read_text(),
-                             (root / 'perf-stat.stderr').read_text(), identity['pid'], 5000)
+                             (root / 'perf-stat.stderr').read_text(), identity['pid'], operations)
+        if not result['all_unscaled']:
+            raise ValueError('multiplexed/scaled stat window; raw result retained')
         output.update(result)
         output['source_files'].update({name: sha(root / name) for name in ('perf-stat.csv', 'perf-stat.stderr')})
     elif scope['observer'] == 'sample':
