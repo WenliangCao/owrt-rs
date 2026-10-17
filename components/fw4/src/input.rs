@@ -8,7 +8,7 @@ use crate::uci::Config;
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::{self, Json};
 use std::io::{self, Read, Write};
-use std::os::unix::process::{CommandExt, ExitStatusExt};
+use std::os::unix::process::ExitStatusExt;
 use std::path::Path;
 use std::process::Command;
 
@@ -69,7 +69,11 @@ fn format_json(v: &Json) -> String {
         Json::Array(a) => {
             let mut rv = String::from("[");
             for (i, val) in a.iter().enumerate() {
-                rv.push_str(&format!("{} {}", if i > 0 { "," } else { "" }, format_value(val)));
+                rv.push_str(&format!(
+                    "{} {}",
+                    if i > 0 { "," } else { "" },
+                    format_value(val)
+                ));
             }
             rv.push_str(" ]");
             rv
@@ -80,11 +84,19 @@ fn format_json(v: &Json) -> String {
 
 impl Inputs {
     pub fn real() -> Inputs {
-        Inputs { mock_dirs: None, trace: false, uci_dir: "/etc/config".into() }
+        Inputs {
+            mock_dirs: None,
+            trace: false,
+            uci_dir: "/etc/config".into(),
+        }
     }
 
     pub fn mock(dirs: Vec<String>, trace: bool) -> Inputs {
-        Inputs { mock_dirs: Some(dirs), trace, uci_dir: String::new() }
+        Inputs {
+            mock_dirs: Some(dirs),
+            trace,
+            uci_dir: String::new(),
+        }
     }
 
     pub fn is_mock(&self) -> bool {
@@ -135,7 +147,11 @@ impl Inputs {
                 keys.sort_by(|a, b| a.0.cmp(&b.0));
                 for (k, v) in keys {
                     match v {
-                        Json::Str(_) | Json::Bytes(_) | Json::Int(_) | Json::Float(_) | Json::Bool(_) => {
+                        Json::Str(_)
+                        | Json::Bytes(_)
+                        | Json::Int(_)
+                        | Json::Float(_)
+                        | Json::Bool(_) => {
                             sig.push(format!("{k}-{}", mangle(&crate::val::to_str(v))))
                         }
                         Json::Array(_) => sig.push("array".into()),
@@ -163,7 +179,12 @@ impl Inputs {
         Self::call_on(&mut conn, object, method, args)
     }
 
-    fn call_on(conn: &mut owrt_ubus::Connection, object: &str, method: &str, args: Option<&Json>) -> Option<Json> {
+    fn call_on(
+        conn: &mut owrt_ubus::Connection,
+        object: &str,
+        method: &str,
+        args: Option<&Json>,
+    ) -> Option<Json> {
         let id = conn.lookup_id(object, 3000).ok()?;
         let payload = args.map(object_to_payload).unwrap_or_default();
         let reply = conn.invoke_status(id, method, &payload, 30000).ok()?;
@@ -178,15 +199,19 @@ impl Inputs {
     pub fn ubus_state(&self) -> io::Result<(Option<Json>, Option<Json>)> {
         let args = Json::Object(vec![("type".into(), Json::Str("firewall".into()))]);
         if self.is_mock() {
-            return Ok((self.ubus_call("network.interface", "dump", None),
-                self.ubus_call("service", "get_data", Some(&args))));
+            return Ok((
+                self.ubus_call("network.interface", "dump", None),
+                self.ubus_call("service", "get_data", Some(&args)),
+            ));
         }
         // C ubus_connect_ctx initializes uloop before attempting to connect,
         // so SIGPIPE becomes ignored even when the bus socket is unavailable.
         owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
         let mut conn = owrt_ubus::Connection::connect(None)?;
-        Ok((Self::call_on(&mut conn, "network.interface", "dump", None),
-            Self::call_on(&mut conn, "service", "get_data", Some(&args))))
+        Ok((
+            Self::call_on(&mut conn, "network.interface", "dump", None),
+            Self::call_on(&mut conn, "service", "get_data", Some(&args)),
+        ))
     }
 
     /// `fs.open(path, "r")` + read everything.
@@ -198,7 +223,8 @@ impl Inputs {
     /// (e.g. a directory). parse_setfile's line loop treats the latter as EOF.
     pub fn read_open(&self, path: &str) -> io::Result<String> {
         if self.is_mock() {
-            let data = self.mock_read(&format!("fs/open~{}.txt", mangle(path)))
+            let data = self
+                .mock_read(&format!("fs/open~{}.txt", mangle(path)))
                 .ok_or_else(|| io::Error::other("Unspecified error"))?;
             self.trace(&format!("fs.open path <{path}> mode <r>"));
             return Ok(data);
@@ -222,13 +248,17 @@ impl Inputs {
         // fs.readfile returns raw bytes; one stray non-UTF-8 byte in an include
         // file must not make the whole file vanish (DEVIATION: invalid bytes
         // become U+FFFD instead of being copied through).
-        std::fs::read(path).ok().map(|b| String::from_utf8_lossy(&b).into_owned())
+        std::fs::read(path)
+            .ok()
+            .map(|b| String::from_utf8_lossy(&b).into_owned())
     }
 
     /// `fs.access(path)`.
     pub fn access(&self, path: &str) -> bool {
         if self.is_mock() {
-            return self.mock_read(&format!("fs/open~{}.txt", mangle(path))).is_some();
+            return self
+                .mock_read(&format!("fs/open~{}.txt", mangle(path)))
+                .is_some();
         }
         Path::new(path).exists()
     }
@@ -267,7 +297,10 @@ impl Inputs {
         }
         let rd = std::fs::read_dir(path).ok()?;
         let mut out = vec![".".to_owned(), "..".to_owned()];
-        out.extend(rd.flatten().map(|e| e.file_name().to_string_lossy().into_owned()));
+        out.extend(
+            rd.flatten()
+                .map(|e| e.file_name().to_string_lossy().into_owned()),
+        );
         Some(out)
     }
 
@@ -299,7 +332,11 @@ impl Inputs {
             None => (".", pattern),
         };
         let Some(suffix) = file_pat.strip_prefix('*') else {
-            return if Path::new(pattern).exists() { vec![pattern.to_owned()] } else { vec![] };
+            return if Path::new(pattern).exists() {
+                vec![pattern.to_owned()]
+            } else {
+                vec![]
+            };
         };
         let mut out: Vec<String> = match std::fs::read_dir(dir) {
             Ok(rd) => rd
@@ -343,28 +380,26 @@ impl Inputs {
     pub fn system_argv(&self, argv: &[String], timeout_ms: u64) -> i32 {
         if self.is_mock() {
             let arr = Json::Array(argv.iter().map(|a| Json::Str(a.clone())).collect());
-            self.trace(&format!("system command <{}> timeout <{timeout_ms}>", format_json(&arr)));
+            self.trace(&format!(
+                "system command <{}> timeout <{timeout_ms}>",
+                format_json(&arr)
+            ));
             return 0;
         }
-        let Some((prog, rest)) = argv.split_first() else { return -1 };
+        let Some((prog, rest)) = argv.split_first() else {
+            return -1;
+        };
         let mut command = Command::new(prog);
         command.args(rest);
         // ucode system() preserves the inherited disposition; Command resets
         // SIGPIPE unless explicitly restored in its child hook.
-        // SAFETY: this CLI is single-threaded; restore the handler immediately.
-        let sigpipe = unsafe {
-            let inherited = crate::signal(owrt_ubus::sys::SIGPIPE, 1);
-            crate::signal(owrt_ubus::sys::SIGPIPE, inherited);
-            inherited
+        let Ok(sigpipe) = owrt_platform::unix::observe_signal(owrt_ubus::sys::SIGPIPE) else {
+            return -1;
         };
-        // SAFETY: only async-signal-safe signal(2) runs between fork and exec.
-        unsafe {
-            command.pre_exec(move || {
-                crate::signal(owrt_ubus::sys::SIGPIPE, sigpipe);
-                Ok(())
-            });
-        }
-        let Ok(mut child) = command.spawn() else { return -1 };
+        owrt_platform::unix::inherit_signal(&mut command, owrt_ubus::sys::SIGPIPE, sigpipe);
+        let Ok(mut child) = command.spawn() else {
+            return -1;
+        };
         let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
         loop {
             match child.try_wait() {
@@ -391,7 +426,9 @@ impl Inputs {
 }
 
 fn exit_code(status: std::process::ExitStatus) -> i32 {
-    status.code().unwrap_or_else(|| -status.signal().unwrap_or(1))
+    status
+        .code()
+        .unwrap_or_else(|| -status.signal().unwrap_or(1))
 }
 
 /// Report this operation's errno. The pinned ucode fs.open() does not set
@@ -400,14 +437,19 @@ fn exit_code(status: std::process::ExitStatus) -> i32 {
 pub fn fs_error(error: &io::Error) -> String {
     let text = error.to_string();
     if let Some(code) = error.raw_os_error() {
-        text.strip_suffix(&format!(" (os error {code})")).unwrap_or(&text).to_owned()
+        text.strip_suffix(&format!(" (os error {code})"))
+            .unwrap_or(&text)
+            .to_owned()
     } else {
         text
     }
 }
 fn json_strings(v: Option<&Json>) -> Vec<String> {
     match v {
-        Some(Json::Array(a)) => a.iter().filter_map(|x| x.as_str().map(str::to_owned)).collect(),
+        Some(Json::Array(a)) => a
+            .iter()
+            .filter_map(|x| x.as_str().map(str::to_owned))
+            .collect(),
         _ => Vec::new(),
     }
 }
@@ -418,12 +460,18 @@ mod tests {
 
     #[test]
     fn mangling_and_trace_format() {
-        assert_eq!(mangle("/sys/class/net/eth0/flags"), "_sys_class_net_eth0_flags");
+        assert_eq!(
+            mangle("/sys/class/net/eth0/flags"),
+            "_sys_class_net_eth0_flags"
+        );
         assert_eq!(
             mangle("/usr/sbin/nft --terse --json list flowtables inet"),
             "_usr_sbin_nft_--terse_--json_list_flowtables_inet"
         );
-        assert_eq!(mangle("/usr/share/nftables.d/table-pre/*.nft"), "_usr_share_nftables_d_table-pre_nft");
+        assert_eq!(
+            mangle("/usr/share/nftables.d/table-pre/*.nft"),
+            "_usr_share_nftables_d_table-pre_nft"
+        );
         let args = json::parse(r#"{"type":"firewall"}"#).unwrap();
         assert_eq!(format_json(&args), r#"{ "type": "firewall" }"#);
     }

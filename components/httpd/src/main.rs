@@ -8,6 +8,7 @@
 
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![forbid(unsafe_code)]
 
 mod bridge;
 mod auth;
@@ -22,7 +23,7 @@ use http::{Method, ParseOutcome, Request, Response};
 use std::borrow::Cow;
 use std::io::{self, BufReader, Read, Write};
 use std::cell::RefCell;
-use std::os::fd::{AsRawFd, FromRawFd, RawFd};
+use std::os::fd::{AsFd, AsRawFd, RawFd};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex, Weak};
@@ -292,62 +293,13 @@ fn bind(spec: &str) -> io::Result<Vec<TcpListener>> {
 /// Like uhttpd (usock with USOCK_IPV6ONLY): a v6 listener that does not claim
 /// the v4 wildcard, so "-p 0.0.0.0:80 -p [::]:80" can coexist.
 fn bind_v6only(addr: std::net::SocketAddrV6) -> io::Result<TcpListener> {
-    use std::os::fd::FromRawFd;
-    #[repr(C)]
-    struct SockAddrIn6 {
-        family: u16,
-        port: u16,
-        flowinfo: u32,
-        addr: [u8; 16],
-        scope_id: u32,
-    }
-    extern "C" {
-        fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-        fn setsockopt(fd: i32, level: i32, name: i32, value: *const i32, len: u32) -> i32;
-        fn bind(fd: i32, addr: *const SockAddrIn6, len: u32) -> i32;
-        fn listen(fd: i32, backlog: i32) -> i32;
-        fn close(fd: i32) -> i32;
-    }
-    const AF_INET6: i32 = 10;
-    const SOCK_STREAM: i32 = 1;
-    const SOCK_CLOEXEC: i32 = 0o2000000;
-    const SOL_SOCKET: i32 = 1;
-    const SO_REUSEADDR: i32 = 2;
-    const IPPROTO_IPV6: i32 = 41;
-    const IPV6_V6ONLY: i32 = 26;
-    // SAFETY: plain socket(2); it touches no memory of ours.
-    let fd = unsafe { socket(AF_INET6, SOCK_STREAM | SOCK_CLOEXEC, 0) };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    let one: i32 = 1;
-    let sa = SockAddrIn6 {
-        family: AF_INET6 as u16,
-        port: addr.port().to_be(),
-        flowinfo: 0,
-        addr: addr.ip().octets(),
-        scope_id: addr.scope_id(),
-    };
-    // SAFETY: setsockopt(2) with a live i32 and its exact size. IPV6_V6ONLY has
-    // to be set before bind, which is why std's TcpListener cannot be used here.
-    let ok = unsafe {
-        setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &one, 4) == 0
-            && setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, 4) == 0
-            && bind(fd, &sa, std::mem::size_of::<SockAddrIn6>() as u32) == 0
-            && listen(fd, 128) == 0
-    };
-    if !ok {
-        let error = io::Error::last_os_error();
-        // SAFETY: fd came from socket(2) above, setup failed, and nothing else has
-        // taken ownership of it yet.
-        unsafe {
-            close(fd);
-        }
-        return Err(error);
-    }
-    // SAFETY: fd is a bound, listening socket this function owns and does not
-    // use again; TcpListener takes over closing it.
-    Ok(unsafe { TcpListener::from_raw_fd(fd) })
+    use rustix::net::{self, sockopt, AddressFamily, SocketFlags, SocketType};
+    let fd = net::socket_with(AddressFamily::INET6, SocketType::STREAM, SocketFlags::CLOEXEC, None)?;
+    sockopt::set_ipv6_v6only(&fd, true)?;
+    sockopt::set_socket_reuseaddr(&fd, true)?;
+    net::bind(&fd, &addr)?;
+    net::listen(&fd, 128)?;
+    Ok(TcpListener::from(fd))
 }
 
 fn is_rfc1918(ip: IpAddr) -> bool {
@@ -490,26 +442,10 @@ enum Outcome {
 /// Put the client socket in (non-)blocking mode for the duration of a handler
 /// that drives readiness itself. The fd stays owned by the connection.
 fn set_nonblocking(fd: RawFd, on: bool) -> io::Result<()> {
-    with_socket(fd, |sock| sock.set_nonblocking(on))
+    owrt_platform::httpd::set_nonblocking(fd, on)
 }
-
-/// Shorten (or restore) the socket receive timeout. The request-head deadline
-/// uses it so a single read cannot carry the head past its budget.
 fn set_read_timeout(fd: RawFd, timeout: Duration) -> io::Result<()> {
-    with_socket(fd, |sock| sock.set_read_timeout(Some(timeout)))
-}
-
-fn with_socket<T>(fd: RawFd, f: impl FnOnce(&std::net::TcpStream) -> io::Result<T>) -> io::Result<T>
-where
-    T: Default,
-{
-    if fd < 0 {
-        return Ok(T::default());
-    }
-    // SAFETY: `fd` is the live client socket owned by this connection;
-    // ManuallyDrop keeps this borrow from closing it.
-    let sock = std::mem::ManuallyDrop::new(unsafe { std::net::TcpStream::from_raw_fd(fd) });
-    f(&sock)
+    owrt_platform::httpd::set_read_timeout(fd, timeout)
 }
 
 
@@ -852,7 +788,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
 
     let local = listener.local_addr().ok();
     if listener.set_nonblocking(true).is_err() { return; }
-    set_tcp_keepalive(listener.as_raw_fd(), server.config.tcp_keepalive);
+    set_tcp_keepalive(&listener, server.config.tcp_keepalive);
     let Ok((wake_r, wake_w)) = owrt_ubus::sys::pipe() else { return };
     if owrt_ubus::sys::set_nonblocking(wake_r.as_raw_fd()).is_err()
         || owrt_ubus::sys::set_nonblocking(wake_w.as_raw_fd()).is_err() {
@@ -1081,17 +1017,14 @@ fn spawn_connection(server: &Arc<Server>, parking: &Arc<Parking>, transport: Tra
 #[path = "fast_tests.rs"]
 mod fast_tests;
 
-fn set_tcp_keepalive(fd: RawFd, interval: u64) {
+fn set_tcp_keepalive(fd: impl AsFd, interval: u64) {
     if interval == 0 { return; }
-    unsafe extern "C" {
-        fn setsockopt(fd: i32, level: i32, opt: i32, value: *const i32, len: u32) -> i32;
-    }
-    // uhttpd listen.c: idle 1 s, three probes, configured interval, TFO 5.
-    for (level, opt, value) in [(6, 4, 1), (6, 5, interval.min(i32::MAX as u64) as i32),
-        (6, 6, 3), (6, 23, 5), (1, 9, 1)] {
-        // SAFETY: listener is live, value is an i32 and optlen matches it.
-        unsafe { setsockopt(fd, level, opt, &value, 4); }
-    }
+    use rustix::net::sockopt;
+    let _ = sockopt::set_tcp_keepidle(&fd, Duration::from_secs(1));
+    let _ = sockopt::set_tcp_keepintvl(&fd, Duration::from_secs(interval.min(i32::MAX as u64)));
+    let _ = sockopt::set_tcp_keepcnt(&fd, 3);
+    let _ = owrt_platform::httpd::set_tcp_fastopen(&fd, 5);
+    let _ = sockopt::set_socket_keepalive(&fd, true);
 }
 
 fn main() {

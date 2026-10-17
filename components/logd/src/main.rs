@@ -13,6 +13,7 @@
 
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![forbid(unsafe_code)]
 
 mod frame;
 mod ring;
@@ -22,7 +23,7 @@ use owrt_ubus::{blob, sys, Connection, Incoming, MsgType, Request};
 use ring::{normalize, Ring, LINE_SIZE, SOURCE_KLOG, SOURCE_SYSLOG};
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::os::fd::{AsFd, AsRawFd, OwnedFd};
 use std::os::unix::net::UnixDatagram;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -75,11 +76,8 @@ fn now_ms() -> u64 {
 }
 
 /// write(2) on a descriptor we keep owning elsewhere.
-fn write_fd(fd: RawFd, bytes: &[u8]) -> io::Result<usize> {
-    // SAFETY: the caller's OwnedFd stays open for this call; ManuallyDrop
-    // keeps the File from closing a descriptor it does not own.
-    let mut file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(fd) });
-    file.write(bytes)
+fn write_fd(fd: impl AsFd, bytes: &[u8]) -> io::Result<usize> {
+    Ok(rustix::io::write(fd, bytes)?)
 }
 
 /// Kernel buffer of a stream pipe. The default 64 KiB pipe returns EAGAIN
@@ -90,23 +88,12 @@ fn write_fd(fd: RawFd, bytes: &[u8]) -> io::Result<usize> {
 const PIPE_CAPACITY: i32 = 256 * 1024;
 
 #[cfg(target_os = "linux")]
-fn set_pipe_capacity(fd: RawFd, bytes: i32) -> io::Result<()> {
-    extern "C" {
-        fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-    }
-    const F_SETPIPE_SZ: i32 = 1024 + 7;
-    // SAFETY: fcntl(F_SETPIPE_SZ) only resizes the buffer of the caller's
-    // own open descriptor; the argument is a plain integer.
-    if unsafe { fcntl(fd, F_SETPIPE_SZ, bytes) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
+fn set_pipe_capacity(fd: impl AsFd, bytes: i32) -> io::Result<()> {
+    rustix::pipe::fcntl_setpipe_size(fd, bytes as usize)?;
     Ok(())
 }
-
 #[cfg(not(target_os = "linux"))]
-fn set_pipe_capacity(_fd: RawFd, _bytes: i32) -> io::Result<()> {
-    Ok(())
-}
+fn set_pipe_capacity(_fd: impl AsFd, _bytes: i32) -> io::Result<()> { Ok(()) }
 
 struct Client {
     fd: OwnedFd,
@@ -146,7 +133,7 @@ impl Client {
     fn write_direct(&self, bytes: &[u8]) -> io::Result<usize> {
         let mut offset = 0;
         while offset < bytes.len() {
-            match write_fd(self.fd.as_raw_fd(), &bytes[offset..]) {
+            match write_fd(&self.fd, &bytes[offset..]) {
                 Ok(0) => return Err(io::ErrorKind::WriteZero.into()),
                 Ok(n) => offset += n,
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -395,8 +382,8 @@ impl Daemon {
             // A pipe, as in exact C logd (R89..R93 used a Unix stream socket).
             let pair = io::pipe().and_then(|(read_end, write_end)| {
                 let (read_end, write_end) = (OwnedFd::from(read_end), OwnedFd::from(write_end));
-                sys::set_nonblocking(write_end.as_raw_fd())?;
-                let _ = set_pipe_capacity(write_end.as_raw_fd(), PIPE_CAPACITY);
+                sys::set_nonblocking(&write_end)?;
+                let _ = set_pipe_capacity(&write_end, PIPE_CAPACITY);
                 Ok((read_end, write_end))
             });
             // C logd fails the request (`pipe()` failed -> handler returns -1)
@@ -738,37 +725,22 @@ fn main() {
 mod stream_tests {
     use super::*;
 
-    /// O_NONBLOCK for the test's own descriptors. `sys` targets Linux only;
-    /// macOS development hosts use a different flag value.
-    fn nonblocking(fd: RawFd) {
-        #[cfg(target_os = "linux")]
-        sys::set_nonblocking(fd).unwrap();
-        #[cfg(not(target_os = "linux"))]
-        {
-            extern "C" {
-                fn fcntl(fd: i32, cmd: i32, ...) -> i32;
-            }
-            // SAFETY: plain fcntl(F_GETFL)/fcntl(F_SETFL) on a descriptor the
-            // test owns; O_NONBLOCK is 0x4 on the BSD-derived hosts.
-            let flags = unsafe { fcntl(fd, 3) };
-            assert!(flags >= 0);
-            // SAFETY: F_SETFL with the flags just read back, same descriptor.
-            let set = unsafe { fcntl(fd, 4, flags | 0x4) };
-            assert_eq!(set, 0);
-        }
+    fn nonblocking(fd: impl AsFd) {
+        let flags = rustix::fs::fcntl_getfl(&fd).unwrap();
+        rustix::fs::fcntl_setfl(fd, flags | rustix::fs::OFlags::NONBLOCK).unwrap();
     }
 
     /// A stream client over a pipe, as the daemon creates them.
     fn pair(pending: Vec<u8>, oneshot: bool) -> (File, Client) {
         let (read_end, write_end) = io::pipe().unwrap();
         let write_end = OwnedFd::from(write_end);
-        nonblocking(write_end.as_raw_fd());
+        nonblocking(&write_end);
         (File::from(OwnedFd::from(read_end)), Client { fd: write_end, pending, sent: 0, oneshot })
     }
 
     fn fill_pipe(client: &Client) {
         loop {
-            match write_fd(client.fd.as_raw_fd(), &[b'x'; 65536]) {
+            match write_fd(&client.fd, &[b'x'; 65536]) {
                 Ok(n) => assert!(n > 0),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -778,7 +750,7 @@ mod stream_tests {
     }
 
     fn read_available(reader: &mut File) -> Vec<u8> {
-        nonblocking(reader.as_raw_fd());
+        nonblocking(&*reader);
         let mut bytes = Vec::new();
         let mut chunk = [0u8; 65536];
         loop {
@@ -795,14 +767,10 @@ mod stream_tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn stream_pipes_get_the_larger_capacity() {
-        extern "C" {
-            fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-        }
         let (_reader, client) = pair(Vec::new(), false);
-        set_pipe_capacity(client.fd.as_raw_fd(), PIPE_CAPACITY).unwrap();
-        // SAFETY: F_GETPIPE_SZ only reads the size of our own descriptor.
-        let size = unsafe { fcntl(client.fd.as_raw_fd(), 1024 + 8, 0) };
-        assert_eq!(size, PIPE_CAPACITY);
+        set_pipe_capacity(&client.fd, PIPE_CAPACITY).unwrap();
+        let size = rustix::pipe::fcntl_getpipe_size(&client.fd).unwrap();
+        assert_eq!(size, PIPE_CAPACITY as usize);
         // and such a pipe takes a whole 200 KiB burst in one write
         let big = vec![7u8; 200_000];
         assert_eq!(client.write_direct(&big).unwrap(), big.len());

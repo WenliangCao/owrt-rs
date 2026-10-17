@@ -8,6 +8,8 @@ description = "Contract C1-01 compatible OpenWrt config change dispatcher"
 publish = false
 
 [dependencies]
+owrt-platform = { path = "../platform" }
+rustix = { version = "=1.1.5", features = ["event", "fs", "net", "pipe", "process", "stdio", "time"] }
 owrt-uci = { path = "../uci" }
 owrt-ubus = { path = "../ubus" }
 

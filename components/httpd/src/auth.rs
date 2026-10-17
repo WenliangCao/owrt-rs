@@ -1,7 +1,6 @@
 //! uhttpd auth.c: httpd.conf realms, Basic authentication and passwd references.
 
-use std::ffi::{c_char, CStr, CString};
-use std::sync::Mutex;
+use std::ffi::CString;
 
 #[derive(Debug)]
 pub struct Realm {
@@ -44,25 +43,12 @@ fn equal(a: &[u8], b: &[u8]) -> bool {
     difference == 0
 }
 
-#[cfg_attr(target_env = "gnu", link(name = "crypt"))]
-unsafe extern "C" {
-    fn crypt(key: *const c_char, salt: *const c_char) -> *mut c_char;
-}
-
-static CRYPT: Mutex<()> = Mutex::new(());
-
 fn matches_password(password: &str, stored: &str) -> bool {
     if !stored.starts_with('$') && equal(password.as_bytes(), stored.as_bytes()) {
         return true;
     }
     let (Ok(password), Ok(salt)) = (CString::new(password), CString::new(stored)) else { return false };
-    let _guard = CRYPT.lock().unwrap_or_else(|e| e.into_inner());
-    // SAFETY: both inputs are live C strings. crypt's static result is read
-    // while holding the lock shared by every HTTP connection thread.
-    unsafe {
-        let result = crypt(password.as_ptr(), salt.as_ptr());
-        !result.is_null() && equal(CStr::from_ptr(result).to_bytes(), stored.as_bytes())
-    }
+    owrt_platform::text::with_crypt(&password, &salt, |result| equal(result, stored.as_bytes()))
 }
 
 fn basic(header: &str) -> Option<(String, String)> {

@@ -22,7 +22,8 @@ use crate::files::{self, Lookup};
 use crate::http::{self, Method, ParseOutcome, Response};
 use crate::{is_rfc1918, path_matches, Parked, Server, Transport};
 use std::io::{self, BufReader, Cursor, Write};
-use std::os::fd::RawFd;
+use std::os::fd::{AsFd, RawFd};
+use rustix::net::{self, RecvFlags, SendFlags};
 use std::os::unix::fs::MetadataExt;
 
 /// Largest file body served inline. Covers LuCI's small assets and the
@@ -36,23 +37,6 @@ const MAX_RESPONSE: usize = MAX_BODY as usize + 1024;
 pub const MAX_PENDING: usize = 4;
 /// Peek window. A head that does not end inside it is not judged here.
 const PEEK: usize = 4096;
-
-#[cfg(target_os = "linux")]
-const MSG_DONTWAIT: i32 = 0x40;
-#[cfg(not(target_os = "linux"))]
-const MSG_DONTWAIT: i32 = 0x80;
-const MSG_PEEK: i32 = 0x2;
-#[cfg(target_os = "linux")]
-const MSG_NOSIGNAL: i32 = 0x4000;
-/// SIGPIPE is ignored process-wide in main(); macOS (host tests) has no
-/// MSG_NOSIGNAL and needs none because of that.
-#[cfg(not(target_os = "linux"))]
-const MSG_NOSIGNAL: i32 = 0;
-
-extern "C" {
-    fn recv(fd: i32, buf: *mut u8, len: usize, flags: i32) -> isize;
-    fn send(fd: i32, buf: *const u8, len: usize, flags: i32) -> isize;
-}
 
 /// A committed response the socket has not fully accepted yet. The head is
 /// already consumed; the listener keeps POLLOUT interest until `off` reaches
@@ -162,66 +146,39 @@ fn head_end(buf: &[u8]) -> Option<usize> {
     None
 }
 
-fn peek_bytes(fd: RawFd, buf: &mut [u8]) -> io::Result<usize> {
+fn peek_bytes(fd: impl AsFd, buf: &mut [u8]) -> io::Result<usize> {
     loop {
-        // SAFETY: buf is live writable memory of the stated length; recv
-        // writes at most that many bytes.
-        let n = unsafe { recv(fd, buf.as_mut_ptr(), buf.len(), MSG_PEEK | MSG_DONTWAIT) };
-        if n >= 0 {
-            return Ok(n as usize);
-        }
-        let error = io::Error::last_os_error();
-        if error.kind() != io::ErrorKind::Interrupted {
-            return Err(error);
+        match net::recv(&fd, &mut *buf, RecvFlags::PEEK | RecvFlags::DONTWAIT) {
+            Ok((_, size)) => return Ok(size),
+            Err(rustix::io::Errno::INTR) => (),
+            Err(error) => return Err(error.into()),
         }
     }
 }
 
-/// Discard exactly `len` bytes from the socket. The bytes were just peeked,
-/// so the kernel holds them; any other result is a broken invariant and the
-/// connection is closed rather than resynchronized.
-fn consume(fd: RawFd, scratch: &mut [u8], mut len: usize) -> io::Result<()> {
+/// Consume exactly the already-peeked head. Never reparse after consumption.
+fn consume(fd: impl AsFd, scratch: &mut [u8], mut len: usize) -> io::Result<()> {
     while len > 0 {
         let want = len.min(scratch.len());
-        // SAFETY: scratch is live writable memory; recv writes at most `want`.
-        let n = unsafe { recv(fd, scratch.as_mut_ptr(), want, MSG_DONTWAIT) };
-        match n {
-            n if n > 0 => len -= n as usize,
-            0 => return Err(io::ErrorKind::UnexpectedEof.into()),
-            _ => {
-                let error = io::Error::last_os_error();
-                if error.kind() != io::ErrorKind::Interrupted {
-                    return Err(error);
-                }
-            }
+        match net::recv(&fd, &mut scratch[..want], RecvFlags::DONTWAIT) {
+            Ok((_, 0)) => return Err(io::ErrorKind::UnexpectedEof.into()),
+            Ok((_, size)) => len -= size,
+            Err(rustix::io::Errno::INTR) => (),
+            Err(error) => return Err(error.into()),
         }
     }
     Ok(())
 }
 
-enum SendOutcome {
-    Complete,
-    /// The socket stopped accepting at this offset.
-    Blocked(usize),
-}
-
-fn send_some(fd: RawFd, buf: &[u8], mut off: usize) -> io::Result<SendOutcome> {
+enum SendOutcome { Complete, Blocked(usize) }
+fn send_some(fd: impl AsFd, buf: &[u8], mut off: usize) -> io::Result<SendOutcome> {
     while off < buf.len() {
-        // SAFETY: the range off..len is initialized response bytes.
-        let n = unsafe {
-            send(fd, buf[off..].as_ptr(), buf.len() - off, MSG_DONTWAIT | MSG_NOSIGNAL)
-        };
-        match n {
-            n if n > 0 => off += n as usize,
-            0 => return Err(io::ErrorKind::WriteZero.into()),
-            _ => {
-                let error = io::Error::last_os_error();
-                match error.kind() {
-                    io::ErrorKind::Interrupted => {}
-                    io::ErrorKind::WouldBlock => return Ok(SendOutcome::Blocked(off)),
-                    _ => return Err(error),
-                }
-            }
+        match net::send(&fd, &buf[off..], SendFlags::DONTWAIT | SendFlags::NOSIGNAL) {
+            Ok(0) => return Err(io::ErrorKind::WriteZero.into()),
+            Ok(size) => off += size,
+            Err(rustix::io::Errno::INTR) => (),
+            Err(rustix::io::Errno::AGAIN) => return Ok(SendOutcome::Blocked(off)),
+            Err(error) => return Err(error.into()),
         }
     }
     Ok(SendOutcome::Complete)
@@ -232,8 +189,7 @@ fn send_some(fd: RawFd, buf: &[u8], mut off: usize) -> io::Result<SendOutcome> {
 /// off, close or ignore. `writing` is how many connections already hold a
 /// pending reply on this listener.
 pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: usize) -> Event {
-    let fd = p.conn.fd;
-    let peeked = match peek_bytes(fd, &mut s.peek[..]) {
+    let peeked = match peek_bytes(p.transport.tcp(), &mut s.peek[..]) {
         Ok(0) => return Event::Close,
         Ok(n) => n,
         Err(error) if error.kind() == io::ErrorKind::WouldBlock => return Event::Spurious,
@@ -315,11 +271,11 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
     s.heads.recycle(request);
     // Commit: consume exactly the parsed head, then deliver.
     let buf = sink.buf;
-    if consume(fd, &mut s.peek[..], head_len).is_err() {
+    if consume(p.transport.tcp(), &mut s.peek[..], head_len).is_err() {
         s.return_resp(buf);
         return Event::Close;
     }
-    match send_some(fd, &buf, 0) {
+    match send_some(p.transport.tcp(), &buf, 0) {
         Ok(SendOutcome::Complete) => {
             s.return_resp(buf);
             if close {
@@ -344,7 +300,7 @@ pub fn on_writable(p: &mut Parked, s: &mut Scratch) -> Event {
     let Some(w) = p.writing.as_mut() else {
         return Event::Spurious;
     };
-    match send_some(p.conn.fd, &w.buf, w.off) {
+    match send_some(p.transport.tcp(), &w.buf, w.off) {
         Ok(SendOutcome::Complete) => {
             let w = p.writing.take().expect("checked above");
             s.return_resp(w.buf);

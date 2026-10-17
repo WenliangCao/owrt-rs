@@ -448,27 +448,16 @@ mod tests {
 fn open_readonly(path: &Path) -> io::Result<fs::File> {
     #[cfg(target_os = "linux")]
     {
-        use std::os::fd::FromRawFd;
         use std::os::unix::ffi::OsStrExt;
-        extern "C" {
-            fn openat(dirfd: i32, path: *const u8, flags: i32, ...) -> i32;
-        }
-        const AT_FDCWD: i32 = -100;
-        const O_RDONLY: i32 = 0;
-        const O_CLOEXEC: i32 = 0o2000000;
         let bytes = path.as_os_str().as_bytes();
         let mut cpath = [0u8; 256];
         if bytes.len() < cpath.len() && !bytes.contains(&0) {
             cpath[..bytes.len()].copy_from_slice(bytes);
-            // SAFETY: cpath is a live, NUL-terminated buffer that openat only
-            // reads; the flags carry no mode argument.
-            let fd = unsafe { openat(AT_FDCWD, cpath.as_ptr(), O_RDONLY | O_CLOEXEC) };
-            if fd < 0 {
-                return Err(io::Error::last_os_error());
-            }
-            // SAFETY: a fresh descriptor from openat that nothing else owns;
-            // the File closes it.
-            return Ok(unsafe { fs::File::from_raw_fd(fd) });
+            let cpath = std::ffi::CStr::from_bytes_with_nul(&cpath[..bytes.len() + 1])
+                .map_err(|_| io::ErrorKind::InvalidInput)?;
+            let fd = rustix::fs::openat(rustix::fs::CWD, cpath,
+                rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC, rustix::fs::Mode::empty())?;
+            return Ok(fs::File::from(fd));
         }
     }
     fs::File::open(path)

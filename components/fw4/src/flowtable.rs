@@ -12,16 +12,9 @@
 //! falls back to the nft child, so the rendered ruleset can never differ from
 //! firewall4's.
 
-use std::mem::size_of;
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
-
-const AF_NETLINK: i32 = 16;
-const SOCK_RAW: i32 = 3;
-const SOCK_CLOEXEC: i32 = 0o2000000;
-const NETLINK_NETFILTER: i32 = 12;
-const SOL_SOCKET: i32 = 1;
-const SO_RCVTIMEO: i32 = 20;
-const MSG_TRUNC: i32 = 0x20;
+use rustix::net::{
+    self, sockopt, AddressFamily, RecvFlags, SendFlags, SocketFlags, SocketType,
+};
 
 const NLMSG_ERROR: u16 = 2;
 const NLM_F_REQUEST: u16 = 1;
@@ -33,27 +26,6 @@ const NFTA_FLOWTABLE_NAME: u16 = 2;
 const NFPROTO_INET: u8 = 1;
 const ENOENT: i32 = 2;
 const SEQ: u32 = 0x6677_3400;
-
-#[repr(C)]
-struct SockaddrNl {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-
-#[repr(C)]
-struct Timeval {
-    sec: i64,
-    usec: i64,
-}
-
-extern "C" {
-    fn socket(domain: i32, ty: i32, proto: i32) -> i32;
-    fn setsockopt(fd: i32, level: i32, name: i32, val: *const u8, len: u32) -> i32;
-    fn sendto(fd: i32, buf: *const u8, len: usize, flags: i32, addr: *const SockaddrNl, alen: u32) -> isize;
-    fn recvfrom(fd: i32, buf: *mut u8, len: usize, flags: i32, addr: *mut u8, alen: *mut u32) -> isize;
-}
 
 /// `nlmsghdr` + `nfgenmsg` + two string attributes, 4-byte aligned; `None`
 /// when the names do not fit the fixed request buffer.
@@ -107,34 +79,31 @@ fn interpret(reply: &[u8]) -> Option<bool> {
 /// `Some(exists)` when the kernel answered, `None` when it could not be asked.
 pub fn exists(table: &str, name: &str) -> Option<bool> {
     let (msg, len) = request(table, name)?;
-    // SAFETY: plain socket(2); a negative return is rejected before use.
-    let raw = unsafe { socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_NETFILTER) };
-    if raw < 0 {
-        return None;
-    }
-    // SAFETY: `raw` is a descriptor this function just created and owns.
-    let fd = unsafe { OwnedFd::from_raw_fd(raw) };
-    // The kernel answers a request synchronously; the timeout only bounds a
-    // dropped reply so fw4 can fall back instead of hanging.
-    let tv = Timeval { sec: 1, usec: 0 };
-    // SAFETY: `tv` lives across the call and the length is its exact size.
-    if unsafe { setsockopt(fd.as_raw_fd(), SOL_SOCKET, SO_RCVTIMEO, (&tv as *const Timeval).cast(), size_of::<Timeval>() as u32) } != 0 {
-        return None;
-    }
-    let kernel = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups: 0 };
-    // SAFETY: `msg[..len]` and `kernel` are valid for the lengths passed.
-    let sent = unsafe { sendto(fd.as_raw_fd(), msg.as_ptr(), len, 0, &kernel, size_of::<SockaddrNl>() as u32) };
-    if sent != len as isize {
+    let fd = net::socket_with(
+        AddressFamily::NETLINK,
+        SocketType::RAW,
+        SocketFlags::CLOEXEC,
+        Some(net::netlink::NETFILTER),
+    )
+    .ok()?;
+    sockopt::set_socket_timeout(
+        &fd,
+        sockopt::Timeout::Recv,
+        Some(std::time::Duration::from_secs(1)),
+    )
+    .ok()?;
+    let kernel = net::netlink::SocketAddrNetlink::new(0, 0);
+    if net::sendto(&fd, &msg[..len], SendFlags::empty(), &kernel).ok()? != len {
         return None;
     }
     let mut reply = [0u8; 8192];
-    // SAFETY: `reply` is valid for its full length; MSG_TRUNC reports the real
-    // datagram size so a reply larger than the buffer is detected and refused.
-    let n = unsafe { recvfrom(fd.as_raw_fd(), reply.as_mut_ptr(), reply.len(), MSG_TRUNC, std::ptr::null_mut(), std::ptr::null_mut()) };
-    if n <= 0 || n as usize > reply.len() {
+    let (_, n) = net::recvfrom(&fd, &mut reply[..], RecvFlags::TRUNC)
+        .ok()
+        .map(|(copied, size, _)| (copied, size))?;
+    if n == 0 || n > reply.len() {
         return None;
     }
-    interpret(&reply[..n as usize])
+    interpret(&reply[..n])
 }
 
 #[cfg(test)]
@@ -150,8 +119,14 @@ mod tests {
         let (buf, len) = request("fw4", "ft").unwrap();
         assert_eq!(len, 36);
         assert_eq!(u32::from_ne_bytes(buf[0..4].try_into().unwrap()), 36);
-        assert_eq!(u16::from_ne_bytes(buf[4..6].try_into().unwrap()), nfnl(NFT_MSG_GETFLOWTABLE));
-        assert_eq!(u16::from_ne_bytes(buf[6..8].try_into().unwrap()), NLM_F_REQUEST);
+        assert_eq!(
+            u16::from_ne_bytes(buf[4..6].try_into().unwrap()),
+            nfnl(NFT_MSG_GETFLOWTABLE)
+        );
+        assert_eq!(
+            u16::from_ne_bytes(buf[6..8].try_into().unwrap()),
+            NLM_F_REQUEST
+        );
         assert_eq!(&buf[16..20], &[NFPROTO_INET, 0, 0, 0]);
         // nla: len 8 ("fw4\0"), type TABLE, "fw4\0"
         assert_eq!(&buf[20..28], &[8, 0, 1, 0, b'f', b'w', b'4', 0]);
@@ -174,15 +149,26 @@ mod tests {
     #[test]
     fn interpret_object_error_and_noise() {
         let (req, len) = request("fw4", "ft").unwrap();
-        assert_eq!(interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ, &[1, 0, 0, 0])), Some(true));
+        assert_eq!(
+            interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ, &[1, 0, 0, 0])),
+            Some(true)
+        );
         let mut enoent = (-ENOENT).to_ne_bytes().to_vec();
         enoent.extend_from_slice(&req[..len]);
         assert_eq!(interpret(&reply(NLMSG_ERROR, SEQ, &enoent)), Some(false));
         let mut eperm = (-1i32).to_ne_bytes().to_vec();
         eperm.extend_from_slice(&req[..len]);
         assert_eq!(interpret(&reply(NLMSG_ERROR, SEQ, &eperm)), None);
-        assert_eq!(interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ + 1, &[])), None, "foreign sequence");
-        assert_eq!(interpret(&reply(3, SEQ, &[])), None, "NLMSG_DONE is not an answer");
+        assert_eq!(
+            interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ + 1, &[])),
+            None,
+            "foreign sequence"
+        );
+        assert_eq!(
+            interpret(&reply(3, SEQ, &[])),
+            None,
+            "NLMSG_DONE is not an answer"
+        );
         assert_eq!(interpret(&[0; 8]), None);
         let mut short = reply(NLMSG_ERROR, SEQ, &[]);
         short.truncate(16);

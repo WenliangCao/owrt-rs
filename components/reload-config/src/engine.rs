@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufWriter, Read, Write};
+#[cfg(test)]
 use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -73,7 +74,7 @@ impl RunLock {
             .write(true)
             .open(path)
             .map_err(|error| Error::Io("open run lock", error))?;
-        if !unix::lock(file.as_raw_fd(), cancelled).map_err(|error| Error::Io("lock run lock", error))? {
+        if !unix::lock(&file, cancelled).map_err(|error| Error::Io("lock run lock", error))? {
             return Err(Error::Cancelled);
         }
         Ok(Self { _file: file })
@@ -474,12 +475,11 @@ fn write_baseline(
     result
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::{
-        changed_entries, read_baseline, run, scan_config_names, write_baseline, BaselineEntry, Error,
-        Settings, MAX_BASELINE_BYTES, MAX_CONFIG_ENTRIES,
+        changed_entries, read_baseline, run, scan_config_names, write_baseline, BaselineEntry,
+        Error, Settings, MAX_BASELINE_BYTES, MAX_CONFIG_ENTRIES,
     };
     use std::collections::HashMap;
     use std::ffi::{OsStr, OsString};
@@ -589,7 +589,8 @@ mod tests {
     #[test]
     fn baseline_limit_applies_when_metadata_understates_readable_bytes() {
         use std::io::Write;
-        use std::os::fd::AsRawFd;
+        #[cfg(test)]
+use std::os::fd::AsRawFd;
         let (reader, writer) = owrt_ubus::sys::pipe().unwrap();
         let path = format!("/proc/self/fd/{}", reader.as_raw_fd());
         assert_eq!(fs::metadata(&path).unwrap().len(), 0);
@@ -650,7 +651,8 @@ mod tests {
     #[test]
     fn config_limit_counts_unique_names_and_rejects_before_changing_baseline() {
         let root = std::env::temp_dir().join(format!(
-            "reload-config-rs-limit-test-{}", std::process::id()
+            "reload-config-rs-limit-test-{}",
+            std::process::id()
         ));
         let _ = fs::remove_dir_all(&root);
         let config = root.join("etc/config");
@@ -660,12 +662,21 @@ mod tests {
         for i in 0..MAX_CONFIG_ENTRIES {
             File::create(config.join(format!("package{i:04}"))).unwrap();
         }
-        let settings = Settings { root: root.clone(), timeout: Duration::from_secs(1) };
-        assert_eq!(scan_config_names(&settings).unwrap().len(), MAX_CONFIG_ENTRIES);
+        let settings = Settings {
+            root: root.clone(),
+            timeout: Duration::from_secs(1),
+        };
+        assert_eq!(
+            scan_config_names(&settings).unwrap().len(),
+            MAX_CONFIG_ENTRIES
+        );
         File::create(state.join("package0000")).unwrap();
         File::create(config.join(".hidden")).unwrap();
         fs::create_dir(config.join("directory")).unwrap();
-        assert_eq!(scan_config_names(&settings).unwrap().len(), MAX_CONFIG_ENTRIES);
+        assert_eq!(
+            scan_config_names(&settings).unwrap().len(),
+            MAX_CONFIG_ENTRIES
+        );
 
         File::create(state.join("overflow")).unwrap();
         let baseline = root.join("var/run/config.md5");
@@ -673,11 +684,16 @@ mod tests {
         let cancelled = std::sync::atomic::AtomicBool::new(false);
         let mut trace_bytes = Vec::new();
         let mut trace = crate::trace::Trace::new(&mut trace_bytes);
-        assert!(matches!(run(&settings, &cancelled, &mut trace), Err(Error::InvalidInput(_))));
+        assert!(matches!(
+            run(&settings, &cancelled, &mut trace),
+            Err(Error::InvalidInput(_))
+        ));
         assert_eq!(fs::read(&baseline).unwrap(), b"previous baseline\n");
         assert!(trace_bytes.is_empty());
         assert!(!root.join("var/run/config.check").exists());
-        assert!(!root.join("var/run/config.md5.reload-config-rs.tmp").exists());
+        assert!(!root
+            .join("var/run/config.md5.reload-config-rs.tmp")
+            .exists());
         fs::remove_dir_all(root).unwrap();
     }
 

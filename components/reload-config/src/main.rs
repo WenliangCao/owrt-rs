@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 // The ubus transport targets Linux; other hosts only provide smoke builds.
