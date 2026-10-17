@@ -8,10 +8,10 @@ I/J公开九对确认、实际44族/67任务、shipping/source边界、原118窗
 ELF2,288,419B/APK1,293,163B符合PGO预算。I保留回退；无部署、推送或产品合入main。
 正式身份见[candidate-j-acceptance.json](audits/perf-opt-20261015/candidate-j-acceptance.json)，
 接受tag为`perf/dnsmasq-candidate-j-pgo-20261017`（63df70ed）；不相加两批直接对照数字。
-K（4ce24c62）已过44/67；内存停测后回收28.1MiB旧测试副本，新批4AA有效。
-启动前目录碰撞已修，按7fd608c6只接续10窗：`k-dual-family-screen-resume10`，最终
-`k-dual-family-screen14-selected`取4AA+10比较窗。接续基线最低101.9MiB；两次失败都保留。
-至少省5µs且超过新AA才继续确认。原J/C/v0对照与资格不重做，实时64MiB门不改。
+K（4ce24c62）已过44/67和双栈筛选：J122.14→K87.57µs，配对中位−36.50µs、5/5，
+超过5µs及新AA3.0579007。K尚未接受，正做固定九对确认；通过才原118。
+内存停测与启动前目录碰撞都保留。回收28.1MiB旧测试副本后，按7fd608c6取新4AA+10比较窗，
+结果在`k-dual-family-screen14-selected`；旧r1-J与旧partial不选。实时64MiB门不改。
 600秒夜间样本仅19条：AD/CD 0/19，18条可解析查询OPT 0/18，备用新增覆盖0；另1条未知。
 样本不能代表全天，暂不启用备用。AD/CD/空OPT的普通fresh路径仍零分配，不按D1回退率
 折减整个J的收益。全部新数字和限制见统一结果。
