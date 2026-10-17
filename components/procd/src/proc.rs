@@ -318,8 +318,6 @@ pub fn start(
     Ok((pid, out, err))
 }
 
-/// Reap any exited child, whoever it is. PID 1 has to do this for orphans it
-/// never started; the supervisor uses it to notice its own children too.
 /// `waitpid(pid, WNOHANG)` for one specific child. The run queue's tests use
 /// this rather than `reap_any`, which would steal other tests' children.
 #[allow(dead_code)]
@@ -331,9 +329,12 @@ pub fn try_reap(pid: i32) -> Option<i32> {
         .map(|(_, status)| status.as_raw())
 }
 
+/// Reap any exited child, including inittab sessions and adopted orphans.
 pub fn reap_any() -> Option<(i32, i32)> {
     loop {
-        match rustix::process::waitpid(None, rustix::process::WaitOptions::NOHANG) {
+        // waitpid(None) means PID 0 (our process group), not libc's PID -1.
+        // Inittab workers call setsid(), so they require the all-child wait.
+        match rustix::process::wait(rustix::process::WaitOptions::NOHANG) {
             Ok(Some((pid, status))) => return Some((pid.as_raw_pid(), status.as_raw())),
             Err(rustix::io::Errno::INTR) => continue,
             _ => return None,
@@ -448,7 +449,7 @@ mod tests {
         assert!(joined.contains(" -u ")); // ubus
         assert!(joined.contains(" -l ")); // log
         assert!(!joined.contains(" -N ")); // netns is false
-        // Environment is passed by name, not by value.
+                                           // Environment is passed by name, not by value.
         assert!(joined.contains("-e FOO"));
         assert!(!joined.contains("bar"));
         // The writable flag is the stored value, tested as '1'.
@@ -463,6 +464,51 @@ mod tests {
         // jail_argv is only consulted when has_jail; the guard lives in
         // start(), so assert the flag rather than the builder.
         assert!(!i.has_jail);
+    }
+
+    #[test]
+    fn reap_any_collects_an_exited_inittab_session() {
+        // Isolate the all-child reaper from concurrent tests' children, using
+        // the same controlled subprocess pattern as the watchdog tests.
+        const CHILD: &str = "OWRT_PROCD_REAP_SESSION_TEST";
+        if std::env::var_os(CHILD).is_none() {
+            let status = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "proc::tests::reap_any_collects_an_exited_inittab_session",
+                    "--test-threads=1",
+                ])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success(), "isolated inittab reaper test failed");
+            return;
+        }
+
+        let pid = spawn_tty(&["/bin/sh".into(), "-c".into(), "exit 23".into()], "null")
+            .expect("start the actual inittab child setup");
+        // Wait for this child to exit without consuming its status. The
+        // production nonblocking reaper must then collect the new session.
+        use rustix::process::{waitid, Pid, WaitId, WaitIdOptions};
+        waitid(
+            WaitId::Pid(Pid::from_raw(pid).unwrap()),
+            WaitIdOptions::EXITED | WaitIdOptions::NOWAIT,
+        )
+        .unwrap()
+        .expect("child exit status");
+        let group = rustix::process::getpgid(Pid::from_raw(pid)).unwrap();
+        assert_eq!(
+            group.as_raw_pid(),
+            pid,
+            "inittab child must lead its session"
+        );
+        assert_ne!(group, rustix::process::getpgrp());
+        let reaped = reap_any();
+        if reaped.is_none() {
+            // Reap the owned child even when the regression is present.
+            let _ = try_reap(pid);
+        }
+        assert_eq!(reaped, Some((pid, 23 << 8)));
     }
 
     /// Run `script` through start() with a piped stdout and return what it
