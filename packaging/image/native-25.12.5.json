@@ -11,7 +11,7 @@
       "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
       "stock_package": "firewall4",
       "binary": "fw4-rs",
-      "reference_elf_sha256": "ee5a9c5685f7363be3fc2bd5039546b2f01327633afc24031b446fc0fb7f5b55"
+      "reference_elf_sha256": "2a077d0d268fca821463919219ee339b629c37cab2f47b2584b382074a83a72c"
     },
     "httpd": {
       "path": "/usr/sbin/uhttpd",
@@ -32,7 +32,7 @@
       "stock_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
       "stock_package": "netifd",
       "binary": "netifd-rs",
-      "reference_elf_sha256": "0131ce3feeec074bfa6f5046ff3732ec235495442956407e7ea17559ce747a93"
+      "reference_elf_sha256": "cd02d474cfc557fb43231c947c29b442a0178efdaea6902e9b4bf2a0d03310ef"
     },
     "procd": {
       "path": "/sbin/procd",
