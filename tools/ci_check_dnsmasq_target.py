@@ -79,22 +79,27 @@ def retain_outputs(out, report):
                           for path in sorted(retained)}
 
 
-def run(work, *, spec=None):
+def run(work, *, spec=None, pgo_stage="frozen-use"):
     builder.audit.require(platform.system() == "Linux" and platform.machine() == "x86_64",
                           "native x86_64 Linux host required; no SDK wrapper modifications")
     out = work / "out/dnsmasq"
     out.mkdir(parents=True, exist_ok=False)
     report = {"status": "building", "scope": "diagnostic target build only; not accepted for deployment",
-              "pgo": False, "firmware_built": False, "physical_boot_tested": False,
+              "pgo": False, "firmware_built": False, "physical_boot_tested": False, "release_qualified": False,
               "runner_commit": subprocess.check_output(
                   ["git", "-C", str(builder.REPO), "rev-parse", "HEAD"], text=True).strip()}
     try:
         if spec is None:
             spec = source_spec()
+        if "pgo" in spec:
+            report["pgo_stage"] = pgo_stage
+            report["artifact_purpose"] = {"generate": "instrumented-training-only",
+                                          "candidate-use": "unqualified-candidate",
+                                          "frozen-use": "frozen-reference-reproduction"}[pgo_stage]
         builder.write(out / "build-spec.json", spec)
         frozen = freeze_source(out, spec)
         prepare_sdk(work, out, frozen)
-        builder.build(work, spec, report, frozen_source=frozen)
+        builder.build(work, spec, report, frozen_source=frozen, pgo_stage=pgo_stage)
         if "reference_elf_bytes" in spec:
             builder.audit.require(report["elf"]["size"] == spec["reference_elf_bytes"],
                                   "fresh CI ELF size differs from frozen reference")
@@ -106,6 +111,10 @@ def run(work, *, spec=None):
         builder.audit.require("dnsmasq-platform" in compile_log and "dnsmasq-rs" in compile_log,
                               "target product/platform compilation evidence missing")
         report["status"] = "passed-target-build-and-zero-compiler-warnings"
+        if pgo_stage == "generate":
+            report["status"] = "built-instrumented-training-only"
+        elif pgo_stage == "candidate-use":
+            report["status"] = "created-unqualified-pgo-candidate"
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         report.update(status="failed", error=str(error))
         raise

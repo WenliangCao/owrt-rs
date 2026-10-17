@@ -1,8 +1,18 @@
 name: dnsmasq-pgo-candidate
 on:
-  push:
-    branches: [validation/dnsmasq-fork-pgo-a97edbc1-20261017]
   workflow_dispatch:
+    inputs:
+      stage:
+        description: Explicit PGO build stage
+        required: true
+        default: frozen-use
+        type: choice
+        options: [frozen-use, generate, candidate-use]
+      spec:
+        description: Frozen manifest for the selected stage
+        required: true
+        default: manifests/dnsmasq-pgo-candidate-a97edbc1.json
+        type: string
 
 permissions:
   contents: read
@@ -36,15 +46,17 @@ jobs:
           key: dnsmasq-target-sdk-ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25
       - name: validate candidate identity, PGO and compiler-warning gates
         run: python3 -m unittest discover -s tools -p 'test_ci_dnsmasq*.py'
-      - name: build frozen candidate and require the actual Oracle PGO ELF
+      - name: build the explicitly selected frozen stage
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/ci_check_dnsmasq_pgo_candidate.py "$GITHUB_WORKSPACE/work"
+          PGO_STAGE: ${{ inputs.stage }}
+          PGO_SPEC: ${{ inputs.spec }}
+        run: python3 tools/ci_check_dnsmasq_pgo_pipeline.py "$GITHUB_WORKSPACE/work" --stage "$PGO_STAGE" --spec "$PGO_SPEC"
       - name: preserve actual candidate artifacts and every build diagnostic
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dnsmasq-pgo-a97edbc1-${{ github.sha }}
+          name: dnsmasq-pgo-a97edbc1-${{ inputs.stage }}-${{ github.sha }}-${{ github.run_id }}
           path: |
             work/out/dnsmasq/*.apk
             work/out/dnsmasq/dnsmasq-rs

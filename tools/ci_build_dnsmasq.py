@@ -26,6 +26,7 @@ from compiler_warnings import scan as scan_compiler_warnings
 
 REPO = Path(__file__).resolve().parent.parent
 PGO_BUILD_SLOT = Path("/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot")
+PGO_STAGES = ("generate", "candidate-use", "frozen-use")
 
 
 def write(path, value):
@@ -85,12 +86,37 @@ def retain_pgo_compilation(out, build_dir, output, report):
         shutil.copy2(prestrip, evidence / "dnsmasq-prestrip")
     for package in output.rglob("dnsmasq-*.apk"):
         shutil.copy2(package, evidence / package.name)
-    fingerprints = prestrip.parent / ".fingerprint"
+    if "link_map" in report:
+        mapping = report["link_map"]
+        shutil.copy2(mapping["wrapper"], evidence / "map-cc")
+        source_map = Path(mapping["output_path"])
+        if source_map.is_file():
+            retained = evidence / "link.map"
+            shutil.copy2(source_map, retained)
+            mapping.update(path=str(retained), bytes=retained.stat().st_size, sha256=audit.sha(retained))
     rows = {}
-    for path in sorted(fingerprints.glob("*/*.json")):
-        if path.parent.name.startswith(("owrt-ubus-", "dnsmasq-rs-")):
-            rows[str(path.relative_to(fingerprints))] = json.loads(path.read_text())
+    scripts = {}
+    identities = {}
+    target = build_dir / "dnsmasq/target"
+    selected = ("owrt-ubus-", "dnsmasq-rs-", "dnsmasq-platform-", "rustix-")
+    # Host build-script identities can propagate into target crate metadata.
+    # Keep both sides, including stdout/cfg and executable hashes, on failures.
+    for release in (target / "release", prestrip.parent):
+        for path in sorted((release / ".fingerprint").glob("*/*")):
+            if path.is_file() and path.parent.name.startswith(selected):
+                name = str(path.relative_to(target))
+                identities[name] = {"bytes": path.stat().st_size, "sha256": audit.sha(path)}
+                if path.suffix == ".json":
+                    rows[name] = json.loads(path.read_text())
+        for path in sorted((release / "build").glob("*/*")):
+            if path.is_file() and path.parent.name.startswith(selected):
+                name = str(path.relative_to(target))
+                identities[name] = {"bytes": path.stat().st_size, "sha256": audit.sha(path)}
+                if path.name in ("output", "stderr", "root-output"):
+                    scripts[name] = path.read_text()
     write(evidence / "cargo-fingerprints.json", rows)
+    write(evidence / "cargo-build-scripts.json", scripts)
+    write(evidence / "cargo-identities.json", identities)
     files = {path.name: {"bytes": path.stat().st_size, "sha256": audit.sha(path)}
              for path in evidence.iterdir() if path.is_file()}
     report["pgo"]["compilation_evidence"] = files
@@ -100,13 +126,21 @@ def verify_pgo_build(out, report):
     invocation = out / "pgo-invocation.json"
     audit.require(invocation.is_file(), "SDK compilation did not invoke the PGO Cargo wrapper")
     receipt = json.loads(invocation.read_text())
-    audit.require(receipt["mode"] == "use" and receipt["profile_sha256"] == report["pgo"]["profile_sha256"],
-                  "PGO invocation does not match the frozen profile")
+    mode = report["pgo"].get("mode", "use")
+    audit.require(receipt["mode"] == mode, "PGO invocation mode differs from plan")
+    if mode == "generate":
+        audit.require(receipt["profile_output_dir"] == report["pgo"]["profile_output_dir"]
+                      and "-Cprofile-use" not in receipt["effective_rustflags"],
+                      "instrumentation invocation differs from plan")
+    else:
+        audit.require(receipt["profile_sha256"] == report["pgo"]["profile_sha256"]
+                      and receipt["profile_bytes"] == report["pgo"]["profile_bytes"],
+                      "PGO invocation does not match the frozen profile")
+        audit.require("-Cprofile-generate" not in receipt["effective_rustflags"], "instrumented build is not a release")
     log = (out / "compile.log").read_text(errors="replace")
     bad = re.findall(r"^.*(?:no profile data available|hash mismatch|control flow change|profile data may be out of date|malformed instrumentation profile|unsupported instrumentation profile).*$",
                      log, re.I | re.M)
     audit.require(not bad, "profile missing/mismatch/invalid diagnostics: " + repr(bad[:5]))
-    audit.require("-Cprofile-generate" not in receipt["effective_rustflags"], "instrumented build is not a release")
     report["pgo"].update(invocation=receipt, invocation_sha256=audit.sha(invocation),
                          profile_diagnostics=bad, compile_warning_lines=sum("warning:" in line for line in log.splitlines()))
 
@@ -122,9 +156,34 @@ def source_identity(spec, frozen_source=None):
     return files, digest
 
 
-def build(work, spec, report, *, frozen_source=None):
+def validate_pgo_stage(spec, stage, frozen_source):
+    audit.require(stage in PGO_STAGES, "unknown PGO build stage")
+    if stage != "frozen-use":
+        audit.require(frozen_source is not None and "pgo" in spec,
+                      "training and candidate creation require an explicit diagnostic source archive")
+        audit.require(not any(key in spec for key in ("reference_elf_sha256", "reference_elf_bytes")),
+                      "cannot bypass a frozen reference with a diagnostic stage")
+        if stage == "generate":
+            audit.require(not any(key in spec["pgo"] for key in ("profile_url", "profile_sha256", "profile_bytes")),
+                          "instrumentation must not consume a profile")
+
+
+def verify_pgo_elf(stage, elf, report):
+    if stage == "frozen-use":
+        audit.require(report["elf"]["matches_accepted_reference"],
+                      "fresh CI PGO ELF differs from frozen reference; preserve evidence and investigate, never substitute the reference")
+    if stage != "generate":
+        audit.require(b"__llvm_profile_runtime" not in elf.read_bytes(), "profile generation runtime in release ELF")
+    if stage != "frozen-use":
+        report["release_qualified"] = False
+        report["artifact_purpose"] = {"generate": "instrumented-training-only",
+                                      "candidate-use": "unqualified-candidate"}[stage]
+
+
+def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use"):
     # Target-only validation supplies a git archive whose complete input digest
     # must match its frozen spec. Release builds retain the clean-checkout gate.
+    validate_pgo_stage(spec, pgo_stage, frozen_source)
     root = REPO if frozen_source is None else frozen_source
     files, digest = source_identity(spec, frozen_source)
     out = work / "out/dnsmasq"
@@ -172,31 +231,54 @@ def build(work, spec, report, *, frozen_source=None):
                "--manifest-path", str(source / "components/dnsmasq/Cargo.toml")],
               out / "cargo-fetch.log", env=env)
     build_cargo = cargo
+    cc_override = []
     if "pgo" in spec:
         audit.require(env["RUSTUP_TOOLCHAIN"] == "1.98.1", "PGO requires pinned Rust 1.98.1")
-        profile, download = download_profile(spec["pgo"], out)
+        mode = "generate" if pgo_stage == "generate" else "use"
+        if mode == "generate":
+            profile_input = {"profile_output_dir": spec["pgo"]["profile_output_dir"]}
+            download = None
+        else:
+            profile, download = download_profile(spec["pgo"], out)
+            profile_input = {"profile": str(profile), "profile_sha256": spec["pgo"]["profile_sha256"],
+                             "profile_bytes": spec["pgo"]["profile_bytes"]}
         build_cargo = out / "pgo-cargo"
         shutil.copy2(REPO / "tools/ci_dnsmasq_pgo_cargo.py", build_cargo)
         build_cargo.chmod(0o755)
         cc = str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc")
+        map_environment = {}
+        if spec["pgo"].get("retain_link_map", False):
+            private = out / "private"
+            private.mkdir()
+            map_cc = private / "map-cc"
+            shutil.copy2(REPO / "tools/ci_dnsmasq_map_cc.py", map_cc)
+            map_cc.chmod(0o755)
+            map_environment = {"PERF_SDK_CC": cc, "PERF_LINK_MAP": str(private / "link.map")}
+            env.update(map_environment)
+            report["link_map"] = {"wrapper": str(map_cc), "wrapper_sha256": audit.sha(map_cc),
+                                  "sdk_cc": cc, "sdk_cc_sha256": audit.sha(Path(cc)),
+                                  "output_path": map_environment["PERF_LINK_MAP"]}
+            cc = str(map_cc)
+            cc_override = [f"TARGET_CC_NOCACHE={map_cc}"]
         flags = (f"-Cforce-unwind-tables=no --remap-path-prefix={build_dir}=/build "
                  f"--remap-path-prefix={cargo_home}=/cargo -Clink-arg=-fuse-ld=bfd "
                  "-Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now "
                  "-Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static -Dwarnings")
-        plan = {"cargo": str(cargo), "build_dir": str(build_dir), "profile": str(profile),
-                "profile_sha256": spec["pgo"]["profile_sha256"], "profile_bytes": spec["pgo"]["profile_bytes"],
+        plan = {"mode": mode, "cargo": str(cargo), "build_dir": str(build_dir), **profile_input,
                 "receipt": str(out / "pgo-invocation.json"),
                 "static_pie_linker_sha256": audit.sha(source / "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"),
                 "recipe_environment": {"RUSTUP_TOOLCHAIN": "1.98.1", "CARGO_HOME": str(cargo_home),
                     "RUSTUP_HOME": str(rustup_home), "CARGO_BUILD_TARGET": "aarch64-unknown-linux-musl",
                     "CARGO_PROFILE_RELEASE_PANIC": "abort", "RUSTFLAGS": flags,
-                    "DNSMASQ_STATIC_PIE_CC": cc}}
+                    "DNSMASQ_STATIC_PIE_CC": cc, **map_environment}}
+        if map_environment:
+            plan["map_compiler"] = dict(report["link_map"])
         plan_path = out / "pgo-plan.json"
         write(plan_path, plan)
         env["DNSMASQ_PGO_BUILD_PLAN"] = str(plan_path)
         report["pgo"] = {**spec["pgo"], "download_command": download, "plan_sha256": audit.sha(plan_path),
-                         "wrapper_sha256": audit.sha(build_cargo), "mode": "use", "training_repeated": False}
-    variables = ["V=s", "-j1", *(["CONFIG_AUTOREMOVE="] if "pgo" in spec else []),
+                         "wrapper_sha256": audit.sha(build_cargo), "mode": mode, "training_repeated": False}
+    variables = ["V=s", "-j1", *cc_override, *(["CONFIG_AUTOREMOVE="] if "pgo" in spec else []),
                  f"V1_PACKAGE_RELEASE={spec['package_release']}",
                  f"OWRT_COMPONENTS_SOURCE={source / 'components'}", f"OWRT_DNSMASQ_BUILD_DIR={build_dir}",
                  f"OWRT_DNSMASQ_OUTPUT_DIR={output}", f"V1_CARGO={build_cargo}",
@@ -221,6 +303,8 @@ def build(work, spec, report, *, frozen_source=None):
                                           f"SDK prepare copied stale source: {name}")
     if "pgo" in spec:
         verify_pgo_build(out, report)
+        if spec["pgo"].get("retain_link_map", False):
+            audit.require(report["link_map"].get("bytes", 0) > 0, "same-build linker map was not produced")
     packages = list(output.rglob("dnsmasq-*.apk"))
     package_id = audit.package_id(spec["package_release"])
     audit.require(len(packages) == 1 and packages[0].name == f"dnsmasq-{package_id}.apk",
@@ -242,14 +326,16 @@ def build(work, spec, report, *, frozen_source=None):
     report["apk_metadata"] = audit.audit_metadata(metadata, spec["package_release"])
     audit.require(audit.inputs(root) == files, "dnsmasq source changed while building")
     report["elf"] = {"sha256": audit.sha(elf), "size": elf.stat().st_size,
-                     "reference_sha256": spec["reference_elf_sha256"],
-                     "matches_accepted_reference": audit.sha(elf) == spec["reference_elf_sha256"]}
+                     "reference_sha256": spec.get("reference_elf_sha256"),
+                     "matches_accepted_reference": audit.sha(elf) == spec.get("reference_elf_sha256")}
     if "pgo" in spec:
-        audit.require(report["elf"]["matches_accepted_reference"],
-                      "fresh CI PGO ELF differs from frozen reference; preserve evidence and investigate, never substitute the reference")
-        audit.require(b"__llvm_profile_runtime" not in elf.read_bytes(), "profile generation runtime in release ELF")
+        verify_pgo_elf(pgo_stage, elf, report)
     report["artifact"] = {"name": artifact.name, "sha256": audit.sha(artifact), "size": artifact.stat().st_size}
     report["budget"] = {key: spec[key] for key in ("elf_max_bytes", "apk_max_bytes")}
+    if pgo_stage == "generate":
+        report["final_release_budget"] = report["budget"]
+        report["budget"] = spec["instrumentation_budget"]
+        report["budget_scope"] = "instrumented-training-only"
     audit.audit_sizes(report)
     report["binary_sha256"] = {"dnsmasq-rs": audit.sha(elf)}
     report["source_date_epoch"] = epoch
