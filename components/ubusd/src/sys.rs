@@ -3,8 +3,7 @@
 use std::io::{self, IoSlice};
 use std::os::fd::{AsFd, OwnedFd, RawFd};
 
-#[derive(Default, Clone, Copy)]
-pub struct Ucred { pub pid: i32, pub uid: u32, pub gid: u32 }
+pub use owrt_platform::ubusd::{Ucred, peer_cred};
 
 pub use owrt_ubus::sys::{ignore_signal, set_signal_handler, POLLIN, POLLOUT, POLLERR, POLLHUP, SIGPIPE, SIGTERM, SIGINT};
 pub use owrt_platform::unix::read_fd;
@@ -87,11 +86,6 @@ pub fn accept(fd: impl AsFd) -> io::Result<Option<OwnedFd>> {
         Err(rustix::io::Errno::AGAIN) => Ok(None),
         Err(error) => Err(error.into()),
     }
-}
-
-pub fn peer_cred(fd: impl AsFd) -> io::Result<Ucred> {
-    let cred = rustix::net::sockopt::socket_peercred(fd)?;
-    Ok(Ucred { pid: cred.pid.as_raw_nonzero().get(), uid: cred.uid.as_raw(), gid: cred.gid.as_raw() })
 }
 
 pub use owrt_platform::identity::{user_name, group_name};
