@@ -4,7 +4,7 @@
 use super::HostSource;
 use crate::config::dns::DnsConfig;
 use crate::hosts::{Hosts, HostsParser, ReadStats};
-use owrt_ubus::sys::PollFd;
+use dnsmasq_platform::poll::PollFd;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read};
 use std::net::IpAddr;
@@ -160,7 +160,7 @@ impl HostsRead {
                 events: 1,
                 revents: 0,
             }];
-            if owrt_ubus::sys::poll_fds(&mut fds, 0)? == 0 {
+            if dnsmasq_platform::poll::poll_fds(&mut fds, 0)? == 0 {
                 return Ok(false);
             }
         }

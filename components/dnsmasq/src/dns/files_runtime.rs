@@ -7,7 +7,7 @@ use crate::config::dns::lookup::EndpointLookup;
 use crate::config::dns::{RuleTarget, ServerHost};
 use crate::config::{dns::DnsConfig, Error};
 use crate::dns::filewatch::{FileWatch, WatchError};
-use owrt_ubus::sys::PollFd;
+use dnsmasq_platform::poll::PollFd;
 use std::collections::VecDeque;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read};
@@ -160,7 +160,7 @@ impl ReadJob {
                 events: 1,
                 revents: 0,
             }];
-            if owrt_ubus::sys::poll_fds(&mut fds, 0)? == 0 {
+            if dnsmasq_platform::poll::poll_fds(&mut fds, 0)? == 0 {
                 return Ok(false);
             }
         }

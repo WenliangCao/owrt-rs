@@ -7,7 +7,7 @@ use crate::config::dhcp::{
     HostFileErrorKind, HostFiles,
 };
 use crate::config::lex_argument_line;
-use owrt_ubus::sys::PollFd;
+use dnsmasq_platform::poll::PollFd;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read};
 use std::os::fd::AsRawFd;
@@ -170,7 +170,7 @@ impl ReadJob {
                 events: 1,
                 revents: 0,
             }];
-            match owrt_ubus::sys::poll_fds(&mut fds, 0) {
+            match dnsmasq_platform::poll::poll_fds(&mut fds, 0) {
                 Ok(0) => return false,
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => return false,
                 Err(_) => {
@@ -810,14 +810,10 @@ mod tests {
 
     #[test]
     fn fifo_waits_without_owner_work_and_parses_partial_line_at_eof() {
-        extern "C" {
-            fn mkfifo(path: *const std::ffi::c_char, mode: u32) -> i32;
-        }
         let directory = Directory::new();
         let path = directory.path("fifo");
-        let c_path = std::ffi::CString::new(path.as_os_str().as_bytes()).unwrap();
-        // SAFETY: live C string, creating a private isolated test FIFO.
-        assert_eq!(unsafe { mkfifo(c_path.as_ptr(), 0o600) }, 0);
+        rustix::fs::mkfifoat(rustix::fs::CWD, &path,
+                            rustix::fs::Mode::from_raw_mode(0o600)).unwrap();
         let mut owner = DhcpFiles::new(&[], &[directory.bytes("fifo")], &[]).unwrap();
         owner.begin_reload(&[]);
         for _ in 0..100 {

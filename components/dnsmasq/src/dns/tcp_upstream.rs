@@ -8,7 +8,7 @@ use super::forward::{GroupId, Question, ServerGroup, ServerId};
 use super::service::encode_tcp_frame;
 use super::upstream::source_sockets::SourceSpec;
 use super::wire::{Header, WireError};
-use owrt_ubus::sys::{poll_fds, PollFd};
+use dnsmasq_platform::poll::{poll_fds, PollFd};
 use std::collections::HashMap;
 use std::net::{SocketAddr, TcpStream};
 use std::time::{Duration, Instant};

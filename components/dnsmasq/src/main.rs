@@ -6,6 +6,7 @@
 //! dropping configured behavior.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
+#![forbid(unsafe_code)]
 
 #[cfg(all(
     target_os = "linux",
@@ -13,7 +14,7 @@
     target_pointer_width = "64",
     target_feature = "crt-static"
 ))]
-mod startup_relro;
+use dnsmasq_platform::startup_relro;
 
 use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
@@ -70,61 +71,23 @@ use std::path::Path;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 #[cfg(not(target_os = "linux"))]
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
-static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
-static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
-static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
-static CACHE_DUMP_REQUESTED: AtomicUsize = AtomicUsize::new(0);
-static ALARM_REQUESTED: AtomicUsize = AtomicUsize::new(0);
+use dnsmasq_platform::signals::{
+    STOP_REQUESTED, RELOAD_REQUESTED, DEBUG_MODE, LOG_REOPEN_REQUESTED,
+    CACHE_DUMP_REQUESTED, ALARM_REQUESTED,
+};
 #[cfg(target_os = "linux")]
-static SIGNAL_WAKE_WRITE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
-// SIGHUP is 1 on the supported Linux and Darwin hosts.
-const SIGHUP: i32 = 1;
-#[cfg(target_os = "linux")]
-const SIGUSR1: i32 = 10;
-#[cfg(target_os = "linux")]
-const SIGUSR2: i32 = 12;
-#[cfg(not(target_os = "linux"))]
-const SIGUSR1: i32 = 30;
-#[cfg(not(target_os = "linux"))]
-const SIGUSR2: i32 = 31;
-const SIGALRM: i32 = 14;
+use dnsmasq_platform::signals::SIGNAL_WAKE_WRITE;
+#[cfg(test)]
+use dnsmasq_platform::signals::request_stop;
 const UDP_PACKETS_PER_TURN: usize = 16;
 const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
 const UBUS_RETRY_INTERVAL: Duration = Duration::from_secs(1);
-
-#[cfg(target_os = "linux")]
-unsafe extern "C" {
-    fn read(fd: i32, buffer: *mut u8, length: usize) -> isize;
-    fn write(fd: i32, buffer: *const u8, length: usize) -> isize;
-    fn __errno_location() -> *mut i32;
-}
-
-#[cfg(target_os = "linux")]
-fn wake_signal_waiter() {
-    let fd = SIGNAL_WAKE_WRITE.load(Ordering::Relaxed);
-    if fd >= 0 {
-        let byte = [1u8; 1];
-        // SAFETY: the handler writes one byte from a live stack buffer to the
-        // process-owned nonblocking pipe; write(2) is async-signal-safe. Linux
-        // errno is thread-local; preserve the interrupted caller's value.
-        unsafe {
-            let errno = __errno_location();
-            let saved_errno = *errno;
-            let _ = write(fd, byte.as_ptr(), 1);
-            *errno = saved_errno;
-        }
-    }
-}
-
-#[cfg(not(target_os = "linux"))]
-fn wake_signal_waiter() {}
 
 fn now_seconds() -> i64 {
     SystemTime::now()
@@ -150,53 +113,6 @@ fn owner_poll_timeout(deadline: Option<Instant>, now: Instant, runnable: bool) -
         .div_ceil(1_000_000).min(i32::MAX as u128) as i32
 }
 
-extern "C" fn request_stop(_signal: i32) {
-    STOP_REQUESTED.store(true, Ordering::Release);
-    wake_signal_waiter();
-}
-
-extern "C" fn request_reload(_signal: i32) {
-    // Standard signals coalesce in the kernel. Each delivered handler maps
-    // to a distinct C EVENT_RELOAD and must survive an active file read.
-    let _ = RELOAD_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
-        Some(count.saturating_add(1))
-    });
-    wake_signal_waiter();
-}
-
-extern "C" fn request_log_reopen(_signal: i32) {
-    let _ = LOG_REOPEN_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
-        Some(count.saturating_add(1))
-    });
-    wake_signal_waiter();
-}
-
-extern "C" fn request_cache_dump(_signal: i32) {
-    let _ = CACHE_DUMP_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
-        Some(count.saturating_add(1))
-    });
-    wake_signal_waiter();
-}
-
-extern "C" fn request_alarm(_signal: i32) {
-    let _ = ALARM_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
-        Some(count.saturating_add(1))
-    });
-    wake_signal_waiter();
-}
-
-extern "C" fn request_interrupt(_signal: i32) {
-    if DEBUG_MODE.load(Ordering::Relaxed) {
-        extern "C" {
-            fn _exit(status: i32) -> !;
-        }
-        // SAFETY: _exit is async-signal-safe. C exits debug mode with EC_MISC;
-        // PID cleanup is specific to SIGTERM and must not run on this path.
-        unsafe { _exit(5) }
-    }
-    wake_signal_waiter();
-    // The nodhcpv6/no-DNSSEC C variant has no EVENT_TIME work in normal mode.
-}
 
 fn main() {
     #[cfg(all(
@@ -211,13 +127,13 @@ fn main() {
     }
     #[cfg(target_os = "linux")]
     {
-        unsafe extern "C" {
-            fn umask(mask: u32) -> u32;
+        if let Some(code) = dnsmasq_rs::helper::dispatch_internal_helper() {
+            std::process::exit(code);
         }
-        // SAFETY: umask accepts a scalar mode and runs before any service starts.
-        unsafe {
-            umask(0o022);
+        if let Some(code) = dnsmasq_rs::config::dns::lookup::dispatch_internal_lookup() {
+            std::process::exit(code);
         }
+        rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o022));
     }
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
     if let Err(error) = run(&args) {
@@ -908,7 +824,7 @@ fn run_inner(
                             .min(i32::MAX as u128) as i32
                     })
                 };
-                owrt_ubus::sys::poll_fds(&mut fds, wait)?;
+                dnsmasq_platform::poll::poll_fds(&mut fds, wait)?;
             };
             if let Some(error) = result.error {
                 return Err(Box::new(error));
@@ -966,18 +882,12 @@ fn run_inner(
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
     #[cfg(target_os = "linux")]
-    let signal_wake = owrt_ubus::sys::nonblocking_pipe().ok();
+    let signal_wake = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).ok();
     #[cfg(target_os = "linux")]
     if let Some((_, write_end)) = &signal_wake {
         SIGNAL_WAKE_WRITE.store(write_end.as_raw_fd(), Ordering::Release);
     }
-    DEBUG_MODE.store(runtime.process.debug, Ordering::Relaxed);
-    owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_interrupt);
-    owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
-    owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
-    owrt_ubus::sys::set_signal_handler(SIGUSR2, request_log_reopen);
-    owrt_ubus::sys::set_signal_handler(SIGUSR1, request_cache_dump);
-    owrt_ubus::sys::set_signal_handler(SIGALRM, request_alarm);
+    dnsmasq_platform::signals::install_handlers(runtime.process.debug);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` as scratch space.
     // TCP uses this frame limit; UDP admission enforces edns_pktsz itself.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
@@ -2005,7 +1915,7 @@ fn run_inner(
         if let Some(helper) = &poll.helper {
             for (fd, events) in helper.poll_fds() {
                 if fd >= 0 {
-                    fds.push(owrt_ubus::sys::PollFd {
+                    fds.push(dnsmasq_platform::poll::PollFd {
                         fd,
                         events,
                         revents: 0,
@@ -2016,7 +1926,7 @@ fn run_inner(
         if let Some(files) = &poll.dns_files {
             files.append_poll_fds(&mut fds);
         }
-        owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+        dnsmasq_platform::poll::poll_fds(&mut fds, 2)?;
     }
     #[cfg(target_os = "linux")]
     if let Some(logger) = &mut poll.logger {
@@ -2031,13 +1941,13 @@ fn run_inner(
         while !logger.finish() {
             let mut fds: Vec<_> = logger
                 .poll_fds()
-                .map(|fd| owrt_ubus::sys::PollFd {
+                .map(|fd| dnsmasq_platform::poll::PollFd {
                     fd,
-                    events: owrt_ubus::sys::POLLOUT,
+                    events: dnsmasq_platform::poll::POLLOUT,
                     revents: 0,
                 })
                 .collect();
-            owrt_ubus::sys::poll_fds(&mut fds, 2)?;
+            dnsmasq_platform::poll::poll_fds(&mut fds, 2)?;
         }
     }
     #[cfg(target_os = "linux")]
@@ -2290,14 +2200,14 @@ struct SinglePoll {
     #[cfg(target_os = "linux")]
     signal_wake_write: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
-    poll_fds: Vec<owrt_ubus::sys::PollFd>,
+    poll_fds: Vec<dnsmasq_platform::poll::PollFd>,
     // One wait may authorize one UDP-only turn. Never infer idle work from
     // a ready descriptor alone, or reuse the witness after another step.
     #[cfg(any(target_os = "linux", test))]
     udp_only_wake: Option<(SocketToken, Option<Instant>)>,
     ubus_ready: bool,
     #[cfg(target_os = "linux")]
-    ready_fds: Vec<owrt_ubus::sys::PollFd>,
+    ready_fds: Vec<dnsmasq_platform::poll::PollFd>,
     #[cfg(target_os = "linux")]
     upstream_ready: bool,
     #[cfg(target_os = "linux")]
@@ -2731,7 +2641,7 @@ struct TcpDnsWork {
 // Error/hangup interests apply to either operation, but POLLOUT alone
 // must never authorize a read after the client completes an answer.
 fn poll_events_match(events: i16, wanted: i16) -> bool {
-    events & (wanted | owrt_ubus::sys::POLLERR | owrt_ubus::sys::POLLHUP | 0x20) != 0
+    events & (wanted | dnsmasq_platform::poll::POLLERR | dnsmasq_platform::poll::POLLHUP | 0x20) != 0
 }
 
 enum TcpClientPhase {
@@ -3585,7 +3495,7 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn step_route_events(&mut self) {
-        let ready = self.route_watch.as_ref().is_some_and(|watch| self.fd_ready(watch.raw_fd(), owrt_ubus::sys::POLLIN));
+        let ready = self.route_watch.as_ref().is_some_and(|watch| self.fd_ready(watch.raw_fd(), dnsmasq_platform::poll::POLLIN));
         if !ready && self.route_retry_at.is_none() { return; }
         let now = Instant::now();
         if self.route_retry_at.is_some_and(|due| due > now) { return; }
@@ -3663,7 +3573,7 @@ impl SinglePoll {
             return;
         }
         let watch_ready = self.dns_files.as_ref().and_then(DnsFiles::watch_fd)
-            .is_some_and(|fd| self.fd_ready(fd, owrt_ubus::sys::POLLIN));
+            .is_some_and(|fd| self.fd_ready(fd, dnsmasq_platform::poll::POLLIN));
         let Some(files) = &mut self.dns_files else {
             return;
         };
@@ -4095,7 +4005,7 @@ impl SinglePoll {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             let mut provider = provider.borrow_mut();
             let watch_ready = provider.file_watch_fd()
-                .is_some_and(|fd| self.fd_ready(fd, owrt_ubus::sys::POLLIN));
+                .is_some_and(|fd| self.fd_ready(fd, dnsmasq_platform::poll::POLLIN));
             if let Some(report) = provider.step_files_with_watch_readiness(now_seconds(), watch_ready) {
                 report_dhcp_maintenance(&report, self.logger.as_mut());
             }
@@ -4103,16 +4013,16 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
-    fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>, tcp_logs: bool) {
+    fn append_file_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>, tcp_logs: bool) {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(collector) = &self.interface_collector {
             collector.append_poll_fds(fds);
         }
         if let Some(logger) = &self.early_logger {
             for fd in logger.poll_fds() {
-                fds.push(owrt_ubus::sys::PollFd {
+                fds.push(dnsmasq_platform::poll::PollFd {
                     fd,
-                    events: owrt_ubus::sys::POLLOUT,
+                    events: dnsmasq_platform::poll::POLLOUT,
                     revents: 0,
                 });
             }
@@ -4125,25 +4035,25 @@ impl SinglePoll {
                 .filter_map(|client| client.log_context.as_ref())
             {
                 if let Some(fd) = logger.tcp_poll_fd(context) {
-                    fds.push(owrt_ubus::sys::PollFd {
+                    fds.push(dnsmasq_platform::poll::PollFd {
                         fd,
-                        events: owrt_ubus::sys::POLLOUT,
+                        events: dnsmasq_platform::poll::POLLOUT,
                         revents: 0,
                     });
                 }
             }
             for fd in logger.poll_fds() {
-                fds.push(owrt_ubus::sys::PollFd {
+                fds.push(dnsmasq_platform::poll::PollFd {
                     fd,
-                    events: owrt_ubus::sys::POLLOUT,
+                    events: dnsmasq_platform::poll::POLLOUT,
                     revents: 0,
                 });
             }
         }
         if let Some(fd) = self.dump.poll_fd() {
-            fds.push(owrt_ubus::sys::PollFd {
+            fds.push(dnsmasq_platform::poll::PollFd {
                 fd,
-                events: owrt_ubus::sys::POLLOUT,
+                events: dnsmasq_platform::poll::POLLOUT,
                 revents: 0,
             });
         }
@@ -4167,7 +4077,7 @@ impl SinglePoll {
         { self.udp_only_wake = None; }
         #[cfg(target_os = "linux")]
         {
-            use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+            use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
             use std::os::fd::AsRawFd;
             // Keep the descriptor backing allocation across turns.  The set
             // is still rebuilt when topology or readiness changes, but the
@@ -4417,7 +4327,7 @@ impl SinglePoll {
             let started = Instant::now();
             let timeout = owner_poll_timeout(deadline, started, runnable);
             debug_assert!(!runnable || timeout == 0);
-            let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
+            let poll_result = dnsmasq_platform::poll::poll_fds(&mut fds, timeout);
             let ready = match poll_result {
                 Ok(ready) => ready,
                 Err(error) => {
@@ -4500,11 +4410,9 @@ impl SinglePoll {
         };
         let mut buffer = [0u8; 64];
         loop {
-            // SAFETY: the fd is an owned nonblocking pipe read end and the
-            // stack buffer bounds the kernel write.
-            let read = unsafe { read(signal.as_raw_fd(), buffer.as_mut_ptr(), buffer.len()) };
-            if read <= 0 || read < buffer.len() as isize {
-                break;
+            match rustix::io::read(signal, &mut buffer[..]) {
+                Ok(length) if length == buffer.len() => (),
+                _ => break,
             }
         }
     }
@@ -5063,7 +4971,7 @@ impl SinglePoll {
             return false;
         };
         #[cfg(target_os = "linux")]
-        if !self.fd_ready(udp.as_raw_fd(), owrt_ubus::sys::POLLIN) {
+        if !self.fd_ready(udp.as_raw_fd(), dnsmasq_platform::poll::POLLIN) {
             return false;
         }
         let token = self.listeners[index].token;
@@ -5697,7 +5605,7 @@ impl SinglePoll {
             return;
         };
         #[cfg(target_os = "linux")]
-        if !self.fd_ready(tcp.as_raw_fd(), owrt_ubus::sys::POLLIN) {
+        if !self.fd_ready(tcp.as_raw_fd(), dnsmasq_platform::poll::POLLIN) {
             return;
         }
         let Ok((stream, peer)) = tcp.accept() else {
@@ -5907,13 +5815,13 @@ impl SinglePoll {
         }
         match &work.phase {
             TcpClientPhase::Reading => work.input_offset < work.input.len()
-                || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN),
+                || poll_events_match(client.ready_events, dnsmasq_platform::poll::POLLIN),
             TcpClientPhase::WaitingMac { .. } =>
                 work.mac_ready || now >= work.mac_deadline || neighbor_ready,
             TcpClientPhase::Forwarding { wait, .. } => now >= wait.deadline
                 || poll_events_match(client.ready_events, wait.events),
             TcpClientPhase::Writing { .. } =>
-                poll_events_match(client.ready_events, owrt_ubus::sys::POLLOUT),
+                poll_events_match(client.ready_events, dnsmasq_platform::poll::POLLOUT),
         }
     }
 
@@ -5951,8 +5859,8 @@ impl SinglePoll {
                 Some(TcpDnsWork { phase: TcpClientPhase::Forwarding { wait, .. }, .. }) =>
                     (false, false, poll_events_match(self.clients[index].ready_events, wait.events)),
                 _ => (
-                    poll_events_match(self.clients[index].ready_events, owrt_ubus::sys::POLLIN),
-                    poll_events_match(self.clients[index].ready_events, owrt_ubus::sys::POLLOUT),
+                    poll_events_match(self.clients[index].ready_events, dnsmasq_platform::poll::POLLIN),
+                    poll_events_match(self.clients[index].ready_events, dnsmasq_platform::poll::POLLOUT),
                     false,
                 ),
             };
@@ -6032,7 +5940,7 @@ impl SinglePoll {
             {
                 let log_ready = logger.tcp_poll_fd(context).is_some_and(|fd| {
                     self.ready_fds.iter().any(|ready| ready.fd == fd
-                        && poll_events_match(ready.revents, owrt_ubus::sys::POLLOUT))
+                        && poll_events_match(ready.revents, dnsmasq_platform::poll::POLLOUT))
                 }) || logger.tcp_retry_deadline(context).is_some_and(|due| due <= Instant::now());
                 // Preserve the first forced finish after network closure.
                 // Later turns retry only actual writable/timer work, while an
@@ -6068,7 +5976,7 @@ impl SinglePoll {
         timeout: Duration,
         leases: dnsmasq_rs::dhcp::lease::LeaseCounters,
     ) -> io::Result<bool> {
-        use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+        use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
         use std::os::fd::AsRawFd;
         // The provider owns its lease transaction. The snapshot is taken at
         // the actual probe call, after packet/BOOTP pruning, not before it.
@@ -6228,7 +6136,7 @@ impl SinglePoll {
             .as_nanos()
             .div_ceil(1_000_000)
             .min(i32::MAX as u128) as i32;
-        let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
+        let ready = dnsmasq_platform::poll::poll_fds(&mut fds, millis)?;
         self.ready_fds.clear();
         self.ready_fds.extend(fds.iter().filter(|fd| fd.revents != 0).copied());
         for client in &mut self.clients {
@@ -6739,7 +6647,7 @@ impl SinglePoll {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn observe_arp_activity(&mut self) {
-        use owrt_ubus::sys::{PollFd, POLLIN};
+        use dnsmasq_platform::poll::{PollFd, POLLIN};
         use std::os::fd::AsRawFd;
         if !self.script_arp {
             return;
@@ -6821,7 +6729,7 @@ impl SinglePoll {
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
         }
-        self.arp_awake |= owrt_ubus::sys::poll_fds(&mut fds, 0).is_ok_and(|ready| ready != 0);
+        self.arp_awake |= dnsmasq_platform::poll::poll_fds(&mut fds, 0).is_ok_and(|ready| ready != 0);
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -7498,8 +7406,8 @@ mod tests {
         owner.dump = dump.clone();
         let mut fds = Vec::new();
         owner.append_file_fds(&mut fds, true);
-        assert!(fds.iter().any(|row| row.fd == fd && row.events == owrt_ubus::sys::POLLOUT));
-        assert_eq!(owrt_ubus::sys::poll_fds(&mut fds, 0).unwrap(), 0);
+        assert!(fds.iter().any(|row| row.fd == fd && row.events == dnsmasq_platform::poll::POLLOUT));
+        assert_eq!(dnsmasq_platform::poll::poll_fds(&mut fds, 0).unwrap(), 0);
         let mut bytes = [0; 8192];
         loop {
             match reader.read(&mut bytes) {
@@ -7552,7 +7460,7 @@ mod tests {
     #[test]
     fn signal_wake_drains_a_full_buffer_without_another_write() {
         let mut owner = test_owner(DnsConfig::default(), None);
-        let (reader, writer) = owrt_ubus::sys::nonblocking_pipe().unwrap();
+        let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).unwrap();
         let mut writer = std::fs::File::from(writer);
         writer.write_all(&[1; 64]).unwrap();
         owner.signal_wake_read = Some(reader);
@@ -7567,7 +7475,7 @@ mod tests {
     #[test]
     fn signal_wake_preserves_interrupted_errno_with_or_without_backpressure() {
         for (has_pipe, saturated) in [(false, false), (true, false), (true, true)] {
-            let (reader, writer) = owrt_ubus::sys::nonblocking_pipe().unwrap();
+            let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).unwrap();
             let mut writer = std::fs::File::from(writer);
             if saturated {
                 let mut filled = 0;
@@ -7581,16 +7489,7 @@ mod tests {
             }
             let previous_fd = SIGNAL_WAKE_WRITE.swap(if has_pipe { writer.as_raw_fd() } else { -1 }, Ordering::AcqRel);
             let previous_stop = STOP_REQUESTED.swap(false, Ordering::AcqRel);
-            // SAFETY: Linux returns the current thread's live errno storage.
-            let observed_errno = unsafe {
-                let errno = __errno_location();
-                let saved = *errno;
-                *errno = 5; // EIO must survive a successful write or EAGAIN.
-                request_stop(15);
-                let observed = *errno;
-                *errno = saved;
-                observed
-            };
+            let (_, observed_errno) = dnsmasq_platform::signals::with_errno(5, || request_stop(15));
             let delivered = STOP_REQUESTED.swap(previous_stop, Ordering::AcqRel);
             SIGNAL_WAKE_WRITE.store(previous_fd, Ordering::Release);
             assert!(delivered);
@@ -7805,7 +7704,7 @@ mod tests {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
     fn accepted_mac_wait_does_not_busy_poll_queued_dns_before_snapshot_ready() {
-        use owrt_ubus::sys::POLLIN;
+        use dnsmasq_platform::poll::POLLIN;
         use std::os::fd::AsRawFd;
         let mut owner = test_owner(DnsConfig::default(), None);
         let mut peer = add_test_tcp(&mut owner);
@@ -8606,7 +8505,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn duplicate_fd_masks_merge_without_authorizing_read_from_write() {
-        use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+        use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
         let mut owner = test_owner(DnsConfig::default(), None);
         owner.ready_fds = vec![
             PollFd { fd: 42, events: POLLOUT, revents: POLLOUT },
@@ -8797,7 +8696,7 @@ mod tests {
         let drive = |owner: &mut SinglePoll| {
             #[cfg(target_os = "linux")]
             for client in &mut owner.clients {
-                client.ready_events = owrt_ubus::sys::POLLIN | owrt_ubus::sys::POLLOUT;
+                client.ready_events = dnsmasq_platform::poll::POLLIN | dnsmasq_platform::poll::POLLOUT;
             }
             owner.step_tcp_clients();
         };

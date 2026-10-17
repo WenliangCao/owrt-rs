@@ -92,8 +92,8 @@ impl DirectoryWatch {
         self.fd.as_raw_fd()
     }
 
-    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        fds.push(owrt_ubus::sys::PollFd {
+    pub fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
+        fds.push(dnsmasq_platform::poll::PollFd {
             fd: self.fd.as_raw_fd(),
             events: 1,
             revents: 0,

@@ -434,26 +434,26 @@ impl SocketListener {
         if self.pending_reply.is_some() {
             return Ok(true);
         }
-        let mut fds = vec![owrt_ubus::sys::PollFd {
+        let mut fds = vec![dnsmasq_platform::poll::PollFd {
             fd: self.socket.as_raw_fd(),
             events: 1,
             revents: 0,
         }];
         if let Some(socket) = &self.pxe_socket {
-            fds.push(owrt_ubus::sys::PollFd {
+            fds.push(dnsmasq_platform::poll::PollFd {
                 fd: socket.as_raw_fd(),
                 events: 1,
                 revents: 0,
             });
         }
-        Ok(owrt_ubus::sys::poll_fds(&mut fds, 0)? != 0)
+        Ok(dnsmasq_platform::poll::poll_fds(&mut fds, 0)? != 0)
     }
 
     /// Add the DHCP and optional PXE sockets to the main owner's wait set.
     /// The sockets are nonblocking; packet processing remains bounded by the
     /// caller's normal DHCP turn and never runs from the poll itself.
-    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+    pub fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
+        use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
         // A queued reply has no unread request left to wake the owner. Wait
         // for the socket which owns that reply to become writable instead.
         let pending_listener = self.pending_reply.as_ref().map(|reply| reply.listener);
@@ -1062,7 +1062,7 @@ mod tests {
     #[test]
     fn deferred_reply_wakes_on_write_without_another_dhcp_request() {
         use super::super::runtime::{Destination, DestinationKind};
-        use owrt_ubus::sys::{poll_fds, POLLOUT};
+        use dnsmasq_platform::poll::{poll_fds, POLLOUT};
         use std::net::UdpSocket;
         let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.set_read_timeout(Some(std::time::Duration::from_secs(1))).unwrap();

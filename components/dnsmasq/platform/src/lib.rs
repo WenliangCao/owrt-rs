@@ -1,27 +1,33 @@
-//! Shared socket ABI declarations, temporarily exposed to the existing unsafe
-//! callers. The next migration replaces those callers with safe platform APIs.
-//! OpenWrt 25.12.5 AArch64 musl: sys/socket.h, sys/uio.h and bits/alltypes.h.
+//! Small, private implementation boundary for Unix contracts not represented
+//! by rustix. Public operations are safe; raw ABI declarations stay private.
+//! Reference: OpenWrt 25.12.5 AArch64 musl SDK headers and exact runtime behavior.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
+#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(clippy::undocumented_unsafe_blocks)]
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub mod datagram;
+pub mod interfaces;
+pub mod libc_format;
+pub mod limits;
+pub mod poll;
+#[cfg(target_os = "linux")]
+pub mod process;
+pub mod resolver;
+pub mod signals;
+#[cfg(target_os = "linux")]
+pub mod socket_options;
+
+#[cfg(target_os = "linux")]
 use std::ffi::{c_int, c_uint, c_void};
 
-pub type SockLen = c_uint;
-
-#[repr(C)]
-pub struct SockAddr {
-    #[cfg(target_os = "macos")]
-    pub len: u8,
-    #[cfg(target_os = "macos")]
-    pub family: u8,
-    #[cfg(not(target_os = "macos"))]
-    pub family: u16,
-    pub data: [u8; 14],
-}
+#[cfg(target_os = "linux")]
+type SockLen = c_uint;
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 #[repr(C)]
-pub struct IoVec {
+struct IoVec {
     pub base: *mut u8,
     pub len: usize,
 }
@@ -33,7 +39,7 @@ pub struct IoVec {
 /// i32::MAX to the musl boundary.
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 #[repr(C)]
-pub struct MsgHdr {
+struct MsgHdr {
     pub name: *mut u8,
     pub namelen: SockLen,
     pub iov: *mut IoVec,
@@ -43,48 +49,26 @@ pub struct MsgHdr {
     pub flags: c_int,
 }
 
+#[cfg(target_os = "linux")]
 unsafe extern "C" {
-    pub fn bind(fd: c_int, address: *const SockAddr, length: SockLen) -> c_int;
-    pub fn connect(fd: c_int, address: *const SockAddr, length: SockLen) -> c_int;
-    #[cfg(target_os = "linux")]
-    pub fn getsockname(fd: c_int, address: *mut SockAddr, length: *mut SockLen) -> c_int;
-    pub fn setsockopt(
+    fn setsockopt(
         fd: c_int,
         level: c_int,
         option: c_int,
         value: *const c_void,
         length: SockLen,
     ) -> c_int;
-    #[cfg(target_os = "linux")]
-    pub fn getsockopt(
+    fn getsockopt(
         fd: c_int,
         level: c_int,
         option: c_int,
         value: *mut c_void,
         length: *mut SockLen,
     ) -> c_int;
-    #[cfg(target_os = "linux")]
-    pub fn sendto(
-        fd: c_int,
-        bytes: *const c_void,
-        length: usize,
-        flags: c_int,
-        address: *const SockAddr,
-        address_length: SockLen,
-    ) -> isize;
-    #[cfg(target_os = "linux")]
-    pub fn recvfrom(
-        fd: c_int,
-        bytes: *mut c_void,
-        length: usize,
-        flags: c_int,
-        address: *mut SockAddr,
-        address_length: *mut SockLen,
-    ) -> isize;
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    pub fn sendmsg(fd: c_int, message: *const MsgHdr, flags: c_int) -> isize;
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    pub fn recvmsg(fd: c_int, message: *mut MsgHdr, flags: c_int) -> isize;
+    #[cfg(target_pointer_width = "64")]
+    fn sendmsg(fd: c_int, message: *const MsgHdr, flags: c_int) -> isize;
+    #[cfg(target_pointer_width = "64")]
+    fn recvmsg(fd: c_int, message: *mut MsgHdr, flags: c_int) -> isize;
 }
 
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
@@ -112,3 +96,11 @@ mod tests {
         );
     }
 }
+
+#[cfg(all(
+    target_os = "linux",
+    target_env = "musl",
+    target_pointer_width = "64",
+    target_feature = "crt-static"
+))]
+pub mod startup_relro;

@@ -4,7 +4,7 @@ use std::net::UdpSocket;
 
 #[test]
 fn owner_fast_retry_deadline_completes_a_real_daemon_query_without_new_client_input() {
-    use owrt_ubus::sys::poll_fds;
+    use dnsmasq_platform::poll::poll_fds;
     use std::time::Instant;
 
     let server = UdpSocket::bind("127.0.0.1:0").unwrap();

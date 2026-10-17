@@ -1031,7 +1031,7 @@ impl LocalProvider {
         self.file_reload_pending || files.runnable()
     }
 
-    pub fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+    pub fn append_file_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
         if let Some(reader) = &self.ethers_read {
             reader.append_poll_fds(fds);
         } else if let Some(files) = &self.file_owner {
@@ -1051,7 +1051,7 @@ impl LocalProvider {
             && self.interface_owner.as_ref().is_some_and(|owner| owner.runnable())
     }
 
-    pub fn append_packet_interface_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+    pub fn append_packet_interface_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
         if !self.file_work_pending() {
             if let Some(owner) = &self.interface_owner {
                 owner.append_poll_fds(fds);
@@ -3765,7 +3765,7 @@ mod startup_tests {
         assert!((0..64).any(|_| {
             fds.clear();
             provider.append_packet_interface_fds(&mut fds);
-            owrt_ubus::sys::poll_fds(&mut fds, 100).unwrap();
+            dnsmasq_platform::poll::poll_fds(&mut fds, 100).unwrap();
             provider.prepare_packet_interfaces().unwrap()
         }));
         assert!(!provider.packet_interfaces_pending());

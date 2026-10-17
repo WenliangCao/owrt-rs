@@ -32,7 +32,7 @@ fn await_dump_datagram(owner: &SinglePoll) {
     let mut fds = Vec::new();
     owner.neighbors.as_ref().unwrap().append_poll_fds(&mut fds);
     assert_eq!(fds.len(), 1);
-    assert!(owrt_ubus::sys::poll_fds(&mut fds, 1000).unwrap() > 0);
+    assert!(dnsmasq_platform::poll::poll_fds(&mut fds, 1000).unwrap() > 0);
     assert!(!owner.neighbors_ready);
 }
 
@@ -51,8 +51,8 @@ fn tail_dump_completion_captures_accept_mac_then_registers_real_downstream() {
     assert!(owner.clients[0].dns_work.as_ref().unwrap().input.is_empty());
     let fd = owner.clients[0].dns_work.as_ref().unwrap().stream.as_ref().unwrap().as_raw_fd();
     owner.wait_for_files().unwrap();
-    assert!(owner.poll_fds.iter().any(|item| item.fd == fd && item.events == owrt_ubus::sys::POLLIN));
-    assert!(poll_events_match(owner.clients[0].ready_events, owrt_ubus::sys::POLLIN),
+    assert!(owner.poll_fds.iter().any(|item| item.fd == fd && item.events == dnsmasq_platform::poll::POLLIN));
+    assert!(poll_events_match(owner.clients[0].ready_events, dnsmasq_platform::poll::POLLIN),
         "only the actual queued downstream socket supplies read readiness");
 }
 

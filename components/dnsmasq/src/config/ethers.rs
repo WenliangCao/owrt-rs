@@ -299,10 +299,10 @@ pub(crate) struct EthersRead {
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 impl EthersRead {
-    pub(crate) fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+    pub(crate) fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
         use std::os::fd::AsRawFd;
         if self.wait_readiness && !self.done {
-            fds.push(owrt_ubus::sys::PollFd {
+            fds.push(dnsmasq_platform::poll::PollFd {
                 fd: self.file.as_raw_fd(),
                 events: 1,
                 revents: 0,
@@ -329,12 +329,12 @@ impl EthersRead {
             return true;
         }
         if self.wait_readiness {
-            let mut fds = [owrt_ubus::sys::PollFd {
+            let mut fds = [dnsmasq_platform::poll::PollFd {
                 fd: self.file.as_raw_fd(),
                 events: 1,
                 revents: 0,
             }];
-            match owrt_ubus::sys::poll_fds(&mut fds, 0) {
+            match dnsmasq_platform::poll::poll_fds(&mut fds, 0) {
                 Ok(0) => return false,
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => return false,
                 Err(_) => {

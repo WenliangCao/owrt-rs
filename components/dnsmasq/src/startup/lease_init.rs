@@ -127,7 +127,7 @@ pub fn initialize(
         let mut fds: Vec<_> = helper
             .poll_fds()
             .into_iter()
-            .map(|(fd, events)| owrt_ubus::sys::PollFd {
+            .map(|(fd, events)| dnsmasq_platform::poll::PollFd {
                 fd,
                 events,
                 revents: 0,
@@ -135,15 +135,15 @@ pub fn initialize(
             .collect();
         if let Some(logger) = early {
             logger.flush_ready();
-            fds.extend(logger.poll_fds().map(|fd| owrt_ubus::sys::PollFd {
+            fds.extend(logger.poll_fds().map(|fd| dnsmasq_platform::poll::PollFd {
                 fd,
-                events: owrt_ubus::sys::POLLOUT,
+                events: dnsmasq_platform::poll::POLLOUT,
                 revents: 0,
             }));
         }
         // Services have not started: this one poll owner waits only on the
         // producer and logging descriptors, including nonblocking child reap.
-        owrt_ubus::sys::poll_fds(&mut fds, 20).map_err(|error| StartError {
+        dnsmasq_platform::poll::poll_fds(&mut fds, 20).map_err(|error| StartError {
             code: 3,
             message: error.to_string(),
         })?;

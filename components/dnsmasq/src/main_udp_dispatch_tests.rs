@@ -50,7 +50,7 @@ impl Fixture {
         let mut owner = tests::test_owner(config, Some(daemon));
         #[cfg(target_os = "linux")]
         {
-            let (read, write) = owrt_ubus::sys::nonblocking_pipe().unwrap();
+            let (read, write) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).unwrap();
             owner.signal_wake_read = Some(read);
             owner.signal_wake_write = Some(write);
         }

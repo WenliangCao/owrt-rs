@@ -234,7 +234,7 @@ fn step_after_poll(transport: &mut TcpUpstream, wait: TcpWait) -> Result<TcpProg
 fn waiting_for_reply(transport: &mut TcpUpstream, mut progress: TcpProgress) -> TcpWait {
     loop {
         match progress {
-            TcpProgress::Pending(wait) if wait.events == owrt_ubus::sys::POLLIN => return wait,
+            TcpProgress::Pending(wait) if wait.events == dnsmasq_platform::poll::POLLIN => return wait,
             TcpProgress::Pending(wait) => progress = step_after_poll(transport, wait).unwrap(),
             TcpProgress::Complete(_) => panic!("unreplied query completed"),
         }

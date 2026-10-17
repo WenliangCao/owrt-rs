@@ -62,8 +62,8 @@ impl RouteWatch {
         self.fd.as_raw_fd()
     }
 
-    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        fds.push(owrt_ubus::sys::PollFd {
+    pub fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
+        fds.push(dnsmasq_platform::poll::PollFd {
             fd: self.fd.as_raw_fd(),
             events: 1,
             revents: 0,
@@ -287,12 +287,12 @@ impl FileWatch {
     }
 
     pub(super) fn pending(&self) -> io::Result<bool> {
-        let mut fds = [owrt_ubus::sys::PollFd {
+        let mut fds = [dnsmasq_platform::poll::PollFd {
             fd: self.raw_fd(),
             events: 1,
             revents: 0,
         }];
-        Ok(owrt_ubus::sys::poll_fds(&mut fds, 0)? != 0)
+        Ok(dnsmasq_platform::poll::poll_fds(&mut fds, 0)? != 0)
     }
 
     /// Consume one bounded kernel batch. Remaining events keep POLLIN set and

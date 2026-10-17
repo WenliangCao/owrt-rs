@@ -735,7 +735,7 @@ impl<R: Random> DnsDaemon<R> {
 
     pub fn append_poll_fds(
         &self,
-        fds: &mut Vec<owrt_ubus::sys::PollFd>,
+        fds: &mut Vec<dnsmasq_platform::poll::PollFd>,
         deadline: std::time::Instant,
     ) -> Option<std::time::Instant> {
         self.upstream.append_poll_fds(fds, deadline)

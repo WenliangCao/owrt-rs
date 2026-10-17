@@ -3,7 +3,7 @@
 //! packet lookup never opens a file or socket, including under EMFILE.
 
 use super::Ipv4Interface;
-use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
 use rustix::net::{
     self, netlink::SocketAddrNetlink, AddressFamily, RecvFlags, SendFlags, SocketAddrAny,
     SocketFlags, SocketType,

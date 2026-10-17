@@ -18,7 +18,7 @@ use super::forward::{
 };
 use super::forward_service::{DispatchError, ForwardDispatcher};
 use super::wire::{Header, Name, WireError};
-use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP, POLLIN};
+use dnsmasq_platform::poll::{PollFd, POLLERR, POLLHUP, POLLIN};
 use source_sockets::{SocketSettings, SourceSocketDiagnostic, SourceSpec};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
@@ -640,7 +640,7 @@ impl<R: Random> UpstreamResolver<R> {
                     fd: owned.socket.as_raw_fd(),
                     events: POLLIN
                         | if owned.probe_refs != 0 {
-                            owrt_ubus::sys::POLLOUT
+                            dnsmasq_platform::poll::POLLOUT
                         } else {
                             0
                         },
@@ -792,7 +792,7 @@ impl<R: Random> UpstreamResolver<R> {
                     fd: owned.socket.as_raw_fd(),
                     events: POLLIN
                         | if owned.probe_refs != 0 {
-                            owrt_ubus::sys::POLLOUT
+                            dnsmasq_platform::poll::POLLOUT
                         } else {
                             0
                         },
@@ -1769,25 +1769,11 @@ fn send_udp_with_retry(
 }
 
 fn wait_udp_retry() -> io::Result<()> {
-    #[repr(C)]
-    struct Timespec {
-        seconds: std::os::raw::c_long,
-        nanoseconds: std::os::raw::c_long,
-    }
-    extern "C" {
-        fn nanosleep(request: *const Timespec, remaining: *mut Timespec) -> i32;
-    }
-    let request = Timespec {
-        seconds: 0,
-        nanoseconds: 10_000,
-    };
-    // SAFETY: the validated 64-bit Linux/Darwin ABIs use longs in timespec.
-    // request is valid for this call; null remaining discards unslept time,
-    // matching C retry_send rather than hiding EINTR through thread::sleep.
-    if unsafe { nanosleep(&request, std::ptr::null_mut()) } == 0 {
-        Ok(())
-    } else {
-        Err(io::Error::last_os_error())
+    use rustix::thread::NanosleepRelativeResult;
+    match rustix::thread::nanosleep(&rustix::time::Timespec { tv_sec: 0, tv_nsec: 10_000 }) {
+        NanosleepRelativeResult::Ok => Ok(()),
+        NanosleepRelativeResult::Interrupted(_) => Err(rustix::io::Errno::INTR.into()),
+        NanosleepRelativeResult::Err(error) => Err(error.into()),
     }
 }
 
@@ -1797,27 +1783,7 @@ fn unix_seconds() -> i64 {
         .map_or(0, |duration| duration.as_secs() as i64)
 }
 
-// owrt_ubus::sys::poll_fds retries EINTR with the original timeout. This small
-// boundary deliberately returns EINTR so the caller recomputes its deadline.
-#[cfg(target_os = "macos")]
-type Nfds = u32;
-#[cfg(not(target_os = "macos"))]
-type Nfds = usize;
-extern "C" {
-    #[link_name = "poll"]
-    fn system_poll(fds: *mut PollFd, count: Nfds, timeout: i32) -> i32;
-}
-fn poll_once(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
-    // SAFETY: PollFd is the repository's repr(C) pollfd with native Unix
-    // fields. This slice stays alive and exclusively borrowed for the call;
-    // count uses Darwin's u32 or Linux's unsigned-long nfds_t ABI.
-    let result = unsafe { system_poll(fds.as_mut_ptr(), fds.len() as Nfds, timeout) };
-    if result < 0 {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(result as usize)
-    }
-}
+use dnsmasq_platform::poll::poll_once;
 
 #[cfg(test)]
 #[path = "upstream_owner_wake_tests.rs"]

@@ -94,11 +94,11 @@ impl NeighborCache {
             script_arp: false,
         })
     }
-    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+    pub fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
         if self.dump.is_some() {
-            fds.push(owrt_ubus::sys::PollFd {
+            fds.push(dnsmasq_platform::poll::PollFd {
                 fd: self.socket.as_raw_fd(),
-                events: owrt_ubus::sys::POLLIN,
+                events: dnsmasq_platform::poll::POLLIN,
                 revents: 0,
             });
         }

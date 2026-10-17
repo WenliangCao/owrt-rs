@@ -5,7 +5,7 @@ use super::{
     matches_question, Connection, Group, GroupId, Question, TcpError, TcpOptions, TcpProgress,
     TcpWait,
 };
-use owrt_ubus::sys::{POLLIN, POLLOUT};
+use dnsmasq_platform::poll::{POLLIN, POLLOUT};
 use std::collections::HashMap;
 use std::io::{self, Read, Write};
 use std::os::fd::AsRawFd;

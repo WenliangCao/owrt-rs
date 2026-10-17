@@ -358,8 +358,8 @@ impl<O: FileOpener> TftpListener<O> {
         self.has_capacity() || self.single_port && self.runtime.has_peer(peer)
     }
 
-    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        use owrt_ubus::sys::{PollFd, POLLIN};
+    pub fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
+        use dnsmasq_platform::poll::{PollFd, POLLIN};
         for server in self.servers.iter().filter(|_| self.pending_admission.is_none()) {
             if self.single_port || self.accepting && server.accepting && self.has_capacity() {
                 fds.push(PollFd {

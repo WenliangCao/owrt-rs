@@ -2,7 +2,7 @@
 //! The parent calls begin only at a C enumeration boundary. A failure opening
 //! the control socket precedes clear; later failures publish the received prefix.
 use super::interface_records::InterfaceAddress;
-use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
 use rustix::net::{
     self, netlink::SocketAddrNetlink, AddressFamily, RecvAncillaryBuffer, RecvFlags, RecvMsg,
     ReturnFlags, SendFlags, SocketFlags, SocketType,

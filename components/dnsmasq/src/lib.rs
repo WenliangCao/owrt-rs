@@ -4,6 +4,7 @@
 //! modules do not yet constitute a service or a compatible package replacement.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
+#![forbid(unsafe_code)]
 
 #[path = "logging/address.rs"]
 mod address_logging;

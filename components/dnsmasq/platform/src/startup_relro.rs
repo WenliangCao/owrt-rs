@@ -32,8 +32,6 @@ unsafe extern "C" {
         callback: unsafe extern "C" fn(*mut ImageInfo, usize, *mut c_void) -> c_int,
         data: *mut c_void,
     ) -> c_int;
-    fn getpagesize() -> c_int;
-    fn mprotect(address: *mut c_void, length: usize, protection: c_int) -> c_int;
 }
 
 pub fn protect() -> io::Result<()> {
@@ -73,8 +71,7 @@ unsafe extern "C" fn protect_main_image(
         if ranges.next().is_some() || range.memory_size == 0 {
             return Err(io::Error::other("invalid GNU_RELRO"));
         }
-        // SAFETY: getpagesize has no pointer arguments or side effects.
-        let page_size = unsafe { getpagesize() } as usize;
+        let page_size = rustix::param::page_size();
         if !page_size.is_power_of_two() {
             return Err(io::Error::other("invalid page size"));
         }
@@ -89,12 +86,15 @@ unsafe extern "C" fn protect_main_image(
             return Err(io::Error::other("GNU_RELRO end is not page aligned"));
         }
         let start = start & !(page_size - 1);
-        const PROT_READ: c_int = 1;
         // SAFETY: this range is the main executable's relocated GNU_RELRO
         // segment. Its complete pages are mapped, and require no later writes.
-        if unsafe { mprotect(start as *mut c_void, end - start, PROT_READ) } != 0 {
-            return Err(io::Error::last_os_error());
-        }
+        unsafe {
+            rustix::mm::mprotect(
+                start as *mut c_void,
+                end - start,
+                rustix::mm::MprotectFlags::READ,
+            )
+        }?;
         Ok(())
     };
     // SAFETY: protect passed a live, uniquely borrowed Result as callback data.
