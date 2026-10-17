@@ -91,8 +91,11 @@ PD 默认请求 `/62`，先尝试合法 hint，再查找对齐空洞；空间不
 NA 不添加此类路由。依据：`src/dhcpv6-ia.c:289`、`:319`、`:342`、`:1043`、`:1226`，
 `src/dhcpv6-ia.h:28`。
 
-寿命同时受来源前缀剩余寿命、租期、max preferred/valid 限制，preferred 不得超过 valid。
-T1 为最短有效 preferred 的 50%，T2 为 80%，最小 1 秒；无限值保持 RFC 表示。
+有限来源寿命受剩余寿命、租期、max preferred/valid 限制，preferred 不得超过 valid。
+精确 C 实包纠正：无限期内核前缀跳过 max preferred/valid 的报文字段截断，因而本机
+12h 租期下 wire IA preferred/valid 可均为 43200；内部租约期限仍受 2700/5400
+限制，T1/T2 为 1350/2160。不能把报文寿命和内部租约计时合并为同一个值。
+T1 为内部最短有效 preferred 的 50%，T2 为 80%，最小 1 秒；无限值保持 RFC 表示。
 内部使用单调时钟，不让 NTP 校时改变到期时刻。依据：`src/dhcpv6-ia.c:572`。
 
 前缀删除或 preferred 到期后不再用于新分配。Renew/Rebind 中客户端携带的旧
@@ -152,6 +155,11 @@ C `handle_addrlist_change()` 的旧 PD route 删除受 `!ND_RA_FLAG_MANAGED` 限
 而本机 M flag 开启。首次 PD 验收必须检查路由实际消失，不能照搬条件后宣称正确。
 若为满足用户的旧前缀废止要求而修正此行为，要在实现报告明确记录差异。
 依据：`src/dhcpv6-ia.c:480`。
+隔离 C 实包/路由观察还确认：`__apply_lease()` 未复用分配报文中的父前缀长度检查，
+会为 ULA `/62` 分配额外安装来自 GUA `/64` 的越界 `/62` 路由。Rust 只对可容纳该
+分配的父前缀安装路由，并且只在安装 ACK 成功后发布 PD 绑定；删除失败保留跟踪并
+重试。这是满足旧前缀和可用性要求的有意差异，不复刻 C 的越界或残留路由。
+依据：`src/dhcpv6-ia.c:289`、`:690`。
 
 C 每秒到期清理释放租约和 PD route，却不立即更新 leasefile/hosts；后续状态事件才
 重写文件。若候选改为即时清理，也须记录差异，不能误称参考已有此行为。
