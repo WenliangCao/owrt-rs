@@ -87,7 +87,7 @@ RUSAGE_SELF，外部 subreaper 收齐自有后代后读 RUSAGE_CHILDREN；同时
 并保留十次总和；这不宣称实际准确度达到 1 µs。
 
 真实 helper `old` callback 或 servers-file hostname 上游应答才算就绪；ready 截止后
-只读一次资源/全部 FD 快照，包含 stdio。资源不称峰值或 PSS。任何强制清理、漏 reap、
+在既定200ms内取得一个一致的资源/全部FD静态点，包含stdio。资源不称峰值或PSS。任何强制清理、漏reap、
 500 ms 周期超时或失败停止；明确超过 1 ms 的启动退化
 交主代理审查。两侧严格要求 owner 无 O_PATH pin，helper 非 stdio 恰为两根 pipe 的
 两个 CLOEXEC 端点；不接受可选的0/1 pin或2/4端点。原 selfexec 四FD结果保留为历史。
@@ -97,6 +97,11 @@ a97 最终 PGO 的首次工具预演在 candidate helper 第4次留下资源采�
 后验身份/数量/children一致性现合入原200ms静态点等待边界，每次尝试单独留raw；最终
 helper仍严格总FD5/非stdio两IPC，持续多FD、身份变化或超时仍停止。ready时点、最终
 整树CPU与500ms周期不改，资源仍不是峰值；仅重做受影响的完整40次工具预演。
+修复后独立完整40次全部通过：K/helper有13次、candidate/helper有14次采样尝试，
+7次未静定尝试原样保留；候选确实捕到临时6FD并拒绝，最终两侧均严格5FD。
+两个resolver各10次均一次取得一致静态点。新observer为667320B，SHA256
+`7de91a0c55b4e4137b4a243c4374f1fbedb1b3a8039bb23548368fd1dc8c8e0b`。
+此项工具预演通过不代表完整产品资格通过；旧13个有效启动及第14个失败仍保留。
 
 首次 Oracle jail 夹具将 helper 回调固定为一次，两侧均失败：exact K 与 8adc 的完整文件
 均为相同 `old` 行两次，正常退出和身份成立。原 strict1 结果保留。启动计时现以首个
