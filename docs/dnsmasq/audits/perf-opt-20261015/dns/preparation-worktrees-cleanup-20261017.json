@@ -1,7 +1,7 @@
 {
-  "scope": "Six explicitly assigned completed preparation/tool-fix trees only. No remote actions, root/main/active trees untouched.",
+  "scope": "Seven explicitly assigned completed or unselected preparation/tool-fix/prototype trees only. No remote actions, root/main/active trees untouched.",
   "evidence_root": "/Users/USER/Developer/owrt-perf-evidence-20261016",
-  "completion_basis": "Preparation/evidence trees superseded by I/J; completed tool fixes remain in root. No current J/K/C-direct/query-shape sampling/R17 dependency.",
+  "completion_basis": "Earlier preparation/evidence trees superseded by I/J; completed tool fixes remain in root. Lease-name-reuse prototype retired unselected after focused allocation counts, with no SDK/device continuation.",
   "preflight": {
     "current_controller_and_input_roots": [
       "private/perf-opt-20261015/research-reset-20261016",
@@ -140,10 +140,50 @@
       "tracked_and_untracked_clean": true,
       "worktree_removed": true,
       "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-perf-lease-name-reuse-20261017",
+      "head": "5632002108776111c111dc784d9b9b78f05b4bd0",
+      "original_branch": "perf/dnsmasq-lease-name-reuse-20261017",
+      "preserved_tag": "refs/tags/archive/perf/owrt-perf-lease-name-reuse-20261017-20261017",
+      "completion_basis": "Focused allocation counts complete; retired unselected. No current small-HUP, R17, PGO, correctness or acceptance dependency.",
+      "preflight": {
+        "active_process_command_matches": 0,
+        "active_process_cwd_or_open_file_matches": 0,
+        "current_research_reset_and_small_hup_path_or_symlink_references": 0
+      },
+      "moves": [
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lease-name-reuse-20261017/private",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-name-reuse-20261017/private",
+          "inventory": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-name-reuse-20261017/private-inventory-20261017.json",
+          "inventory_sha256": "e2b89df19aa6a04df21ac99a887a7c76746d97c00d1b4fcf3085de97c2b22226",
+          "regular_files": 238,
+          "regular_bytes": 150816516,
+          "symlinks": 0,
+          "same_device_and_inode": true,
+          "contents_and_metadata_rehashed_after_move": true
+        },
+        {
+          "from": "/Users/USER/Developer/owrt-perf-lease-name-reuse-20261017/components/dnsmasq/target",
+          "to": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-name-reuse-20261017/other-ignored/components/dnsmasq/target",
+          "inventory": "/Users/USER/Developer/owrt-perf-evidence-20261016/owrt-perf-lease-name-reuse-20261017/build-inventory-20261017.json",
+          "inventory_sha256": "d8013284f4663b630fd37da6d8ecdb06d6204329a3a71342503db24012a81ad0",
+          "regular_files": 790,
+          "regular_bytes": 366093580,
+          "symlinks": 0,
+          "same_device_and_inode": true,
+          "contents_and_metadata_rehashed_after_move": true
+        }
+      ],
+      "tracked_private_tools_restored_from_head_before_normal_remove": 7,
+      "tracked_and_untracked_clean": true,
+      "worktree_removed": true,
+      "obsolete_branch_deleted": true
     }
   ],
-  "removed_worktrees": 6,
-  "removed_obsolete_branches": 6,
-  "preserved_tags": 6,
+  "removed_worktrees": 7,
+  "removed_obsolete_branches": 7,
+  "preserved_tags": 7,
   "worktrees_after": 24
 }
