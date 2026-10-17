@@ -636,6 +636,7 @@ impl Devices {
     }
 
     /// `network.device status` with no argument: present devices only.
+    #[cfg(test)]
     pub fn dump_all(&self, b: &mut BlobBuf, e: Option<&Ethtool>) {
         for d in self.iter().filter(|d| d.present) {
             let t = b.msg_open_table(&d.ifname);

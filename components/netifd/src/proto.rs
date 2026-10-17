@@ -121,6 +121,7 @@ fn object_end(s: &str) -> Option<usize> {
 
 impl Handler {
     /// Parse one `dump` document.
+    #[cfg(test)]
     pub fn parse(script: &Path, text: &str) -> Result<Self, String> {
         let j = owrt_ubus::json::parse(text).map_err(|e| e.to_string())?;
         Self::from_json(script, &j)

@@ -268,7 +268,7 @@ mod tests {
             }
         }
         let mut buf = owrt_ubus::BlobBuf::new();
-        lan.dump_status(&mut buf);
+        lan.dump_status_with(&mut buf, 0, &lan.proto_ip.prefixes);
         let status = owrt_ubus::convert::fields_to_json(buf.payload());
         let owrt_ubus::json::Json::Array(addresses) = status.get("ipv6-address").unwrap() else { panic!() };
         assert!(addresses.is_empty());

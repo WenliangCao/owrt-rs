@@ -103,7 +103,7 @@ fn main() {
         i.available = b_of(ci, "available");
         i.autostart = b_of(ci, "autostart");
         i.dynamic = b_of(ci, "dynamic");
-        i.uptime = u_of(ci, "uptime").unwrap_or(0);
+        let uptime = u_of(ci, "uptime").unwrap_or(0);
         i.l3_device = s_of(ci, "l3_device");
         i.proto = Some(ic.proto.clone());
         i.device = s_of(ci, "device");
@@ -202,7 +202,7 @@ fn main() {
 
         let t = b.msg_open_table("");
         b.msg_string("interface", &name);
-        i.dump_status(&mut b);
+        i.dump_status_with(&mut b, uptime, &i.proto_ip.prefixes);
         b.msg_close(t);
     }
     b.msg_close(arr);

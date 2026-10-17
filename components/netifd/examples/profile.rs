@@ -21,7 +21,6 @@ fn interface(index: usize) -> interface::Interface {
     i.proto = Some("static".into());
     i.device = Some("br-profile".into());
     i.l3_device = i.device.clone();
-    i.uptime = 60;
     i.started_at = Some(60);
     i.proto_ip.addresses.push(interface::Address::new("192.0.2.1".parse().unwrap(), 24));
     i.proto_ip.addresses.push(interface::Address::new("2001:db8::1".parse().unwrap(), 64));
@@ -119,7 +118,7 @@ fn main() {
     });
     profile_support::measure("interface_status_static", n, &filter, || {
         let mut b = BlobBuf::with_capacity(1024);
-        iface.dump_status(&mut b);
+        iface.dump_status_with(&mut b, 60, &iface.proto_ip.prefixes);
         black_box(b.payload());
     });
     for count in [2, 32, 64, 128] {
@@ -131,7 +130,7 @@ fn main() {
                 let snapshot = i.clone();
                 let table = b.msg_open_table("");
                 b.msg_string("interface", &snapshot.name);
-                snapshot.dump_status(&mut b);
+                snapshot.dump_status_with(&mut b, 60, &snapshot.proto_ip.prefixes);
                 b.msg_close(table);
             }
             b.msg_close(arr);
@@ -143,7 +142,7 @@ fn main() {
             for i in &interfaces {
                 let table = b.msg_open_table("");
                 b.msg_string("interface", &i.name);
-                i.dump_status_with(&mut b, i.uptime, &i.proto_ip.prefixes);
+                i.dump_status_with(&mut b, 60, &i.proto_ip.prefixes);
                 b.msg_close(table);
             }
             b.msg_close(arr);
@@ -156,7 +155,7 @@ fn main() {
             for i in &interfaces {
                 let table = b.msg_open_table("");
                 b.msg_string("interface", &i.name);
-                i.dump_status_with(&mut b, i.uptime, &i.proto_ip.prefixes);
+                i.dump_status_with(&mut b, 60, &i.proto_ip.prefixes);
                 b.msg_close(table);
             }
             b.msg_close(arr);

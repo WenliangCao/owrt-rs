@@ -261,8 +261,6 @@ pub struct Interface {
     /// `interface_check_state` tears the interface down when it goes false.
     pub enabled: bool,
     pub dynamic: bool,
-    /// Seconds since the interface came up; only printed while up.
-    pub uptime: u32,
     /// Daemon-owned monotonic start time. It follows this interface through
     /// sorting and disappears with it on teardown or configuration reload.
     pub started_at: Option<u64>,
@@ -466,14 +464,9 @@ impl Interface {
     }
 
     /// Read live elapsed time without searching a second name-keyed list.
-    /// Standalone status probes continue to supply the separate `uptime`.
+    /// Standalone status probes supply uptime directly to the encoder.
     pub fn current_uptime(&self) -> u32 {
         self.started_at.map(|t| crate::clock::now().saturating_sub(t) as u32).unwrap_or(0)
-    }
-
-    /// `netifd_dump_status`, field for field.
-    pub fn dump_status(&self, b: &mut BlobBuf) {
-        self.dump_status_with(b, self.uptime, &self.proto_ip.prefixes);
     }
 
     /// The daemon supplies current uptime and its global delegated-prefix
@@ -680,7 +673,7 @@ mod tests {
 
     fn json(i: &Interface) -> String {
         let mut b = BlobBuf::new();
-        i.dump_status(&mut b);
+        i.dump_status_with(&mut b, 5, &i.proto_ip.prefixes);
         owrt_ubus::convert::fields_to_json(b.payload()).to_compact()
     }
 
@@ -703,7 +696,6 @@ mod tests {
         i.state = State::Up;
         i.available = true;
         i.autostart = true;
-        i.uptime = 5;
         i.l3_device = Some("br-lan".into());
         i.proto = Some("static".into());
         i.device = Some("br-lan".into());
@@ -795,7 +787,7 @@ mod tests {
         };
         let mut i = Interface::new("wan6");
         i.state = State::Up;
-        i.uptime = 1;
+        i.started_at = Some(1);
         i.config_ip.prefixes.push(prefix("fd00:1::"));
         i.proto_ip.prefixes.push(prefix("2001:db8:1::"));
         i.proto_ip.addresses.push(Address::new("2001:db8::1".parse().unwrap(), 64));
@@ -810,7 +802,7 @@ mod tests {
         assert_eq!(prefixes[0].get("address").and_then(Json::as_str), Some("fd00:1::"));
         assert_eq!(prefixes[1].get("address").and_then(Json::as_str), Some("2001:db8:2::"));
         assert!(prefixes[1].get("assigned").unwrap().get("lan").is_some());
-        assert_eq!(i.uptime, 1);
+        assert_eq!(i.started_at, Some(1));
         assert_eq!(i.proto_ip.prefixes[0].addr, "2001:db8:1::".parse::<Ipv6Addr>().unwrap());
         assert_eq!(i.proto_ip.addresses.len(), 1);
         // An empty live prefix view removes stale delegated prefixes, while

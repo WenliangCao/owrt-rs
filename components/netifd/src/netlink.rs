@@ -32,7 +32,9 @@ pub const NLM_F_CREATE: u16 = 0x400;
 
 /// Multicast group ids for `bind`, as a bitmask (`1 << (RTNLGRP_x - 1)`).
 pub const RTNLGRP_LINK: u32 = 1;
+#[cfg(test)]
 pub const RTNLGRP_IPV4_IFADDR: u32 = 5;
+#[cfg(test)]
 pub const RTNLGRP_IPV6_IFADDR: u32 = 9;
 
 /// `1 << (grp - 1)`, the bitmask form `bind(2)` takes for the first 32 groups.
@@ -87,6 +89,7 @@ pub fn attr_u32(attrs: &[(u16, &[u8])], ty: u16) -> Option<u32> {
     attr(attrs, ty).filter(|v| v.len() >= 4).map(|v| u32::from_le_bytes([v[0], v[1], v[2], v[3]]))
 }
 
+#[cfg(test)]
 pub fn attr_u8(attrs: &[(u16, &[u8])], ty: u16) -> Option<u8> {
     attr(attrs, ty).filter(|v| !v.is_empty()).map(|v| v[0])
 }
