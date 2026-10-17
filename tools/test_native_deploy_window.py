@@ -256,7 +256,9 @@ class NativeProductionProbe(unittest.TestCase):
         import run_candidate
         base = [run_candidate.__file__, "candidate", "out", "--interface", "en0", "--stack", "native"]
         for extra in ([], ["--native-manifest", "unused", "--reference-root", "/stock"],
-                      ["--native-manifest", "unused", "--guard", "guard", "--reference-root", "/rom/"]):
+                      ["--native-manifest", "unused", "--guard", "guard", "--reference-root", "/stock"],
+                      ["--native-manifest", "unused", "--guard", "guard", "--reference-root", "/rom/",
+                       "--health-guard-root", "/tmp/dnsmasq-perf-core"]):
             with self.subTest(extra=extra), patch("sys.argv", base + extra), \
                     patch.object(run_candidate.subprocess, "run", side_effect=AssertionError("unexpected process")), \
                     contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
@@ -264,6 +266,12 @@ class NativeProductionProbe(unittest.TestCase):
             self.assertEqual(caught.exception.code, 2)
 
     def test_native_runner_uses_configured_tools_and_stock_root_without_switching(self):
+        self.native_runner_fixture()
+
+    def test_native_guard_failure_archives_before_raising_and_never_prunes(self):
+        self.native_runner_fixture(fail_workload=True)
+
+    def native_runner_fixture(self, fail_workload=False):
         import hashlib
         import shlex
         import sys
@@ -289,7 +297,7 @@ class NativeProductionProbe(unittest.TestCase):
                       "native_manifest_sha256": sha(manifest)}
             commands = []
 
-            def run(arguments, **_):
+            def run(arguments, **options):
                 if arguments[0] == "scp":
                     return subprocess.CompletedProcess(arguments, 0, b"", b"")
                 self.assertEqual(arguments[0], "ssh")
@@ -297,10 +305,20 @@ class NativeProductionProbe(unittest.TestCase):
                 commands.append(command)
                 self.assertNotIn("stack-switch", command)
                 self.assertNotIn("/root/r84", command)
-                if "/isolated.sh /stock-root " in command:
-                    self.assertTrue(command.startswith("OWRT_BENCH_GUARD="))
-                    raise WorkloadReached()
-                if command.startswith("cat ") and command.endswith("/manifest.json"):
+                if command.startswith('set -eu\ntest ! -L /tmp/dnsmasq-perf-core'):
+                    value = '55 66\n'
+                elif command.startswith('tar -czf - -C '):
+                    import tarfile
+                    with tarfile.open(fileobj=options['stdout'], mode='w:gz') as archive:
+                        data = b'failed window retained\n'
+                        info = tarfile.TarInfo('partial.txt'); info.size = len(data)
+                        archive.addfile(info, io.BytesIO(data))
+                    return subprocess.CompletedProcess(arguments, 0)
+                elif command.startswith('cd ') and 'find . -type f' in command:
+                    value = hashlib.sha256(b'failed window retained\n').hexdigest() + '  ./partial.txt\n'
+                elif command.startswith('cat ') and command.endswith('.identity'):
+                    value = '77 88\n'
+                elif command.startswith("cat ") and command.endswith("/manifest.json"):
                     self.assertIn(command, ("cat /host-tools/manifest.json", "cat /v021/manifest.json"))
                     value = json.dumps(comparison)
                 elif command == "readlink -f /stock-root":
@@ -317,6 +335,8 @@ class NativeProductionProbe(unittest.TestCase):
                             digest = sha(guard)
                         elif name == "isolated.sh":
                             digest = sha(Path(run_candidate.__file__).with_name("isolated.sh"))
+                        elif name == "owned_group.sh":
+                            digest = sha(Path(run_candidate.__file__).with_name("owned_group.sh"))
                         elif name == "procd-rs":
                             digest = sha(candidate)
                         else:
@@ -331,21 +351,38 @@ class NativeProductionProbe(unittest.TestCase):
                     self.fail("unexpected collector operation: " + command)
                 return subprocess.CompletedProcess(arguments, 0, value.encode(), b"")
 
+            def workload(*args):
+                self.assertTrue(args[2].startswith('OWRT_BENCH_GUARD='))
+                self.assertIn('/isolated.sh /stock-root ', args[2])
+                if fail_workload:
+                    raise RuntimeError('fixture guard died')
+                raise WorkloadReached()
+
             argv = [run_candidate.__file__, str(candidate), str(base / "out"), "--component", "procd",
                     "--interface", "en0", "--stack", "native", "--native-manifest", str(manifest),
                     "--host-bundle", "/host-tools", "--baseline-bundle", "/v021", "--baseline-label", "v021",
                     "--reference-root", "/stock-root", "--guard", str(guard), "--sides", "stock", "candidate",
-                    "--schedule", "two-side-balanced", "--repeats", "2"]
+                    "--schedule", "two-side-balanced", "--repeats", "2",
+                    "--health-guard-root", "/tmp/dnsmasq-perf-core"]
             with patch("sys.argv", argv), patch.object(run_candidate, "probe", return_value=health), \
                     patch.object(run_candidate, "native_identity", return_value=identity), \
                     patch.object(run_candidate.subprocess, "run", side_effect=run), \
-                    contextlib.redirect_stdout(io.StringIO()), self.assertRaises(WorkloadReached):
+                    patch.object(run_candidate, 'health_guarded_window', side_effect=workload), \
+                    contextlib.redirect_stdout(io.StringIO()), self.assertRaises(RuntimeError if fail_workload else WorkloadReached):
                 run_candidate.main()
             plan = json.loads((base / "out/settings.json").read_text())
             self.assertEqual(plan["reference_root"], "/stock-root")
             self.assertEqual(plan["host_bundle"], "/host-tools")
             self.assertEqual(plan["native_manifest_sha256"], sha(manifest))
             self.assertEqual(len(json.loads((base / "out/reference-identities.json").read_text())), 10)
+            if fail_workload:
+                window = base / 'out/01-stock'
+                self.assertEqual((window / 'raw/partial.txt').read_text(), 'failed window retained\n')
+                result = json.loads((window / 'result.json').read_text())
+                self.assertTrue(result['remote_evidence_retained'])
+                self.assertTrue(any('fixture guard died' in value for value in result['failures']))
+                self.assertFalse(any(command.startswith('rm -rf') for command in commands))
+                self.assertFalse((window / 'COMPLETE').exists())
 
 
 if __name__ == "__main__":

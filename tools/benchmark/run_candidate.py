@@ -16,6 +16,7 @@ import shlex
 import subprocess
 import sys
 import tarfile
+import time
 import uuid
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -24,6 +25,70 @@ from r84_device_probe import load_native_manifest, native_identity, probe  # noq
 ORDER = ("stock", "r84", "candidate", "candidate", "r84", "stock",
          "r84", "stock", "candidate", "candidate", "stock", "r84")
 TWO_SIDE_BALANCED = ("stock", "candidate", "candidate", "stock")
+
+
+def health_guard_identity(ssh, root, expected=None, idle=False):
+    """Check only the already-running guard, not all production ELFs per poll."""
+    if not re.fullmatch(r"/tmp/dnsmasq-perf-[A-Za-z0-9_-]+", root):
+        raise ValueError("unsafe health guard root")
+    command = f'''set -eu
+test ! -L {root}
+test -d {root}
+test "$(stat -c %u {root})" = "$(id -u)"
+test ! -e {root}/STOP
+test ! -L {root}/guard.identity
+read guard start extra < {root}/guard.identity
+case "$guard:$start" in *[!0-9:]*|:*|*:) exit 2;; esac
+test -z "$extra"
+test "$guard" -gt 1
+test "$start" -gt 0
+test "$(readlink /proc/$guard/exe)" = {root}/device_perf_guard
+test "$(awk '{{print $22}}' /proc/$guard/stat)" = "$start"
+kill -0 "$guard"
+'''
+    if idle:
+        command += f'test ! -e {root}/active.group\ntest ! -L {root}/active.group\n'
+    command += 'printf "%s %s\\n" "$guard" "$start"\n'
+    fields = ssh(command).decode().split()
+    if len(fields) != 2 or any(not value.isdecimal() or int(value) <= 0 for value in fields):
+        raise RuntimeError("invalid health guard identity")
+    identity = tuple(map(int, fields))
+    if identity[0] <= 1 or (expected is not None and identity != expected):
+        raise RuntimeError("health guard PID/start changed")
+    return identity
+
+
+def health_guarded_window(ssh_args, ssh, command, root, identity, helper, receipt, log):
+    """Keep the old harness command intact; stop only this window's owned group."""
+    health_guard_identity(ssh, root, identity, idle=True)
+    remote = 'setsid /bin/sh ' + shlex.join([helper, root, 'run', *map(str, identity), receipt, command])
+    process = None
+    try:
+        process = subprocess.Popen(ssh_args + [remote], stdout=log, stderr=subprocess.STDOUT)
+        deadline = time.monotonic() + 660  # Existing 600s lifetime guard plus setup/cleanup.
+        while True:
+            try:
+                result = process.wait(timeout=5)
+                health_guard_identity(ssh, root, identity)
+                return result
+            except subprocess.TimeoutExpired:
+                health_guard_identity(ssh, root, identity)
+                if time.monotonic() >= deadline:
+                    raise RuntimeError("native namespace host deadline exceeded")
+    except BaseException as error:
+        stop_error = None
+        try:
+            ssh('/bin/sh ' + shlex.join([helper, root, 'stop', receipt]))
+        except Exception as caught:
+            stop_error = repr(caught)
+        if process is not None and process.poll() is None:
+            try:
+                process.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                process.kill()  # Host SSH only; validated remote stop above owns cleanup.
+                process.wait(timeout=5)
+        detail = f"; owned stop failed: {stop_error}" if stop_error else ""
+        raise RuntimeError(f"native health/group failure: {error}{detail}") from error
 
 
 def extra_baseline_records(elf_args, evidence_args, baseline_label):
@@ -82,6 +147,7 @@ def main():
                         help="default interleaving, stock/candidate ABBA, or C then baseline then candidate; --repeats is windows per side for three-side-sequential")
     parser.add_argument("--seed", type=int, help="frozen seed for independent random complete comparison blocks")
     parser.add_argument("--guard", type=Path, help="router-side lifetime guard for each namespace (600 seconds)")
+    parser.add_argument("--health-guard-root", help="native only: existing DNS production guard root under /tmp/dnsmasq-perf-*")
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
@@ -124,8 +190,10 @@ def main():
     native_manifest = None
     native_manifest_sha256 = None
     if args.stack == "native":
-        if not args.native_manifest or not args.guard or not args.reference_root:
-            parser.error("native requires --native-manifest, --guard and an explicit --reference-root")
+        if not args.native_manifest or not args.guard or not args.reference_root or not args.health_guard_root:
+            parser.error("native requires --native-manifest, --guard, --health-guard-root and an explicit --reference-root")
+        if not re.fullmatch(r"/tmp/dnsmasq-perf-[A-Za-z0-9_-]+", args.health_guard_root):
+            parser.error("unsafe health guard root")
         if args.reference_root.rstrip("/") == "/rom":
             parser.error("native /rom contains Rust; --reference-root must be the exact stock rootfs")
         try:
@@ -134,6 +202,8 @@ def main():
             parser.error(str(exc))
     elif args.native_manifest:
         parser.error("--native-manifest requires --stack native")
+    elif args.health_guard_root:
+        parser.error("--health-guard-root requires --stack native")
     args.reference_root = args.reference_root or "/rom"
     for path in (args.host_bundle, args.reference_root):
         if not path.startswith("/") or any(c in path for c in ("\0", "\n", "\r")):
@@ -301,6 +371,13 @@ def main():
             return native_identity(args.host, native_manifest).encode()
         return ssh("/bin/sh " + shlex.quote(args.host_bundle + "/stack-switch.sh") + " verify " + args.stack)
 
+    guard_identity = None
+    group_script = Path(__file__).with_name("owned_group.sh")
+    if args.health_guard_root:
+        guard_identity = health_guard_identity(ssh, args.health_guard_root, idle=True)
+        save("health-guard-binding-" + uuid.uuid4().hex[:12] + ".json", {
+            "root": args.health_guard_root, "pid_start": guard_identity,
+            "owned_group_sha256": hashlib.sha256(group_script.read_bytes()).hexdigest()})
     current = device_probe()
     if args.resume:
         pre = json.loads((out / "health-before.json").read_text())
@@ -421,6 +498,11 @@ def main():
     if args.guard:
         settings["guard_sha256"] = hashlib.sha256(args.guard.read_bytes()).hexdigest()
         settings["namespace_timeout_seconds"] = 600
+    if args.health_guard_root:
+        settings["health_guard_root"] = args.health_guard_root
+        settings["owned_group_sha256"] = hashlib.sha256(group_script.read_bytes()).hexdigest()
+        settings["health_guard_poll_seconds"] = 5
+        settings["native_host_deadline_seconds"] = 660
     if args.bench:
         settings["bench_sha256"] = tool_hashes["owrt-benchmark"]
     if args.exec_resource_probe:
@@ -442,6 +524,11 @@ def main():
         ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
         save("collector.json", {"remote": remote, "harness_sha256": hashlib.sha256(script.read_bytes()).hexdigest()})
     bundle = remote + "/bundle"
+    group_helper = remote + "/owned_group.sh"
+    if args.health_guard_root:
+        if not args.resume:
+            subprocess.run(["scp", "-O", str(group_script), args.host + ":" + group_helper], check=True)
+        assert ssh("sha256sum " + group_helper).decode().split()[0] == settings["owned_group_sha256"], "owned group helper identity mismatch"
     if args.guard:
         if not args.resume:
             subprocess.run(["scp", "-O", str(args.guard.resolve()), args.host + ":" + remote + "/guard"], check=True)
@@ -619,9 +706,17 @@ def main():
             command = "OWRT_RPCD_CLIENT_DIAGNOSTIC=1 OWRT_RPCD_CLIENT_ORDER=" + mode_order + " " + command
         failures = []
         run_exit = None
+        group_receipt = remote + f"/group-{index:02d}.identity"
         try:
             with (local / "run.log").open("xb") as log:
-                run_exit = subprocess.run(ssh_args + [command], stdout=log, stderr=subprocess.STDOUT, timeout=1800).returncode
+                if args.health_guard_root:
+                    save(local.name + "/health-guard.json", {"root": args.health_guard_root,
+                         "guard_pid_start": guard_identity, "group_receipt": group_receipt,
+                         "owned_group_sha256": settings["owned_group_sha256"]})
+                    run_exit = health_guarded_window(ssh_args, ssh, command, args.health_guard_root,
+                                                    guard_identity, group_helper, group_receipt, log)
+                else:
+                    run_exit = subprocess.run(ssh_args + [command], stdout=log, stderr=subprocess.STDOUT, timeout=1800).returncode
             if run_exit != 0:
                 failures.append(f"namespace exited {run_exit}")
         except Exception as exc:
@@ -660,6 +755,12 @@ def main():
                 assert dependencies == [manifest["components"]["ubusd"]["original"]["sha256"]], "procd dependency is not the exact image C ubusd"
         except Exception as exc:
             failures.append(f"raw evidence: {type(exc).__name__}: {exc}")
+        if args.health_guard_root:
+            try:
+                (local / "owned-group.identity").write_bytes(ssh("cat " + shlex.quote(group_receipt)))
+                health_guard_identity(ssh, args.health_guard_root, guard_identity, idle=True)
+            except Exception as exc:
+                failures.append(f"health guard postflight: {type(exc).__name__}: {exc}")
         for filename, cmd, expected_value in (
                 ("host-after.json", snapshot, None),
                 ("environment-after.txt", "cat /proc/uptime /proc/loadavg; for f in /sys/class/thermal/thermal_zone*/temp; do test ! -f \"$f\" || cat \"$f\"; done", None),
