@@ -760,3 +760,18 @@ MemFree72468→69944、Cached79872→80056、Shmem47868→48052、Slab31640→31
 改变可用余量。先完整流式归档/hash核验后回收旧副本，按新冻结条件要求125秒基线最低
 88MiB，再开独立完整14窗并重新校准AA；实时64MiB门不改，原失败不抹除、不拼接数据。
 原J接受、两个直接对照、一次真实样本和全部正确性不重复；再次健康失败则停，不循环重试。
+
+清理已完成：实际选择254个旧guard文件及32个旧run目录（本次失败证据明确排除），
+1585文件/25712523B在本机逐hash备份且二次核验远端未变后回收；释放tmpfs占用28772KiB，
+任务根47648→18876KiB。生产/工具/ELF及当前failed guard与partial保留。旧STOP字节
+SHA ea469aeba53f7a6f2cc4d1703c9b78d078d4e27618ff88e31b20850e28ee26af已本机保留并在设备
+归档为`STOP-k-dual-first-low-memory-20261017`；原low_memory日志不改。清理后MemAvailable
+110360KiB，不能把前后全部差值归因文件回收；DNS成功、HTTP403、IPv4/IPv6外网200，
+生产与E/F核对通过。一次只读清单SSH255发生在复制/修改之前，其失败日志保留。
+依据`memory-hygiene-retained-backup/pruned.json` SHA
+bff5d18ce049b4a4a0df2a1b9d41dbb4f676086e6b766aa0a428dea39af949a7。
+
+新125秒基线最低105084KiB，超过90112入口；DNS p95 .85ms/max9.088、HTTP max76.662ms。
+独立`k-dual-family-screen14-after-prune`已启动，旧批次不复用任何窗口；新确认/完整阶段
+入口均绑定新AA/exit。scope和protocol hash元数据在开窗前修正并留旧副本，产物/工具不变。
+实时64MiB门不变，收益仍待完整14窗决定；没有因这次修复重训、重建或重复正确性。

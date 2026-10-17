@@ -8,7 +8,9 @@ I/J公开九对确认、实际44族/67任务、shipping/source边界、原118窗
 ELF2,288,419B/APK1,293,163B符合PGO预算。I保留回退；无部署、推送或产品合入main。
 正式身份见[candidate-j-acceptance.json](audits/perf-opt-20261015/candidate-j-acceptance.json)，
 接受tag为`perf/dnsmasq-candidate-j-pgo-20261017`（63df70ed）；不相加两批直接对照数字。
-K（4ce24c62）已过44/67，现进入14窗双栈筛选，至少省5µs且超过本轮AA才继续确认。
+K（4ce24c62）已过44/67；首轮5窗后触发64MiB保护，保留失败，清理28.1MiB旧测试副本。
+新基线最低102.6MiB后，独立`k-dual-family-screen14-after-prune`已开始，重新测AA；
+至少省5µs且超过新AA才继续确认。原J/C/v0对照与资格不重做，实时64MiB门不改。
 600秒夜间样本仅19条：AD/CD 0/19，18条可解析查询OPT 0/18，备用新增覆盖0；另1条未知。
 样本不能代表全天，暂不启用备用。AD/CD/空OPT的普通fresh路径仍零分配，不按D1回退率
 折减整个J的收益。全部新数字和限制见统一结果。
