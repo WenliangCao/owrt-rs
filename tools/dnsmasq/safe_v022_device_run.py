@@ -399,6 +399,7 @@ def execute(plan, bundle, qualification, out, startup_runner):
     extensions = extension_windows(plan)
     all_labels = [row['label'] for row in plan['schedule'] + extensions]
     all_labels += [label + '-repeat1' for label in all_labels]
+    all_labels += startup_runner.labels(plan['prefix'])
     finished = threading.Event(); rows = []; results = {}; noise = {}; cleanup = []
     monitor = threading.Thread(target=run.external_health, args=(out, finished, ctx['failed']), daemon=True)
     try:
