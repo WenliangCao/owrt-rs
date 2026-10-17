@@ -7,6 +7,10 @@ license = "MIT OR Apache-2.0"
 description = "Scoped RA and DHCPv6 server for the pinned OpenWrt image"
 publish = false
 
+[[bin]]
+name = "odhcpd-rs"
+path = "src/main.rs"
+
 [dependencies]
 owrt-platform = { path = "../platform" }
 owrt-ubus = { path = "../ubus" }
