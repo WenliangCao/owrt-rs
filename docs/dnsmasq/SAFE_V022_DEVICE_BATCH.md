@@ -56,15 +56,36 @@ CPU-clock 补充门的 4/5 正差只记趋势；5/5 同向且中位正差超同�
 `perf_opt_nice10.c`；严格 mixed 为 `m6a_upstream.c`，原 recipe 使用 `-Os -static
 -std=c11 -Wall -Wextra -Werror`，不能与普通上游统一按 `-O2` 重建。该差异来自保留的
 原工具收据，源码 SHA256 为 `1f29f0e76d5e864443c3ca45f80b7e5e65899d809ada626a820bf719d25f37a8`。
-首次统一构建的三个不同 hash 保留为准备记录，不宣称是历史产物。
+首次统一构建的三个不同 hash 保留为准备记录；按原 recipe 补正后，9 个历史支援工具的
+hash 全部复现。新启动工具独立构建，不沿用历史工具资格。
 
-尚缺：新 PGO 身份；无 proc/UID453/mount+PID namespace 正负控；完整正确性；9 个
-原支援二进制与启动补充的 SDK 构建/Oracle 预演；pending resolver 资源与 2/4/8 FD
-压力夹具；绑定当前生产/root/空闲 K/K slots 的执行控制器。旧模块中的生产哈希、恢复
-E/F slots 和入口常量不能直接运行。最终绑定与控制器完成前，计划状态保持 blocked。
+`safe_v022_device_run.py` 复用原模块，显式绑定当前生产/root/空闲 K/K slots；默认
+dry-run。统一资格文件绑定新源码、新 PGO 的 ELF/APK/profile、完整正确性、无 proc
+正负控及工具预演收据；主代理的机器排程 release 绑定该文件后才能执行，不涉及再次
+向用户请求确认。旧模块中的生产哈希、恢复 E/F slots 和入口常量不能直接运行。
+新 PGO 和实际目标资格未齐，执行状态保持 blocked。
 
-启动补充等真实 helper `old` callback 或 servers-file hostname 上游应答后才算就绪，
-使用 subreaper 收齐子孙后读整树 CPU；资源只报告就绪后 RSS/Anon/FD 快照，不称峰值或
-PSS。任何强制清理、漏 reap、500 ms 周期超时或失败停止；明确超过 1 ms 的启动退化
+40 次启动的 target 均有私有 mount/PID namespace、最小 chroot，由 root exec 后降到
+UID/GID453、CapEff `0x3400`。helper 两侧无 `/proc`；resolver 两侧保留 `/proc`，因为
+精确 K 的 runtime lookup 在 fork 前直接读取 `/proc/self/fd`，缺失便失败，没有 helper
+的 RLIMIT fallback。K 的无 proc lookup 单列一次实际负控，不拿失败做时间排名。
+新候选无 proc lookup 的功能和 pending child 权限/FD 由独立资格覆盖。
+
+一次只读现场核验得到 daemon/ujail/procd/SSH 的 NOFILE 均为 soft1024/hard4096，
+同 boot/PID/start、精确 K 与本地 DNS 健康成立；启动两侧明确使用这个限额。
+raw SHA256 为 `f1c3a1fa90d3948b8aa79052b88bbb7d7d20d39ae5a3fdad26eef93808d74783`。
+namespace/chroot 准备在 exec 握手前完成。子进程给出 pre-exec monotonic 和
+RUSAGE_SELF，外部 subreaper 收齐自有后代后读 RUSAGE_CHILDREN；同时保留 whole CPU、
+实测 setup CPU 与只减去该 setup 的 timed CPU，不猜减共同开销。返回计数单位 1 µs，
+并保留十次总和；这不宣称实际准确度达到 1 µs。
+
+真实 helper `old` callback 或 servers-file hostname 上游应答才算就绪；ready 截止后
+只读一次资源/全部 FD 快照，包含 stdio。资源不称峰值或 PSS。任何强制清理、漏 reap、
+500 ms 周期超时或失败停止；明确超过 1 ms 的启动退化
 交主代理审查。原 helper 的 FD=2 首跑结论保留；新 selfexec 四 FD/两底层 pipe 结构资格
 单列，不用改断言把资源代价变成相同。
+
+正常 FD 增量分项：owner 常驻可执行映像 O_PATH 1 个；helper 两根 pipe 各一个副本，
+额外 2 个；pending resolver 的请求/结果 pipe 与可能重开的 stdio 按实际捕获报告。
+FD 压力只在 Oracle 对最终 PGO 验收，按实际 holes 设置 2/4/8 空闲槽，恢复限额后再次
+验证公开路径和 DNS；此数据不称 A53 性能。允许正常常驻 FD 增量不豁免压力失败。

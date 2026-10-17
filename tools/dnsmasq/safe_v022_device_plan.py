@@ -107,9 +107,14 @@ def make_plan(prefix, bundle):
             'tool': 'device_selfexec_lifecycle', 'modes': ['helper', 'resolver'],
             'artifacts': ['k', 'candidate'], 'starts_per_mode_artifact': 10,
             'total_starts': 40, 'cadence_ms': 500,
+            'target_boundary': 'private mount/PID namespace and minimal chroot, root exec then UID/GID453 and CapEff0x3400',
+            'proc_by_mode': {'helper': 'absent', 'resolver': 'present'},
+            'nofile_soft_hard': [1024, 4096],
+            'resolver_limitation': 'exact K runtime lookup fails before fork without proc; retain one functional negative control, no failure timing rank',
             'readiness': {'helper': 'exact old callback and correct local DNS reply',
                           'resolver': 'servers-file hostname route and correct upstream reply'},
-            'cpu': 'subreaper whole owned tree, after all owned descendants are reaped',
+            'cpu': 'subreaper RUSAGE_CHILDREN after all owned descendants reaped; retain whole CPU and '
+                   'child pre-exec RUSAGE_SELF setup baseline separately; timed CPU subtracts measured setup only',
             'resource': 'post-ready RSS/Anon/FD snapshot; no peak/PSS/USS claim',
             'observer_resolution_ms': 1,
             'stop': 'any failed start, incomplete reaping, forced cleanup or cadence overrun',
@@ -125,7 +130,7 @@ def make_plan(prefix, bundle):
             'all nine reconstructed device support binaries SDK-built and hashes bound',
             'startup supplement SDK-built and Oracle-rehearsed',
             'pending resolver resource and 2/4/8 FD-pressure fixtures qualified',
-            'new controller binds recovered modules to current root/production/idle K slots',
+            'controller binds recovered modules to current root/production/idle K slots',
             'plan/artifact/tool hashes frozen before first window',
         ],
         'health': {
@@ -177,6 +182,9 @@ def make_plan(prefix, bundle):
             'latency': 'original p50/p95 W comparisons also retained for dual confirmation',
             'resource': 'tree CPU/FD/RSS retained; expected extra pipe FDs must match explicit contract; '
                         'unexpected FD/socket growth or pressure recovery failure blocks acceptance',
+            'fd_accounting': 'owner retained executable O_PATH+1; helper two underlying pipes each dup =>+2; '
+                             'pending resolver pipe and any recreated stdio measured explicitly on Oracle; '
+                             'normal extra FDs never excuse pressure failure',
             'stage_gate': 'any unexpected correctness/health/resource failure or discernible '
                           'regression stops progression; no automatic retries for effect or noise',
         },

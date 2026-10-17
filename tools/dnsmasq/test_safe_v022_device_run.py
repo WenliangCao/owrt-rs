@@ -16,30 +16,36 @@ import safe_v022_device_run as driver
 
 REPO = Path(__file__).resolve().parents[2]
 BUNDLE = REPO / 'private/device-v022-tool-recovery-20261017'
-PLAN = REPO / 'private/device-v022-preparation/batch-plan-v2.json'
 
 
 class DriverTests(unittest.TestCase):
-    @unittest.skipUnless(BUNDLE.is_dir() and PLAN.is_file(), 'requires explicitly prepared local archive bundle')
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.plan = Path(temporary.name) / 'plan.json'
+        if BUNDLE.is_dir():
+            self.plan.write_text(json.dumps(driver.plan_tool.make_plan('test', BUNDLE)))
+
+    @unittest.skipUnless(BUNDLE.is_dir(), 'requires explicitly prepared local archive bundle')
     def test_default_dry_run_never_loads_remote_modules(self):
-        argv = ['run', '--bundle', str(BUNDLE), '--plan', str(PLAN)]
+        argv = ['run', '--bundle', str(BUNDLE), '--plan', str(self.plan)]
         with patch.object(sys, 'argv', argv), patch.object(driver, 'bind_modules', side_effect=AssertionError('remote modules loaded')), contextlib.redirect_stdout(io.StringIO()) as output:
             driver.main()
         result = json.loads(output.getvalue())
         self.assertEqual(result['windows'], 148)
         self.assertFalse(result['remote_access'])
 
-    @unittest.skipUnless(BUNDLE.is_dir() and PLAN.is_file(), 'requires explicitly prepared local archive bundle')
+    @unittest.skipUnless(BUNDLE.is_dir(), 'requires explicitly prepared local archive bundle')
     def test_execute_without_qualification_is_rejected_before_remote(self):
-        argv = ['run', '--bundle', str(BUNDLE), '--plan', str(PLAN), '--execute']
+        argv = ['run', '--bundle', str(BUNDLE), '--plan', str(self.plan), '--execute']
         with patch.object(sys, 'argv', argv), patch.object(driver, 'execute', side_effect=AssertionError('executed')), contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit) as error:
                 driver.main()
         self.assertEqual(error.exception.code, 2)
 
-    @unittest.skipUnless(BUNDLE.is_dir() and PLAN.is_file(), 'requires explicitly prepared local archive bundle')
+    @unittest.skipUnless(BUNDLE.is_dir(), 'requires explicitly prepared local archive bundle')
     def test_changed_schedule_rejected(self):
-        plan = json.loads(PLAN.read_text())
+        plan = json.loads(self.plan.read_text())
         plan['schedule'][0]['scene'][5] += 1
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'plan.json'; path.write_text(json.dumps(plan))
