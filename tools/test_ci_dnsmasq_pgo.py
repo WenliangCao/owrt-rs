@@ -15,7 +15,7 @@ class PgoReleaseTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
+        self.root = Path(self.temporary.name).resolve()
         self.profile = self.root / "profile.profdata"
         self.profile.write_bytes(b"frozen synthetic profile")
         self.linker = self.root / "linker.py"
@@ -35,6 +35,37 @@ class PgoReleaseTests(unittest.TestCase):
                          f" -Cprofile-use={self.profile} -Cllvm-args=-pgo-warn-missing-function")
         self.assertEqual(result["mode"], "use")
         self.assertIsNone(wrapper.prepare(self.plan, ["--version"], self.env))
+
+    def test_fixed_slot_rejects_existing_outputs_and_symlink_ancestors(self):
+        slot = self.root / "sdk-build-slot"
+        self.assertEqual(builder.pgo_build_slot(slot), slot)
+        slot.mkdir()
+        with self.assertRaises(ValueError):
+            builder.pgo_build_slot(slot)
+        alias = self.root / "alias"
+        alias.symlink_to(slot, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            builder.pgo_build_slot(alias / "fresh")
+
+    def test_compilation_evidence_keeps_outputs_and_selected_fingerprints(self):
+        build = self.root / "slot"
+        target = build / "dnsmasq/target/aarch64-unknown-linux-musl/release"
+        target.mkdir(parents=True)
+        (target / "dnsmasq-rs").write_bytes(b"compiled-elf")
+        for name in ["owrt-ubus-abcd", "dnsmasq-rs-efab", "unrelated-1234"]:
+            folder = target / ".fingerprint" / name
+            folder.mkdir(parents=True)
+            (folder / "lib.json").write_text('{"metadata":"actual"}')
+        packages = self.root / "packages"
+        packages.mkdir()
+        (packages / "dnsmasq-2.93-r4.apk").write_bytes(b"actual-package")
+        report = {"pgo": {}}
+        builder.retain_pgo_compilation(self.root, build, packages, report)
+        evidence = self.root / "pgo-compilation"
+        self.assertEqual((evidence / "dnsmasq-prestrip").read_bytes(), b"compiled-elf")
+        self.assertEqual((evidence / "dnsmasq-2.93-r4.apk").read_bytes(), b"actual-package")
+        self.assertEqual(set(json.loads((evidence / "cargo-fingerprints.json").read_text())),
+                         {"owrt-ubus-abcd/lib.json", "dnsmasq-rs-efab/lib.json"})
 
     def test_wrong_profile_linker_argv_and_codegen_overrides_are_rejected(self):
         for name, value in [("LLVM_PROFILE_FILE", "raw"), ("CARGO_PROFILE_RELEASE_OPT_LEVEL", "2"),

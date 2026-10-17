@@ -24,6 +24,7 @@ import build_package as audit
 
 
 REPO = Path(__file__).resolve().parent.parent
+PGO_BUILD_SLOT = Path("/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build-slot")
 
 
 def write(path, value):
@@ -57,6 +58,41 @@ def download_profile(spec, out):
     audit.require(profile.is_file() and profile.stat().st_size == spec["profile_bytes"]
                   and audit.sha(profile) == spec["profile_sha256"], "downloaded PGO profile differs from freeze")
     return profile, command
+
+
+def pgo_build_slot(path=PGO_BUILD_SLOT):
+    # owrt-ubus is a sibling outside dnsmasq's workspace. Cargo's stable
+    # PackageId hash therefore includes this absolute path in -Cmetadata.
+    audit.require(not path.exists() and not any(p.is_symlink() for p in (path, *path.parents)),
+                  "PGO build slot must be fresh and have no symlink ancestors")
+    parent = path.parent
+    if not parent.exists():
+        subprocess.run(["sudo", "-n", "install", "-d", "-m", "0755", "-o", str(os.getuid()),
+                        "-g", str(os.getgid()), str(parent)], check=True)
+    audit.require(parent.is_dir() and parent.stat().st_uid == os.getuid()
+                  and not path.exists() and not any(p.is_symlink() for p in (path, *path.parents)),
+                  "PGO build parent is not the runner-owned task directory")
+    return path
+
+
+def retain_pgo_compilation(out, build_dir, output, report):
+    """Keep actual failed output and small Cargo identity records, never a target cache."""
+    evidence = out / "pgo-compilation"
+    evidence.mkdir()
+    prestrip = build_dir / "dnsmasq/target/aarch64-unknown-linux-musl/release/dnsmasq-rs"
+    if prestrip.is_file():
+        shutil.copy2(prestrip, evidence / "dnsmasq-prestrip")
+    for package in output.rglob("dnsmasq-*.apk"):
+        shutil.copy2(package, evidence / package.name)
+    fingerprints = prestrip.parent / ".fingerprint"
+    rows = {}
+    for path in sorted(fingerprints.glob("*/*.json")):
+        if path.parent.name.startswith(("owrt-ubus-", "dnsmasq-rs-")):
+            rows[str(path.relative_to(fingerprints))] = json.loads(path.read_text())
+    write(evidence / "cargo-fingerprints.json", rows)
+    files = {path.name: {"bytes": path.stat().st_size, "sha256": audit.sha(path)}
+             for path in evidence.iterdir() if path.is_file()}
+    report["pgo"]["compilation_evidence"] = files
 
 
 def verify_pgo_build(out, report):
@@ -115,7 +151,8 @@ def build(work, spec, report):
         "rustc": audit.run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip(),
         "target_cc": audit.run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip(),
     }
-    build_dir, output = out / "package-build", out / "sdk-output"
+    build_dir = pgo_build_slot() if "pgo" in spec else out / "package-build"
+    output = out / "sdk-output"
     cargo_home = audit.safe_path(Path(env.get("CARGO_HOME", str(Path.home() / ".cargo"))).resolve())
     rustup_home = audit.safe_path(Path(env.get("RUSTUP_HOME", str(Path.home() / ".rustup"))).resolve())
     build_cargo = cargo
@@ -143,7 +180,8 @@ def build(work, spec, report):
         env["DNSMASQ_PGO_BUILD_PLAN"] = str(plan_path)
         report["pgo"] = {**spec["pgo"], "download_command": download, "plan_sha256": audit.sha(plan_path),
                          "wrapper_sha256": audit.sha(build_cargo), "mode": "use", "training_repeated": False}
-    variables = ["V=s", "-j1", f"V1_PACKAGE_RELEASE={spec['package_release']}",
+    variables = ["V=s", "-j1", *(["CONFIG_AUTOREMOVE="] if "pgo" in spec else []),
+                 f"V1_PACKAGE_RELEASE={spec['package_release']}",
                  f"OWRT_COMPONENTS_SOURCE={source / 'components'}", f"OWRT_DNSMASQ_BUILD_DIR={build_dir}",
                  f"OWRT_DNSMASQ_OUTPUT_DIR={output}", f"V1_CARGO={build_cargo}",
                  f"V1_CARGO_HOME={cargo_home}", f"V1_RUSTUP_HOME={rustup_home}"]
@@ -155,7 +193,11 @@ def build(work, spec, report):
             for stage in ("prepare", "compile"):
                 command = ["make", f"{target}/{stage}", *variables]
                 report["commands"].append(command)
-                audit.run(command, out / f"{stage}.log", cwd=sdk, env=env)
+                try:
+                    audit.run(command, out / f"{stage}.log", cwd=sdk, env=env)
+                finally:
+                    if stage == "compile" and "pgo" in spec:
+                        retain_pgo_compilation(out, build_dir, output, report)
                 if stage == "prepare":
                     for name, expected in files.items():
                         if name.startswith("components/"):

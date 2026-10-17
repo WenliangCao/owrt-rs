@@ -58,7 +58,9 @@ def main():
             json.dump(receipt, stream, indent=2)
             stream.write("\n")
         os.environ["RUSTFLAGS"] = receipt["effective_rustflags"]
-    os.execv(plan["cargo"], [plan["cargo"], *argv])
+    # Cargo verbosity exposes its actual -Cmetadata and rustc selection without
+    # changing compiler flags, package identity or the frozen SDK recipe.
+    os.execv(plan["cargo"], [plan["cargo"], *argv, *(["-vv"] if receipt is not None else [])])
 
 
 if __name__ == "__main__":

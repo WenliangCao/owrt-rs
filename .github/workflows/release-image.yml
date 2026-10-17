@@ -98,6 +98,7 @@ jobs:
             work/out/dnsmasq/*.log
             work/out/dnsmasq/manifest.json
             work/out/dnsmasq/pgo-*.json
+            work/out/dnsmasq/pgo-compilation/*
             work/native/*.log
             work/native/build-inputs.json
             work/native/bin/*-sysupgrade.bin
