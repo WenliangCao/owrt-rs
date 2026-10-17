@@ -37,6 +37,16 @@ class PgoReleaseTests(unittest.TestCase):
         self.assertEqual(result["mode"], "use")
         self.assertIsNone(wrapper.prepare(self.plan, ["--version"], self.env))
 
+    def test_exec_preserves_normal_recipe_verbosity(self):
+        plan = {**self.plan, "cargo": "/pinned/cargo", "receipt": str(self.root / "receipt.json")}
+        path = self.root / "plan.json"
+        path.write_text(json.dumps(plan))
+        with patch.dict(wrapper.os.environ, {**self.env, "DNSMASQ_PGO_BUILD_PLAN": str(path)}, clear=True), \
+             patch.object(wrapper.sys, "argv", ["pgo-cargo", *self.argv]), \
+             patch.object(wrapper.os, "execv") as execute:
+            wrapper.main()
+        execute.assert_called_once_with("/pinned/cargo", ["/pinned/cargo", *self.argv])
+
     def test_fixed_slot_rejects_existing_outputs_and_symlink_ancestors(self):
         slot = self.root / "sdk-build-slot"
         self.assertEqual(builder.pgo_build_slot(slot), slot)

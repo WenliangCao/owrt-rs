@@ -80,9 +80,9 @@ def main():
             json.dump(receipt, stream, indent=2)
             stream.write("\n")
         os.environ["RUSTFLAGS"] = receipt["effective_rustflags"]
-    # Cargo verbosity exposes its actual -Cmetadata and rustc selection without
-    # changing compiler flags, package identity or the frozen SDK recipe.
-    os.execv(plan["cargo"], [plan["cargo"], *argv, *(["-vv"] if receipt is not None else [])])
+    # Preserve normal recipe verbosity. Diagnostic -vv also changes dependency
+    # --cap-lints from allow to warn and emits Cargo's ignored-hint advisories.
+    os.execv(plan["cargo"], [plan["cargo"], *argv])
 
 
 if __name__ == "__main__":

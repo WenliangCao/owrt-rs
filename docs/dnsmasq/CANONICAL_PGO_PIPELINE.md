@@ -46,9 +46,17 @@ to runtime/performance qualification. No extra reproduction build is required
 in this research round. Later `frozen-use` specs add the actual reference hash
 and size; normal accepted-release builds retain mandatory hash equality.
 
-Every PGO build preserves verbose compiler commands and selected host/target
+Every PGO build preserves original compilation logs and selected host/target
 Cargo fingerprints/build-script output. New pipeline builds additionally retain
 `pgo-compilation/link.map`, `dnsmasq-prestrip`, and `map-cc`. The map wrapper adds
 only `-Wl,-Map` to the actual static PIE link, after Cargo/rustc identity selection;
 it does not alter source or Rust flags. `manifest.json.link_map` binds the map,
 wrapper and actual SDK compiler. No stage grants deployment acceptance.
+
+Diagnostic run `39045487550` used added Cargo `-vv` and failed the unchanged
+warning gate on two rustix ignored-hint advisories. That failed record remains
+intact. Generate/use now preserve normal recipe verbosity, `-Dwarnings` and the
+same warning scanner without exemptions. Cargo `-vv` also changes dependency
+`--cap-lints allow` to `warn`; therefore the two runs must not be described as
+having identical actual rustc flags. Compare the generated ELF and retained
+crate identities when checking the normal-verbosity rerun.
