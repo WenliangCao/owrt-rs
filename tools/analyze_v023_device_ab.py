@@ -6,6 +6,13 @@ import json
 from pathlib import Path
 import statistics
 
+ELF = {
+    "fw4": {"A": "ee5a9c5685f7363be3fc2bd5039546b2f01327633afc24031b446fc0fb7f5b55",
+            "B": "2a077d0d268fca821463919219ee339b629c37cab2f47b2584b382074a83a72c"},
+    "netifd": {"A": "0131ce3feeec074bfa6f5046ff3732ec235495442956407e7ea17559ce747a93",
+               "B": "cd02d474cfc557fb43231c947c29b442a0178efdaea6902e9b4bf2a0d03310ef"},
+}
+
 
 def gate(calibration, formal, resolution):
     noise = max(*(max(values) - min(values) for values in calibration.values()),
@@ -38,6 +45,8 @@ def main():
             sample = root / "fw4" / f"{scene}-{phase}-{number}-{side}"
             assert (sample / "COMPLETE").is_file()
             assert (sample / "request").read_text().strip() == f"{scene} {side}"
+            assert (sample / "elf.sha256").read_text().split()[0] == ELF["fw4"][side]
+            assert (sample / "quiet-seconds").read_text().strip() == "1"
             row = json.loads((sample / "measurement.json").read_text())
             assert row["exit"] == 0 and row["cpu_us"] == row["user_us"] + row["system_us"]
             rows.append((side, row))
@@ -56,6 +65,7 @@ def main():
     for side in "AB":
         directory = root / f"netifd-{side}"
         assert (directory / "COMPLETE").is_file()
+        assert (directory / "identities.sha256").read_text().split()[0] == ELF["netifd"][side]
         rows = [json.loads(line) for line in (directory / "samples.jsonl").read_text().splitlines()]
         assert len(rows) == 8
         for index, row in enumerate(rows):
@@ -64,7 +74,7 @@ def main():
             assert row["settle_wall_ns"] >= 1_000_000
         assert len({(r["subject_pid"], r["subject_start_ticks"]) for r in rows}) == 1
         subjects[side] = rows
-    assert {r["t0_ns"] for rows in subjects.values() for r in rows}.__len__() == 1
+    assert len({r["t0_ns"] for rows in subjects.values() for r in rows}) == 1
     for index in range(8):
         a, b = subjects["A"][index], subjects["B"][index]
         assert b["scheduled_ns"] - a["scheduled_ns"] == (2_000_000_000 if index % 2 == 0 else -2_000_000_000)
@@ -73,6 +83,7 @@ def main():
         [[subjects[s][i]["subject_cpu_ns"] for s in "AB"] for i in range(3, 8)],
         max(r["subject_resolution_ns"] for rows in subjects.values() for r in rows))
     floor = [json.loads((root / "floor" / f"{i}.json").read_text()) for i in range(1, 7)]
+    assert all(row["exit"] == 0 for row in floor)
     inputs = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob("*")) if p.is_file()}
     report = {
