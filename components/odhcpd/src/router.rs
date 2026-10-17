@@ -3,7 +3,7 @@
 //! No candidate PIO change reaches the state file before that success boundary.
 
 use crate::config::PoolConfig;
-use crate::model::{remaining, Address, Clock, KernelState, Link, Prefix};
+use crate::model::{remaining, Address, Clock, KernelState, Prefix};
 use owrt_ubus::json::{self, Json};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
@@ -127,7 +127,15 @@ impl Router {
         };
         let pool = context.pool;
         let now = context.clock.seconds();
-        let mut addresses = interface_addresses(link, now);
+        // Kernel snapshots preserve C's ordering at address-dump time:
+        // relative preferred lifetime descending, with ULA's sort key = 1.
+        // Do not re-sort or reset deprecated deadlines when handling a packet.
+        let mut addresses: Vec<_> = link
+            .addresses
+            .iter()
+            .filter(|address| address.scope == 0)
+            .cloned()
+            .collect();
         if self.next_ms.is_none() {
             addresses.clear();
         }
@@ -541,30 +549,6 @@ pub fn valid_solicitation(packet: &[u8], source: Ipv6Addr, hop_limit: u8) -> boo
     true
 }
 
-fn interface_addresses(link: &Link, now: u64) -> Vec<Address> {
-    let mut addresses: Vec<_> = link
-        .addresses
-        .iter()
-        .filter(|address| address.scope == 0)
-        .cloned()
-        .collect();
-    for address in &mut addresses {
-        if address.flags & 0x20 != 0 {
-            // C clears the relative cache lifetime before converting it to
-            // an absolute monotonic deadline, hence now rather than zero.
-            address.preferred_until = now;
-        }
-    }
-    addresses.sort_by_key(|address| {
-        std::cmp::Reverse(if address.prefix().is_ula() {
-            1
-        } else {
-            address.preferred_until
-        })
-    });
-    addresses
-}
-
 fn capped(lifetime: u32, limit: u32) -> u32 {
     if limit == 0 {
         lifetime
@@ -631,7 +615,7 @@ fn search_option(domains: &[String], lifetime: u32) -> Option<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{Route, INFINITE};
+    use crate::model::{Link, Route, INFINITE};
     use std::sync::atomic::{AtomicU64, Ordering};
 
     fn ip(value: &str) -> Ipv6Addr {
@@ -677,8 +661,8 @@ mod tests {
                     mtu: 1500,
                     mac: [2, 0, 0, 0, 0, 1],
                     addresses: vec![
-                        address("fd00:1234:5600:ab::1", 60),
                         address("2001:db8:1:1::1", 64),
+                        address("fd00:1234:5600:ab::1", 60),
                         local,
                     ],
                 },
@@ -885,7 +869,7 @@ mod tests {
         let mut router = Router::new("br-lan", clock(0));
         router.timer(&context(&pool, &kernel, 1000)).unwrap();
         router.sent();
-        kernel.links[0].addresses[1] = address("2001:db8:2:1::1", 64);
+        kernel.links[0].addresses[0] = address("2001:db8:2:1::1", 64);
         let packet = router
             .solicit(&context(&pool, &kernel, 2000), ip("fe80::4321"))
             .unwrap();
@@ -917,7 +901,8 @@ mod tests {
         router.timer(&context(&pool, &kernel, 1000)).unwrap();
         router.sent();
         let before = router.ipv6ra(clock(1000));
-        kernel.links[0].addresses[1].flags = 0x20;
+        kernel.links[0].addresses[0].flags = 0x20;
+        kernel.links[0].addresses[0].preferred_until = 2;
         let packet = router
             .solicit(&context(&pool, &kernel, 2000), ip("fe80::4321"))
             .unwrap();
@@ -927,7 +912,8 @@ mod tests {
         );
         // Deliberately omit sent(), as for a failed sendmsg.
         assert_eq!(router.ipv6ra(clock(2000)), before);
-        kernel.links[0].addresses[1].flags = 0;
+        kernel.links[0].addresses[0].flags = 0;
+        kernel.links[0].addresses[0].preferred_until = INFINITE;
         router
             .solicit(&context(&pool, &kernel, 3000), ip("fe80::4321"))
             .unwrap();
