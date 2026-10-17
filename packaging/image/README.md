@@ -17,7 +17,7 @@ from the pinned original stock image with the official services enabled and with
 trial collectors or per-component activation scripts. Final deliverables are
 under `work/native/out/`; `work/out/` contains intermediate build evidence. Final assembly uses an offline APK install and the exact ImageBuilder squashfs, sysupgrade-tar and fwtool tools. It never resolves rolling feeds for the final rootfs. Four Chinese catalogs are rebuilt from the pinned matching LuCI source, checked against production hashes, and delivered as four ordinary translation APKs.
 
-The dnsmasq build locks all 179 accepted source, toolchain and recipe inputs by
+The dnsmasq build locks all 212 frozen source, shared-platform, toolchain and recipe inputs by
 their digest. `dnsmasq-build-manifest.json` records the fresh CI ELF, static PIE
 checks and its comparison with the previously accepted SDK ELF. A different
 canonical-host ELF does not inherit runtime qualification merely from matching
@@ -25,6 +25,11 @@ source; final image acceptance is a separate gate. The intermediate standalone
 dnsmasq APK is audited but not installed into the final rootfs or released for
 live installation. The unified package depends on the original dnsmasq package
 for its configuration, users and unchanged helpers.
+
+From v0.2.2, the other nine programs also carry individual reference ELF hashes.
+Every canonical image rebuild must reproduce all ten qualified binaries. The
+DNS product commit and packaging epoch remain distinct from the final image's
+build commit, so report/version changes do not retrain PGO or change its inputs.
 
 Upgrade the complete firmware using sysupgrade with selected configuration
 retention. The native APK is an image construction input, not a supported live

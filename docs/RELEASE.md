@@ -1,10 +1,10 @@
 # 集成固件的发布与维护
 
-2026-10-17。当前配方构建十组件统一 **`v0.2.2` 候选**，尚未发布或部署；现役仍为 v0.2.1/K。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，候选进度见[统一验收报告](reviews/CORE_SAFE_20261017.md)，现役记录见[v0.2.1 部署报告](reviews/DEPLOYMENT_V0_2_1_20261017.md)。
+2026-10-17。当前配方交付十组件统一 **`v0.2.2`**，同一正式 CI 镜像已完成一次保配置部署与健康观察。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，实现与验收见[统一报告](reviews/CORE_SAFE_20261017.md)，现场记录见[v0.2.2 部署报告](reviews/DEPLOYMENT_V0_2_2_20261017.md)。
 
 适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定标准路径、C 原件哈希、原软件包所有者及 dnsmasq 的构建输入。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
 
-历史版本保持原身份与验收范围：首份九组件镜像 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0) 使用 `0.1.0-r2`，完成保留配置刷写和物理断电复测，见[镜像验收](reviews/NATIVE_IMAGE_20260929.md)与[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。[v0.1.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1) 使用 `0.1.0-r3`；其[快速部署记录](reviews/DEPLOYMENT_V0_1_1_20261009_RESULT.md)明确未执行断电测试。两者均仍使用原版 C dnsmasq，不能把十组件资格倒填给历史版本。当前 v0.2.1 的整镜像回滚基线为 [v0.2.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0)。
+历史版本保持原身份与验收范围：首份九组件镜像 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0) 使用 `0.1.0-r2`，完成保留配置刷写和物理断电复测，见[镜像验收](reviews/NATIVE_IMAGE_20260929.md)与[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。[v0.1.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1) 使用 `0.1.0-r3`；其[快速部署记录](reviews/DEPLOYMENT_V0_1_1_20261009_RESULT.md)明确未执行断电测试。两者均仍使用原版 C dnsmasq，不能把十组件资格倒填给历史版本。现役 v0.2.2 的整镜像回滚基线为 [v0.2.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1)。
 
 ## 安装布局
 
@@ -36,7 +36,7 @@ v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历�
 | 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
 | 内容审计 | 十个程序、init/ACL、APK 所有权、十二份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
-最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前候选的 canonical 参考为 `0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.2.1 的 CI 已精确复现 K；v0.2.2 的统一 generator/use 已完成且 0 PGO missing/mismatch，整镜像重建仍必须逐字节复现新参考。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格仍分别记录，不能混用；本轮 v0.2.0/J 直接比较使用实际 `8472be5a…`。
+最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前版本的 canonical 参考为 `0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.2.1 的 CI 已精确复现 K；v0.2.2 的统一 generator/use 已完成且 0 PGO missing/mismatch，整镜像重建仍必须逐字节复现新参考。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格仍分别记录，不能混用；本轮 v0.2.0/J 直接比较使用实际 `8472be5a…`。
 
 可先在 Actions 页面选择已审阅分支，或执行：
 
@@ -54,7 +54,7 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 
 失败流水线另存诊断日志和已生成的候选镜像；未通过的候选不作为发布完成证据。
 
-## v0.2.2 统一候选的接入（尚未发布）
+## v0.2.2 统一验收与一次部署
 
 十组件以 `research/core-safe-20261017` 为整合主线，一起验收、正式构建并最终只刷一次。
 配方 `0.2.2-r1` 绑定 procd 修复 `d644eda4`、core CI `39050152457` 的实际 ELF；
@@ -62,11 +62,18 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 canonical use CI `39048357460` 实际 ELF。共享 platform、ubus、锁文件和构建槽
 都在新 DNS 的 212 输入闭包中；旧 a97 独立候选及 profile 不转授给整合版。
 
-现将十份候选身份提前固定，用普通 `workflow_dispatch` 构建统一镜像，让实际镜像的
-离线 boot/install/recovery/handoff 验收与组件正确性和真机性能重叠。此调整只缩短等待：
-**参考身份表示必须重建出同一份待验程序，不代表运行或硬件验收通过。** 不创建 Release，
-不推版本标签，不部署；任何产品修复均作废受影响的候选镜像。全部原定门通过后才发布
-和刷写这一份实际验收镜像。构建状态与最终接受决定分别记录，不能用新镜像跳过组件门。
+正式 [CI 39050957718](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39050957718)
+从 `598b19a77021fef9abf62048d5c1e5b01c6c147c` 重建并精确复现十个 ELF，最终固件
+13,783,328 B、SHA256 `af05e9325e43b4961bb332aa8d004f9141a040d88ee87c7f77515e628406693d`。
+完整正确性、整镜像离线恢复与启动检查通过。按用户最终指示，物理性能范围缩为四场景
+各三对及十次启动，没有追加旧大矩阵；结果见[派生数据](reviews/V0_2_2_SHORT_REGRESSION_20261017.json)。
+
+同一镜像完成一次保配置刷写，连续 184 秒客户端健康确认后，再取得 121 个点的 600 秒
+资源观察及 21/21 组健康检查通过。没有额外普通重启或断电测试。当次备份与精确 v0.2.1
+回滚镜像在刷前离机核验，临时自动回退用于此次验收。主分支、标签和 Latest 仅在实际
+部署验收通过后推送；标签固定上述构建提交，后续报告不移动它。发布资产保持 CI 原字节，
+沿 v0.2.1 的短时 workflow 停用/finally 恢复协议避免 tag 重建覆盖，再重新下载核验。
+具体实际结果见[部署记录](reviews/DEPLOYMENT_V0_2_2_20261017.md)和[发布说明](reviews/RELEASE_V0_2_2_20261017_NOTES.md)。
 
 DNS `frozen-use` spec 保留产品提交、冻结时间、完整文件哈希/count/digest、实际 ELF
 SHA256/字节数、profile URL/SHA256/字节数和训练来源。中间包仍为 `package_release="4"`，
@@ -78,8 +85,8 @@ SHA256/字节数、profile URL/SHA256/字节数和训练来源。中间包仍为
 正式 checkout 重新编译；manifest 的 `source_commit` 是统一构建提交，DNS 的
 `accepted_product_commit` 和 `source_date_epoch` 保留原产品身份与 Git 时间。
 这些既有字段是构建归属，不代替硬件接受记录。首份 `34300d29` 镜像因 procd
-漏收独立会话子进程被拒绝；修复后 R71 计数恢复 `1→2`、R83 恢复 11 次，须重建
-并验收包含新 procd 的整镜像。完整 Git 历史用于核验冻结时间；后续
+漏收独立会话子进程被拒绝；修复后 R71 计数恢复 `1→2`、R83 恢复 11 次，
+最终 `598b19a7` 镜像已重新构建并完成整栈验收。完整 Git 历史用于核验冻结时间；后续
 版本/报告提交不改变 DNS 打包时间。native 整合再次核验 ELF SHA、大小和 profile/slot，
 不把 diagnostic candidate 输出直接装入镜像。
 
@@ -89,7 +96,7 @@ SHA256/字节数、profile URL/SHA256/字节数和训练来源。中间包仍为
 
 相对 v0.2.1，九个 SDK ELF 总计 7,762,326 → 7,774,614 B（+12,288 B）；新 DNS 为
 2,308,899 B（+12,288 B），十项合计 **+24,576 B**。该数不是 RSS、压缩镜像大小或性能；
-所有组件仍按统一性能门验收，netifd/procd/ubusd 的启动与空闲资源另作观察。
+这些体积变化不替代短回归结论；七个常驻服务的资源另有实际观测，三个 CLI 不列常驻 RSS。
 
 ## v0.2.1 发布与部署
 
@@ -153,7 +160,7 @@ sysupgrade 默认保留选定配置，安装新系统后由原 preinit 恢复；
 
 ## 恢复路径
 
-v0.2.0/v0.2.1 的 `/usr/libexec/owrt-stock/` 保留 **十二份**精确 stock 文件：十个 C 程序，加 C dnsmasq 原 init 与 ACL，保持相对路径。**`/rom` 中对应路径已是集成 Rust 版本，不能当 C 原件。**
+v0.2.0 起的 `/usr/libexec/owrt-stock/` 保留 **十二份**精确 stock 文件：十个 C 程序，加 C dnsmasq 原 init 与 ACL，保持相对路径。**`/rom` 中对应路径已是集成 Rust 版本，不能当 C 原件。**
 
 SSH 可用，或进入 failsafe 并 `mount_root` 后，可运行：
 
@@ -165,7 +172,7 @@ reboot
 
 工具先校验全部恢复文件、拒绝被绑定挂载的目标，准备并核验完整临时集合，再替换十二个路径；dnsmasq 必须与原 init/ACL 一同恢复。它不主动重启，不依赖 ubus/netifd，不修改用户配置。多次运行结果一致；十二次 rename 不是跨文件原子事务，中断可在 failsafe 重跑。
 
-这条路径恢复精确官方 C 栈，**不等同于刷回某个历史固件版本**。v0.2.1 的版本回滚使用已核验 v0.2.0 镜像与当次配置备份；本次验收期临时守卫也以它为回刷目标。管理不可达时使用 failsafe/TFTP 救援路径。原版内核、早期 init、preinit/failsafe 和救援材料保留；Wi-Fi 管理获授权，网线不是普通刷写的前提，实际 failsafe/TFTP 见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
+这条路径恢复精确官方 C 栈，**不等同于刷回某个历史固件版本**。v0.2.2 的版本回滚使用已核验 v0.2.1 镜像与当次配置备份；本次验收期临时守卫也以它为回刷目标。管理不可达时使用 failsafe/TFTP 救援路径。原版内核、早期 init、preinit/failsafe 和救援材料保留；Wi-Fi 管理获授权，网线不是普通刷写的前提，实际 failsafe/TFTP 见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
 
 ## 验收边界
 

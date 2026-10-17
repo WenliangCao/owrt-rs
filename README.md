@@ -5,11 +5,13 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 保留精确 C 原件与离线恢复材料。
 
-**现状（2026-10-14）：[v0.2.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0) 十组件固件已保留配置上线并设为 Latest，新增 dnsmasq-rs。**
-同一公开镜像完成正常重启、用户断电复测、等长日常资源采集和临时材料清理；十组件与 45 份配置身份已核验。
-Mac UDP DNS 探测延续刷前 C 基线超时，配套健康脚本仅执行首组；该诊断限制没有记成通过。
-详见[本次部署记录](docs/reviews/DEPLOYMENT_V0_2_0_20261014.md)及[发布说明](docs/reviews/RELEASE_V0_2_0_20261014_NOTES.md)。
-本次按用户选择保留 v0.1.1 镜像和独立配置备份供手动回刷，未安装自动回退守卫。
+**现状（2026-10-17）：[v0.2.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.2) 十组件固件已保留配置上线，业务 unsafe 从 545 处降到 0，目标编译警告清零。**
+本版统一整理系统调用与安全封装，业务 crate 禁止 unsafe，CI 遇到编译警告即失败。
+完整正确性及用户指定的 24 个流量窗口、10 次启动检查通过；短检查未见可辨退化，
+UDP 命中的小幅不利趋势和瞬时 FD 审查保留，不宣称严格等效或提速。
+同一正式 CI 镜像只刷写一次，连续健康确认与 600 秒资源观察通过，没有额外重启。
+详见[部署记录](docs/reviews/DEPLOYMENT_V0_2_2_20261017.md)、[发布说明](docs/reviews/RELEASE_V0_2_2_20261017_NOTES.md)
+及[统一验收报告](docs/reviews/CORE_SAFE_20261017.md)。当次配置和精确 v0.2.1 回滚镜像已离机保存。
 
 **历史里程碑（2026-09-29）：完整九组件 Rust 固件已保留配置刷入，客户端验收与用户物理断电复测通过，试验工具已清理。**
 固定回溯节点：[AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)，
@@ -102,7 +104,10 @@ ubusd CPU不再随客户端数增长；正式构建随后走完隔离矩阵与�
 替换 `/sbin/<x>`。冗余 `.c-orig` 已在 2026-09-29 清理，stock `/rom` 原件与离线备份保留。
 这段描述的是此前的分层部署；当前集成固件中九个程序均原位安装，C 救援原件另存于 `/usr/libexec/owrt-stock/`。
 
-第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
+第三方直接依赖保留 httpd 的 rustls/ring（TLS），v0.2.2 新增固定 rustix 1.1.5。
+业务 crate 强制 `forbid(unsafe_code)`；必要的系统 ABI、信号、fork 和 FD 边界集中在
+platform 封装内，UCI/fw4 保留极薄的 libc 启动入口。目标平台编译警告为零，CI 有编译
+警告即失败。具体范围见[统一验收报告](docs/reviews/CORE_SAFE_20261017.md)。发布构建 opt-level 3、
 静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
 
 整体基线 [R84 实机对照](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md) 使用四次冷启动和
@@ -132,9 +137,9 @@ R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报�
 
 ## 回退
 
-当前 v0.2.0 使用 `owrt-recover-c` 成套准备十个 C 程序及 dnsmasq 原 init/ACL，共十二份文件，再单独重启；failsafe 中先 `mount_root`。
+当前 v0.2.2 使用 `owrt-recover-c` 成套准备十个 C 程序及 dnsmasq 原 init/ACL，共十二份文件，再单独重启；failsafe 中先 `mount_root`。
 原件位于 `/usr/libexec/owrt-stock/`，当前 `/rom` 内对应入口已是 Rust，不能作为 C 原件。
-这不等同于退回 v0.1.1；版本回滚使用已核验的 v0.1.1 镜像和独立配置备份。
+这不等同于回退版本；v0.2.2 的版本回滚使用已核验的 v0.2.1 镜像和当次独立配置备份。
 详见[当前恢复说明](docs/RELEASE.md#恢复路径)及[硬件救援手册](docs/RUNBOOK_AX3000T_RECOVERY.md)。
 
 下表仅记录历史 stock + overlay 部署的恢复方式，已删除的 `/root/r84` 工具需要从离线备份恢复后才可使用。
