@@ -91,6 +91,16 @@ finish() {
     exit "$status"
 }
 trap finish EXIT
+# The shipping BusyBox has no stat applet. Kernel fdinfo identifies the
+# actual open object by mount and inode, including a transient root handle.
+fd_identity() {
+    awk '$1 == "mnt_id:" {mount = $2} $1 == "ino:" {inode = $2}
+         END {if (mount !~ /^[0-9]+$/ || inode !~ /^[0-9]+$/) exit 1;
+              print mount ":" inode}' "$1"
+}
+root_identity() {
+    (exec 9< /proc/1/root; fd_identity /proc/self/fdinfo/9)
+}
 fd=
 for entry in /proc/1/fd/*; do
     if [ "$(readlink "$entry" 2>/dev/null || true)" = /dev/watchdog ]; then
@@ -99,10 +109,10 @@ for entry in /proc/1/fd/*; do
     fi
 done
 [ -n "$fd" ] && [ -f "/proc/1/fd/$fd" ]
-root_before=$(stat -Lc '%d:%i' /proc/1/root)
+root_before=$(root_identity)
 exe_before=$(sha256sum /proc/1/exe | cut -d' ' -f1)
 printf '%s\n' "$exe_before" > "$out/pid1-before.sha256"
-fd_before=$(stat -Lc '%d:%i' "/proc/1/fd/$fd")
+fd_before=$(fd_identity "/proc/1/fdinfo/$fd")
 cat "/proc/1/fdinfo/$fd" > "$out/watchdog-before-fdinfo.txt"
 flags=$(awk '$1 == "flags:" {print $2}' "$out/watchdog-before-fdinfo.txt")
 [ "$((0$flags & 02000000))" -ne 0 ]
@@ -118,7 +128,7 @@ while :; do
     # The failure message precedes cleanup in both implementations. Wait for
     # the actual restored state too, rather than racing that log write.
     flags=$(awk '$1 == "flags:" {print $2}' "/proc/1/fdinfo/$fd" 2>/dev/null || true)
-    current_root=$(stat -Lc '%d:%i' /proc/1/root 2>/dev/null || true)
+    current_root=$(root_identity 2>/dev/null || true)
     if grep -q 'Failed to exec upgraded' "$out/pid1.log" && [ -n "$flags" ] && \
        [ "$((0${flags:-0} & 02000000))" -ne 0 ] && [ "$current_root" = "$root_before" ]; then
         break
@@ -130,11 +140,11 @@ done
 ! grep -q 'Failed to chroot for upgraded exec\|Failed to reset chroot' "$out/pid1.log"
 [ "$(readlink "/proc/1/fd/$fd")" = /dev/watchdog ]
 [ -f "/proc/1/fd/$fd" ]
-[ "$(stat -Lc '%d:%i' "/proc/1/fd/$fd")" = "$fd_before" ]
+[ "$(fd_identity "/proc/1/fdinfo/$fd")" = "$fd_before" ]
 cat "/proc/1/fdinfo/$fd" > "$out/watchdog-after-fdinfo.txt"
 flags=$(awk '$1 == "flags:" {print $2}' "$out/watchdog-after-fdinfo.txt")
 [ "$((0$flags & 02000000))" -ne 0 ]
-root_after=$(stat -Lc '%d:%i' /proc/1/root)
+root_after=$(root_identity)
 printf '%s\n' "$root_after" > "$out/root-after.txt"
 [ "$root_after" = "$root_before" ]
 [ "$(sha256sum /proc/1/exe | cut -d' ' -f1)" = "$exe_before" ]
