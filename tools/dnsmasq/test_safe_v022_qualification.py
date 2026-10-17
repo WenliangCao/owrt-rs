@@ -52,6 +52,8 @@ class QualificationGateTests(unittest.TestCase):
         }
         self.value['checks']['correctness'].update(families=44, jobs=67, unresolved_differences=0,
                                                    original_results_retained=True)
+        for name in ('safe_v022_startup_group.sh', 'safe_v022_startup_case.sh'):
+            self.value['files'][name] = self.file('tool-' + name, Path(gate.__file__).with_name(name).read_text())
         self.value['checks']['no_proc'].update(negative_control_verified=True, helper_and_runtime_lookup=True)
         self.value['checks']['startup_tools']['tool_sha256'] = {
             'device_selfexec_lifecycle': self.value['files']['device_selfexec_lifecycle']['sha256']}
@@ -90,6 +92,16 @@ class QualificationGateTests(unittest.TestCase):
         self.write(authorized=False)
         with self.assertRaisesRegex(ValueError, 'not released'):
             self.load()
+
+    def test_oracle_rewritten_startup_script_rejected_even_with_matching_hash(self):
+        for name in ('safe_v022_startup_group.sh', 'safe_v022_startup_case.sh'):
+            value = copy.deepcopy(self.value)
+            text = Path(gate.__file__).with_name(name).read_text().replace(
+                '/tmp/dnsmasq-perf-v022-20261017', '/tmp/oracle-preview')
+            value['files'][name] = self.file('oracle-' + name, text)
+            self.write(value)
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'device script differs'):
+                self.load()
 
     def test_changed_receipt_is_rejected(self):
         self.write()

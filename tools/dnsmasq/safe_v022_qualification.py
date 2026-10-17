@@ -133,6 +133,9 @@ a check qualified. The release binds every normalized decision and receipt.
                     name + ': original support binary identity differs')
         if 'runtime/' + name in recovered:
             require(entry['sha256'] == recovered['runtime/' + name], name + ': reconstructed runtime identity differs')
+        if name in ('safe_v022_startup_group.sh', 'safe_v022_startup_case.sh'):
+            require(entry['sha256'] == sha(Path(__file__).with_name(name)),
+                    name + ': device script differs from this controller; Oracle preview paths are not device inputs')
     # New fixture identities are tied to their independent rehearsal receipts.
     check = value['checks']['startup_tools']
     require(isinstance(check.get('tool_sha256'), dict) and check['tool_sha256'], 'startup tool identities required')
