@@ -25,6 +25,13 @@ NPROC=$(nproc 2>/dev/null || echo 2)
 log() { printf '\n== %s\n' "$*"; }
 [ -f "$PKGLIST" ] || { echo "no package list for $ver: $PKGLIST (capture it with: ssh router 'apk info' | sort)" >&2; exit 1; }
 mkdir -p "$WORK/dl" "$OUT"
+finish_image_build() {
+    image_build_status=$?
+    trap - EXIT
+    python3 "$REPO/tools/ci_check_core.py" warnings "$OUT/image-recipe-warnings.json" "$OUT"/*.log || image_build_status=1
+    exit "$image_build_status"
+}
+trap finish_image_build EXIT
 
 # Prove the compiler before downloading an SDK: a version problem should not
 # surface an hour into a build. Same script the Makefile check uses, and its
@@ -58,7 +65,7 @@ $CARGO --version
 log "build apks in $SDK"
 for p in $PKGS; do rsync -a --delete "$REPO/packaging/openwrt/$p/" "$SDK/package/$p/"; done
 cd "$SDK"
-[ -f .config ] || make defconfig >/dev/null 2>&1 || true
+[ -f .config ] || make defconfig >"$OUT/sdk-defconfig.log" 2>&1 || true
 for p in $PKGS; do
 	echo "-- $p"
 	make "package/$p/compile" V=s -j1 \

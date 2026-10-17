@@ -8,6 +8,13 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 work=$(cd "${1:?usage: ci_build_core.sh WORKDIR}" && pwd)
 out=$work/out
 mkdir -p "$out/core-binaries"
+finish_core_build() {
+    core_build_status=$?
+    trap - EXIT
+    python3 "$repo/tools/ci_check_core.py" warnings "$out/core-recipe-warnings.json" "$out"/*.log || core_build_status=1
+    exit "$core_build_status"
+}
+trap finish_core_build EXIT
 set -- "$work"/openwrt-sdk-"$ver"-*/staging_dir
 [ "$#" = 1 ] && [ -d "$1" ] || { echo 'expected one verified SDK' >&2; exit 1; }
 staging=$1
@@ -28,7 +35,7 @@ for component in procd ubusd netifd; do
     # source locations fixed across CI runs, independently of the checkout.
     build=/tmp/owrt-core-release/$component
     mkdir -p "$build"
-    for dependency in "$component" ubus uci; do
+    for dependency in "$component" ubus uci platform; do
         mkdir -p "$build/$dependency"
         rsync -a --delete --exclude target "$repo/components/$dependency/" "$build/$dependency/"
     done
@@ -36,7 +43,7 @@ for component in procd ubusd netifd; do
     CARGO_BUILD_TARGET=aarch64-unknown-linux-musl \
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$linker" \
     STAGING_DIR="$staging" \
-    RUSTFLAGS="--remap-path-prefix=$build=/build --remap-path-prefix=$CARGO_HOME=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+    RUSTFLAGS="-Dwarnings --remap-path-prefix=$build=/build --remap-path-prefix=$CARGO_HOME=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
     cargo build --locked --release --bins --manifest-path "$build/$component/Cargo.toml" \
         --target-dir "$target" > "$out/build-core-$component.log" 2>&1 \
         || { tail -40 "$out/build-core-$component.log"; exit 1; }

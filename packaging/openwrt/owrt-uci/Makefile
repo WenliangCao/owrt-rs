@@ -35,12 +35,15 @@ endef
 
 define Build/Prepare
 	rm -rf $(PKG_BUILD_DIR)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/uci/src/bin
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/uci/src
 	test -f $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml
 	test -f $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock $(OWRT_COMPONENTS_SOURCE)/uci/build.rs $(PKG_BUILD_DIR)/uci/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
-	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/platform $(PKG_BUILD_DIR)/uci/
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/platform
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/platform/Cargo.toml $(PKG_BUILD_DIR)/platform/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/platform/src $(PKG_BUILD_DIR)/platform/
 endef
 
 define Build/Configure
@@ -58,7 +61,7 @@ define Build/Compile
 	CC_aarch64_unknown_linux_musl="$(TARGET_CC_NOCACHE)" \
 	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
-	RUSTFLAGS="--remap-path-prefix=/tmp/owrt-build/$(PKG_NAME)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+	RUSTFLAGS="-Dwarnings --remap-path-prefix=/tmp/owrt-build/$(PKG_NAME)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
 	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/uci/Cargo.toml --target-dir $(PKG_BUILD_DIR)/uci/target
 endef
 

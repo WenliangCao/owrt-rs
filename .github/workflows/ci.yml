@@ -27,8 +27,16 @@ jobs:
             ~/.cargo/git
             components/*/target
           key: cargo-${{ runner.os }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/*/Cargo.lock') }}
-      - name: host component tests
-        run: make test COMPONENTS="ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd"
+      - name: host components and shared platform reject every compiler warning
+        run: python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work"
+      - name: preserve host warning and test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-host-${{ github.sha }}
+          path: work/out/core-host/*
+          if-no-files-found: warn
+          retention-days: 30
       - name: compile dnsmasq tests with warnings-as-errors
         run: RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-Dwarnings" CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0} cargo test --quiet --locked --manifest-path components/dnsmasq/Cargo.toml --no-run
       - name: dnsmasq tests with warnings-as-errors in private Linux namespaces
