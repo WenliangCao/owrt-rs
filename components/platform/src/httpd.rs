@@ -5,7 +5,7 @@ use std::time::Duration;
 #[repr(C)]
 struct Timeval { seconds: i64, micros: i64 }
 unsafe extern "C" {
-    fn ioctl(fd: i32, request: usize, ...) -> i32;
+    fn ioctl(fd: i32, request: std::ffi::c_ulong, ...) -> i32;
     fn setsockopt(fd: i32, level: i32, option: i32, value: *const std::ffi::c_void, size: u32) -> i32;
 }
 pub fn set_nonblocking(fd: i32, enabled: bool) -> io::Result<()> {
