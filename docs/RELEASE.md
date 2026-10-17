@@ -57,8 +57,9 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 ## v0.2.2 统一候选的接入（尚未发布）
 
 十组件以 `research/core-safe-20261017` 为整合主线，一起验收、正式构建并最终只刷一次。
-产品冻结 `e21245d2`，配方 `0.2.2-r1` 绑定 core CI `39047139959` 的九个 ELF，及
-DNS canonical use CI `39048357460` 的实际 ELF。共享 platform、ubus、锁文件和构建槽
+配方 `0.2.2-r1` 绑定 procd 修复 `d644eda4`、core CI `39050152457` 的实际 ELF；
+其中另外八个 ELF 与 e212/core CI `39047139959` 逐字节相同。DNS 仍绑定 e212 的
+canonical use CI `39048357460` 实际 ELF。共享 platform、ubus、锁文件和构建槽
 都在新 DNS 的 212 输入闭包中；旧 a97 独立候选及 profile 不转授给整合版。
 
 现将十份候选身份提前固定，用普通 `workflow_dispatch` 构建统一镜像，让实际镜像的
@@ -76,7 +77,9 @@ SHA256/字节数、profile URL/SHA256/字节数和训练来源。中间包仍为
 
 正式 checkout 重新编译；manifest 的 `source_commit` 是统一构建提交，DNS 的
 `accepted_product_commit` 和 `source_date_epoch` 保留原产品身份与 Git 时间。
-这些既有字段是构建归属，不代替硬件接受记录。完整 Git 历史用于核验冻结时间；后续
+这些既有字段是构建归属，不代替硬件接受记录。首份 `34300d29` 镜像因 procd
+漏收独立会话子进程被拒绝；修复后 R71 计数恢复 `1→2`、R83 恢复 11 次，须重建
+并验收包含新 procd 的整镜像。完整 Git 历史用于核验冻结时间；后续
 版本/报告提交不改变 DNS 打包时间。native 整合再次核验 ELF SHA、大小和 profile/slot，
 不把 diagnostic candidate 输出直接装入镜像。
 

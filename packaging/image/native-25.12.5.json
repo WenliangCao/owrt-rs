@@ -39,7 +39,7 @@
       "stock_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
       "stock_package": "procd",
       "binary": "procd-rs",
-      "reference_elf_sha256": "0299eb759cd1de113f3ab86d52f195c3e79cebef12e38f7ed12b8c8724183dd5"
+      "reference_elf_sha256": "d66b0f1dd488313999235c267f07bc26573aa7cb7fcb5bd6664efd288c61ade6"
     },
     "reload-config": {
       "path": "/sbin/reload_config",
