@@ -24,7 +24,12 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
-binary=$root/artifact-$artifact
+# fexecve(AT_EMPTY_PATH) uses the source dentry for comm. Give both exact
+# images the production basename outside timing, without copying ELF pages.
+mkdir "$out/input"
+binary=$out/input/dnsmasq
+ln "$root/artifact-$artifact" "$binary"
+[ "$(stat -c '%a:%u:%g' "$binary")" = 755:0:0 ]
 sha256sum "$binary" > "$out/elf.sha256"
 sha256sum "$root/device_selfexec_lifecycle" "$root/m6a_upstream" \
     "$root/safe_v022_startup_case.sh" "$root/safe_v022_startup_group.sh" > "$out/tools.sha256"

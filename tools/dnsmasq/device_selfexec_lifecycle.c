@@ -126,7 +126,8 @@ static bool prepare(bool helper) {
         if (!path(name, folders[i]) || mkdir(name, 0755)) return false;
     if (proc_present && (!path(name, "rootfs/proc") || mkdir(name, 0755))) return false;
     if (!path(name, "rootfs/fixture") || chown(name, 453, 453)) return false;
-    const char *mounts[] = {"rootfs/bin/sh", "rootfs/usr/sbin/dnsmasq", "rootfs/dev/null"};
+    const char *mounts[] = {"rootfs/bin/sh", "rootfs/usr/sbin/dnsmasq", "rootfs/dev/null",
+        "rootfs/dev/zero", "rootfs/dev/random", "rootfs/dev/urandom"};
     for (unsigned i = 0; i < sizeof mounts / sizeof mounts[0]; ++i) {
         if (!path(name, mounts[i])) return false;
         int fd = open(name, O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC, 0755);
@@ -200,7 +201,10 @@ static int target_entry(void *opaque) {
         !bind_into(args->binary, "rootfs/usr/sbin/dnsmasq", true) ||
         !bind_into("/bin/sh", "rootfs/bin/sh", true) ||
         !bind_into("/lib", "rootfs/lib", true) ||
-        !bind_into("/dev/null", "rootfs/dev/null", false)) _exit(126);
+        !bind_into("/dev/null", "rootfs/dev/null", false) ||
+        !bind_into("/dev/zero", "rootfs/dev/zero", false) ||
+        !bind_into("/dev/random", "rootfs/dev/random", false) ||
+        !bind_into("/dev/urandom", "rootfs/dev/urandom", false)) _exit(126);
     if (access("/lib64", F_OK) == 0 && !bind_into("/lib64", "rootfs/lib64", true)) _exit(126);
     if (proc_present && (!path(name, "rootfs/proc") ||
         mount("proc", name, "proc", MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL))) _exit(126);
