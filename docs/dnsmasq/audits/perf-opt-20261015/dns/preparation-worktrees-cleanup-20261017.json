@@ -1,7 +1,7 @@
 {
-  "scope": "Seven explicitly assigned completed or unselected preparation/tool-fix/prototype trees only. No remote actions, root/main/active trees untouched.",
+  "scope": "Eight explicitly assigned completed or unselected preparation/tool-fix/prototype/diagnostic trees only. No remote actions, root/main/active trees untouched.",
   "evidence_root": "/Users/USER/Developer/owrt-perf-evidence-20261016",
-  "completion_basis": "Earlier preparation/evidence trees superseded by I/J; completed tool fixes remain in root. Lease-name-reuse prototype retired unselected after focused allocation counts, with no SDK/device continuation.",
+  "completion_basis": "Earlier preparation/evidence trees superseded by I/J; completed tool fixes remain in root. Lease-name-reuse prototype retired unselected, and final small-HUP diagnostic completed; no continuation planned.",
   "preflight": {
     "current_controller_and_input_roots": [
       "private/perf-opt-20261015/research-reset-20261016",
@@ -180,10 +180,28 @@
       "tracked_and_untracked_clean": true,
       "worktree_removed": true,
       "obsolete_branch_deleted": true
+    },
+    {
+      "original_worktree": "/Users/USER/Developer/owrt-diagnostic-small-hup-20261017",
+      "head": "b6c396c3a1b76823fa6ba330bc3a7577bd57e8d5",
+      "original_branch": "diagnostic/dnsmasq-small-hup-20261017",
+      "preserved_tag": "refs/tags/archive/perf/owrt-diagnostic-small-hup-20261017-20261017",
+      "completion_basis": "Final small-HUP diagnostic complete and Oracle quiet; original 5f5a4674 instrumentation and b6c396c3 fix remain in preserved ancestry.",
+      "preflight": {
+        "active_process_command_matches": 0,
+        "active_process_cwd_or_open_file_matches": 0,
+        "root_tools_and_raw_controller_path_references": 0
+      },
+      "ignored_files": 0,
+      "moves": [],
+      "raw_evidence_unchanged": "/Users/USER/Developer/owrt-perf-opt-20261015/private/r17-small-hup-diagnostic",
+      "tracked_and_untracked_clean": true,
+      "worktree_removed": true,
+      "obsolete_branch_deleted": true
     }
   ],
-  "removed_worktrees": 7,
-  "removed_obsolete_branches": 7,
-  "preserved_tags": 7,
-  "worktrees_after": 24
+  "removed_worktrees": 8,
+  "removed_obsolete_branches": 8,
+  "preserved_tags": 8,
+  "worktrees_after": 23
 }
