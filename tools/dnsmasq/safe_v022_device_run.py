@@ -109,7 +109,12 @@ fi'''
         subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', 'openwrt', command],
                        input=local.read_bytes(), check=True, capture_output=True, timeout=30)
     ctx['shared'].verify_files({name: row['sha256'] for name, row in files.items()})
-    run.ssh('set -eu\n' + '\n'.join(f'test ! -e {root}/runs/{label}' for label in labels))
+    # Hundreds of exact labels exceed the stock SSH command-length boundary.
+    # Keep every absence check, but carry the script on stdin.
+    checks = 'set -eu\n' + '\n'.join(f'test ! -e {root}/runs/{label}' for label in labels)
+    subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
+                    'openwrt', '/bin/sh -s'], input=checks.encode(),
+                   check=True, capture_output=True, timeout=20)
     ctx['shared'].set_slots(qualification['artifacts'], 'k', 'k')
     check_live(ctx)
     run.write(ctx['out'] / 'staging.json', {'files': files, 'labels_checked': labels,
@@ -461,6 +466,9 @@ def execute(plan, bundle, qualification, out, startup_runner):
                   'startup_supplement': supplement, 'status': 'COLLECTED_REQUIRES_FINAL_REVIEW'})
     except BaseException as error:
         run.write(out / 'failure.json', {'error': repr(error), 'windows': len(rows)})
+        if isinstance(error, subprocess.CalledProcessError):
+            (out / 'failed-command.stdout').write_bytes(error.stdout or b'')
+            (out / 'failed-command.stderr').write_bytes(error.stderr or b'')
         if ctx['owns_root']:
             run.stop_owned('v022_batch_failed')
         raise
