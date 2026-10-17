@@ -68,3 +68,61 @@ pub fn recv_into(fd: i32, bytes: &mut [u8], want_fd: bool, nonblocking: bool) ->
     } else { None };
     Ok((n as usize, received))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::recv_into;
+    use rustix::io::{read, write, Errno};
+    use rustix::net::{sendmsg, SendAncillaryBuffer, SendAncillaryMessage, SendFlags};
+    use rustix::pipe::{pipe_with, PipeFlags};
+    use std::io::IoSlice;
+    use std::mem::MaybeUninit;
+    use std::os::fd::{AsFd, AsRawFd};
+    use std::os::unix::net::UnixStream;
+
+    #[test]
+    fn two_rights_keep_first_and_close_truncated_descriptor() {
+        let (sender, receiver) = UnixStream::pair().unwrap();
+        let flags = PipeFlags::CLOEXEC | PipeFlags::NONBLOCK;
+        let (first_reader, first_writer) = pipe_with(flags).unwrap();
+        let (second_reader, second_writer) = pipe_with(flags).unwrap();
+        {
+            let rights = [first_writer.as_fd(), second_writer.as_fd()];
+            let mut space = [MaybeUninit::uninit(); rustix::cmsg_space!(ScmRights(2))];
+            let mut ancillary = SendAncillaryBuffer::new(&mut space);
+            assert!(ancillary.push(SendAncillaryMessage::ScmRights(&rights)));
+            assert_eq!(
+                sendmsg(
+                    &sender,
+                    &[IoSlice::new(b"x")],
+                    &mut ancillary,
+                    SendFlags::DONTWAIT,
+                )
+                .unwrap(),
+                1
+            );
+        }
+        drop(first_writer);
+        drop(second_writer);
+
+        // Only the queued SCM_RIGHTS references now keep these pipes open.
+        let mut byte = [0];
+        assert_eq!(read(&first_reader, &mut byte), Err(Errno::AGAIN));
+        assert_eq!(read(&second_reader, &mut byte), Err(Errno::AGAIN));
+
+        let (count, received) = recv_into(receiver.as_raw_fd(), &mut byte, true, true).unwrap();
+        assert_eq!(count, 1);
+        assert_eq!(byte, *b"x");
+        let received = received.expect("the first descriptor fits the 20-byte control area");
+        // A leaked second descriptor would leave this read at EAGAIN, not EOF.
+        assert_eq!(read(&second_reader, &mut byte).unwrap(), 0);
+        assert_eq!(read(&first_reader, &mut byte), Err(Errno::AGAIN));
+        assert_eq!(write(&received, b"y").unwrap(), 1);
+        assert_eq!(read(&first_reader, &mut byte).unwrap(), 1);
+        assert_eq!(byte, *b"y");
+
+        // The returned OwnedFd holds the first pipe's final writer reference.
+        drop(received);
+        assert_eq!(read(&first_reader, &mut byte).unwrap(), 0);
+    }
+}
