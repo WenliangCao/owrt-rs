@@ -8,31 +8,10 @@
 //! device ended up being the L3 device — are taken from the C dump, and the
 //! comparison is about everything else.
 
+use owrt_netifd::{config, interface, ip};
 use owrt_ubus::blob::BlobBuf;
 use owrt_ubus::json::Json;
 
-#[path = "../src/clock.rs"]
-mod clock;
-#[path = "../src/config.rs"]
-mod config;
-#[path = "../src/device.rs"]
-mod device;
-#[path = "../src/ethtool.rs"]
-mod ethtool;
-#[path = "../src/ethtool_modes.rs"]
-mod ethtool_modes;
-#[path = "../src/interface.rs"]
-mod interface;
-#[path = "../src/ip.rs"]
-mod ip;
-#[path = "../src/netdev_types.rs"]
-mod netdev_types;
-#[path = "../src/netlink.rs"]
-mod netlink;
-#[path = "../src/rt.rs"]
-mod rt;
-#[path = "../src/sys.rs"]
-mod sys;
 
 use interface::{Address, Interface, IpSettings, Route, State};
 

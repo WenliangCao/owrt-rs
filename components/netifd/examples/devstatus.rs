@@ -9,21 +9,10 @@
 //! the C output; everything else — the settings block, the ethtool block and
 //! the statistics — is derived here and is what the comparison is about.
 
+use owrt_netifd::{device, ethtool, netlink, sys};
 use owrt_ubus::blob::BlobBuf;
 use owrt_ubus::json::Json;
 
-#[path = "../src/device.rs"]
-mod device;
-#[path = "../src/ethtool.rs"]
-mod ethtool;
-#[path = "../src/ethtool_modes.rs"]
-mod ethtool_modes;
-#[path = "../src/netdev_types.rs"]
-mod netdev_types;
-#[path = "../src/netlink.rs"]
-mod netlink;
-#[path = "../src/sys.rs"]
-mod sys;
 
 fn main() {
     let path = std::env::args().nth(1).expect("usage: devstatus <c-status.json>");

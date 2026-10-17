@@ -7,6 +7,11 @@ license = "MIT OR Apache-2.0"
 description = "netifd replacement: network device and interface management (see docs/contracts/netifd.md)"
 publish = false
 
+[lib]
+# The unchanged daemon root already tests these same source modules.
+test = false
+doctest = false
+
 [[bin]]
 name = "netifd-rs"
 path = "src/main.rs"

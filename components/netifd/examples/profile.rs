@@ -1,35 +1,7 @@
 //! Costs of the actual status projection and kernel counter readers.
 //! No event loop or ubus transport is included. The interface-list fixture
 //! compares explicit clones with borrowing, but excludes global PD reconstruction.
-#![allow(dead_code)]
-#[path = "../src/clock.rs"]
-mod clock;
-#[path = "../src/config.rs"]
-mod config;
-#[path = "../src/device.rs"]
-mod device;
-#[path = "../src/ethtool.rs"]
-mod ethtool;
-#[path = "../src/ethtool_modes.rs"]
-mod ethtool_modes;
-#[path = "../src/interface.rs"]
-mod interface;
-#[path = "../src/ip.rs"]
-mod ip;
-#[path = "../src/logging.rs"]
-mod logging;
-#[path = "../src/netdev_types.rs"]
-mod netdev_types;
-#[path = "../src/netlink.rs"]
-mod netlink;
-#[path = "../src/rt.rs"]
-mod rt;
-#[path = "../src/sys.rs"]
-mod sys;
-#[path = "../src/ubus.rs"]
-mod ubus;
-#[path = "../src/wireless.rs"]
-mod wireless;
+use owrt_netifd::{clock, device, ethtool, interface, sys, ubus, wireless};
 #[path = "../../rpcd/examples/profile_support/mod.rs"]
 mod profile_support;
 

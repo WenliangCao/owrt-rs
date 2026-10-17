@@ -5,14 +5,9 @@
 //!
 //! Each step is one operation, so the harness can interleave them with reads.
 
+use owrt_netifd::{sys, ethtool};
 use std::net::IpAddr;
 
-#[path = "../src/netdev_types.rs"]
-mod netdev_types;
-#[path = "../src/netlink.rs"]
-mod netlink;
-#[path = "../src/sys.rs"]
-mod sys;
 
 fn arg(n: usize) -> String {
     std::env::args().nth(n).unwrap_or_else(|| {
@@ -160,8 +155,3 @@ fn main() {
         }
     }
 }
-
-#[path = "../src/ethtool.rs"]
-mod ethtool;
-#[path = "../src/ethtool_modes.rs"]
-mod ethtool_modes;

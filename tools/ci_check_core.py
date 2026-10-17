@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 
@@ -68,7 +69,9 @@ def host(work, env, report):
         if compile_code == 0:
             options = ["--", "--test-threads=1"] if component == "platform" else []
             test_code = run(common + ["--tests", "--no-fail-fast"] + options, out / f"test-{component}.log", env)
-            if (crate / "src/lib.rs").is_file():
+            lib_config = re.search(r"^\[lib\]\n(.*?)(?=^\[|\Z)", manifest.read_text(), re.M | re.S)
+            docs_disabled = lib_config and re.search(r"^doctest\s*=\s*false\s*$", lib_config.group(1), re.M)
+            if (crate / "src/lib.rs").is_file() and not docs_disabled:
                 doc_code = run(common + ["--doc"], out / f"doc-{component}.log", env)
         if any((crate / "examples").glob("*.rs")):
             example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path", manifest],
