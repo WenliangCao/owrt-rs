@@ -9,6 +9,7 @@
 //! It stays alive briefly after notifying so the subscriber has time to be
 //! delivered to; nothing here is meant to model a real service.
 
+#![forbid(unsafe_code)]
 use std::io;
 
 use owrt_ubus::blob::BlobBuf;

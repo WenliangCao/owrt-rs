@@ -8,32 +8,8 @@
 //! says. The WDTFD handover (preinit passes an already-open fd in the
 //! environment) is honoured because the C unsets the variable either way.
 
-use std::ffi::CString;
-use std::os::fd::{FromRawFd, IntoRawFd, OwnedFd};
-
-extern "C" {
-    fn open(path: *const u8, flags: i32, mode: u32) -> i32;
-    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-}
-
-const O_WRONLY: i32 = 1;
-const F_GETFD: i32 = 1;
-const F_SETFD: i32 = 2;
-const FD_CLOEXEC: i32 = 1;
-/// `_IOWR('W', 6, int)`.
-const WDIOC_SETTIMEOUT: u64 = 0xC004_5706;
-const WDIOC_GETSUPPORT: u64 = 0x8028_5700;
-const WDIOC_GETBOOTSTATUS: u64 = 0x8004_5702;
+use std::os::fd::OwnedFd;
 const WDIOF_CARDRESET: u32 = 0x20;
-
-#[repr(C)]
-#[derive(Default)]
-struct WatchdogInfo {
-    options: u32,
-    firmware_version: u32,
-    identity: [u8; 32],
-}
 
 pub struct Wdt {
     fd: Option<OwnedFd>,
@@ -48,7 +24,13 @@ pub struct Wdt {
 
 impl Default for Wdt {
     fn default() -> Self {
-        Wdt { fd: None, timeout: 30, frequency: 5, magicclose: false, next_ping: None }
+        Wdt {
+            fd: None,
+            timeout: 30,
+            frequency: 5,
+            magicclose: false,
+            next_ping: None,
+        }
     }
 }
 
@@ -63,26 +45,26 @@ impl Wdt {
         if self.fd.is_some() {
             return true;
         }
-        let fd = match std::env::var("WDTFD") {
-            Ok(v) => {
-                std::env::remove_var("WDTFD");
-                crate::sys::atoi_u32(&v) as i32
-            }
-            Err(_) => {
-                let Ok(c) = CString::new("/dev/watchdog") else { return false };
-                // SAFETY: NUL-terminated path.
-                unsafe { open(c.as_ptr().cast(), O_WRONLY, 0) }
-            }
+        // preinit has transferred the inherited descriptor across exec; tests
+        // explicitly relinquish it with into_raw_fd. Preserve that exact owner.
+        let fd = match crate::sys::take_inherited_watchdog(crate::sys::atoi_u32) {
+            Some(result) => result,
+            None => rustix::fs::open(
+                c"/dev/watchdog",
+                rustix::fs::OFlags::WRONLY,
+                rustix::fs::Mode::empty(),
+            )
+            .map_err(std::io::Error::from),
         };
-        if fd < 0 {
+        let Ok(fd) = fd else {
             return false;
-        }
+        };
         if cloexec {
-            // SAFETY: fd flag ops on a live fd.
-            unsafe { fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | FD_CLOEXEC) };
+            if let Ok(flags) = rustix::io::fcntl_getfd(&fd) {
+                let _ = rustix::io::fcntl_setfd(&fd, flags | rustix::io::FdFlags::CLOEXEC);
+            }
         }
-        // SAFETY: `fd` is open and now owned exactly once.
-        self.fd = Some(unsafe { OwnedFd::from_raw_fd(fd) });
+        self.fd = Some(fd);
         true
     }
 
@@ -90,31 +72,22 @@ impl Wdt {
     fn close(&mut self, with_release: bool) {
         let Some(fd) = self.fd.take() else { return };
         if with_release {
-            let raw = fd.into_raw_fd();
-            // SAFETY: one byte to a live fd, which is then closed once.
-            unsafe {
-                write(raw, b"V".as_ptr(), 1);
-                let _ = crate::sys::close_fd(raw);
-            }
+            let _ = rustix::io::write(&fd, b"V");
         }
         // Not with_release: fd drops and closes here.
     }
 
     fn set_drv_timeout(&mut self) {
-        if self.fd.is_none() {
-            return;
+        if let Some(fd) = &self.fd {
+            let mut timeout = self.timeout;
+            let _ = crate::sys::watchdog_set_timeout(fd, &mut timeout);
         }
-        let mut t = self.timeout;
-        // SAFETY: WDIOC_SETTIMEOUT reads and writes one int.
-        unsafe { crate::sys::ioctl(self.raw_fd(), WDIOC_SETTIMEOUT, &mut t) };
     }
 
     /// `watchdog_ping()` + re-arm, i.e. `watchdog_timeout_cb`.
     fn ping_and_rearm(&mut self, now: i64) {
-        if self.fd.is_some() {
-            // SAFETY: one byte to a live fd.
-            let r = unsafe { write(self.raw_fd(), b"X".as_ptr(), 1) };
-            if r < 0 {
+        if let Some(fd) = &self.fd {
+            if rustix::io::write(fd, b"X").is_err() {
                 log!(crate::sys::LOG_ERR, "WDT failed to write");
             }
         }
@@ -133,24 +106,26 @@ impl Wdt {
     }
 
     fn print_status(&self) {
-        let mut info = WatchdogInfo::default();
-        // SAFETY: GETSUPPORT writes the SDK's 40-byte watchdog_info structure.
-        if unsafe { crate::sys::ioctl(self.raw_fd(), WDIOC_GETSUPPORT, &mut info) } != 0 {
+        let Some(fd) = &self.fd else {
+            return;
+        };
+        let Ok(info) = crate::sys::watchdog_support(fd) else {
             debug!(2, "Watchdog GETSUPPORT failed");
             return;
-        }
+        };
         if info.options & WDIOF_CARDRESET == 0 {
             debug!(2, "Watchdog does not have CARDRESET support");
             return;
         }
-        let mut status = 0i32;
-        // SAFETY: GETBOOTSTATUS writes a live int, not watchdog_info.
-        if unsafe { crate::sys::ioctl(self.raw_fd(), WDIOC_GETBOOTSTATUS, &mut status) } != 0 {
+        let Ok(status) = crate::sys::watchdog_boot_status(fd) else {
             debug!(2, "Watchdog GETBOOTSTATUS failed");
             return;
-        }
+        };
         if status as u32 & WDIOF_CARDRESET != 0 {
-            log!(crate::sys::LOG_INFO, "Watchdog has previously reset the system");
+            log!(
+                crate::sys::LOG_INFO,
+                "Watchdog has previously reset the system"
+            );
         } else {
             debug!(2, "Watchdog did not previously reset the system");
         }
@@ -224,14 +199,11 @@ impl Wdt {
 
     /// `watchdog_set_cloexec()`: upgraded must inherit the fd.
     pub fn set_cloexec(&mut self, val: bool) {
-        if self.fd.is_none() {
-            return;
-        }
-        // SAFETY: fd flag ops on a live fd.
-        unsafe {
-            let flags = fcntl(self.raw_fd(), F_GETFD, 0);
-            let flags = if val { flags | FD_CLOEXEC } else { flags & !FD_CLOEXEC };
-            fcntl(self.raw_fd(), F_SETFD, flags);
+        if let Some(fd) = &self.fd {
+            if let Ok(mut flags) = rustix::io::fcntl_getfd(fd) {
+                flags.set(rustix::io::FdFlags::CLOEXEC, val);
+                let _ = rustix::io::fcntl_setfd(fd, flags);
+            }
         }
     }
 }

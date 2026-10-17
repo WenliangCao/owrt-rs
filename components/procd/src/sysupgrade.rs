@@ -27,11 +27,6 @@ use owrt_ubus::blob::{BlobBuf, MsgType};
 
 pub const VALIDATE_SCRIPT: &str = "/usr/libexec/validate_firmware_image";
 
-extern "C" {
-    fn chroot(path: *const u8) -> i32;
-    fn execvp(file: *const u8, argv: *const *const u8) -> i32;
-}
-
 use owrt_ubus::convert::json_to_fields as json_to_blob;
 
 /// `validate_firmware_image_call()`: run the validate script on `file` and
@@ -141,8 +136,7 @@ pub fn exec_upgraded(
     let Ok(cprefix) = CString::new(prefix) else {
         return;
     };
-    // SAFETY: NUL-terminated path.
-    if unsafe { chroot(cprefix.as_ptr().cast()) } < 0 {
+    if rustix::process::chroot(&cprefix).is_err() {
         crate::sys::stderr_line("Failed to chroot for upgraded exec.");
         return;
     }
@@ -165,18 +159,14 @@ pub fn exec_upgraded(
             argv.push(c);
         }
     }
-    let mut ptrs: Vec<*const u8> = argv.iter().map(|c| c.as_ptr().cast()).collect();
-    ptrs.push(std::ptr::null());
-    // SAFETY: NUL-terminated argv array; on success this never returns.
-    unsafe { execvp(argv0.as_ptr().cast(), ptrs.as_ptr()) };
+    let _=owrt_platform::procd::process::execvp(&argv0,&argv);
 
     // Cleanup on failure, exactly the C's order.
     crate::sys::stderr_line("Failed to exec upgraded.");
     std::env::remove_var("WDTFD");
     wdt.set_cloexec(true);
     let Ok(dot) = CString::new(".") else { return };
-    // SAFETY: NUL-terminated path; failing to escape the chroot is fatal.
-    if unsafe { chroot(dot.as_ptr().cast()) } < 0 {
+    if rustix::process::chroot(&dot).is_err() {
         crate::sys::stderr_line("Failed to reset chroot, exiting.");
         std::process::exit(1);
     }

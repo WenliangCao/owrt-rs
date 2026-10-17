@@ -5,21 +5,8 @@
 //!
 //! Usage: ptyhold <wait-for-file> <banner-out>
 
-use std::ffi::CString;
+#![forbid(unsafe_code)]
 use std::io::{Read, Write};
-
-extern "C" {
-    fn open(path: *const u8, flags: i32, mode: u32) -> i32;
-    fn ioctl(fd: i32, req: u64, arg: *mut i32) -> i32;
-    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-}
-
-const O_RDWR: i32 = 2;
-const O_NOCTTY: i32 = 0o400;
-const O_NONBLOCK: i32 = 0o4000;
-/// TIOCSPTLCK: unlockpt().
-const TIOCSPTLCK: u64 = 0x4004_5431;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -29,16 +16,18 @@ fn main() {
     }
     let (wait_for, banner_out) = (&args[0], &args[1]);
 
-    let c = CString::new("/dev/pts/ptmx").unwrap();
-    // SAFETY: NUL-terminated path; the fd is used only below.
-    let master = unsafe { open(c.as_ptr().cast(), O_RDWR | O_NOCTTY | O_NONBLOCK, 0) };
-    if master < 0 {
-        eprintln!("ptyhold: cannot open /dev/pts/ptmx");
-        std::process::exit(1);
-    }
-    let mut zero: i32 = 0;
-    // SAFETY: unlockpt on a live master fd.
-    if unsafe { ioctl(master, TIOCSPTLCK, &mut zero) } != 0 {
+    let master = match rustix::fs::open(
+        "/dev/pts/ptmx",
+        rustix::fs::OFlags::RDWR | rustix::fs::OFlags::NOCTTY | rustix::fs::OFlags::NONBLOCK,
+        rustix::fs::Mode::empty(),
+    ) {
+        Ok(fd) => fd,
+        Err(_) => {
+            eprintln!("ptyhold: cannot open /dev/pts/ptmx");
+            std::process::exit(1);
+        }
+    };
+    if rustix::pty::unlockpt(&master).is_err() {
         eprintln!("ptyhold: unlockpt failed");
         std::process::exit(1);
     }
@@ -55,16 +44,16 @@ fn main() {
     let mut banner = Vec::new();
     let mut buf = [0u8; 4096];
     let mut slurp = |banner: &mut Vec<u8>| loop {
-        // SAFETY: non-blocking read into a live buffer.
-        let n = unsafe { read(master, buf.as_mut_ptr(), buf.len()) };
-        if n <= 0 {
+        let Ok(n) = rustix::io::read(&master, &mut buf) else {
+            break;
+        };
+        if n == 0 {
             break;
         }
-        banner.extend_from_slice(&buf[..n as usize]);
+        banner.extend_from_slice(&buf[..n]);
     };
     slurp(&mut banner);
-    // SAFETY: one byte to the live master.
-    unsafe { write(master, b"\n".as_ptr(), 1) };
+    let _ = rustix::io::write(&master, b"\n");
     std::thread::sleep(std::time::Duration::from_secs(3));
     slurp(&mut banner);
     if let Ok(mut f) = std::fs::File::create(banner_out) {

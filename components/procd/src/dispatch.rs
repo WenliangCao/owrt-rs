@@ -13,8 +13,7 @@
 //! step with directory creation/removal at runtime.
 
 use std::collections::{BTreeMap, VecDeque};
-use std::ffi::CString;
-use std::os::fd::{FromRawFd, OwnedFd};
+use std::os::fd::OwnedFd;
 use std::process::{Command, Stdio};
 
 use owrt_ubus::blob::MsgType;
@@ -27,14 +26,6 @@ const STEP_MS: i64 = 50;
 pub const HOTPLUG_METHODS: &[(&str, &[(&str, MsgType)])] =
     &[("call", &[("env", MsgType::Array)])];
 
-extern "C" {
-    fn inotify_init1(flags: i32) -> i32;
-    fn inotify_add_watch(fd: i32, path: *const u8, mask: u32) -> i32;
-    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-}
-
-const IN_NONBLOCK: i32 = 0o4000;
-const IN_CLOEXEC: i32 = 0o2000000;
 const IN_CREATE: u32 = 0x100;
 const IN_DELETE: u32 = 0x200;
 const IN_MOVED_FROM: u32 = 0x40;
@@ -88,30 +79,14 @@ fn scan_subsystems() -> Vec<String> {
 
 impl Dispatch {
     pub fn new() -> Dispatch {
-        // SAFETY: inotify_init1 with flag ints only.
-        let fd = unsafe { inotify_init1(IN_NONBLOCK | IN_CLOEXEC) };
-        let inotify = if fd >= 0 {
-            let ok = CString::new(BASEDIR).is_ok_and(|c| {
-                // SAFETY: NUL-terminated path on a live inotify fd.
-                unsafe {
-                    inotify_add_watch(
-                        fd,
-                        c.as_ptr().cast(),
-                        IN_CREATE | IN_DELETE | IN_MOVED_TO | IN_MOVED_FROM,
-                    ) >= 0
-                }
+        use rustix::fs::inotify::{self, CreateFlags, WatchFlags};
+        let inotify = inotify::init(CreateFlags::NONBLOCK | CreateFlags::CLOEXEC)
+            .ok()
+            .and_then(|fd| {
+                let events = WatchFlags::CREATE | WatchFlags::DELETE
+                    | WatchFlags::MOVED_TO | WatchFlags::MOVED_FROM;
+                inotify::add_watch(&fd, BASEDIR, events).ok().map(|_| fd)
             });
-            if ok {
-                // SAFETY: fd is open and owned once.
-                Some(unsafe { OwnedFd::from_raw_fd(fd) })
-            } else {
-                // SAFETY: fd was just opened.
-                unsafe { crate::sys::close_fd(fd) };
-                None
-            }
-        } else {
-            None
-        };
         Dispatch { objects: BTreeMap::new(), inotify, jobs: Vec::new(), pending: VecDeque::new() }
     }
 
@@ -303,18 +278,12 @@ impl Dispatch {
 
     fn read_changes(&mut self) {
         // inotify: directory create/remove tracks the object set.
-        use std::os::fd::AsRawFd;
-        let Some(raw) = self.inotify.as_ref().map(|f| f.as_raw_fd()) else { return };
+        let Some(fd) = self.inotify.as_ref() else { return };
         let mut buf = [0u8; 4096];
-        // One buffer per maintenance pass; a continuous directory flood
-        // must return to child timers and watchdogs. poll keeps us awake.
+        // One buffer per maintenance pass retains the existing fairness bound.
         {
-            // SAFETY: non-blocking read into a live buffer; the fd stays
-            // owned by self.inotify for the whole loop.
-            let n = unsafe { read(raw, buf.as_mut_ptr(), buf.len()) };
-            if n <= 0 {
-                return;
-            }
+            let Ok(n) = rustix::io::read(fd, &mut buf) else { return };
+            if n == 0 { return; }
             let mut off = 0usize;
             // struct inotify_event: wd i32, mask u32, cookie u32, len u32, name[].
             while off + 16 <= n as usize {
@@ -415,17 +384,11 @@ mod tests {
             // Watch a private temporary directory, never host /etc/hotplug.d.
             let path = format!("/tmp/procd-dispatch-dirs-{}", std::process::id());
             std::fs::create_dir(&path).unwrap();
-            let cpath = CString::new(path.clone()).unwrap();
-            // SAFETY: valid flags and C string; fd transferred once below.
-            let fd = unsafe {
-                let fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
-                assert!(fd >= 0);
-                assert!(inotify_add_watch(fd, cpath.as_ptr().cast(), IN_CREATE | IN_DELETE) >= 0);
-                fd
-            };
+            use rustix::fs::inotify::{self, CreateFlags, WatchFlags};
+            let fd = inotify::init(CreateFlags::NONBLOCK | CreateFlags::CLOEXEC).unwrap();
+            inotify::add_watch(&fd, &path, WatchFlags::CREATE | WatchFlags::DELETE).unwrap();
             let mut d = Dispatch {
-                // SAFETY: live descriptor from inotify_init1 owned exactly once.
-                inotify: Some(unsafe { OwnedFd::from_raw_fd(fd) }),
+                inotify: Some(fd),
                 ..Default::default()
             };
             for n in 0..6 { std::fs::create_dir(format!("{path}/test{n}")).unwrap(); }

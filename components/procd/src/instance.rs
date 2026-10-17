@@ -848,10 +848,6 @@ mod tests {
     #[test]
     fn take_config_keeps_the_running_childs_log_pipes() {
         use std::os::fd::AsRawFd;
-        extern "C" {
-            fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-        }
-        const F_GETFD: i32 = 1;
         let (r, _w) = owrt_ubus::sys::pipe().unwrap();
         let raw = r.as_raw_fd();
         let mut live = Instance::new("a");
@@ -868,8 +864,7 @@ mod tests {
 
         assert!(live.log_out.is_some(), "log pipe dropped by take_config");
         assert_eq!(live.log_out.as_ref().unwrap().fd.as_raw_fd(), raw);
-        // SAFETY: fcntl on a fd this test owns.
-        assert!(unsafe { fcntl(raw, F_GETFD, 0) } >= 0, "read end was closed");
+        assert!(rustix::io::fcntl_getfd(&live.log_out.as_ref().unwrap().fd).is_ok(),"read end was closed");
     }
 
     #[test]

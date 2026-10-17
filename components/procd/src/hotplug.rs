@@ -27,7 +27,7 @@
 
 use std::collections::{BTreeMap, VecDeque};
 use std::ffi::CString;
-use std::os::fd::{FromRawFd, OwnedFd};
+use std::os::fd::OwnedFd;
 use std::process::{Command, Stdio};
 
 use crate::jsonscript;
@@ -36,39 +36,6 @@ use owrt_ubus::blob::{BlobBuf, Field, MsgType};
 
 /// `HOTPLUG_WAIT`.
 const QUIET_MS: i64 = 500;
-
-extern "C" {
-    fn socket(domain: i32, ty: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, addr: *const SockaddrNl, len: u32) -> i32;
-    fn setsockopt(fd: i32, level: i32, opt: i32, val: *const i32, len: u32) -> i32;
-    fn recv(fd: i32, buf: *mut u8, len: usize, flags: i32) -> isize;
-    fn mknod(path: *const u8, mode: u32, dev: u64) -> i32;
-    fn mount(src: *const u8, target: *const u8, fstype: *const u8, flags: u64, data: *const u8) -> i32;
-    fn umount2(target: *const u8, flags: i32) -> i32;
-    fn umask(mask: u32) -> u32;
-}
-
-#[repr(C)]
-struct SockaddrNl {
-    nl_family: u16,
-    nl_pad: u16,
-    nl_pid: u32,
-    nl_groups: u32,
-}
-
-const AF_NETLINK: i32 = 16;
-const SOCK_DGRAM: i32 = 2;
-const SOCK_CLOEXEC: i32 = 0x80000;
-const NETLINK_KOBJECT_UEVENT: i32 = 15;
-const SOL_SOCKET: i32 = 1;
-const SO_RCVBUFFORCE: i32 = 33;
-const MSG_DONTWAIT: i32 = 0x40;
-const S_IFCHR: u32 = 0o020000;
-const S_IFBLK: u32 = 0o060000;
-const MNT_DETACH: i32 = 2;
-const MS_NOSUID: u64 = 2;
-const MS_NOEXEC: u64 = 8;
-const MS_NOATIME: u64 = 0x400;
 
 /// One queued (non-atomic) command.
 struct Queued {
@@ -117,7 +84,6 @@ pub struct Hotplug {
 
 use owrt_ubus::convert::json_to_fields as json_to_blob;
 
-
 /// `rule_handle_file` + caching: the file is read once.
 fn load_rules(path: &str) -> Option<Vec<u8>> {
     rules_blob(&std::fs::read(path).ok()?)
@@ -143,7 +109,9 @@ pub fn rules_blob(text: &[u8]) -> Option<Vec<u8>> {
 pub fn parse_uevent(buf: &[u8]) -> BTreeMap<String, String> {
     let mut vars = BTreeMap::new();
     for seg in buf.split(|b| *b == 0) {
-        let Ok(s) = std::str::from_utf8(seg) else { continue };
+        let Ok(s) = std::str::from_utf8(seg) else {
+            continue;
+        };
         if let Some((k, v)) = s.split_once('=') {
             vars.insert(k.to_string(), v.to_string());
         }
@@ -161,28 +129,29 @@ impl Hotplug {
     /// `hotplug(rules)`: open and bind the uevent socket.
     pub fn new(rule_file: &str) -> Option<Hotplug> {
         let rules = load_rules(rule_file)?;
-        // SAFETY: plain socket syscalls; the fd is owned immediately.
-        let fd = unsafe { socket(AF_NETLINK, SOCK_DGRAM | SOCK_CLOEXEC, NETLINK_KOBJECT_UEVENT) };
-        if fd < 0 {
-            log!(sys::LOG_ERR, "Failed to open hotplug socket");
-            return None;
-        }
-        let addr = SockaddrNl { nl_family: AF_NETLINK as u16, nl_pad: 0, nl_pid: 0, nl_groups: u32::MAX };
-        // SAFETY: addr is a live local of the correct layout.
-        if unsafe { bind(fd, &addr, std::mem::size_of::<SockaddrNl>() as u32) } != 0 {
+        use rustix::net::netlink::{self, SocketAddrNetlink};
+        use rustix::net::{self, AddressFamily, SocketFlags, SocketType};
+        let fd = match net::socket_with(
+            AddressFamily::NETLINK,
+            SocketType::DGRAM,
+            SocketFlags::CLOEXEC,
+            Some(netlink::KOBJECT_UEVENT),
+        ) {
+            Ok(fd) => fd,
+            Err(_) => {
+                log!(sys::LOG_ERR, "Failed to open hotplug socket");
+                return None;
+            }
+        };
+        if net::bind(&fd, &SocketAddrNetlink::new(0, u32::MAX)).is_err() {
             log!(sys::LOG_ERR, "Failed to bind hotplug socket");
-            // SAFETY: fd was just opened.
-            unsafe { sys::close_fd(fd) };
             return None;
         }
-        let bufsize: i32 = 512 * 1024;
-        // SAFETY: setsockopt with an int payload.
-        if unsafe { setsockopt(fd, SOL_SOCKET, SO_RCVBUFFORCE, &bufsize, 4) } != 0 {
+        if net::sockopt::set_socket_recv_buffer_size_force(&fd, 512 * 1024).is_err() {
             log!(sys::LOG_ERR, "Failed to resize receive buffer");
         }
         Some(Hotplug {
-            // SAFETY: fd is open and owned once.
-            fd: unsafe { OwnedFd::from_raw_fd(fd) },
+            fd,
             rules,
             queue: VecDeque::new(),
             child: None,
@@ -194,22 +163,25 @@ impl Hotplug {
 
     /// `procd_coldplug()`.
     pub fn coldplug(&mut self, in_container: bool) {
-        // SAFETY: umask read-modify with plain ints.
-        let old = unsafe { umask(0) };
+        let old = rustix::process::umask(rustix::fs::Mode::empty());
         if !in_container {
-            // SAFETY: constant NUL-terminated paths throughout.
-            unsafe {
-                umount2(c"/dev/pts".as_ptr().cast(), MNT_DETACH);
-                umount2(c"/dev/".as_ptr().cast(), MNT_DETACH);
-                mount(
-                    c"tmpfs".as_ptr().cast(),
-                    c"/dev".as_ptr().cast(),
-                    c"tmpfs".as_ptr().cast(),
-                    MS_NOATIME | MS_NOEXEC | MS_NOSUID,
-                    c"mode=0755,size=512K".as_ptr().cast(),
-                );
-                mknod(c"/dev/null".as_ptr().cast(), S_IFCHR | 0o666, libc_makedev(1, 3));
-            }
+            use rustix::mount::{MountFlags, UnmountFlags};
+            let _ = rustix::mount::unmount("/dev/pts", UnmountFlags::DETACH);
+            let _ = rustix::mount::unmount("/dev/", UnmountFlags::DETACH);
+            let _ = rustix::mount::mount(
+                "tmpfs",
+                "/dev",
+                "tmpfs",
+                MountFlags::NOATIME | MountFlags::NOEXEC | MountFlags::NOSUID,
+                Some(c"mode=0755,size=512K"),
+            );
+            let _ = rustix::fs::mknodat(
+                rustix::fs::CWD,
+                "/dev/null",
+                rustix::fs::FileType::CharacterDevice,
+                rustix::fs::Mode::from_raw_mode(0o666),
+                rustix::fs::makedev(1, 3),
+            );
             // mkdir("/dev/pts", 0755) runs under umask(0): the mode must be
             // explicit or it comes out 0777.
             let _ = std::fs::create_dir("/dev/pts");
@@ -217,20 +189,16 @@ impl Hotplug {
                 "/dev/pts",
                 std::os::unix::fs::PermissionsExt::from_mode(0o755),
             );
-            // SAFETY: as above.
-            unsafe {
-                mount(
-                    c"devpts".as_ptr().cast(),
-                    c"/dev/pts".as_ptr().cast(),
-                    c"devpts".as_ptr().cast(),
-                    MS_NOATIME | MS_NOEXEC | MS_NOSUID,
-                    std::ptr::null(),
-                );
-            }
+            let _ = rustix::mount::mount(
+                "devpts",
+                "/dev/pts",
+                "devpts",
+                MountFlags::NOATIME | MountFlags::NOEXEC | MountFlags::NOSUID,
+                None,
+            );
         }
         let _ = std::os::unix::fs::symlink("/tmp/shm", "/dev/shm");
-        // SAFETY: restoring the saved mask.
-        unsafe { umask(old) };
+        rustix::process::umask(old);
 
         let mut trigger = Command::new("udevtrigger");
         trigger.stdin(Stdio::null());
@@ -279,7 +247,9 @@ impl Hotplug {
                 return true;
             }
         }
-        let Some((cpid, _)) = &self.child else { return false };
+        let Some((cpid, _)) = &self.child else {
+            return false;
+        };
         if *cpid != pid {
             return false;
         }
@@ -306,7 +276,9 @@ impl Hotplug {
         if self.child.is_some() {
             return;
         }
-        let Some(cmd) = self.queue.pop_front() else { return };
+        let Some(cmd) = self.queue.pop_front() else {
+            return;
+        };
         match cmd.kind {
             // pump() intercepts StartConsole before this point; it never
             // reaches the fork path.
@@ -345,13 +317,15 @@ impl Hotplug {
         let mut events = Vec::new();
         let mut buf = [0u8; 4096];
         loop {
-            use std::os::fd::AsRawFd;
-            // SAFETY: read into a live buffer, non-blocking.
-            let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len() - 1, MSG_DONTWAIT) };
+            let Ok((_, n)) =
+                rustix::net::recv(&self.fd, &mut buf[..4095], rustix::net::RecvFlags::DONTWAIT)
+            else {
+                break;
+            };
             if n < 1 {
                 break;
             }
-            let vars = parse_uevent(&buf[..n as usize]);
+            let vars = parse_uevent(&buf[..n]);
             self.run_rules(&vars, now);
             events.push(vars);
         }
@@ -374,12 +348,19 @@ impl Hotplug {
             vars.insert("BUTTON".to_string(), b.name);
             vars.insert("ACTION".to_string(), "timeout".to_string());
             vars.insert("SEEN".to_string(), b.seen.to_string());
-            self.queue.push_back(Queued { kind: CmdKind::Exec, vars, argv: b.argv });
+            self.queue.push_back(Queued {
+                kind: CmdKind::Exec,
+                vars,
+                argv: b.argv,
+            });
             self.touch_quiet(now);
         }
         // start-console entries are answered in the caller's context.
         while self.child.is_none() {
-            if matches!(self.queue.front().map(|c| c.kind), Some(CmdKind::StartConsole)) {
+            if matches!(
+                self.queue.front().map(|c| c.kind),
+                Some(CmdKind::StartConsole)
+            ) {
                 self.queue.pop_front();
                 console_request = true;
                 continue;
@@ -403,7 +384,11 @@ impl Hotplug {
     fn run_rules(&mut self, vars: &BTreeMap<String, String>, now: i64) {
         let rules = std::mem::take(&mut self.rules);
         {
-            let block = Field { name: "", ty: MsgType::Array as u32, data: &rules };
+            let block = Field {
+                name: "",
+                ty: MsgType::Array as u32,
+                data: &rules,
+            };
             let out = jsonscript::run_hotplug_rule(block, vars);
             for e in out.errors {
                 // rule_handle_error()
@@ -416,7 +401,13 @@ impl Hotplug {
         self.rules = rules;
     }
 
-    fn dispatch(&mut self, name: &str, argv: Vec<String>, vars: &BTreeMap<String, String>, now: i64) {
+    fn dispatch(
+        &mut self,
+        name: &str,
+        argv: Vec<String>,
+        vars: &BTreeMap<String, String>,
+        now: i64,
+    ) {
         match name {
             // Atomic: in-process, in order.
             "makedev" => handle_makedev(&argv, vars),
@@ -425,21 +416,33 @@ impl Hotplug {
                     let _ = std::fs::remove_file(p);
                 }
             }
-            "exec" => self.queue.push_back(Queued { kind: CmdKind::Exec, vars: vars.clone(), argv }),
+            "exec" => self.queue.push_back(Queued {
+                kind: CmdKind::Exec,
+                vars: vars.clone(),
+                argv,
+            }),
             "button" => {
                 // handle_button_start: a new event for this button cancels
                 // its pending timeout.
                 if let Some(name) = vars.get("BUTTON") {
                     self.buttons.retain(|b| &b.name != name);
                 }
-                self.queue.push_back(Queued { kind: CmdKind::Button, vars: vars.clone(), argv });
+                self.queue.push_back(Queued {
+                    kind: CmdKind::Button,
+                    vars: vars.clone(),
+                    argv,
+                });
             }
-            "load-firmware" => {
-                self.queue.push_back(Queued { kind: CmdKind::Firmware, vars: vars.clone(), argv })
-            }
-            "start-console" => {
-                self.queue.push_back(Queued { kind: CmdKind::StartConsole, vars: vars.clone(), argv })
-            }
+            "load-firmware" => self.queue.push_back(Queued {
+                kind: CmdKind::Firmware,
+                vars: vars.clone(),
+                argv,
+            }),
+            "start-console" => self.queue.push_back(Queued {
+                kind: CmdKind::StartConsole,
+                vars: vars.clone(),
+                argv,
+            }),
             _ => return,
         }
         self.touch_quiet(now);
@@ -447,24 +450,21 @@ impl Hotplug {
 }
 
 fn libc_makedev(major: u32, minor: u32) -> u64 {
-    // glibc/musl makedev(): the historical split layout.
-    ((major as u64 & 0xfffff000) << 32)
-        | ((major as u64 & 0xfff) << 8)
-        | ((minor as u64 & 0xffffff00) << 12)
-        | (minor as u64 & 0xff)
+    rustix::fs::makedev(major, minor)
 }
 
 /// `handle_makedev`: /dev node under umask 0, block vs char by SUBSYSTEM,
 /// optional group as the third argument.
 fn handle_makedev(argv: &[String], vars: &BTreeMap<String, String>) {
-    let (Some(path), Some(mode)) = (argv.first(), argv.get(1)) else { return };
+    let (Some(path), Some(mode)) = (argv.first(), argv.get(1)) else {
+        return;
+    };
     let (Some(minor), Some(major), Some(subsystem)) =
         (vars.get("MINOR"), vars.get("MAJOR"), vars.get("SUBSYSTEM"))
     else {
         return;
     };
-    // SAFETY: umask read-modify.
-    let old = unsafe { umask(0) };
+    let old = rustix::process::umask(rustix::fs::Mode::empty());
     if let Some(dir) = std::path::Path::new(path).parent() {
         // mkdir_p(d, 0755): create_dir_all under umask(0) would leave 0777
         // directories behind (R81 F22).
@@ -474,12 +474,21 @@ fn handle_makedev(argv: &[String], vars: &BTreeMap<String, String>) {
             .mode(0o755)
             .create(dir);
     }
-    let ifmt = if subsystem == "block" { S_IFBLK } else { S_IFCHR };
+    let kind = if subsystem == "block" {
+        rustix::fs::FileType::BlockDevice
+    } else {
+        rustix::fs::FileType::CharacterDevice
+    };
     let mode_bits = u32::from_str_radix(mode, 8).unwrap_or(0);
     let dev = libc_makedev(sys::atoi_u32(major), sys::atoi_u32(minor));
     if let Ok(c) = CString::new(path.as_str()) {
-        // SAFETY: NUL-terminated path.
-        unsafe { mknod(c.as_ptr().cast(), ifmt | mode_bits, dev) };
+        let _ = rustix::fs::mknodat(
+            rustix::fs::CWD,
+            &c,
+            kind,
+            rustix::fs::Mode::from_bits_retain(mode_bits),
+            dev,
+        );
     }
     if let Some(group) = argv.get(2) {
         match crate::sys::lookup_group(group) {
@@ -488,11 +497,13 @@ fn handle_makedev(argv: &[String], vars: &BTreeMap<String, String>) {
                     log!(sys::LOG_ERR, "cannot set group {group} for {path} (chown)");
                 }
             }
-            None => log!(sys::LOG_ERR, "cannot set group {group} for {path} (getgrnam)"),
+            None => log!(
+                sys::LOG_ERR,
+                "cannot set group {group} for {path} (getgrnam)"
+            ),
         }
     }
-    // SAFETY: restore.
-    unsafe { umask(old) };
+    rustix::process::umask(old);
 }
 
 /// `handle_exec` in a forked child: env = the event variables, argv capped
@@ -505,7 +516,9 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
     for (k, v) in &cmd.vars {
         c.env(k, v);
     }
-    c.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    c.stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
     crate::proc::inherit_ignored_sigpipe(&mut c);
     match c.spawn() {
         Ok(child) => {
@@ -521,16 +534,12 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
 fn spawn_firmware(cmd: &Queued) -> Option<i32> {
     let dir = cmd.argv.first()?.clone();
     let vars = cmd.vars.clone();
-    // SAFETY: the supervisor is single-threaded; the child owns its copied
-    // state and exits after the firmware transfer, without returning to it.
-    match unsafe { crate::proc::fork_raw() } {
-        0 => {
-            firmware_child(&dir, &vars);
-            std::process::exit(1);
-        }
-        pid if pid > 0 => Some(pid),
-        _ => None,
+    // Owned event data only; the fixed firmware child never returns into
+    // the supervisor. Preserve the existing fork and exit(1) behavior.
+    fn transfer((dir, vars): (String, BTreeMap<String, String>)) {
+        firmware_child(&dir, &vars);
     }
+    owrt_platform::procd::process::spawn_firmware((dir, vars), transfer)
 }
 
 fn firmware_child(dir: &str, vars: &BTreeMap<String, String>) {
@@ -576,21 +585,44 @@ mod tests {
         assert!(!v.contains_key("DEVICENAME"));
         let rules = br#"[[ "if", [ "has", "DEVICENAME" ], [ "exec", "/bin/echo", "%DEVNAME%", "%DEVICENAME%" ] ]]"#;
         let blob = rules_blob(rules).unwrap();
-        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        let block = Field {
+            name: "",
+            ty: MsgType::Array as u32,
+            data: &blob,
+        };
         let out = jsonscript::run_hotplug_rule(block, &v);
-        assert_eq!(out.commands, vec![("exec".to_string(), vec!["/bin/echo".into(), "ttyS1".into(), "ttyS1".into()])]);
+        assert_eq!(
+            out.commands,
+            vec![(
+                "exec".to_string(),
+                vec!["/bin/echo".into(), "ttyS1".into(), "ttyS1".into()]
+            )]
+        );
     }
 
     #[test]
     fn an_explicit_devname_wins_over_the_fallback() {
         let buf = b"ACTION=add\0DEVPATH=/devices/x/y\0DEVNAME=bus/usb/001/002\0";
         let v = parse_uevent(buf);
-        assert_eq!(v.get("DEVNAME").map(String::as_str), Some("bus/usb/001/002"));
+        assert_eq!(
+            v.get("DEVNAME").map(String::as_str),
+            Some("bus/usb/001/002")
+        );
         let rules = br#"[[ "exec", "%DEVNAME%", "%DEVICENAME%" ]]"#;
         let blob = rules_blob(rules).unwrap();
-        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        let block = Field {
+            name: "",
+            ty: MsgType::Array as u32,
+            data: &blob,
+        };
         let out = jsonscript::run_hotplug_rule(block, &v);
-        assert_eq!(out.commands, vec![("exec".to_string(), vec!["bus/usb/001/002".into(), "y".into()])]);
+        assert_eq!(
+            out.commands,
+            vec![(
+                "exec".to_string(),
+                vec!["bus/usb/001/002".into(), "y".into()]
+            )]
+        );
     }
 
     #[test]
@@ -610,15 +642,26 @@ mod tests {
         let blob = load_rules(p.to_str().unwrap()).expect("rules load");
         let mut vars = BTreeMap::new();
         vars.insert("ACTION".to_string(), "add".to_string());
-        vars.insert("DEVPATH".to_string(), "/devices/platform/serial8250/tty/ttyS1".to_string());
-        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        vars.insert(
+            "DEVPATH".to_string(),
+            "/devices/platform/serial8250/tty/ttyS1".to_string(),
+        );
+        let block = Field {
+            name: "",
+            ty: MsgType::Array as u32,
+            data: &blob,
+        };
         let out = jsonscript::run_hotplug_rule(block, &vars);
         assert!(out.errors.is_empty(), "{:?}", out.errors);
         assert_eq!(
             out.commands,
             vec![(
                 "makedev".to_string(),
-                vec!["/dev/ttyS1".to_string(), "0660".to_string(), "dialout".to_string()]
+                vec![
+                    "/dev/ttyS1".to_string(),
+                    "0660".to_string(),
+                    "dialout".to_string()
+                ]
             )]
         );
         std::fs::remove_dir_all(&dir).ok();

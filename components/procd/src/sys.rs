@@ -1,49 +1,30 @@
 //! The syscalls the supervisor needs that `std` does not expose: rlimits,
 //! priority, supplementary groups, and passwd/group lookup.
 //!
-//! Same house style as `owrt-ubus`'s `sys`: plain `extern "C"` declarations
-//! against the platform libc, no third-party crate.
+//! Business policy uses rustix/std; libc compatibility and signal handlers
+//! live behind the small owrt-platform boundaries.
 
 use std::ffi::CString;
 use std::io;
 
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct RLimit {
-    cur: u64,
-    max: u64,
-}
+pub use owrt_platform::procd::identity::{lookup_group, lookup_user};
+use owrt_platform::procd::process::reboot_cmd;
+use owrt_platform::procd::signals::crash_reboot;
 
-#[repr(C)]
-struct Passwd {
-    pw_name: *const u8,
-    pw_passwd: *const u8,
-    pw_uid: u32,
-    pw_gid: u32,
-    pw_gecos: *const u8,
-    pw_dir: *const u8,
-    pw_shell: *const u8,
+pub fn take_inherited_watchdog(parse: fn(&str) -> u32) -> Option<io::Result<std::os::fd::OwnedFd>> {
+    owrt_platform::procd::watchdog::take_inherited_watchdog(parse)
 }
-
-#[repr(C)]
-struct Group {
-    gr_name: *const u8,
-    gr_passwd: *const u8,
-    gr_gid: u32,
-    gr_mem: *const *const u8,
+pub fn watchdog_set_timeout(fd: impl std::os::fd::AsFd, value: &mut i32) -> io::Result<()> {
+    owrt_platform::procd::watchdog::set_timeout(fd, value)
 }
-
-extern "C" {
-    fn getrlimit(resource: i32, rlim: *mut RLimit) -> i32;
-    fn setrlimit(resource: i32, rlim: *const RLimit) -> i32;
-    fn setpriority(which: i32, who: u32, prio: i32) -> i32;
-    fn initgroups(user: *const u8, group: u32) -> i32;
-    fn getpwnam(name: *const u8) -> *const Passwd;
-    fn getgrnam(name: *const u8) -> *const Group;
+pub fn watchdog_support(
+    fd: impl std::os::fd::AsFd,
+) -> io::Result<owrt_platform::procd::watchdog::WatchdogInfo> {
+    owrt_platform::procd::watchdog::support(fd)
 }
-
-const PRIO_PROCESS: i32 = 0;
-const RLIM_INFINITY: u64 = u64::MAX;
+pub fn watchdog_boot_status(fd: impl std::os::fd::AsFd) -> io::Result<i32> {
+    owrt_platform::procd::watchdog::boot_status(fd)
+}
 
 /// `rlimit_names[]` from `instance.c:176`, including the four Linux-only
 /// entries. Values are the Linux asm-generic numbers, which is what this
@@ -76,48 +57,49 @@ pub const RLIMIT_NAMES: &[(&str, i32)] = &[
 /// only `cur` is given the existing `max` is kept, which is why the current
 /// limit has to be read first.
 pub fn apply_limit(name: &str, value: &str) -> io::Result<()> {
-    let Some(&(_, resource)) = RLIMIT_NAMES.iter().find(|(n, _)| *n == name) else {
+    use rustix::process::{Resource, Rlimit};
+    let Some(&(_, number)) = RLIMIT_NAMES.iter().find(|(n, _)| *n == name) else {
         return Ok(());
     };
-
-    let rlim = if value == "unlimited" {
-        RLimit { cur: RLIM_INFINITY, max: RLIM_INFINITY }
-    } else {
-        let mut cur_max = RLimit { cur: 0, max: 0 };
-        // SAFETY: getrlimit(2) writes one struct rlimit through the pointer.
-        if unsafe { getrlimit(resource, &mut cur_max) } != 0 {
-            return Ok(());
+    let resource = match number {
+        9 => Resource::As,
+        4 => Resource::Core,
+        0 => Resource::Cpu,
+        2 => Resource::Data,
+        1 => Resource::Fsize,
+        8 => Resource::Memlock,
+        7 => Resource::Nofile,
+        6 => Resource::Nproc,
+        5 => Resource::Rss,
+        3 => Resource::Stack,
+        13 => Resource::Nice,
+        14 => Resource::Rtprio,
+        12 => Resource::Msgqueue,
+        11 => Resource::Sigpending,
+        _ => return Ok(()),
+    };
+    let limit = if value == "unlimited" {
+        Rlimit {
+            current: None,
+            maximum: None,
         }
-        let mut it = value.split_whitespace();
-        let Some(cur) = it.next().and_then(|s| s.parse::<u64>().ok()) else {
+    } else {
+        let previous = rustix::process::getrlimit(resource);
+        let mut fields = value.split_whitespace();
+        let Some(current) = fields.next().and_then(|v| v.parse::<u64>().ok()) else {
             return Ok(());
         };
-        let max = it.next().and_then(|s| s.parse::<u64>().ok()).unwrap_or(cur_max.max);
-        RLimit { cur, max }
+        let maximum = fields
+            .next()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(previous.maximum.unwrap_or(u64::MAX));
+        Rlimit {
+            current: (current != u64::MAX).then_some(current),
+            maximum: (maximum != u64::MAX).then_some(maximum),
+        }
     };
-
-    // SAFETY: setrlimit(2) reads one struct rlimit through the pointer. A
-    // failure is the C's silent no-op, so the result is deliberately dropped.
-    unsafe { setrlimit(resource, &rlim) };
+    let _ = rustix::process::setrlimit(resource, limit);
     Ok(())
-}
-
-/// `setpriority(PRIO_PROCESS, 0, nice)`. Only called when nice is non-zero,
-/// as in the C.
-pub fn set_nice(nice: i32) {
-    // SAFETY: setpriority(2) takes three scalars and touches no memory.
-    unsafe {
-        setpriority(PRIO_PROCESS, 0, nice);
-    }
-}
-
-/// `initgroups(user, gid)`. Returns false on failure; the C exits 127.
-pub fn init_groups(user: &str, gid: u32) -> bool {
-    let Ok(c) = CString::new(user) else {
-        return false;
-    };
-    // SAFETY: `c` is a NUL-terminated string that outlives the call.
-    unsafe { initgroups(c.as_ptr().cast(), gid) == 0 }
 }
 
 /// C `atoi()`, which procd uses for the respawn and watchdog string
@@ -142,56 +124,6 @@ pub fn atoi_u32(s: &str) -> u32 {
     v as i32 as u32
 }
 
-/// `getpwnam()` -> (uid, gid, home). None when the user does not exist.
-/// STATE_UBUS needs the home directory to mkdir/chown it for ubusd.
-pub fn lookup_user_home(name: &str) -> Option<(u32, u32, String)> {
-    let c = CString::new(name).ok()?;
-    // SAFETY: `c` outlives the call; the returned static buffer is copied
-    // out immediately.
-    let p = unsafe { getpwnam(c.as_ptr().cast()) };
-    if p.is_null() {
-        return None;
-    }
-    // SAFETY: non-null means a valid struct passwd; pw_dir is NUL-terminated.
-    let pw = unsafe { &*p };
-    let home = if pw.pw_dir.is_null() {
-        String::new()
-    } else {
-        // SAFETY: pw_dir points at a NUL-terminated string in the buffer.
-        unsafe { std::ffi::CStr::from_ptr(pw.pw_dir.cast()) }
-            .to_string_lossy()
-            .into_owned()
-    };
-    Some((pw.pw_uid, pw.pw_gid, home))
-}
-
-/// `getpwnam()` -> (uid, gid). None when the user does not exist.
-pub fn lookup_user(name: &str) -> Option<(u32, u32)> {
-    let c = CString::new(name).ok()?;
-    // SAFETY: `c` outlives the call. getpwnam returns a pointer into a static
-    // buffer, read immediately and not retained.
-    let p = unsafe { getpwnam(c.as_ptr().cast()) };
-    if p.is_null() {
-        return None;
-    }
-    // SAFETY: non-null means it points at a valid struct passwd.
-    let pw = unsafe { &*p };
-    Some((pw.pw_uid, pw.pw_gid))
-}
-
-/// `getgrnam()` -> gid. None when the group does not exist.
-pub fn lookup_group(name: &str) -> Option<u32> {
-    let c = CString::new(name).ok()?;
-    // SAFETY: `c` outlives the call. getgrnam returns a pointer into a static
-    // buffer, read immediately and not retained.
-    let p = unsafe { getgrnam(c.as_ptr().cast()) };
-    if p.is_null() {
-        return None;
-    }
-    // SAFETY: non-null means it points at a valid struct group.
-    Some(unsafe { &*p }.gr_gid)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,29 +131,20 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn full_sigchld_pipe_preserves_the_interrupted_error() {
-        use std::os::fd::AsRawFd;
-        extern "C" {
-            fn write(fd: i32, bytes: *const u8, length: usize) -> isize;
-            fn __errno_location() -> *mut i32;
-        }
-        let (_read, write_end) = owrt_ubus::sys::pipe().unwrap();
-        let fd = write_end.as_raw_fd();
-        owrt_ubus::sys::set_nonblocking(fd).unwrap();
-        let bytes = [0u8; 4096];
-        // SAFETY: the pipe and stack buffer stay live; O_NONBLOCK bounds writes.
-        while unsafe { write(fd, bytes.as_ptr(), bytes.len()) } > 0 {}
-        assert_eq!(io::Error::last_os_error().kind(), io::ErrorKind::WouldBlock);
-        // Call the handler directly, without changing the process signal disposition.
-        let previous = SIGCHLD_WAKEUP.swap(fd, std::sync::atomic::Ordering::SeqCst);
-        // SAFETY: __errno_location returns this thread's live errno cell.
-        let errno = unsafe { __errno_location() };
-        // SAFETY: save an interrupted error before the real handler's EAGAIN.
-        unsafe { *errno = 22; }
-        sigchld_signal(17);
-        // SAFETY: the thread-local cell remains valid.
-        let after = unsafe { *errno };
-        SIGCHLD_WAKEUP.store(previous, std::sync::atomic::Ordering::SeqCst);
-        assert_eq!(after, 22);
+        let (_reader, writer) = rustix::pipe::pipe_with(
+            rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC,
+        )
+        .unwrap();
+        let bytes = [0; 4096];
+        while rustix::io::write(&writer, &bytes).is_ok() {}
+        assert_eq!(
+            rustix::io::write(&writer, &bytes).unwrap_err(),
+            rustix::io::Errno::AGAIN
+        );
+        assert_eq!(
+            owrt_platform::procd::signals::sigchld_errno_probe(&writer, 22),
+            22
+        );
     }
 
     #[test]
@@ -243,43 +166,19 @@ mod tests {
     /// a full non-blocking pipe on fd 2, then log through the sink.
     #[test]
     fn a_full_nonblocking_stderr_drops_the_line_instead_of_panicking() {
-        extern "C" {
-            fn pipe(fds: *mut i32) -> i32;
-            fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-            fn dup(fd: i32) -> i32;
-        }
-        const EAGAIN: i32 = 11;
-        let mut fds = [0i32; 2];
-        // SAFETY: plain fd syscalls on fds this test owns; fd 2 is put back
-        // before the test returns.
-        unsafe {
-            assert_eq!(pipe(fds.as_mut_ptr()), 0);
-            let (r, w) = (fds[0], fds[1]);
-            fcntl(w, F_SETFL, fcntl(w, F_GETFL, 0) | O_NONBLOCK);
-            let junk = [b'x'; 4096];
-            while write(w, junk.as_ptr(), junk.len()) > 0 {}
-            // The fixture is the finding: a raw write now fails with EAGAIN.
-            assert!(write(w, junk.as_ptr(), 1) < 0);
-            assert_eq!(io::Error::last_os_error().raw_os_error(), Some(EAGAIN));
-
-            let saved = dup(2);
-            assert!(saved >= 0);
-            assert!(dup2(w, 2) >= 0);
-            ulog_stdio("- init -");
-            stderr_line("Failed to exec upgraded.");
-            // Reached: no panic. Restore before any assertion can print.
-            assert!(dup2(saved, 2) >= 0);
-            close(saved);
-            close(r);
-            close(w);
-        }
+        let (_reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK).unwrap();
+        let bytes = [b'x'; 4096];
+        while rustix::io::write(&writer, &bytes).is_ok() {}
+        assert_eq!(
+            rustix::io::write(&writer, b"x").unwrap_err(),
+            rustix::io::Errno::AGAIN
+        );
+        let saved = rustix::io::dup(rustix::stdio::stderr()).unwrap();
+        rustix::stdio::dup2_stderr(&writer).unwrap();
+        ulog_stdio("- init -");
+        stderr_line("Failed to exec upgraded.");
+        rustix::stdio::dup2_stderr(&saved).unwrap();
     }
-}
-
-extern "C" {
-    fn openlog(ident: *const u8, option: i32, facility: i32);
-    fn syslog(priority: i32, format: *const u8, arg: *const u8);
-    fn closelog();
 }
 
 /// `LOG_INFO` and `LOG_ERR`: an instance's stdout is logged at info, its
@@ -356,8 +255,7 @@ static DEBUG_LEVEL: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32:
 pub fn ulog_open(ch: LogChannel) {
     use std::sync::atomic::Ordering::SeqCst;
     if ch == LogChannel::Syslog {
-        // SAFETY: a static NUL-terminated ident that lives forever.
-        unsafe { openlog(c"procd".as_ptr().cast(), 0, LOG_DAEMON) };
+        owrt_platform::procd::compatibility::open_procd_log();
     }
     LOG_CHANNEL.store(ch as u8, SeqCst);
 }
@@ -415,29 +313,10 @@ fn ulog_kmsg(priority: i32, line: &str) {
 /// `vsyslog(priority, ...)` under the `procd`/LOG_DAEMON openlog.
 fn ulog_syslog(priority: i32, line: &str) {
     let end = line.bytes().position(|b| b == 0).unwrap_or(line.len());
-    let Ok(c) = CString::new(&line[..end]) else { return };
-    // SAFETY: both strings are NUL-terminated and outlive the call.
-    unsafe { syslog(priority, c"%s".as_ptr().cast(), c.as_ptr().cast()) };
-}
-
-/// `do_reboot()` (signal.c): sync, a two-second window for the last output
-/// to reach the console, reboot, then hang forever -- the C never exits
-/// here. process::exit would run atexit handlers (not async-signal-safe)
-/// and, on a reboot(2) failure, would make PID 1 exit and panic the kernel
-/// where the C hangs and lets the hardware watchdog bite. (R73/5.)
-pub fn crash_reboot() -> ! {
-    extern "C" {
-        fn sleep(secs: u32) -> u32;
-    }
-    sync_fs();
-    // SAFETY: sleep(3) and reboot(2) are async-signal-safe.
-    unsafe {
-        sleep(2);
-        reboot(RB_AUTOBOOT);
-    }
-    loop {
-        std::hint::spin_loop();
-    }
+    let Ok(c) = CString::new(&line[..end]) else {
+        return;
+    };
+    owrt_platform::procd::compatibility::syslog_line(priority, &c);
 }
 
 /// The Rust-only failure the C cannot have: a panic. With `panic = "abort"`
@@ -479,16 +358,7 @@ pub fn log_instance_line(ident: &str, facility: i32, priority: i32, line: &[u8])
     let (Ok(cid), Ok(cline)) = (CString::new(ident), CString::new(&line[..end])) else {
         return;
     };
-    let fmt = c"%s";
-    // SAFETY: all three strings are NUL-terminated and outlive the calls.
-    // openlog retains `cid`'s pointer until the next openlog, which is why
-    // the restore below happens before this function returns.
-    unsafe {
-        openlog(cid.as_ptr().cast(), 0, facility);
-        syslog(priority, fmt.as_ptr().cast(), cline.as_ptr().cast());
-        closelog();
-        openlog(c"procd".as_ptr().cast(), 0, LOG_DAEMON);
-    }
+    owrt_platform::procd::compatibility::syslog_instance(&cid, facility, priority, &cline);
 }
 
 #[cfg(test)]
@@ -504,24 +374,8 @@ mod log_tests {
     }
 }
 
-extern "C" {
-    #[link_name = "if_nametoindex"]
-    fn if_nametoindex_c(name: *const u8) -> u32;
-}
+pub use owrt_platform::procd::compatibility::interface_index as if_nametoindex;
 
-/// `if_nametoindex()`. Zero when the interface does not exist, which is what
-/// the C stores too -- `instance_netdev_update` does not special-case a
-/// missing interface, so two absent interfaces compare equal and an
-/// interface that appears later counts as a change.
-pub fn if_nametoindex(name: &str) -> u32 {
-    let Ok(c) = CString::new(name) else {
-        return 0;
-    };
-    // SAFETY: `c` is NUL-terminated and outlives the call.
-    unsafe { if_nametoindex_c(c.as_ptr().cast()) }
-}
-
-/// MD5 of a file's contents, as `instance_file_update` computes with
 /// `md5sum(...)`. An unreadable file yields all zeroes, so two unreadable
 /// files compare equal and a file that becomes readable counts as a change.
 ///
@@ -546,30 +400,6 @@ mod digest_tests {
     }
 }
 
-extern "C" {
-    fn setgid(gid: u32) -> i32;
-    fn setuid(uid: u32) -> i32;
-}
-
-/// `setgid(2)`. Separate from setuid because `instance_run` guards each on
-/// its own non-zero check and exits 127 on either failure.
-pub fn set_gid(gid: u32) -> io::Result<()> {
-    // SAFETY: setgid(2) takes a plain id and touches no memory.
-    if unsafe { setgid(gid) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
-}
-
-/// `setuid(2)`. Must come after `set_gid`.
-pub fn set_uid(uid: u32) -> io::Result<()> {
-    // SAFETY: setuid(2) takes a plain id and touches no memory.
-    if unsafe { setuid(uid) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod atoi_tests {
     use super::*;
@@ -587,27 +417,6 @@ mod atoi_tests {
 
 // -- PID 1 plumbing (state.c, inittab.c, signal.c helpers) -------------------
 
-extern "C" {
-    /// Variadic, like the real prototype, so one declaration serves the
-    /// int-argument (TIOCSCTTY) and pointer-argument (WDIOC) callers.
-    pub fn ioctl(fd: i32, req: u64, ...) -> i32;
-    fn open(path: *const u8, flags: i32, mode: u32) -> i32;
-    fn close(fd: i32) -> i32;
-    fn dup2(old: i32, new: i32) -> i32;
-    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-    fn chown(path: *const u8, uid: u32, gid: u32) -> i32;
-    fn sync();
-    fn reboot(cmd: i32) -> i32;
-    fn fork() -> i32;
-}
-
-const O_RDONLY: i32 = 0;
-const O_WRONLY: i32 = 1;
-const O_NOCTTY: i32 = 0o400;
-const O_NONBLOCK: i32 = 0o4000;
-const F_GETFL: i32 = 3;
-const F_SETFL: i32 = 4;
-
 /// `reboot(2)` magic (linux/reboot.h). `RB_DISABLE_CAD` makes ctrl-alt-del
 /// deliver SIGINT to PID 1 instead of hard-rebooting.
 pub const RB_AUTOBOOT: i32 = 0x01234567;
@@ -619,30 +428,27 @@ pub const RB_DISABLE_CAD: i32 = 0;
 /// name is under /dev; a failed open falls back to /dev/null; NULL means
 /// /dev/null outright.
 pub fn patch_fd(device: Option<&str>, fd: i32, write: bool) -> bool {
-    let flags = if write { O_WRONLY } else { O_RDONLY } | O_NOCTTY;
     let path = match device {
         None => "/dev/null".to_string(),
         Some(d) if d.starts_with('/') => d.to_string(),
         Some(d) => format!("/dev/{d}"),
     };
-    let Ok(c) = CString::new(path.clone()) else { return false };
-    // SAFETY: NUL-terminated path, no retained pointers.
-    let mut nfd = unsafe { open(c.as_ptr().cast(), flags, 0) };
-    if nfd < 0 && path != "/dev/null" {
-        // SAFETY: as above.
-        nfd = unsafe { open(c"/dev/null".as_ptr().cast(), flags, 0) };
-    }
-    if nfd < 0 {
+    let Ok(path_c) = CString::new(path.as_str()) else {
         return false;
-    }
-    // SAFETY: plain fd ops.
-    unsafe {
-        let ok = dup2(nfd, fd) >= 0;
-        if nfd > 2 {
-            close(nfd);
+    };
+    let flags = (if write {
+        rustix::fs::OFlags::WRONLY
+    } else {
+        rustix::fs::OFlags::RDONLY
+    }) | rustix::fs::OFlags::NOCTTY;
+    let file = rustix::fs::open(&path_c, flags, rustix::fs::Mode::empty()).or_else(|error| {
+        if path != "/dev/null" {
+            rustix::fs::open(c"/dev/null", flags, rustix::fs::Mode::empty())
+        } else {
+            Err(error)
         }
-        ok
-    }
+    });
+    file.is_ok_and(|file| replace_standard(file, fd))
 }
 
 /// `set_stdio()`: point 0/1/2 at a tty and make stderr non-blocking, as
@@ -664,32 +470,43 @@ pub fn set_stdio(tty: &str) {
         ulog(LOG_ERR, &format!("failed to set stdio to {tty}"));
         return;
     }
-    // SAFETY: fcntl on stderr with integer args only.
-    unsafe {
-        let fl = fcntl(2, F_GETFL, 0);
-        if fl >= 0 {
-            fcntl(2, F_SETFL, fl | O_NONBLOCK);
-        }
+    let fd = rustix::stdio::stderr();
+    if let Ok(flags) = rustix::fs::fcntl_getfl(fd) {
+        let _ = rustix::fs::fcntl_setfl(fd, flags | rustix::fs::OFlags::NONBLOCK);
     }
 }
 
 /// One freopen leg: open WITHOUT O_NOCTTY and dup2 onto the std fd.
 fn stdio_open(tty: &str, fd: i32, write: bool) -> bool {
-    let path = if tty.starts_with('/') { tty.to_string() } else { format!("/dev/{tty}") };
-    let Ok(c) = CString::new(path) else { return false };
-    let flags = if write { O_WRONLY } else { O_RDONLY };
-    // SAFETY: NUL-terminated path; fd ops on the result.
-    unsafe {
-        let nfd = open(c.as_ptr().cast(), flags, 0);
-        if nfd < 0 {
-            return false;
-        }
-        let ok = dup2(nfd, fd) >= 0;
-        if nfd > 2 {
-            close(nfd);
-        }
-        ok
+    let path = if tty.starts_with('/') {
+        tty.to_string()
+    } else {
+        format!("/dev/{tty}")
+    };
+    let Ok(path) = CString::new(path) else {
+        return false;
+    };
+    let flags = if write {
+        rustix::fs::OFlags::WRONLY
+    } else {
+        rustix::fs::OFlags::RDONLY
+    };
+    rustix::fs::open(&path, flags, rustix::fs::Mode::empty())
+        .is_ok_and(|file| replace_standard(file, fd))
+}
+fn replace_standard(file: std::os::fd::OwnedFd, target: i32) -> bool {
+    use std::os::fd::{AsRawFd, IntoRawFd};
+    let result = match target {
+        0 => rustix::stdio::dup2_stdin(&file),
+        1 => rustix::stdio::dup2_stdout(&file),
+        2 => rustix::stdio::dup2_stderr(&file),
+        _ => return false,
+    };
+    // Existing patch_fd leaves an open which filled 0/1/2 attached to stdio.
+    if file.as_raw_fd() <= 2 {
+        let _ = file.into_raw_fd();
     }
+    result.is_ok()
 }
 
 /// `set_console()`: the shutdown path's best-effort console -- cmdline
@@ -698,39 +515,32 @@ pub fn set_console() {
     let tty = cmdline_val("console", 0)
         .map(|v| v.split(',').next().unwrap_or("").to_string())
         .filter(|t| dev_exist(t));
-    let tty = tty.or_else(|| ["tty0", "console"].iter().find(|t| dev_exist(t)).map(|t| t.to_string()));
+    let tty = tty.or_else(|| {
+        ["tty0", "console"]
+            .iter()
+            .find(|t| dev_exist(t))
+            .map(|t| t.to_string())
+    });
     if let Some(t) = tty {
         set_stdio(&t);
     }
 }
 
-/// `close(2)` for a raw fd whose ownership was just taken back.
-///
-/// # Safety
-/// `fd` must be open and not owned by anything that will close it again.
-pub unsafe fn close_fd(fd: i32) -> i32 {
-    close(fd)
-}
-
 /// `dev_exist()`: can the name be opened under /dev? An empty id cannot,
 /// which is why an inittab respawn entry with an empty id never respawns.
 pub fn dev_exist(dev: &str) -> bool {
-    // openat(dfd, "", ...) is ENOENT: an empty id NEVER exists. Formatting
-    // it into a path would name the /dev directory itself, which opens --
-    // measured: the empty-id respawn entry came back after a kill, where the
-    // C runs it exactly once.
     if dev.is_empty() {
         return false;
     }
-    let Ok(c) = CString::new(format!("/dev/{dev}")) else { return false };
-    // SAFETY: NUL-terminated path.
-    let fd = unsafe { open(c.as_ptr().cast(), O_RDONLY | O_NOCTTY, 0) };
-    if fd < 0 {
+    let Ok(path) = CString::new(format!("/dev/{dev}")) else {
         return false;
-    }
-    // SAFETY: fd is open.
-    unsafe { close(fd) };
-    true
+    };
+    rustix::fs::open(
+        &path,
+        rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::NOCTTY,
+        rustix::fs::Mode::empty(),
+    )
+    .is_ok()
 }
 
 /// `get_cmdline_val_offset()`: the value of the nth `name=value` word in
@@ -752,9 +562,12 @@ pub fn active_console() -> Option<String> {
 
 /// `chown(2)` for the ubus home directory in STATE_UBUS.
 pub fn chown_path(path: &str, uid: u32, gid: u32) -> bool {
-    let Ok(c) = CString::new(path) else { return false };
-    // SAFETY: NUL-terminated path.
-    unsafe { chown(c.as_ptr().cast(), uid, gid) == 0 }
+    rustix::fs::chown(
+        path,
+        Some(rustix::process::Uid::from_raw(uid)),
+        Some(rustix::process::Gid::from_raw(gid)),
+    )
+    .is_ok()
 }
 
 /// `is_container()`: the `container` environment variable, as container.c
@@ -765,156 +578,16 @@ pub fn is_container() -> bool {
 
 /// `sync(2)`.
 pub fn sync_fs() {
-    // SAFETY: no arguments.
-    unsafe { sync() };
+    rustix::fs::sync();
 }
 
-/// `reboot(2)` with one of the RB_* commands. In a PID namespace this ends
-/// the namespace rather than the host, which is exactly what the isolated
-/// boot probes rely on.
-pub fn reboot_cmd(cmd: i32) -> bool {
-    // SAFETY: integer command only.
-    unsafe { reboot(cmd) == 0 }
-}
-
-/// `perform_halt()`'s tail: fork so the kernel's do_exit on init does not
-/// panic the machine, reboot from the child, spin in the parent.
-pub fn halt_forever(event: i32) -> ! {
-    // SAFETY: fork + reboot, no memory.
-    unsafe {
-        if fork() == 0 {
-            reboot(event);
-            std::process::exit(0);
-        }
-    }
-    loop {
-        std::thread::sleep(std::time::Duration::from_secs(1));
-    }
-}
-
-/// The shutdown signals PID 1 must answer (signal.c). The handler only
-/// stores the reboot event and wakes the loop; the main loop acts on it.
-pub static SHUTDOWN_EVENT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
-
-extern "C" fn shutdown_signal(sig: i32) {
-    const SIGINT: i32 = 2;
-    const SIGTERM: i32 = 15;
-    const SIGUSR1: i32 = 10;
-    const SIGUSR2: i32 = 12;
-    const SIGPWR: i32 = 30;
-    let event = match sig {
-        SIGINT | SIGTERM => RB_AUTOBOOT,
-        SIGUSR1 => RB_HALT_SYSTEM,
-        SIGUSR2 | SIGPWR => RB_POWER_OFF,
-        _ => return,
-    };
-    SHUTDOWN_EVENT.store(event, std::sync::atomic::Ordering::SeqCst);
-    wake_loop();
-}
-
-/// One byte down the loop's self-pipe, errno preserved: the loop may be
-/// sleeping until a deadline rather than ticking, so a signal that changes
-/// what it must do next has to interrupt that sleep.
-fn wake_loop() {
-    extern "C" {
-        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: errno is thread-local and must survive an asynchronous handler.
-    let (errno, saved_errno) = unsafe {
-        extern "C" { fn __errno_location() -> *mut i32; }
-        let errno = __errno_location();
-        (errno, *errno)
-    };
-    let fd = SIGCHLD_WAKEUP.load(std::sync::atomic::Ordering::Relaxed);
-    if fd >= 0 {
-        // SAFETY: write(2) of one byte to a non-blocking pipe; a full pipe
-        // (EAGAIN) already means a wakeup is pending.
-        unsafe { write(fd, b"s".as_ptr(), 1) };
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: the pointer still names this thread's errno cell.
-    unsafe { *errno = saved_errno; }
-}
-
-extern "C" fn crash_signal(_sig: i32) {
-    // signal_crash(): the ERROR() line is skipped here -- formatting is not
-    // async-signal-safe -- and do_reboot() follows.
-    crash_reboot();
-}
-
-static SIGCHLD_WAKEUP: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
-// Start armed so children inherited/created before entering the main loop
-// get an initial sweep. A signal during a sweep arms the following one.
-static CHILD_EXIT_PENDING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
-
-extern "C" fn sigchld_signal(_sig: i32) {
-    extern "C" {
-        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: errno is thread-local and must survive an asynchronous handler.
-    let (errno, saved_errno) = unsafe {
-        extern "C" { fn __errno_location() -> *mut i32; }
-        let errno = __errno_location();
-        (errno, *errno)
-    };
-    CHILD_EXIT_PENDING.store(true, std::sync::atomic::Ordering::Relaxed);
-    let fd = SIGCHLD_WAKEUP.load(std::sync::atomic::Ordering::Relaxed);
-    if fd >= 0 {
-        // SAFETY: write(2) of one byte to a non-blocking pipe; a full pipe
-        // (EAGAIN) already means a wakeup is pending.
-        unsafe { write(fd, b"c".as_ptr(), 1) };
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: the pointer still names this thread's errno cell.
-    unsafe { *errno = saved_errno; }
-}
-
-pub fn take_child_exit_pending() -> bool {
-    CHILD_EXIT_PENDING.swap(false, std::sync::atomic::Ordering::Relaxed)
-}
-
-/// uloop's SIGCHLD self-pipe: a child exit wakes the main loop's poll()
-/// instead of waiting for its next tick. Returns the read end; the loop
-/// drains it after every poll. Installed in both modes, like uloop_init().
-pub fn install_sigchld_wakeup() -> io::Result<std::os::fd::OwnedFd> {
-    use std::os::fd::AsRawFd;
-    const SIGCHLD: i32 = 17;
-    let (r, w) = owrt_ubus::sys::pipe()?;
-    owrt_ubus::sys::set_nonblocking(r.as_raw_fd())?;
-    owrt_ubus::sys::set_nonblocking(w.as_raw_fd())?;
-    SIGCHLD_WAKEUP.store(w.as_raw_fd(), std::sync::atomic::Ordering::SeqCst);
-    // The write end lives for the process; the handler owns it from here.
-    std::mem::forget(w);
-    owrt_ubus::sys::set_signal_handler(SIGCHLD, sigchld_signal);
-    Ok(r)
-}
-
-/// Empty a wakeup pipe after poll() reported it readable.
+/// Preserve ignored/invalid numeric event-loop descriptor behavior.
 pub fn drain_wakeup(fd: std::os::fd::RawFd) {
-    extern "C" {
-        fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-    }
-    let mut buf = [0u8; 64];
-    // SAFETY: read(2) into a live buffer on a non-blocking fd.
-    while unsafe { read(fd, buf.as_mut_ptr(), buf.len()) } > 0 {}
+    let mut bytes = [0; 64];
+    while owrt_platform::unix::read_fd(fd, &mut bytes).is_ok_and(|count| count > 0) {}
 }
 
-/// `procd_signal()` for the PID 1 half: shutdown signals, crash-to-reboot,
-/// a dummy HUP, and ctrl-alt-del routed to SIGINT.
 pub fn procd_signal_pid1() {
-    use owrt_ubus::sys::set_signal_handler;
-    for sig in [2, 15, 10, 12, 30] {
-        set_signal_handler(sig, shutdown_signal);
-    }
-    // SIGSEGV and SIGBUS as in the C, plus SIGABRT: a Rust abort (an
-    // allocation failure, or a panic whose hook did not get to reboot) must
-    // end the same way, not as an init exit and a kernel panic.
-    for sig in [11, 7, 6] {
-        set_signal_handler(sig, crash_signal);
-    }
-    extern "C" fn dummy(_sig: i32) {}
-    set_signal_handler(1, dummy);
+    owrt_platform::procd::signals::install_pid1_handlers();
     reboot_cmd(RB_DISABLE_CAD);
 }

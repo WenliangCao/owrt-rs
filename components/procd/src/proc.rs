@@ -11,22 +11,14 @@
 //! a SIGCHLD handler, so an exit is noticed within one loop iteration instead
 //! of immediately. netifd-rs already works this way.
 
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::io;
 use std::os::fd::AsRawFd;
-use std::os::unix::process::CommandExt;
 use std::process::{Command, Stdio};
 
 use crate::instance::Instance;
 use crate::sys;
 use owrt_ubus::msg::status;
-
-extern "C" {
-    fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32;
-    fn kill(pid: i32, sig: i32) -> i32;
-}
-
-const WNOHANG: i32 = 1;
 
 pub const SIGTERM: i32 = 15;
 pub const SIGKILL: i32 = 9;
@@ -52,7 +44,11 @@ const PARTIAL_MAX: usize = 64 * 1024;
 impl LogPipe {
     pub fn new(fd: std::os::fd::OwnedFd, priority: i32) -> io::Result<Self> {
         owrt_ubus::sys::set_nonblocking(fd.as_raw_fd())?;
-        Ok(LogPipe { fd, partial: Vec::new(), priority })
+        Ok(LogPipe {
+            fd,
+            partial: Vec::new(),
+            priority,
+        })
     }
 
     /// Read what is available and hand each complete line to `emit` as RAW
@@ -66,45 +62,30 @@ impl LogPipe {
             if taken >= READ_BUDGET {
                 return true;
             }
-            // SAFETY: read(2) into a buffer we own, with its real length.
-            let n = unsafe {
-                libc_read(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len())
+            let n = match rustix::io::read(&self.fd, &mut buf) {
+                Ok(n) => n,
+                Err(rustix::io::Errno::INTR) => continue,
+                Err(error) => return error == rustix::io::Errno::AGAIN,
             };
-            if n > 0 {
-                taken += n as usize;
-                self.partial.extend_from_slice(&buf[..n as usize]);
-                while let Some(at) = self.partial.iter().position(|b| *b == b'\n') {
-                    let line: Vec<u8> = self.partial.drain(..=at).collect();
-                    emit(self.priority, &line[..line.len() - 1]);
-                }
-                if self.partial.len() > PARTIAL_MAX {
-                    let line = std::mem::take(&mut self.partial);
-                    emit(self.priority, &line);
-                }
-                continue;
-            }
             if n == 0 {
-                // Write end closed. Flush whatever is left, as the C's
-                // ustream does when the buffer is full without a newline.
                 if !self.partial.is_empty() {
                     let line = std::mem::take(&mut self.partial);
                     emit(self.priority, &line);
                 }
                 return false;
             }
-            // A signal does not close the writer or consume pending bytes.
-            let e = io::Error::last_os_error();
-            if e.kind() == io::ErrorKind::Interrupted {
-                continue;
+            taken += n;
+            self.partial.extend_from_slice(&buf[..n]);
+            while let Some(at) = self.partial.iter().position(|b| *b == b'\n') {
+                let line: Vec<_> = self.partial.drain(..=at).collect();
+                emit(self.priority, &line[..line.len() - 1]);
             }
-            return e.kind() == io::ErrorKind::WouldBlock;
+            if self.partial.len() > PARTIAL_MAX {
+                let line = std::mem::take(&mut self.partial);
+                emit(self.priority, &line);
+            }
         }
     }
-}
-
-extern "C" {
-    #[link_name = "read"]
-    fn libc_read(fd: i32, buf: *mut u8, count: usize) -> isize;
 }
 
 /// `UJAIL_BIN_PATH`.
@@ -120,14 +101,7 @@ const CGROUP_BASEDIR: &str = "/sys/fs/cgroup/services";
 /// std's Command puts SIGPIPE back to SIG_DFL in the child before exec; this
 /// restores what the C child would have had. Call it on every spawn path.
 pub fn inherit_ignored_sigpipe(cmd: &mut Command) {
-    // SAFETY: signal(2) is async-signal-safe and the closure touches nothing
-    // else.
-    unsafe {
-        cmd.pre_exec(|| {
-            owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
-            Ok(())
-        });
-    }
+    owrt_platform::procd::process::inherit_ignored_sigpipe(cmd);
 }
 
 /// `instance_add_cgroup()`'s parent half: None when there is no cgroup2 root
@@ -142,64 +116,6 @@ fn cgroup_dir(service: &str, instance: &str) -> Option<CString> {
         return None;
     }
     CString::new(dir).ok()
-}
-
-/// The child half: mkdir_p(dir, 0700), then write our pid to cgroup.procs.
-/// Runs between fork and exec, so only syscalls and stack buffers.
-fn cgroup_add_self(dir: &CStr) -> io::Result<()> {
-    extern "C" {
-        fn mkdir(path: *const u8, mode: u32) -> i32;
-        fn open(path: *const u8, flags: i32, mode: u32) -> i32;
-        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-        fn close(fd: i32) -> i32;
-        fn getpid() -> i32;
-    }
-    const O_WRONLY: i32 = 1;
-    const EEXIST: i32 = 17;
-    let bytes = dir.to_bytes();
-    // One component at a time, in a fixed buffer. "" and "/" are skipped.
-    let mut buf = [0u8; 272];
-    for (i, b) in bytes.iter().enumerate() {
-        buf[i] = *b;
-        let last = i + 1 == bytes.len();
-        if (*b == b'/' && i > 0) || last {
-            let mut comp = buf;
-            comp[if last { i + 1 } else { i }] = 0;
-            // SAFETY: comp is NUL-terminated within the buffer.
-            if unsafe { mkdir(comp.as_ptr(), 0o700) } != 0 {
-                let e = io::Error::last_os_error();
-                if e.raw_os_error() != Some(EEXIST) {
-                    return Err(e);
-                }
-            }
-        }
-    }
-    let procs = b"/cgroup.procs\0";
-    buf[bytes.len()..bytes.len() + procs.len()].copy_from_slice(procs);
-    // SAFETY: NUL-terminated path; fd ops on the result.
-    unsafe {
-        let fd = open(buf.as_ptr(), O_WRONLY, 0);
-        if fd < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // dprintf(fd, "%d", getpid()) without a heap: decimal into a stack
-        // buffer.
-        let mut pid = getpid();
-        let mut digits = [0u8; 12];
-        let mut n = digits.len();
-        while pid > 0 {
-            n -= 1;
-            digits[n] = b'0' + (pid % 10) as u8;
-            pid /= 10;
-        }
-        let r = write(fd, digits[n..].as_ptr(), digits.len() - n);
-        let err = if r < 0 { Some(io::Error::last_os_error()) } else { None };
-        close(fd);
-        match err {
-            Some(e) => Err(e),
-            None => Ok(()),
-        }
-    }
 }
 
 /// `jail_run()`: the ujail argv that wraps the instance's own command.
@@ -260,7 +176,11 @@ pub fn jail_argv(inst: &Instance) -> Vec<String> {
     }
     // The stored value is the writable flag; the C tests `*type == '1'`.
     for (path, mode) in &j.mount {
-        a.push(if mode.starts_with('1') { "-w".into() } else { "-r".into() });
+        a.push(if mode.starts_with('1') {
+            "-w".into()
+        } else {
+            "-r".into()
+        });
         a.push(path.clone());
     }
     for arg in &j.setns {
@@ -348,63 +268,48 @@ pub fn start(
         cmd.stderr(Stdio::null());
     }
 
-    let nice = inst.nice;
-    let limits = inst.limits.clone();
-    let has_jail = inst.has_jail;
-    let cgroup_warn = format!("failed adding instance cgroup for {service}");
-
-    inherit_ignored_sigpipe(&mut cmd);
-    // SAFETY: runs in the forked child before exec. Every call below is
-    // async-signal-safe or touches only memory cloned into the closure; the
-    // process is single-threaded, so no lock can be held across the fork.
-    unsafe {
-        cmd.pre_exec(move || {
-            if let Some(dir) = &cgroup {
-                if let Err(e) = cgroup_add_self(dir) {
-                    crate::sys::ulog(crate::sys::LOG_WARNING, &format!("{cgroup_warn}: {e}"));
-                }
-            }
-            if nice != 0 {
-                sys::set_nice(nice);
-            }
-            for (name, value) in &limits {
-                let _ = sys::apply_limit(name, value);
-            }
-            if !has_jail {
-                // instance_config_parse seeds the primary gid from the
-                // passwd entry and only lets an explicit `group` override
-                // it. Using the uid as the gid -- which is what this did --
-                // silently puts the process in the wrong primary group
-                // whenever a user's uid and gid differ.
-                let uid = uid_gid.map(|(u, _)| u).unwrap_or(0);
-                let gid = gr_gid.or(uid_gid.map(|(_, g)| g)).unwrap_or(0);
-                if let (Some(u), Some((_, pw_gid))) = (user.as_deref(), uid_gid) {
-                    if pw_gid != 0 && !sys::init_groups(u, pw_gid) {
-                        return Err(io::Error::other("initgroups failed"));
-                    }
-                }
-                // The C guards each call on the value being non-zero, so a
-                // resolved id of 0 leaves that half alone rather than
-                // "dropping" to root explicitly.
-                if gid != 0 {
-                    sys::set_gid(gid)?;
-                }
-                if uid != 0 {
-                    sys::set_uid(uid)?;
-                }
-            }
-            Ok(())
-        });
+    let uid = uid_gid.map(|(uid, _)| uid).unwrap_or(0);
+    let gid = gr_gid.or(uid_gid.map(|(_, gid)| gid)).unwrap_or(0);
+    let user_groups = if inst.has_jail {
+        None
+    } else {
+        user.zip(uid_gid)
+            .and_then(|(user, (_, gid))| (gid != 0).then_some((user, gid)))
+    };
+    let setup = owrt_platform::procd::process::InstanceSetup {
+        cgroup,
+        cgroup_warning: format!("failed adding instance cgroup for {service}"),
+        nice: inst.nice,
+        limits: inst.limits.clone(),
+        user_groups,
+        gid: (!inst.has_jail && gid != 0).then_some(gid),
+        uid: (!inst.has_jail && uid != 0).then_some(uid),
+    };
+    fn cgroup_warning(context: &str, error: &io::Error) {
+        sys::ulog(sys::LOG_WARNING, &format!("{context}: {error}"));
     }
+    inherit_ignored_sigpipe(&mut cmd);
+    owrt_platform::procd::process::configure_instance(
+        &mut cmd,
+        setup,
+        cgroup_warning,
+        sys::apply_limit,
+    );
 
     let mut child = cmd.spawn()?;
     let pid = child.id() as i32;
     let out = match child.stdout.take() {
-        Some(p) => Some(LogPipe::new(std::os::fd::OwnedFd::from(p), crate::sys::LOG_INFO)?),
+        Some(p) => Some(LogPipe::new(
+            std::os::fd::OwnedFd::from(p),
+            crate::sys::LOG_INFO,
+        )?),
         None => None,
     };
     let err = match child.stderr.take() {
-        Some(p) => Some(LogPipe::new(std::os::fd::OwnedFd::from(p), crate::sys::LOG_ERR)?),
+        Some(p) => Some(LogPipe::new(
+            std::os::fd::OwnedFd::from(p),
+            crate::sys::LOG_ERR,
+        )?),
         None => None,
     };
     // `child` is dropped here without waiting; the loop reaps by pid the way
@@ -419,43 +324,27 @@ pub fn start(
 /// this rather than `reap_any`, which would steal other tests' children.
 #[allow(dead_code)]
 pub fn try_reap(pid: i32) -> Option<i32> {
-    let mut status: i32 = 0;
-    // SAFETY: waitpid(2) on one pid, writing one int.
-    let r = unsafe { waitpid(pid, &mut status, WNOHANG) };
-    if r == pid {
-        Some(status)
-    } else {
-        None
-    }
+    let pid = rustix::process::Pid::from_raw(pid)?;
+    rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::NOHANG)
+        .ok()
+        .flatten()
+        .map(|(_, status)| status.as_raw())
 }
 
 pub fn reap_any() -> Option<(i32, i32)> {
-    let mut status: i32 = 0;
     loop {
-        // SAFETY: waitpid(2) with -1 waits for any child and writes one int.
-        let r = unsafe { waitpid(-1, &mut status, WNOHANG) };
-        if r > 0 {
-            return Some((r, status));
+        match rustix::process::waitpid(None, rustix::process::WaitOptions::NOHANG) {
+            Ok(Some((pid, status))) => return Some((pid.as_raw_pid(), status.as_raw())),
+            Err(rustix::io::Errno::INTR) => continue,
+            _ => return None,
         }
-        if r < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted {
-            continue;
-        }
-        return None;
     }
 }
 
 pub fn signal(pid: i32, sig: i32) -> bool {
-    // pid 0 means "no child recorded" throughout this supervisor and must
-    // never turn into kill(0) -- the caller's own process group. Negative
-    // pids are REAL kill(2) semantics and go through: STATE_HALT's
-    // kill(-1, SIGTERM/SIGKILL) broadcast was swallowed by a `pid <= 0`
-    // guard here, so a reboot never signalled anything before the final
-    // reboot(2). (R73 finding 1.)
-    if pid == 0 {
-        return false;
-    }
-    // SAFETY: kill(2) takes two scalars and touches no memory.
-    unsafe { kill(pid, sig) == 0 }
+    // Zero still means no recorded child; negative pids retain kill's
+    // broadcast/process-group semantics used by the PID1 shutdown path.
+    pid != 0 && owrt_platform::procd::process::send_signal(pid, sig).is_ok()
 }
 
 /// `service_handle_kill()`: kill(2) with errno mapped to a ubus status. It
@@ -468,14 +357,13 @@ pub fn signal_status(pid: i32, sig: i32) -> i32 {
     if pid <= 0 {
         return status::NOT_FOUND;
     }
-    // SAFETY: kill(2) takes two scalars and touches no memory.
-    if unsafe { kill(pid, sig) } == 0 {
+    let Err(error) = owrt_platform::procd::process::send_signal(pid, sig) else {
         return status::OK;
-    }
+    };
     const EPERM: i32 = 1;
     const ESRCH: i32 = 3;
     const EINVAL: i32 = 22;
-    match io::Error::last_os_error().raw_os_error().unwrap_or(0) {
+    match error.raw_os_error().unwrap_or(0) {
         EINVAL => status::INVALID_ARGUMENT,
         EPERM => status::PERMISSION_DENIED,
         ESRCH => status::NOT_FOUND,
@@ -483,41 +371,22 @@ pub fn signal_status(pid: i32, sig: i32) -> i32 {
     }
 }
 
-
-
 /// `fork_worker()`: start one inittab action -- new session, stdio on
 /// /dev/<id> (or /dev/null when the open fails), controlling tty, foreground
 /// process group, then execvp. The pid is reaped by the main loop.
 pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
-    extern "C" {
-        fn setsid() -> i32;
-        fn tcsetpgrp(fd: i32, pgrp: i32) -> i32;
-        fn getpid() -> i32;
-    }
-    use crate::sys::ioctl;
-    const TIOCSCTTY: u64 = 0x540E;
-
     if argv.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
     }
     let mut cmd = Command::new(&argv[0]);
     cmd.args(&argv[1..]);
     inherit_ignored_sigpipe(&mut cmd);
-    let dev = if id.is_empty() { None } else { Some(id.to_string()) };
-    // SAFETY: everything in the closure is async-signal-safe and runs in the
-    // forked child before exec.
-    unsafe {
-        cmd.pre_exec(move || {
-            let p = setsid();
-            crate::sys::patch_fd(dev.as_deref(), 0, false);
-            crate::sys::patch_fd(dev.as_deref(), 1, true);
-            crate::sys::patch_fd(dev.as_deref(), 2, true);
-            ioctl(0, TIOCSCTTY, 1);
-            let _ = p;
-            tcsetpgrp(0, getpid());
-            Ok(())
-        });
-    }
+    let dev = if id.is_empty() {
+        None
+    } else {
+        Some(id.to_string())
+    };
+    owrt_platform::procd::process::configure_tty(&mut cmd, dev, sys::patch_fd);
     let child = cmd.spawn()?;
     let pid = child.id() as i32;
     std::mem::forget(child);
@@ -527,24 +396,7 @@ pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
 /// `setsid(2)`, ignoring the failure when already a session leader --
 /// exactly what the bare call in procd.c's main() amounts to.
 pub fn become_session_leader() {
-    extern "C" {
-        fn setsid() -> i32;
-    }
-    // SAFETY: no arguments, no memory.
-    unsafe { setsid() };
-}
-
-/// `fork(2)`, raw, for the hotplug firmware child whose work is a plain
-/// synchronous copy loop rather than an exec.
-///
-/// # Safety
-/// The child must only call async-signal-safe code before exiting; the
-/// process is single-threaded when this is called.
-pub unsafe fn fork_raw() -> i32 {
-    extern "C" {
-        fn fork() -> i32;
-    }
-    fork()
+    let _ = rustix::process::setsid();
 }
 
 #[cfg(test)]
@@ -555,7 +407,11 @@ mod tests {
     fn jailed() -> Instance {
         let mut i = Instance::new("one");
         i.valid = true;
-        i.command = vec!["/usr/sbin/dnsmasq".into(), "-C".into(), "/tmp/x.conf".into()];
+        i.command = vec![
+            "/usr/sbin/dnsmasq".into(),
+            "-C".into(),
+            "/tmp/x.conf".into(),
+        ];
         i.has_jail = true;
         i.term_timeout = 7;
         i.user = Some("dnsmasq".into());
@@ -673,6 +529,9 @@ mod tests {
         if let Some(d) = dir {
             assert_eq!(d.to_str().unwrap(), "/sys/fs/cgroup/services/svc/one");
         }
-        assert!(cgroup_dir("svc", &"x".repeat(240)).is_none(), "over the C's 256-byte buffer");
+        assert!(
+            cgroup_dir("svc", &"x".repeat(240)).is_none(),
+            "over the C's 256-byte buffer"
+        );
     }
 }

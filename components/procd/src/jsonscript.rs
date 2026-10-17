@@ -27,7 +27,6 @@
 //! deliberate in the C and callers rely on it.
 
 use std::collections::BTreeMap;
-use std::ffi::CString;
 
 use owrt_ubus::blob::{Field, MsgType};
 
@@ -398,59 +397,8 @@ fn non_string_repr(f: Field<'_>) -> String {
     String::new()
 }
 
-extern "C" {
-    fn regcomp(preg: *mut u8, pattern: *const u8, cflags: i32) -> i32;
-    fn regexec(
-        preg: *const u8,
-        string: *const u8,
-        nmatch: usize,
-        pmatch: *mut u8,
-        eflags: i32,
-    ) -> i32;
-    fn regfree(preg: *mut u8);
-}
-
-const REG_EXTENDED: i32 = 1;
-const REG_NOSUB: i32 = 1 << 3;
-/// `regex_t` is opaque and its size differs per libc: glibc 64 bytes,
-/// musl 64 bytes (aarch64). 256 over-allocates safely because only the
-/// library writes into it. The wrapper forces the ALIGNMENT the real
-/// struct has (pointers inside -> 8): a bare [u8; N] is align-1, and
-/// handing that to code that loads 8-byte fields is UB on paper even
-/// where aarch64 tolerates the load. (R73 hygiene.)
-const REGEX_T_SIZE: usize = 256;
-
-#[repr(C, align(8))]
-struct RegexStorage([u8; REGEX_T_SIZE]);
-
-/// `eq_regex_cmp()`. Plain equality, or POSIX extended regex through the
-/// platform's own regcomp/regexec -- the same implementation the C calls, so
-/// there is no second regex dialect to keep in step. A pattern that fails to
-/// compile is false, exactly as in the C.
 fn eq_or_regex(s: &str, pattern: &str, regex: bool) -> bool {
-    if !regex {
-        return s == pattern;
-    }
-    let (Ok(cpat), Ok(cs)) = (CString::new(pattern), CString::new(s)) else {
-        return false;
-    };
-    let mut reg = RegexStorage([0u8; REGEX_T_SIZE]);
-    // SAFETY: `reg` is a zeroed, 8-aligned buffer at least as large as
-    // regex_t on this platform, and `cpat` is a NUL-terminated string that
-    // outlives the call.
-    if unsafe { regcomp(reg.0.as_mut_ptr(), cpat.as_ptr().cast(), REG_EXTENDED | REG_NOSUB) }
-        != 0
-    {
-        return false;
-    }
-    // SAFETY: `reg` was successfully compiled above; nmatch 0 with a null
-    // pmatch is what REG_NOSUB expects.
-    let hit = unsafe {
-        regexec(reg.0.as_ptr(), cs.as_ptr().cast(), 0, std::ptr::null_mut(), 0) == 0
-    };
-    // SAFETY: frees the compiled regex exactly once.
-    unsafe { regfree(reg.0.as_mut_ptr()) };
-    hit
+    if regex { owrt_platform::procd::compatibility::regex_matches(s, pattern) } else { s == pattern }
 }
 
 #[cfg(test)]

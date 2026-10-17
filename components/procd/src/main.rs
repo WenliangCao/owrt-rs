@@ -9,6 +9,9 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
+#![forbid(unsafe_code)]
+#![cfg_attr(target_os = "linux", deny(warnings))]
+
 /// procd's `LOG()`/`ERROR()`/`ULOG_WARN()`: one line through `sys::ulog`,
 /// the single sink that never panics (see sys.rs, R81 F01). `log!(prio, ..)`
 /// takes a syslog priority; `debug!(level, ..)` is `DEBUG(level, ..)`,
@@ -599,7 +602,7 @@ impl Procd {
         // Clear before draining: SIGCHLD may coalesce several exits, or
         // arrive while we process one. Drain all statuses, leaving any new
         // signal armed for the next pass. pump_logs still runs first.
-        if !sys::take_child_exit_pending() {
+        if !owrt_platform::procd::signals::take_child_exit_pending() {
             return;
         }
         while let Some((pid, wstatus)) = proc::reap_any() {
@@ -766,10 +769,10 @@ impl Procd {
                 }
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 if sys::is_container() {
-                    sys::reboot_cmd(self.reboot_event);
+                    owrt_platform::procd::process::reboot_cmd(self.reboot_event);
                     std::process::exit(0);
                 }
-                sys::halt_forever(self.reboot_event);
+                owrt_platform::procd::process::halt_forever(self.reboot_event);
             }
             _ => {}
         }
@@ -961,7 +964,7 @@ impl Procd {
             }
             self.hotplug = Some(hp);
         }
-        let event = sys::SHUTDOWN_EVENT.swap(0, std::sync::atomic::Ordering::SeqCst);
+        let event = owrt_platform::procd::signals::SHUTDOWN_EVENT.swap(0, std::sync::atomic::Ordering::SeqCst);
         if event != 0 {
             self.procd_shutdown(event);
         }
@@ -2469,7 +2472,7 @@ fn run() -> io::Result<()> {
     let channel = if pid1 && !arg_flag("-S") { sys::LogChannel::Kmsg } else { sys::LogChannel::Stdio };
     sys::ulog_open(channel);
     sys::install_panic_hook();
-    let wakeup = sys::install_sigchld_wakeup()?;
+    let wakeup = owrt_platform::procd::signals::install_sigchld_wakeup()?;
     let base = Instant::now();
     let mut wdt = watchdog::Wdt::default();
     let mut hp: Option<hotplug::Hotplug> = None;
@@ -2522,7 +2525,7 @@ fn run() -> io::Result<()> {
         // forever.
         wdt.init(base.elapsed().as_millis() as i64, false);
         sys::set_stdio("console");
-        let ubus_user = sys::lookup_user_home("ubus");
+        let ubus_user = owrt_platform::procd::identity::lookup_user_home("ubus");
         match &ubus_user {
             Some((uid, gid, home)) => {
                 log!(sys::LOG_INFO, "- ubus -");
@@ -3087,10 +3090,10 @@ mod watch_tests {
         assert!(std::path::Path::new(&marker).exists());
         std::fs::remove_file(marker).unwrap();
         // Reap this test-owned trigger directly (no global signal handler).
-        extern "C" { fn waitpid(pid: i32, status: *mut i32, flags: i32) -> i32; }
-        let mut status = 0;
-        // SAFETY: live status pointer and the exact child spawned above.
-        assert_eq!(unsafe { waitpid(p.triggers.pending[0].pid.unwrap(), &mut status, 0) }, p.triggers.pending[0].pid.unwrap());
+        let pid = rustix::process::Pid::from_raw(p.triggers.pending[0].pid.unwrap()).unwrap();
+        let reaped = rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::empty())
+            .unwrap().unwrap().0;
+        assert_eq!(reaped, pid);
         drop(p);
         worker.join().unwrap();
     }
@@ -3120,7 +3123,7 @@ mod watch_tests {
 
     #[test]
     fn deferred_set_disconnect_drops_owned_request_fd_without_reply() {
-        use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+        use std::os::fd::AsRawFd;
         use std::time::Duration;
         let path = format!("/tmp/procd-set-disconnect-{}.sock", std::process::id());
         let listener = UnixListener::bind(&path).unwrap();
@@ -3145,17 +3148,13 @@ mod watch_tests {
         std::fs::set_permissions(format!("{init_dir}/svc"), std::fs::Permissions::from_mode(0o755)).unwrap();
         p.init_d = init_dir.clone();
         let file = std::fs::File::open("/dev/null").unwrap();
-        extern "C" { fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32; }
-        // A high duplicated fd prevents another test thread reusing its
-        // number during the release assertion. F_DUPFD_CLOEXEC is Linux.
-        // SAFETY: file owns a live fd; duplication creates a separately
-        // owned descriptor without closing or changing the original.
-        let raw = unsafe { fcntl(file.as_raw_fd(), 1030, 1000) };
+        // Keep a high descriptor so unrelated tests cannot reuse its slot.
+        let duplicate = rustix::io::fcntl_dupfd_cloexec(&file, 1000).unwrap();
+        let raw = duplicate.as_raw_fd();
         assert!(raw >= 1000);
         p.pending_set = Some(PendingSet { request: Request { peer: 10, seq: 99, objid: 1001,
             method: "set".into(), user: None, group: None, data: vec![],
-            // SAFETY: newly duplicated descriptor transfers ownership once.
-            fd: Some(unsafe { OwnedFd::from_raw_fd(raw) }), no_reply: false },
+            fd: Some(duplicate), no_reply: false },
             paths: ["watched.alpha".into()].into(), service: "svc".into(), new_service: false });
         assert!(p.pump_pending_set().is_err());
         assert!(p.pending_set.is_none());
@@ -3167,15 +3166,15 @@ mod watch_tests {
             std::thread::sleep(Duration::from_millis(5));
         }
         assert!(std::path::Path::new(&completed).exists());
-        extern "C" { fn waitpid(pid: i32, status: *mut i32, flags: i32) -> i32; }
-        let pid = p.rc.jobs[0].pid.unwrap();
-        let mut child_status = 0;
-        // SAFETY: pointer is live and pid is this test's exact running hook.
-        assert_eq!(unsafe { waitpid(pid, &mut child_status, 0) }, pid);
+        let pid = rustix::process::Pid::from_raw(p.rc.jobs[0].pid.unwrap()).unwrap();
+        let reaped = rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::empty())
+            .unwrap().unwrap().0;
+        assert_eq!(reaped, pid);
         std::fs::remove_dir_all(init_dir).unwrap();
-        // SAFETY: F_GETFD only probes the descriptor, with no ownership.
-        assert_eq!(unsafe { fcntl(raw, 1, 0) }, -1);
-        assert_eq!(io::Error::last_os_error().raw_os_error(), Some(9));
+        assert_eq!(
+            owrt_platform::unix::set_nonblocking(raw).unwrap_err().raw_os_error(),
+            Some(9),
+        );
         drop(p);
         worker.join().unwrap();
     }

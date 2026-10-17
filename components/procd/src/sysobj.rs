@@ -15,75 +15,6 @@
 use owrt_ubus::blob::BlobBuf;
 use std::io::Read;
 
-#[repr(C)]
-struct Utsname {
-    sysname: [u8; 65],
-    nodename: [u8; 65],
-    release: [u8; 65],
-    version: [u8; 65],
-    machine: [u8; 65],
-    domainname: [u8; 65],
-}
-
-#[repr(C)]
-struct Sysinfo {
-    uptime: i64,
-    loads: [u64; 3],
-    totalram: u64,
-    freeram: u64,
-    sharedram: u64,
-    bufferram: u64,
-    totalswap: u64,
-    freeswap: u64,
-    procs: u16,
-    _pad: u16,
-    totalhigh: u64,
-    freehigh: u64,
-    mem_unit: u32,
-    _reserved: [u8; 256],
-}
-
-#[repr(C)]
-struct StatVfs {
-    f_bsize: u64,
-    f_frsize: u64,
-    f_blocks: u64,
-    f_bfree: u64,
-    f_bavail: u64,
-    f_files: u64,
-    f_ffree: u64,
-    f_favail: u64,
-    _tail: [u8; 64],
-}
-
-#[repr(C)]
-struct Tm {
-    tm_sec: i32,
-    tm_min: i32,
-    tm_hour: i32,
-    tm_mday: i32,
-    tm_mon: i32,
-    tm_year: i32,
-    tm_wday: i32,
-    tm_yday: i32,
-    tm_isdst: i32,
-    tm_gmtoff: i64,
-    tm_zone: *const u8,
-}
-
-extern "C" {
-    fn uname(buf: *mut Utsname) -> i32;
-    fn sysinfo(info: *mut Sysinfo) -> i32;
-    fn statvfs(path: *const u8, buf: *mut StatVfs) -> i32;
-    fn time(t: *mut i64) -> i64;
-    fn localtime_r(t: *const i64, tm: *mut Tm) -> *mut Tm;
-}
-
-fn cstr(field: &[u8]) -> &str {
-    let end = field.iter().position(|b| *b == 0).unwrap_or(field.len());
-    std::str::from_utf8(&field[..end]).unwrap_or("")
-}
-
 /// First line of a file, cut at tab/newline like `strtok(line, "\t\n")`.
 fn first_line(path: &str) -> Option<String> {
     let raw = std::fs::read(path).ok()?;
@@ -154,19 +85,17 @@ fn release_value(val: &str) -> String {
 
 /// `system_board()`.
 pub fn build_board(b: &mut BlobBuf) {
-    // SAFETY: uname writes into a zeroed struct of the kernel's layout.
-    let mut uts: Utsname = unsafe { std::mem::zeroed() };
-    // SAFETY: as above.
-    if unsafe { uname(&mut uts) } >= 0 {
-        b.msg_string("kernel", cstr(&uts.release));
-        b.msg_string("hostname", cstr(&uts.nodename));
-    }
+    let uts = rustix::system::uname();
+    b.msg_string("kernel", uts.release().to_str().unwrap_or(""));
+    b.msg_string("hostname", uts.nodename().to_str().unwrap_or(""));
 
     if let Ok(cpuinfo) = std::fs::read_to_string("/proc/cpuinfo") {
         for line in cpuinfo.lines() {
             // strtok(line, "\t:") / strtok(NULL, "\t\n"): the value keeps
             // its leading ": " minus the first two bytes (val + 2).
-            let Some((key, val)) = line.split_once(':') else { continue };
+            let Some((key, val)) = line.split_once(':') else {
+                continue;
+            };
             let key = key.trim_end_matches(['\t', ' ']);
             if key.eq_ignore_ascii_case("CPU revision") {
                 let rev = i64::from_str_radix(val.trim(), 16).unwrap_or(0);
@@ -182,7 +111,9 @@ pub fn build_board(b: &mut BlobBuf) {
         b.msg_string("model", &model);
     } else if let Ok(cpuinfo) = std::fs::read_to_string("/proc/cpuinfo") {
         for line in cpuinfo.lines() {
-            let Some((key, val)) = line.split_once(':') else { continue };
+            let Some((key, val)) = line.split_once(':') else {
+                continue;
+            };
             let key = key.trim_end_matches(['\t', ' ']);
             if key.eq_ignore_ascii_case("machine") || key.eq_ignore_ascii_case("hardware") {
                 b.msg_string("model", val.strip_prefix(' ').unwrap_or(val));
@@ -204,7 +135,9 @@ pub fn build_board(b: &mut BlobBuf) {
     if let Ok(osrel) = std::fs::read_to_string("/usr/lib/os-release") {
         let t = b.msg_open_table("release");
         for line in osrel.lines() {
-            let Some((key, val)) = line.split_once('=') else { continue };
+            let Some((key, val)) = line.split_once('=') else {
+                continue;
+            };
             let key = match key {
                 k if k.eq_ignore_ascii_case("NAME") => "distribution",
                 k if k.eq_ignore_ascii_case("VERSION") => "version",
@@ -242,7 +175,10 @@ impl Meminfo {
     const ROOM: usize = 8192;
 
     pub fn open() -> Meminfo {
-        Meminfo { file: std::fs::File::open("/proc/meminfo").ok(), buf: Vec::new() }
+        Meminfo {
+            file: std::fs::File::open("/proc/meminfo").ok(),
+            buf: Vec::new(),
+        }
     }
 
     /// The current report, or None when it cannot be read.
@@ -300,8 +236,12 @@ pub(crate) fn scan_meminfo(text: &[u8]) -> (u64, u64) {
             continue;
         };
         let rest = &line[key_end + 1..];
-        let Some(val_start) = rest.iter().position(|&b| b != b' ') else { continue };
-        let Ok(val) = std::str::from_utf8(&rest[val_start..]) else { continue };
+        let Some(val_start) = rest.iter().position(|&b| b != b' ') else {
+            continue;
+        };
+        let Ok(val) = std::str::from_utf8(&rest[val_start..]) else {
+            continue;
+        };
         *target = 1024 * crate::sys::atoi_u32(val) as u64;
     }
     (available, cached)
@@ -309,26 +249,15 @@ pub(crate) fn scan_meminfo(text: &[u8]) -> (u64, u64) {
 
 /// `system_info()`. Returns false on the two UNKNOWN_ERROR paths.
 pub fn build_info(b: &mut BlobBuf, meminfo: &mut Meminfo) -> bool {
-    // SAFETY: sysinfo fills the kernel-layout struct.
-    let mut info: Sysinfo = unsafe { std::mem::zeroed() };
-    // SAFETY: as above.
-    if unsafe { sysinfo(&mut info) } != 0 {
-        return false;
-    }
+    let info = rustix::system::sysinfo();
     let Some(text) = meminfo.read() else {
         return false;
     };
     let (available, cached) = scan_meminfo(text);
-    // SAFETY: time with a null-free out param; localtime_r fills `tm`.
-    let now = unsafe { time(std::ptr::null_mut()) };
-    // SAFETY: Tm contains integers and a raw pointer, all valid when zeroed.
-    let mut tm: Tm = unsafe { std::mem::zeroed() };
-    // SAFETY: `now` and `tm` are live locals.
-    if unsafe { localtime_r(&now, &mut tm) }.is_null() {
+    let Some(localtime) = owrt_platform::procd::compatibility::local_epoch() else {
         return false;
-    }
-
-    b.msg_u32("localtime", (now + tm.tm_gmtoff) as u32);
+    };
+    b.msg_u32("localtime", localtime as u32);
     b.msg_u32("uptime", info.uptime as u32);
     let a = b.msg_open_array("load");
     for l in info.loads {
@@ -346,13 +275,14 @@ pub fn build_info(b: &mut BlobBuf, meminfo: &mut Meminfo) -> bool {
     b.msg_close(m);
 
     for (path, name) in [(c"/", "root"), (c"/tmp", "tmp")] {
-        // SAFETY: statvfs fills the struct for a NUL-terminated path.
-        let mut s: StatVfs = unsafe { std::mem::zeroed() };
-        // SAFETY: as above.
-        if unsafe { statvfs(path.as_ptr().cast(), &mut s) } != 0 {
+        let Ok(s) = rustix::fs::statvfs(path) else {
             continue;
-        }
-        let frsize = if s.f_frsize == 0 { s.f_bsize } else { s.f_frsize };
+        };
+        let frsize = if s.f_frsize == 0 {
+            s.f_bsize
+        } else {
+            s.f_frsize
+        };
         let t = b.msg_open_table(name);
         b.msg_u64("total", kscale(s.f_blocks, frsize));
         b.msg_u64("free", kscale(s.f_bfree, frsize));
@@ -378,7 +308,10 @@ mod tests {
         assert_eq!(scan_meminfo(text), (123 * 1024, 7 * 1024));
         // A key without a value is skipped (strtok returns NULL for val).
         assert_eq!(scan_meminfo(b"Cached:\nMemAvailable\n"), (0, 0));
-        assert_eq!(scan_meminfo(b"Cached:5\nMemAvailable:6 kB"), (6 * 1024, 5 * 1024));
+        assert_eq!(
+            scan_meminfo(b"Cached:5\nMemAvailable:6 kB"),
+            (6 * 1024, 5 * 1024)
+        );
     }
 
     #[test]
@@ -386,12 +319,24 @@ mod tests {
         for (text, expected) in [
             (&b"CachedExtra: 9\nMemAvailableExtra: 8"[..], (0, 0)),
             (&b"Cached\t9\nMemAvailable\t8"[..], (0, 0)),
-            (&b"::  cAcHeD 7\n :mEmAvAiLaBlE: 8"[..], (8 * 1024, 7 * 1024)),
-            (&b"Cached: 7\nCached:\nCached\nMemAvailable: 8\nMemAvailable "[..], (8 * 1024, 7 * 1024)),
-            (&b"Cached: 7\nCached 9\nMemAvailable: 8\nMemAvailable 10"[..], (10 * 1024, 9 * 1024)),
+            (
+                &b"::  cAcHeD 7\n :mEmAvAiLaBlE: 8"[..],
+                (8 * 1024, 7 * 1024),
+            ),
+            (
+                &b"Cached: 7\nCached:\nCached\nMemAvailable: 8\nMemAvailable "[..],
+                (8 * 1024, 7 * 1024),
+            ),
+            (
+                &b"Cached: 7\nCached 9\nMemAvailable: 8\nMemAvailable 10"[..],
+                (10 * 1024, 9 * 1024),
+            ),
             // strtok uses only space after the first delimiter: the second
             // colon reaches atoi and changes the previous value to zero.
-            (&b"Cached: 7\nCached::9\nMemAvailable: 8\nMemAvailable::10"[..], (0, 0)),
+            (
+                &b"Cached: 7\nCached::9\nMemAvailable: 8\nMemAvailable::10"[..],
+                (0, 0),
+            ),
         ] {
             assert_eq!(scan_meminfo(text), expected, "{text:?}");
         }
@@ -400,7 +345,10 @@ mod tests {
     #[test]
     fn meminfo_pread_and_fallback_agree() {
         let mut kept = Meminfo::open();
-        let mut fresh = Meminfo { file: None, buf: Vec::new() };
+        let mut fresh = Meminfo {
+            file: None,
+            buf: Vec::new(),
+        };
         let a = kept.read().map(|t| scan_meminfo(t));
         let b = fresh.read().map(|t| scan_meminfo(t));
         assert!(a.is_some() && b.is_some());
@@ -420,11 +368,15 @@ mod tests {
     fn board_and_info_build_on_this_host() {
         let mut b = BlobBuf::new();
         build_board(&mut b);
-        let names: Vec<String> = owrt_ubus::blob::fields(b.payload()).map(|f| f.name.to_string()).collect();
+        let names: Vec<String> = owrt_ubus::blob::fields(b.payload())
+            .map(|f| f.name.to_string())
+            .collect();
         assert!(names.contains(&"kernel".to_string()), "{names:?}");
         let mut b = BlobBuf::new();
         assert!(build_info(&mut b, &mut Meminfo::open()));
-        let names: Vec<String> = owrt_ubus::blob::fields(b.payload()).map(|f| f.name.to_string()).collect();
+        let names: Vec<String> = owrt_ubus::blob::fields(b.payload())
+            .map(|f| f.name.to_string())
+            .collect();
         for want in ["localtime", "uptime", "load", "memory", "swap"] {
             assert!(names.contains(&want.to_string()), "{names:?}");
         }

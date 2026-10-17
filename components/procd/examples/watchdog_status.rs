@@ -1,10 +1,13 @@
 //! Exercise the production watchdog init/status path with ioctl injection.
 //! WDTFD always owns a socketpair; this program never opens /dev/watchdog.
-#![deny(unsafe_op_in_unsafe_fn)]
+#![forbid(unsafe_code)]
 
 use std::io::Read;
 use std::os::fd::IntoRawFd;
-use std::sync::{atomic::{AtomicUsize, Ordering}, Mutex};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Mutex,
+};
 
 static SCENARIO: AtomicUsize = AtomicUsize::new(0);
 static LOGS: Mutex<Vec<String>> = Mutex::new(Vec::new());
@@ -24,33 +27,36 @@ macro_rules! debug {
 mod sys {
     pub const LOG_INFO: i32 = 6;
     pub const LOG_ERR: i32 = 3;
-    pub fn atoi_u32(s: &str) -> u32 { s.parse().unwrap() }
-    unsafe extern "C" { fn close(fd: i32) -> i32; }
-    pub unsafe fn close_fd(fd: i32) -> i32 {
-        // SAFETY: watchdog relinquishes its owned fd exactly once.
-        unsafe { close(fd) }
+    pub fn atoi_u32(s: &str) -> u32 {
+        s.parse().unwrap()
     }
-    pub unsafe fn ioctl<T>(_fd: i32, request: u64, value: *mut T) -> i32 {
-        crate::IOCTLS.lock().unwrap().push(request);
+    pub use owrt_platform::procd::watchdog::{take_inherited_watchdog, WatchdogInfo};
+    pub fn watchdog_set_timeout(
+        _fd: impl std::os::fd::AsFd,
+        _value: &mut i32,
+    ) -> std::io::Result<()> {
+        crate::IOCTLS.lock().unwrap().push(0xc004_5706);
+        Ok(())
+    }
+    pub fn watchdog_support(_fd: impl std::os::fd::AsFd) -> std::io::Result<WatchdogInfo> {
+        crate::IOCTLS.lock().unwrap().push(0x8028_5700);
+        assert_eq!(std::mem::size_of::<WatchdogInfo>(), 40);
         let scenario = crate::SCENARIO.load(crate::Ordering::Relaxed);
-        match request {
-            0xc004_5706 => assert_eq!(std::mem::size_of::<T>(), 4),
-            0x8028_5700 => {
-                assert_eq!(std::mem::size_of::<T>(), 40, "watchdog_info ABI");
-                if scenario == 0 { return -1; }
-                // SAFETY: the production call supplies watchdog_info, whose
-                // checked repr(C) first field is its 32-bit options mask.
-                unsafe { value.cast::<u32>().write(if scenario == 1 { 0 } else { 0x20 }) };
-            }
-            0x8004_5702 => {
-                assert_eq!(std::mem::size_of::<T>(), 4, "GETBOOTSTATUS ABI");
-                if scenario == 2 { return -1; }
-                // SAFETY: the checked call supplies a live 32-bit status.
-                unsafe { value.cast::<u32>().write(if scenario == 4 { 0x20 } else { 0 }) };
-            }
-            _ => panic!("unexpected watchdog ioctl {request:x}"),
+        if scenario == 0 {
+            return Err(std::io::Error::other("injected GETSUPPORT"));
         }
-        0
+        Ok(WatchdogInfo {
+            options: if scenario == 1 { 0 } else { 0x20 },
+            ..Default::default()
+        })
+    }
+    pub fn watchdog_boot_status(_fd: impl std::os::fd::AsFd) -> std::io::Result<i32> {
+        crate::IOCTLS.lock().unwrap().push(0x8004_5702);
+        let scenario = crate::SCENARIO.load(crate::Ordering::Relaxed);
+        if scenario == 2 {
+            return Err(std::io::Error::other("injected GETBOOTSTATUS"));
+        }
+        Ok(if scenario == 4 { 0x20 } else { 0 })
     }
 }
 
@@ -80,8 +86,14 @@ fn main() {
         let mut ping = [0u8];
         reader.read_exact(&mut ping).unwrap();
         assert_eq!(ping, *b"X");
-        assert_eq!(*LOGS.lock().unwrap(), vec!["- watchdog -".to_string(), (*message).to_string()]);
-        assert_eq!(IOCTLS.lock().unwrap().len(), if scenario < 2 { 2 } else { 3 });
+        assert_eq!(
+            *LOGS.lock().unwrap(),
+            vec!["- watchdog -".to_string(), (*message).to_string()]
+        );
+        assert_eq!(
+            IOCTLS.lock().unwrap().len(),
+            if scenario < 2 { 2 } else { 3 }
+        );
         println!("scenario {scenario}: init, ABI, ioctl ordering and status log passed");
     }
 }
