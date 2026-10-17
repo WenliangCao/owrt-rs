@@ -70,6 +70,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 -m unittest discover -s tools -p test_ci_dnsmasq_pgo.py
+          python3 -m unittest discover -s tools -p test_native_image.py
           python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
 
       - name: integrate ten native components and verify the final image
