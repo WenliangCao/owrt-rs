@@ -17,8 +17,11 @@ on:
       - "components/ubusd/**"
       - "components/netifd/**"
       - "components/procd/**"
+      - "components/odhcpd/**"
+      - "Makefile"
       - "packaging/openwrt/**"
       - "tools/ci_check_core.py"
+      - "tools/test_ci_check_core.py"
       - "tools/ci_build_core.sh"
       - "tools/ci_build_image.sh"
       - "tools/dnsmasq/compiler_warnings.py"
@@ -37,8 +40,11 @@ on:
       - "components/ubusd/**"
       - "components/netifd/**"
       - "components/procd/**"
+      - "components/odhcpd/**"
+      - "Makefile"
       - "packaging/openwrt/**"
       - "tools/ci_check_core.py"
+      - "tools/test_ci_check_core.py"
       - "tools/ci_build_core.sh"
       - "tools/ci_build_image.sh"
       - "tools/dnsmasq/compiler_warnings.py"
@@ -133,7 +139,7 @@ jobs:
             test_ci_dnsmasq_target.TargetCheckTests.test_all_rust_cargo_and_unknown_warning_forms_fail \
             test_ci_dnsmasq_target.TargetCheckTests.test_sdk_kconfig_warnings_are_retained_separately \
             test_ci_dnsmasq_target.TargetCheckTests.test_only_exact_sdk_openssl_configuration_message_is_exempt
-      - name: build all nine through canonical recipes and check router tests/examples
+      - name: build ten diagnostic candidates and check router tests/examples
         run: python3 tools/ci_check_core.py target "$GITHUB_WORKSPACE/work"
       - name: retain checksum-verified SDK downloads after compile failures
         if: always() && steps.sdk-downloads.outputs.cache-hit != 'true' && hashFiles('work/out/sdk-downloads-verified') != ''
