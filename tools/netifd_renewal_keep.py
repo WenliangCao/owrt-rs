@@ -134,6 +134,12 @@ def inside(args):
     explicit = copy.deepcopy(base)
     explicit['ipaddr'][0]['broadcast'] = '192.0.2.255'
     step('explicit-default-broadcast', explicit, 0, 0)
+    duplicate_routes = copy.deepcopy(base)
+    duplicate_routes['routes'].insert(0, {**base['routes'][0], 'gateway': '192.0.2.3'})
+    step('duplicate-route-last-value-wins', duplicate_routes, 0, 2)
+    step('duplicate-route-following-renewal', base, 0, 0)
+    step('gateway-and-route-last-value-wins', {**base, 'gateway': '192.0.2.3'}, 0, 2)
+    step('gateway-and-route-following-renewal', base, 0, 0)
     changed = copy.deepcopy(base)
     changed['routes'][0]['gateway'] = '192.0.2.3'
     step('changed-gateway', changed, 0, 1)
@@ -217,17 +223,33 @@ def inside(args):
 
 
 def normalized(rows):
-    # Compare every kernel field except remaining lifetime clocks. Zero and
-    # infinity stay distinct; finite positive lifetimes are tested by writes.
+    # Kernel dump ordering is not route precedence. Sort by non-clock fields;
+    # retain every field and compare finite remaining lifetimes within 2 s.
     def normalize(value):
         if isinstance(value, dict):
-            return {k: ('finite' if k in ('valid_life_time', 'preferred_life_time', 'expires')
-                        and isinstance(v, (int, float)) and 0 < v < 4294967295
-                        else normalize(v)) for k, v in value.items()}
+            return {k: normalize(v) for k, v in value.items()}
         if isinstance(value, list):
-            return sorted((normalize(v) for v in value), key=lambda v: json.dumps(v, sort_keys=True))
+            def key(row):
+                if isinstance(row, dict):
+                    row = {k: v for k, v in row.items() if k not in
+                           ('valid_life_time', 'preferred_life_time', 'expires')}
+                return json.dumps(row, sort_keys=True)
+            return sorted((normalize(v) for v in value), key=key)
         return value
     return normalize(rows)
+
+
+def same_kernel(old, new, field=''):
+    if type(old) is not type(new):
+        return False
+    if isinstance(old, dict):
+        return old.keys() == new.keys() and all(same_kernel(old[k], new[k], k) for k in old)
+    if isinstance(old, list):
+        return len(old) == len(new) and all(same_kernel(a, b) for a, b in zip(old, new))
+    if field in ('valid_life_time', 'preferred_life_time', 'expires') and isinstance(old, (int, float)):
+        if 0 < old < 4294967295 and 0 < new < 4294967295:
+            return abs(old - new) <= 2
+    return old == new
 
 
 def main(args):
@@ -269,7 +291,7 @@ def main(args):
             raise AssertionError('case alignment failed')
         if old['compare_kernel']:
             for key in ('addresses', 'routes', 'routes6'):
-                if normalized(old[key]) != normalized(new[key]):
+                if not same_kernel(normalized(old[key]), normalized(new[key])):
                     differences.append(old['label'] + '/' + key)
     summary = {'cases': len(c), 'kernel_differences': differences,
                'kernel_compared_cases': sum(r['compare_kernel'] for r in c),

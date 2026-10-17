@@ -2167,6 +2167,11 @@ impl Netifd {
         }
         let changed_prefixes = self.set_delegated_prefixes(name, delegated);
 
+        // A notification may submit the same route key more than once, also
+        // across gateway/routes. After the first attempt the previous lease
+        // is no longer proof of kernel state. Re-apply subsequent occurrences
+        // so the last value wins, including when an earlier attempt failed.
+        let mut seen_routes: Vec<interface::Route> = Vec::new();
         // `gateway`/`ip6gw` are applied only when that family got an address
         if !bad {
             for (key, v6) in [("gateway", false), ("ip6gw", true)] {
@@ -2196,10 +2201,12 @@ impl Netifd {
                     r.table = t;
                     r.flags |= interface::devroute::SRCTABLE;
                 }
-                let old = same_device.then(|| previous.routes.iter().find(|old| {
+                let unique = !seen_routes.iter().any(|seen| interface::route_order(seen, &r).is_eq());
+                let old = (same_device && unique).then(|| previous.routes.iter().find(|old| {
                     interface::route_order(old, &r).is_eq()
                 })).flatten();
                 self.add_iface_route(name, devidx, &r, &mut ipset, old);
+                seen_routes.push(r);
             }
         }
 
@@ -2208,10 +2215,12 @@ impl Netifd {
             let Some(list) = find(key) else { continue };
             for item in list.children() {
                 let Some(r) = proto::parse_route_item(&item, v6) else { continue };
-                let old = same_device.then(|| previous.routes.iter().find(|old| {
+                let unique = !seen_routes.iter().any(|seen| interface::route_order(seen, &r).is_eq());
+                let old = (same_device && unique).then(|| previous.routes.iter().find(|old| {
                     interface::route_order(old, &r).is_eq()
                 })).flatten();
                 self.add_iface_route(name, devidx, &r, &mut ipset, old);
+                seen_routes.push(r);
             }
         }
         // `neighbor`/`neighbor6`: permanent entries the protocol asks for
