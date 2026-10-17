@@ -29,7 +29,7 @@ import time
 
 TOOLS = Path(__file__).resolve().parent
 BASE = "root/owrt-native-trial"
-RECEIPT = "root/owrt-v0.2.0-rollback-receipt"
+RECEIPT = "root/owrt-v0.2.1-rollback-receipt"
 RECORDER_SOURCE = r'''
 #define _GNU_SOURCE
 #include <fcntl.h>
@@ -117,7 +117,7 @@ case "$pid" in ''|*[!0-9]*) exit 3;; esac
 sha256sum "/proc/$pid/exe" > "$out/ubusd.sha256"
 ubus -S -t 3 call service set '{"name":"handoff-delay","instances":{"main":{"command":["/bin/sleep","3600"],"term_timeout":__DELAY__}}}'
 ubus -S -t 3 call service list '{"name":"handoff-delay"}' > "$out/service.json"
-/usr/libexec/validate_firmware_image /root/owrt-native-trial/rollback-v0.1.1.bin > "$out/validation.json"
+/usr/libexec/validate_firmware_image /root/owrt-native-trial/rollback-v0.2.0.bin > "$out/validation.json"
 [ "$(jsonfilter -i "$out/validation.json" -e '@.valid')" = true ]
 # This separate session is not an inittab child or a supervised service.
 # service_stop_all kills the launcher but must leave the guard to observe its
@@ -185,14 +185,14 @@ def check_case(source, image, bounded, recorder, output, manifest, delay):
     shutil.copy2(TOOLS / "native_trial_guard.sh", root / BASE / "native_trial_guard.sh")
     shutil.copy2(bounded, root / BASE / "bounded")
     (root / BASE / "bounded").chmod(0o700)
-    shutil.copy2(image, root / BASE / "rollback-v0.1.1.bin")
+    shutil.copy2(image, root / BASE / "rollback-v0.2.0.bin")
     original = b"config interface 'fixture'\n option proto 'none'\n"
     with tarfile.open(root / BASE / "rollback-config.tar.gz", "w:gz") as archive:
         member = tarfile.TarInfo("etc/config/network")
         member.size, member.mode, member.uid, member.gid = len(original), 0o600, 0, 0
         archive.addfile(member, io.BytesIO(original))
     write(root / BASE / "rollback-members.txt", "etc/config/network\n")
-    inputs = ("rollback-v0.1.1.bin", "rollback-config.tar.gz", "rollback-members.txt")
+    inputs = ("rollback-v0.2.0.bin", "rollback-config.tar.gz", "rollback-members.txt")
     write(root / BASE / "rollback.sha256", "".join(
         f"{sha(root / BASE / name)}  /{BASE}/{name}\n" for name in inputs))
     stock = root / "usr/share/owrt-control-plane/stock.sha256"
@@ -229,7 +229,7 @@ def check_case(source, image, bounded, recorder, output, manifest, delay):
         require(archive.extractfile(member).read() == original, "original config bytes changed")
         require(RECEIPT + "/guard.log" in names, "rollback reason did not reach actual PID1 backup")
     guard_log = (root / BASE / "guard.log").read_text()
-    require(guard_log.count("v0.1.1 rollback requested with original configuration") == 1, "handoff was not submitted exactly once")
+    require(guard_log.count("v0.2.0 rollback requested with original configuration") == 1, "handoff was not submitted exactly once")
     require(not list((root / BASE).glob("c-bridge-*")), "C bridge must not occur after handoff submission")
     require(sha(root / "tmp/owrt-native-rollback/image.bin") == sha(image), "PID1 image differs from verified input")
     if delay > 60:

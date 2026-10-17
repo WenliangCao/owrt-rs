@@ -1,6 +1,6 @@
 #!/bin/sh
 # Temporary deployment protection, carried only in a private config archive.
-# Roll back the complete firmware and original config to v0.1.1. A verified C
+# Roll back the complete firmware and original config to v0.2.0. A verified C
 # bridge is allowed once if the current PID1/bus cannot hand off sysupgrade.
 set -eu
 umask 077
@@ -31,9 +31,9 @@ restore() {
     if ! sha256sum -c "$BASE/rollback.sha256" >> "$BASE/restore.log" 2>&1 ||
        ! sha256sum -c "$BASE/recovery.sha256" >> "$BASE/restore.log" 2>&1 ||
        ! mkdir "$STAGE" ||
-       ! cp "$BASE/rollback-v0.1.1.bin" "$STAGE/image.bin" ||
+       ! cp "$BASE/rollback-v0.2.0.bin" "$STAGE/image.bin" ||
        ! cp "$BASE/rollback-config.tar.gz" "$STAGE/config.tar.gz" ||
-       ! cmp -s "$BASE/rollback-v0.1.1.bin" "$STAGE/image.bin" ||
+       ! cmp -s "$BASE/rollback-v0.2.0.bin" "$STAGE/image.bin" ||
        ! cmp -s "$BASE/rollback-config.tar.gz" "$STAGE/config.tar.gz"; then
         record 'restore-refused: input identity, RAM staging or sysupgrade preflight failed'
         rmdir /tmp/owrt-native-decision-lock
@@ -42,15 +42,15 @@ restore() {
     # Carry the reason across the rollback without carrying the guard, its
     # startup service, or either firmware image. Original config members are
     # unchanged; the only addition is this private receipt directory.
-    receipt=$STAGE/config/root/owrt-v0.2.0-rollback-receipt
+    receipt=$STAGE/config/root/owrt-v0.2.1-rollback-receipt
     if ! mkdir "$STAGE/config" ||
        ! tar -xzf "$BASE/rollback-config.tar.gz" -C "$STAGE/config" ||
        ! mkdir -p "$receipt" ||
        ! cp "$BASE/guard.log" "$receipt/guard.log" ||
        ! cp "$BASE/rollback.sha256" "$receipt/inputs.sha256" ||
        ! cp "$BASE/recovery.sha256" "$receipt/recovery.sha256" ||
-       ! printf '%s\n' 'Prepared for full v0.1.1 rollback; this receipt is not proof of completed flashing.' > "$receipt/status.txt" ||
-       ! tar -czf "$STAGE/config.tar.gz" -C "$STAGE/config" -T "$BASE/rollback-members.txt" root/owrt-v0.2.0-rollback-receipt ||
+       ! printf '%s\n' 'Prepared for full v0.2.0 rollback; this receipt is not proof of completed flashing.' > "$receipt/status.txt" ||
+       ! tar -czf "$STAGE/config.tar.gz" -C "$STAGE/config" -T "$BASE/rollback-members.txt" root/owrt-v0.2.1-rollback-receipt ||
        ! "$HELPER" bounded-no-file-limit 90 /sbin/sysupgrade -T -f "$STAGE/config.tar.gz" "$STAGE/image.bin" >> "$BASE/restore.log" 2>&1; then
         record 'restore-refused: receipt archive or sysupgrade preflight failed'
         rmdir /tmp/owrt-native-decision-lock
@@ -60,7 +60,7 @@ restore() {
     if "$HELPER" bounded 15 ubus -S -t 3 call system board > "$STAGE/board.json" 2>> "$BASE/restore.log" &&
        [ "$(jsonfilter -i "$STAGE/board.json" -e '@.board_name')" = xiaomi,mi-router-ax3000t ]; then
         put rollback-requested "$boot" || return 1
-        record 'v0.1.1 rollback requested with original configuration' || return 1
+        record 'v0.2.0 rollback requested with original configuration' || return 1
         # The request may be accepted while PID1 is still stopping services.
         # A client timeout or return is not proof that flash has not begun.
         # Never force a reboot or start another upgrade after this boundary.
@@ -82,7 +82,7 @@ restore() {
         return 1
     fi
     put c-bridge-staged "$boot" || return 1
-    record 'C bridge staged; this is not a completed v0.1.1 rollback' || return 1
+    record 'C bridge staged; this is not a completed v0.2.0 rollback' || return 1
     sync
     reboot -f
 }
@@ -130,14 +130,14 @@ case "${1:-}" in
         fi
         if [ -f "$BASE/c-bridge-used" ]; then
             # The bridge retains this private archive for one more startup;
-            # the final v0.1.1 flash restores the original archive without it.
+            # the final v0.2.0 flash restores the original archive without it.
             if [ -f "$BASE/c-bridge-rollback-attempted" ] ||
                ! cmp -s /proc/1/exe /usr/libexec/owrt-stock/sbin/procd; then
                 record 'C bridge retry refused: already attempted or PID1 is not verified C'
                 exit 1
             fi
             put c-bridge-rollback-attempted "$(cat /proc/sys/kernel/random/boot_id)"
-            record 'C bridge boot: retrying complete v0.1.1 rollback once'
+            record 'C bridge boot: retrying complete v0.2.0 rollback once'
             restore
             exit $?
         fi
