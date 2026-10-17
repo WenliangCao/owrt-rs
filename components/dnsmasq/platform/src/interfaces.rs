@@ -57,7 +57,7 @@ mod linux {
 
     fn query<const OP: Opcode>(fd: impl AsFd, request: &mut IfReq) -> io::Result<()> {
         // SAFETY: the only callers below use SIOCGIFNAME/SIOCGIFFLAGS/
-        // SIOCGIFADDR with their fully initialized, aligned Linux LP64 ifreq.
+        // SIOCGIFADDR/SIOCGIFMTU with their fully initialized, aligned Linux LP64 ifreq.
         unsafe { ioctl(fd, Updater::<OP, IfReq>::new(request)) }.map_err(Into::into)
     }
 
@@ -102,6 +102,28 @@ mod linux {
         Ok(Ipv4Addr::from(
             <[u8; 4]>::try_from(&request.data[4..8]).unwrap(),
         ))
+    }
+
+    pub fn interface_mtu(fd: impl AsFd, name: &[u8]) -> io::Result<u32> {
+        if name.is_empty() || name.len() >= 16 {
+            return Err(io::ErrorKind::InvalidInput.into());
+        }
+        let mut request = IfReq {
+            name: [0; 16],
+            data: [0; 24],
+        };
+        request.name[..name.len()].copy_from_slice(name);
+        query::<0x8921>(fd, &mut request)?;
+        u32::try_from(i32::from_ne_bytes(request.data[..4].try_into().unwrap()))
+            .map_err(|_| io::ErrorKind::InvalidData.into())
+    }
+
+    /// SIOCSARP copies this exact 68-byte Linux arpreq from user storage.
+    /// The kernel validates its address and device fields; no pointer escapes.
+    pub fn set_arp(fd: impl AsFd, request: &mut [u8; 68]) -> io::Result<()> {
+        // SAFETY: SIOCSARP reads the bounded arpreq bytes. No internal pointer
+        // fields exist, and the kernel never reads beyond these 68 bytes.
+        unsafe { ioctl(fd, Updater::<0x8955, [u8; 68]>::new(request)) }.map_err(Into::into)
     }
 
     #[repr(C)]
@@ -217,5 +239,6 @@ mod linux {
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub use linux::{
-    interface_flags, interface_ipv4, interface_name, InterfaceAddress, InterfaceAddresses,
+    interface_flags, interface_ipv4, interface_mtu, interface_name, set_arp, InterfaceAddress,
+    InterfaceAddresses,
 };

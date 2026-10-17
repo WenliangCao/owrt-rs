@@ -1,6 +1,5 @@
 //! Single-owner TFTP listeners sharing one transfer table and capacity limit.
 #![cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_platform::setsockopt;
 
 #[path = "tftp_policy.rs"]
 mod policy;
@@ -16,7 +15,7 @@ use policy::{Admission, Policy};
 use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::net::{IpAddr, SocketAddr, SocketAddrV6, UdpSocket};
-use std::os::fd::AsRawFd;
+use std::os::fd::{AsFd, AsRawFd};
 
 struct Server {
     socket: DatagramSocket,
@@ -322,7 +321,7 @@ impl<O: FileOpener> TftpListener<O> {
             return Ok(true);
         }
         let socket = DatagramSocket::bind(address)?;
-        let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+        let bound_interface = bound_interface(policy, address, &socket);
         let persistent_unowned = !policy
             .interfaces
             .iter()
@@ -478,7 +477,7 @@ impl<O: FileOpener> TftpListener<O> {
             }
             match DatagramSocket::bind(address) {
                 Ok(socket) => {
-                    let bound_interface = bound_interface(policy, address, socket.as_raw_fd());
+                    let bound_interface = bound_interface(policy, address, &socket);
                     let persistent_unowned = !policy
                         .interfaces
                         .iter()
@@ -577,7 +576,7 @@ impl<O: FileOpener> TftpListener<O> {
                 Admission::Refresh => refresh = true,
             }
             if !bound {
-                mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
+                mtu = interface_mtu(&self.servers[index].socket, &name);
             }
         }
         let pending = Pending {
@@ -832,12 +831,9 @@ fn bind_transfer_address(
                 // tftp.c:342: permit IPv4 fragmentation for negotiated blocks
                 // exceeding the path MTU, including IPv4 on a dual-family fd.
 
-                let disable_discovery = 0i32;
-                // SAFETY: the option receives one live native int; Linux's
-                // IPPROTO_IP/IP_MTU_DISCOVER are 0/10 and DONT is zero.
-                if unsafe { setsockopt(socket.as_raw_fd(), 0, 10, (&disable_discovery as *const i32).cast(), 4) } < 0 {
-                    return Err(io::Error::last_os_error());
-                }
+                rustix::net::sockopt::set_ip_mtu_discover(
+                    &socket, rustix::net::sockopt::Ipv4PathMtuDiscovery::DONT,
+                )?;
                 socket.set_nonblocking(true)?;
                 return Ok(socket);
             }
@@ -863,25 +859,10 @@ fn receive_pending(socket: &DatagramSocket, buffer: &mut [u8]) -> io::Result<Opt
 fn runtime_io<E: std::fmt::Debug>(error: E) -> io::Error {
     io::Error::other(format!("TFTP runtime: {error:?}"))
 }
-fn interface_mtu(fd: i32, name: &[u8]) -> Option<u32> {
-    if name.is_empty() || name.len() >= 16 {
-        return None;
-    }
-    extern "C" {
-        fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
-    }
-    let mut request = [0u64; 5];
-    // SAFETY: Linux 64-bit ifreq is 40 bytes with name and aligned union.
-    let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
-    bytes[..name.len()].copy_from_slice(name);
-    // SAFETY: SIOCGIFMTU writes a native int in the live ifreq union.
-    if unsafe { ioctl(fd, 0x8921, bytes.as_mut_ptr()) } < 0 {
-        return None;
-    }
-    let mtu = bytes.get(16..20)?.try_into().ok()?;
-    u32::try_from(i32::from_ne_bytes(mtu)).ok()
+fn interface_mtu(fd: &impl AsFd, name: &[u8]) -> Option<u32> {
+    dnsmasq_platform::interfaces::interface_mtu(fd, name).ok()
 }
-fn bound_interface(policy: &Policy, address: SocketAddr, fd: i32) -> Option<BoundInterface> {
+fn bound_interface(policy: &Policy, address: SocketAddr, fd: &impl AsFd) -> Option<BoundInterface> {
     if !policy.dns.bind_interfaces || policy.dns.bind_dynamic || address.is_ipv6() {
         return None;
     }
@@ -896,19 +877,7 @@ fn bound_interface(policy: &Policy, address: SocketAddr, fd: i32) -> Option<Boun
     })
 }
 fn descriptor_limit() -> io::Result<u64> {
-    extern "C" {
-        // Keep this declaration byte-for-byte compatible with the helper
-        // process module's fallback declaration. `rlimit` is two native
-        // unsigned longs on the supported 64-bit Linux targets.
-        fn getrlimit(resource: i32, limit: *mut [usize; 2]) -> i32;
-    }
-    let mut limit = [0usize; 2];
-    // SAFETY: Linux 64-bit rlimit contains two 64-bit fields.
-    if unsafe { getrlimit(7, &mut limit) } < 0 {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(limit[0] as u64)
-    }
+    Ok(rustix::process::getrlimit(rustix::process::Resource::Nofile).current.unwrap_or(u64::MAX))
 }
 
 #[cfg(test)]

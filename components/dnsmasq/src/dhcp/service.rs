@@ -7,8 +7,6 @@
 //! `dhcp_reply()`.  Interface discovery, relay forwarding, reply serialising,
 //! and actual UDP sockets remain caller responsibilities.
 
-#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_platform::getsockopt;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use super::packet::MAX_PACKET_LEN;
 use super::packet::{Packet, ParseError, FIXED_LEN};
@@ -433,7 +431,6 @@ impl SocketListener {
     /// Observe readiness without consuming the queued packet. The owner can
     /// complete its kernel address dump before borrowing packet/state buffers.
     pub fn has_input(&self) -> io::Result<bool> {
-        use std::os::fd::AsRawFd;
         if self.pending_reply.is_some() {
             return Ok(true);
         }
@@ -967,7 +964,6 @@ mod tests {
     #[test]
     #[ignore = "requires an isolated Linux network namespace with CAP_NET_ADMIN"]
     fn device_binding_linux_sockets_retry_and_relay_gate() {
-        use std::os::fd::AsRawFd;
         assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
         fn ip(args: &[&str]) {
             assert!(std::process::Command::new("ip")
@@ -979,13 +975,7 @@ mod tests {
         fn bound_device(socket: &crate::net::DatagramSocket) -> Vec<u8> {
 
             let mut name = [0u8; 16];
-            let mut len = name.len() as u32;
-            // SAFETY: SO_BINDTODEVICE writes at most len initialized bytes;
-            // both output buffers and the live socket fd span the call.
-            assert_eq!(
-                unsafe { getsockopt(socket.as_raw_fd(), 1, 25, name.as_mut_ptr().cast(), &mut len) },
-                0
-            );
+            dnsmasq_platform::socket_options::bound_device(socket, &mut name).unwrap();
             name[..name
                 .iter()
                 .position(|byte| *byte == 0)

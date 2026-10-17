@@ -1,8 +1,4 @@
 //! DNS interface selection and the existing Linux pktinfo socket boundary.
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_platform::{bind, setsockopt};
-#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
-use dnsmasq_platform::getsockopt;
 use crate::config::dns::DnsConfig;
 use crate::interfaces::DnsInterface;
 use std::io;
@@ -386,6 +382,10 @@ pub struct DnsSocket {
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     socket: std::net::UdpSocket,
 }
+impl std::os::fd::AsFd for DnsSocket {
+    fn as_fd(&self) -> std::os::fd::BorrowedFd<'_> { self.socket.as_fd() }
+}
+
 impl DnsSocket {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub fn ingress_name(&self, interface: u32) -> io::Result<[u8; 16]> {
@@ -490,54 +490,20 @@ impl DnsSocket {
 pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     {
-        use std::os::fd::{AsRawFd, FromRawFd};
-        extern "C" {
-            fn socket(family: i32, kind: i32, protocol: i32) -> i32;
-            fn listen(fd: i32, backlog: i32) -> i32;
+        use rustix::net::{self, AddressFamily, SocketFlags, SocketType};
+        let fd = net::socket_with(
+            if address.is_ipv4() { AddressFamily::INET } else { AddressFamily::INET6 },
+            SocketType::STREAM, SocketFlags::CLOEXEC | SocketFlags::NONBLOCK, None,
+        ).map_err(|error| crate::net::socket_creation_error(error.into()))?;
+        let listener = TcpListener::from(fd);
+        net::sockopt::set_socket_reuseaddr(&listener, true)?;
+        if address.is_ipv6() {
+            net::sockopt::set_ipv6_v6only(&listener, true)?;
         }
-        // SAFETY: a new socket has unique ownership transferred immediately.
-        let fd = unsafe {
-            socket(
-                if address.is_ipv4() { 2 } else { 10 },
-                1 | 0o2000000 | 0o4000,
-                0,
-            )
-        };
-        if fd < 0 {
-            return Err(crate::net::socket_creation_error(io::Error::last_os_error()));
-        }
-        // SAFETY: socket succeeded and no other owner holds this descriptor.
-        let listener = unsafe { TcpListener::from_raw_fd(fd) };
-        let fd = listener.as_raw_fd();
-        let one = 1;
-        // SAFETY: the descriptor is live and each option reads the live i32.
-        if unsafe { setsockopt(fd, 1, 2, (&one as *const i32).cast(), 4) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: the IPv6-only option reads the same live i32 on an IPv6 socket.
-        if address.is_ipv6() && unsafe { setsockopt(fd, 41, 26, (&one as *const i32).cast(), 4) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        let mut storage = [0u64; 4];
-        // SAFETY: initialized aligned storage holds either Linux sockaddr layout.
-        let bytes =
-            unsafe { std::slice::from_raw_parts_mut(storage.as_mut_ptr().cast::<u8>(), 32) };
-        bytes[..2].copy_from_slice(&(if address.is_ipv4() { 2u16 } else { 10u16 }).to_ne_bytes());
-        bytes[2..4].copy_from_slice(&address.port().to_be_bytes());
-        match address {
-            SocketAddr::V4(v) => bytes[4..8].copy_from_slice(&v.ip().octets()),
-            SocketAddr::V6(v) => {
-                bytes[8..24].copy_from_slice(&v.ip().octets());
-                bytes[24..28].copy_from_slice(&v.scope_id().to_ne_bytes());
-            }
-        }
-        // SAFETY: bytes has the initialized Linux sockaddr layout and family
-        // length; both calls use the live, uniquely owned listener descriptor.
-        if unsafe { bind(fd, bytes.as_ptr().cast(), if address.is_ipv4() { 16 } else { 28 }) } < 0
-            || unsafe { listen(fd, 32) } < 0
-        {
-            return Err(io::Error::last_os_error());
-        }
+        let mut address = address;
+        if let SocketAddr::V6(address) = &mut address { address.set_flowinfo(0); }
+        net::bind(&listener, &address)?;
+        net::listen(&listener, 32)?;
         Ok(listener)
     }
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
@@ -585,11 +551,8 @@ mod tests {
                 DnsSocket::bind(bind.parse().unwrap()).unwrap()
             };
             let address = server.local_addr().unwrap();
-            let (level, option) = if address.is_ipv4() { (0, 8) } else { (41, 49) };
-            let (mut enabled, mut size) = (0i32, 4u32);
-            // SAFETY: the live socket option writes one initialized native int.
-            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), level, option, (&mut enabled as *mut i32).cast(), &mut size) }, 0);
-            assert_eq!(enabled, i32::from(!no_pktinfo), "{bind} bound={bound} dynamic={dynamic}");
+            let enabled = dnsmasq_platform::socket_options::packet_info_enabled(&server, address.is_ipv6()).unwrap();
+            assert_eq!(enabled, !no_pktinfo, "{bind} bound={bound} dynamic={dynamic}");
             let client = UdpSocket::bind(if address.is_ipv4() { "127.0.0.1:0" } else { "[::1]:0" }).unwrap();
             client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
             client.set_broadcast(true).unwrap();
@@ -620,10 +583,7 @@ mod tests {
         config.bind_interfaces = true;
         for address in ["224.0.0.1:0", "255.255.255.255:0"] {
             let server = DnsSocket::bind_config(address.parse().unwrap(), &config, &interfaces).unwrap();
-            let (mut enabled, mut size) = (0i32, 4u32);
-            // SAFETY: the live IPv4 option writes one initialized native int.
-            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), 0, 8, (&mut enabled as *mut i32).cast(), &mut size) }, 0);
-            assert_eq!(enabled, 1);
+            assert!(dnsmasq_platform::socket_options::packet_info_enabled(&server, false).unwrap());
         }
     }
 
