@@ -870,3 +870,16 @@ observer正常exit1，生产健康正常且E/F恢复。完整raw/failure保留�
 时间，上游无请求身份日志，不能把此失败直接叫已证明的边界假阳性。测量开始前后27–75ms
 延迟也保留，不归因产品或调度器。仅total1800不能排除额外命中转发与遗漏未命中的抵消。
 按新冻结的精确名字集合计数改进下一批工具，旧窗保持无效；K仍不接受。
+
+
+精确cohort工具已验证：validator 6a019c28的原miss12+新mixed9共21回归通过，原失败raw
+仍得到旧`upstream hit/miss count`。helper 39640b8e增加可选225B seen集合，分类处刷新
+无分配epoch读取；epoch发布后的q、发布前的u、重复/非规范/类型/范围/传输异常均拒绝。
+实际SDK新helper ELF9479c5ecf096bc7fd32e033ad99d3fc46638654d4fc8707e5614bacc10db03e2，
+452448B；同一ELF在Oracle隔离Linux完成7/7真实UDP/TCP测试。受控999/801分桶仍精确得到
+800/200/800集合，漏未命中+多转发、漏预热+主负载补发两个抵消反例均检出；关闭flag不增加
+JSON字段且回答字节相同。Mac缺Linux ppoll只记skip，未冒称实际通过。原helper未覆盖。
+构建/测试唯一小结果在`private/mixed-cohort-counter-20261017/result.json`，测试日志SHA
+f12f7386c87ac61ca31827cd58f6012b884f9eceee7beff40ca54f5fc72736fd；Oracle已quiet。
+合并独立审阅通过。此复现证明新仪器能区分边界与语义错误，不追认原r2-K或证明其实际根因。
+按冻结30+88接续；mixed每对两侧同版，mixed r1旧版与后四对新版差异必须保留。
