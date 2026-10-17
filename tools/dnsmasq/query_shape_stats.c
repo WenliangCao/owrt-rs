@@ -1,4 +1,5 @@
-/* Passive LAN UDP DNS shape counts. Never prints/stores addresses or names.
+/* Passive LAN UDP DNS shape counts. Never outputs addresses, names or hashes.
+ * Same-source/name keys live only in memory for a fixed 10-second window.
  * Build: cc -O2 -Wall -Wextra query_shape_stats.c -o query-shape-stats
  * Tests (also on non-Linux): cc -DQUERY_SHAPE_TEST ... && ./query-shape-stats
  * Run on Linux: query-shape-stats <LAN-interface> <seconds, 1..3600>
@@ -64,11 +65,11 @@ static int name_end(const unsigned char *p, size_t n, size_t start,
 
 /* Counts query headers even if the body is malformed; shape counts require
  * a fully bounded message. They are upper bounds, not observed cache hits. */
-static void dns_count(struct counts *c, const unsigned char *p, size_t n) {
-    if (n < 12) { c->malformed++; return; }
+static unsigned dns_count(struct counts *c, const unsigned char *p, size_t n) {
+    if (n < 12) { c->malformed++; return 0; }
     unsigned flags = be16(p + 2);
-    if (flags & 0x8000) return;
-    if (is_health_query(p, n)) { c->excluded_health_name++; return; }
+    if (flags & 0x8000) return 0;
+    if (is_health_query(p, n)) { c->excluded_health_name++; return 0; }
     c->queries++;
     c->ad += !!(flags & 0x20);
     c->cd += !!(flags & 0x10);
@@ -124,9 +125,133 @@ static void dns_count(struct counts *c, const unsigned char *p, size_t n) {
     c->j_shape += j;
     c->reserve_shape += reserve;
     c->reserve_extra += reserve && !j;
-    return;
+    /* Pairing uses only complete standard single-question IN A/AAAA queries. */
+    return address && !(flags & 0x7800) ? qtype : 0;
 malformed:
     c->malformed++;
+    return 0;
+}
+
+#define PAIR_SLOTS 2048
+#define PAIR_SECONDS 10
+/* Pairing denominators: dual_groups/groups and dual_group_queries/tracked_queries.
+ * Each group is one source address/family + canonical name in one fixed window
+ * since capture start; ports are ignored. Repeated same-type queries add load,
+ * not groups. Cross-window pairs and different source addresses do not combine.
+ * This is query co-occurrence, not device capability or a cache-hit estimate.
+ * Overflow queries stay outside both tracked denominators and are explicit. */
+struct pair_entry {
+    uint64_t a, aaaa;
+    unsigned char source[16], name[255];
+    uint16_t name_len;
+    unsigned char version;
+};
+struct pair_counts {
+    uint64_t eligible_queries, tracked_queries, overflow_queries;
+    uint64_t tracked_a, tracked_aaaa, same_family_repeats;
+    uint64_t groups, a_only_groups, aaaa_only_groups, dual_groups, dual_group_queries;
+    uint64_t expired_groups, final_partial_groups, closed_windows, populated_windows;
+};
+struct pairing {
+    struct pair_entry entries[PAIR_SLOTS];
+    struct pair_counts counts;
+    unsigned window;
+};
+
+/* Called only after dns_count validates the complete message. Compression is
+ * bounded again here; ASCII case-folding changes label bytes, not lengths. */
+static size_t canonical_question(const unsigned char *p, size_t n, unsigned char out[255]) {
+    size_t pos = 12, used = 0, steps = 0;
+    while (pos < n && ++steps <= n) {
+        unsigned len = p[pos++];
+        if ((len & 0xc0) == 0xc0) {
+            if (pos >= n) return 0;
+            size_t target = ((len & 63) << 8) | p[pos++];
+            if (target >= pos - 2) return 0;
+            pos = target;
+            continue;
+        }
+        if (len > 63 || n - pos < len || 255 - used < len + 1) return 0;
+        out[used++] = len;
+        if (!len) return used;
+        for (unsigned i = 0; i < len; i++) {
+            unsigned char b = p[pos++];
+            out[used++] = b >= 'A' && b <= 'Z' ? b + ('a' - 'A') : b;
+        }
+    }
+    return 0;
+}
+
+static void pair_flush(struct pairing *pairs, int expired) {
+    uint64_t groups = 0;
+    for (unsigned i = 0; i < PAIR_SLOTS; i++) {
+        const struct pair_entry *e = &pairs->entries[i];
+        if (!e->name_len) continue;
+        groups++;
+        pairs->counts.a_only_groups += e->a && !e->aaaa;
+        pairs->counts.aaaa_only_groups += e->aaaa && !e->a;
+        if (e->a && e->aaaa) {
+            pairs->counts.dual_groups++;
+            pairs->counts.dual_group_queries += e->a + e->aaaa;
+        }
+    }
+    pairs->counts.groups += groups;
+    pairs->counts.populated_windows += groups != 0;
+    if (expired) pairs->counts.expired_groups += groups;
+    else pairs->counts.final_partial_groups += groups;
+    /* Clear all transient source/name bytes at every boundary, even if idle. */
+    memset(pairs->entries, 0, sizeof(pairs->entries));
+}
+
+static void pair_advance(struct pairing *pairs, double elapsed) {
+    unsigned window = (unsigned)(elapsed / PAIR_SECONDS);
+    if (window > pairs->window) {
+        pair_flush(pairs, 1);
+        pairs->counts.closed_windows += window - pairs->window;
+        pairs->window = window;
+    }
+}
+
+static void pair_count(struct pairing *pairs, unsigned version, const unsigned char *source,
+                       const unsigned char *name, size_t name_len, unsigned qtype) {
+    size_t source_len = version == 4 ? 4 : 16;
+    /* Hash only selects a slot. Full keys are compared, so collisions cannot
+     * create pairs. No hash or key is persisted or printed. */
+    uint64_t hash = version;
+    for (size_t i = 0; i < source_len; i++) hash = (hash ^ source[i]) * UINT64_C(1099511628211);
+    for (size_t i = 0; i < name_len; i++) hash = (hash ^ name[i]) * UINT64_C(1099511628211);
+    pairs->counts.eligible_queries++;
+    for (unsigned i = 0; i < PAIR_SLOTS; i++) {
+        struct pair_entry *e = &pairs->entries[(hash + i) % PAIR_SLOTS];
+        if (!e->name_len) {
+            e->version = version;
+            e->name_len = name_len;
+            memcpy(e->source, source, source_len);
+            memcpy(e->name, name, name_len);
+        } else if (e->version != version || e->name_len != name_len
+                   || memcmp(e->source, source, source_len) || memcmp(e->name, name, name_len)) continue;
+        uint64_t *count = qtype == 1 ? &e->a : &e->aaaa;
+        pairs->counts.same_family_repeats += *count != 0;
+        (*count)++;
+        pairs->counts.tracked_queries++;
+        pairs->counts.tracked_a += qtype == 1;
+        pairs->counts.tracked_aaaa += qtype == 28;
+        return;
+    }
+    /* Never evict a tracked key to admit a new one: report bounded loss. */
+    pairs->counts.overflow_queries++;
+}
+
+static void print_pair_counts(const struct pair_counts *c) {
+    printf("{\"window_seconds\":%u,\"capacity\":%u", PAIR_SECONDS, PAIR_SLOTS);
+#define PAIR_PRINT(field) printf(",\"" #field "\":%llu", (unsigned long long)c->field);
+    PAIR_PRINT(eligible_queries) PAIR_PRINT(tracked_queries) PAIR_PRINT(overflow_queries)
+    PAIR_PRINT(tracked_a) PAIR_PRINT(tracked_aaaa) PAIR_PRINT(same_family_repeats)
+    PAIR_PRINT(groups) PAIR_PRINT(a_only_groups) PAIR_PRINT(aaaa_only_groups)
+    PAIR_PRINT(dual_groups) PAIR_PRINT(dual_group_queries) PAIR_PRINT(expired_groups)
+    PAIR_PRINT(final_partial_groups) PAIR_PRINT(closed_windows) PAIR_PRINT(populated_windows)
+#undef PAIR_PRINT
+    putchar('}');
 }
 
 #define FIELDS(X) X(queries) X(excluded_health_name) X(malformed) X(ad) X(cd) X(ad_cd) X(opt) X(empty_opt) \
@@ -205,7 +330,7 @@ static void check_health_exclusion(void) {
     memcpy(q + 12, name, sizeof(name));
     q[33] = 1; q[35] = 1;
     struct counts c = {0};
-    dns_count(&c, q, 36);
+    assert(!dns_count(&c, q, 36));
     assert(c.excluded_health_name == 1 && !c.queries && !c.ad && !c.cd && !c.reserve_shape);
     for (size_t i = 12; i < 32; i++) {
         if (q[i] >= 'a' && q[i] <= 'z') q[i] -= 'a' - 'A';
@@ -213,7 +338,7 @@ static void check_health_exclusion(void) {
     q[11] = 1;
     const unsigned char opt[11] = {0,0,41,4,208,0,0,0,0,0,0};
     memcpy(q + 36, opt, sizeof(opt));
-    dns_count(&c, q, 47);
+    assert(!dns_count(&c, q, 47));
     assert(c.excluded_health_name == 2 && !c.queries && !c.opt);
     q[11] = 0;
     memcpy(q + 28, "net", 3);
@@ -229,6 +354,69 @@ static void check_health_exclusion(void) {
     q[31] = 1; q[32] = 'x'; q[33] = 0; q[34] = 0; q[35] = 1; q[36] = 0; q[37] = 1;
     dns_count(&c, q, 38);
     assert(c.excluded_health_name == 2 && c.queries == 3 && c.reserve_shape == 2);
+}
+
+static void check_pairing(void) {
+    struct pairing *pairs = calloc(1, sizeof(*pairs));
+    assert(pairs);
+    unsigned char q[40] = {0,1,1,0,0,1,0,0,0,0,0,0,1,'X',0,0,1,0,1};
+    unsigned char lower[255], upper[255], compressed[255];
+    size_t size = canonical_question(q, 19, upper);
+    assert(size == 3);
+    q[13] = 'x';
+    assert(canonical_question(q, 19, lower) == size && !memcmp(lower, upper, size));
+    q[14] = 0xc0; q[15] = 0; q[16] = 0; q[17] = 1; q[18] = 0; q[19] = 1;
+    assert(canonical_question(q, 20, compressed) == size && !memcmp(lower, compressed, size));
+    struct counts dns = {0};
+    assert(dns_count(&dns, q, 20) == 1);
+    q[2] = 9; /* Nonstandard opcode is counted in DNS shapes, not paired. */
+    assert(!dns_count(&dns, q, 20));
+    q[2] = 1;
+    assert(!dns_count(&dns, q, 19));
+    q[14] = 0xc0; q[15] = 14;
+    assert(!canonical_question(q, 20, compressed));
+    unsigned char source[16] = {192,0,2,1}, other[16] = {192,0,2,2};
+    pair_count(pairs, 4, source, lower, size, 1);
+    pair_count(pairs, 4, source, upper, size, 1);
+    pair_count(pairs, 4, source, lower, size, 28);
+    pair_count(pairs, 4, source, upper, size, 28);
+    pair_count(pairs, 4, other, lower, size, 28);
+    pair_count(pairs, 6, source, lower, size, 28); /* Source family stays distinct. */
+    pair_advance(pairs, 9.999);
+    assert(!pairs->counts.groups);
+    pair_advance(pairs, 10.0);
+    assert(pairs->counts.groups == 3 && pairs->counts.dual_groups == 1
+        && pairs->counts.dual_group_queries == 4 && pairs->counts.same_family_repeats == 2
+        && pairs->counts.aaaa_only_groups == 2 && pairs->counts.expired_groups == 3);
+    pair_count(pairs, 4, source, lower, size, 28); /* Does not pair across windows. */
+    pair_advance(pairs, 30.0); /* Empty elapsed window is included. */
+    pair_count(pairs, 4, source, lower, size, 1);
+    pair_flush(pairs, 0);
+    assert(pairs->counts.groups == 5 && pairs->counts.dual_groups == 1
+        && pairs->counts.tracked_queries == 8 && pairs->counts.final_partial_groups == 1
+        && pairs->counts.closed_windows == 3 && pairs->counts.populated_windows == 3);
+    for (size_t i = 0; i < sizeof(pairs->entries); i++) {
+        assert(((unsigned char *)pairs->entries)[i] == 0);
+    }
+    memset(pairs, 0, sizeof(*pairs));
+    const unsigned char different_name[] = {1, 'y', 0};
+    pair_count(pairs, 4, source, lower, size, 1);
+    pair_count(pairs, 4, source, different_name, sizeof(different_name), 28);
+    pair_flush(pairs, 0);
+    assert(pairs->counts.groups == 2 && !pairs->counts.dual_groups);
+    memset(pairs, 0, sizeof(*pairs));
+    for (unsigned i = 0; i <= PAIR_SLOTS; i++) {
+        source[2] = i >> 8; source[3] = i;
+        pair_count(pairs, 4, source, lower, size, 1);
+    }
+    assert(pairs->counts.overflow_queries == 1 && pairs->counts.tracked_queries == PAIR_SLOTS);
+    source[2] = 0; source[3] = 0;
+    pair_count(pairs, 4, source, lower, size, 28); /* Full table still admits existing keys. */
+    pair_flush(pairs, 0);
+    assert(pairs->counts.groups == PAIR_SLOTS && pairs->counts.dual_groups == 1
+        && pairs->counts.dual_group_queries == 2 && pairs->counts.eligible_queries == PAIR_SLOTS + 2);
+    print_pair_counts(&pairs->counts); putchar('\n');
+    free(pairs);
 }
 
 int main(void) {
@@ -268,6 +456,7 @@ int main(void) {
     print_counts(&c); putchar('\n');
     check_shape_boundaries();
     check_health_exclusion();
+    check_pairing();
     puts("query-shape parser checks passed");
     return 0;
 }
@@ -282,6 +471,7 @@ int main(void) {
 #include <net/if.h>
 #include <poll.h>
 #include <signal.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
@@ -344,6 +534,9 @@ int main(int argc, char **argv) {
     if (argc != 3 || !end || *end || duration < 1 || duration > 3600) {
         fprintf(stderr, "usage: query-shape-stats LAN-interface seconds(1..3600)\n"); return 2;
     }
+    /* Source/name keys must not reach a core dump. */
+    const struct rlimit no_core = {0, 0};
+    if (setrlimit(RLIMIT_CORE, &no_core)) { perror("disable core dump"); return 1; }
     unsigned index = if_nametoindex(argv[1]);
     struct ifaddrs *addresses = NULL;
     if (!index || getifaddrs(&addresses)) { perror("interface addresses"); return 1; }
@@ -356,21 +549,28 @@ int main(int argc, char **argv) {
     /* No promiscuous membership, firewall change, payload log or packet send. */
     signal(SIGTERM, stop_capture); signal(SIGINT, stop_capture);
     struct counts total = {0}, bins[60] = {{0}};
+    struct pairing *pairs = calloc(1, sizeof(*pairs));
+    if (!pairs) { perror("pair table"); close(fd); freeifaddrs(addresses); return 1; }
     uint64_t frames = 0, outgoing = 0, fragments = 0, truncated = 0;
     uint64_t udp4 = 0, udp6 = 0, tcp_segments = 0, tcp_data_segments = 0, receive_errors = 0;
     unsigned char packet[65536];
     double start = monotime(), deadline = start + duration;
     while (!stopped) {
         double now = monotime();
+        pair_advance(pairs, now - start);
         if (now >= deadline) break;
+        double next = start + (pairs->window + 1) * PAIR_SECONDS;
+        if (next > deadline) next = deadline;
         struct pollfd pfd = {.fd = fd, .events = POLLIN};
-        int ready = poll(&pfd, 1, (int)((deadline - now) * 1000) + 1);
+        int ready = poll(&pfd, 1, (int)((next - now) * 1000) + 1);
         if (ready < 0) { if (errno == EINTR) continue; receive_errors++; break; }
-        if (!ready) break;
+        if (!ready) continue;
         struct sockaddr_ll sender;
         socklen_t slen = sizeof(sender);
         ssize_t received = recvfrom(fd, packet, sizeof(packet), MSG_TRUNC, (void *)&sender, &slen);
         if (received < 0) { if (errno == EINTR) continue; receive_errors++; break; }
+        double elapsed = monotime() - start;
+        if (elapsed >= duration) break;
         frames++;
         if (sender.sll_pkttype == PACKET_OUTGOING) { outgoing++; continue; }
         if ((size_t)received > sizeof(packet)) { truncated++; continue; }
@@ -410,18 +610,26 @@ int main(int argc, char **argv) {
         size_t length = be16(packet + pos + 4);
         if (length < 8 || length > n - pos) { truncated++; continue; }
         if (family == AF_INET) udp4++; else udp6++;
-        double elapsed = monotime() - start;
+        pair_advance(pairs, elapsed);
         unsigned bin = (unsigned)(elapsed / 60);
         if (bin > 59) bin = 59;
-        dns_count(&total, packet + pos + 8, length - 8);
+        unsigned qtype = dns_count(&total, packet + pos + 8, length - 8);
         dns_count(&bins[bin], packet + pos + 8, length - 8);
+        if (qtype) {
+            unsigned char name[255];
+            size_t name_len = canonical_question(packet + pos + 8, length - 8, name);
+            if (name_len) pair_count(pairs, family == AF_INET ? 4 : 6,
+                packet + (family == AF_INET ? 12 : 8), name, name_len, qtype);
+        }
     }
     double elapsed = monotime() - start;
+    pair_advance(pairs, elapsed);
+    pair_flush(pairs, 0);
     struct tpacket_stats stats = {0};
     socklen_t statlen = sizeof(stats);
     int stats_ok = getsockopt(fd, SOL_PACKET, PACKET_STATISTICS, &stats, &statlen) == 0;
     close(fd); freeifaddrs(addresses);
-    printf("{\"schema\":1,\"duration_seconds\":%ld,\"elapsed_seconds\":%.3f,\"interrupted\":%s,"
+    printf("{\"schema\":2,\"duration_seconds\":%ld,\"elapsed_seconds\":%.3f,\"interrupted\":%s,"
            "\"frames\":%llu,\"outgoing_skipped\":%llu,\"fragment_packets_skipped\":%llu,\"truncated\":%llu,"
            "\"udp4_datagrams\":%llu,\"udp6_datagrams\":%llu,\"tcp_segments\":%llu,\"tcp_data_segments\":%llu,"
            "\"receive_errors\":%llu,\"socket_stats_available\":%s,\"socket_packets\":%u,\"socket_drops\":%u,\"udp_dns\":",
@@ -431,6 +639,9 @@ int main(int argc, char **argv) {
            (unsigned long long)tcp_data_segments, (unsigned long long)receive_errors,
            stats_ok ? "true" : "false", stats.tp_packets, stats.tp_drops);
     print_counts(&total);
+    printf(",\"same_source_name_pairing\":");
+    print_pair_counts(&pairs->counts);
+    free(pairs);
     printf(",\"minute_bins\":[");
     unsigned count = (unsigned)(elapsed / 60) + 1;
     if (count > 60) count = 60;
