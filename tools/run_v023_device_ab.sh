@@ -1,6 +1,7 @@
 #!/bin/sh
 # One frozen router batch. Bundles are verified by the caller before launch.
 # BASE contains fw4/, netifd/ and this script; BASE/out must never exist before.
+# Optional fw4-followup runs only start/changed for the separately authorized fix.
 set -eu
 start_ticks() {
     sed 's/^.*) //' "/proc/$1/stat" 2>/dev/null | awk '{print $20}'
@@ -15,7 +16,13 @@ if [ "${1:-}" = --owned ]; then
 fi
 base=$1
 case "$base" in /tmp/v023-ab-*) ;; *) exit 2;; esac
-[ "$#" = 1 ] && [ ! -e "$base/out" ]
+[ "$#" -ge 1 ] && [ "$#" -le 2 ] && [ ! -e "$base/out" ]
+profile=${2:-full}
+case "$profile" in
+    full) scenes='unchanged changed start check print';;
+    fw4-followup) scenes='start changed';;
+    *) exit 2;;
+esac
 mkdir "$base/out"
 out=$base/out
 a= b= f= watchdog=
@@ -76,6 +83,7 @@ for number in 1 2 3 4 5 6; do
 done
 printf 'floor complete\n'
 
+if [ "$profile" = full ]; then
 sh "$base/run.sh" --owned "$out" sh "$base/netifd/driver.sh" / "$base/netifd" netifd-v022 "$out/netifd-A" A > "$out/netifd-A.log" 2>&1 & a=$!
 sh "$base/run.sh" --owned "$out" sh "$base/netifd/driver.sh" / "$base/netifd" netifd-v023 "$out/netifd-B" B > "$out/netifd-B.log" 2>&1 & b=$!
 wait_file "$out/netifd-A/READY" "$a" 20
@@ -92,11 +100,12 @@ wait "$a"; a=
 wait "$b"; b=
 [ -f "$out/netifd-A/COMPLETE" ] && [ -f "$out/netifd-B/COMPLETE" ]
 printf 'netifd complete\n'
+fi
 
 sh "$base/run.sh" --owned "$out" sh "$base/fw4/driver.sh" / "$base/fw4" "$out/fw4" > "$out/fw4.log" 2>&1 & f=$!
 wait_file "$out/fw4/READY" "$f" 20
 [ "$(cat "$out/fw4/netns.txt")" != "$(cat "$out/parent-netns")" ]
-for scene in unchanged changed start check print; do
+for scene in $scenes; do
     number=0
     for side in A B B A A B A B B A B A A B; do
         number=$((number+1))
