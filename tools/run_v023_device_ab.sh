@@ -2,20 +2,23 @@
 # One frozen router batch. Bundles are verified by the caller before launch.
 # BASE contains fw4/, netifd/ and this script; BASE/out must never exist before.
 set -eu
+start_ticks() {
+    sed 's/^.*) //' "/proc/$1/stat" 2>/dev/null | awk '{print $20}'
+}
+if [ "${1:-}" = --owned ]; then
+    out=$2
+    shift 2
+    born=$(start_ticks "$$")
+    [ -n "$born" ]
+    printf '%s %s\n' "$$" "$born" >> "$out/owned-pids"
+    exec "$@"
+fi
 base=$1
 case "$base" in /tmp/v023-ab-*) ;; *) exit 2;; esac
 [ "$#" = 1 ] && [ ! -e "$base/out" ]
 mkdir "$base/out"
 out=$base/out
 a= b= f= watchdog=
-start_ticks() {
-    sed 's/^.*) //' "/proc/$1/stat" 2>/dev/null | awk '{print $20}'
-}
-record_child() {
-    born=$(start_ticks "$1")
-    [ -n "$born" ]
-    printf '%s %s\n' "$1" "$born" >> "$out/owned-pids"
-}
 stop_registered() {
     while read -r pid born; do
         current=$(start_ticks "$pid")
@@ -40,7 +43,7 @@ parent_start=$(start_ticks "$parent")
 : > "$out/owned-pids"
 (
     sleeper=
-    trap 'test -z "$sleeper" || kill "$sleeper" 2>/dev/null; stop_registered; exit 0' HUP INT TERM
+    trap 'test -z "$sleeper" || kill "$sleeper" 2>/dev/null || true; stop_registered; exit 0' HUP INT TERM
     sleep 600 & sleeper=$!
     wait "$sleeper"
     printf '600 second limit\n' > "$out/TIMEOUT"
@@ -73,10 +76,8 @@ for number in 1 2 3 4 5 6; do
 done
 printf 'floor complete\n'
 
-sh "$base/netifd/driver.sh" / "$base/netifd" netifd-v022 "$out/netifd-A" A > "$out/netifd-A.log" 2>&1 & a=$!
-record_child "$a"
-sh "$base/netifd/driver.sh" / "$base/netifd" netifd-v023 "$out/netifd-B" B > "$out/netifd-B.log" 2>&1 & b=$!
-record_child "$b"
+sh "$base/run.sh" --owned "$out" sh "$base/netifd/driver.sh" / "$base/netifd" netifd-v022 "$out/netifd-A" A > "$out/netifd-A.log" 2>&1 & a=$!
+sh "$base/run.sh" --owned "$out" sh "$base/netifd/driver.sh" / "$base/netifd" netifd-v023 "$out/netifd-B" B > "$out/netifd-B.log" 2>&1 & b=$!
 wait_file "$out/netifd-A/READY" "$a" 20
 wait_file "$out/netifd-B/READY" "$b" 20
 [ "$(cat "$out/netifd-A/netns")" != "$(cat "$out/parent-netns")" ]
@@ -92,8 +93,7 @@ wait "$b"; b=
 [ -f "$out/netifd-A/COMPLETE" ] && [ -f "$out/netifd-B/COMPLETE" ]
 printf 'netifd complete\n'
 
-sh "$base/fw4/driver.sh" / "$base/fw4" "$out/fw4" > "$out/fw4.log" 2>&1 & f=$!
-record_child "$f"
+sh "$base/run.sh" --owned "$out" sh "$base/fw4/driver.sh" / "$base/fw4" "$out/fw4" > "$out/fw4.log" 2>&1 & f=$!
 wait_file "$out/fw4/READY" "$f" 20
 [ "$(cat "$out/fw4/netns.txt")" != "$(cat "$out/parent-netns")" ]
 for scene in unchanged changed start check print; do
