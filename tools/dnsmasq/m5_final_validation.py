@@ -62,6 +62,12 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def cargo_target(spec):
+    target = Path(spec.get('cargo_target_dir', TARGET))
+    require(target.is_absolute(), 'cargo_target_dir must be an absolute cache path')
+    return target
+
+
 def required_phases(spec):
     """The milestone selects a fixed qualification chain, never a caller subset."""
     mode = spec.get('validation_mode', 'm5')
@@ -231,7 +237,7 @@ def prepare(args):
     require(digest(elf) == spec['elf_sha256'], 'final ELF identity mismatch')
     build = json.loads(Path(spec['build_json']).read_text())
     require(build['kind'] == 'release' and build['source'] == str(source)
-            and build['cargo_target_dir'] == str(TARGET), 'ELF must come from shared-target oracle_build.sh release')
+            and build['cargo_target_dir'] == str(cargo_target(spec)), 'ELF must come from shared-target oracle_build.sh release')
     require(any(row['path'] == 'dnsmasq-rs' and row['sha256'] == spec['elf_sha256']
                 and row['bytes'] == elf.stat().st_size for row in build['artifacts']), 'build receipt does not identify ELF')
     image, runtime, sdk = (Path(spec[name]).resolve() for name in ['image_root', 'runtime_root', 'sdk'])
@@ -375,7 +381,8 @@ def commands(spec, phase, output):
             str(path / 'result.json'), {'passed': True, 'source_commit': spec['source_commit'],
                 'elf_sha256': spec['elf_sha256'], 'plan_sha256': digest(Path(spec['perf_guard_plan']))}, 420)
     elif phase == 'fuzz-build':
-        job('native-fuzz-build', ['runuser', '-u', 'ubuntu', '--', 'sh', tools + '/oracle_build.sh', spec['source_root'],
+        cache_env = ['env', 'ORACLE_BUILD_TARGET_DIR=' + str(cargo_target(spec))] if 'cargo_target_dir' in spec else []
+        job('native-fuzz-build', ['runuser', '-u', 'ubuntu', '--', *cache_env, 'sh', tools + '/oracle_build.sh', spec['source_root'],
             str(output / 'build'), 'fuzz'], str(output / 'build/build.json'), {'kind': 'fuzz'}, 3600)
     elif phase == 'fuzz':
         for target in FUZZ:
@@ -775,7 +782,7 @@ def run(args):
             os.sched_setaffinity(0, {3})
         if phase in ['resources', 'full-cache-600', 'pressure']:
             require(args.exclusive_window, 'root must coordinate an exclusive load-free window')
-            lock = (TARGET / '.dnsmasq-build.lock').open('a'); fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            lock = (cargo_target(spec) / '.dnsmasq-build.lock').open('a'); fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             busy = exclusive_busy_processes(); save(attempt / 'window-before.json', busy)
             require(not busy, 'other build/test processes are active; retain this unexecuted attempt')
         if phase == 'package':

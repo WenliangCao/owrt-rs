@@ -1,6 +1,7 @@
 #!/bin/sh
-# Build an immutable source snapshot; all Oracle DNS builds share one cache.
+# Build an immutable source snapshot using a shared, locked Oracle cache.
 # Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests|probe-tests|primitive-probes|fuzz]
+# ORACLE_BUILD_TARGET_DIR may explicitly select a different absolute cache path.
 set -eu
 [ "$#" -ge 2 ] && [ "$#" -le 3 ] || exit 2
 source_dir=$(realpath "$1")
@@ -17,7 +18,11 @@ if [ "$build_kind" = ubus-tests ]; then
     package_name=owrt-ubus
     manifest_path="$source_dir/components/ubus/Cargo.toml"
 fi
-export CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target
+case ${ORACLE_BUILD_TARGET_DIR-/home/ubuntu/dnsmasq-cargo-target} in
+    /*) ;;
+    *) echo 'ORACLE_BUILD_TARGET_DIR must be an absolute path' >&2; exit 2;;
+esac
+export CARGO_TARGET_DIR=$(realpath -m "${ORACLE_BUILD_TARGET_DIR-/home/ubuntu/dnsmasq-cargo-target}")
 mkdir -p "$CARGO_TARGET_DIR" "$output_dir"
 # Keep artifact copying inside the lock: another build must not replace a
 # shared output between Cargo returning and the immutable copy being saved.

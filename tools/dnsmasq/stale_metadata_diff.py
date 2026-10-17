@@ -15,6 +15,7 @@ import subprocess
 
 from local_answer_diff import dns_semantics
 from stale_metadata_oracle import SOURCE_HASHES
+import rust_lib_probe
 
 ROOT = Path(__file__).resolve().parents[2]
 TEST = "dns::daemon::stale_tests::exact_c_stale_driver"
@@ -104,12 +105,23 @@ def main():
     parser.add_argument("--baseline", type=Path, default=ROOT / "private/dnsmasq-rewrite/stale-metadata-20261001/baseline-01")
     parser.add_argument("--rust-driver", type=Path, help="optional prebuilt driver; must match the fresh source build")
     parser.add_argument("--cargo", default="cargo")
-    parser.add_argument("--rust-source-root", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
+    rust_lib_probe.add_arguments(parser)
     args = parser.parse_args()
-    baseline, source_root = args.baseline.resolve(), args.rust_source_root.resolve()
+    if not args.rust_source_root:
+        parser.error('--rust-source-root is required')
+    # Retain legacy local invocation; Oracle always requires a copied probe.
+    if not (args.rust_test_binary or args.rust_build_receipt):
+        args.local_native = True
     out = args.out.resolve()
+    try:
+        probe, source_root, binding = rust_lib_probe.selection(args, ROOT, out)
+    except ValueError as error:
+        parser.error(str(error))
+    if probe and args.rust_driver:
+        parser.error('--rust-driver belongs to legacy local builds, not a copied probe')
+    baseline = args.baseline.resolve()
     assert "private" in out.parts
     out.mkdir(parents=True, exist_ok=False)
     base = json.loads((baseline / "result.json").read_text())
@@ -119,29 +131,32 @@ def main():
     assert digest(baseline / Path(identity["binary"]).name) == identity["binary_sha256"]
     assert identity["driver_sha256"] == digest(Path(__file__).with_name("cache_answer_driver.c"))
     before = source_hashes(source_root)
-    # Bind the binary to this source snapshot. A caller-supplied old executable
-    # must not be paired with hashes of newly edited, unbuilt Rust source.
-    build_command = [args.cargo, "+1.98.1", "test", "--manifest-path",
-                     str(source_root / "components/dnsmasq/Cargo.toml"),
-                     "--lib", "--no-run", "--message-format=json"]
-    build = subprocess.run(build_command, text=True, capture_output=True, cwd=source_root)
-    (out / "build.stdout").write_text(build.stdout); (out / "build.stderr").write_text(build.stderr)
-    (out / "build-command.json").write_text(json.dumps(build_command, indent=2) + "\n")
-    build.check_returncode()
-    assert before == source_hashes(source_root), "source changed during build"
-    executables = [Path(row["executable"]) for line in build.stdout.splitlines() if line.startswith("{")
-                   for row in [json.loads(line)] if row.get("executable") and row.get("profile", {}).get("test")]
-    assert len(executables) == 1
-    if args.rust_driver:
-        assert digest(args.rust_driver.resolve()) == digest(executables[0]), "prebuilt driver does not match the source build"
-    driver = out / "rust-driver"
-    shutil.copy2(executables[0], driver)
+    driver = probe
+    if probe is None:
+        # Legacy local drivers remain bound to a fresh source build.
+        build_command = [args.cargo, "+1.98.1", "test", "--manifest-path",
+                         str(source_root / "components/dnsmasq/Cargo.toml"),
+                         "--lib", "--no-run", "--message-format=json"]
+        build = subprocess.run(build_command, text=True, capture_output=True, cwd=source_root)
+        (out / "build.stdout").write_text(build.stdout); (out / "build.stderr").write_text(build.stderr)
+        (out / "build-command.json").write_text(json.dumps(build_command, indent=2) + "\n")
+        build.check_returncode()
+        assert before == source_hashes(source_root), "source changed during build"
+        executables = [Path(row["executable"]) for line in build.stdout.splitlines() if line.startswith("{")
+                       for row in [json.loads(line)] if row.get("executable") and row.get("profile", {}).get("test")]
+        assert len(executables) == 1
+        if args.rust_driver:
+            assert digest(args.rust_driver.resolve()) == digest(executables[0]), "prebuilt driver does not match the source build"
+        driver = out / "rust-driver"
+        shutil.copy2(executables[0], driver)
     report = {"scope": "frozen-clock cached-answer caller metadata/semantics; max-reply profile is library-only",
               "baseline_result_sha256": digest(baseline / "result.json"), "c_identity": identity,
               "rust_driver_sha256": digest(driver), "rust_source_root": str(source_root), "source_sha256": before,
+              "rust_probe": binding,
               "tool_sha256": digest(Path(__file__)), "profiles": [], "execution_errors": [], "inject_error": args.inject_error}
     injected = False
     for profile in base["profiles"]:
+        rust_lib_probe.recheck(binding)
         folder = baseline / profile["folder"]
         for filename, key in [("config.conf", "config_sha256"), ("commands.txt", "commands_sha256"), ("c.stdout", "trace_sha256")]:
             assert digest(folder / filename) == profile[key], (profile["label"], filename, "baseline identity changed")
@@ -151,7 +166,7 @@ def main():
         assert len(rows) == len(c) == profile["commands"]
         calibration = calibrate(rows, c)
         target = out / profile["label"]; target.mkdir()
-        command = [str(driver), TEST, "--exact", "--ignored", "--nocapture"]
+        command = rust_lib_probe.argv(driver, TEST)
         env = {**os.environ, "DNSMASQ_STALE_CONFIG": str(folder / "config.conf"), "DNSMASQ_STALE_INPUT": str(folder / "commands.txt")}
         detail = {"profile": profile["label"], "profile_scope": profile["scope"], "command": command,
                   "planned": len(rows), "compared": 0, "failures": [], "exit": None, "calibration": calibration}
@@ -168,11 +183,13 @@ def main():
             report["profiles"].append(detail)
             continue
         (target / "rust.stdout").write_text(run.stdout); (target / "rust.stderr").write_text(run.stderr)
-        actual = [line.removeprefix("STALE_ORACLE ") for line in run.stdout.splitlines() if line.startswith("STALE_ORACLE ")]
+        actual = [line.removeprefix("STALE_ORACLE ")
+                  for line in rust_lib_probe.records(run.stdout, TEST, "STALE_ORACLE ")]
         detail["exit"] = run.returncode
         try:
             if run.returncode:
                 raise ValueError(f"Rust driver exited {run.returncode}")
+            rust_lib_probe.require_one_test(run.stdout, TEST)
             if args.inject_error and not injected:
                 index = next(i for i, row in enumerate(rows) if row["command"].startswith("T "))
                 if len(actual) != len(c):
@@ -186,6 +203,7 @@ def main():
             report["execution_errors"].append({"profile": profile["label"], "error": str(error)})
         (target / "comparison.json").write_text(json.dumps(detail, indent=2)+"\n")
         report["profiles"].append(detail)
+    rust_lib_probe.recheck(binding)
     after = source_hashes(source_root)
     if before != after or digest(driver) != report["rust_driver_sha256"]:
         report["execution_errors"].append({"error": "Rust source/driver identity changed during the gate"})

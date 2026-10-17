@@ -17,8 +17,10 @@ import subprocess
 
 import lease_names_diff as names
 import local_answer_diff
+import rust_lib_probe
 
 ROOT = Path(__file__).resolve().parents[2]
+TEST = "dns::daemon::lease_cache_tests::exact_c_lease_cache_driver"
 
 
 def request(owner, kind=1, now=101, operation="Q"):
@@ -165,25 +167,32 @@ def repeat_reference(args, out):
 
 
 def compare(args, out):
+    # Retain legacy local invocation; Oracle always requires a copied probe.
+    if not (args.rust_test_binary or args.rust_build_receipt):
+        args.local_native = True
+    probe, source_root, binding = rust_lib_probe.selection(args, ROOT, out)
     baseline = args.compare_baseline.resolve()
     identity = json.loads((baseline / "result.json").read_text())
     assert not identity["failures"] and digest(baseline / "local-answer-oracle") == identity["c_oracle_sha256"]
-    inputs = [ROOT / "components/dnsmasq/src/dns" / name for name in
+    inputs = [source_root / "components/dnsmasq/src/dns" / name for name in
         ("daemon.rs","daemon_lease_cache_tests.rs","cache_engine.rs","cache.rs","cache_reply.rs","local.rs","lease_names.rs","service.rs","wire.rs")]
-    source_identity = {str(path.relative_to(ROOT)):digest(path) for path in inputs}
-    build = subprocess.run([args.cargo,"test","--manifest-path",str(ROOT / "components/dnsmasq/Cargo.toml"),
-        "--lib","--no-run","--message-format=json"],text=True,capture_output=True)
-    (out / "rust-build.stdout").write_text(build.stdout);(out / "rust-build.stderr").write_text(build.stderr)
-    assert build.returncode == 0, "Rust driver build failed; see captured build logs"
-    assert source_identity == {str(path.relative_to(ROOT)):digest(path) for path in inputs}, "Rust source changed during driver build"
-    binaries = [Path(row["executable"]) for line in build.stdout.splitlines() if line.startswith("{")
-        for row in [json.loads(line)] if row.get("executable") and row.get("profile",{}).get("test")]
-    assert len(binaries)==1
-    frozen = out / "rust-driver";shutil.copy2(binaries[0],frozen)
-    command = [str(frozen),"dns::daemon::lease_cache_tests::exact_c_lease_cache_driver","--ignored","--nocapture"]
+    source_identity = {str(path.relative_to(source_root)):digest(path) for path in inputs}
+    frozen = probe
+    if probe is None:
+        build = subprocess.run([args.cargo,"test","--manifest-path",str(source_root / "components/dnsmasq/Cargo.toml"),
+            "--lib","--no-run","--message-format=json"],text=True,capture_output=True)
+        (out / "rust-build.stdout").write_text(build.stdout);(out / "rust-build.stderr").write_text(build.stderr)
+        assert build.returncode == 0, "Rust driver build failed; see captured build logs"
+        assert source_identity == {str(path.relative_to(source_root)):digest(path) for path in inputs}, "Rust source changed during driver build"
+        binaries = [Path(row["executable"]) for line in build.stdout.splitlines() if line.startswith("{")
+            for row in [json.loads(line)] if row.get("executable") and row.get("profile",{}).get("test")]
+        assert len(binaries)==1
+        frozen = out / "rust-driver";shutil.copy2(binaries[0],frozen)
+    command = rust_lib_probe.argv(frozen, TEST)
     mismatches, rows = [], []
     counts = {"commands":0,"queries":0,"dynamic_lookups":0,"c_hits":0,"rust_hits":0,"c_misses":0,"rust_misses":0}
     for case in identity["rows"]:
+        rust_lib_probe.recheck(binding)
         index = case["case"]
         config = out / f"{index:02}.conf"; source = out / f"{index:02}.input"
         shutil.copy2(baseline / config.name,config);shutil.copy2(baseline / source.name,source)
@@ -193,10 +202,13 @@ def compare(args, out):
         (out / f"{index:02}.rust.stdout").write_text(run.stdout);(out / f"{index:02}.rust.stderr").write_text(run.stderr)
         expected_wire = (baseline / f"{index:02}.stdout").read_text()
         (out / f"{index:02}.c.stdout").write_text(expected_wire)
-        actual_wire = "\n".join(line.removeprefix("LEASE_CACHE_ORACLE ") for line in run.stdout.splitlines() if line.startswith("LEASE_CACHE_ORACLE "))+"\n"
+        actual_wire = "\n".join(line.removeprefix("LEASE_CACHE_ORACLE ")
+            for line in rust_lib_probe.records(run.stdout, TEST, "LEASE_CACHE_ORACLE "))+"\n"
+        rust_lib_probe.recheck(binding)
         if run.returncode:
             mismatches.append({"case":index,"label":case["label"],"exit":run.returncode})
             continue
+        rust_lib_probe.require_one_test(run.stdout, TEST)
         expected = names.observations(commands,expected_wire);actual = names.observations(commands,actual_wire)
         for step,(left,right) in enumerate(zip(expected,actual,strict=True)):
             counts["commands"] += 1
@@ -221,7 +233,7 @@ def compare(args, out):
         "cases":len(rows),**counts,"mismatches":mismatches,"rows":rows,
         "cohorts":{"ordinary_insertion_mismatches":sum(not row["label"].startswith("fqdn-short-republication-") for row in mismatches),
             "layout_reuse_mismatches":sum(row["label"].startswith("fqdn-short-republication-") for row in mismatches)},
-        "rust_driver_sha256":digest(frozen),"rust_source_sha256":source_identity,
+        "rust_driver_sha256":digest(frozen),"rust_source_sha256":source_identity,"rust_probe":binding,
         "c_oracle_sha256":identity["c_oracle_sha256"],"calibration":{"ttl_mutation_detected":1,"short_count_rejected":1,"c_miss_hit_expiry":1,"invalid_c_config_rejected":1}}
     (out / "result.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps({k:v for k,v in report.items() if k not in ("rows","mismatches")}|{"mismatches":len(mismatches)}))
@@ -236,6 +248,7 @@ def main():
     parser.add_argument("--rounds",type=int,default=8)
     parser.add_argument("--cargo",default=shutil.which("cargo"))
     parser.add_argument("--output",type=Path,required=True)
+    rust_lib_probe.add_arguments(parser)
     args=parser.parse_args();out=args.output.resolve()
     assert out.is_relative_to(ROOT / "private") and not out.exists();out.mkdir(parents=True)
     if args.repeat_reference: return repeat_reference(args,out)

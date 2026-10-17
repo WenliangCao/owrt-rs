@@ -165,6 +165,21 @@ class ValidationModeTests(unittest.TestCase):
 
 
 class FinalValidationTests(unittest.TestCase):
+    def test_explicit_cargo_cache_is_bound_to_fuzz_build_and_default_stays_unchanged(self):
+        spec = {'source_root': '/source', 'output': '/source/private/final', 'image_root': '/image',
+                'runtime_root': '/runtime', 'elf': '/elf', 'elf_sha256': 'a' * 64, 'source_commit': 'b' * 40}
+        output = Path('/source/private/final/runs/fuzz-build/attempt-1')
+        original = final.commands(spec, 'fuzz-build', output)[0]['argv']
+        self.assertEqual(original[:5], ['runuser', '-u', 'ubuntu', '--', 'sh'])
+        self.assertEqual(final.cargo_target(spec), final.TARGET)
+        cache = '/home/ubuntu/new-root/private/cargo-target'
+        changed = final.commands(dict(spec, cargo_target_dir=cache), 'fuzz-build', output)[0]['argv']
+        self.assertEqual(changed[:6], ['runuser', '-u', 'ubuntu', '--', 'env', 'ORACLE_BUILD_TARGET_DIR=' + cache])
+        self.assertEqual(changed[6:], original[4:])
+        self.assertEqual(final.cargo_target({'cargo_target_dir': cache}), Path(cache))
+        with self.assertRaises(ValueError):
+            final.cargo_target({'cargo_target_dir': 'private/cache'})
+
     def test_input_example_has_two_variants_and_five_dependencies(self):
         spec = json.loads(Path(final.__file__).with_name('m5_final_inputs.example.json').read_text())
         self.assertEqual(len(spec['variant_apks']), 2)

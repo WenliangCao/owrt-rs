@@ -38,18 +38,24 @@ def add_arguments(parser):
     parser.add_argument('--rust-test-binary', type=Path, help='copied oracle_build.sh probe-tests lib-dnsmasq_rs')
     parser.add_argument('--rust-source-root', type=Path, help='explicit immutable source of the copied probe')
     parser.add_argument('--rust-build-receipt', type=Path, help='probe-tests build.json; source-before sibling required')
+    parser.add_argument('--rust-cargo-target-dir', type=Path,
+                        help='explicit absolute cache path expected in the copied probe receipt; default: ' + str(SHARED_TARGET))
     parser.add_argument('--local-native', action='store_true', help='explicit legacy local cargo mode; rejected on Oracle')
 
 
 def local_only(root, output, source, cargo):
     paths = (Path(root), Path(output), Path(source), Path(cargo), Path.cwd(), Path.home())
-    if SHARED_TARGET.exists() or any(path.resolve().is_relative_to(ORACLE_HOME) for path in paths):
+    if SHARED_TARGET.exists() or any(path.resolve().is_relative_to(ORACLE_HOME.resolve()) for path in paths):
         raise ValueError('legacy native build is forbidden on Oracle; use copied oracle_build.sh probe-tests')
 
 
-def validate(binary, source, receipt):
+def validate(binary, source, receipt, cargo_target_dir=SHARED_TARGET):
+    cargo_target_dir = Path(cargo_target_dir)
+    if not cargo_target_dir.is_absolute():
+        raise ValueError('probe Cargo cache path must be absolute')
     binary, source, receipt = map(lambda path: Path(path).resolve(), (binary, source, receipt))
-    if 'private' not in binary.parts or binary.is_relative_to(SHARED_TARGET):
+    if ('private' not in binary.parts or binary.is_relative_to(SHARED_TARGET.resolve())
+            or binary.is_relative_to(cargo_target_dir.resolve())):
         raise ValueError('probe must be an immutable private copy, not shared Cargo output')
     build = json.loads(receipt.read_text())
     files = source_files(source)
@@ -60,7 +66,7 @@ def validate(binary, source, receipt):
     before = receipt.parent / 'probe-source-before.json'
     if (not files or build.get('kind') != 'probe-tests' or build.get('source') != str(source)
             or build.get('opt_level') != '3' or build.get('features') != ''
-            or build.get('cargo_target_dir') != str(SHARED_TARGET) or build.get('diagnostic_only') is not True
+            or build.get('cargo_target_dir') != str(cargo_target_dir) or build.get('diagnostic_only') is not True
             or build.get('source_files') != files
             or build.get('artifacts') != [{'path': 'lib-dnsmasq_rs', 'bytes': binary.stat().st_size, 'sha256': elf_sha}]
             or not re.fullmatch('[0-9a-f]{64}', str(build.get('source_before_sha256', '')))
@@ -80,10 +86,12 @@ def selection(args, root, output):
     if args.rust_test_binary or args.rust_build_receipt:
         if not all(supplied) or args.local_native:
             raise ValueError('copied probe requires test-binary/source-root/build-receipt together, without local-native')
-        binding = validate(*supplied)
+        binding = validate(*supplied, args.rust_cargo_target_dir or SHARED_TARGET)
         return Path(binding['test_binary']), Path(binding['source_root']), binding
     if not args.local_native:
         raise ValueError('choose copied probe inputs or explicit local-native; no implicit cargo build')
+    if args.rust_cargo_target_dir:
+        raise ValueError('rust-cargo-target-dir binds a copied probe, not a local-native build')
     source = (args.rust_source_root or Path(root)).resolve()
     local_only(root, output, source, args.cargo)
     return None, source, {'mode': 'local-native-legacy', 'diagnostic_only': True,
@@ -93,7 +101,8 @@ def selection(args, root, output):
 
 def recheck(binding):
     if binding['mode'] == 'copied-release-lib-test':
-        current = validate(binding['test_binary'], binding['source_root'], binding['build_receipt'])
+        current = validate(binding['test_binary'], binding['source_root'], binding['build_receipt'],
+                           binding['cargo_target_dir'])
         if current != binding:
             raise ValueError('frozen probe/source/build identity changed during comparison')
     elif source_files(Path(binding['source_root'])) != binding['source_files']:
