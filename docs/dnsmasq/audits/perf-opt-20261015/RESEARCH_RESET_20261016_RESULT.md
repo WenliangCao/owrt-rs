@@ -742,3 +742,21 @@ summary SHA ddd1592b442c1489bfddfd5cde3aba1cb8b32d10bc9cbf5a7d57fd35a06eb004。
 当前决定仍是接受J；普通命中已获得直接总收益，且没有C正残余触发新的分段实验。K现按
 既定14窗筛选开始准备，只有达到5µs及本轮AA才执行双栈九对确认，确认通过才原118；
 先前完整正确性只复用，不重复。真实标志样本不足以支持开启备用原型，维持保留决定。
+
+## K首轮被64MiB保护中止：无性能结论，先回收历史测试副本
+
+原14窗只完成4个J/J和首个J，共5个有效窗；首个K窗约30秒时，00:04:44UTC guard报
+low_memory并停止隔离组。最后成功guard样本65988KiB，资源probe为65432KiB，低于门
+104KiB；不是DNS错误、产品崩溃或可自动替换的生成器漏发。原controller exit1、cleanup
+无错，生产PID3086与E/F恢复、STOP及partial保留，不计算半窗收益，K尚未完成筛选。
+
+附近J RSS2500/Anon488KiB，K RSS2376/Anon488KiB；K期间系统MemAvailable67932→65432，
+MemFree72468→69944、Cached79872→80056、Shmem47868→48052、Slab31640→31704KiB。
+停后无测试残留，MemAvailable先80076后77696KiB。任务/tmp总47648KiB，历史runs约
+13944KiB及256个旧guard日志15071561B可在完整本地核验后回收；新partial388KiB保留。
+原只读记录在`k-dual-family-screen14/post-stop-readonly.txt`和`retained-runs-sizes.txt`。
+
+模型与决定：本次观察不能支持K泄漏或性能变差，已知环境中积存的约28MiB测试副本足以
+改变可用余量。先完整流式归档/hash核验后回收旧副本，按新冻结条件要求125秒基线最低
+88MiB，再开独立完整14窗并重新校准AA；实时64MiB门不改，原失败不抹除、不拼接数据。
+原J接受、两个直接对照、一次真实样本和全部正确性不重复；再次健康失败则停，不循环重试。
