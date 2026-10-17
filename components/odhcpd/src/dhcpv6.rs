@@ -187,7 +187,18 @@ fn host_for<'a>(config: &'a Config, duid: &[u8], iaid: u32) -> Option<&'a HostCo
 }
 
 fn refresh_host(lease: &mut Lease, config: &Config, pool: &PoolConfig) -> bool {
-    let current = host_for(config, &lease.duid, lease.iaid);
+    let current = host_for(config, &lease.duid, lease.iaid).or_else(|| {
+        // Decline zeros the client's DUID but keeps its lease/config association
+        // until quarantine expires. A host without a fixed IID is still dynamic.
+        if lease.bound || lease.duid.iter().any(|byte| *byte != 0) {
+            return None;
+        }
+        let previous = lease.configured_host.as_ref()?;
+        config
+            .hosts
+            .iter()
+            .find(|host| host.duids == previous.duids && host.macs == previous.macs)
+    });
     let Some(previous) = lease.configured_host.as_ref() else {
         return current.is_none();
     };
@@ -410,16 +421,14 @@ impl Dhcpv6 {
             else {
                 return false;
             };
-            if !lease.valid(now) || !refresh_host(lease, config, pool) {
+            if !link.running() || !lease.valid(now) || !refresh_host(lease, config, pool) {
                 return false;
             }
             lease.device = link.name.clone();
             lease.interface_index = link.index;
-            lease.addresses = if lease.bound {
-                addresses_for(lease, link, pool, now, false)
-            } else {
-                lease.addresses.clone()
-            };
+            // C's ubus view enumerates the current prefix set for offers and
+            // declined IIDs too. Only bound leases enter hosts/state exports.
+            lease.addresses = addresses_for(lease, link, pool, now, false);
             true
         });
         for index in 0..self.leases.len() {
@@ -693,14 +702,24 @@ impl Dhcpv6 {
                 let mut candidate = existing.map(|index| self.leases[index].clone());
                 if matches!(message, 8 | 9) && status == 0 {
                     let index = existing?;
-                    if message == 8 || kind == LeaseKind::Na && self.leases[index].is_static {
+                    let fixed_iid = self.leases[index]
+                        .configured_host
+                        .as_ref()
+                        .is_some_and(|host| host.host_id == self.leases[index].assigned);
+                    if message == 8 || kind == LeaseKind::Na && fixed_iid {
                         self.leases.remove(index);
                     } else if kind == LeaseKind::Na {
                         let lease = &mut self.leases[index];
                         lease.bound = false;
                         lease.duid.fill(0);
                         lease.valid_until = context.clock.seconds() + 3600;
-                        lease.addresses.clear();
+                        lease.addresses = addresses_for(
+                            lease,
+                            context.link,
+                            context.pool,
+                            context.clock.seconds(),
+                            false,
+                        );
                     }
                     continue;
                 }
@@ -1530,5 +1549,172 @@ mod tests {
             Some(b"new-host".as_slice())
         );
         assert!(engine.leases()[0].is_static);
+    }
+
+    #[test]
+    fn declined_iid_keeps_current_ubus_addresses_without_a_bound_lease() {
+        use owrt_ubus::{convert::fields_to_json, json::Json};
+        let (config, mut link) = fixture();
+        let mut engine = Dhcpv6::default();
+        engine
+            .handle(
+                &packet(3, IA_NA, 1, None),
+                context(&config, &link),
+                &mut |_, _| Ok(()),
+            )
+            .unwrap();
+        let assigned = engine.leases()[0].assigned;
+        engine
+            .handle(
+                &packet(9, IA_NA, 1, None),
+                context(&config, &link),
+                &mut |_, _| panic!("NA has no routes"),
+            )
+            .unwrap();
+        assert_eq!(engine.leases()[0].addresses.len(), 2);
+        link.addresses[0].address = "2001:db8:2::1".parse().unwrap();
+        link.addresses[1].address = "fd00:2::1".parse().unwrap();
+        let clock = context(&config, &link).clock;
+        let kernel = KernelState {
+            links: vec![link.clone()],
+            routes: Vec::new(),
+        };
+        engine
+            .reconcile(&config, &kernel, clock, &mut |_, _| {
+                panic!("NA has no routes")
+            })
+            .unwrap();
+        let json = fields_to_json(&crate::leases::ubus_leases(
+            engine.leases(),
+            &[link.name.clone()],
+            clock,
+        ));
+        let entry = &json
+            .get("device")
+            .unwrap()
+            .get("br-lan")
+            .unwrap()
+            .get("leases")
+            .unwrap()
+            .as_array()
+            .unwrap()[0];
+        assert_eq!(
+            entry.get("duid").unwrap().as_str(),
+            Some("00000000000000000000")
+        );
+        assert_eq!(entry.get("flags"), Some(&Json::Array(Vec::new())));
+        assert_eq!(entry.get("valid"), Some(&Json::Int(3600)));
+        let addresses = entry.get("ipv6-addr").unwrap().as_array().unwrap();
+        assert_eq!(addresses.len(), 2);
+        for (address, prefix) in addresses.iter().zip(["2001:db8:2", "fd00:2"]) {
+            assert_eq!(
+                address.get("address").unwrap().as_str().unwrap(),
+                format!("{prefix}::{assigned:x}")
+            );
+            assert_eq!(address.get("preferred-lifetime"), Some(&Json::Int(2700)));
+            assert_eq!(address.get("valid-lifetime"), Some(&Json::Int(3600)));
+        }
+        assert!(!engine.leases()[0].bound);
+        engine
+            .handle(
+                &packet(3, IA_NA, 1, None),
+                context(&config, &link),
+                &mut |_, _| Ok(()),
+            )
+            .unwrap();
+        assert!(engine
+            .leases()
+            .iter()
+            .any(|lease| lease.bound && lease.assigned != assigned));
+    }
+
+    #[test]
+    fn decline_quarantines_a_named_host_without_a_fixed_iid() {
+        for fixed in [0, 0x234] {
+            let (mut config, link) = fixture();
+            config.hosts.push(HostConfig {
+                duids: vec![HostDuid {
+                    duid: CLIENT.to_vec(),
+                    iaid: None,
+                }],
+                host_id: fixed,
+                hostname: Some("named-host".into()),
+                ..HostConfig::default()
+            });
+            let mut engine = Dhcpv6::default();
+            engine
+                .handle(
+                    &packet(3, IA_NA, 1, None),
+                    context(&config, &link),
+                    &mut |_, _| Ok(()),
+                )
+                .unwrap();
+            engine
+                .handle(
+                    &packet(9, IA_NA, 1, None),
+                    context(&config, &link),
+                    &mut |_, _| Ok(()),
+                )
+                .unwrap();
+            let kernel = KernelState {
+                links: vec![link.clone()],
+                routes: Vec::new(),
+            };
+            engine
+                .reconcile(
+                    &config,
+                    &kernel,
+                    context(&config, &link).clock,
+                    &mut |_, _| Ok(()),
+                )
+                .unwrap();
+            assert_eq!(engine.leases().len(), usize::from(fixed == 0));
+            if fixed == 0 {
+                assert!(engine.leases()[0].is_static);
+                assert!(!engine.leases()[0].bound);
+                assert_eq!(engine.leases()[0].addresses.len(), 2);
+                assert_eq!(remaining(engine.leases()[0].valid_until, 100), 3600);
+            }
+        }
+    }
+
+    #[test]
+    fn interface_down_clears_na_and_pd_and_retries_failed_route_cleanup() {
+        let (config, mut link) = fixture();
+        let mut engine = Dhcpv6::default();
+        for kind in [IA_NA, IA_PD] {
+            engine
+                .handle(
+                    &packet(3, kind, 1, None),
+                    context(&config, &link),
+                    &mut |_, _| Ok(()),
+                )
+                .unwrap();
+        }
+        assert_eq!(engine.leases().len(), 2);
+        link.flags &= !0x40;
+        let clock = context(&config, &link).clock;
+        let kernel = KernelState {
+            links: vec![link],
+            routes: engine.pending_routes().to_vec(),
+        };
+        assert!(engine
+            .reconcile(&config, &kernel, clock, &mut |_, add| {
+                assert!(!add);
+                Err(io::Error::other("injected delete failure"))
+            })
+            .is_err());
+        assert!(engine.leases().is_empty());
+        assert_eq!(engine.pending_routes().len(), 1);
+        let mut retries = 0;
+        engine
+            .reconcile(&config, &kernel, clock, &mut |_, add| {
+                assert!(!add);
+                retries += 1;
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(retries, 1);
+        assert!(engine.pending_routes().is_empty());
     }
 }
