@@ -9,6 +9,7 @@ import select
 import shutil
 import signal
 import socket
+import stat
 import struct
 import subprocess
 import sys
@@ -250,6 +251,12 @@ class Fixture:
             p = self.root / directory
             p.mkdir(parents=True, exist_ok=True)
             os.chmod(p, 0o755)
+        # Extracted squashfs contains only console; boot normally supplies
+        # these through devtmpfs. Keep device access inside the copied root.
+        for name, minor in (("null", 3), ("zero", 5), ("random", 8), ("urandom", 9)):
+            path = self.root / "dev" / name
+            if not path.exists():
+                os.mknod(path, stat.S_IFCHR | 0o666, os.makedev(1, minor))
         run("mount", "-t", "sysfs", "-o", "ro", "sysfs", str(self.root / "sys"))
         run("mount", "-t", "proc", "proc", str(self.root / "proc"))
         if self.args.daemon:
