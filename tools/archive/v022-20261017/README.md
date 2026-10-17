@@ -105,3 +105,32 @@ scripts passed `sh -n`; neither was executed during preservation. No actual
 boot UUID, process PID, guard digest, private deployment path or token remains
 in their public script bodies. Historical source-file digests in the manifest
 are retained solely for provenance.
+
+## Final core controller supplement
+
+`core-manifest.json` accounts for 33 otherwise untracked paths found during the
+final core worktree retirement check. Four have the exact original SHA256 of
+an existing archive entry; six startup shell copies are reconstructed from the
+recorded Git template and one runtime-root substitution. The remaining 23 paths
+share 21 newly stored files under `sources/core/`, totaling 94,741 bytes:
+14 Python controllers/collectors and seven preparation or release notes.
+
+This includes the `core-ci/d644eda4/collect_verify.py` collector and the R92
+continuation controller; their only local copies therefore survive retirement.
+Source/SDK/rootfs/cache copies were excluded. Identical Git-backed scripts need
+no additional copy. Draft cleanup and release notes retain their historical
+pending-state wording; they neither describe current status nor authorize work.
+
+All original source hashes, archive mappings and exact inverse checks are
+recorded. Original host/work paths and the one observed prior-runner PID live
+only in main's 0600 non-raw receipt:
+`private/backup/v0.2.2-tool-archive/core-restore-bindings.json`.
+The R92 continuation script now requires `OWRT_PRIOR_RUNNER_PID` explicitly;
+its existing check that the prior executor has exited is retained. The old
+SSH alias is represented as `owrt-build-host`. GitHub repository URLs and
+historical build/source hashes remain public provenance.
+
+All 14 new Python files were parsed without executing them. The six template
+copies were reconstructed byte for byte, and all 23 archived-path mappings
+reverse to their original bytes. No raw results, logs, configuration, binaries,
+credentials, actual process identifiers or machine home paths were added.

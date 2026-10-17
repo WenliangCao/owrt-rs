@@ -1,0 +1,479 @@
+{
+  "schema": 1,
+  "scope": "Final private core controllers and derived preparation/release notes only; not current execution entrypoints",
+  "source_tree_label": "retired-core/private",
+  "files": [
+    {
+      "source": "cleanup-preparation-20261017/commands-draft.md",
+      "original_sha256": "c8fe5165d3244193f022ff72acb209525fa88c2e824ee5753f0bfdc7444e2e74",
+      "original_bytes": 2976,
+      "strategy": "archived",
+      "archive_path": "sources/core/cleanup-preparation-20261017/commands-draft.md",
+      "archived_sha256": "d8b3f2db5fb10ea21c09bd8a141f01aff4409e843fe8c706dbd55b618c440868",
+      "substitutions": [
+        "runtime-01",
+        "runtime-02",
+        "runtime-03",
+        "core-runtime-03",
+        "runtime-04",
+        "dnsmasq-work",
+        "unified-work",
+        "core-runtime-04",
+        "build-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "cleanup-preparation-20261017/local-tool-evidence.md",
+      "original_sha256": "23a5a16c73ab518ed16b2ae5c1d3c050560d617d1a2da7cb78de7e5d5ee179b8",
+      "original_bytes": 1280,
+      "strategy": "archived",
+      "archive_path": "sources/core/cleanup-preparation-20261017/local-tool-evidence.md",
+      "archived_sha256": "23a5a16c73ab518ed16b2ae5c1d3c050560d617d1a2da7cb78de7e5d5ee179b8",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "cleanup-preparation-20261017/oracle-cleanup-summary.md",
+      "original_sha256": "c88062220efbadc2c14eb604a4160746236dcc0731c74352f451d839e4ade7ff",
+      "original_bytes": 2488,
+      "strategy": "archived",
+      "archive_path": "sources/core/cleanup-preparation-20261017/oracle-cleanup-summary.md",
+      "archived_sha256": "21356d6a1b5a0c64d02a68617ee1079a3520bfda2b0c3cdd11dcef93b81611b5",
+      "substitutions": [
+        "dnsmasq-work",
+        "unified-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "core-ci/d644eda4/collect_verify.py",
+      "original_sha256": "38aeae9a371ee2016b38bea2f125429e967148859a9a39980537a21967d6391d",
+      "original_bytes": 2953,
+      "strategy": "archived",
+      "archive_path": "sources/core/core-ci/d644eda4/collect_verify.py",
+      "archived_sha256": "9305a10466a24124ab205179b30da40f7c124ae97799aa9e492d6999acdb3a02",
+      "substitutions": [
+        "local-core-worktree"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "core-functional-supplement/run_queue.py",
+      "original_sha256": "5e2f9441008e25a5fa19e1ff8dad45c34731c2fdeb3035a90e4f9b1f48d63390",
+      "original_bytes": 8189,
+      "strategy": "archived",
+      "archive_path": "sources/core/core-functional-supplement/run_queue.py",
+      "archived_sha256": "f152098e780a62855cb78983e20aefaef15fcadc408168a7b72d96b187538726",
+      "substitutions": [
+        "unified-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "core-supplement-preparation/inventory.md",
+      "original_sha256": "5c23848e5afe396ff8e92978b9d11be57dd8fd31d744933aa27539ff04f89e0e",
+      "original_bytes": 8754,
+      "strategy": "archived",
+      "archive_path": "sources/core/core-supplement-preparation/inventory.md",
+      "archived_sha256": "5c23848e5afe396ff8e92978b9d11be57dd8fd31d744933aa27539ff04f89e0e",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "deploy-v022-20261017/observation600/daemon-snapshot.sh",
+      "original_sha256": "3803d13706e7d96e31c2106756c9418288abfbf8a556de050c3da9f790df528c",
+      "original_bytes": 1429,
+      "strategy": "existing-archive",
+      "archive_manifest": "deployment-manifest.json",
+      "archive_source": "observation600/daemon-snapshot.sh"
+    },
+    {
+      "source": "deploy-v022-20261017/router-cleanup/disarm-command.sh",
+      "original_sha256": "373df6e198628fe94fead69c8d989727bc5980f7662d8579b47a13aed43803fe",
+      "original_bytes": 1117,
+      "strategy": "existing-archive",
+      "archive_manifest": "deployment-manifest.json",
+      "archive_source": "router-cleanup/disarm-command.sh"
+    },
+    {
+      "source": "dnsmasq-e21245d2/build_core_runtime_tools.py",
+      "original_sha256": "d4b4e2d866f3fe8740951089fec4d9fe3d3733729a9c08aa83a83f857e9a04f0",
+      "original_bytes": 4105,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/build_core_runtime_tools.py",
+      "archived_sha256": "2ae1c0d94d4cf01d6ee0600b9d75892110c7de013beb121cfb3186a96e762d66",
+      "substitutions": [
+        "unified-work",
+        "upstream-sources",
+        "cargo-home",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/canonical_ci_prepare.py",
+      "original_sha256": "4e7e8d29a3b1ec4fd9c89c2b30acc1349746234e581129cae08368ea1c89b927",
+      "original_bytes": 10609,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/canonical_ci_prepare.py",
+      "archived_sha256": "c6ced64460838fc291c228d1647aa3b1678a6b88b87a3aad6873383429dbcbdf",
+      "substitutions": [
+        "runtime-01",
+        "dnsmasq-work",
+        "unified-work",
+        "core-runtime-02"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/canonical_ci_qualify.py",
+      "original_sha256": "5e33cf6c415887d5e576a322c32a08392653f1866edc0015ce3905c4e02a34c0",
+      "original_bytes": 5146,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/canonical_ci_qualify.py",
+      "archived_sha256": "a1e217a7820456d587a15e4a23dd11dc13be59b0badea7533239be90eb96da2f",
+      "substitutions": [
+        "dnsmasq-work",
+        "unified-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/canonical_smoke_train.py",
+      "original_sha256": "1cf9d44ee7748e81230c406ee239ad1a26380018a317185de0c6863bb81cb932",
+      "original_bytes": 9359,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/canonical_smoke_train.py",
+      "archived_sha256": "1cf9d44ee7748e81230c406ee239ad1a26380018a317185de0c6863bb81cb932",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/collect_final_qualification.py",
+      "original_sha256": "78fc36c78d6d89ac3a91157e5b7ad44673e78890f67f6ed4fd2d64cce2e1cf42",
+      "original_bytes": 2599,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/collect_final_qualification.py",
+      "archived_sha256": "50a407f5f997bc47f47f7909c492d53fbdfe42342bbb4f8164584049b3bf80d6",
+      "substitutions": [
+        "unified-work",
+        "core-runtime-01",
+        "build-host-ssh-alias",
+        "build-host-scp-alias"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/device-handoff/startup/run_preview.py",
+      "original_sha256": "390e999f1c2ddefe327cbb4098749eb3a9152af3553319d8114e3b5ae1bbf1d1",
+      "original_bytes": 3983,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/device-handoff/startup/run_preview.py",
+      "archived_sha256": "4a9bd6a875a35610e9bba2e7ef95a8c713a625b271d3f62b518cbca99cc92e32",
+      "substitutions": [
+        "core-runtime-03",
+        "dnsmasq-work",
+        "unified-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/device-handoff/startup/safe_v022_startup_case.sh",
+      "original_sha256": "749e10a1d66e7df7ac619968fc289f9d883b5e50feb4a9e44498330f5fd35b46",
+      "original_bytes": 2409,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "core-runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/device-handoff/startup/safe_v022_startup_group.sh",
+      "original_sha256": "f4a7e166fa0816a9025c4ef5e7975e7a1ba0317a3603c332023a19c314ca0fb4",
+      "original_bytes": 857,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "core-runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/run_shipping.py",
+      "original_sha256": "c870bab1cb0ad6aa44538a59e4441088a0d177e2a89c573d173216c249e9e0ef",
+      "original_bytes": 2122,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/final-qualification/run_shipping.py",
+      "archived_sha256": "c7db30377d8f7c16d56dbd5117402e0af152dd32f25885d8b474dbbca869605d",
+      "substitutions": [
+        "dnsmasq-work",
+        "unified-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/runtime/run.py",
+      "original_sha256": "51f6fcca253769bab9f6d5a006cfdb41ac0255c234975eff6c412301b541cbb8",
+      "original_bytes": 5690,
+      "strategy": "existing-archive",
+      "archive_manifest": "manifest.json",
+      "archive_source": "oracle-unified-v022/e21245d2/dnsmasq-final/runtime/run.py"
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/startup-raw/safe_v022_startup_case.sh",
+      "original_sha256": "749e10a1d66e7df7ac619968fc289f9d883b5e50feb4a9e44498330f5fd35b46",
+      "original_bytes": 2409,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "core-runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/startup-raw/safe_v022_startup_group.sh",
+      "original_sha256": "f4a7e166fa0816a9025c4ef5e7975e7a1ba0317a3603c332023a19c314ca0fb4",
+      "original_bytes": 857,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "core-runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/startup/run_preview.py",
+      "original_sha256": "390e999f1c2ddefe327cbb4098749eb3a9152af3553319d8114e3b5ae1bbf1d1",
+      "original_bytes": 3983,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/device-handoff/startup/run_preview.py",
+      "archived_sha256": "4a9bd6a875a35610e9bba2e7ef95a8c713a625b271d3f62b518cbca99cc92e32",
+      "substitutions": [
+        "core-runtime-03",
+        "dnsmasq-work",
+        "unified-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/startup/safe_v022_startup_case.sh",
+      "original_sha256": "749e10a1d66e7df7ac619968fc289f9d883b5e50feb4a9e44498330f5fd35b46",
+      "original_bytes": 2409,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "core-runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/final-qualification/startup/safe_v022_startup_group.sh",
+      "original_sha256": "f4a7e166fa0816a9025c4ef5e7975e7a1ba0317a3603c332023a19c314ca0fb4",
+      "original_bytes": 857,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "core-runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/prepare_candidate.py",
+      "original_sha256": "3702f27af7b6da9e941ccc4fea1e5f44bd5d6af5e91c79c25ed48cc83da552aa",
+      "original_bytes": 1975,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/prepare_candidate.py",
+      "archived_sha256": "5ad9036e2b1a56097b82f6302abfe4f8221eb09ef11710e424863f9525e822c9",
+      "substitutions": [
+        "local-core-worktree"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "dnsmasq-e21245d2/run_native.py",
+      "original_sha256": "d89c1286727bb4792df7c15d82807a26650908bf65bd94834cbe5b336ce8732c",
+      "original_bytes": 7252,
+      "strategy": "existing-archive",
+      "archive_manifest": "manifest.json",
+      "archive_source": "oracle-unified-v022/e21245d2/dnsmasq-native/run_native.py"
+    },
+    {
+      "source": "dnsmasq-e21245d2/watch_qualification.py",
+      "original_sha256": "791f658701ea19dd93e97eac22baa3b487d8193868fa9072385dd05bebc0999a",
+      "original_bytes": 1586,
+      "strategy": "archived",
+      "archive_path": "sources/core/dnsmasq-e21245d2/watch_qualification.py",
+      "archived_sha256": "53f5eaa4aa3b8bfe4e9fcfce77e556f86b4e3aa816d5ebc0488c3697299d31bf",
+      "substitutions": [
+        "unified-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "main-ci-2117bdcf/hosts-allocations-diagnostic/entrypoint.md",
+      "original_sha256": "d2d80d6a8cf187486d0175470d7c3b30ac32808a1804971621b28dc91fe044d8",
+      "original_bytes": 1968,
+      "strategy": "archived",
+      "archive_path": "sources/core/main-ci-2117bdcf/hosts-allocations-diagnostic/entrypoint.md",
+      "archived_sha256": "d2d80d6a8cf187486d0175470d7c3b30ac32808a1804971621b28dc91fe044d8",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "r92-continuation/continue.py",
+      "original_sha256": "4913a166e9472067ee2ba4f26af95e25939a5ca445518b9560735e2f11be51ee",
+      "original_bytes": 3295,
+      "strategy": "archived",
+      "archive_path": "sources/core/r92-continuation/continue.py",
+      "archived_sha256": "09208e61f8e8093978ae0f566a447bb8df054011e498d6ed6125f64126faf152",
+      "substitutions": [
+        "unified-work",
+        "prior-runner-pid"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "unified-image-34300d29/collect_verify.py",
+      "original_sha256": "15c19bed6b8780cdaff550ee66c142d010e529251a8188199adf09aeda14e39e",
+      "original_bytes": 4877,
+      "strategy": "archived",
+      "archive_path": "sources/core/unified-image-34300d29/collect_verify.py",
+      "archived_sha256": "cfa1c5812591bea3b93b2f2c3352033394ff28ca51687e9360b9411ce2a3b18a",
+      "substitutions": [
+        "local-core-worktree"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "unified-image-598b19a7/collect_verify.py",
+      "original_sha256": "73346d7a0158e1dccc3ce9f671abe3b4d5c0e90389bae96725c78ec79b7245e0",
+      "original_bytes": 5902,
+      "strategy": "archived",
+      "archive_path": "sources/core/unified-image-598b19a7/collect_verify.py",
+      "archived_sha256": "18ac87e875ace2a9e5b5a99e8c2d04ec67e6093cce5502aa3984425ab1699a32",
+      "substitutions": [
+        "local-core-worktree"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "unified-release-preparation/assets/RELEASE_NOTES.md",
+      "original_sha256": "f27833b6350eb179f535aead8382f93987e8552e0e6f90fbf5f8228a3e86c60e",
+      "original_bytes": 5815,
+      "strategy": "archived",
+      "archive_path": "sources/core/unified-release-preparation/assets/RELEASE_NOTES.md",
+      "archived_sha256": "f27833b6350eb179f535aead8382f93987e8552e0e6f90fbf5f8228a3e86c60e",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "unified-release-preparation/release-notes-draft.md",
+      "original_sha256": "d20411e316be28be5db53b0b32f30dc87629fa0bc086043440488563f39aec30",
+      "original_bytes": 5048,
+      "strategy": "archived",
+      "archive_path": "sources/core/unified-release-preparation/release-notes-draft.md",
+      "archived_sha256": "d20411e316be28be5db53b0b32f30dc87629fa0bc086043440488563f39aec30",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "unified-release-preparation/release-redownload/RELEASE_NOTES.md",
+      "original_sha256": "f27833b6350eb179f535aead8382f93987e8552e0e6f90fbf5f8228a3e86c60e",
+      "original_bytes": 5815,
+      "strategy": "archived",
+      "archive_path": "sources/core/unified-release-preparation/assets/RELEASE_NOTES.md",
+      "archived_sha256": "f27833b6350eb179f535aead8382f93987e8552e0e6f90fbf5f8228a3e86c60e",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    }
+  ],
+  "path_bindings": [
+    {
+      "id": "runtime-01",
+      "placeholder": "/tmp/owrt-archive-v022-slot-01"
+    },
+    {
+      "id": "local-core-worktree",
+      "placeholder": "/srv/owrt-archive/local-repo"
+    },
+    {
+      "id": "runtime-02",
+      "placeholder": "/tmp/owrt-archive-v022-slot-02"
+    },
+    {
+      "id": "runtime-03",
+      "placeholder": "/tmp/owrt-archive-v022-slot-03"
+    },
+    {
+      "id": "core-runtime-03",
+      "placeholder": "/tmp/owrt-archive-core-slot-03"
+    },
+    {
+      "id": "runtime-04",
+      "placeholder": "/tmp/owrt-archive-v022-slot-04"
+    },
+    {
+      "id": "dnsmasq-work",
+      "placeholder": "/srv/owrt-archive/dnsmasq-work"
+    },
+    {
+      "id": "unified-work",
+      "placeholder": "/srv/owrt-archive/unified-work"
+    },
+    {
+      "id": "core-runtime-02",
+      "placeholder": "/tmp/owrt-archive-core-slot-02"
+    },
+    {
+      "id": "image-bases",
+      "placeholder": "/srv/owrt-archive/image-bases"
+    },
+    {
+      "id": "core-runtime-04",
+      "placeholder": "/tmp/owrt-archive-core-slot-04"
+    },
+    {
+      "id": "upstream-sources",
+      "placeholder": "/srv/owrt-archive/upstream-evidence"
+    },
+    {
+      "id": "prior-runner-pid",
+      "placeholder": "(Path('/proc') / os.environ['OWRT_PRIOR_RUNNER_PID'])"
+    },
+    {
+      "id": "core-runtime-01",
+      "placeholder": "/tmp/owrt-archive-core-slot-01"
+    },
+    {
+      "id": "cargo-home",
+      "placeholder": "/srv/owrt-archive/cargo"
+    },
+    {
+      "id": "sdk",
+      "placeholder": "/srv/owrt-archive/sdk"
+    },
+    {
+      "id": "build-home",
+      "placeholder": "/srv/owrt-archive/build-home"
+    },
+    {
+      "id": "build-host-ssh-alias",
+      "placeholder": "'owrt-build-host'"
+    },
+    {
+      "id": "build-host-scp-alias",
+      "placeholder": "'owrt-build-host:"
+    }
+  ],
+  "counts": {
+    "existing-archive": 4,
+    "git-template": 6,
+    "archived": 23
+  },
+  "unique_archived_files": 21,
+  "archived_source_bytes": 94741
+}
