@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "started_utc": "2026-10-17T09:50:37.131523+00:00",
+  "finished_utc": "2026-10-17T09:50:48.701937+00:00",
+  "manifest_sha256": "b28f199869815fd5b61b992b28bc68cb9fb60b6bd9b19e0052d3e6b3649b9db5",
+  "refs_verified": 403,
+  "retired_branches": 21,
+  "perf_archive_tags": 382,
+  "errors": [],
+  "remote_listing_sha256": "76a4d0c8894514a3983453448c863141ba3bb25eef10331952a6c9bd23da6de5",
+  "raw_test_data_pushed": false,
+  "scope": "21 retired task branches and every local perf/ or archive/ tag as of verification. All object and peeled identities match GitHub; code, tools and reports remain reachable. Raw experiment data was not uploaded.",
+  "remote": "https://github.com/WenliangCao/owrt-control-plane-rs",
+  "cleanup_gate": "Old worktrees/raw can be deleted only after task users have released them; keep active main/v0.2.1/v0.2.2 branches and private recovery materials."
+}

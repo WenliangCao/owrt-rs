@@ -51,6 +51,13 @@ APK 是离线镜像装配输入，不用于在线替换 PID1 或总线。
 此次没有物理断电测试。当前完整状态及白天 60 分钟统计见
 [部署报告](https://github.com/WenliangCao/owrt-control-plane-rs/blob/main/docs/reviews/DEPLOYMENT_V0_2_1_20261017.md)。短观察不能替代随后 24 小时运行观察。
 
+白天 11:16–12:16（Europe/Berlin）的 3600 秒观察取得 721 个资源点，600/600 项健康检查通过。
+记录 259 条可见查询；245 条完整解析消息中 EDNS/DO 为 0，259 个查询头中 AD/CD 为 0；
+14 条解析异常和 6 个跳过分片保留为未知/遗漏。双栈共现为 36/143 组（25.17%），对应
+72/215 条 A/AAAA 查询（33.49%）。备用标志/OPT 原型在有效样本中额外覆盖 0 条，不启用。
+CPU 为单核 0.136%，RSS 2544–2560 KiB；FD 38–45、首尾 42→42，进程和线程各 1。
+这些资源包含健康探针及临时守卫的活动，不是等负载性能对比。
+
 上线前已离线保存当次配置、v0.2.0 回滚镜像与小米 TFTP 救援镜像；保留配置升级不使用
 `-n`。十二份 stock 文件的 C 恢复与完整刷回 v0.2.0 是不同恢复路径，见
 [救援手册](https://github.com/WenliangCao/owrt-control-plane-rs/blob/main/docs/RUNBOOK_AX3000T_RECOVERY.md)。
