@@ -128,6 +128,7 @@ def verify_pgo_build(out, report):
     receipt = json.loads(invocation.read_text())
     mode = report["pgo"].get("mode", "use")
     audit.require(receipt["mode"] == mode, "PGO invocation mode differs from plan")
+    audit.require(receipt["cargo_verbosity"] == "normal", "canonical PGO requires normal Cargo verbosity")
     if mode == "generate":
         audit.require(receipt["profile_output_dir"] == report["pgo"]["profile_output_dir"]
                       and "-Cprofile-use" not in receipt["effective_rustflags"],

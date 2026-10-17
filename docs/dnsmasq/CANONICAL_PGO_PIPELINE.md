@@ -41,6 +41,12 @@ host/target Cargo 指纹、build-script 输出，以及同构建 `link.map` 和 
 输出，不改变 Cargo/rustc 的代码生成参数。任何未知或正常构建可见的编译/Cargo/
 linker warning、profile missing/mismatch 均失败；最终预算仍为 2.5/1.4 MB。
 
+Oracle 的 `tools/dnsmasq/pgo_training_only.py` 请求另需 `source_spec={path,sha256}`，
+绑定本轮完整 generate 冻结清单。`reference_plan` 只固定原 workload、seed、工具、
+SDK 与 C helper，绝不提供新产品 source 身份。请求还绑定实际 CI manifest/ELF 与
+新 ELF 的 excluded smoke 收据；输入 hashes 验证后才执行原 collect。CI 调用收据
+显式记录 `cargo_verbosity=normal`，两阶段都核验。最终输出继续标记 unqualified。
+
 历史诊断 `39045487550` 的 `-vv` 暴露两条 rustix 未启用 hint 提示而失败；普通模式
 `39046178426` 为 0 编译警告，同一插桩 ELF SHA 与 7 项 Cargo 身份记录完全相同。
 两份原始结果均保留。`-vv` 也将 registry dependency 的 `--cap-lints allow` 改为

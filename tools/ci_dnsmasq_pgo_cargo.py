@@ -61,7 +61,7 @@ def prepare(plan, argv, env):
         identity = {"profile_sha256": plan["profile_sha256"], "profile_bytes": plan["profile_bytes"]}
     else:
         raise ValueError("unknown PGO mode")
-    return {"mode": mode, "argv": argv, "recipe_environment": expected,
+    return {"mode": mode, "argv": argv, "cargo_verbosity": "normal", "recipe_environment": expected,
             "recipe_rustflags": recipe_flags, "added_rustflags": added,
             "effective_rustflags": recipe_flags + " " + added,
             **identity,
