@@ -319,20 +319,6 @@ pub enum Target<'a> {
     Unknown,
 }
 
-/// The proto handlers this build offers, with the validation table
-/// `get_proto_handlers` reports. `static` is built in; the shell handlers are
-/// read from `/lib/netifd/proto` at startup by the C, and this build reports
-/// only what it can actually run.
-pub fn proto_handlers(b: &mut BlobBuf, names: &[(&str, bool)]) {
-    for (name, no_proto) in names {
-        let t = b.msg_open_table(name);
-        if *no_proto {
-            b.msg_bool("no_proto", true);
-        }
-        b.msg_close(t);
-    }
-}
-
 /// ubusd's built-in event object. `ubus_send_event` is an invoke of `send` on
 /// it, carrying `{id: <event name>, data: <table>}`.
 pub const SYSTEM_OBJECT_EVENT: u32 = 1;

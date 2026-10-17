@@ -42,18 +42,13 @@ pub const FR_ACT_UNREACHABLE: u8 = 7;
 pub const IFLA_ADDRESS: u16 = 1;
 pub const IFLA_IFNAME: u16 = 3;
 pub const IFLA_MTU: u16 = 4;
-pub const IFLA_LINK: u16 = 5;
 pub const IFLA_MASTER: u16 = 10;
 pub const IFLA_TXQLEN: u16 = 13;
-pub const IFLA_OPERSTATE: u16 = 16;
 pub const IFLA_LINKINFO: u16 = 18;
 pub const IFLA_STATS64: u16 = 23;
-pub const IFLA_CARRIER: u16 = 33;
 
 pub const IFLA_INFO_KIND: u16 = 1;
 pub const IFLA_INFO_DATA: u16 = 2;
-pub const IFLA_INFO_SLAVE_KIND: u16 = 4;
-pub const IFLA_INFO_SLAVE_DATA: u16 = 5;
 
 pub const IFLA_BR_FORWARD_DELAY: u16 = 1;
 pub const IFLA_BR_HELLO_TIME: u16 = 2;
@@ -62,31 +57,13 @@ pub const IFLA_BR_AGEING_TIME: u16 = 4;
 pub const IFLA_BR_STP_STATE: u16 = 5;
 pub const IFLA_BR_PRIORITY: u16 = 6;
 pub const IFLA_BR_VLAN_FILTERING: u16 = 7;
-pub const IFLA_BR_MCAST_ROUTER: u16 = 22;
 pub const IFLA_BR_MCAST_SNOOPING: u16 = 23;
 pub const IFLA_BR_MCAST_QUERIER: u16 = 25;
 pub const IFLA_BR_MCAST_HASH_MAX: u16 = 27;
-pub const IFLA_BR_MCAST_LAST_MEMBER_CNT: u16 = 28;
-pub const IFLA_BR_MCAST_STARTUP_QUERY_CNT: u16 = 29;
-pub const IFLA_BR_MCAST_LAST_MEMBER_INTVL: u16 = 30;
-pub const IFLA_BR_MCAST_MEMBERSHIP_INTVL: u16 = 31;
-pub const IFLA_BR_MCAST_QUERIER_INTVL: u16 = 32;
-pub const IFLA_BR_MCAST_QUERY_INTVL: u16 = 33;
-pub const IFLA_BR_MCAST_QUERY_RESPONSE_INTVL: u16 = 34;
-pub const IFLA_BR_MCAST_STARTUP_QUERY_INTVL: u16 = 35;
 
-pub const IFLA_BRPORT_STATE: u16 = 1;
-pub const IFLA_BRPORT_LEARNING: u16 = 8;
-pub const IFLA_BRPORT_UNICAST_FLOOD: u16 = 9;
-pub const IFLA_BRPORT_PROXYARP_WIFI: u16 = 12;
-pub const IFLA_BRPORT_MULTICAST_ROUTER: u16 = 25;
-pub const IFLA_BRPORT_MCAST_TO_UCAST: u16 = 28;
-pub const IFLA_BRPORT_ISOLATED: u16 = 33;
-pub const IFLA_BRPORT_BPDU_FILTER: u16 = 45;
 
 pub const IFA_ADDRESS: u16 = 1;
 pub const IFA_LOCAL: u16 = 2;
-pub const IFA_LABEL: u16 = 3;
 pub const IFA_BROADCAST: u16 = 4;
 pub const IFA_CACHEINFO: u16 = 6;
 pub const IFA_FLAGS: u16 = 8;
@@ -139,9 +116,6 @@ pub const SIOCGIFHWADDR: u64 = 0x8927;
 pub const SIOCGIFTXQLEN: u64 = 0x8942;
 
 pub const IFF_UP: u32 = 0x1;
-pub const IFF_LOOPBACK: u32 = 0x8;
-pub const IFF_POINTOPOINT: u32 = 0x10;
-pub const IFF_NOARP: u32 = 0x80;
 pub const IFF_PROMISC: u32 = 0x100;
 pub const IFF_MULTICAST: u32 = 0x1000;
 pub const IFF_LOWER_UP: u32 = 0x10000;
@@ -834,13 +808,6 @@ impl System {
         self.nl.dump(RTM_GETLINK, &ifinfomsg(AF_UNSPEC, 0, 0, 0))
     }
 
-    pub fn dump_addrs(&mut self, family: u8) -> io::Result<Vec<netlink::Msg>> {
-        self.nl.dump(RTM_GETADDR, &ifaddrmsg(family, 0, 0, 0, 0))
-    }
-
-    pub fn dump_routes(&mut self, family: u8) -> io::Result<Vec<netlink::Msg>> {
-        self.nl.dump(RTM_GETROUTE, &rtmsg(family, 0, 0, 0, 0, 0, 0, 0, 0))
-    }
 }
 
 /// The `SIOCGIF*` half of `system_if_get_settings`: an AF_INET datagram socket
@@ -892,10 +859,6 @@ impl IfIoctl {
 /// interface without IPv6, say) is fatal.
 pub fn sysctl_path(kind: &str, dev: &str, key: &str) -> String {
     format!("/proc/sys/net/{kind}/conf/{dev}/{key}")
-}
-
-pub fn sysctl_get(path: &str) -> io::Result<String> {
-    Ok(std::fs::read_to_string(path)?.trim().to_string())
 }
 
 pub fn sysctl_set(path: &str, val: &str) -> io::Result<()> {

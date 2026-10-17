@@ -8,6 +8,11 @@ mod profile_support;
 use owrt_ubus::blob::{self, BlobBuf};
 use std::hint::black_box;
 
+// Retain the old allocating counter reader only as a diagnostic comparison.
+fn dev_sysfs(ifname: &str, attr: &str) -> std::io::Result<String> {
+    Ok(std::fs::read_to_string(format!("/sys/class/net/{ifname}/{attr}"))?.trim().to_string())
+}
+
 fn interface(index: usize) -> interface::Interface {
     let mut i = interface::Interface::new(&format!("interface{index:03}"));
     i.state = interface::State::Up;
@@ -185,6 +190,6 @@ fn main() {
         black_box(ethtool::statistics(black_box("lo")));
     });
     profile_support::measure("one_sysfs_counter", n, &filter, || {
-        black_box(ethtool::dev_sysfs("lo", "statistics/rx_bytes").unwrap());
+        black_box(dev_sysfs("lo", "statistics/rx_bytes").unwrap());
     });
 }

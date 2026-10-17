@@ -34,9 +34,6 @@ pub const NLM_F_CREATE: u16 = 0x400;
 pub const RTNLGRP_LINK: u32 = 1;
 pub const RTNLGRP_IPV4_IFADDR: u32 = 5;
 pub const RTNLGRP_IPV6_IFADDR: u32 = 9;
-pub const RTNLGRP_IPV6_PREFIX: u32 = 18;
-pub const RTNLGRP_IPV4_ROUTE: u32 = 7;
-pub const RTNLGRP_IPV6_ROUTE: u32 = 11;
 
 /// `1 << (grp - 1)`, the bitmask form `bind(2)` takes for the first 32 groups.
 pub const fn grp(g: u32) -> u32 {
@@ -117,10 +114,6 @@ impl Attrs {
         &self.buf
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.buf.is_empty()
-    }
-
     pub fn bytes(&mut self, ty: u16, v: &[u8]) -> &mut Self {
         let len = 4 + v.len();
         self.buf.extend_from_slice(&(len as u16).to_le_bytes());
@@ -149,10 +142,6 @@ impl Attrs {
     }
 
     pub fn u32(&mut self, ty: u16, v: u32) -> &mut Self {
-        self.bytes(ty, &v.to_le_bytes())
-    }
-
-    pub fn u64(&mut self, ty: u16, v: u64) -> &mut Self {
         self.bytes(ty, &v.to_le_bytes())
     }
 

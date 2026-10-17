@@ -291,10 +291,6 @@ pub fn dev_sysfs_n(ifname: &str, attr: &str, buf_sz: usize) -> Option<String> {
     Some(String::from_utf8_lossy(&raw[..end]).into_owned())
 }
 
-pub fn dev_sysfs(ifname: &str, attr: &str) -> io::Result<String> {
-    Ok(std::fs::read_to_string(format!("/sys/class/net/{ifname}/{attr}"))?.trim().to_string())
-}
-
 /// `system_add_devtype`: `DEVTYPE=` from the first line of the device's uevent
 /// if it is there, otherwise the ARPHRD number from `type` mapped through the
 /// netdev table, whose last entry is the default for an unknown number.
