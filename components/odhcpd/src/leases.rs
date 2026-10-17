@@ -24,7 +24,7 @@ pub struct LeaseAddress {
     pub valid_until: u64,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Lease {
     pub pool: String,
     pub device: String,
