@@ -149,8 +149,12 @@ def run_case(binary, injector, directory, case):
            "R93_TRIGGER": str(directory / "trigger"),
            "R93_AUDIT": str(directory / "accept.log"),
            "R93_ERRNO": str(code), "R93_ONCE": str(int(once)), "R93_EMFILE": str(int(emfile))}
-    row = {"case": case, "passed": False}
-    sockpath = str(directory / "bus.sock")
+    # Evidence may live below a long immutable qualification path. Keep the
+    # transient AF_UNIX name in this run's existing short private tempdir.
+    sockpath = str(injector.parent / (case + ".sock"))
+    if len(os.fsencode(sockpath)) >= 108:
+        raise ValueError("private accept socket exceeds Linux sun_path")
+    row = {"case": case, "passed": False, "socket_path_bytes": len(os.fsencode(sockpath))}
     with (directory / "daemon.log").open("wb") as log:
         daemon = subprocess.Popen([str(binary), "-s", sockpath, "-A", str(directory / "acl")],
                                   env=env, stdout=log, stderr=log, preexec_fn=child_limits)
