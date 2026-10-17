@@ -2,26 +2,15 @@
 //! The netlink and ioctl descriptors are retained before privilege drop; a
 //! packet lookup never opens a file or socket, including under EMFILE.
 
-use dnsmasq_platform::{bind, getsockname, recvfrom, sendto};
 use super::Ipv4Interface;
 use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+use rustix::net::{
+    self, netlink::SocketAddrNetlink, AddressFamily, RecvFlags, SendFlags, SocketAddrAny,
+    SocketFlags, SocketType,
+};
 use std::io;
 use std::net::{Ipv4Addr, UdpSocket};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
-
-#[repr(C)]
-#[derive(Default)]
-struct Address {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-
-extern "C" {
-    fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
-}
+use std::os::fd::{AsRawFd, OwnedFd};
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum State {
@@ -52,34 +41,22 @@ pub struct Ipv4Snapshot {
 
 impl Ipv4Snapshot {
     pub fn new() -> io::Result<Self> {
-        // SAFETY: no pointers; a successful nonblocking CLOEXEC netlink socket
-        // is immediately transferred to one OwnedFd.
-        let raw = unsafe { socket(16, 3 | 0o4000 | 0o2000000, 0) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: transfer the successful fresh socket fd to exactly one owner.
-        let fd = unsafe { OwnedFd::from_raw_fd(raw) };
-        let mut address = Address {
-            family: 16,
-            ..Address::default()
-        };
+        let fd = net::socket_with(
+            AddressFamily::NETLINK,
+            SocketType::RAW,
+            SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+            None,
+        )?;
         // No multicast groups: resolver notifications have a separate owner.
-        // SAFETY: sockaddr_nl is initialized and remains live for each call.
-        if unsafe { bind(raw, (&address as *const Address).cast(), 12) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        let mut length = 12;
-        // SAFETY: writable initialized sockaddr and its 12-byte capacity stay live.
-        if unsafe { getsockname(raw, (&mut address as *mut Address).cast(), &mut length) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        if length != 12 || address.family != 16 {
+        net::bind(&fd, &SocketAddrNetlink::new(0, 0))?;
+        let address = net::getsockname(&fd)?;
+        if address.addr_len() != 12 {
             return Err(malformed());
         }
+        let address = SocketAddrNetlink::try_from(address).map_err(|_| malformed())?;
         Ok(Self {
             fd,
-            port: address.pid,
+            port: address.pid(),
             sequence: 0,
             state: State::Idle,
             bytes: vec![0; 512],
@@ -158,88 +135,63 @@ impl Ipv4Snapshot {
             request[6..8].copy_from_slice(&0x305u16.to_ne_bytes()); // REQUEST|ACK|DUMP
             request[8..12].copy_from_slice(&self.sequence.to_ne_bytes());
             request[16] = 2; // AF_INET
-            let destination = Address {
-                family: 16,
-                ..Address::default()
+            let sent = match net::sendto(
+                &self.fd,
+                &request,
+                SendFlags::empty(),
+                &SocketAddrNetlink::new(0, 0),
+            ) {
+                Ok(sent) => sent,
+                Err(error) => {
+                    let error = io::Error::from(error);
+                    return match error.kind() {
+                        io::ErrorKind::WouldBlock => {
+                            self.state = State::SendBlocked;
+                            Ok(Advance::Pending)
+                        }
+                        io::ErrorKind::Interrupted => {
+                            self.state = State::Send;
+                            Ok(Advance::Pending)
+                        }
+                        _ => Err(error),
+                    };
+                }
             };
-            // SAFETY: initialized request and sockaddr remain live for sendto.
-            let sent = unsafe {
-                sendto(
-                    self.fd.as_raw_fd(),
-                    request.as_ptr().cast(),
-                    request.len(),
-                    0,
-                    (&destination as *const Address).cast(),
-                    12,
-                )
-            };
-            if sent < 0 {
-                let error = io::Error::last_os_error();
-                return match error.kind() {
-                    io::ErrorKind::WouldBlock => {
-                        self.state = State::SendBlocked;
-                        Ok(Advance::Pending)
-                    }
-                    io::ErrorKind::Interrupted => {
-                        self.state = State::Send;
-                        Ok(Advance::Pending)
-                    }
-                    _ => Err(error),
-                };
-            }
-            if sent as usize != request.len() {
+            if sent != request.len() {
                 return Err(io::ErrorKind::WriteZero.into());
             }
             self.state = State::Read;
             return Ok(Advance::Progress);
         }
-        let mut peer = Address::default();
-        let mut peer_length = 12;
-        // SAFETY: writable buffers and sockaddr lengths are valid; PEEK|TRUNC
-        // reports the complete datagram size without consuming it.
-        let needed = unsafe {
-            recvfrom(
-                self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr().cast(),
-                self.bytes.len(),
-                0x22,
-                (&mut peer as *mut Address).cast(),
-                &mut peer_length,
-            )
+        // PEEK|TRUNC reports the complete size without consuming the datagram.
+        let (_, needed, peer) = match net::recvfrom(
+            &self.fd,
+            self.bytes.as_mut_slice(),
+            RecvFlags::PEEK | RecvFlags::TRUNC,
+        ) {
+            Ok(result) => result,
+            Err(error) => return pending_read_error(error),
         };
-        if needed < 0 {
-            return pending_read_error();
-        }
         if needed == 0 {
             return Err(malformed());
         }
-        let kernel = peer_length == 12 && peer.family == 16 && peer.pid == 0;
-        if kernel && needed as usize > self.bytes.len() {
+        let kernel = kernel_peer(peer);
+        if kernel && needed > self.bytes.len() {
             self.bytes
-                .try_reserve(needed as usize - self.bytes.len())
+                .try_reserve(needed - self.bytes.len())
                 .map_err(|_| io::Error::new(io::ErrorKind::OutOfMemory, "IPv4 dump buffer"))?;
-            self.bytes.resize(needed as usize, 0);
+            self.bytes.resize(needed, 0);
         }
-        peer_length = 12;
-        // SAFETY: the same buffers are live; MSG_TRUNC explicitly detects a
-        // clipped datagram. Consume even non-kernel input, but never trust it.
-        let got = unsafe {
-            recvfrom(
-                self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr().cast(),
-                self.bytes.len(),
-                0x20,
-                (&mut peer as *mut Address).cast(),
-                &mut peer_length,
-            )
-        };
-        if got < 0 {
-            return pending_read_error();
-        }
-        if !kernel || peer_length != 12 || peer.family != 16 || peer.pid != 0 {
+        // Consume even non-kernel input; keep the full length for clip checks.
+        let (_, got, peer) =
+            match net::recvfrom(&self.fd, self.bytes.as_mut_slice(), RecvFlags::TRUNC) {
+                Ok(result) => result,
+                Err(error) => return pending_read_error(error),
+            };
+        if !kernel || !kernel_peer(peer) {
             return Ok(Advance::Progress);
         }
-        if got != needed || got as usize > self.bytes.len() {
+        if got != needed || got > self.bytes.len() {
             return Err(malformed());
         }
         let done = decode(
@@ -262,8 +214,14 @@ impl Ipv4Snapshot {
     }
 }
 
-fn pending_read_error() -> io::Result<Advance> {
-    let error = io::Error::last_os_error();
+fn kernel_peer(peer: Option<SocketAddrAny>) -> bool {
+    peer.filter(|peer| peer.addr_len() == 12)
+        .and_then(|peer| SocketAddrNetlink::try_from(peer).ok())
+        .is_some_and(|peer| peer.pid() == 0)
+}
+
+fn pending_read_error(error: rustix::io::Errno) -> io::Result<Advance> {
+    let error = io::Error::from(error);
     match error.kind() {
         io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted => Ok(Advance::Pending),
         _ => Err(error),
@@ -276,14 +234,7 @@ fn malformed() -> io::Error {
 
 fn interface_flags(control: &UdpSocket, index: u32) -> io::Result<u16> {
     let name = crate::net::interface_name(control, index)?;
-    let mut request = [0u64; 5];
-    // SAFETY: aligned 40-byte Linux ifreq, initialized before ioctl.
-    let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
-    bytes[..16].copy_from_slice(&name);
-    if unsafe { ioctl(control.as_raw_fd(), 0x8913, bytes.as_mut_ptr()) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(u16::from_ne_bytes(bytes[16..18].try_into().unwrap()))
+    dnsmasq_platform::interfaces::interface_flags(control, &name)
 }
 
 // Aliases share link flags within this fresh, possibly multipart address dump.
@@ -700,9 +651,6 @@ mod tests {
     }
 
     fn complete(snapshot: &mut Ipv4Snapshot, control: &UdpSocket) -> Vec<Ipv4Interface> {
-        extern "C" {
-            fn poll(fds: *mut PollFd, count: usize, timeout: i32) -> i32;
-        }
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
         snapshot.begin().unwrap();
         assert!(snapshot.runnable());
@@ -716,8 +664,20 @@ mod tests {
                 let mut fds = Vec::new();
                 snapshot.append_poll_fds(&mut fds);
                 assert_eq!(fds.len(), 1);
-                // SAFETY: the initialized PollFd stays live through poll.
-                assert!(unsafe { poll(fds.as_mut_ptr(), fds.len(), 100) } >= 0);
+                let events = if fds[0].events == POLLIN {
+                    rustix::event::PollFlags::IN
+                } else {
+                    rustix::event::PollFlags::OUT
+                };
+                let mut ready = [rustix::event::PollFd::new(&snapshot.fd, events)];
+                rustix::event::poll(
+                    &mut ready,
+                    Some(&rustix::event::Timespec {
+                        tv_sec: 0,
+                        tv_nsec: 100_000_000,
+                    }),
+                )
+                .unwrap();
             }
             if let Some(rows) = snapshot.step(control).unwrap() {
                 assert!(!snapshot.busy());
@@ -743,25 +703,23 @@ mod tests {
             .success());
         let expected = super::super::ipv4_interfaces().unwrap();
         assert_eq!(expected.len(), 2);
-        extern "C" {
-            fn getrlimit(resource: i32, limit: *mut [usize; 2]) -> i32;
-            fn setrlimit(resource: i32, limit: *const [usize; 2]) -> i32;
-        }
-        struct Restore([usize; 2]);
+        use rustix::process::{getrlimit, setrlimit, Resource, Rlimit};
+        struct Restore(Rlimit);
         impl Drop for Restore {
             fn drop(&mut self) {
-                // SAFETY: Linux64 rlimit is two u64 values saved by getrlimit;
-                // this isolated test restores only its own process limit.
-                assert_eq!(unsafe { setrlimit(7, &self.0) }, 0);
+                setrlimit(Resource::Nofile, self.0).unwrap();
             }
         }
-        let mut previous = [0; 2];
-        // SAFETY: previous is writable Linux64 rlimit storage for this process.
-        assert_eq!(unsafe { getrlimit(7, &mut previous) }, 0);
+        let previous = getrlimit(Resource::Nofile);
         let restore = Restore(previous);
-        // SAFETY: live two-u64 rlimit, retaining the saved hard limit; the
-        // DNSMASQ_TEST_ISOLATED gate confines this to the dedicated test process.
-        assert_eq!(unsafe { setrlimit(7, &[64, previous[1]]) }, 0);
+        setrlimit(
+            Resource::Nofile,
+            Rlimit {
+                current: Some(64),
+                ..previous
+            },
+        )
+        .unwrap();
         let mut occupied = Vec::new();
         loop {
             match std::fs::File::open("/dev/null") {

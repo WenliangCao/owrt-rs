@@ -40,118 +40,53 @@ impl DnsInterface {
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-pub use linux::{dns_interfaces, ipv4_interfaces, primary_ipv4};
-#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub(crate) use linux::primary_ipv4_with_name;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub use linux::{dns_interfaces, ipv4_interfaces, primary_ipv4};
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 mod linux {
     use super::{DnsInterface, Ipv4Interface};
-    use std::ffi::CStr;
-    use std::ffi::{c_char, c_void};
+    use dnsmasq_platform::interfaces::{self as platform, InterfaceAddresses};
     use std::io;
-    use std::net::Ipv4Addr;
-    use std::net::UdpSocket;
-    use std::net::{IpAddr, Ipv6Addr};
-    use std::os::fd::AsRawFd;
-    const AF_INET: i32 = 2;
-    extern "C" {
-        fn getifaddrs(addresses: *mut *mut IfAddrs) -> i32;
-        fn freeifaddrs(addresses: *mut IfAddrs);
-        fn if_nametoindex(name: *const c_char) -> u32;
-        fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
-    }
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, UdpSocket};
 
-    /// Return SIOCGIFADDR's primary address, not whichever alias received the
-    /// datagram. The caller can retain one control socket for every request.
+    /// Return SIOCGIFADDR's primary address using the caller's retained socket.
     pub fn primary_ipv4(index: u32, control: &UdpSocket) -> io::Result<Ipv4Addr> {
         primary_ipv4_with_name(index, None, control)
     }
 
-    /// Reuse the ingress or effective bridge name captured for this packet,
-    /// matching C's ifr_name; callers without a name still resolve the index.
     pub(crate) fn primary_ipv4_with_name(
         index: u32,
         name: Option<&[u8]>,
         control: &UdpSocket,
     ) -> io::Result<Ipv4Addr> {
-        let mut request = [0u64; 5];
-        // SAFETY: Linux 64-bit ifreq is 40 bytes with an aligned union. Its
-        // first 16 bytes are ifr_name, including the zero-filled terminator.
-        let bytes =
-            unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
         if let Some(name) = name {
-            if name.len() >= 16 || name.contains(&0) {
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid interface name"));
-            }
-            bytes[..name.len()].copy_from_slice(name);
+            platform::interface_ipv4(control, name)
         } else {
-            bytes[..16].copy_from_slice(&crate::net::interface_name(control, index)?);
+            let name = crate::net::interface_name(control, index)?;
+            platform::interface_ipv4(control, name.split(|&b| b == 0).next().unwrap())
         }
-        // SAFETY: SIOCGIFADDR writes sockaddr_in at byte 16 of the live ifreq.
-        // The UdpSocket owns the descriptor for the entire call.
-        if unsafe { ioctl(control.as_raw_fd(), 0x8915, bytes.as_mut_ptr()) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: ioctl initialized a socket address in the ifreq union.
-        unsafe { interface_ipv4(bytes.as_ptr().add(16)) }
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "non-IPv4 interface address"))
-    }
-    // Linux 64-bit libc ABI, also checked against native and target SDK headers by
-    // tools/dnsmasq/net_abi.c. Each address pointer belongs to the getifaddrs list.
-    #[repr(C)]
-    struct IfAddrs {
-        next: *mut IfAddrs,
-        name: *mut c_char,
-        flags: u32,
-        address: *const u8,
-        netmask: *const u8,
-        broadcast: *const u8,
-        data: *mut c_void,
     }
 
-    /// Snapshot active IPv4 interface addresses. No socket or network state is
-    /// changed. Aliases remain distinct, as required by DHCP context selection.
+    /// Aliases remain distinct, as required by DHCP context selection.
     pub fn ipv4_interfaces() -> io::Result<Vec<Ipv4Interface>> {
-        struct Addresses(*mut IfAddrs);
-        impl Drop for Addresses {
-            fn drop(&mut self) {
-                // SAFETY: this is precisely the list returned by getifaddrs; no
-                // pointer into it escapes the function and it is freed once.
-                unsafe { freeifaddrs(self.0) };
-            }
-        }
-        let mut head = std::ptr::null_mut();
-        // SAFETY: head is writable pointer storage; libc initializes it on success.
-        if unsafe { getifaddrs(&mut head) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        let _addresses = Addresses(head);
+        let addresses = InterfaceAddresses::new()?;
         let broadcasts = super::ipv4_broadcast::snapshot()?;
-        let mut current = head;
         let mut result = Vec::new();
-        while !current.is_null() {
-            // SAFETY: all nodes and their socket addresses are owned by the live
-            // getifaddrs list. A family of AF_INET guarantees sockaddr_in's length.
-            let entry = unsafe { &*current };
-            current = entry.next;
-            if entry.flags & 1 == 0 || entry.name.is_null() {
-                continue;
+        addresses.visit(|entry| {
+            if entry.flags & 1 == 0 {
+                return;
             }
-            // SAFETY: both pointers are null or sockaddrs in the still-owned list.
-            let address = unsafe { interface_ipv4(entry.address) };
-            let netmask = unsafe { interface_ipv4(entry.netmask) };
-            let (Some(address), Some(netmask)) = (address, netmask) else {
-                continue;
+            let (IpAddr::V4(address), IpAddr::V4(netmask)) = (entry.address, entry.netmask) else {
+                return;
             };
-            // SAFETY: ifa_name is NUL terminated and lives until freeifaddrs.
-            let index = unsafe { if_nametoindex(entry.name) };
+            let index = entry.index();
             if index == 0 {
-                continue;
+                return;
             }
             let broadcast = if entry.flags & 2 != 0 {
-                // getifaddrs may return IFA_ADDRESS in ifa_ifu when no
-                // IFA_BROADCAST exists. Match C's netlink attribute instead.
+                // Only an explicit IFA_BROADCAST is a broadcast address.
                 broadcasts
                     .iter()
                     .find_map(|&(id, local, broadcast)| {
@@ -168,58 +103,31 @@ mod linux {
                 broadcast,
                 loopback: entry.flags & 8 != 0,
             });
-        }
+        });
         Ok(result)
     }
 
     pub fn dns_interfaces() -> io::Result<Vec<DnsInterface>> {
-        let mut head = std::ptr::null_mut();
-        // SAFETY: initialized output pointer; free exactly once after copying.
-        if unsafe { getifaddrs(&mut head) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        struct Addresses(*mut IfAddrs);
-        impl Drop for Addresses {
-            fn drop(&mut self) {
-                // SAFETY: precisely the owned list returned by getifaddrs.
-                unsafe { freeifaddrs(self.0) };
-            }
-        }
-        let _addresses = Addresses(head);
+        let addresses = InterfaceAddresses::new()?;
         let tentative = tentative_addresses()?;
-        let mut current = head;
         let mut result = Vec::new();
-        while !current.is_null() {
-            // SAFETY: this node belongs to the live getifaddrs list.
-            let entry = unsafe { &*current };
-            current = entry.next;
-            // C enumerates addresses on down links as well as up links.
-            if entry.name.is_null() {
-                continue;
+        addresses.visit(|entry| {
+            // DNS enumeration includes down links, as in the original caller.
+            let index = entry.index();
+            if index != 0 {
+                result.push(DnsInterface {
+                    index,
+                    name: entry.name.to_bytes().to_vec(),
+                    address: entry.address,
+                    netmask: entry.netmask,
+                    loopback: entry.flags & 8 != 0,
+                    tentative: match entry.address {
+                        IpAddr::V6(ip) => tentative.contains(&(ip, index)),
+                        IpAddr::V4(_) => false,
+                    },
+                });
             }
-            // SAFETY: null or live list-owned sockaddrs; the helper checks family.
-            let address = unsafe { interface_ip(entry.address) };
-            let netmask = unsafe { interface_ip(entry.netmask) };
-            if let (Some(address), Some(netmask)) = (address, netmask) {
-                // SAFETY: ifa_name is NUL-terminated storage owned by the list.
-                let index = unsafe { if_nametoindex(entry.name) };
-                if index != 0 {
-                    result.push(DnsInterface {
-                        index,
-                        // SAFETY: name was checked non-null and is NUL-terminated
-                        // list-owned storage; copy it before freeifaddrs.
-                        name: unsafe { CStr::from_ptr(entry.name) }.to_bytes().to_vec(),
-                        address,
-                        netmask,
-                        loopback: entry.flags & 8 != 0,
-                        tentative: match address {
-                            IpAddr::V6(ip) => tentative.contains(&(ip, index)),
-                            IpAddr::V4(_) => false,
-                        },
-                    });
-                }
-            }
-        }
+        });
         Ok(result)
     }
 
@@ -242,39 +150,6 @@ mod linux {
         fields.next()?; // scope
         let flags = u32::from_str_radix(fields.next()?, 16).ok()?;
         (flags & 0x40 != 0).then_some((Ipv6Addr::from(address), interface))
-    }
-
-    unsafe fn interface_ip(pointer: *const u8) -> Option<IpAddr> {
-        if pointer.is_null() {
-            return None;
-        }
-        // SAFETY: family is present in every sockaddr, and selects its layout.
-        unsafe {
-            match std::ptr::read_unaligned(pointer.cast::<u16>()) {
-                2 => interface_ipv4(pointer).map(IpAddr::V4),
-                10 => Some(IpAddr::V6(Ipv6Addr::from(std::ptr::read_unaligned(
-                    pointer.add(8).cast::<[u8; 16]>(),
-                )))),
-                _ => None,
-            }
-        }
-    }
-
-    /// `pointer` is null or points into the caller's live getifaddrs list.
-    unsafe fn interface_ipv4(pointer: *const u8) -> Option<Ipv4Addr> {
-        if pointer.is_null() {
-            return None;
-        }
-        // SAFETY: a non-null list address always contains sa_family_t; AF_INET
-        // selects a sockaddr_in with its four network-order address bytes at 4.
-        unsafe {
-            if std::ptr::read_unaligned(pointer.cast::<u16>()) != AF_INET as u16 {
-                return None;
-            }
-            Some(Ipv4Addr::from(std::ptr::read_unaligned(
-                pointer.add(4).cast::<[u8; 4]>(),
-            )))
-        }
     }
 
     #[cfg(test)]
@@ -311,7 +186,10 @@ mod linux {
                 interface.address
             );
             assert!(primary_ipv4(u32::MAX, &control).is_err());
-            assert_eq!(primary_ipv4_with_name(u32::MAX, Some(b"lo"), &control).unwrap(), interface.address);
+            assert_eq!(
+                primary_ipv4_with_name(u32::MAX, Some(b"lo"), &control).unwrap(),
+                interface.address
+            );
             assert!(primary_ipv4_with_name(interface.index, Some(b"absent"), &control).is_err());
         }
     }

@@ -2,21 +2,17 @@
 //! attempts, inode lifetime, readdir order and append-only close-write events.
 
 use crate::config::dhcp::{DynamicFileDirectory, DynamicFileKind};
+use rustix::fs::inotify::{self, CreateFlags, WatchFlags};
 use std::ffi::{CString, OsString};
 use std::fs::{self, File, ReadDir};
 use std::io::{self, Read};
-use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::fd::AsRawFd;
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::PathBuf;
 
 const CLOSE_WRITE: u32 = 0x8;
 const MOVED_TO: u32 = 0x80;
 const DELETE: u32 = 0x200;
-
-extern "C" {
-    fn inotify_init1(flags: i32) -> i32;
-    fn inotify_add_watch(fd: i32, name: *const std::ffi::c_char, mask: u32) -> i32;
-}
 
 pub(super) fn accepted_name(name: &[u8]) -> bool {
     !name.is_empty()
@@ -68,14 +64,9 @@ pub(super) struct DirectoryWatch {
 
 impl DirectoryWatch {
     pub fn new(directories: &[DynamicFileDirectory]) -> io::Result<Self> {
-        // SAFETY: the returned descriptor is transferred exactly once to File.
-        let raw = unsafe { inotify_init1(0o4000 | 0o2000000) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        let fd = inotify::init(CreateFlags::NONBLOCK | CreateFlags::CLOEXEC)?;
         Ok(Self {
-            // SAFETY: successful inotify_init1 returns a fresh owned fd.
-            fd: unsafe { File::from_raw_fd(raw) },
+            fd: File::from(fd),
             directories: directories
                 .iter()
                 .map(|directory| Directory {
@@ -126,19 +117,18 @@ impl DirectoryWatch {
             let path = CString::new(directory.path.as_os_str().as_bytes()).map_err(|_| {
                 ScanError::Watch(directory.path.clone(), io::Error::from_raw_os_error(22))
             })?;
-            // SAFETY: initialized inotify fd and live NUL-terminated path.
-            directory.descriptor = unsafe {
-                inotify_add_watch(
-                    self.fd.as_raw_fd(),
-                    path.as_ptr(),
-                    CLOSE_WRITE | MOVED_TO | DELETE,
-                )
+            directory.descriptor = match inotify::add_watch(
+                &self.fd,
+                path.as_c_str(),
+                WatchFlags::CLOSE_WRITE | WatchFlags::MOVED_TO | WatchFlags::DELETE,
+            ) {
+                Ok(descriptor) => descriptor,
+                Err(error) => {
+                    let error = io::Error::from(error);
+                    directory.watch_error = error.raw_os_error();
+                    return Err(ScanError::Watch(directory.path.clone(), error));
+                }
             };
-            if directory.descriptor < 0 {
-                let error = io::Error::last_os_error();
-                directory.watch_error = error.raw_os_error();
-                return Err(ScanError::Watch(directory.path.clone(), error));
-            }
         }
         if directory.descriptor < 0 {
             return Err(ScanError::Watch(

@@ -1,26 +1,14 @@
 //! Linux address attributes distinguish an absent broadcast from IFA_ADDRESS.
 //! getifaddrs uses one union for broadcast/destination and loses that distinction.
 
-use dnsmasq_platform::{bind, sendto, setsockopt};
+use rustix::net::{
+    self, netlink::SocketAddrNetlink, AddressFamily, RecvFlags, SendFlags, SocketFlags, SocketType,
+};
 use std::io;
 use std::net::Ipv4Addr;
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::time::Duration;
 
-const AF_NETLINK: i32 = 16;
 const SEQUENCE: u32 = 1;
-
-#[repr(C)]
-struct Address {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-
-extern "C" {
-    fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn recv(fd: i32, bytes: *mut u8, length: usize, flags: i32) -> isize;
-}
 
 fn malformed() -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, "invalid IPv4 address dump")
@@ -86,71 +74,36 @@ fn attributes(bytes: &[u8]) -> io::Result<Option<(u32, Ipv4Addr, Ipv4Addr)>> {
 
 /// Read only the kernel's IPv4 local/broadcast pairs, retaining secondary rows.
 pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
-    // SAFETY: socket has no pointer arguments; the returned descriptor is owned
-    // exactly once and all request/response storage below outlives each syscall.
-    let raw = unsafe { socket(AF_NETLINK, 3 | 0x80000, 0) };
-    if raw < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: successful socket creation returned a unique live descriptor.
-    let socket = unsafe { OwnedFd::from_raw_fd(raw) };
-    let endpoint = Address {
-        family: AF_NETLINK as u16,
-        pad: 0,
-        pid: 0,
-        groups: 0,
-    };
-    // SAFETY: Address is the initialized repr(C) 12-byte Linux sockaddr_nl;
-    // its storage and the socket remain live for this synchronous call.
-    if unsafe { bind(socket.as_raw_fd(), (&endpoint as *const Address).cast(), 12) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // Linux 64-bit timeval. A lost/interrupted dump must fail this packet's
-    // interface lookup rather than leave the single-threaded daemon blocked.
-    let timeout = [2i64, 0];
-    // SAFETY: SO_RCVTIMEO reads the live, aligned 16-byte Linux 64-bit timeval.
-    if unsafe { setsockopt(socket.as_raw_fd(), 1, 20, timeout.as_ptr().cast(), 16) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
+    let socket = net::socket_with(
+        AddressFamily::NETLINK,
+        SocketType::RAW,
+        SocketFlags::CLOEXEC,
+        None,
+    )?;
+    let endpoint = SocketAddrNetlink::new(0, 0);
+    net::bind(&socket, &endpoint)?;
+    // Preserve the existing bounded blocking read, not a new owner state.
+    net::sockopt::set_socket_timeout(
+        &socket,
+        net::sockopt::Timeout::Recv,
+        Some(Duration::from_secs(2)),
+    )?;
     let mut request = [0u8; 24];
     request[..4].copy_from_slice(&24u32.to_ne_bytes());
     request[4..6].copy_from_slice(&22u16.to_ne_bytes()); // RTM_GETADDR
     request[6..8].copy_from_slice(&0x301u16.to_ne_bytes()); // REQUEST | DUMP
     request[8..12].copy_from_slice(&SEQUENCE.to_ne_bytes());
     request[16] = 2; // AF_INET
-                     // SAFETY: the initialized request and destination outlive sendto and the
-                     // passed lengths match their complete storage.
-    if unsafe {
-        sendto(
-            socket.as_raw_fd(),
-            request.as_ptr().cast(),
-            request.len(),
-            0,
-            (&endpoint as *const Address).cast(),
-            12,
-        )
-    } < 0
-    {
-        return Err(io::Error::last_os_error());
-    }
+    net::sendto(&socket, &request, SendFlags::empty(), &endpoint)?;
     let mut rows = Vec::new();
     loop {
-        let mut first = 0u8;
-        // SAFETY: recv writes at most one byte to first; MSG_TRUNC may return
-        // a larger datagram size but does not increase the writable length.
-        let length = unsafe { recv(socket.as_raw_fd(), &mut first, 1, 0x22) }; // PEEK | TRUNC
-        if length < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        let mut first = [0u8; 1];
+        let (_, length) = net::recv(&socket, &mut first, RecvFlags::PEEK | RecvFlags::TRUNC)?;
         if length == 0 {
             return Err(malformed());
         }
-        let mut bytes = vec![0; length as usize];
-        // SAFETY: recv is given the full initialized writable buffer length.
-        let received = unsafe { recv(socket.as_raw_fd(), bytes.as_mut_ptr(), bytes.len(), 0) };
-        if received < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        let mut bytes = vec![0; length];
+        let (_, received) = net::recv(&socket, bytes.as_mut_slice(), RecvFlags::empty())?;
         if received != length {
             return Err(malformed());
         }

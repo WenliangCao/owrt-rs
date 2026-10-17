@@ -65,15 +65,7 @@ fn address(value: &[u8], error: &'static str) -> Result<Ipv4Addr, Error> {
 /// Startup/packet interface resolution uses the host namespace, never mutating it.
 #[cfg(unix)]
 pub fn interface_index(name: &[u8]) -> u32 {
-    use std::ffi::{c_char, CString};
-    extern "C" {
-        fn if_nametoindex(name: *const c_char) -> u32;
-    }
-    let Ok(name) = CString::new(name) else {
-        return 0;
-    };
-    // SAFETY: NUL-terminated string lives through libc's read-only lookup.
-    unsafe { if_nametoindex(name.as_ptr()) }
+    dnsmasq_platform::interfaces::interface_index(name)
 }
 
 #[cfg(not(unix))]

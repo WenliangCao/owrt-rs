@@ -9,16 +9,11 @@ use crate::config::{dns::DnsConfig, Error};
 use crate::dns::filewatch::{FileWatch, WatchError};
 use owrt_ubus::sys::PollFd;
 use std::collections::VecDeque;
-use std::ffi::CString;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read};
 use std::os::fd::AsRawFd;
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
 use std::path::PathBuf;
-
-extern "C" {
-    fn if_nametoindex(name: *const std::ffi::c_char) -> u32;
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ReloadReason {
@@ -138,12 +133,7 @@ impl ReadJob {
         self.line_number += 1;
         if self.request.source == Source::Resolv {
             if let Some(address) = resolver_line(&self.line, |name| {
-                let Ok(name) = CString::new(name) else {
-                    return 0;
-                };
-                // SAFETY: interface lookup takes this live C string, performs
-                // no network name resolution, and returns zero for unknown names.
-                unsafe { if_nametoindex(name.as_ptr()) }
+                dnsmasq_platform::interfaces::interface_index(name)
             }) {
                 self.rows
                     .push(SourceRule::resolver(address, self.line_number));
@@ -699,7 +689,6 @@ impl DnsFiles {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::os::unix::ffi::OsStrExt;
     use std::os::unix::fs::symlink;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1087,12 +1076,9 @@ mod tests {
         assert_eq!(updates[0].rows.len(), 1);
         drop(files);
         fs::remove_file(path).unwrap();
-        extern "C" {
-            fn mkfifo(path: *const std::ffi::c_char, mode: u32) -> i32;
-        }
-        let cpath = CString::new(path.as_os_str().as_bytes()).unwrap();
-        // SAFETY: live NUL-terminated temporary test path.
-        assert_eq!(unsafe { mkfifo(cpath.as_ptr(), 0o600) }, 0);
+        rustix::fs::mkfifoat(
+            rustix::fs::CWD, path, rustix::fs::Mode::RUSR | rustix::fs::Mode::WUSR,
+        ).unwrap();
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
         let barrier = files.step();

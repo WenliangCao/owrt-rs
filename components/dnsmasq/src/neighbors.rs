@@ -2,11 +2,13 @@
 //! Keys include the interface index, including for scoped IPv6 addresses.
 //! A dump is published only after NLMSG_DONE; partial/error dumps never replace
 //! the last complete snapshot. No request waits on the socket.
-use dnsmasq_platform::{bind, recvfrom, sendto};
+use rustix::net::{
+    self, netlink::SocketAddrNetlink, AddressFamily, RecvFlags, SendFlags, SocketFlags, SocketType,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, OwnedFd};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MacLookup {
@@ -43,16 +45,6 @@ enum RecordStatus {
 type Key = (IpAddr, u32);
 const MAX_WAITERS: usize = 256;
 const MAX_NEGATIVE: usize = 256;
-#[repr(C)]
-struct Address {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-extern "C" {
-    fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-}
 struct Dump {
     sequence: u32,
     deadline: u64,
@@ -81,23 +73,13 @@ pub struct NeighborCache {
 }
 impl NeighborCache {
     pub fn new() -> io::Result<Self> {
-        // SAFETY: socket returns a new descriptor with no borrowed arguments.
-        let fd = unsafe { socket(16, 3 | 0x80000 | 0x800, 0) };
-        if fd < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: the descriptor is fresh and transferred to exactly one owner.
-        let socket = unsafe { OwnedFd::from_raw_fd(fd) };
-        let address = Address {
-            family: 16,
-            pad: 0,
-            pid: 0,
-            groups: 0,
-        };
-        // SAFETY: initialized Linux sockaddr_nl occupies exactly 12 bytes.
-        if unsafe { bind(fd, (&address as *const Address).cast(), 12) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        let socket = net::socket_with(
+            AddressFamily::NETLINK,
+            SocketType::RAW,
+            SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+            None,
+        )?;
+        net::bind(&socket, &SocketAddrNetlink::new(0, 0))?;
         Ok(Self {
             socket,
             sequence: 0,
@@ -208,29 +190,17 @@ impl NeighborCache {
         request[4..6].copy_from_slice(&30u16.to_ne_bytes()); // RTM_GETNEIGH
         request[6..8].copy_from_slice(&0x301u16.to_ne_bytes()); // REQUEST|DUMP
         request[8..12].copy_from_slice(&self.sequence.to_ne_bytes());
-        let address = Address {
-            family: 16,
-            pad: 0,
-            pid: 0,
-            groups: 0,
-        };
-        // SAFETY: live initialized request and kernel destination; no retained pointer.
-        let sent = unsafe {
-            sendto(
-                self.socket.as_raw_fd(),
-                request.as_ptr().cast(),
-                request.len(),
-                0,
-                (&address as *const Address).cast(),
-                12,
-            )
-        };
-        if sent != request.len() as isize {
-            return Err(if sent < 0 {
-                io::Error::last_os_error()
-            } else {
-                io::Error::new(io::ErrorKind::WriteZero, "short neighbor request")
-            });
+        let sent = net::sendto(
+            &self.socket,
+            &request,
+            SendFlags::empty(),
+            &SocketAddrNetlink::new(0, 0),
+        )?;
+        if sent != request.len() {
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "short neighbor request",
+            ));
         }
         self.dump = Some(Dump {
             sequence: self.sequence,
@@ -450,36 +420,26 @@ impl NeighborCache {
             if self.dump.is_none() {
                 break;
             }
-            let mut sender = Address {
-                family: 0,
-                pad: 0,
-                pid: u32::MAX,
-                groups: 0,
-            };
-            let mut sender_len = 12;
-            // SAFETY: initialized writable buffers exactly match supplied lengths.
-            let count = unsafe {
-                recvfrom(
-                    self.socket.as_raw_fd(),
-                    bytes.as_mut_ptr().cast(),
-                    bytes.len(),
-                    32,
-                    (&mut sender as *mut Address).cast(),
-                    &mut sender_len,
-                )
-            };
-            if count < 0 {
-                let error = io::Error::last_os_error();
-                if matches!(
-                    error.kind(),
-                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-                ) {
-                    break;
+            let (_, count, sender) = match net::recvfrom(&self.socket, &mut bytes, RecvFlags::TRUNC)
+            {
+                Ok(result) => result,
+                Err(error) => {
+                    let error = io::Error::from(error);
+                    if matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                    ) {
+                        break;
+                    }
+                    self.fail_waiters(now);
+                    return Err(error);
                 }
-                self.fail_waiters(now);
-                return Err(error);
-            }
-            if sender_len != 12 || sender.pid != 0 {
+            };
+            let kernel = sender
+                .filter(|sender| sender.addr_len() == 12)
+                .and_then(|sender| SocketAddrNetlink::try_from(sender).ok())
+                .is_some_and(|sender| sender.pid() == 0);
+            if !kernel {
                 continue;
             }
             if count as usize > bytes.len() {
@@ -702,8 +662,12 @@ mod tests {
         let address = "192.0.2.17".parse().unwrap();
         cache.waiting.insert((address, 0));
         cache.edns_waiting.insert(address, EdnsWaiter::Pending);
-        cache.dump = Some(Dump { sequence: 1, deadline: 102,
-            entries: BTreeMap::new(), edns: Vec::new() });
+        cache.dump = Some(Dump {
+            sequence: 1,
+            deadline: 102,
+            entries: BTreeMap::new(),
+            edns: Vec::new(),
+        });
         assert_eq!(cache.active_dump_deadline(), Some(102));
         // The expiration check precedes recvfrom; no fd event or new query
         // is needed to abandon a dump missing NLMSG_DONE.
@@ -711,7 +675,10 @@ mod tests {
         assert_eq!(cache.active_dump_deadline(), None);
         assert!(cache.waiting.is_empty());
         assert!(cache.edns_waiting.is_empty());
-        assert_eq!(cache.query_edns(address, true, 102), EdnsMacLookup::Ready(None));
+        assert_eq!(
+            cache.query_edns(address, true, 102),
+            EdnsMacLookup::Ready(None)
+        );
     }
 
     #[test]
@@ -719,7 +686,9 @@ mod tests {
         let mut cache = cache_without_network();
         cache.enable_script_arp(true);
         cache.refreshed = Some(1);
-        cache.negative.insert(("192.0.2.17".parse().unwrap(), 0), 100);
+        cache
+            .negative
+            .insert(("192.0.2.17".parse().unwrap(), 0), 100);
         assert_eq!(cache.active_dump_deadline(), None);
         cache.refresh_script_arp(200, false).unwrap();
         assert_eq!(cache.active_dump_deadline(), None);

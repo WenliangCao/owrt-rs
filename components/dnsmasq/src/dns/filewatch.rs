@@ -1,36 +1,22 @@
 //! Linux inotify boundary from the exact image's inotify.c. Resolver watches
 //! attach to startup-resolved parent directories, never to an open leaf fd.
 
-use dnsmasq_platform::{bind, getsockname, recvfrom};
+use rustix::fs::inotify::{self, CreateFlags, WatchFlags};
+use rustix::net::{
+    self, netlink::SocketAddrNetlink, AddressFamily, RecvFlags, SocketFlags, SocketType,
+};
 use std::ffi::{CString, OsString};
 use std::fs::{self, File};
 use std::io::{self, Read};
-use std::os::fd::{AsRawFd, FromRawFd, RawFd};
+use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 
-const IN_NONBLOCK: i32 = 0o4000;
-const IN_CLOEXEC: i32 = 0o2000000;
 const IN_CLOSE_WRITE: u32 = 0x8;
 const IN_MOVED_TO: u32 = 0x80;
 const IN_DELETE: u32 = 0x200;
 // Pinned AArch64 musl sys/param.h; C allows 20 traversals, rejects the 21st.
 const MAX_SYMLINKS: usize = 20;
-
-extern "C" {
-    fn inotify_init1(flags: i32) -> i32;
-    fn inotify_add_watch(fd: i32, path: *const std::ffi::c_char, mask: u32) -> i32;
-    fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-}
-
-#[repr(C)]
-#[derive(Default)]
-struct NetlinkAddress {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
 
 /// C netlink.c:68–71 subscribes to route and address changes even at port=0.
 /// The two event kinds stay separate: address changes never force poll_resolv.
@@ -56,28 +42,16 @@ pub struct RouteWatch {
 
 impl RouteWatch {
     pub fn new() -> io::Result<Self> {
-        // SAFETY: no pointers; new nonblocking/CLOEXEC NETLINK_ROUTE descriptor.
-        let raw = unsafe { socket(16, 3 | IN_NONBLOCK | IN_CLOEXEC, 0) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: transfer fresh fd to exactly one owner.
-        let fd = unsafe { File::from_raw_fd(raw) };
+        let fd = File::from(net::socket_with(
+            AddressFamily::NETLINK,
+            SocketType::RAW,
+            SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+            None,
+        )?);
         bind_groups(|groups| {
-            let address = NetlinkAddress { family: 16, groups, ..NetlinkAddress::default() };
-            // SAFETY: initialized sockaddr_nl and owned descriptor, exactly 12 bytes.
-            if unsafe { bind(raw, (&address as *const NetlinkAddress).cast(), 12) } < 0 {
-                Err(io::Error::last_os_error())
-            } else {
-                Ok(())
-            }
+            net::bind(&fd, &SocketAddrNetlink::new(0, groups)).map_err(Into::into)
         })?;
-        let mut address = NetlinkAddress::default();
-        let mut length = 12;
-        // SAFETY: both output pointers are live initialized buffers of the required size.
-        if unsafe { getsockname(raw, (&mut address as *mut NetlinkAddress).cast(), &mut length) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        net::getsockname(&fd)?;
         Ok(Self {
             fd,
             bytes: vec![0; 512],
@@ -99,64 +73,42 @@ impl RouteWatch {
     /// Read at most one datagram per owner turn. Peek its actual size first,
     /// following netlink_recv, and reject clipped/user-origin messages.
     pub fn read_events(&mut self) -> io::Result<NetworkEvents> {
-        let mut address = NetlinkAddress::default();
-        let mut address_length = 12;
-        // SAFETY: writable live buffers, sockaddr length initialized for recvfrom.
-        let needed = unsafe {
-            recvfrom(
-                self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr().cast(),
-                self.bytes.len(),
-                0x2 | 0x20,
-                (&mut address as *mut NetlinkAddress).cast(),
-                &mut address_length,
-            )
+        let needed = match net::recvfrom(
+            &self.fd,
+            self.bytes.as_mut_slice(),
+            RecvFlags::PEEK | RecvFlags::TRUNC,
+        ) {
+            Ok((_, needed, _)) => needed,
+            Err(error) => return read_error(error),
         };
-        if needed < 0 {
-            let error = io::Error::last_os_error();
-            return if matches!(
-                error.kind(),
-                io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-            ) {
-                Ok(NetworkEvents::default())
-            } else {
-                Err(error)
+        if needed > self.bytes.len() {
+            self.bytes.resize(needed, 0);
+        }
+        let (_, length, address) =
+            match net::recvfrom(&self.fd, self.bytes.as_mut_slice(), RecvFlags::TRUNC) {
+                Ok(result) => result,
+                Err(error) => return read_error(error),
             };
-        }
-        if needed as usize > self.bytes.len() {
-            self.bytes.resize(needed as usize, 0);
-        }
-        address_length = 12;
-        // SAFETY: same live buffers; MSG_TRUNC permits explicit size validation.
-        let length = unsafe {
-            recvfrom(
-                self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr().cast(),
-                self.bytes.len(),
-                0x20,
-                (&mut address as *mut NetlinkAddress).cast(),
-                &mut address_length,
-            )
-        };
-        if length < 0 {
-            let error = io::Error::last_os_error();
-            return if matches!(
-                error.kind(),
-                io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
-            ) {
-                Ok(NetworkEvents::default())
-            } else {
-                Err(error)
-            };
-        }
-        if length as usize > self.bytes.len()
-            || address_length < 12
-            || address.family != 16
-            || address.pid != 0
-        {
+        let kernel = address
+            .filter(|address| address.addr_len() >= 12)
+            .and_then(|address| SocketAddrNetlink::try_from(address).ok())
+            .is_some_and(|address| address.pid() == 0);
+        if length > self.bytes.len() || !kernel {
             return Ok(NetworkEvents::default());
         }
         Ok(network_events(&self.bytes[..length as usize]))
+    }
+}
+
+fn read_error(error: rustix::io::Errno) -> io::Result<NetworkEvents> {
+    let error = io::Error::from(error);
+    if matches!(
+        error.kind(),
+        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+    ) {
+        Ok(NetworkEvents::default())
+    } else {
+        Err(error)
     }
 }
 
@@ -197,7 +149,9 @@ fn network_events(mut bytes: &[u8]) -> NetworkEvents {
 }
 
 #[cfg(test)]
-fn qualifying_route(bytes: &[u8]) -> bool { network_events(bytes).route }
+fn qualifying_route(bytes: &[u8]) -> bool {
+    network_events(bytes).route
+}
 
 #[derive(Debug)]
 pub enum WatchError {
@@ -266,14 +220,10 @@ impl FileWatch {
     /// Empty paths still create the descriptor when the caller enables the
     /// resolver subsystem. no-poll deliberately does not suppress watches.
     pub fn new(paths: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<Self, WatchError> {
-        // SAFETY: inotify_init1 has no pointer inputs; successful fd is owned.
-        let fd = unsafe { inotify_init1(IN_NONBLOCK | IN_CLOEXEC) };
-        if fd < 0 {
-            return Err(WatchError::Init(io::Error::last_os_error()));
-        }
+        let fd = inotify::init(CreateFlags::NONBLOCK | CreateFlags::CLOEXEC)
+            .map_err(|error| WatchError::Init(error.into()))?;
         let mut watch = Self {
-            // SAFETY: fresh descriptor, transferred exactly once to File.
-            fd: unsafe { File::from_raw_fd(fd) },
+            fd: File::from(fd),
             files: Vec::new(),
             directories: Vec::new(),
             hosts_events: Vec::new(),
@@ -292,20 +242,22 @@ impl FileWatch {
                 path: original.to_owned(),
                 error: io::Error::from_raw_os_error(22),
             })?;
-            // SAFETY: live NUL-terminated path and owned inotify descriptor.
-            let descriptor =
-                unsafe { inotify_add_watch(fd, parent.as_ptr(), IN_CLOSE_WRITE | IN_MOVED_TO) };
-            if descriptor < 0 {
-                let error = io::Error::last_os_error();
-                return Err(if error.raw_os_error() == Some(2) {
+            let descriptor = inotify::add_watch(
+                &watch.fd,
+                parent.as_c_str(),
+                WatchFlags::CLOSE_WRITE | WatchFlags::MOVED_TO,
+            )
+            .map_err(|error| {
+                let error = io::Error::from(error);
+                if error.raw_os_error() == Some(2) {
                     WatchError::MissingParent(original.to_owned())
                 } else {
                     WatchError::Add {
                         path: original.to_owned(),
                         error,
                     }
-                });
-            }
+                }
+            })?;
             watch.files.push(WatchedFile {
                 descriptor,
                 name: bytes[slash + 1..].to_vec(),
@@ -321,17 +273,11 @@ impl FileWatch {
     pub fn add_hosts_directory(&mut self, directory: usize, path: &Path) -> io::Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())
             .map_err(|_| io::Error::from_raw_os_error(22))?;
-        // SAFETY: live C string and shared owned nonblocking inotify descriptor.
-        let descriptor = unsafe {
-            inotify_add_watch(
-                self.raw_fd(),
-                path.as_ptr(),
-                IN_CLOSE_WRITE | IN_MOVED_TO | IN_DELETE,
-            )
-        };
-        if descriptor < 0 {
-            return Err(io::Error::last_os_error());
-        }
+        let descriptor = inotify::add_watch(
+            &self.fd,
+            path.as_c_str(),
+            WatchFlags::CLOSE_WRITE | WatchFlags::MOVED_TO | WatchFlags::DELETE,
+        )?;
         self.directories.push((descriptor, directory));
         Ok(())
     }
@@ -450,10 +396,18 @@ mod tests {
             assert!(events.address);
             assert!(!events.route);
         }
-        for kind in [16, 25] { assert_eq!(network_events(&event(kind, &[0; 12])), NetworkEvents::default()); }
+        for kind in [16, 25] {
+            assert_eq!(
+                network_events(&event(kind, &[0; 12])),
+                NetworkEvents::default()
+            );
+        }
         let mut route = event(24, &[0; 12]);
-        route[20] = 254; route[22] = 253; route[23] = 1;
-        let mut mixed = event(20, &[0; 8]); mixed.extend(route);
+        route[20] = 254;
+        route[22] = 253;
+        route[23] = 1;
+        let mut mixed = event(20, &[0; 8]);
+        mixed.extend(route);
         let events = network_events(&mixed);
         assert!(events.address && events.route);
         assert!(events.errors.is_empty());
@@ -464,19 +418,45 @@ mod tests {
         let events = network_events(&event(2, &(-13i32).to_ne_bytes()));
         assert_eq!(events.errors, [13]);
         assert!(!events.address && !events.route);
-        assert_eq!(network_events(&event(2, &0i32.to_ne_bytes())), NetworkEvents::default());
-        assert_eq!(network_events(&event(20, &[0; 8])[..23]), NetworkEvents::default());
+        assert_eq!(
+            network_events(&event(2, &0i32.to_ne_bytes())),
+            NetworkEvents::default()
+        );
+        assert_eq!(
+            network_events(&event(20, &[0; 8])[..23]),
+            NetworkEvents::default()
+        );
     }
 
     #[test]
     fn multicast_only_eperm_falls_back_once_to_ungrouped_socket() {
         let mut groups = Vec::new();
-        bind_groups(|value| { groups.push(value); if value != 0 { Err(io::Error::from_raw_os_error(1)) } else { Ok(()) } }).unwrap();
+        bind_groups(|value| {
+            groups.push(value);
+            if value != 0 {
+                Err(io::Error::from_raw_os_error(1))
+            } else {
+                Ok(())
+            }
+        })
+        .unwrap();
         assert_eq!(groups, [0x550, 0]);
         let mut groups = Vec::new();
-        let error = bind_groups(|value| { groups.push(value); Err(io::Error::from_raw_os_error(22)) }).unwrap_err();
-        assert_eq!(groups, [0x550]); assert_eq!(error.raw_os_error(), Some(22));
-        let error = bind_groups(|value| Err(io::Error::from_raw_os_error(if value == 0 { 13 } else { 1 }))).unwrap_err();
+        let error = bind_groups(|value| {
+            groups.push(value);
+            Err(io::Error::from_raw_os_error(22))
+        })
+        .unwrap_err();
+        assert_eq!(groups, [0x550]);
+        assert_eq!(error.raw_os_error(), Some(22));
+        let error = bind_groups(|value| {
+            Err(io::Error::from_raw_os_error(if value == 0 {
+                13
+            } else {
+                1
+            }))
+        })
+        .unwrap_err();
         assert_eq!(error.raw_os_error(), Some(13));
     }
 

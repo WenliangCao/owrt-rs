@@ -17,18 +17,9 @@ pub fn peer_label(peer: SocketAddr) -> String {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let SocketAddr::V6(peer) = peer {
         if peer.scope_id() != 0 {
-            extern "C" {
-                fn if_indextoname(index: u32, name: *mut std::ffi::c_char)
-                    -> *mut std::ffi::c_char;
-            }
-            let mut name = [0 as std::ffi::c_char; 16];
-            // SAFETY: Linux IF_NAMESIZE is 16; the returned name is terminated
-            // and remains in this live array for the conversion below.
-            if !unsafe { if_indextoname(peer.scope_id(), name.as_mut_ptr()) }.is_null() {
-                return format!(
-                    "{text}%{}",
-                    unsafe { std::ffi::CStr::from_ptr(name.as_ptr()) }.to_string_lossy()
-                );
+            if let Ok(name) = dnsmasq_platform::interfaces::index_to_name(peer.scope_id()) {
+                let name = name.split(|&byte| byte == 0).next().unwrap();
+                return format!("{text}%{}", String::from_utf8_lossy(name));
             }
         }
     }
