@@ -199,11 +199,29 @@ impl LeaseNames {
         policy: LeasePolicy,
         cache: &mut impl PublicationCache,
     ) -> Self {
+        Self::build_reusing_names(records, hosts, cnames, policy, cache, None)
+    }
+
+    /// Reuse only immutable, byte-identical input names. Rebuild every visible
+    /// entry and repeat all publication side effects, including on expiry-only
+    /// renewals. An older TCP generation can keep sharing these name bytes.
+    pub(crate) fn build_reusing_names(
+        records: &[DnsLeaseRecord<'_>],
+        hosts: &mut Hosts,
+        cnames: &[Cname],
+        policy: LeasePolicy,
+        cache: &mut impl PublicationCache,
+        previous: Option<&Self>,
+    ) -> Self {
         let mut result = Self {
             inputs: records
                 .iter()
-                .map(|record| LeaseInput {
-                    name: Arc::from(record.name),
+                .enumerate()
+                .map(|(index, record)| LeaseInput {
+                    name: previous
+                        .and_then(|names| names.inputs.get(index))
+                        .filter(|input| input.name.as_ref() == record.name)
+                        .map_or_else(|| Arc::from(record.name), |input| Arc::clone(&input.name)),
                     address: record.address,
                     expires: record.expires,
                 })
@@ -232,7 +250,7 @@ impl LeaseNames {
                 expires: record.expires,
             })
             .collect();
-        Self::build(&records, hosts, cnames, self.policy, cache)
+        Self::build_reusing_names(&records, hosts, cnames, self.policy, cache, Some(self))
     }
 
     pub fn inputs(&self) -> &[LeaseInput] {
@@ -802,6 +820,87 @@ mod tests {
             u32::MAX
         );
         assert!(names.lookup(b"lease.example", 1002).next().is_none());
+    }
+
+    #[test]
+    fn renewed_generation_reuses_only_name_bytes_and_keeps_old_snapshot() {
+        let policy = LeasePolicy { dhcp_ttl: Some(600), ..LeasePolicy::default() };
+        let previous = Arc::new(LeaseNames::build(
+            &[input(b"lease.example", 7, Some(1000))],
+            &mut Hosts::new(), &[], policy, &mut (),
+        ));
+        let child = Arc::clone(&previous);
+        let records = [input(b"lease.example", 9, Some(2000))];
+        let renewed = LeaseNames::build_reusing_names(
+            &records, &mut Hosts::new(), &[], policy, &mut (), Some(&previous),
+        );
+        let ordinary = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
+        assert!(Arc::ptr_eq(&previous.inputs[0].name, &renewed.inputs[0].name));
+        assert_eq!(renewed.inputs(), ordinary.inputs());
+        assert_eq!(renewed.entries(), ordinary.entries());
+        assert_eq!(renewed.lookup(b"lease.example", 1100).next().unwrap().ttl(1100, policy), 600);
+        assert!(child.lookup(b"lease.example", 1100).next().is_none());
+        assert_eq!(child.lookup(b"lease.example", 999).next().unwrap().address,
+                   Ipv4Addr::new(192, 0, 2, 7));
+    }
+
+    #[test]
+    fn reordered_renamed_and_case_changed_inputs_keep_exact_new_bytes() {
+        let old = [input(b"Alpha", 7, Some(1000)), input(b"beta", 8, Some(1000))];
+        let previous = LeaseNames::build(
+            &old, &mut Hosts::new(), &[], LeasePolicy::default(), &mut (),
+        );
+        for records in [
+            vec![input(b"beta", 8, Some(2000)), input(b"Alpha", 7, Some(2000))],
+            vec![input(b"alpha", 7, Some(2000)), input(b"renamed", 8, Some(2000))],
+            vec![input(b"extra", 9, Some(2000))],
+            vec![],
+        ] {
+            let actual = LeaseNames::build_reusing_names(
+                &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut (), Some(&previous),
+            );
+            let expected = LeaseNames::build(
+                &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut (),
+            );
+            assert_eq!(actual.inputs(), expected.inputs());
+            assert_eq!(actual.entries(), expected.entries());
+            for (new, old) in actual.inputs.iter().zip(&previous.inputs) {
+                assert!(!Arc::ptr_eq(&new.name, &old.name));
+            }
+        }
+    }
+
+    #[test]
+    fn name_reuse_repeats_all_publication_callbacks() {
+        #[derive(Default, Debug, PartialEq)]
+        struct Calls { first: usize, names: Vec<Vec<u8>>, reverse: Vec<Ipv4Addr> }
+        impl PublicationCache for Calls {
+            fn first_lease_entry(&mut self) { self.first += 1; }
+            fn prepare_name(&mut self, item: ForwardPublication<'_>) {
+                self.names.push(item.name.to_vec());
+            }
+            fn reverse_owned(&mut self, address: Ipv4Addr) -> bool {
+                self.reverse.push(address);
+                false
+            }
+        }
+        let records = [input(b"alpha.example", 7, Some(1000)), input(b"beta.example", 8, Some(1000))];
+        let previous = LeaseNames::build(
+            &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut (),
+        );
+        let mut actual_calls = Calls::default();
+        let actual = LeaseNames::build_reusing_names(
+            &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut actual_calls, Some(&previous),
+        );
+        let mut expected_calls = Calls::default();
+        let expected = LeaseNames::build(
+            &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut expected_calls,
+        );
+        assert_eq!(actual.entries(), expected.entries());
+        assert_eq!(actual_calls, expected_calls);
+        assert_eq!(actual_calls.first, 1);
+        assert_eq!(actual_calls.names.len(), 2);
+        assert_eq!(actual_calls.reverse.len(), 2);
     }
 
     #[test]

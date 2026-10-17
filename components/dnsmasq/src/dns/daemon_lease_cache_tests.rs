@@ -18,7 +18,7 @@ fn publish(daemon: &mut DnsDaemon, inputs: &[LeaseInput], policy: LeasePolicy) {
         .collect();
     let mut hosts = std::mem::take(&mut daemon.local.hosts);
     let cnames = daemon.local.config.records.cnames.clone();
-    let names = daemon.publish_lease_names(&records, &mut hosts, &cnames, policy);
+    let names = daemon.publish_lease_names(&records, &mut hosts, &cnames, policy, None);
     daemon.local.hosts = hosts;
     daemon.local.leases = Arc::new(names);
 }

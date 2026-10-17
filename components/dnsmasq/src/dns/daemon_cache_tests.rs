@@ -476,6 +476,7 @@ fn cached_nxdomain_does_not_mask_new_dhcp_address() {
         &mut hosts,
         &[],
         super::super::lease_names::LeasePolicy::default(),
+        None,
     );
     daemon.local.hosts = hosts;
     daemon.local.leases = std::sync::Arc::new(names);

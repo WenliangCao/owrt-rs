@@ -790,12 +790,17 @@ impl<R: Random> DnsDaemon<R> {
         hosts: &mut Hosts,
         cnames: &[crate::config::records::Cname],
         policy: super::lease_names::LeasePolicy,
+        previous: Option<&super::lease_names::LeaseNames>,
     ) -> super::lease_names::LeaseNames {
         match self.cache.as_mut() {
             Some(cache) => {
-                super::lease_names::LeaseNames::build(records, hosts, cnames, policy, cache)
+                super::lease_names::LeaseNames::build_reusing_names(
+                    records, hosts, cnames, policy, cache, previous,
+                )
             }
-            None => super::lease_names::LeaseNames::build(records, hosts, cnames, policy, &mut ()),
+            None => super::lease_names::LeaseNames::build_reusing_names(
+                records, hosts, cnames, policy, &mut (), previous,
+            ),
         }
     }
 

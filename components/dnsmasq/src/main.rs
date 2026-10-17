@@ -661,6 +661,7 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             hosts,
             &local.config.records.cnames,
             self.policy,
+            Some(&local.leases),
         );
         report_lease_name_warnings(&names);
         if let Some((hosts, snapshot)) = pending_hosts.take() {
