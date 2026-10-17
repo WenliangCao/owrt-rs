@@ -147,9 +147,12 @@ done
 
 def client_egress(interface, address, ipv6=True):
     """Require DNS through the router and real client HTTPS on its LAN link."""
-    result = {}
+    # Raw Mac UDP DNS probes have an existing environment limitation. TCP
+    # still tests the actual LAN client's access to the router's DNS service;
+    # retain its transport explicitly rather than claiming a UDP pass.
+    result = {"client_dns_transport": "tcp"}
     for family, record in ((4, "A"), (6, "AAAA")) if ipv6 else ((4, "A"),):
-        answer = run(["dig", "-b", address, "@192.168.1.1", "example.com", record,
+        answer = run(["dig", "+tcp", "-b", address, "@192.168.1.1", "example.com", record,
                       "+time=2", "+tries=1", "+noall", "+answer"])
         found = False
         for line in answer.splitlines():

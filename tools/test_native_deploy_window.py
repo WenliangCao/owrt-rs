@@ -175,8 +175,10 @@ class NativeProductionProbe(unittest.TestCase):
                 patch.object(self.health.subprocess, "run", return_value=response) as https:
             result = self.health.client_egress("en0", "192.168.1.100")
         self.assertTrue(all(result.values()))
-        self.assertEqual(len(result), 4)
+        self.assertEqual(len(result), 5)
+        self.assertEqual(result["client_dns_transport"], "tcp")
         self.assertEqual(dns.call_count, 2)
+        self.assertTrue(all("+tcp" in call.args[0] for call in dns.call_args_list))
         for family, call in zip(("-4", "-6"), https.call_args_list):
             argv = call.args[0]
             self.assertIn(family, argv)
