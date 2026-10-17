@@ -1,0 +1,132 @@
+{
+  "candidate": "K",
+  "date": "2026-10-17",
+  "independent_review": "PASS_ACCEPTANCE_SUPPORTED",
+  "source_commit": "4ce24c627615ae5ff42d3dcdbccb66d57b218b5a",
+  "ELF_sha256": "f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08",
+  "profile_sha256": "a26b78f1777a126799592f819cce07f1a904f92db2aa04dbf0a8e1aba4f4bfcc",
+  "decision_basis": "Frozen dual-family nine-pair confirmation passed; original33 full-matrix metrics have no discernible regression; actual44/67, shipping boundaries and source corpora passed. This supports a software performance candidate only, with J retained as fallback.",
+  "reused_evidence": {
+    "build_correctness_manifest_sha256": "8bb82c5da83870c718ecfa427c95ff5eaeb25231de08a78790b00b603dabfb9d",
+    "correctness_regular_files_previously_verified": 83009,
+    "screen_selected_windows": 14,
+    "screen_raw_files_previously_verified": 714,
+    "screen_result_sha256": "61966dc8d674738a16412c35e200e2e99ecf006562965e59435158e2c6c68e52",
+    "confirmation_selected_windows": 18,
+    "confirmation_raw_files_previously_verified": 942,
+    "confirmation_result_sha256": "8664e6264b1d9f8d2303153d20fd152f0479f7071520004af78955d5c3c9d928"
+  },
+  "dual_family_confirmation": {
+    "J_median_CPU_us": 123.08019385,
+    "K_median_CPU_us": 83.1155799,
+    "paired_median_CPU_us": -39.46669589999999,
+    "pairs_faster": 9,
+    "AA_us": 3.0579007000000047,
+    "d2_d8_us": [
+      -41.17618395,
+      -36.3124048
+    ],
+    "three_block_medians_us": [
+      -39.6495742,
+      -36.80339989999999,
+      -39.46669589999999
+    ],
+    "original_primary_directions": {
+      "p50": "faster",
+      "p95": "within_variation_or_resolution",
+      "cpu": "faster"
+    },
+    "same_tool_version_within_each_pair": true
+  },
+  "full_matrix": {
+    "result_path": "/Users/USER/Developer/owrt-perf-opt-20261015/private/perf-opt-20261015/research-reset-20261016/j-k-full118-selected/result.json",
+    "result_sha256": "3dea7dc421c9155056d70510ab0710027140dcdde89cd3370e860d1ffbbfea43",
+    "selection_sha256": "04bbb60715518f21abf809cd23bb6d43bba53736ec1e8d968b1e7d1fb23c79e3",
+    "closure_sha256": "190809f6c59001f9328caf6634246b03874583438f98ac7e5445fefe1b9f718b",
+    "review_path": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/k-dual-family-qualification/review-k-118-progress.json",
+    "review_sha256": "60a24cfd1cd5f770ec5a852944734dbad4bef183fe4857673afb260517e1f59b",
+    "review_script_sha256": "1d3aba3c56e6890d0fc83b4c3186400b77b6c2d9a47cff492d1764df5d9f414a",
+    "primary_counts": {
+      "faster": 0,
+      "slower": 0,
+      "within_variation_or_resolution": 33
+    },
+    "raw_files_checked": 4162,
+    "observer_metadata_windows": 78,
+    "selected_windows": 118,
+    "attempted_windows": 119,
+    "prior_valid_windows": 30,
+    "new_valid_windows": 88,
+    "original_failed_mixed_r2_K_revalidated": false,
+    "health_qualified_samples": 4526,
+    "health_observed_only_prefix_samples": 125,
+    "health_tail_samples": 3,
+    "minimum_memory_kib": 88972,
+    "restored_memory_kib": 97688
+  },
+  "retained_failures_and_tool_versions": [
+    "Original low-memory screen and collision partial contribute zero selected windows; screen uses new4AA plus fixed10, with the original unpaired r1-J excluded.",
+    "Confirmation uses original12 plus observer-fixed6; missing-observer r7-J stays invalid. Logical rounds7–9 form the third block despite execution8,9,7.",
+    "Full matrix uses original30 valid windows plus new88. Original mixed-r2-K remains invalid under its original22a validator and is excluded; its unrun partner is not fabricated.",
+    "Original mixed-r1 uses the old helper. New mixed-r3–r5 and replacementr2 use exact named cohorts and helper9479c5ec; both sides of each pair use identical tools. Other scenarios retain the original upstream helper.",
+    "Original interrupted mixed guard has125 observed-prefix samples and no terminal marker. They remain observed-only; no terminal or qualification was synthesized. Both retained mixed-r1 window completions lie inside that prefix."
+  ],
+  "adverse_observations": {
+    "UDP_mixed_CPU_clock_pair_differences_us": [
+      3.0867360000000303,
+      3.336428600000005,
+      4.320911200000012,
+      13.326553999999987,
+      4.209637600000008
+    ],
+    "UDP_mixed_CPU_clock_pair_median_us": 4.209637600000008,
+    "UDP_mixed_CPU_clock_pairs_slower": 5,
+    "UDP_mixed_legacy_CPU_us": {
+      "J": 130,
+      "K": 138
+    },
+    "UDP_mixed_p50_change_percent": 4.664212207239184,
+    "UDP_miss_CPU_clock_pair_median_us": 3.7464588000000276,
+    "UDP_miss_CPU_clock_pairs_slower": 3,
+    "DHCP_home6_p50_change_percent": 1.4638944099197002,
+    "DHCP_home6_p50_pairs_slower": 5,
+    "DHCP_home6_p95_change_percent": 8.529650538888625,
+    "UDP_miss_max_FD_J_K": [
+      13,
+      14
+    ],
+    "UDP_mixed_max_FD_J_K": [
+      12,
+      13
+    ],
+    "FD_medians_unchanged": true,
+    "RSS_median_change_range_KiB": [
+      -32,
+      46
+    ],
+    "Anon_peak_median_change_range_KiB": [
+      -24,
+      8
+    ],
+    "interpretation": "These adverse observations remain within the frozen original gates, not evidence of equivalence or absence of regression. Simplified CPU-clock differences are descriptive; dual-family A/A is not applied to them.",
+    "all_pair_differences_and_resource_spreads_retained_in_private_review": true
+  },
+  "health": {
+    "qualified_guard_segments": 12,
+    "qualified_samples": 4526,
+    "observed_only_prefix_samples": 125,
+    "actual_tail_samples": 3,
+    "total_samples": 4654,
+    "external_checks": 310,
+    "minimum_MemAvailable_KiB": 88972,
+    "restored_MemAvailable_KiB": 97688,
+    "production_and_E_F_restoration_verified": true
+  },
+  "review_progress_path": "/Users/USER/Developer/owrt-perf-correctness-20261015/private/k-dual-family-qualification/review-k-progress.json",
+  "review_progress_sha256": "cec11d5d20ae41e00d7592fa5f6de658ad9ab2ae9db4661fe700018b7c0e88a6",
+  "limits": [
+    "Performance gain measured for the fixed same-name A+AAAA/public-rule fixture; no universal client-traffic gain inferred.",
+    "No product/source/profile rebuild or passed test replay during this final review.",
+    "No deployment, push or main merge; no additional experiment is required by the frozen acceptance criteria."
+  ]
+}
