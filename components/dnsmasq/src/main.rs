@@ -133,6 +133,10 @@ fn main() {
         if let Some(code) = dnsmasq_rs::config::dns::lookup::dispatch_internal_lookup() {
             std::process::exit(code);
         }
+        if let Err(error) = dnsmasq_platform::process::initialize_self_executable() {
+            eprintln!("dnsmasq: cannot retain executable: {error}");
+            std::process::exit(5);
+        }
         rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o022));
     }
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();

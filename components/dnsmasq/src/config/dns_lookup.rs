@@ -10,7 +10,6 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::os::fd::{AsFd, AsRawFd};
-use std::process::Command;
 
 const INTERNAL_LOOKUP: &str = "--dnsmasq-internal-lookup-v1";
 #[cfg(test)]
@@ -32,6 +31,9 @@ pub fn dispatch_internal_lookup() -> Option<i32> {
 }
 
 fn dispatch_channels(descriptors: &str) -> i32 {
+    if dnsmasq_platform::process::restore_lookup_signals().is_err() {
+        return 1;
+    }
     let Some((input, output)) = descriptors.split_once(':') else {
         return 1;
     };
@@ -98,27 +100,9 @@ impl EndpointLookup {
             rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?;
         nonblocking(&request_write)?;
         nonblocking(&result_read)?;
-        let descriptors = format!("{}:{}", request_read.as_raw_fd(), result_write.as_raw_fd());
-        let mut command = Command::new("/proc/self/exe");
-        #[cfg(not(test))]
-        command.arg(INTERNAL_LOOKUP).arg(&descriptors);
-        #[cfg(test)]
-        command
-            .args([
-                "--exact",
-                "config::dns::lookup::tests::internal_lookup_entry",
-                "--nocapture",
-                "--test-threads=1",
-            ])
-            .env(TEST_CHANNELS, &descriptors);
-        dnsmasq_platform::process::isolated_lookup_command(
-            &mut command,
-            request_read,
-            result_write,
-        )?;
-        let process = command.spawn()?;
+        let process =
+            dnsmasq_platform::process::spawn_lookup(request_read, result_write, cfg!(test))?;
         let pid = i32::try_from(process.id()).map_err(|_| invalid_request())?;
-        drop(command);
         Ok(Self {
             pid: Some(pid),
             reader: File::from(result_read),

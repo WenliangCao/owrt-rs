@@ -257,20 +257,10 @@ impl Helper {
         nonblocking(&events_read).map_err(start_error)?;
         let pending = startup_frame(&config, init_capacity, identity, initialization_only)
             .map_err(start_error)?;
-        let descriptors = format!("{}:{}", commands_read.as_raw_fd(), events_write.as_raw_fd());
-        let mut command = Command::new("/proc/self/exe");
-        if let Some(test_entry) = test_entry {
-            command
-                .args(["--exact", test_entry, "--nocapture", "--test-threads=1"])
-                .env(TEST_CHANNELS, &descriptors);
-        } else {
-            command.arg(INTERNAL_HELPER).arg(&descriptors);
-        }
-        dnsmasq_platform::process::isolated_pipe_command(&mut command, commands_read, events_write)
-            .map_err(start_error)?;
-        let process = command.spawn().map_err(start_error)?;
+        let process =
+            dnsmasq_platform::process::spawn_helper(commands_read, events_write, test_entry)
+                .map_err(start_error)?;
         let pid = i32::try_from(process.id()).map_err(|_| start_error(invalid()))?;
-        drop(command);
         Ok(Self {
             pid,
             script: config.script,

@@ -1,12 +1,10 @@
 //! Narrow libc exceptions for process-wide credentials, NSS and exec hooks.
 //! Ordinary descriptor ownership and I/O belong to rustix/std.
 
-use std::ffi::{c_char, c_int, c_long, CStr, CString};
+use std::ffi::{c_char, c_int, CStr, CString};
 use std::fs::File;
 use std::io;
-use std::os::fd::{AsRawFd, FromRawFd, IntoRawFd, OwnedFd};
-use std::os::unix::process::CommandExt;
-use std::process::Command;
+use std::os::fd::{FromRawFd, IntoRawFd, OwnedFd};
 
 #[repr(C)]
 struct Passwd {
@@ -51,10 +49,7 @@ unsafe extern "C" {
     fn setuid(uid: u32) -> c_int;
     fn setgid(gid: u32) -> c_int;
     fn setgroups(count: usize, groups: *const u32) -> c_int;
-    fn close(fd: c_int) -> c_int;
     fn fcntl(fd: c_int, command: c_int, ...) -> c_int;
-    fn signal(number: c_int, handler: usize) -> usize;
-    fn syscall(number: c_long, ...) -> c_long;
     fn fork() -> c_int;
     fn _exit(code: c_int) -> !;
 }
@@ -167,79 +162,9 @@ pub fn close_file(file: File) -> io::Result<()> {
 
 pub use crate::libc_format::preserve_ignored_sigpipe;
 
-/// Keep exactly the two owned IPC pipes across exec, preserving standard IO.
-/// Their numbers remain unchanged, so std's private exec-error pipe cannot be
-/// overwritten. CLOEXEC closes all other inherited descriptors at exec.
-pub fn isolated_pipe_command(
-    command: &mut Command,
-    commands: OwnedFd,
-    events: OwnedFd,
-) -> io::Result<()> {
-    isolated_command(command, commands, events, false)
-}
-
-/// Resolver children keep the former fork child's default termination signals
-/// and discard inherited standard streams before entering the fresh image.
-pub fn isolated_lookup_command(
-    command: &mut Command,
-    request: OwnedFd,
-    result: OwnedFd,
-) -> io::Result<()> {
-    isolated_command(command, request, result, true)
-}
-
-fn isolated_command(
-    command: &mut Command,
-    commands: OwnedFd,
-    events: OwnedFd,
-    resolver: bool,
-) -> io::Result<()> {
-    // SAFETY: the closure owns both pipes until exec/Command drop. It calls
-    // only async-signal-safe syscalls, with no allocation or Rust locks.
-    unsafe {
-        command.pre_exec(move || {
-            // __NR_close_range=436 on both supported Linux64 ABIs. Flag4 marks
-            // CLOEXEC instead of closing std's exec-error pipe before exec.
-            // The fixed OpenWrt kernel supports close_range(CLOEXEC).
-            // Fail closed on any error: scanning soft RLIMIT_NOFILE misses
-            // descriptors retained above a subsequently lowered limit.
-            // Supply native long slots, including unused zero arguments: libc's
-            // variadic syscall implementation may read all six argument slots.
-            if syscall(
-                436,
-                3 as c_long,
-                u32::MAX as c_long,
-                4 as c_long,
-                0 as c_long,
-                0 as c_long,
-                0 as c_long,
-            ) < 0
-            {
-                return Err(io::Error::last_os_error());
-            }
-            for fd in [commands.as_raw_fd(), events.as_raw_fd()] {
-                if fcntl(fd, 2, 0) < 0 {
-                    return Err(io::Error::last_os_error());
-                }
-            }
-            if resolver {
-                for sig in [2, 13, 15] {
-                    signal(sig, 0);
-                }
-                for fd in [0, 1, 2] {
-                    close(fd);
-                }
-            } else {
-                for sig in [2, 13, 14, 15] {
-                    signal(sig, 1);
-                }
-                signal(17, 0);
-            }
-            Ok(())
-        });
-    }
-    Ok(())
-}
+#[path = "process_exec.rs"]
+mod exec;
+pub use exec::{initialize_self_executable, restore_lookup_signals, spawn_helper, spawn_lookup};
 
 /// Duplicate an inherited IPC descriptor instead of claiming arbitrary raw
 /// ownership. This remains safe even for a malformed private invocation: an
@@ -286,6 +211,9 @@ pub fn inherited_pipe(fd: i32, reading: bool) -> io::Result<File> {
 /// Rust code or registering third-party atfork callbacks. Its only installed
 /// handlers store signal flags. This crate's libc fork (not kernel_fork) keeps
 /// libc's own atfork bookkeeping. The checks fail closed when /proc is absent.
+/// This applies only to background daemonization. Foreground procd/ujail
+/// invocations, including a jail without procfs, never call this function;
+/// independent background invocations still require procfs for these proofs.
 pub fn background_startup(
     reader: File,
     writer: File,
