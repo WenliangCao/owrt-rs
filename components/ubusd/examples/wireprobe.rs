@@ -762,7 +762,7 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         let second = frame(object, 102, "second");
         let (read_fd, write_fd) = fd_sys::nonblocking_pipe().expect("witness pipe");
         let witness = b"r113-fd-boundary-witness";
-        assert_eq!(fd_sys::write_fd(write_fd.as_raw_fd(), witness), witness.len() as isize);
+        assert_eq!(owrt_platform::unix::write_fd(write_fd.as_raw_fd(), witness), witness.len() as isize);
         let mut received = Vec::new();
         match mode {
             "separate_waited" => {
@@ -818,7 +818,7 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         // witness reference, rather than letting disconnect cleanup hide a leak.
         let deadline = Instant::now() + Duration::from_secs(3);
         loop {
-            let n = fd_sys::write_fd(write_fd.as_raw_fd(), b"!");
+            let n = owrt_platform::unix::write_fd(write_fd.as_raw_fd(), b"!");
             if n < 0 && std::io::Error::last_os_error().kind() == ErrorKind::BrokenPipe {
                 break;
             }
