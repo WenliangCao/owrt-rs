@@ -4,19 +4,20 @@ use rustix::process::{Pid, WaitOptions};
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
-use std::os::fd::{AsFd, AsRawFd, OwnedFd, RawFd};
+#[cfg(test)]
+use std::os::fd::AsFd;
+use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::process::{Command, Stdio};
 
 const POLLIN: i16 = 1;
 const POLLOUT: i16 = 4;
-const INTERNAL_HELPER: &str = "--dnsmasq-internal-helper-v1";
-const TEST_CHANNELS: &str = "DNSMASQ_TEST_HELPER_CHANNELS";
 
 fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
     Ok(rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?)
 }
+#[cfg(test)]
 fn nonblocking(fd: impl AsFd) -> io::Result<()> {
     let flags = rustix::fs::fcntl_getfl(&fd)?;
     Ok(rustix::fs::fcntl_setfl(
@@ -25,133 +26,15 @@ fn nonblocking(fd: impl AsFd) -> io::Result<()> {
     )?)
 }
 
-/// Private self-exec dispatch, called before configuration parsing or opening
-/// service descriptors. A normal command line returns None without side effects.
-pub fn dispatch_internal_helper() -> Option<i32> {
-    let mut args = std::env::args_os().skip(1);
-    if args.next().as_deref() != Some(std::ffi::OsStr::new(INTERNAL_HELPER)) {
-        return None;
-    }
-    let descriptors = args
-        .next()
-        .and_then(|value| value.to_str().map(str::to_owned));
-    if args.next().is_some() {
-        return Some(5);
-    }
-    Some(
-        descriptors
-            .as_deref()
-            .map_or(5, |descriptors| dispatch_channels(descriptors, false)),
-    )
-}
-
-/// Explicit test-harness entry; production main never calls this function and
-/// no environment value can select the production executable or dispatch mode.
-#[doc(hidden)]
-pub fn dispatch_test_helper() -> Option<i32> {
-    std::env::var(TEST_CHANNELS)
-        .ok()
-        .map(|descriptors| dispatch_channels(&descriptors, true))
-}
-
-fn library_test_entry() -> Option<&'static str> {
-    if cfg!(test) {
-        Some("helper::process::tests::internal_helper_entry")
-    } else {
-        None
-    }
-}
-
-fn dispatch_channels(descriptors: &str, test_entry: bool) -> i32 {
-    let Some((read, write)) = descriptors.split_once(':') else {
-        return 5;
-    };
-    let Ok(read) = read.parse() else {
-        return 5;
-    };
-    let Ok(write) = write.parse() else {
-        return 5;
-    };
-    let Ok(mut commands) = dnsmasq_platform::process::inherited_pipe(read, true) else {
-        return 5;
-    };
-    let Ok(mut events) = dnsmasq_platform::process::inherited_pipe(write, false) else {
-        return 5;
-    };
-    let decoded = read_startup(&mut commands);
-    match decoded {
-        Ok((config, maximum, identity, initialize)) => child(
-            config, maximum, identity, commands, events, initialize, test_entry,
-        ),
-        Err(error) => {
-            let _ = send(
-                &mut events,
-                Notice::Error(error.raw_os_error().unwrap_or(22)),
-            );
-            5
-        }
-    }
-}
-
-fn startup_frame(
-    config: &Config,
-    maximum: Option<usize>,
+// Only pure owned data crosses the restricted platform fork boundary. No
+// borrowed parent state, FD owner, lock guard or callback is in this snapshot.
+struct HelperStartup {
+    config: Config,
+    init_capacity: Option<usize>,
     identity: Option<(u32, u32)>,
-    initialize: bool,
-) -> io::Result<Vec<u8>> {
-    let mut bytes = b"DNSHLP01".to_vec();
-    bytes.push(
-        u8::from(config.debug)
-            | (u8::from(initialize) << 1)
-            | (u8::from(maximum.is_some()) << 2)
-            | (u8::from(identity.is_some()) << 3),
-    );
-    bytes.extend(maximum.map_or(0, |value| value as u64).to_le_bytes());
-    let (uid, gid) = identity.unwrap_or((0, 0));
-    bytes.extend(uid.to_le_bytes());
-    bytes.extend(gid.to_le_bytes());
-    bytes.extend(config.script.as_os_str().as_bytes());
-    if bytes.len() > wire::MAX_FRAME {
-        return Err(invalid());
-    }
-    Ok(wire::frame(&bytes))
+    initialization_only: bool,
 }
 
-type Startup = (Config, Option<usize>, Option<(u32, u32)>, bool);
-fn read_startup(commands: &mut File) -> io::Result<Startup> {
-    let mut length = [0; 4];
-    commands.read_exact(&mut length)?;
-    let length = u32::from_le_bytes(length) as usize;
-    if !(26..=wire::MAX_FRAME).contains(&length) {
-        return Err(invalid());
-    }
-    let mut bytes = vec![0; length];
-    commands.read_exact(&mut bytes)?;
-    if &bytes[..8] != b"DNSHLP01" || bytes[8] > 15 || bytes[25..].contains(&0) {
-        return Err(invalid());
-    }
-    let maximum = u64::from_le_bytes(bytes[9..17].try_into().unwrap());
-    let uid = u32::from_le_bytes(bytes[17..21].try_into().unwrap());
-    let gid = u32::from_le_bytes(bytes[21..25].try_into().unwrap());
-    Ok((
-        Config {
-            script: OsString::from_vec(bytes[25..].to_vec()).into(),
-            script_user: None,
-            debug: bytes[8] & 1 != 0,
-        },
-        if bytes[8] & 4 == 0 {
-            None
-        } else {
-            Some(usize::try_from(maximum).map_err(|_| invalid())?)
-        },
-        if bytes[8] & 8 == 0 {
-            None
-        } else {
-            Some((uid, gid))
-        },
-        bytes[8] & 2 != 0,
-    ))
-}
 fn start_error(error: io::Error) -> StartError {
     StartError {
         code: 5,
@@ -167,7 +50,6 @@ pub struct Helper {
     reader: Option<File>,
     pending: Vec<u8>,
     written: usize,
-    startup_pending: bool,
     incoming: Vec<u8>,
     stopping: bool,
     eof: bool,
@@ -183,21 +65,13 @@ impl Helper {
         Self::start_with_init(config, None)
     }
 
-    /// Main-binary unit tests link the non-test library while their current
-    /// executable is libtest. Select its fixed entry explicitly, with no
-    /// process-name detection, global override or executable-path override.
-    #[doc(hidden)]
-    pub fn start_in_main_test(config: Config) -> Result<Self, StartError> {
-        Self::start_inner(config, None, false, Some("tests::internal_helper_entry"))
-    }
-
     /// Leasefile-ro initialization runs in the helper before credentials drop.
     /// The owner consumes bounded InitRecord/InitEnd/InitExit notices in its poll.
     pub fn start_with_init(
         config: Config,
         init_capacity: Option<usize>,
     ) -> Result<Self, StartError> {
-        Self::start_inner(config, init_capacity, false, library_test_entry())
+        Self::start_inner(config, init_capacity, false)
     }
 
     /// Preflight has no pipes, fork, credential changes or producer execution.
@@ -241,35 +115,35 @@ impl Helper {
     /// The prefork owner receives only initialization records and diagnostics.
     /// This child never drops script credentials, emits READY or reads commands.
     pub fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
-        Self::start_inner(config, Some(maximum), true, library_test_entry())
+        Self::start_inner(config, Some(maximum), true)
     }
 
     fn start_inner(
         config: Config,
         init_capacity: Option<usize>,
         initialization_only: bool,
-        test_entry: Option<&'static str>,
     ) -> Result<Self, StartError> {
         let identity = Self::startup_identity(&config, init_capacity)?;
-        let (commands_read, commands_write) = pipe().map_err(start_error)?;
-        let (events_read, events_write) = pipe().map_err(start_error)?;
-        nonblocking(&commands_write).map_err(start_error)?;
-        nonblocking(&events_read).map_err(start_error)?;
-        let pending = startup_frame(&config, init_capacity, identity, initialization_only)
-            .map_err(start_error)?;
-        let process =
-            dnsmasq_platform::process::spawn_helper(commands_read, events_write, test_entry)
-                .map_err(start_error)?;
-        let pid = i32::try_from(process.id()).map_err(|_| start_error(invalid()))?;
+        let startup = HelperStartup {
+            config,
+            init_capacity,
+            identity,
+            initialization_only,
+        };
+        // NSS preflight has returned; this call holds no stdio/allocator/lock
+        // guard. child accesses only this snapshot, its two channels, standard
+        // streams and the audited libc/process helpers, never parent owners.
+        let (startup, pid, writer, reader) =
+            dnsmasq_platform::process::spawn_helper(startup, child).map_err(start_error)?;
+        let config = startup.config;
         Ok(Self {
-            pid,
+            pid: pid.as_raw_nonzero().get(),
             script: config.script,
             script_user: config.script_user,
-            writer: Some(File::from(commands_write)),
-            reader: Some(File::from(events_read)),
-            pending,
+            writer: Some(writer),
+            reader: Some(reader),
+            pending: Vec::new(),
             written: 0,
-            startup_pending: true,
             incoming: Vec::new(),
             stopping: false,
             eof: false,
@@ -471,7 +345,6 @@ impl Helper {
             self.written = 0;
             self.stopping = true;
         }
-        let mut startup_write_failed = false;
         if let Some(writer) = &mut self.writer {
             // C writes only after POLLOUT. An optimistic small write can
             // fill more pipe capacity and expose extra callbacks on TERM.
@@ -492,14 +365,12 @@ impl Helper {
                         self.pending.clear();
                         self.written = 0;
                         notices.push(Notice::Error(5));
-                        startup_write_failed = self.startup_pending;
                     }
                     Ok(length) => {
                         self.written += length;
                         if self.written == self.pending.len() {
                             self.pending.clear();
                             self.written = 0;
-                            self.startup_pending = false;
                         }
                     }
                     Err(error)
@@ -513,23 +384,9 @@ impl Helper {
                         self.pending.clear();
                         self.written = 0;
                         notices.push(Notice::Error(error.raw_os_error().unwrap_or(5)));
-                        startup_write_failed = self.startup_pending;
                     }
                 }
             }
-        }
-        if startup_write_failed {
-            // A partial startup frame cannot be discarded like a runtime
-            // script event: its child is blocked in read_exact. Keep this
-            // owned PID until the normal WNOHANG path below reaps it.
-            self.writer.take();
-            self.reader.take();
-            self.eof = true;
-            self.stopping = true;
-            let _ = rustix::process::kill_process(
-                Pid::from_raw(self.pid).unwrap(),
-                rustix::process::Signal::KILL,
-            );
         }
         if self.stopping && self.pending.is_empty() {
             self.writer.take();
@@ -666,17 +523,15 @@ fn send(events: &mut File, notice: Notice) -> io::Result<()> {
     }
 }
 
-fn child(
-    config: Config,
-    init_capacity: Option<usize>,
-    identity: Option<(u32, u32)>,
-    mut commands: File,
-    mut events: File,
-    initialization_only: bool,
-    test_entry: bool,
-) -> i32 {
+fn child(startup: HelperStartup, mut commands: File, mut events: File) -> i32 {
+    let HelperStartup {
+        config,
+        init_capacity,
+        identity,
+        initialization_only,
+    } = startup;
     if let Some(maximum) = init_capacity {
-        match run_init(&config, maximum, &mut events, test_entry) {
+        match run_init(&config, maximum, &mut events) {
             Ok(code) if initialization_only => return code,
             Ok(0) => {}
             Ok(_) | Err(_) => return 3,
@@ -727,18 +582,13 @@ fn child(
                 return 5;
             }
         };
-        if run_script(&config, call, &mut events, test_entry).is_err() {
+        if run_script(&config, call, &mut events).is_err() {
             return 5;
         }
     }
 }
 
-fn run_init(
-    config: &Config,
-    maximum: usize,
-    events: &mut File,
-    test_entry: bool,
-) -> io::Result<i32> {
+fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i32> {
     // lease.c parses popen("<fixed script> init", "r") before privilege drop.
     // The existing scanf-width parser bounds scratch space and record count.
     // Only the helper child waits; raw stdout never reaches owner memory.
@@ -746,9 +596,6 @@ fn run_init(
     command.push(" init");
     let mut producer = Command::new("/bin/sh");
     producer.arg("-c").arg(command).stdout(Stdio::piped());
-    if test_entry {
-        producer.env_remove(TEST_CHANNELS);
-    }
     let mut process = producer.spawn()?;
     // Successful spawn with Stdio::piped always supplies this owned stdout.
     let output = process.stdout.take().unwrap();
@@ -804,12 +651,7 @@ fn run_init(
     Ok(status)
 }
 
-fn run_script(
-    config: &Config,
-    call: Invocation,
-    events: &mut File,
-    test_entry: bool,
-) -> io::Result<()> {
+fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Result<()> {
     let mut command = Command::new(&config.script);
     command.arg0(
         config
@@ -828,9 +670,6 @@ fn run_script(
         }
     }
     dnsmasq_platform::process::preserve_ignored_sigpipe(&mut command);
-    if test_entry {
-        command.env_remove(TEST_CHANNELS);
-    }
     let mut output = None;
     if !config.debug {
         let (read, write) = pipe()?;
@@ -918,38 +757,6 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use std::time::{Duration, Instant};
 
-    #[test]
-    fn internal_helper_entry() {
-        if let Some(code) = dispatch_test_helper() {
-            std::process::exit(code);
-        }
-    }
-
-    #[test]
-    fn private_startup_preserves_paths_identity_and_capacity() {
-        for (maximum, identity, initialize) in [
-            (None, None, false),
-            (Some(usize::MAX), Some((17, 19)), true),
-        ] {
-            let config = Config {
-                script: OsString::from_vec(b"/tmp/script-\xff".to_vec()).into(),
-                script_user: None,
-                debug: true,
-            };
-            let bytes = startup_frame(&config, maximum, identity, initialize).unwrap();
-            let (reader, writer) = pipe().unwrap();
-            File::from(writer).write_all(&bytes).unwrap();
-            let (decoded, actual_maximum, actual_identity, actual_initialize) =
-                read_startup(&mut File::from(reader)).unwrap();
-            assert_eq!(decoded.script, config.script);
-            assert!(decoded.debug);
-            assert_eq!(
-                (actual_maximum, actual_identity, actual_initialize),
-                (maximum, identity, initialize)
-            );
-        }
-    }
-
     fn script(text: &str) -> (std::path::PathBuf, Config) {
         let folder = std::env::temp_dir().join(format!(
             "dnsmasq-helper-{}-{}",
@@ -982,26 +789,6 @@ mod tests {
         }
         notices
     }
-    #[test]
-    fn failed_startup_write_kills_and_reaps_the_waiting_child() {
-        let (folder, config) = script("echo must-not-run");
-        let mut helper = Helper::start(config).unwrap();
-        // Keep the real command pipe open: EOF cannot explain child exit.
-        // A read-only replacement gives the parent's initial write EBADF.
-        let original_writer = helper.writer.replace(File::open("/dev/null").unwrap());
-        let mut notices = helper.step().unwrap();
-        assert!(notices.contains(&Notice::Error(9)));
-        notices.extend(until(&mut helper, |helper, _| helper.is_finished()));
-        assert!(!helper.ready());
-        assert!(notices
-            .iter()
-            .any(|notice| matches!(notice, Notice::Reaped(_))));
-        assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
-        drop(original_writer);
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-
     #[test]
     fn only_unreaped_eof_needs_an_owner_recheck() {
         let (folder, config) = script("exit 0");

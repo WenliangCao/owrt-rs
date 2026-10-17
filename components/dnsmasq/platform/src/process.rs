@@ -4,7 +4,7 @@
 use std::ffi::{c_char, c_int, CStr, CString};
 use std::fs::File;
 use std::io;
-use std::os::fd::{FromRawFd, IntoRawFd, OwnedFd};
+use std::os::fd::IntoRawFd;
 
 #[repr(C)]
 struct Passwd {
@@ -49,7 +49,6 @@ unsafe extern "C" {
     fn setuid(uid: u32) -> c_int;
     fn setgid(gid: u32) -> c_int;
     fn setgroups(count: usize, groups: *const u32) -> c_int;
-    fn fcntl(fd: c_int, command: c_int, ...) -> c_int;
     fn fork() -> c_int;
     fn _exit(code: c_int) -> !;
 }
@@ -162,45 +161,9 @@ pub fn close_file(file: File) -> io::Result<()> {
 
 pub use crate::libc_format::preserve_ignored_sigpipe;
 
-#[path = "process_exec.rs"]
-mod exec;
-pub use exec::{initialize_self_executable, restore_lookup_signals, spawn_helper, spawn_lookup};
-
-/// Duplicate an inherited IPC descriptor instead of claiming arbitrary raw
-/// ownership. This remains safe even for a malformed private invocation: an
-/// invalid descriptor fails, and a valid one produces a fresh owned FD.
-/// Original inherited descriptors stay open until process exit, but CLOEXEC
-/// keeps them out of scripts. They have no Rust owner in the fresh exec image.
-pub fn inherited_pipe(fd: i32, reading: bool) -> io::Result<File> {
-    if fd <= 2 {
-        return Err(io::Error::from_raw_os_error(22));
-    }
-    // SAFETY: fcntl accepts any scalar descriptor, returning a newly owned
-    // descriptor on success. No pointer or borrowed Rust owner is fabricated.
-    let duplicate = unsafe { fcntl(fd, 1030, 3) };
-    if duplicate < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: F_DUPFD_CLOEXEC just created this uniquely owned descriptor.
-    let duplicate = unsafe { OwnedFd::from_raw_fd(duplicate) };
-    let stat = rustix::fs::fstat(&duplicate)?;
-    let flags = rustix::fs::fcntl_getfl(&duplicate)?;
-    if rustix::fs::FileType::from_raw_mode(stat.st_mode) != rustix::fs::FileType::Fifo
-        || (flags & rustix::fs::OFlags::ACCMODE)
-            != if reading {
-                rustix::fs::OFlags::RDONLY
-            } else {
-                rustix::fs::OFlags::WRONLY
-            }
-    {
-        return Err(io::Error::from_raw_os_error(22));
-    }
-    // SAFETY: setting a descriptor flag cannot invalidate any Rust owner.
-    if unsafe { fcntl(fd, 2, 1) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(File::from(duplicate))
-}
+#[path = "process_fork.rs"]
+mod worker;
+pub use worker::{spawn_helper, spawn_lookup};
 
 /// A dedicated daemon startup fork: only the detached child can return. The
 /// parent executes a noncapturing startup-report function and then _exit;

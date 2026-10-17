@@ -15,7 +15,7 @@ pub use packet::{cpe_data, extra_data};
 #[path = "helper/wire.rs"]
 mod wire;
 #[cfg(target_os = "linux")]
-pub use process::{dispatch_internal_helper, dispatch_test_helper, Helper};
+pub use process::Helper;
 
 #[derive(Clone, Debug)]
 pub struct Config {

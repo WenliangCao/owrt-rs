@@ -127,16 +127,6 @@ fn main() {
     }
     #[cfg(target_os = "linux")]
     {
-        if let Some(code) = dnsmasq_rs::helper::dispatch_internal_helper() {
-            std::process::exit(code);
-        }
-        if let Some(code) = dnsmasq_rs::config::dns::lookup::dispatch_internal_lookup() {
-            std::process::exit(code);
-        }
-        if let Err(error) = dnsmasq_platform::process::initialize_self_executable() {
-            eprintln!("dnsmasq: cannot retain executable: {error}");
-            std::process::exit(5);
-        }
         rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o022));
     }
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
@@ -8178,16 +8168,8 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    #[test]
-    fn internal_helper_entry() {
-        if let Some(code) = dnsmasq_rs::helper::dispatch_test_helper() {
-            std::process::exit(code);
-        }
-    }
-
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub(super) fn ready_test_helper() -> Helper {
-        let mut helper = Helper::start_in_main_test(HelperConfig {
+        let mut helper = Helper::start(HelperConfig {
             script: "/bin/true".into(), script_user: None, debug: false,
         }).unwrap();
         let deadline = Instant::now() + Duration::from_secs(5);
