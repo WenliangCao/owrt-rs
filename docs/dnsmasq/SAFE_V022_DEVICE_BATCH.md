@@ -1,7 +1,8 @@
 # v0.2.2 隔离设备批次
 
-**固定 148 窗与 40 次启动；当前只完成本地准备，不得开跑。** 候选必须先修复真实 jail
-无 `/proc` 的自执行问题，重新冻结源码、训练 PGO 并完成资格。对照与生产均为精确 K：
+**固定 148 窗与 40 次启动；最终资格未齐，不得开跑。** 当前限定 fork 候选冻结于
+`a97edbc1`，须用该源码的新 PGO 完成完整正确性、无 `/proc` 与 FD 压力资格。
+此前自执行候选及原始失败保留。对照与生产均为精确 K：
 `f6710d37912bd414e01b32be97fd73b2ed4cf2ddf637eaa1254fa660603eba08`。
 不部署、不变更生产服务/配置/挂载；测试根仅为 `/tmp/dnsmasq-perf-v022-20261017`。
 
@@ -9,7 +10,7 @@
 
 普通查询的 syscall、复制、分配预计不变，差异预计小于 5 µs。真实 K 的公开规则单族
 命中约 73 µs、同名双栈约 83.1 µs，仅作模型背景，不与新数据混池。
-自执行有额外 exec/编码和 pipe FD，另测整棵自有进程树 CPU、就绪和资源。
+恢复限定 fork 后，仍测整棵自有进程树 CPU、就绪和资源；此前自执行的成本不继承为新候选结果。
 
 | 阶段 | 固定负载 | 窗数 |
 | --- | --- | ---: |
@@ -88,15 +89,16 @@ RUSAGE_SELF，外部 subreaper 收齐自有后代后读 RUSAGE_CHILDREN；同时
 真实 helper `old` callback 或 servers-file hostname 上游应答才算就绪；ready 截止后
 只读一次资源/全部 FD 快照，包含 stdio。资源不称峰值或 PSS。任何强制清理、漏 reap、
 500 ms 周期超时或失败停止；明确超过 1 ms 的启动退化
-交主代理审查。原 helper 的 FD=2 首跑结论保留；新 selfexec 四 FD/两底层 pipe 结构资格
-单列，不用改断言把资源代价变成相同。
+交主代理审查。两侧严格要求 owner 无 O_PATH pin，helper 非 stdio 恰为两根 pipe 的
+两个 CLOEXEC 端点；不接受可选的0/1 pin或2/4端点。原 selfexec 四FD结果保留为历史。
 
 首次 Oracle jail 夹具将 helper 回调固定为一次，两侧均失败：exact K 与 8adc 的完整文件
 均为相同 `old` 行两次，正常退出和身份成立。原 strict1 结果保留。启动计时现以首个
 完整合法回调为 ready，最终校验所有回调内容并保留数量；K/候选十次逐序数量不一致则
 停止比较，不删重复回调或将它当作零成本。
 
-正常 FD 增量分项：owner 常驻可执行映像 O_PATH 1 个；helper 两根 pipe 各一个副本，
-额外 2 个；pending resolver 的请求/结果 pipe 与可能重开的 stdio 按实际捕获报告。
-FD 压力只在 Oracle 对最终 PGO 验收，按实际 holes 设置 2/4/8 空闲槽，恢复限额后再次
-验证公开路径和 DNS；此数据不称 A53 性能。允许正常常驻 FD 增量不豁免压力失败。
+当前 owner 没有常驻映像 FD，helper 恢复两根 pipe 的单端点；pending resolver 为一根
+结果 pipe并明确保留stdio3，全部FD仍按实际捕获报告。FD 压力只在 Oracle 对最终 PGO
+验收，按实际 holes 设置2/3/4/8空闲槽，恢复限额后再次验证公开路径和DNS；此数据不称
+A53性能。低限额还限制FD编号，已知shell的F_DUPFD最低编号10效应仍保留，不能只按洞数
+排名。此前4槽resolver退化、helper失败和恢复结果均不改写。

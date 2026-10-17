@@ -129,11 +129,11 @@ def make_plan(prefix, bundle):
             'fixed product source and source-bound fresh PGO ELF/APK',
             'ELF <= 2500000 bytes and APK <= 1400000 bytes',
             'original 44 families/67 jobs retained and all unexpected differences resolved',
-            'explicit helper selfexec FD structural contract passes separately from legacy count',
+            'fork FD contract: no owner O_PATH pin; helper exactly two CLOEXEC pipe endpoints on both sides',
             'no-proc/uid453/mount+PID namespace qualification, including b861 negative control',
             'all nine reconstructed device support binaries SDK-built and hashes bound',
             'startup supplement SDK-built and Oracle-rehearsed',
-            'pending resolver resource and 2/4/8 FD-pressure fixtures qualified',
+            'pending resolver resource and 2/3/4/8 FD-pressure fixtures qualified',
             'controller binds recovered modules to current root/production/idle K slots',
             'plan/artifact/tool hashes frozen before first window',
         ],
@@ -186,9 +186,9 @@ def make_plan(prefix, bundle):
             'latency': 'original p50/p95 W comparisons also retained for dual confirmation',
             'resource': 'tree CPU/FD/RSS retained; expected extra pipe FDs must match explicit contract; '
                         'unexpected FD/socket growth or pressure recovery failure blocks acceptance',
-            'fd_accounting': 'owner retained executable O_PATH+1; helper two underlying pipes each dup =>+2; '
-                             'pending resolver pipe and any recreated stdio measured explicitly on Oracle; '
-                             'normal extra FDs never excuse pressure failure',
+            'fd_accounting': 'fork owner O_PATH0; helper two underlying pipes with one endpoint each; '
+                             'pending resolver one result pipe and retained stdio3 measured explicitly on Oracle; '
+                             'descriptor numbering effects and pressure failures retained',
             'stage_gate': 'any unexpected correctness/health/resource failure or discernible '
                           'regression stops progression; no automatic retries for effect or noise',
         },
