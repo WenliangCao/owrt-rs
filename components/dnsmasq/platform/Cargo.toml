@@ -7,4 +7,4 @@ license = "GPL-2.0-only OR GPL-3.0-only"
 publish = false
 
 [dependencies]
-rustix = { version = "=1.1.5", features = ["event", "fs", "mm", "net", "param", "pipe", "process", "runtime", "stdio", "system", "thread", "time"] }
+rustix = { version = "=1.1.5", features = ["event", "fs", "mm", "net", "param", "pipe", "process", "stdio", "system", "thread", "time", "try_close"] }

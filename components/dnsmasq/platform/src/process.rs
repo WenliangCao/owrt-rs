@@ -160,12 +160,9 @@ pub fn set_process_user(uid: u32) -> io::Result<()> {
 /// Consume ownership exactly once while retaining Linux close's error report.
 /// Never retry EINTR: Linux has already released the descriptor.
 pub fn close_file(file: File) -> io::Result<()> {
-    // SAFETY: into_raw_fd transfers the sole descriptor obligation to close.
-    if unsafe { close(file.into_raw_fd()) } < 0 {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(())
-    }
+    // SAFETY: into_raw_fd transfers the sole live descriptor obligation.
+    // try_close reports errors while consuming it; never retry a Linux close.
+    unsafe { rustix::io::try_close(file.into_raw_fd()) }.map_err(Into::into)
 }
 
 pub use crate::libc_format::preserve_ignored_sigpipe;
@@ -206,7 +203,18 @@ fn isolated_command(
             // The fixed OpenWrt kernel supports close_range(CLOEXEC).
             // Fail closed on any error: scanning soft RLIMIT_NOFILE misses
             // descriptors retained above a subsequently lowered limit.
-            if syscall(436, 3u32, u32::MAX, 4u32) < 0 {
+            // Supply native long slots, including unused zero arguments: libc's
+            // variadic syscall implementation may read all six argument slots.
+            if syscall(
+                436,
+                3 as c_long,
+                u32::MAX as c_long,
+                4 as c_long,
+                0 as c_long,
+                0 as c_long,
+                0 as c_long,
+            ) < 0
+            {
                 return Err(io::Error::last_os_error());
             }
             for fd in [commands.as_raw_fd(), events.as_raw_fd()] {

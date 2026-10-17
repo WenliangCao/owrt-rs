@@ -86,11 +86,13 @@ pub extern "C" fn request_alarm(_signal: i32) {
 
 pub extern "C" fn request_interrupt(_signal: i32) {
     if DEBUG_MODE.load(Ordering::Relaxed) {
-        extern "C" {
+        unsafe extern "C" {
             fn _exit(status: i32) -> !;
         }
-        // SAFETY: _exit is async-signal-safe. C exits debug mode with EC_MISC;
-        // PID cleanup is specific to SIGTERM and must not run on this path.
+        // SAFETY: _exit is async-signal-safe and takes only a scalar status.
+        // rustix has no stable public runtime exit API (its runtime module is
+        // private); do not depend on its version-hashed experimental module.
+        // PID cleanup belongs to SIGTERM, not this debug-mode SIGINT path.
         unsafe { _exit(5) }
     }
     wake_signal_waiter();
