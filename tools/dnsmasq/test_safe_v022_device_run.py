@@ -163,6 +163,11 @@ class DriverTests(unittest.TestCase):
                          {'udp-hit', 'udp-miss', 'tcp-hit', 'dhcp-home6'})
         self.assertEqual({row['round'] for row in traffic}, {1, 2, 3})
         self.assertEqual(driver.extension_windows(plan), [])
+        with patch.object(driver.plan_tool, 'verify_bundle', return_value={}):
+            suffix = driver.plan_tool.make_plan('suffix', BUNDLE, short=True, after_group='full-udp-miss')
+        self.assertEqual(len(suffix['schedule']), 12)
+        self.assertEqual({row['scene'][0] for row in suffix['schedule']}, {'tcp-hit', 'dhcp-home6'})
+        self.assertEqual(suffix['startup_supplement']['total_starts'], 0)
 
     def test_short_startup_requires_all_five_successful_starts(self):
         with tempfile.TemporaryDirectory() as temporary:

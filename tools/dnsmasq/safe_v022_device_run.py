@@ -28,7 +28,8 @@ LABEL = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
 def load_plan(path, bundle):
     value = json.loads(path.read_text())
     if value != plan_tool.make_plan(value['prefix'], bundle,
-                                    short=value.get('scope') == 'short-safety-regression'):
+                                    short=value.get('scope') == 'short-safety-regression',
+                                    after_group=value.get('resume_after_group')):
         raise ValueError('plan differs from the frozen local schedule/tool/bundle')
     return value
 

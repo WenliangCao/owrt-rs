@@ -87,7 +87,9 @@ def verify_bundle(bundle):
     return {name: row['sha256'] for name, row in files.items()}
 
 
-def make_plan(prefix, bundle, *, short=False):
+def make_plan(prefix, bundle, *, short=False, after_group=None):
+    if after_group is not None and (not short or after_group != 'full-udp-miss'):
+        raise ValueError('only the reviewed short UDP completion can resume at TCP/DHCP')
     files = verify_bundle(bundle)
     windows = schedule(prefix)
     plan = {
@@ -245,6 +247,13 @@ def make_plan(prefix, bundle, *, short=False):
             'correctness_health_resources': 'All existing count, identity, health and FD checks unchanged.',
             'prior_observations': 'Retain all already completed observations, never select favorable windows.',
         }
+        if after_group is not None:
+            plan['resume_after_group'] = after_group
+            plan['schedule'] = [row for row in traffic if row['scene'][0] in {'tcp-hit', 'dhcp-home6'}]
+            plan['stage_window_counts'] = {'short-regression-remaining': 12}
+            plan['execution_order'] = ['fresh-health-baseline', 'remaining-tcp-dhcp12']
+            plan['startup_supplement']['total_starts'] = 0
+            plan['startup_supplement']['scope'] = 'Reuse completed ten-start result; no startup rerun.'
     return plan
 
 
@@ -254,12 +263,13 @@ def main():
     parser.add_argument('--out', required=True, type=Path)
     parser.add_argument('--prefix', default='v022')
     parser.add_argument('--short', action='store_true', help='four scenes, three pairs each; user-approved safety regression')
+    parser.add_argument('--after-group', choices=['full-udp-miss'], help='resume only the reviewed unstarted TCP/DHCP suffix')
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[2]
     out = args.out.resolve()
     if (repo / 'private').resolve() not in out.parents:
         parser.error('--out must be under this repository/private')
-    plan = make_plan(args.prefix, args.bundle.resolve(), short=args.short)
+    plan = make_plan(args.prefix, args.bundle.resolve(), short=args.short, after_group=args.after_group)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open('x') as stream:
         stream.write(json.dumps(plan, indent=2) + '\n')
