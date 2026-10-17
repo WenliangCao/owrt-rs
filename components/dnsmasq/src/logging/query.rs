@@ -526,7 +526,7 @@ mod tests {
         assert!(format(only_failed, QueryContext::default(), &negative).is_some());
     }
     #[test]
-    fn source_controlled_signed_extremes_use_the_C_unsigned_display_word() {
+    fn source_controlled_signed_extremes_use_the_c_unsigned_display_word() {
         let config = crate::config::logging::QueryLogging {
             enabled: true,
             extra: true,

@@ -116,7 +116,6 @@ fn tail_dump_completion_resumes_udp_and_interface_held_accept() {
 #[test]
 fn tail_dump_completion_resumes_tftp_mac_waiter_without_socket_ready_hint() {
     use dnsmasq_rs::config::tftp::TftpConfig;
-    use dnsmasq_rs::neighbors::MacLookup;
     use std::net::UdpSocket;
     use std::os::unix::{ffi::OsStrExt, fs::PermissionsExt};
     assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));

@@ -3,6 +3,8 @@
 //! The source and acceptance ledger lives in `docs/dnsmasq`. Individual tested
 //! modules do not yet constitute a service or a compatible package replacement.
 
+#![cfg_attr(target_os = "linux", deny(warnings))]
+
 #[path = "logging/address.rs"]
 mod address_logging;
 

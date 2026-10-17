@@ -165,6 +165,7 @@ pub struct PidFile {
     ownership_warning: Option<std::io::Error>,
 }
 impl PidFile {
+    #[cfg(any(test, target_os = "linux"))]
     fn new(path: Option<PathBuf>) -> Self {
         Self {
             path,

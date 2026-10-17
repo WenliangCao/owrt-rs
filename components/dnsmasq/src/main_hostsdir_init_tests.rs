@@ -4,7 +4,6 @@ use super::*;
 use super::tests::test_owner;
 use dnsmasq_rs::dns::hostsdir::{HostSource, HostsRead};
 use dnsmasq_rs::dns::wire::{Name, PacketWriter};
-use std::os::fd::AsRawFd;
 use std::os::unix::fs::OpenOptionsExt;
 
 fn query() -> Vec<u8> {

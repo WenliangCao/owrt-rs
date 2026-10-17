@@ -1,4 +1,8 @@
 //! DNS interface selection and the existing Linux pktinfo socket boundary.
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_platform::{bind, setsockopt};
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_platform::getsockopt;
 use crate::config::dns::DnsConfig;
 use crate::interfaces::DnsInterface;
 use std::io;
@@ -489,8 +493,6 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
         use std::os::fd::{AsRawFd, FromRawFd};
         extern "C" {
             fn socket(family: i32, kind: i32, protocol: i32) -> i32;
-            fn setsockopt(fd: i32, level: i32, option: i32, value: *const i32, len: u32) -> i32;
-            fn bind(fd: i32, address: *const u8, len: u32) -> i32;
             fn listen(fd: i32, backlog: i32) -> i32;
         }
         // SAFETY: a new socket has unique ownership transferred immediately.
@@ -509,11 +511,11 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
         let fd = listener.as_raw_fd();
         let one = 1;
         // SAFETY: the descriptor is live and each option reads the live i32.
-        if unsafe { setsockopt(fd, 1, 2, &one, 4) } < 0 {
+        if unsafe { setsockopt(fd, 1, 2, (&one as *const i32).cast(), 4) } < 0 {
             return Err(io::Error::last_os_error());
         }
         // SAFETY: the IPv6-only option reads the same live i32 on an IPv6 socket.
-        if address.is_ipv6() && unsafe { setsockopt(fd, 41, 26, &one, 4) } < 0 {
+        if address.is_ipv6() && unsafe { setsockopt(fd, 41, 26, (&one as *const i32).cast(), 4) } < 0 {
             return Err(io::Error::last_os_error());
         }
         let mut storage = [0u64; 4];
@@ -531,7 +533,7 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
         }
         // SAFETY: bytes has the initialized Linux sockaddr layout and family
         // length; both calls use the live, uniquely owned listener descriptor.
-        if unsafe { bind(fd, bytes.as_ptr(), if address.is_ipv4() { 16 } else { 28 }) } < 0
+        if unsafe { bind(fd, bytes.as_ptr().cast(), if address.is_ipv4() { 16 } else { 28 }) } < 0
             || unsafe { listen(fd, 32) } < 0
         {
             return Err(io::Error::last_os_error());
@@ -556,9 +558,7 @@ mod tests {
     fn dns_socket_bound_ipv4_metadata_policy() {
         use std::net::UdpSocket;
         use std::time::Duration;
-        extern "C" {
-            fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, len: *mut u32) -> i32;
-        }
+
         assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
         let interfaces = snapshot().unwrap();
         assert!(interfaces.iter().any(|interface| interface.address == Ipv4Addr::LOCALHOST));
@@ -588,7 +588,7 @@ mod tests {
             let (level, option) = if address.is_ipv4() { (0, 8) } else { (41, 49) };
             let (mut enabled, mut size) = (0i32, 4u32);
             // SAFETY: the live socket option writes one initialized native int.
-            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), level, option, &mut enabled, &mut size) }, 0);
+            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), level, option, (&mut enabled as *mut i32).cast(), &mut size) }, 0);
             assert_eq!(enabled, i32::from(!no_pktinfo), "{bind} bound={bound} dynamic={dynamic}");
             let client = UdpSocket::bind(if address.is_ipv4() { "127.0.0.1:0" } else { "[::1]:0" }).unwrap();
             client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
@@ -622,7 +622,7 @@ mod tests {
             let server = DnsSocket::bind_config(address.parse().unwrap(), &config, &interfaces).unwrap();
             let (mut enabled, mut size) = (0i32, 4u32);
             // SAFETY: the live IPv4 option writes one initialized native int.
-            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), 0, 8, &mut enabled, &mut size) }, 0);
+            assert_eq!(unsafe { getsockopt(server.as_raw_fd(), 0, 8, (&mut enabled as *mut i32).cast(), &mut size) }, 0);
             assert_eq!(enabled, 1);
         }
     }

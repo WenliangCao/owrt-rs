@@ -1,6 +1,7 @@
 //! Linux address attributes distinguish an absent broadcast from IFA_ADDRESS.
 //! getifaddrs uses one union for broadcast/destination and loses that distinction.
 
+use dnsmasq_platform::{bind, sendto, setsockopt};
 use std::io;
 use std::net::Ipv4Addr;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
@@ -18,17 +19,7 @@ struct Address {
 
 extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const u8, length: u32) -> i32;
-    fn sendto(
-        fd: i32,
-        bytes: *const u8,
-        length: usize,
-        flags: i32,
-        address: *const u8,
-        address_length: u32,
-    ) -> isize;
     fn recv(fd: i32, bytes: *mut u8, length: usize, flags: i32) -> isize;
-    fn setsockopt(fd: i32, level: i32, option: i32, value: *const i32, length: u32) -> i32;
 }
 
 fn malformed() -> io::Error {
@@ -132,7 +123,7 @@ pub(super) fn snapshot() -> io::Result<Vec<(u32, Ipv4Addr, Ipv4Addr)>> {
     if unsafe {
         sendto(
             socket.as_raw_fd(),
-            request.as_ptr(),
+            request.as_ptr().cast(),
             request.len(),
             0,
             (&endpoint as *const Address).cast(),

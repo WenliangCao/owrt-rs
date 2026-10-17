@@ -1,4 +1,5 @@
 //! network.c::local_bind and the source tuple used by allocate_sfd/allocate_rfd.
+use dnsmasq_platform::{bind, setsockopt};
 use crate::config::dns::{ServerEndpoint, ServerHost};
 use crate::config::ScalarConfig;
 use crate::dns::forward::Random;
@@ -165,8 +166,6 @@ struct Inet6 {
 }
 unsafe extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const u8, length: u32) -> i32;
-    fn setsockopt(fd: i32, level: i32, name: i32, value: *const u8, length: u32) -> i32;
     fn if_nametoindex(name: *const std::ffi::c_char) -> u32;
     fn sysconf(name: i32) -> isize;
 }
@@ -232,7 +231,7 @@ fn interface(_fd: RawFd, source: &SourceSpec, _tcp: bool) -> io::Result<()> {
             name[..length].copy_from_slice(&source.interface[..length]);
             // SAFETY: Linux SO_BINDTODEVICE reads this live 16-byte IFNAMSIZ
             // buffer, initialized and NUL-terminated by the 15-byte limit.
-            if unsafe { setsockopt(_fd, 1, 25, name.as_ptr(), 16) } != 0 {
+            if unsafe { setsockopt(_fd, 1, 25, name.as_ptr().cast(), 16) } != 0 {
                 return Err(io::Error::last_os_error());
             }
         }

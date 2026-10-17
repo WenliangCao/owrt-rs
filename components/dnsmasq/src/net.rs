@@ -2,7 +2,8 @@
 //! C reference: network.c:936–1009; forward.c:32–119,1635–1796.
 //! Reuses the repository's audited iovec/msghdr layout and readiness backend.
 
-use owrt_ubus::sys::{IoVec, MsgHdr};
+use dnsmasq_platform::{bind, getsockopt, recvfrom, recvmsg, sendmsg, sendto, setsockopt};
+use dnsmasq_platform::{IoVec, MsgHdr};
 use std::io;
 use std::net::{
     IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, TcpStream, UdpSocket,
@@ -28,28 +29,7 @@ const MSG_CTRUNC: i32 = 8;
 
 extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const u8, len: u32) -> i32;
-    fn setsockopt(fd: i32, level: i32, option: i32, value: *const i32, len: u32) -> i32;
-    fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, len: *mut u32) -> i32;
     fn if_indextoname(index: u32, name: *mut std::ffi::c_char) -> *mut std::ffi::c_char;
-    fn recvmsg(fd: i32, message: *mut MsgHdr, flags: i32) -> isize;
-    fn sendmsg(fd: i32, message: *const MsgHdr, flags: i32) -> isize;
-    fn sendto(
-        fd: i32,
-        bytes: *const u8,
-        len: usize,
-        flags: i32,
-        address: *const u8,
-        address_len: u32,
-    ) -> isize;
-    fn recvfrom(
-        fd: i32,
-        bytes: *mut u8,
-        len: usize,
-        flags: i32,
-        address: *mut u8,
-        address_len: *mut u32,
-    ) -> isize;
     fn poll(fds: *mut owrt_ubus::sys::PollFd, count: usize, timeout: i32) -> i32;
     fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
 }
@@ -172,7 +152,7 @@ impl AsRawFd for DatagramSocket {
 fn set_flag(fd: RawFd, level: i32, flag: i32) -> io::Result<()> {
     let value = 1;
     // SAFETY: the socket option takes one live native int; no ownership transfer.
-    if unsafe { setsockopt(fd, level, flag, &value, 4) } < 0 {
+    if unsafe { setsockopt(fd, level, flag, (&value as *const i32).cast(), 4) } < 0 {
         Err(io::Error::last_os_error())
     } else {
         Ok(())
@@ -251,7 +231,7 @@ impl IcmpSocket {
         let socket = Self(unsafe { OwnedFd::from_raw_fd(fd) });
         let zero = 0;
         // SAFETY: SO_DONTROUTE accepts a live native int of the supplied size.
-        if unsafe { setsockopt(fd, 1, 5, &zero, 4) } < 0 {
+        if unsafe { setsockopt(fd, 1, 5, (&zero as *const i32).cast(), 4) } < 0 {
             return Err(io::Error::last_os_error());
         }
         Ok(socket)
@@ -264,10 +244,10 @@ impl IcmpSocket {
         let sent = unsafe {
             sendto(
                 self.0.as_raw_fd(),
-                bytes.as_ptr(),
+                bytes.as_ptr().cast(),
                 bytes.len(),
                 0,
-                address.bytes_mut().as_ptr(),
+                address.bytes_mut().as_ptr().cast(),
                 16,
             )
         };
@@ -292,10 +272,10 @@ impl IcmpSocket {
         let got = unsafe {
             recvfrom(
                 self.0.as_raw_fd(),
-                bytes.as_mut_ptr(),
+                bytes.as_mut_ptr().cast(),
                 bytes.len(),
                 0,
-                address.bytes_mut().as_mut_ptr(),
+                address.bytes_mut().as_mut_ptr().cast(),
                 &mut len,
             )
         };
@@ -537,7 +517,7 @@ impl DatagramSocket {
         let mut raw = Address::new(address);
         let len = raw.len;
         // SAFETY: initialized sockaddr bytes and matching length outlive bind.
-        if unsafe { bind(fd, raw.bytes_mut().as_ptr(), len) } < 0 {
+        if unsafe { bind(fd, raw.bytes_mut().as_ptr().cast(), len) } < 0 {
             return Err(io::Error::last_os_error());
         }
         if ipv6 {
@@ -568,7 +548,7 @@ impl DatagramSocket {
         }
         for (option, value) in [(10, 0), (1, 0xc0)] {
             // SAFETY: IP_MTU_DISCOVER and IP_TOS both take a native int.
-            if unsafe { setsockopt(self.as_raw_fd(), IPPROTO_IP, option, &value, 4) } < 0 {
+            if unsafe { setsockopt(self.as_raw_fd(), IPPROTO_IP, option, (&value as *const i32).cast(), 4) } < 0 {
                 return Err(io::Error::last_os_error());
             }
         }
@@ -901,8 +881,8 @@ mod tests {
             let port = server.local_addr().unwrap().port().to_be_bytes();
             let packet = [0, 0, port[0], port[1], 0, 9, 0, 0, 7];
             // SAFETY: all initialized address and datagram bytes outlive sendto.
-            assert_eq!(unsafe { sendto(raw.as_raw_fd(), packet.as_ptr(), packet.len(), 0,
-                target.bytes_mut().as_ptr(), target.len) }, packet.len() as isize);
+            assert_eq!(unsafe { sendto(raw.as_raw_fd(), packet.as_ptr().cast(), packet.len(), 0,
+                target.bytes_mut().as_ptr().cast(), target.len) }, packet.len() as isize);
             let mut bytes = [0; 32];
             assert_eq!(server.receive(&mut bytes).unwrap(), None);
             assert_eq!(server.receive(&mut bytes).unwrap_err().kind(), io::ErrorKind::WouldBlock);

@@ -2,6 +2,7 @@
 //! The netlink and ioctl descriptors are retained before privilege drop; a
 //! packet lookup never opens a file or socket, including under EMFILE.
 
+use dnsmasq_platform::{bind, getsockname, recvfrom, sendto};
 use super::Ipv4Interface;
 use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
 use std::io;
@@ -19,24 +20,6 @@ struct Address {
 
 extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const Address, length: u32) -> i32;
-    fn getsockname(fd: i32, address: *mut Address, length: *mut u32) -> i32;
-    fn sendto(
-        fd: i32,
-        bytes: *const u8,
-        length: usize,
-        flags: i32,
-        address: *const Address,
-        address_length: u32,
-    ) -> isize;
-    fn recvfrom(
-        fd: i32,
-        bytes: *mut u8,
-        length: usize,
-        flags: i32,
-        address: *mut Address,
-        address_length: *mut u32,
-    ) -> isize;
     fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
 }
 
@@ -83,12 +66,12 @@ impl Ipv4Snapshot {
         };
         // No multicast groups: resolver notifications have a separate owner.
         // SAFETY: sockaddr_nl is initialized and remains live for each call.
-        if unsafe { bind(raw, &address, 12) } < 0 {
+        if unsafe { bind(raw, (&address as *const Address).cast(), 12) } < 0 {
             return Err(io::Error::last_os_error());
         }
         let mut length = 12;
         // SAFETY: writable initialized sockaddr and its 12-byte capacity stay live.
-        if unsafe { getsockname(raw, &mut address, &mut length) } < 0 {
+        if unsafe { getsockname(raw, (&mut address as *mut Address).cast(), &mut length) } < 0 {
             return Err(io::Error::last_os_error());
         }
         if length != 12 || address.family != 16 {
@@ -183,10 +166,10 @@ impl Ipv4Snapshot {
             let sent = unsafe {
                 sendto(
                     self.fd.as_raw_fd(),
-                    request.as_ptr(),
+                    request.as_ptr().cast(),
                     request.len(),
                     0,
-                    &destination,
+                    (&destination as *const Address).cast(),
                     12,
                 )
             };
@@ -217,10 +200,10 @@ impl Ipv4Snapshot {
         let needed = unsafe {
             recvfrom(
                 self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr(),
+                self.bytes.as_mut_ptr().cast(),
                 self.bytes.len(),
                 0x22,
-                &mut peer,
+                (&mut peer as *mut Address).cast(),
                 &mut peer_length,
             )
         };
@@ -243,10 +226,10 @@ impl Ipv4Snapshot {
         let got = unsafe {
             recvfrom(
                 self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr(),
+                self.bytes.as_mut_ptr().cast(),
                 self.bytes.len(),
                 0x20,
-                &mut peer,
+                (&mut peer as *mut Address).cast(),
                 &mut peer_length,
             )
         };
@@ -761,10 +744,10 @@ mod tests {
         let expected = super::super::ipv4_interfaces().unwrap();
         assert_eq!(expected.len(), 2);
         extern "C" {
-            fn getrlimit(resource: i32, limit: *mut [u64; 2]) -> i32;
-            fn setrlimit(resource: i32, limit: *const [u64; 2]) -> i32;
+            fn getrlimit(resource: i32, limit: *mut [usize; 2]) -> i32;
+            fn setrlimit(resource: i32, limit: *const [usize; 2]) -> i32;
         }
-        struct Restore([u64; 2]);
+        struct Restore([usize; 2]);
         impl Drop for Restore {
             fn drop(&mut self) {
                 // SAFETY: Linux64 rlimit is two u64 values saved by getrlimit;

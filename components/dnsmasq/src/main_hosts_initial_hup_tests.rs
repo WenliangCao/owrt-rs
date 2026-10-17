@@ -3,7 +3,6 @@
 use super::*;
 use super::hostsdir_init_tests::{answer_queued, config, owner, queued_dns};
 use dnsmasq_rs::dns::hostsdir::{HostSource, HostsRead};
-use std::os::fd::AsRawFd;
 use std::os::unix::fs::OpenOptionsExt;
 
 fn hold_scanned_reader(owner: &mut SinglePoll, path: &Path) -> std::fs::File {

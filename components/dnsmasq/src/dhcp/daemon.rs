@@ -1739,7 +1739,7 @@ impl LocalProvider {
         dispatch: &Dispatch<'_>,
         interface_name: Option<&[u8]>,
         mut events: Option<&mut DhcpEventSink<'_>>,
-        mut wait: Option<&mut DhcpProbeWait<'_>>,
+        wait: Option<&mut DhcpProbeWait<'_>>,
     ) -> Result<Outcome, RuntimeError> {
         let received_at = epoch_seconds();
         let wait = RefCell::new(wait);
@@ -2510,7 +2510,6 @@ impl LocalProvider {
         drop(ack_name);
         drop(before_offer);
         drop(on_event);
-        drop(packet_notice);
         let packet_notices = packet_notices.into_inner();
         if self.network_notices.is_empty() {
             self.network_notices = packet_notices;
@@ -2554,10 +2553,10 @@ impl LocalProvider {
             self.prepare_normal_pxe(packet, outcome);
             if self.config.script.is_some() {
                 if let Reply::Ack {
-                    address, context, ..
+                    context, ..
                 }
                 | Reply::Bootp {
-                    address, context, ..
+                    context, ..
                 } = outcome.reply
                 {
                     // rfc2131.c refreshes one-shot helper metadata only for
@@ -3213,7 +3212,7 @@ impl OutcomeProvider for LocalProvider {
                 }),
         );
         if self.config.log_dhcp {
-            let mut details = if reply.status == lease_query::Status::Active {
+            let details = if reply.status == lease_query::Status::Active {
                 packet.option(55, 0).map_or_else(Vec::new, |codes| {
                     super::logging::requested_options(packet.transaction_id(), codes)
                 })

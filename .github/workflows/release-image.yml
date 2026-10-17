@@ -65,7 +65,7 @@ jobs:
       - name: build standalone core components
         run: sh tools/ci_build_core.sh "$GITHUB_WORKSPACE/work"
 
-      - name: build accepted dnsmasq through its SDK package recipe
+      - name: build accepted dnsmasq with warnings-as-errors through its SDK recipe
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

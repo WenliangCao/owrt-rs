@@ -166,7 +166,7 @@ def build(work, spec, report):
         flags = (f"-Cforce-unwind-tables=no --remap-path-prefix={build_dir}=/build "
                  f"--remap-path-prefix={cargo_home}=/cargo -Clink-arg=-fuse-ld=bfd "
                  "-Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now "
-                 "-Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static")
+                 "-Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static -Dwarnings")
         plan = {"cargo": str(cargo), "build_dir": str(build_dir), "profile": str(profile),
                 "profile_sha256": spec["pgo"]["profile_sha256"], "profile_bytes": spec["pgo"]["profile_bytes"],
                 "receipt": str(out / "pgo-invocation.json"),

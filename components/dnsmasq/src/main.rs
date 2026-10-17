@@ -5,6 +5,8 @@
 //! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
+#![cfg_attr(target_os = "linux", deny(warnings))]
+
 #[cfg(all(
     target_os = "linux",
     target_env = "musl",
@@ -7141,7 +7143,7 @@ fn validate_probe_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Er
 /// Validate the subset consumed by `DnsDaemon` before listener threads start.
 /// Every rejected field is one whose C behaviour is not represented by the
 /// current Rust daemon; accepting it would silently lose configured policy.
-fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Error> {
+fn validate_runtime_ready(_scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Error> {
     if dns.bind_interfaces && dns.bind_dynamic {
         return Err(Error("cannot set --bind-interfaces and --bind-dynamic"));
     }

@@ -61,6 +61,9 @@ define Build/Prepare
 	test -f $(OWRT_COMPONENTS_SOURCE)/dnsmasq/Cargo.lock
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/dnsmasq/Cargo.lock $(PKG_BUILD_DIR)/dnsmasq/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/src/. $(PKG_BUILD_DIR)/dnsmasq/src/
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/dnsmasq/platform/src
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/Cargo.toml $(PKG_BUILD_DIR)/dnsmasq/platform/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/src/. $(PKG_BUILD_DIR)/dnsmasq/platform/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/. $(PKG_BUILD_DIR)/ubus/src/
 	$(if $(OWRT_DNSMASQ_FROZEN_ELF),$(CP) $(OWRT_DNSMASQ_FROZEN_ELF) $(PKG_BUILD_DIR)/frozen-dnsmasq)
@@ -84,7 +87,7 @@ define Build/Compile
 	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
 	DNSMASQ_STATIC_PIE_CC="`command -v "$(TARGET_CC_NOCACHE)"`" \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(CURDIR)/static-pie-linker.py" \
-	RUSTFLAGS="-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static" \
+	RUSTFLAGS="-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static -Dwarnings" \
 	$(V1_CARGO) build --release --frozen --manifest-path $(PKG_BUILD_DIR)/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir $(PKG_BUILD_DIR)/dnsmasq/target
 endef
 endif

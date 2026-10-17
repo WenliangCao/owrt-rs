@@ -92,7 +92,8 @@ def files_below(path):
 def inputs(root):
     paths = ["rust-toolchain.toml", "manifests/release-25.12.5.json",
              "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh",
-             "tools/dnsmasq/build_package.py", "components/dnsmasq/Cargo.lock"]
+             "tools/dnsmasq/build_package.py", "components/dnsmasq/Cargo.lock",
+             "components/dnsmasq/platform/Cargo.toml", "components/dnsmasq/platform/src"]
     for component in ("dnsmasq", "ubus"):
         paths += [f"components/{component}/Cargo.toml", f"components/{component}/src"]
     return {str(path.relative_to(root)): sha(path)

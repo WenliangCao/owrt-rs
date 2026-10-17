@@ -159,11 +159,6 @@ impl DirectoryWatch {
         self.event.is_some() || self.position < self.length
     }
 
-    #[cfg(test)]
-    pub fn step(&mut self) -> io::Result<WatchStep> {
-        self.step_with_readiness(true)
-    }
-
     /// One buffered event, one directory match, or one <=4096 byte read.
     /// Duplicate declarations sharing a watch descriptor each receive the event.
     pub fn step_with_readiness(&mut self, readable: bool) -> io::Result<WatchStep> {

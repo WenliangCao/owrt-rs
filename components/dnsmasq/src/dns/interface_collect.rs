@@ -1,6 +1,7 @@
 //! Nonblocking network.c/netlink.c interface-record enumeration.
 //! The parent calls begin only at a C enumeration boundary. A failure opening
 //! the control socket precedes clear; later failures publish the received prefix.
+use dnsmasq_platform::{IoVec, MsgHdr, bind, getsockname, recvmsg, sendto};
 use super::interface_records::InterfaceAddress;
 use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
 use std::io;
@@ -16,34 +17,8 @@ struct Address {
     pid: u32,
     groups: u32,
 }
-#[repr(C)]
-struct Iovec {
-    base: *mut u8,
-    length: usize,
-}
-#[repr(C)]
-struct Message {
-    name: *mut Address,
-    name_length: u32,
-    vectors: *mut Iovec,
-    vector_count: usize,
-    control: *mut u8,
-    control_length: usize,
-    flags: i32,
-}
 extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const Address, length: u32) -> i32;
-    fn getsockname(fd: i32, address: *mut Address, length: *mut u32) -> i32;
-    fn sendto(
-        fd: i32,
-        bytes: *const u8,
-        length: usize,
-        flags: i32,
-        address: *const Address,
-        address_length: u32,
-    ) -> isize;
-    fn recvmsg(fd: i32, message: *mut Message, flags: i32) -> isize;
     fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
 }
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -89,12 +64,12 @@ impl InterfaceCollector {
             ..Address::default()
         };
         // SAFETY: the initialized repr(C) sockaddr_nl is exactly 12 live bytes.
-        if unsafe { bind(raw, &endpoint, 12) } < 0 {
+        if unsafe { bind(raw, (&endpoint as *const Address).cast(), 12) } < 0 {
             return Err(io::Error::last_os_error());
         }
         let mut length = 12;
         // SAFETY: output sockaddr and its initialized capacity remain writable.
-        if unsafe { getsockname(raw, &mut endpoint, &mut length) } < 0 {
+        if unsafe { getsockname(raw, (&mut endpoint as *mut Address).cast(), &mut length) } < 0 {
             return Err(io::Error::last_os_error());
         }
         if length != 12 || endpoint.family != 16 {
@@ -207,10 +182,10 @@ impl InterfaceCollector {
             let result = unsafe {
                 sendto(
                     self.socket.as_raw_fd(),
-                    request.as_ptr(),
+                    request.as_ptr().cast(),
                     request.len(),
                     0,
-                    &destination,
+                    (&destination as *const Address).cast(),
                     12,
                 )
             };
@@ -323,17 +298,17 @@ impl InterfaceCollector {
     }
     fn receive(&mut self, flags: i32) -> (isize, Address, i32) {
         let mut peer = Address::default();
-        let mut vector = Iovec {
+        let mut vector = IoVec {
             base: self.bytes.as_mut_ptr(),
-            length: self.bytes.len(),
+            len: self.bytes.len(),
         };
-        let mut message = Message {
-            name: &mut peer,
-            name_length: 12,
-            vectors: &mut vector,
-            vector_count: 1,
+        let mut message = MsgHdr {
+            name: (&mut peer as *mut Address).cast(),
+            namelen: 12,
+            iov: &mut vector,
+            iovlen: 1,
             control: std::ptr::null_mut(),
-            control_length: 0,
+            controllen: 0,
             flags: 0,
         };
         // SAFETY: msghdr/iovec/sockaddr and writable byte storage remain live.

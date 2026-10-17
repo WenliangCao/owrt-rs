@@ -29,9 +29,9 @@ jobs:
           key: cargo-${{ runner.os }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/*/Cargo.lock') }}
       - name: host component tests
         run: make test COMPONENTS="ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd"
-      - name: compile dnsmasq tests as the runner user
-        run: CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0} cargo test --quiet --locked --manifest-path components/dnsmasq/Cargo.toml --no-run
-      - name: dnsmasq tests in private Linux namespaces
+      - name: compile dnsmasq tests with warnings-as-errors
+        run: RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-Dwarnings" CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0} cargo test --quiet --locked --manifest-path components/dnsmasq/Cargo.toml --no-run
+      - name: dnsmasq tests with warnings-as-errors in private Linux namespaces
         run: |
           dnsmasq_tmp=$(mktemp -d "$RUNNER_TEMP/dnsmasq-tests.XXXXXX")
           trap 'sudo -n rm -rf -- "$dnsmasq_tmp"' EXIT
@@ -42,6 +42,7 @@ jobs:
             "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}" \
             "RUSTUP_HOME=${RUSTUP_HOME:-$HOME/.rustup}" \
             "RUSTUP_TOOLCHAIN=${{ steps.rust.outputs.channel }}" \
+            "RUSTFLAGS=${RUSTFLAGS:+$RUSTFLAGS }-Dwarnings" \
             "CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0}" "TMPDIR=$dnsmasq_tmp" \
             sh tools/dnsmasq/run_isolated.sh \
             cargo test --quiet --locked --offline \

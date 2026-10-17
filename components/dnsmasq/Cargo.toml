@@ -13,6 +13,7 @@ m6b-diagnostics = []
 
 [dependencies]
 owrt-ubus = { path = "../ubus" }
+dnsmasq-platform = { path = "platform" }
 
 [lib]
 name = "dnsmasq_rs"

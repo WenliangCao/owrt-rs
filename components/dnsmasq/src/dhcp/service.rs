@@ -7,6 +7,8 @@
 //! `dhcp_reply()`.  Interface discovery, relay forwarding, reply serialising,
 //! and actual UDP sockets remain caller responsibilities.
 
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_platform::getsockopt;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use super::packet::MAX_PACKET_LEN;
 use super::packet::{Packet, ParseError, FIXED_LEN};
@@ -975,21 +977,13 @@ mod tests {
                 .success());
         }
         fn bound_device(socket: &crate::net::DatagramSocket) -> Vec<u8> {
-            extern "C" {
-                fn getsockopt(
-                    fd: i32,
-                    level: i32,
-                    option: i32,
-                    value: *mut u8,
-                    len: *mut u32,
-                ) -> i32;
-            }
+
             let mut name = [0u8; 16];
             let mut len = name.len() as u32;
             // SAFETY: SO_BINDTODEVICE writes at most len initialized bytes;
             // both output buffers and the live socket fd span the call.
             assert_eq!(
-                unsafe { getsockopt(socket.as_raw_fd(), 1, 25, name.as_mut_ptr(), &mut len) },
+                unsafe { getsockopt(socket.as_raw_fd(), 1, 25, name.as_mut_ptr().cast(), &mut len) },
                 0
             );
             name[..name

@@ -2,6 +2,7 @@
 //! The fd has exactly one Rust owner from socket creation onward. Linux uses
 //! atomic CLOEXEC/NONBLOCK; macOS sets those flags before issuing connect.
 
+use dnsmasq_platform::connect;
 use super::TcpError;
 use std::io;
 use std::net::{SocketAddr, TcpStream};
@@ -51,7 +52,6 @@ const _: () = assert!(std::mem::size_of::<Inet6>() == 28);
 
 extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn connect(fd: i32, address: *const u8, length: u32) -> i32;
     #[cfg(target_os = "macos")]
     fn fcntl(fd: i32, cmd: i32, ...) -> i32;
 }

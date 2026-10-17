@@ -2,6 +2,7 @@
 //! Keys include the interface index, including for scoped IPv6 addresses.
 //! A dump is published only after NLMSG_DONE; partial/error dumps never replace
 //! the last complete snapshot. No request waits on the socket.
+use dnsmasq_platform::{bind, recvfrom, sendto};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -51,23 +52,6 @@ struct Address {
 }
 extern "C" {
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const u8, length: u32) -> i32;
-    fn sendto(
-        fd: i32,
-        bytes: *const u8,
-        length: usize,
-        flags: i32,
-        address: *const u8,
-        address_length: u32,
-    ) -> isize;
-    fn recvfrom(
-        fd: i32,
-        bytes: *mut u8,
-        length: usize,
-        flags: i32,
-        address: *mut u8,
-        address_length: *mut u32,
-    ) -> isize;
 }
 struct Dump {
     sequence: u32,
@@ -234,7 +218,7 @@ impl NeighborCache {
         let sent = unsafe {
             sendto(
                 self.socket.as_raw_fd(),
-                request.as_ptr(),
+                request.as_ptr().cast(),
                 request.len(),
                 0,
                 (&address as *const Address).cast(),
@@ -477,7 +461,7 @@ impl NeighborCache {
             let count = unsafe {
                 recvfrom(
                     self.socket.as_raw_fd(),
-                    bytes.as_mut_ptr(),
+                    bytes.as_mut_ptr().cast(),
                     bytes.len(),
                     32,
                     (&mut sender as *mut Address).cast(),

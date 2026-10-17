@@ -3,9 +3,14 @@
 version = 4
 
 [[package]]
+name = "dnsmasq-platform"
+version = "0.1.0"
+
+[[package]]
 name = "dnsmasq-rs"
 version = "0.1.0"
 dependencies = [
+ "dnsmasq-platform",
  "owrt-ubus",
 ]
 

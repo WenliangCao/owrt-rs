@@ -2,6 +2,7 @@
 //!
 //! The image's log.c is the formatting, reconnect and overflow reference.
 //! Writes and retry work are bounded: the owner never sleeps for a logger.
+use dnsmasq_platform::connect;
 pub use crate::query_logging as query;
 pub mod startup;
 use crate::config::logging::LoggingConfig;
@@ -1025,7 +1026,6 @@ unsafe extern "C" {
     fn dup(fd: c_int) -> c_int;
     fn fcntl(fd: c_int, operation: c_int, ...) -> c_int;
     fn socket(domain: c_int, kind: c_int, protocol: c_int) -> c_int;
-    fn connect(fd: c_int, address: *const c_void, length: u32) -> c_int;
     fn write(fd: c_int, bytes: *const c_void, length: usize) -> isize;
 }
 

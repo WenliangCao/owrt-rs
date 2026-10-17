@@ -1,6 +1,8 @@
 //! domain.c selectors consume the latest C enumeration independently of DNS
 //! listener selection and IPv6 forward eligibility.
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::IpAddr;
+#[cfg(test)]
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 /// option.c:760 atoi_check accepts decimal digits then the image atoi folds
 /// them into a C int. Keep that signed result for the caller's range checks.

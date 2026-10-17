@@ -1,6 +1,7 @@
 //! Linux inotify boundary from the exact image's inotify.c. Resolver watches
 //! attach to startup-resolved parent directories, never to an open leaf fd.
 
+use dnsmasq_platform::{bind, getsockname, recvfrom};
 use std::ffi::{CString, OsString};
 use std::fs::{self, File};
 use std::io::{self, Read};
@@ -20,16 +21,6 @@ extern "C" {
     fn inotify_init1(flags: i32) -> i32;
     fn inotify_add_watch(fd: i32, path: *const std::ffi::c_char, mask: u32) -> i32;
     fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-    fn bind(fd: i32, address: *const u8, length: u32) -> i32;
-    fn getsockname(fd: i32, address: *mut u8, length: *mut u32) -> i32;
-    fn recvfrom(
-        fd: i32,
-        bytes: *mut u8,
-        length: usize,
-        flags: i32,
-        address: *mut u8,
-        address_length: *mut u32,
-    ) -> isize;
 }
 
 #[repr(C)]
@@ -114,7 +105,7 @@ impl RouteWatch {
         let needed = unsafe {
             recvfrom(
                 self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr(),
+                self.bytes.as_mut_ptr().cast(),
                 self.bytes.len(),
                 0x2 | 0x20,
                 (&mut address as *mut NetlinkAddress).cast(),
@@ -140,7 +131,7 @@ impl RouteWatch {
         let length = unsafe {
             recvfrom(
                 self.fd.as_raw_fd(),
-                self.bytes.as_mut_ptr(),
+                self.bytes.as_mut_ptr().cast(),
                 self.bytes.len(),
                 0x20,
                 (&mut address as *mut NetlinkAddress).cast(),

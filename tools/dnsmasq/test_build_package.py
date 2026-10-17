@@ -19,6 +19,29 @@ import m4_package_lifecycle as lifecycle
 
 
 class PackageBuildTests(unittest.TestCase):
+    def test_platform_manifest_covers_source_but_not_local_build_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            required = ["rust-toolchain.toml", "manifests/release-25.12.5.json",
+                        "packaging/openwrt/owrt-dnsmasq/Makefile",
+                        "tools/dnsmasq/build_package.sh", "tools/dnsmasq/build_package.py",
+                        "components/dnsmasq/Cargo.lock"]
+            for component in ("dnsmasq", "dnsmasq/platform", "ubus"):
+                required += [f"components/{component}/Cargo.toml", f"components/{component}/src/lib.rs"]
+            for name in required + ["components/dnsmasq/platform/target/local-artifact"]:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(name)
+            self.assertEqual(set(package.inputs(root)), set(required))
+            source = root / "components/dnsmasq/platform/src/lib.rs"
+            before = package.inputs(root)
+            source.write_text("changed platform implementation")
+            self.assertNotEqual(package.inputs(root), before)
+            source.unlink()
+            source.symlink_to(root / "rust-toolchain.toml")
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                package.inputs(root)
+
     def test_automatic_activation_allows_only_the_executable_file_dependency(self):
         stock = b'#!/bin/sh\n\tprocd_set_param file $CONFIGFILE\n\tprocd_set_param respawn\n'
         candidate = stock.replace(b'file $CONFIGFILE\n', b'file $CONFIGFILE $PROG\n')

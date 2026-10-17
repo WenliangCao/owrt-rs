@@ -1,7 +1,7 @@
 //! Bounded local-file jobs and triggers; no DNS resolver or thread is hidden
 //! here. The caller publishes each completed source in its existing owner.
 
-use super::{resolver_line, server_line, FileStamp, ResolverSelection, Source, SourceRule};
+use super::{resolver_line, FileStamp, ResolverSelection, Source, SourceRule};
 use crate::config::dns::endpoints;
 use crate::config::dns::lookup::EndpointLookup;
 use crate::config::dns::{RuleTarget, ServerHost};

@@ -1125,6 +1125,7 @@ impl CacheContext<'_> {
     /// Preserve the child extraction policy and return the exact commit order.
     /// Parent import applies current local conflicts without reprocessing wire
     /// bytes under a newer HUP/doctor/filter configuration.
+    #[cfg(test)]
     pub fn insert_reply_for_transfer(
         &mut self,
         packet: &[u8],

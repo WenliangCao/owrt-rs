@@ -85,6 +85,7 @@ pub enum FilePlanStep {
 impl HostFiles {
     /// Reuse the qualified bank grammar outside the configuration module;
     /// `existing` includes every row visible to C's duplicate-address check.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     pub(crate) fn parse_row(
         argument: &crate::config::EncodedArg,
         existing: &[HostConfig],

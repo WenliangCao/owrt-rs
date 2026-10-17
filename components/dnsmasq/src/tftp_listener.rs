@@ -1,5 +1,6 @@
 //! Single-owner TFTP listeners sharing one transfer table and capacity limit.
 #![cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use dnsmasq_platform::setsockopt;
 
 #[path = "tftp_policy.rs"]
 mod policy;
@@ -830,19 +831,11 @@ fn bind_transfer_address(
             Ok(socket) => {
                 // tftp.c:342: permit IPv4 fragmentation for negotiated blocks
                 // exceeding the path MTU, including IPv4 on a dual-family fd.
-                extern "C" {
-                    fn setsockopt(
-                        fd: i32,
-                        level: i32,
-                        option: i32,
-                        value: *const i32,
-                        length: u32,
-                    ) -> i32;
-                }
+
                 let disable_discovery = 0i32;
                 // SAFETY: the option receives one live native int; Linux's
                 // IPPROTO_IP/IP_MTU_DISCOVER are 0/10 and DONT is zero.
-                if unsafe { setsockopt(socket.as_raw_fd(), 0, 10, &disable_discovery, 4) } < 0 {
+                if unsafe { setsockopt(socket.as_raw_fd(), 0, 10, (&disable_discovery as *const i32).cast(), 4) } < 0 {
                     return Err(io::Error::last_os_error());
                 }
                 socket.set_nonblocking(true)?;
