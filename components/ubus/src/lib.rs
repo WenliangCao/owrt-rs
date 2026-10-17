@@ -1,10 +1,11 @@
 //! Minimal ubus wire-protocol implementation: blob/blobmsg codec, a blocking
 //! connection that can act as client (lookup, invoke, notify) and as object
 //! server (add_object, receive invokes, reply with data/status and an optional
-//! file descriptor). No libubus, no third-party crates. Linux only.
+//! file descriptor). No libubus; rustix supplies ordinary OS calls. Linux only.
 
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![forbid(unsafe_code)]
 
 pub mod blob;
 mod connect;

@@ -1,6 +1,6 @@
 //! ubusd's bounded async-signal-safe wake operation.
 // This synchronous test helper is shared until the common unix module owns it.
-pub use crate::rpcd::with_errno;
+pub use crate::unix::with_errno;
 
 unsafe extern "C" {
     fn write(fd: i32, bytes: *const u8, count: usize) -> isize;

@@ -1,4 +1,4 @@
-//! The CLI takes `main` from libc directly (`#![no_main]` in `src/bin/uci-rs.rs`)
+//! The CLI takes `main` from libc directly (`#![no_main]` in `platform/entry.rs`)
 //! so a one-shot invocation skips the Rust runtime prologue.  Without that
 //! prologue nothing in the program references libc's `getauxval` before the
 //! linker reaches `compiler_builtins`, whose outline-atomics initialiser needs

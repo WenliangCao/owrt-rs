@@ -3,12 +3,7 @@
 
 use std::fs::{File, OpenOptions};
 use std::io;
-use std::os::fd::AsRawFd;
 use std::os::unix::fs::OpenOptionsExt;
-
-extern "C" {
-    fn flock(fd: i32, op: i32) -> i32;
-}
 
 pub const LOCK_SH: i32 = 1;
 pub const LOCK_EX: i32 = 2;
@@ -17,22 +12,23 @@ pub const LOCK_UN: i32 = 8;
 
 /// flock(fd, op). ENOSYS is treated as success like libuci does.
 pub fn lock(file: &File, op: i32) -> io::Result<()> {
-    // SAFETY: plain syscall on a valid, owned descriptor; no memory is passed.
-    let rc = unsafe { flock(file.as_raw_fd(), op) };
-    if rc < 0 {
-        let e = io::Error::last_os_error();
-        if e.raw_os_error() != Some(38) {
-            return Err(e);
-        }
+    use rustix::fs::FlockOperation;
+    let operation = match op {
+        LOCK_SH => FlockOperation::LockShared,
+        LOCK_EX => FlockOperation::LockExclusive,
+        LOCK_UN => FlockOperation::Unlock,
+        n if n == (LOCK_SH | LOCK_NB) => FlockOperation::NonBlockingLockShared,
+        n if n == (LOCK_EX | LOCK_NB) => FlockOperation::NonBlockingLockExclusive,
+        _ => return Err(io::ErrorKind::InvalidInput.into()),
+    };
+    match rustix::fs::flock(file, operation) {
+        Ok(()) | Err(rustix::io::Errno::NOSYS) => Ok(()),
+        Err(error) => Err(error.into()),
     }
-    Ok(())
 }
 
 pub fn unlock(file: &File) {
-    // SAFETY: as above; result ignored like libuci's uci_close_stream.
-    unsafe {
-        flock(file.as_raw_fd(), LOCK_UN);
-    }
+    let _ = rustix::fs::flock(file, rustix::fs::FlockOperation::Unlock);
 }
 
 /// mkstemp(3) equivalent: create `<template minus XXXXXX><6 chars>` with
@@ -43,7 +39,6 @@ pub fn mkstemp(template: &str) -> io::Result<(File, String)> {
     };
     const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let mut seed = std::process::id() as u64 ^ {
-        
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_nanos() as u64)
@@ -72,5 +67,8 @@ pub fn mkstemp(template: &str) -> io::Result<(File, String)> {
             Err(e) => return Err(e),
         }
     }
-    Err(io::Error::new(io::ErrorKind::AlreadyExists, "mkstemp exhausted"))
+    Err(io::Error::new(
+        io::ErrorKind::AlreadyExists,
+        "mkstemp exhausted",
+    ))
 }

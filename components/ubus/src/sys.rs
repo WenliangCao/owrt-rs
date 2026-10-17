@@ -1,8 +1,7 @@
-//! Hand-written Linux FFI for the few calls std does not expose:
-//! sendmsg/recvmsg with SCM_RIGHTS, poll, pipe2, setuid/setgid.
+//! Bounded ubus I/O and deadline policy over rustix and the shared ABI boundary.
 
 use std::io;
-use std::os::fd::{FromRawFd, OwnedFd, RawFd};
+use std::os::fd::{OwnedFd, RawFd};
 use std::time::Instant;
 
 #[derive(Debug)]
@@ -58,92 +57,17 @@ impl Bound {
     }
 }
 
-#[repr(C)]
-pub struct IoVec {
-    pub base: *mut u8,
-    pub len: usize,
-}
-
-#[repr(C)]
-pub struct MsgHdr {
-    pub name: *mut u8,
-    pub namelen: u32,
-    pub iov: *mut IoVec,
-    pub iovlen: usize,
-    pub control: *mut u8,
-    pub controllen: usize,
-    pub flags: i32,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct PollFd {
-    pub fd: i32,
-    pub events: i16,
-    pub revents: i16,
-}
-
+pub use owrt_platform::unix::{PollFd, poll_fds, set_nonblocking, drop_privileges};
 pub const POLLIN: i16 = 0x001;
 pub const POLLOUT: i16 = 0x004;
 pub const POLLERR: i16 = 0x008;
 pub const POLLHUP: i16 = 0x010;
-
-const SOL_SOCKET: i32 = 1;
-const SCM_RIGHTS: i32 = 1;
-const CMSG_HDR: usize = 16; // sizeof(struct cmsghdr) on 64-bit Linux
-const CMSG_SPACE_FD: usize = 24; // CMSG_SPACE(sizeof(int)) buffer size
-const CMSG_LEN_FD: usize = 20; // CMSG_LEN(sizeof(int)); one fd, as libubus asks
-const O_CLOEXEC: i32 = 0o2000000;
-const MSG_DONTWAIT: i32 = 0x40;
-
-extern "C" {
-    fn sendmsg(fd: i32, msg: *const MsgHdr, flags: i32) -> isize;
-    fn recvmsg(fd: i32, msg: *mut MsgHdr, flags: i32) -> isize;
-    fn poll(fds: *mut PollFd, nfds: u64, timeout: i32) -> i32;
-    fn pipe2(fds: *mut i32, flags: i32) -> i32;
-    #[link_name = "socketpair"]
-    fn libc_socketpair(domain: i32, ty: i32, protocol: i32, fds: *mut i32) -> i32;
-    fn setuid(uid: u32) -> i32;
-    fn setgid(gid: u32) -> i32;
-    fn signal(signum: i32, handler: usize) -> usize;
-    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
-}
-
-const F_GETFL: i32 = 3;
-const F_SETFL: i32 = 4;
-const O_NONBLOCK: i32 = 0o4000;
-
-pub fn set_nonblocking(fd: RawFd) -> io::Result<()> {
-    // SAFETY: fcntl(2) with F_GETFL takes no argument beyond the command and
-    // only reads the caller's descriptor.
-    let flags = unsafe { fcntl(fd, F_GETFL, 0) };
-    if flags < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: F_SETFL with the flags just read back, on the same descriptor.
-    if unsafe { fcntl(fd, F_SETFL, flags | O_NONBLOCK) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
-}
-
 pub const SIGPIPE: i32 = 13;
 pub const SIGTERM: i32 = 15;
 pub const SIGINT: i32 = 2;
-
-pub fn ignore_signal(signum: i32) {
-    // SAFETY: SIG_IGN (1) is a valid disposition for any catchable signal.
-    unsafe {
-        signal(signum, 1);
-    }
-}
-
+pub fn ignore_signal(signum: i32) { let _ = owrt_platform::unix::ignore_signal(signum); }
 pub fn set_signal_handler(signum: i32, handler: extern "C" fn(i32)) {
-    // SAFETY: `handler` is an extern "C" fn(i32), which is the shape signal(2)
-    // dispatches to. Keeping the handler async-signal-safe is the caller's job.
-    unsafe {
-        signal(signum, handler as usize);
-    }
+    let _ = owrt_platform::unix::set_signal_handler(signum, handler);
 }
 
 /// Send `header` followed by `body` on a unix socket, optionally attaching `fd`
@@ -168,52 +92,18 @@ pub(crate) fn send_parts_until_cancelled<const N: usize>(
     bound: Bound,
     cancelled: Option<fn() -> bool>,
 ) -> io::Result<()> {
-    let mut iov = parts.map(|part| IoVec {
-        base: part.as_ptr() as *mut u8,
-        len: part.len(),
-    });
-    let mut control = [0u8; CMSG_SPACE_FD];
+    let mut vectors = parts.map(std::io::IoSlice::new);
+    let mut remaining = vectors.as_mut_slice();
     let mut attach = fd;
-    let mut index = 0;
     let mut started = false;
     let mut deadline = if let Bound::At(deadline) = bound { Some(deadline) } else { None };
-    while index < iov.len() {
+    while !remaining.is_empty() {
         check_cancelled(cancelled)?;
         check_deadline(deadline).map_err(|e| after_progress(e, started))?;
-        let mut hdr = MsgHdr {
-            name: std::ptr::null_mut(),
-            namelen: 0,
-            iov: iov[index..].as_mut_ptr(),
-            iovlen: iov.len() - index,
-            control: std::ptr::null_mut(),
-            controllen: 0,
-            flags: 0,
-        };
-        if let Some(fd) = attach {
-            // struct cmsghdr { size_t len; int level; int type; } + int fd
-            control[..8].copy_from_slice(&(CMSG_HDR + 4).to_ne_bytes());
-            control[8..12].copy_from_slice(&SOL_SOCKET.to_ne_bytes());
-            control[12..16].copy_from_slice(&SCM_RIGHTS.to_ne_bytes());
-            control[16..20].copy_from_slice(&fd.to_ne_bytes());
-            hdr.control = control.as_mut_ptr();
-            hdr.controllen = CMSG_HDR + 4;
-        }
-        // SAFETY: hdr, the iovec array it points at and the control buffer all
-        // outlive this call, and their lengths describe them.
-        let sent = unsafe {
-            sendmsg(
-                sock,
-                &hdr,
-                if bound.nonblocking() || cancelled.is_some() {
-                    MSG_DONTWAIT
-                } else {
-                    0
-                },
-            )
-        };
-        if sent < 0 {
-            let error = io::Error::last_os_error();
-            match error.kind() {
+        let sent = match owrt_platform::ipc::send_slices(sock, remaining, attach,
+            bound.nonblocking() || cancelled.is_some()) {
+            Ok(sent) => sent,
+            Err(error) => match error.kind() {
                 io::ErrorKind::Interrupted => continue,
                 io::ErrorKind::WouldBlock => {
                     wait_until_cancelled(sock, POLLOUT, bound.deadline(&mut deadline), cancelled)
@@ -221,25 +111,14 @@ pub(crate) fn send_parts_until_cancelled<const N: usize>(
                     continue;
                 }
                 _ => return Err(error),
-            }
-        }
-        if sent == 0 && iov[index..].iter().any(|part| part.len != 0) {
+            },
+        };
+        if sent == 0 && remaining.iter().any(|part| !part.is_empty()) {
             return Err(io::Error::new(io::ErrorKind::WriteZero, "ubus send made no progress"));
         }
         attach = None;
         started |= sent > 0;
-        let mut remaining = sent as usize;
-        while index < iov.len() && remaining >= iov[index].len {
-            remaining -= iov[index].len;
-            index += 1;
-        }
-        if index < iov.len() {
-            // SAFETY: the loop above consumed every iovec fully covered by `sent`, so
-            // `remaining` is strictly less than this entry's length and the advanced
-            // pointer stays inside the same buffer.
-            iov[index].base = unsafe { iov[index].base.add(remaining) };
-            iov[index].len -= remaining;
-        }
+        std::io::IoSlice::advance_slices(&mut remaining, sent);
     }
     Ok(())
 }
@@ -297,53 +176,7 @@ pub(crate) fn recv_exact_until_cancelled(
 /// SCM_RIGHTS descriptor that came with them. Errors are returned raw so the
 /// caller decides how to retry EINTR and EAGAIN.
 pub(crate) fn recv_into(sock: RawFd, buf: &mut [u8], want_fd: bool, nonblocking: bool) -> io::Result<(usize, Option<OwnedFd>)> {
-    let mut iov = IoVec { base: buf.as_mut_ptr(), len: buf.len() };
-    let mut control = [0u8; CMSG_SPACE_FD];
-    let mut hdr = MsgHdr {
-        name: std::ptr::null_mut(),
-        namelen: 0,
-        iov: &mut iov,
-        iovlen: 1,
-        control: if want_fd { control.as_mut_ptr() } else { std::ptr::null_mut() },
-        controllen: if want_fd { CMSG_LEN_FD } else { 0 },
-        flags: 0,
-    };
-    // SAFETY: hdr, its iovec and the control buffer are live for the call and
-    // sized by the lengths hdr carries.
-    let got = unsafe { recvmsg(sock, &mut hdr, if nonblocking { MSG_DONTWAIT } else { 0 }) };
-    if got < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    let mut fd = None;
-    if want_fd && hdr.controllen >= CMSG_HDR + 4 {
-        let level = i32::from_ne_bytes(control[8..12].try_into().unwrap());
-        let kind = i32::from_ne_bytes(control[12..16].try_into().unwrap());
-        if level == SOL_SOCKET && kind == SCM_RIGHTS {
-            let raw = i32::from_ne_bytes(control[16..20].try_into().unwrap());
-            if raw >= 0 {
-                // SAFETY: the kernel installed this descriptor for this process as part of
-                // the SCM_RIGHTS message, and nothing else refers to it, so OwnedFd may
-                // take over closing it.
-                fd = Some(unsafe { OwnedFd::from_raw_fd(raw) });
-            }
-        }
-    }
-    Ok((got as usize, fd))
-}
-
-pub fn poll_fds(fds: &mut [PollFd], timeout_ms: i32) -> io::Result<usize> {
-    loop {
-        // SAFETY: fds is a live slice and its length is passed alongside.
-        let ready = unsafe { poll(fds.as_mut_ptr(), fds.len() as u64, timeout_ms) };
-        if ready < 0 {
-            let error = io::Error::last_os_error();
-            if error.kind() == io::ErrorKind::Interrupted {
-                continue;
-            }
-            return Err(error);
-        }
-        return Ok(ready as usize);
-    }
+    owrt_platform::ipc::recv_into(sock, buf, want_fd, nonblocking)
 }
 
 pub(crate) fn check_deadline(deadline: Option<Instant>) -> io::Result<()> {
@@ -391,13 +224,10 @@ pub(crate) fn wait_until_cancelled(
         if cancelled.is_some() {
             timeout = if timeout < 0 { 10 } else { timeout.min(10) };
         }
-        // SAFETY: pfd is one live pollfd. Recompute the deadline after EINTR
-        // instead of restarting the full timeout under repeated signals.
-        let ready = unsafe { poll(pfd.as_mut_ptr(), 1, timeout) };
-        if ready > 0 { return Ok(()); }
-        if ready < 0 {
-            let error = io::Error::last_os_error();
-            if error.kind() != io::ErrorKind::Interrupted { return Err(error); }
+        match owrt_platform::unix::poll_once(&mut pfd, timeout) {
+            Ok(ready) if ready > 0 => return Ok(()),
+            Err(error) if error.kind() != io::ErrorKind::Interrupted => return Err(error),
+            _ => (),
         }
     }
 }
@@ -413,53 +243,16 @@ pub fn wait_readable(fd: RawFd, timeout_ms: i32) -> io::Result<bool> {
 }
 
 pub fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
-    pipe_with_flags(O_CLOEXEC)
+    Ok(rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?)
 }
-
 /// Create both ends nonblocking before either descriptor can be published.
 pub fn nonblocking_pipe() -> io::Result<(OwnedFd, OwnedFd)> {
-    pipe_with_flags(O_CLOEXEC | O_NONBLOCK)
+    Ok(rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC | rustix::pipe::PipeFlags::NONBLOCK)?)
 }
-
-fn pipe_with_flags(flags: i32) -> io::Result<(OwnedFd, OwnedFd)> {
-    let mut fds = [-1i32; 2];
-    // SAFETY: fds is a live two-element array, which is what pipe2 fills.
-    if unsafe { pipe2(fds.as_mut_ptr(), flags) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: pipe2 succeeded, so both entries are fresh descriptors owned by
-    // this process and held nowhere else.
-    Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })
-}
-
-/// socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC): what logd uses for stream
-/// clients (a unix stream socket's send buffer, ~200 KiB by default, takes a
-/// whole ring-buffer backlog in one write; a pipe holds 64 KiB).
+/// Preserve the stream socketpair used for a complete logd backlog write.
 pub fn socketpair() -> io::Result<(OwnedFd, OwnedFd)> {
-    const AF_UNIX: i32 = 1;
-    const SOCK_STREAM: i32 = 1;
-    const SOCK_CLOEXEC: i32 = 0o2000000;
-    let mut fds = [-1i32; 2];
-    // SAFETY: fds is a live two-element array, which is what socketpair fills.
-    if unsafe { libc_socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds.as_mut_ptr()) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: socketpair succeeded, so both entries are fresh descriptors owned
-    // by this process and held nowhere else.
-    Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })
-}
-
-pub fn drop_privileges(uid: u32, gid: u32) -> io::Result<()> {
-    // SAFETY: setgid(2) takes a plain id and touches no memory. It must come
-    // before setuid, which the next statement does.
-    if unsafe { setgid(gid) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: setuid(2) takes a plain id and touches no memory.
-    if unsafe { setuid(uid) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
+    Ok(rustix::net::socketpair(rustix::net::AddressFamily::UNIX,
+        rustix::net::SocketType::STREAM, rustix::net::SocketFlags::CLOEXEC, None)?)
 }
 
 #[cfg(test)]
@@ -472,22 +265,18 @@ mod tests {
     #[test]
     fn ordinary_pipe_keeps_blocking_ends() {
         let (reader, writer) = pipe().unwrap();
-        for fd in [reader.as_raw_fd(), writer.as_raw_fd()] {
-            // SAFETY: F_GETFL only inspects the live owned descriptor.
-            let flags = unsafe { fcntl(fd, F_GETFL, 0) };
-            assert!(flags >= 0);
-            assert_eq!(flags & O_NONBLOCK, 0);
+        for fd in [&reader, &writer] {
+            let flags = rustix::fs::fcntl_getfl(fd).unwrap();
+            assert!(!flags.contains(rustix::fs::OFlags::NONBLOCK));
         }
     }
 
     #[test]
     fn nonblocking_pipe_handles_empty_reads_and_full_writes() {
         let (reader, writer) = nonblocking_pipe().unwrap();
-        for fd in [reader.as_raw_fd(), writer.as_raw_fd()] {
-            // SAFETY: F_GETFL only inspects the live owned descriptor.
-            let flags = unsafe { fcntl(fd, F_GETFL, 0) };
-            assert!(flags >= 0);
-            assert_ne!(flags & O_NONBLOCK, 0);
+        for fd in [&reader, &writer] {
+            let flags = rustix::fs::fcntl_getfl(fd).unwrap();
+            assert!(flags.contains(rustix::fs::OFlags::NONBLOCK));
         }
         let mut reader = std::fs::File::from(reader);
         let mut writer = std::fs::File::from(writer);

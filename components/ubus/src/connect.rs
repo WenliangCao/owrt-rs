@@ -26,19 +26,10 @@ pub(crate) fn stream(
 #[cfg(target_os = "linux")]
 mod linux {
     use super::*;
-    use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+    use std::os::fd::AsRawFd;
+    use rustix::net;
     use std::time::Duration;
     use crate::sys::{PollFd, POLLOUT};
-
-    #[repr(C)]
-    struct Address { family: u16, path: [u8; 108] }
-
-    extern "C" {
-        fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
-        fn connect(fd: i32, address: *const Address, length: u32) -> i32;
-        fn poll(fds: *mut PollFd, count: u64, timeout: i32) -> i32;
-        fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, length: *mut u32) -> i32;
-    }
 
     fn remaining(deadline: Instant, cancelled: Option<fn() -> bool>) -> io::Result<Duration> {
         crate::sys::check_cancelled(cancelled)?;
@@ -56,19 +47,15 @@ mod linux {
         if path.as_bytes().contains(&0) || path.len() >= 108 {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid unix socket path"));
         }
-        let mut address = Address { family: 1, path: [0; 108] };
-        address.path[..path.len()].copy_from_slice(path.as_bytes());
-        // SAFETY: Linux AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC.
-        let raw = unsafe { socket(1, 1 | 0o4000 | 0o2000000, 0) };
-        if raw < 0 { return Err(io::Error::last_os_error()); }
-        // SAFETY: socket returned a new descriptor, owned only here.
-        let socket = unsafe { OwnedFd::from_raw_fd(raw) };
+        let address = net::SocketAddrUnix::new(path)?;
+        let socket = net::socket_with(net::AddressFamily::UNIX, net::SocketType::STREAM,
+            net::SocketFlags::NONBLOCK | net::SocketFlags::CLOEXEC, None)?;
         loop {
             remaining(deadline, cancelled)?;
-            // SAFETY: address is live and the length includes its trailing NUL.
-            let result = unsafe { connect(socket.as_raw_fd(), &address, (2 + path.len() + 1) as u32) };
-            if result == 0 { break; }
-            let error = io::Error::last_os_error();
+            let error = match net::connect(&socket, &address) {
+                Ok(()) => break,
+                Err(error) => io::Error::from(error),
+            };
             match error.raw_os_error() {
                 Some(4) => continue, // EINTR
                 Some(11) => {
@@ -88,21 +75,13 @@ mod linux {
                         if cancelled.is_some() {
                             timeout = timeout.min(10);
                         }
-                        // SAFETY: fd is one live pollfd. EINTR recomputes the deadline.
-                        let ready = unsafe { poll(&mut fd, 1, timeout) };
-                        if ready == 0 { continue; }
-                        if ready < 0 {
-                            let error = io::Error::last_os_error();
-                            if error.kind() == io::ErrorKind::Interrupted { continue; }
-                            return Err(error);
+                        match owrt_platform::unix::poll_once(std::slice::from_mut(&mut fd), timeout) {
+                            Ok(0) => continue,
+                            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                            Err(error) => return Err(error),
+                            _ => (),
                         }
-                        let mut error = 0;
-                        let mut length = std::mem::size_of_val(&error) as u32;
-                        // SAFETY: SO_ERROR writes one i32 to our live value.
-                        if unsafe { getsockopt(socket.as_raw_fd(), 1, 4, &mut error, &mut length) } < 0 {
-                            return Err(io::Error::last_os_error());
-                        }
-                        if error != 0 { return Err(io::Error::from_raw_os_error(error)); }
+                        net::sockopt::socket_error(&socket)??;
                         break;
                     }
                     break;
@@ -122,7 +101,6 @@ mod tests {
     use super::*;
     use crate::{Connection, Header, BlobBuf, ty};
     use std::io::{Read, Write};
-    use std::os::fd::AsRawFd;
     use std::os::unix::net::UnixListener;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicUsize, Ordering};
@@ -192,11 +170,7 @@ mod tests {
         }
         CANCEL.store(false, Ordering::Relaxed);
         let fixture = Fixture::new();
-        extern "C" {
-            fn listen(fd: i32, backlog: i32) -> i32;
-        }
-        // SAFETY: the fixture owns this listening socket; reduce its backlog.
-        assert_eq!(unsafe { listen(fixture.listener.as_raw_fd(), 0) }, 0);
+        rustix::net::listen(&fixture.listener, 0).unwrap();
         let filler = UnixStream::connect(fixture.path()).unwrap();
         let cancel = std::thread::spawn(|| {
             std::thread::sleep(Duration::from_millis(20));
@@ -265,10 +239,8 @@ mod tests {
 
     #[test]
     fn full_backlog_times_out_and_recovers_with_the_same_total_budget() {
-        extern "C" { fn listen(fd: i32, backlog: i32) -> i32; }
         let fixture = Fixture::new();
-        // SAFETY: the fixture owns this listening socket; reduce only its backlog.
-        assert_eq!(unsafe { listen(fixture.listener.as_raw_fd(), 0) }, 0);
+        rustix::net::listen(&fixture.listener, 0).unwrap();
         let filler = UnixStream::connect(fixture.path()).unwrap();
         let started = Instant::now();
         let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(30))

@@ -1,7 +1,6 @@
 //! Small libc boundaries for rpcd. Request policy and protocol state stay in rpcd.
 use std::ffi::{c_char, CStr, CString};
 use std::io;
-use std::sync::Mutex;
 
 pub mod readiness;
 
@@ -20,27 +19,13 @@ unsafe extern "C" {
     fn localtime_r(time: *const i64, output: *mut std::ffi::c_void) -> *mut std::ffi::c_void;
     fn time(output: *mut i64) -> i64;
 }
-#[cfg_attr(target_env = "gnu", link(name = "crypt"))]
-unsafe extern "C" {
-    fn crypt(key: *const c_char, salt: *const c_char) -> *mut c_char;
-}
-
 pub fn fnmatch(pattern: &CStr, name: &CStr, flags: i32) -> bool {
     // SAFETY: both terminated strings live across libc's synchronous matcher.
     unsafe { libc_fnmatch(pattern.as_ptr(), name.as_ptr(), flags) == 0 }
 }
 
-static CRYPT: Mutex<()> = Mutex::new(());
 pub fn crypt_matches(key: &CStr, salt: &CStr, expected: &[u8]) -> bool {
-    let _guard = CRYPT.lock().unwrap_or_else(|error| error.into_inner());
-    // SAFETY: input strings live across crypt. The mutex protects its static
-    // result until comparison is complete; no borrowed result escapes.
-    let result = unsafe { crypt(key.as_ptr(), salt.as_ptr()) };
-    if result.is_null() {
-        return false;
-    }
-    // SAFETY: a successful crypt result is terminated and stable under CRYPT.
-    unsafe { CStr::from_ptr(result) }.to_bytes() == expected
+    crate::text::with_crypt(key, salt, |value| value == expected)
 }
 
 pub fn delayed_exec(arguments: &[CString]) -> i32 {
@@ -104,31 +89,7 @@ pub fn drain_pipe(fd: i32) {
     }
 }
 
-/// Synchronous errno observation used by signal regression tests.
-pub fn with_errno<R>(value: i32, action: impl FnOnce() -> R) -> (R, i32) {
-    struct Restore(*mut i32, i32);
-    impl Drop for Restore {
-        fn drop(&mut self) {
-            // SAFETY: the guard never escapes this thread's synchronous call.
-            unsafe {
-                *self.0 = self.1;
-            }
-        }
-    }
-    // SAFETY: Linux exposes this live thread's errno; no pointer escapes.
-    let pointer = unsafe { __errno_location() };
-    // SAFETY: pointer belongs to the calling thread for the whole operation.
-    let restore = unsafe {
-        let previous = *pointer;
-        *pointer = value;
-        Restore(pointer, previous)
-    };
-    let result = action();
-    // SAFETY: callback completed synchronously on the same thread.
-    let observed = unsafe { *pointer };
-    drop(restore);
-    (result, observed)
-}
+pub use crate::unix::with_errno;
 
 #[repr(C)]
 struct Tm {
@@ -178,7 +139,7 @@ pub fn localtime(provided: Option<i64>) -> Option<LocalTime> {
 use std::os::fd::{AsFd, AsRawFd};
 unsafe extern "C" {
     fn ioctl(fd: i32, request: std::ffi::c_ulong, ...) -> i32;
-    fn setsockopt(fd: i32, level: i32, name: i32, value: *const i32, len: u32) -> i32;
+    fn setsockopt(fd: i32, level: i32, name: i32, value: *const std::ffi::c_void, len: u32) -> i32;
     fn if_nametoindex(name: *const c_char) -> u32;
     fn bind(fd: i32, address: *const u8, length: u32) -> i32;
     fn connect(fd: i32, address: *const u8, length: u32) -> i32;
@@ -222,7 +183,7 @@ pub fn interface_ioctl(
 pub fn netlink_membership(fd: impl AsFd, group: i32) -> io::Result<()> {
     // SAFETY: fixed SOL_NETLINK/ADD_MEMBERSHIP reads one live integer. rustix
     // 1.1.5 does not expose this socket option.
-    if unsafe { setsockopt(fd.as_fd().as_raw_fd(), 270, 1, &group, 4) } < 0 {
+    if unsafe { setsockopt(fd.as_fd().as_raw_fd(), 270, 1, (&group as *const i32).cast(), 4) } < 0 {
         Err(io::Error::last_os_error())
     } else {
         Ok(())

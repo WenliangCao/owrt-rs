@@ -16,7 +16,13 @@ fn basename(path: &str) -> &str {
 }
 
 /// uci_open_stream(ctx, filename, NULL, pos, write, create)
-pub fn open_stream(ctx: &Context, filename: &str, seek_end: bool, write: bool, create: bool) -> Result<File> {
+pub fn open_stream(
+    ctx: &Context,
+    filename: &str,
+    seek_end: bool,
+    write: bool,
+    create: bool,
+) -> Result<File> {
     ctx.check_io_budget()?;
     let mut mode = FILEMODE;
     if create {
@@ -60,7 +66,12 @@ fn read_all(ctx: &Context, reader: impl Read, hint: usize) -> Result<Vec<u8>> {
     read_into(ctx, reader, hint, Vec::new())
 }
 
-fn read_into(ctx: &Context, mut reader: impl Read, hint: usize, mut data: Vec<u8>) -> Result<Vec<u8>> {
+fn read_into(
+    ctx: &Context,
+    mut reader: impl Read,
+    hint: usize,
+    mut data: Vec<u8>,
+) -> Result<Vec<u8>> {
     data.resize(hint.saturating_add(1).min(64 * 1024), 0);
     let mut filled: usize = 0;
     loop {
@@ -110,8 +121,15 @@ mod read_tests {
         for chunk in [1, 7, 16, bytes.len()] {
             for hint in [0, 3, bytes.len(), bytes.len() + 128] {
                 for buffer in [Vec::new(), vec![0xa5; 4096]] {
-                    let reader = Fragmented { bytes: Cursor::new(&bytes[..]), chunk, interrupt: true };
-                    assert_eq!(read_into(&Context::new(), reader, hint, buffer).unwrap(), bytes);
+                    let reader = Fragmented {
+                        bytes: Cursor::new(&bytes[..]),
+                        chunk,
+                        interrupt: true,
+                    };
+                    assert_eq!(
+                        read_into(&Context::new(), reader, hint, buffer).unwrap(),
+                        bytes
+                    );
                 }
             }
         }
@@ -122,12 +140,17 @@ mod read_tests {
         struct FailAfter<'a>(&'a [u8]);
         impl Read for FailAfter<'_> {
             fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
-                if self.0.is_empty() { return Err(io::ErrorKind::Other.into()); }
+                if self.0.is_empty() {
+                    return Err(io::ErrorKind::Other.into());
+                }
                 self.0.read(out)
             }
         }
         for buffer in [Vec::new(), vec![0xa5; 4096]] {
-            assert_eq!(read_into(&Context::new(), FailAfter(b"prefix"), 6, buffer), Err(Error::Io));
+            assert_eq!(
+                read_into(&Context::new(), FailAfter(b"prefix"), 6, buffer),
+                Err(Error::Io)
+            );
         }
     }
 
@@ -136,7 +159,10 @@ mod read_tests {
         let bytes = b"old prefix\nremaining delta\n";
         let mut reader = Cursor::new(&bytes[..]);
         reader.set_position(11);
-        assert_eq!(read_all(&Context::new(), reader, bytes.len()).unwrap(), b"remaining delta\n");
+        assert_eq!(
+            read_all(&Context::new(), reader, bytes.len()).unwrap(),
+            b"remaining delta\n"
+        );
     }
 }
 
@@ -145,7 +171,11 @@ fn config_path(ctx: &Context, name: &str, conf2: bool) -> Result<Option<String>>
     if !crate::ops::validate_package(name) {
         return Err(Error::Inval);
     }
-    let dir = if conf2 { ctx.conf2dir.as_deref() } else { Some(ctx.confdir.as_str()) };
+    let dir = if conf2 {
+        ctx.conf2dir.as_deref()
+    } else {
+        Some(ctx.confdir.as_str())
+    };
     Ok(dir.map(|d| format!("{d}/{name}")))
 }
 
@@ -160,7 +190,11 @@ pub fn load_cached(ctx: &mut Context, name: &str, cache: &mut crate::ReadCache) 
     load_impl(ctx, name, Some(cache))
 }
 
-fn load_impl(ctx: &mut Context, name: &str, mut cache: Option<&mut crate::ReadCache>) -> Result<usize> {
+fn load_impl(
+    ctx: &mut Context,
+    name: &str,
+    mut cache: Option<&mut crate::ReadCache>,
+) -> Result<usize> {
     let (filename, pkgname, confdir, conf2) = match name.as_bytes().first() {
         Some(b'.') if name.as_bytes().get(1) != Some(&b'/') => return Err(Error::NotFound),
         Some(b'.') | Some(b'/') => {
@@ -322,7 +356,10 @@ pub fn list_config_files(ctx: &Context) -> Result<Vec<String>> {
 }
 
 /// The listing itself depends only on confdir, not a parser or delta context.
-#[cfg(not(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64"))))]
+#[cfg(not(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+)))]
 pub fn list_config_files_in(confdir: &str) -> Result<Vec<String>> {
     let entries = match fs::read_dir(confdir) {
         Ok(e) => e,
@@ -341,7 +378,9 @@ pub fn list_config_files_in(confdir: &str) -> Result<Vec<String>> {
         if bytes.contains(&b'.') {
             continue;
         }
-        let Ok(name) = raw.into_string() else { continue };
+        let Ok(name) = raw.into_string() else {
+            continue;
+        };
         if !crate::ops::validate_package(&name) {
             continue;
         }
@@ -363,72 +402,53 @@ pub fn list_config_files_in(confdir: &str) -> Result<Vec<String>> {
     Ok(out)
 }
 
-#[cfg(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64")))]
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+))]
 pub fn list_config_files_in(confdir: &str) -> Result<Vec<String>> {
     directory::list(confdir)
 }
 
-#[cfg(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64")))]
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+))]
 mod directory {
     use super::*;
-    use std::ffi::{c_char, c_void, CStr, CString};
-    use std::ptr::NonNull;
-
-    // Linux aarch64/x86_64 dirent; verified against the image SDK by check_abi.
-    #[repr(C)]
-    struct Dirent { ino: u64, off: i64, reclen: u16, ty: u8, name: [c_char; 256] }
-    extern "C" {
-        fn opendir(path: *const c_char) -> *mut c_void;
-        fn readdir(dir: *mut c_void) -> *mut Dirent;
-        fn closedir(dir: *mut c_void) -> i32;
-    }
-    struct Directory(NonNull<c_void>);
-    impl Drop for Directory {
-        fn drop(&mut self) {
-            // SAFETY: this object owns the successful opendir result.
-            unsafe { closedir(self.0.as_ptr()); }
-        }
-    }
 
     pub fn list(confdir: &str) -> Result<Vec<String>> {
-        let path = CString::new(confdir).map_err(|_| Error::NotFound)?;
-        // SAFETY: path is NUL terminated and remains live through the call.
-        let dir = Directory(NonNull::new(unsafe { opendir(path.as_ptr()) }).ok_or(Error::NotFound)?);
         let mut matched = false;
         let mut out = Vec::new();
-        loop {
-            // SAFETY: dir is open and exclusively used here. Each borrowed
-            // entry/name is consumed before the next readdir or closedir.
-            let entry = unsafe { readdir(dir.0.as_ptr()) };
-            if entry.is_null() { break; }
-            // SAFETY: libc returns a valid dirent with a NUL-terminated name;
-            // do not form a reference to the possibly shorter trailing array.
-            let (name, ty) = unsafe {
-                (CStr::from_ptr(std::ptr::addr_of!((*entry).name).cast()).to_bytes(), (*entry).ty)
-            };
-            if name.first() == Some(&b'.') { continue; }
+        owrt_platform::directory::entries(confdir, |name, ty| {
+            if name.first() == Some(&b'.') {
+                return;
+            }
             matched = true;
-            if name.contains(&b'.') { continue; }
-            let Ok(name) = std::str::from_utf8(name) else { continue };
-            if !crate::ops::validate_package(name) { continue; }
-            // DT_UNKNOWN and symlinks need the current followed metadata, as
-            // before. All other d_type values can only exclude DT_DIR (4).
+            if name.contains(&b'.') {
+                return;
+            }
+            let Ok(name) = std::str::from_utf8(name) else {
+                return;
+            };
+            if !crate::ops::validate_package(name) {
+                return;
+            }
             let is_dir = match ty {
                 0 | 10 => fs::metadata(std::path::Path::new(confdir).join(name))
-                    .map(|m| m.is_dir()).unwrap_or(false),
+                    .map(|m| m.is_dir())
+                    .unwrap_or(false),
                 _ => ty == 4,
             };
-            if !is_dir { out.push(name.to_owned()); }
+            if !is_dir {
+                out.push(name.to_owned());
+            }
+        })
+        .map_err(|_| Error::NotFound)?;
+        if !matched {
+            return Err(Error::NotFound);
         }
-        if !matched { return Err(Error::NotFound); }
         out.sort_unstable();
         Ok(out)
-    }
-
-    #[test]
-    fn dirent_layout_matches_linux_sdk() {
-        assert_eq!(std::mem::size_of::<Dirent>(), 280);
-        assert_eq!(std::mem::offset_of!(Dirent, ty), 18);
-        assert_eq!(std::mem::offset_of!(Dirent, name), 19);
     }
 }

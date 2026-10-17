@@ -1,18 +1,17 @@
 //! cli.c: the /sbin/uci command line tool.
 
-#![cfg_attr(not(test), no_main)]
-#![deny(clippy::undocumented_unsafe_blocks)]
+#![forbid(unsafe_code)]
 #![cfg_attr(test, allow(dead_code))]
 
-use owrt_uci::context::{Context, FLAG_EXPORT_NAME, FLAG_PERROR, FLAG_STRICT};
-use owrt_uci::delta;
-use owrt_uci::error::Error;
-use owrt_uci::export;
-use owrt_uci::file;
-use owrt_uci::model::{Cmd, Package, Ptr};
-use owrt_uci::ops;
-use owrt_uci::parse::{self, Pctx};
-use owrt_uci::show;
+use crate::context::{Context, FLAG_EXPORT_NAME, FLAG_PERROR, FLAG_STRICT};
+use crate::delta;
+use crate::error::Error;
+use crate::export;
+use crate::file;
+use crate::model::{Cmd, Package, Ptr};
+use crate::ops;
+use crate::parse::{self, Pctx};
+use crate::show;
 use std::io::{self, BufRead, BufReader, Write};
 
 const MAX_ARGS: usize = 4;
@@ -65,25 +64,14 @@ struct Cli {
     batch_carry: Option<parse::Carry>,
 }
 
-extern "C" {
-    fn strerror(errnum: i32) -> *const std::os::raw::c_char;
-}
-
 fn strerror_str(e: &io::Error) -> String {
-    let code = e.raw_os_error().unwrap_or(0);
-    // SAFETY: strerror returns a pointer to a static, NUL-terminated string.
-    unsafe {
-        let p = strerror(code);
-        if p.is_null() {
-            return String::new();
-        }
-        std::ffi::CStr::from_ptr(p).to_string_lossy().into_owned()
-    }
+    owrt_platform::unix::error_text(e.raw_os_error().unwrap_or(0))
 }
 
 impl Cli {
     fn usage(&self) {
-        let _ = write!(io::stderr(),
+        let _ = write!(
+            io::stderr(),
             "Usage: {} [<options>] <command> [<arguments>]\n\n\
 Commands:\n\
 \tbatch\n\
@@ -177,7 +165,10 @@ Options:\n\
         let stdout = io::stdout();
         // export renders into one sized buffer and writes it whole; only the
         // per-line commands need the writer's own 8 KiB buffer
-        let mut out = io::BufWriter::with_capacity(if cmd == CliCmd::Export { 0 } else { 8192 }, stdout.lock());
+        let mut out = io::BufWriter::with_capacity(
+            if cmd == CliCmd::Export { 0 } else { 8192 },
+            stdout.lock(),
+        );
         'out: {
             match cmd {
                 CliCmd::Changes => {
@@ -222,7 +213,8 @@ Options:\n\
                         return ret;
                     }
                     let pidx = ptr.p.expect("package");
-                    let mut show = show::Show::new(self.flags & FLAG_SHOW_EXT != 0, self.delimiter.as_bytes());
+                    let mut show =
+                        show::Show::new(self.flags & FLAG_SHOW_EXT != 0, self.delimiter.as_bytes());
                     let p = &self.ctx.root[pidx];
                     if let (Some(sidx), Some(oidx)) = (ptr.s, ptr.o) {
                         show.option(&mut out, p, &p.sections[sidx], oidx, true);
@@ -245,7 +237,9 @@ Options:\n\
     /// The batch/import source: `-f FILE`, else stdin, opened lazily so a
     /// plain `get`/`set`/`export` never allocates a reader it will not use.
     fn take_input(&mut self) -> Box<dyn BufRead> {
-        self.input.take().unwrap_or_else(|| Box::new(BufReader::new(io::stdin())))
+        self.input
+            .take()
+            .unwrap_or_else(|| Box::new(BufReader::new(io::stdin())))
     }
 
     fn unload_ptr(&mut self, ptr: &Ptr) {
@@ -278,7 +272,13 @@ Options:\n\
             }
         }
         let mut input = self.take_input();
-        let ret = parse::import(&mut self.ctx, &mut *input, name.as_deref(), merge_idx, name.is_some());
+        let ret = parse::import(
+            &mut self.ctx,
+            &mut *input,
+            name.as_deref(),
+            merge_idx,
+            name.is_some(),
+        );
         self.input = Some(input);
         let ret: Result<(), Error> = match ret {
             Err(e) => Err(e),
@@ -367,7 +367,12 @@ Options:\n\
         if ptr.value.is_some()
             && !matches!(
                 cmd,
-                CliCmd::Set | CliCmd::Del | CliCmd::AddList | CliCmd::DelList | CliCmd::Rename | CliCmd::Reorder
+                CliCmd::Set
+                    | CliCmd::Del
+                    | CliCmd::AddList
+                    | CliCmd::DelList
+                    | CliCmd::Rename
+                    | CliCmd::Reorder
             )
         {
             return 1;
@@ -385,7 +390,8 @@ Options:\n\
                 let mut out = stdout.lock();
                 if let (Some(sidx), Some(oidx)) = (ptr.s, ptr.o) {
                     let v = p.sections[sidx].options[oidx].value.clone();
-                    show::Show::new(self.flags & FLAG_SHOW_EXT != 0, self.delimiter.as_bytes()).value(&mut out, &v, false);
+                    show::Show::new(self.flags & FLAG_SHOW_EXT != 0, self.delimiter.as_bytes())
+                        .value(&mut out, &v, false);
                 } else if let Some(sidx) = ptr.s {
                     let _ = writeln!(out, "{}", p.sections[sidx].ty);
                 }
@@ -403,7 +409,13 @@ Options:\n\
                     return 1;
                 };
                 let pidx = ptr.p.expect("package");
-                ret = ops::reorder_section(&mut self.ctx, pidx, sidx, delta::strtoul_int(&String::from_utf8_lossy(&value)), false);
+                ret = ops::reorder_section(
+                    &mut self.ctx,
+                    pidx,
+                    sidx,
+                    delta::strtoul_int(&String::from_utf8_lossy(&value)),
+                    false,
+                );
             }
             CliCmd::Del => {
                 // `if (ptr.value && !sscanf(ptr.value, "%d", &dummy)) return 1;`
@@ -531,14 +543,18 @@ Options:\n\
     fn uci_cmd(&mut self, argv: &[Arg]) -> i32 {
         let command = &argv[0];
         let cmd = match command.as_slice() {
-            c if c.eq_ignore_ascii_case(b"batch") && self.flags & FLAG_BATCH == 0 => return self.batch(),
+            c if c.eq_ignore_ascii_case(b"batch") && self.flags & FLAG_BATCH == 0 => {
+                return self.batch()
+            }
             c if c.eq_ignore_ascii_case(b"show") => CliCmd::Show,
             c if c.eq_ignore_ascii_case(b"changes") => CliCmd::Changes,
             c if c.eq_ignore_ascii_case(b"export") => CliCmd::Export,
             c if c.eq_ignore_ascii_case(b"commit") => CliCmd::Commit,
             c if c.eq_ignore_ascii_case(b"get") => CliCmd::Get,
             c if c.eq_ignore_ascii_case(b"set") => CliCmd::Set,
-            c if c.eq_ignore_ascii_case(b"ren") || c.eq_ignore_ascii_case(b"rename") => CliCmd::Rename,
+            c if c.eq_ignore_ascii_case(b"ren") || c.eq_ignore_ascii_case(b"rename") => {
+                CliCmd::Rename
+            }
             c if c.eq_ignore_ascii_case(b"revert") => CliCmd::Revert,
             c if c.eq_ignore_ascii_case(b"reorder") => CliCmd::Reorder,
             c if c.eq_ignore_ascii_case(b"del") || c.eq_ignore_ascii_case(b"delete") => CliCmd::Del,
@@ -558,7 +574,9 @@ Options:\n\
             | CliCmd::Rename
             | CliCmd::Revert
             | CliCmd::Reorder => self.do_section_cmd(cmd, argv),
-            CliCmd::Show | CliCmd::Export | CliCmd::Commit | CliCmd::Changes => self.do_package_cmd(cmd, argv),
+            CliCmd::Show | CliCmd::Export | CliCmd::Commit | CliCmd::Changes => {
+                self.do_package_cmd(cmd, argv)
+            }
             CliCmd::Import => self.do_import(argv),
             CliCmd::Add => self.do_add(argv),
             CliCmd::Help => {
@@ -569,29 +587,7 @@ Options:\n\
     }
 }
 
-/// The C entry point.  Taking `main` from libc skips the Rust runtime
-/// prologue a one-shot CLI never needs: the stdio `ppoll`, the SIGPIPE ignore
-/// (libuci's uci leaves SIGPIPE at its default too) and the stack-overflow
-/// handler with its `sigaltstack` mapping -- 13 syscalls and one mapping per
-/// invocation, a third of an `export`.  Everything else in std works as
-/// before; `std::process::exit` still flushes stdout.  `build.rs` supplies the
-/// one link argument the static musl build then needs.
-///
-/// # Safety
-/// Called once by libc with `argc` pointers to NUL-terminated strings.
-#[cfg(not(test))]
-#[no_mangle]
-pub unsafe extern "C" fn main(argc: std::ffi::c_int, argv: *const *const std::ffi::c_char) -> std::ffi::c_int {
-    // argv as bytes: values in `set`/`add_list` tuples may hold any byte (libuci
-    // does not assume UTF-8); names, paths and commands are converted where needed
-    let raw: Vec<Arg> = (0..argc.max(0) as usize)
-        // SAFETY: the caller contract above; each pointer is a C string.
-        .map(|i| unsafe { std::ffi::CStr::from_ptr(*argv.add(i)) }.to_bytes().to_vec())
-        .collect();
-    run(raw)
-}
-
-fn run(raw: Vec<Arg>) -> ! {
+pub fn run(raw: Vec<Arg>) -> ! {
     let appname = raw.first().map(|a| s(a)).unwrap_or_else(|| "uci".into());
     let mut cli = Cli {
         ctx: Context::new(),
