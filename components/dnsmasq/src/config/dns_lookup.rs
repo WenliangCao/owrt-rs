@@ -13,7 +13,6 @@ use std::os::fd::{AsFd, AsRawFd};
 use std::process::Command;
 
 const INTERNAL_LOOKUP: &str = "--dnsmasq-internal-lookup-v1";
-const MAX_REQUEST: usize = 4 * 1024 * 1024;
 #[cfg(test)]
 const TEST_CHANNELS: &str = "DNSMASQ_TEST_LOOKUP_CHANNELS";
 
@@ -274,10 +273,14 @@ fn invalid_request() -> io::Error {
 fn request_bytes(output: &mut Vec<u8>, bytes: Option<&[u8]>) -> io::Result<()> {
     match bytes {
         Some(bytes) => {
-            if output.len().saturating_add(4).saturating_add(bytes.len()) > MAX_REQUEST {
-                return Err(invalid_request());
-            }
-            output.extend_from_slice(&(bytes.len() as u32).to_be_bytes());
+            let length = u32::try_from(bytes.len()).map_err(|_| invalid_request())?;
+            let total = output
+                .len()
+                .checked_add(4)
+                .and_then(|size| size.checked_add(bytes.len()))
+                .ok_or_else(invalid_request)?;
+            u32::try_from(total).map_err(|_| invalid_request())?;
+            output.extend_from_slice(&length.to_be_bytes());
             output.extend_from_slice(bytes);
         }
         None => output.extend_from_slice(&u32::MAX.to_be_bytes()),
@@ -344,11 +347,10 @@ fn encode_request(rules: &[ServerRule], reverse: bool) -> io::Result<Vec<u8>> {
             }
             RuleTarget::ZeroAddresses => output.push(4),
         }
-        if output.len() > MAX_REQUEST {
-            return Err(invalid_request());
-        }
+        u32::try_from(output.len()).map_err(|_| invalid_request())?;
     }
-    let mut framed = (output.len() as u32).to_be_bytes().to_vec();
+    let length = u32::try_from(output.len()).map_err(|_| invalid_request())?;
+    let mut framed = length.to_be_bytes().to_vec();
     framed.extend(output);
     Ok(framed)
 }
@@ -402,9 +404,7 @@ impl<'a> RequestReader<'a> {
 }
 
 fn decode_request(bytes: &[u8]) -> io::Result<(Vec<ServerRule>, bool)> {
-    if bytes.len() > MAX_REQUEST {
-        return Err(invalid_request());
-    }
+    u32::try_from(bytes.len()).map_err(|_| invalid_request())?;
     let mut input = RequestReader(bytes);
     if input.take(8)? != b"DNSLKP01" {
         return Err(invalid_request());
@@ -477,15 +477,20 @@ fn decode_request(bytes: &[u8]) -> io::Result<(Vec<ServerRule>, bool)> {
     Ok((rules, reverse))
 }
 
-fn read_request(input: &mut File) -> io::Result<(Vec<ServerRule>, bool)> {
+fn read_request(input: &mut impl Read) -> io::Result<(Vec<ServerRule>, bool)> {
     let mut length = [0; 4];
     input.read_exact(&mut length)?;
-    let length = u32::from_be_bytes(length) as usize;
-    if !(13..=MAX_REQUEST).contains(&length) {
+    let length = u32::from_be_bytes(length);
+    if length < 13 {
         return Err(invalid_request());
     }
-    let mut bytes = vec![0; length];
-    input.read_exact(&mut bytes)?;
+    // A peer-supplied length bounds the stream, never the initial allocation.
+    // A forged 4GiB header followed by EOF only allocates for bytes received.
+    let mut bytes = Vec::new();
+    input.take(u64::from(length)).read_to_end(&mut bytes)?;
+    if bytes.len() as u64 != u64::from(length) {
+        return Err(invalid_request());
+    }
     decode_request(&bytes)
 }
 
@@ -653,6 +658,60 @@ mod tests {
         let mut trailing = bytes.to_vec();
         trailing.push(0);
         assert!(decode_request(&trailing).is_err());
+    }
+
+    #[test]
+    fn forged_large_request_length_reads_short_eof_without_header_sized_buffer() {
+        struct ShortInput {
+            input: io::Cursor<Vec<u8>>,
+            largest_read: usize,
+        }
+        impl Read for ShortInput {
+            fn read(&mut self, bytes: &mut [u8]) -> io::Result<usize> {
+                self.largest_read = self.largest_read.max(bytes.len());
+                self.input.read(bytes)
+            }
+        }
+        let mut bytes = u32::MAX.to_be_bytes().to_vec();
+        bytes.extend_from_slice(b"DNSLKP01\0\0\0\0\0");
+        let length = bytes.len();
+        let mut input = ShortInput {
+            input: io::Cursor::new(bytes),
+            largest_read: 0,
+        };
+        assert_eq!(
+            read_request(&mut input).unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
+        assert_eq!(
+            input.input.position(),
+            length as u64,
+            "must consume the actual short body"
+        );
+        assert!(
+            input.largest_read < 65_536,
+            "header must not become buffer capacity"
+        );
+    }
+
+    #[test]
+    fn request_larger_than_four_mebibytes_has_no_configuration_cutoff() {
+        let mut rule = parse_rules(b"server", &EncodedArg::command_line(b"/one/127.0.0.2"))
+            .unwrap()
+            .remove(0);
+        rule.domain.suffix = [
+            vec![b'a'; 50],
+            vec![b'b'; 50],
+            vec![b'c'; 50],
+            vec![b'd'; 50],
+        ]
+        .join(&b'.');
+        let rules = vec![rule; 20_480];
+        let framed = encode_request(&rules, true).unwrap();
+        assert!(framed.len() > 4 * 1024 * 1024);
+        let (decoded, reverse) = read_request(&mut framed.as_slice()).unwrap();
+        assert_eq!(decoded, rules);
+        assert!(reverse);
     }
 
     #[test]
