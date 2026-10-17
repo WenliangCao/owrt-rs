@@ -70,9 +70,13 @@ def compare(rows, expected, actual):
 
 
 def source_hashes(root):
-    files = [*sorted((root / "components/dnsmasq/src").rglob("*.rs")),
-             *sorted((root / "components/ubus/src").rglob("*.rs")),
-             root / "components/dnsmasq/Cargo.toml", root / "components/dnsmasq/Cargo.lock"]
+    files = []
+    for component in ("dnsmasq", "dnsmasq/platform", "ubus", "platform"):
+        directory = root / "components" / component
+        if directory.is_dir():
+            files.extend(sorted((directory / "src").rglob("*.rs")))
+            files.append(directory / "Cargo.toml")
+    files.append(root / "components/dnsmasq/Cargo.lock")
     assert files and (root / "components/dnsmasq/src/dns/daemon_stale_tests.rs").is_file()
     return {str(path.relative_to(root)): digest(path) for path in files}
 

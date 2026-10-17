@@ -26,9 +26,10 @@ class PackageBuildTests(unittest.TestCase):
                         "packaging/openwrt/owrt-dnsmasq/Makefile",
                         "tools/dnsmasq/build_package.sh", "tools/dnsmasq/build_package.py",
                         "components/dnsmasq/Cargo.lock"]
-            for component in ("dnsmasq", "dnsmasq/platform", "ubus"):
+            for component in ("dnsmasq", "dnsmasq/platform", "ubus", "platform"):
                 required += [f"components/{component}/Cargo.toml", f"components/{component}/src/lib.rs"]
-            for name in required + ["components/dnsmasq/platform/target/local-artifact"]:
+            for name in required + ["components/dnsmasq/platform/target/local-artifact",
+                                    "components/platform/target/local-artifact"]:
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(name)

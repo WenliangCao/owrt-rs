@@ -94,6 +94,10 @@ def inputs(root):
              "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh",
              "tools/dnsmasq/build_package.py", "components/dnsmasq/Cargo.lock",
              "components/dnsmasq/platform/Cargo.toml", "components/dnsmasq/platform/src"]
+    # Older frozen trees predate the shared core boundary; current trees must
+    # bind all of it alongside ubus, without sweeping local build artifacts in.
+    if (root / "components/platform/Cargo.toml").is_file():
+        paths += ["components/platform/Cargo.toml", "components/platform/src"]
     for component in ("dnsmasq", "ubus"):
         paths += [f"components/{component}/Cargo.toml", f"components/{component}/src"]
     return {str(path.relative_to(root)): sha(path)
@@ -352,7 +356,7 @@ def audit_build(args, out, report):
         report["git_commit"] = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
         report["source_commit_provenance"] = "local git checkout; exact file hashes remain authoritative"
         report["source_git_status"] = subprocess.check_output(["git", "-C", str(ROOT), "status", "--porcelain", "--",
-            "rust-toolchain.toml", "manifests/release-25.12.5.json", "components/dnsmasq", "components/ubus",
+            "rust-toolchain.toml", "manifests/release-25.12.5.json", "components/dnsmasq", "components/ubus", "components/platform",
             "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh", "tools/dnsmasq/build_package.py"], text=True)
         require(not report["source_git_status"], "build inputs have uncommitted changes; source commit would be inaccurate")
         epoch = subprocess.check_output(["git", "-C", str(ROOT), "show", "-s", "--format=%ct", "HEAD"], text=True).strip()

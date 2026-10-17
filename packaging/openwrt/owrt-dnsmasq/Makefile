@@ -66,6 +66,9 @@ define Build/Prepare
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/src/. $(PKG_BUILD_DIR)/dnsmasq/platform/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/. $(PKG_BUILD_DIR)/ubus/src/
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/platform/src
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/platform/Cargo.toml $(PKG_BUILD_DIR)/platform/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/platform/src/. $(PKG_BUILD_DIR)/platform/src/
 	$(if $(OWRT_DNSMASQ_FROZEN_ELF),$(CP) $(OWRT_DNSMASQ_FROZEN_ELF) $(PKG_BUILD_DIR)/frozen-dnsmasq)
 endef
 

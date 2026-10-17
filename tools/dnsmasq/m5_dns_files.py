@@ -1212,7 +1212,7 @@ def qualify(args):
     # Git blob hashes bind every compiled crate source/manifest/config to the
     # original immutable build archive without trusting today's worktree.
     tree = subprocess.check_output(['git', 'ls-tree', '-rz', args.source_commit, '--',
-        'components/dnsmasq', 'components/ubus', '.cargo', 'rust-toolchain.toml'])
+        'components/dnsmasq', 'components/ubus', 'components/platform', '.cargo', 'rust-toolchain.toml'])
     expected = {}
     for row in tree.split(b'\0'):
         if not row: continue

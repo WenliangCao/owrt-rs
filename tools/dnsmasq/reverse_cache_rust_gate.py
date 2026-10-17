@@ -40,7 +40,7 @@ def build(args):
         assert package.pax_headers.get("comment") == args.source_commit, package.pax_headers
         for member in package.getmembers():
             assert not member.name.startswith("/") and ".." not in Path(member.name).parts
-            assert member.name == "components" or member.name.startswith(("components/dnsmasq", "components/ubus"))
+            assert member.name == "components" or member.name.startswith(("components/dnsmasq", "components/ubus", "components/platform"))
             assert member.isfile() or member.isdir()
         package.extractall(source, filter="data")
     original = files(source)

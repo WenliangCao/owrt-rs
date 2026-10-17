@@ -1,10 +1,11 @@
 name: dnsmasq-target-check
 on:
   push:
-    branches: [main, research/dnsmasq-safe-v022-20261017]
+    branches: [main, research/dnsmasq-safe-v022-20261017, research/core-safe-20261017]
     paths:
       - "components/dnsmasq/**"
       - "components/ubus/**"
+      - "components/platform/**"
       - "packaging/openwrt/owrt-dnsmasq/**"
       - "tools/ci_*dnsmasq*.py"
       - "tools/dnsmasq/**"
@@ -14,6 +15,7 @@ on:
     paths:
       - "components/dnsmasq/**"
       - "components/ubus/**"
+      - "components/platform/**"
       - "packaging/openwrt/owrt-dnsmasq/**"
       - "tools/ci_*dnsmasq*.py"
       - "tools/dnsmasq/**"
