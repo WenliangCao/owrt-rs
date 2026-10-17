@@ -488,7 +488,8 @@ impl Router {
         ));
         let mut file = OpenOptions::new()
             .write(true)
-            .create_new(true)
+            .create(true)
+            .truncate(false)
             .mode(0o644)
             .open(&temporary)?;
         let entries = self
@@ -513,6 +514,10 @@ impl Router {
             .collect();
         let bytes = Json::Object(vec![("slaac".into(), Json::Array(entries))]).to_bytes();
         let result = (|| {
+            // A crash can leave this PID's temporary file behind. Like C's
+            // lockf + ftruncate, recover it only after taking the file lock.
+            rustix::fs::fcntl_lock(&file, rustix::fs::FlockOperation::LockExclusive)?;
+            file.set_len(0)?;
             file.write_all(&bytes)?;
             file.sync_all()?;
             drop(file);
@@ -1101,5 +1106,45 @@ mod tests {
         fs::write(directory.0.join("odhcpd.pio.br-lan"), b"{broken").unwrap();
         assert!(recovered.load_state(&directory.0, later).is_err());
         assert_eq!(recovered.ipv6ra(later), state);
+    }
+
+    #[test]
+    fn interrupted_pio_temporary_file_is_reused_and_replacement_can_be_recovered() {
+        let directory = Temporary::new();
+        let pool = pool();
+        let mut kernel = kernel();
+        let mut router = Router::new("br-lan", clock(0));
+        router.timer(&context(&pool, &kernel, 1000)).unwrap();
+        router.sent();
+        router.save_state(&directory.0, clock(1000)).unwrap();
+        let final_path = directory.0.join("odhcpd.pio.br-lan");
+        let previous = fs::read(&final_path).unwrap();
+        let temporary = directory
+            .0
+            .join(format!(".odhcpd.pio.br-lan.{}.tmp", std::process::id()));
+        fs::write(&temporary, [b'x'; 10_000]).unwrap();
+
+        kernel.links[0].addresses[0] = address("2001:db8:2:1::1", 64);
+        router
+            .solicit(&context(&pool, &kernel, 2000), ip("fe80::1"))
+            .unwrap();
+        router.sent();
+        router.save_state(&directory.0, clock(2000)).unwrap();
+        assert!(!temporary.exists());
+        let saved = fs::read(&final_path).unwrap();
+        assert_ne!(saved, previous);
+        assert!(saved.len() < 10_000);
+
+        let mut recovered = Router::new("br-lan", clock(3000));
+        recovered.load_state(&directory.0, clock(3000)).unwrap();
+        let state = recovered.ipv6ra(clock(3000));
+        let entries = state.as_array().unwrap();
+        for (prefix, stale) in [("2001:db8:1:1::1", true), ("2001:db8:2:1::1", false)] {
+            let entry = entries
+                .iter()
+                .find(|entry| entry.get("prefix").and_then(Json::as_str) == Some(prefix))
+                .unwrap();
+            assert_eq!(entry.get("stale"), Some(&Json::Bool(stale)));
+        }
     }
 }
