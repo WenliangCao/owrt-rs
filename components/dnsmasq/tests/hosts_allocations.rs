@@ -696,6 +696,31 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
     use dnsmasq_rs::dns::lease_names::{LeaseNames, LeasePolicy};
     use dnsmasq_rs::dns::local::{configured_hosts, configured_hosts_bulk};
 
+    // As in hosts.rs's finite/immortal C counterexample, earlier names must
+    // not split the retained lease's name-hash chain. The hash includes process
+    // pointers, so fixed "a.test" can collide under a different executable/ASLR.
+    // Observe bucket topology through independent three-address insertion,
+    // outside fault injection; never choose a fixture by its final PTR answer.
+    fn shares_bucket(name: &[u8], blocker: &[u8]) -> bool {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
+        let first = "192.0.2.10".parse().unwrap();
+        let middle = "192.0.2.11".parse().unwrap();
+        let last = "192.0.2.12".parse().unwrap();
+        for (name, address) in [(name, first), (blocker, middle), (name, last)] {
+            assert!(hosts.insert_checked(name.to_vec(), address, 37, 2).unwrap());
+        }
+        let addresses: Vec<_> = hosts.addresses(name).map(|host| host.address).collect();
+        assert!(addresses == [first, last] || addresses == [last, first]);
+        addresses == [last, first]
+    }
+    let lease = (0..10000)
+        .map(|id| format!("a{id}.test"))
+        .find(|name| [b"ready.test".as_slice(), b"old.test", b"x.test"]
+            .into_iter().all(|blocker| !shares_bucket(name.as_bytes(), blocker)))
+        .expect("bounded name pool has a separate bucket");
+    let prefix = std::str::from_utf8(BULK_PREFIX).unwrap().replace("a.test", &lease);
+
     let mut config = DnsConfig::default();
     config.apply(&lex_line(b"host-record=ready.test,192.0.2.41").unwrap().unwrap()).unwrap();
     for expires in [None, Some(3600)] {
@@ -703,7 +728,7 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
             for persistent in [false, true] {
                 let mut old = configured_hosts(&config, 37);
                 let retained = LeaseNames::build(&[DnsLeaseRecord {
-                    name: b"a.test", address: "192.0.2.1".parse().unwrap(), expires,
+                    name: lease.as_bytes(), address: "192.0.2.1".parse().unwrap(), expires,
                 }], &mut old, &[], LeasePolicy::default(), &mut ());
                 assert_eq!(retained.active_entries().count(), 1);
                 assert!(retained.entries()[0].reverse);
@@ -716,7 +741,7 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
                         let mut replacement = configured_hosts_bulk(
                             &config, 37, BULK_PACKET_BYTES, 1000, 1000, &retained,
                         )?;
-                        for (source, input) in [(2, BULK_PREFIX), (3, BULK_SUFFIX)] {
+                        for (source, input) in [(2, prefix.as_bytes()), (3, BULK_SUFFIX)] {
                             if replacement.read(input, source, 37, false, |_| None).allocation_failed {
                                 return Err(());
                             }
@@ -742,12 +767,12 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
                         } else {
                             vec![b"x.test".to_vec(), b"y.test".to_vec()]
                         };
-                        assert_eq!(ptr_names(&replacement, "192.0.2.1"), expected);
+                        assert_eq!(ptr_names(&replacement, "192.0.2.1"), expected, "fixture lease={lease}");
                         assert_eq!(ptr_names(&published, "192.0.2.1"), expected);
                         assert_eq!(replacement.len(), 7, "DHCP shadows are not published hosts");
                         let leases = retained.rebuild(&mut replacement, &[], &mut ());
-                        assert_eq!(leases.lookup(b"a.test", 0).count(), 0,
-                            "static a.test suppresses the old lease after bulk loading");
+                        assert_eq!(leases.lookup(lease.as_bytes(), 0).count(), 0,
+                            "same-name static host suppresses the old lease after bulk loading");
                         assert_eq!(ptr_names(&replacement, "192.0.2.1"), expected,
                             "post-HUP lease removal must not rewrite bulk PTR ownership");
                         completed = true;
