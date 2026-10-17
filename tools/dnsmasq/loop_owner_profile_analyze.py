@@ -282,6 +282,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--demangler')
     parser.add_argument('--expected-elf-sha256', help='explicit exact Rust artifact; original C/E defaults remain')
+    parser.add_argument('--minimum-samples', type=int, default=0)
     args = parser.parse_args()
     if args.output.exists():
         parser.error('output must be fresh')
@@ -378,7 +379,7 @@ def main():
             images[path] = (elf, ranges, names)
             symbols[path] = proof
         samples = samples_from_text((root / 'samples.txt').read_text())
-        if (scope['sample_event'] not in ('instructions:u', 'cycles:u')
+        if (scope['sample_event'] not in ('instructions:u', 'cycles:u', 'instructions:uS', 'cycles:uS')
                 or any(row.event != scope['sample_event'] or row.period != scope['sample_period'] for row in samples)):
             raise ValueError('unexpected sampling event or period')
         totals = check_report((root / 'self.txt').read_text(), samples)
@@ -386,6 +387,21 @@ def main():
         result = attribute_samples(samples, before, images)
         output.update(totals=totals, process_tree=lineage, symbols=symbols, demangler=demangler, **result)
         output['source_files'].update({name: sha(root / name) for name in ('samples.txt', 'self.txt', 'task-events.txt')})
+        raw_path = root / 'raw-records.txt'
+        if raw_path.exists():
+            footer = raw_path.read_text().rsplit('Aggregated stats:', 1)[1]
+            records = {name: int(count) for name, count in re.findall(r'^\s*(\S+) events:\s+(\d+)', footer, re.M)}
+            valid = (not any(records.get(name, 0) for name in ('THROTTLE', 'UNTHROTTLE', 'LOST', 'LOST_SAMPLES'))
+                     and totals['samples'] >= args.minimum_samples)
+            output['sampling_coverage'] = {'records': records, 'minimum_samples': args.minimum_samples,
+                                           'eligible_for_coarse_hotspots': valid}
+            output['source_files']['raw-records.txt'] = sha(raw_path)
+            output['source_files']['event-attributes.txt'] = sha(root / 'event-attributes.txt')
+            if not valid:
+                args.output.write_text(json.dumps(output, indent=2) + '\n')
+                raise ValueError('sampling throttled, lost records or insufficient samples; full ranking retained')
+        elif args.minimum_samples:
+            raise ValueError('sampling coverage metadata missing')
         output['limitations'] = [
             'Self user event samples, not inclusive caller stacks, elapsed time or kernel cost.',
             'Non-user PCs from a user event remain unattributed in the full denominator; they do not measure kernel cost.',

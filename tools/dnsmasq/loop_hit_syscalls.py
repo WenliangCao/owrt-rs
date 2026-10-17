@@ -217,7 +217,10 @@ def main():
     assert complete['valid_count_profile'] and complete['tree_tail_complete']
     assert tail['complete'] and not tail['remaining_children']
     assert not client['interrupted'] and not client['output_failed']
-    for phase, expected in (('warmup', 1000), ('measurement', 4000)):
+    expected_counts = (500, 2000) if client['mode'] == 'dhcp' else (1000, 4000)
+    if client['mode'] == 'dhcp':
+        assert not json.loads((p / 'fixed-count-validation.json').read_text())['errors']
+    for phase, expected in zip(('warmup', 'measurement'), expected_counts):
         counts = client[phase]
         assert counts['scheduled'] == counts['sent'] == counts['correct'] == expected
         assert all(counts[key] == 0 for key in ('timeout', 'wrong', 'transport_error', 'scheduled_skipped'))
@@ -228,7 +231,7 @@ def main():
     assert not trace['execs'], 'child exec requires a separate image-mapping identity audit'
     queries = client['warmup']['correct'] + client['measurement']['correct']
     pids = set(trace['calls'])
-    report = {'scope': 'Entered/completed calls for the captured owned process tree; 5000 client queries plus fixed grace, not pure steady per-query cost.',
+    report = {'scope': 'Entered/completed calls for the captured owned process tree; complete warmup/measurement operations plus fixed grace, not pure steady per-operation cost.',
               'parser_sha256': sha(Path(__file__)), 'private_directory': str(p),
               'root_pid': root_pid, 'processes': sorted(pids), 'fork_parent_by_pid': trace['parents'],
               'observed_exited_pids': trace['exited'], 'incomplete_entered_calls': trace['incomplete_entries'],

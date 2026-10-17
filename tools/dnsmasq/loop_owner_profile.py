@@ -81,15 +81,21 @@ def main():
     parser.add_argument('--fixed-device-counts', action='store_true',
                         help='apply the existing fixed fixture completion/upstream/DORA validator')
     parser.add_argument('--sample-event', choices=('instructions:u', 'cycles:u'), default='instructions:u')
+    parser.add_argument('--sample-period', type=int, default=10000)
+    parser.add_argument('--sample-running-time', action='store_true',
+                        help='record enabled/running metadata on the same user sampling event')
     parser.add_argument('--stat-events', help='explicit diagnostic event group; preserves raw, unscaled counts')
     parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
     assert args.rate >= 0 and (args.rate != 0 or args.mode == 'udp')
+    assert args.sample_period > 0
     assert re.fullmatch('[0-9a-f]{64}', args.loadgen_sha256)
     assert re.fullmatch('[0-9a-f]{64}', args.upstream_sha256)
     assert args.mode != 'dhcp' or (args.profile == 'hit' and args.rate == 100)
     assert not args.fixed_device_counts or args.rate == (100 if args.mode == 'dhcp' else 200)
     observer = 'strace' if args.strace else args.observer
+    sample_event = args.sample_event + ('S' if args.sample_running_time else '')
+    assert not args.sample_running_time or observer == 'sample'
     assert args.stat_events is None or observer == 'stat', '--stat-events requires --observer stat'
     assert bool(args.build) != bool(args.stock_image_root), 'select one exact implementation'
     assert os.readlink('/proc/self/ns/net') != os.readlink('/proc/1/ns/net')
@@ -147,7 +153,8 @@ def main():
          'artifact_file': artifact.name, 'mapped_images': image_files,
          'process_tree': 'root and every inherited fork; no --no-inherit',
          'counter_window': '5s warmup + 20s measurement at the recorded rate, then fixed 1s drain; prewarm excluded',
-         'sample_event': args.sample_event, 'sample_period': 10000,
+         'sample_event': sample_event, 'sample_period': args.sample_period,
+         'sample_running_time': args.sample_running_time,
          'stat_events': args.stat_events or '{instructions:u,instructions:k,cycles:u,cycles:k}',
          'stat_no_scale': args.stat_events is not None,
          'deployed_baseline': expected == '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'})
@@ -292,7 +299,8 @@ def main():
                 time.sleep(.01)
         elif observer != 'none':
             if observer == 'sample':
-                instruments.append(instrument(['perf', 'record', '-e', args.sample_event, '-c', '10000', '-p', daemon.pid,
+                instruments.append(instrument(['perf', 'record', *(['--running-time'] if args.sample_running_time else []),
+                                   '-e', sample_event, '-c', str(args.sample_period), '-p', daemon.pid,
                                    '-o', out / 'perf.data'], 'perf-record'))
             else:
                 instruments.append(instrument(['perf', 'stat', '-vv', '-x,',
@@ -357,7 +365,9 @@ def main():
                             '--no-demangle'], 'self.txt'),
                            (['perf', 'script', '-i', out / 'perf.data', '--show-task-events',
                              '--show-mmap-events', '--show-lost-events', '--ns',
-                             '-F', 'pid,tid,misc,time,event,ip,sym,dso'], 'task-events.txt')]
+                             '-F', 'pid,tid,misc,time,event,ip,sym,dso'], 'task-events.txt'),
+                           (['perf', 'report', '-D', '-i', out / 'perf.data'], 'raw-records.txt'),
+                           (['perf', 'evlist', '-v', '-i', out / 'perf.data'], 'event-attributes.txt')]
         for argv, name in exports:
             with (out / name).open('wb') as stdout:
                 subprocess.run(list(map(str, argv)), stdout=stdout, check=True)
