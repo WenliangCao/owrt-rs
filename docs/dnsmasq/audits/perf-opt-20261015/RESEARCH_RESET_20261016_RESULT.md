@@ -811,3 +811,26 @@ Anon峰492→488KiB，FD12/线程1。固定双族800填充、零steady上游及T
 比先前估计大。不能把收益全除以11次分配来推单次allocator成本，也不能拆开新源码与PGO
 的作用。K尚未接受；现在只按既定同双栈九对确认（同AA3.0579007、5+95+1）验证稳定性，
 确认通过才原118。普通单族C/J与v0.2.0/J数字不与本双栈结果相加，不声称C/K双栈已对比。
+
+## K九对观测器缺失与最小工具修复
+
+独立九对确认已完成r1–r6共12个有效窗；r7-J的100秒/20000请求全正确，800预热填充、
+steady上游0、零错误/超时/漏发，before/after各2条正常，COMPLETE存在；但资源观测文件
+及stderr均0B，原分析器assert samples拒绝，不能使用该窗CPU/资源。r7-K未启动，
+最低MemAvailable96784KiB、无健康stop、外网均200，生产/E/F恢复，STOP及全部raw保留。
+只读dmesg无OOM/segfault/hung-task匹配。原case吞掉observer wait状态且未存实际argv，
+所以实际死因未知；最终PID文件为正整数，不能证明启动瞬间已写完。
+
+主代理找到可解释签名的PID发布竞态：echo先创建再写文件，父shell只等-f即可读到空值；
+starttime随后读取/proc//stat仍成功，原probe空helper参数会静默exit2。Oracle原精确
+ac7ae7ee probe一次复现exit2/0B/0B，正常helpers得exit0/2条样本；事件控制暂停证实旧
+publisher暴露空PID，tmp+rename只发布完整PID。**这是机制复现，不是r7实际根因证明。**
+证据集中在`resource-probe-pid-race-20261017.json`（f8919f70/d2c66b17）。
+
+ade5309e只修case工具的原子PID发布、starttime参数、observer参数/PID/start/exit记录与
+非空输出/错误退出检查；不改sampler或产品二进制。Mac与Oracle4项事件控制回归和sh -n
+均过；Oracle测试日志SHA35ee5071d6c6d49fa3d0dcdd3ef641617ec00bbde6c252725b3e4339c4f13206。
+下一6窗双栈case及未开始的full case按局部差分移植，路由与自哈希指向实际新脚本；逆
+替换精确恢复旧hash，配置、流量、两次预热、CPUclock及完整场景均不变。
+按冻结方案保留12有效，先r8/r9四窗、末尾AB补r7一次，坏r7-J不选；最后仍9对，同AA与
+判据，不用6对替9对。确认通过才118；再次观测失败停，不自动增加样本。
