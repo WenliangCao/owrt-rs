@@ -162,7 +162,8 @@ def make_plan(prefix, bundle):
                                  'median positive delta exceeds same-scene K/K noise and clock resolution '
                                  'requires stop/review, except fixed small-delta extension below; '
                                  '4/5 direction alone is a trend, not this CPU-clock regression gate',
-            'noise_review': 'K/K noise >=5us blocks inference until root reviews instrument/model',
+            'noise_review': 'K/K noise >=4us (near the5us effect of interest) blocks inference '
+                            'until root reviews instrument/model',
             'model_review': 'candidate median adverse CPU delta >=5us requires explanation even if noisy',
             'full118': 'all original33 W/direction/tick/lifecycle-resolution gates retained; '
                        'any discernible adverse direction blocks acceptance',

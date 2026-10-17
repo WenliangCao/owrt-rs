@@ -28,7 +28,7 @@ DHCP 6/150 客户端、20 次原 lifecycle 重复及 1 ms 比较地板均不变�
 ## 判断与停止
 
 先测同场 K/K 最大绝对配对 CPU 差作为噪声。CPU-clock 仪器分辨率须不高于
-5/3 µs；K/K 噪声接近或超过 5 µs 时先检查仪器，不从噪声中选取有利结果。
+5/3 µs；K/K 噪声达到 4 µs（接近 5 µs 关注量级）时先检查仪器，不从噪声中选取有利结果。
 原 33 项 W、方向、tick 与生命周期地板门完整保留，任何原门可分辨退化阻止接受。
 CPU-clock 补充门的 4/5 正差只记趋势；5/5 同向且中位正差超同场 AA 才进入退化判断。
 双栈九对保留 d2/d8 和三个顺序 block 中位数；d2 超 AA 且三个 block 均正即阻断。
@@ -51,6 +51,12 @@ CPU-clock 补充门的 4/5 正差只记趋势；5/5 同向且中位正差超同�
 `9cfe77a4c3c6dc767da0014265c3dfe2a3a9f35d49c6d3e29c4c4ed8fe55cee5`。
 `safe_v022_device_plan.py --bundle <private bundle> --out <private plan.json>` 逐文件核验，
 生成 148 个唯一标签、原 group argv、时限、条件追加和全部门；工具没有远程执行入口。
+
+支援工具重建保留原源码 basename：CPUclock 为 `device_cpu_clock_probe.c`，nice10 为
+`perf_opt_nice10.c`；严格 mixed 为 `m6a_upstream.c`，原 recipe 使用 `-Os -static
+-std=c11 -Wall -Wextra -Werror`，不能与普通上游统一按 `-O2` 重建。该差异来自保留的
+原工具收据，源码 SHA256 为 `1f29f0e76d5e864443c3ca45f80b7e5e65899d809ada626a820bf719d25f37a8`。
+首次统一构建的三个不同 hash 保留为准备记录，不宣称是历史产物。
 
 尚缺：新 PGO 身份；无 proc/UID453/mount+PID namespace 正负控；完整正确性；9 个
 原支援二进制与启动补充的 SDK 构建/Oracle 预演；pending resolver 资源与 2/4/8 FD
