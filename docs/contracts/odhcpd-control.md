@@ -61,7 +61,9 @@ C reload 顺序是 network globals（`dhcp_default_duid`）→ dhcp/odhcpd →
 dhcp pools → host → boot6 → system timezone（`enable_tz=1` 时）→ netifd `data`
 → 启停服务（`config.c:2026`）。`system.timezone`/`zonename` 空白字符转为 `_`，
 若配置存在则属于默认启用的 DHCPv6 输出；不能因本机未显式设置 `enable_tz`
-而漏掉。现有 intake 未含 system 文件，首次实现前只需补取这两个字段是否存在。
+而漏掉。补采确认本机分别为 `CET-1CEST,M3.5.0,M10.5.0/3` 与
+`Europe/Berlin`，因此这两个 DHCPv6 时区选项纳入必要兼容；直接传字符串，
+不引入时区数据库。
 
 复用 `owrt_uci::Context::new()`、`file::load()`、`Package/Section/OptionValue`，
 保留默认 `/var/run/uci` override、`/tmp/.uci` delta 与字符串/列表差异。C 的
@@ -136,8 +138,10 @@ dhcp 对象不恢复。用户要求的重连是明确增强：断线后丢弃连
 `invoke_status_until`、`incoming_if_complete`、`reply_data_status` 与 `BlobBuf`。
 事件注册是调用 system event object 的 register，**不是 subscribe object 1**。
 现有 netifd/dnsmasq owner loop 已示范丢弃旧 ID 后重注册；不照搬整个服务层。
-目前公开 invoke API 是有界同步接口；若直接用于 dump，应证明其等待不会拖慢
-首条 RA/首个 DHCPv6 回复，不能把 C 的异步行为当成已经具备。
+目前公开 invoke API 是有界同步接口。实现使用唯一一个 128 KiB 栈的 ubus
+worker，拥有连接和全部有界 bus I/O，通过有界 channel 与可 poll 的唤醒 fd
+交给协议主循环；协议主循环不等待 dump 或重连。线程栈和队列纳入实际内存
+验收，不把同步接口宣称为 C 的异步 API。
 
 ## 租约、hosts、触发器与调用方
 
